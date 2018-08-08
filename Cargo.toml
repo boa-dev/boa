@@ -1,0 +1,10 @@
+[package]
+name = "boa"
+version = "0.1.0"
+authors = ["Jason Williams <jase.williams@gmail.com>"]
+
+[dependencies]
+
+[[bin]]
+name = "js"
+path = "src/bin/bin.rs"
