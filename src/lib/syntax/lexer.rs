@@ -21,7 +21,7 @@ impl Lexer {
             buffer: buffer,
         }
     }
-
+    /// Push tokens onto the token queue
     fn push_token(&mut self, tk: TokenData) {
         self.tokens
             .push(Token::new(tk, self.line_number, self.column_number))
