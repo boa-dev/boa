@@ -1,3 +1,5 @@
+use std::error;
+use std::fmt::Error;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use syntax::ast::keyword::Keyword::*;
@@ -69,8 +71,28 @@ pub enum Keyword {
     KWith,
 }
 
+#[derive(Debug, Clone)]
+struct TokenError;
+impl Display for TokenError {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "invalid token")
+    }
+}
+
+// This is important for other errors to wrap this one.
+impl error::Error for TokenError {
+    fn description(&self) -> &str {
+        "invalid token"
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        // Generic error, underlying cause isn't tracked.
+        None
+    }
+}
 impl FromStr for Keyword {
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = TokenError;
+    fn from_str(s: &str) -> Result<Keyword, Self::Err> {
         match s {
             "break" => Ok(KBreak),
             "case" => Ok(KCase),
@@ -103,12 +125,12 @@ impl FromStr for Keyword {
             "void" => Ok(KVoid),
             "while" => Ok(KWhile),
             "with" => Ok(KWith),
-            _ => Err("Oh dear!"),
+            _ => Err(TokenError),
         }
     }
 }
 impl Display for Keyword {
-    fn fmt(&self, f: &mut Formatter) -> Result<String, String> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(
             f,
             "{}",
@@ -144,7 +166,6 @@ impl Display for Keyword {
                 KVoid => "void",
                 KWhile => "while",
                 KWith => "with",
-                _ => Err("ahgh"),
             }
         )
     }
