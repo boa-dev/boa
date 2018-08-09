@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 use syntax::ast::keyword::Keyword;
 use syntax::ast::pos::Position;
+use syntax::ast::punc::Punctuator;
 
 #[derive(Clone, PartialEq)]
 pub struct Token {
@@ -37,10 +38,10 @@ impl Display for TokenData {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self.clone() {
             TokenData::TBooleanLiteral(val) => write!(f, "{}", val),
-            TEOF => write!(f, "end of file"),
+            TokenData::TEOF => write!(f, "end of file"),
             TokenData::TIdentifier(ident) => write!(f, "{}", ident),
             TokenData::TKeyword(word) => write!(f, "{}", word),
-            TNullLiteral => write!(f, "null"),
+            TokenData::TNullLiteral => write!(f, "null"),
             TokenData::TNumericLiteral(num) => write!(f, "{}", num),
             TokenData::TPunctuator(punc) => write!(f, "{}", punc),
             TokenData::TStringLiteral(lit) => write!(f, "{}", lit),

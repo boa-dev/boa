@@ -72,15 +72,15 @@ pub enum Keyword {
 }
 
 #[derive(Debug, Clone)]
-struct TokenError;
-impl Display for TokenError {
+pub struct KeywordError;
+impl Display for KeywordError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "invalid token")
     }
 }
 
 // This is important for other errors to wrap this one.
-impl error::Error for TokenError {
+impl error::Error for KeywordError {
     fn description(&self) -> &str {
         "invalid token"
     }
@@ -91,7 +91,7 @@ impl error::Error for TokenError {
     }
 }
 impl FromStr for Keyword {
-    type Err = TokenError;
+    type Err = KeywordError;
     fn from_str(s: &str) -> Result<Keyword, Self::Err> {
         match s {
             "break" => Ok(KBreak),
@@ -125,7 +125,7 @@ impl FromStr for Keyword {
             "void" => Ok(KVoid),
             "while" => Ok(KWhile),
             "with" => Ok(KWith),
-            _ => Err(TokenError),
+            _ => Err(KeywordError),
         }
     }
 }
