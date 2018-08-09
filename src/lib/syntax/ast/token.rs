@@ -1,4 +1,6 @@
 use std::fmt::{Display, Formatter, Result};
+use syntax::ast::keyword::Keyword;
+use syntax::ast::pos::Position;
 
 #[derive(Clone, PartialEq)]
 pub struct Token {
@@ -7,6 +9,7 @@ pub struct Token {
     pub pos: Position,
 }
 
+#[derive(Clone, PartialEq)]
 pub enum TokenData {
     /// A boolean literal, which is either `true` or `false`
     TBooleanLiteral(bool),
