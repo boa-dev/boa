@@ -4,13 +4,25 @@ use syntax::ast::pos::Position;
 use syntax::ast::punc::Punctuator;
 
 #[derive(Clone, PartialEq)]
+/// Represents a token
 pub struct Token {
     // // The token
     pub data: TokenData,
     pub pos: Position,
 }
 
+impl Token {
+    /// Create a new detailed token from the token data, line number and column number
+    pub fn new(data: TokenData, line_number: u64, column_number: u64) -> Token {
+        Token {
+            data: data,
+            pos: Position::new(line_number, column_number),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq)]
+/// Represents the type of Token
 pub enum TokenData {
     /// A boolean literal, which is either `true` or `false`
     TBooleanLiteral(bool),
