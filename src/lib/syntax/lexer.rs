@@ -1,20 +1,22 @@
+use std::io::{BufRead, BufReader, ErrorKind};
+use std::str::Chars;
 use syntax::ast::punc::Punctuator;
 use syntax::ast::token::{Token, TokenData};
 
 /// A javascript Lexer
-pub struct Lexer {
+pub struct Lexer<B> {
     // The list fo tokens generated so far
     pub tokens: Vec<Token>,
     // The current line number in the script
     line_number: u64,
     // the current column number in the script
     column_number: u64,
-    // the reader
-    buffer: String,
+    // The full string
+    buffer: B,
 }
 
-impl Lexer {
-    pub fn new(buffer: String) -> Lexer {
+impl<B: BufRead> Lexer<B> {
+    pub fn new(buffer: B) -> Lexer<B> {
         Lexer {
             tokens: Vec::new(),
             line_number: 1,
@@ -33,22 +35,17 @@ impl Lexer {
         self.push_token(TokenData::TPunctuator(punc));
     }
 
-    /// Processes an input stream from a string into an array of tokens
-    pub fn lex_str(script: String) -> Vec<Token> {
-        let mut lexer = Lexer::new(script);
-        lexer.tokens
+    fn next(&mut self) -> char {
+        let mut buffer = [0; 1];
+        self.buffer.read_exact(&mut buffer).unwrap();
+        let result = buffer as char;
+        result
     }
 
-    fn next(&mut self) -> Option<char> {
-        self.buffer.chars().next()
-    }
-
-    pub fn lex(&mut self) -> Result<(), &str> {
+    pub fn lex(&mut self) {
         loop {
-            let ch = match self.next() {
-                Some(ch) => ch,
-                None => return Err("oh my days"),
-            };
+            let ch = self.next();
+            println!("{}", ch.unwrap());
         }
     }
 }
