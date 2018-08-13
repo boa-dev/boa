@@ -11,6 +11,7 @@ use syntax::ast::token::{Token, TokenData};
 pub struct LexerError {
     details: String,
 }
+
 impl LexerError {
     fn new(msg: &str) -> LexerError {
         LexerError {
