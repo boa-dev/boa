@@ -1,3 +1,4 @@
+use serialize::json::from_str;
 use std::char::from_u32;
 use std::error;
 use std::fmt;
@@ -74,13 +75,15 @@ impl<'a> Lexer<'a> {
         self.buffer.next().ok_or(LexerError::new("next failed"))
     }
 
-    fn preview_next(&mut self) -> Result<&char, ()> {
+    fn preview_next(&mut self) -> Result<&char, LexerError> {
         // ok_or converts Option to a Result
-        self.buffer.peek().ok_or(())
+        self.buffer
+            .peek()
+            .ok_or(LexerError::new("No Next in preview_next"))
     }
 
-    fn next_is(&mut self, peek: char) -> Result<bool, ()> {
-        let result = try!(self.preview_next()) == &peek;
+    fn next_is(&mut self, peek: char) -> Result<bool, LexerError> {
+        let result = self.preview_next()? == &peek;
         if result {
             self.buffer.next();
         }
@@ -163,6 +166,46 @@ impl<'a> Lexer<'a> {
                             ch => buf.push(ch),
                         }
                     }
+                    self.push_token(TokenData::TStringLiteral(buf));
+                }
+                '0' => {
+                    let mut buf = String::new();
+                    let num = if self.next_is('x')? {
+                        loop {
+                            let ch = self.preview_next()?;
+                            match ch {
+                                ch if ch.is_digit(16) => {
+                                    self.next()?;
+                                    buf.push(*ch);
+                                }
+                                _ => break,
+                            }
+                        }
+                        u64::from_str_radix(&buf, 16).unwrap()
+                    } else {
+                        let mut gone_decimal = false;
+                        loop {
+                            let ch = self.preview_next()?;
+                            match ch {
+                                ch if ch.is_digit(8) => {
+                                    buf.push(*ch);
+                                    self.next()?;
+                                }
+                                '8' | '9' | '.' => {
+                                    gone_decimal = true;
+                                    buf.push(*ch);
+                                    self.next()?;
+                                }
+                                _ => break,
+                            }
+                        }
+                        if gone_decimal {
+                            from_str(&buf)
+                        } else {
+                            u64::from_str_radix(&buf, 8)
+                        }
+                    };
+                    self.push_token(TokenData::TNumericLiteral(num))
                 }
             }
         }
