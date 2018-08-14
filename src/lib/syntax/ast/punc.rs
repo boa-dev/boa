@@ -3,103 +3,103 @@ use std::fmt::{Display, Error, Formatter};
 /// Punctuation
 pub enum Punctuator {
     /// `{`
-    POpenBlock,
+    OpenBlock,
     /// `}`
-    PCloseBlock,
+    CloseBlock,
     /// `(`
-    POpenParen,
+    OpenParen,
     /// `)`
-    PCloseParen,
+    CloseParen,
     /// `[`
-    POpenBracket,
+    OpenBracket,
     /// `]`
-    PCloseBracket,
+    CloseBracket,
     /// `.`
-    PDot,
+    Dot,
     /// `;`
-    PSemicolon,
+    Semicolon,
     /// `,`
-    PComma,
+    Comma,
     /// `<`
-    PLessThan,
+    LessThan,
     /// `>`
-    PGreaterThan,
+    GreaterThan,
     /// `<=`
-    PLessThanOrEq,
+    LessThanOrEq,
     /// `>=`
-    PGreaterThanOrEq,
+    GreaterThanOrEq,
     /// `==`
-    PEq,
+    Eq,
     /// `!=`
-    PNotEq,
+    NotEq,
     /// `===`
-    PStrictEq,
+    StrictEq,
     /// `!==`
-    PStrictNotEq,
+    StrictNotEq,
     /// `+`
-    PAdd,
+    Add,
     /// `-`
-    PSub,
+    Sub,
     /// `*`
-    PMul,
+    Mul,
     /// `/`
-    PDiv,
+    Div,
     /// `%`
-    PMod,
+    Mod,
     /// `++`
-    PInc,
+    Inc,
     /// `--`
-    PDec,
+    Dec,
     /// `<<`
-    PLeftSh,
+    LeftSh,
     /// `>>`
-    PRightSh,
+    RightSh,
     /// `>>>`
-    PURightSh,
+    URightSh,
     /// `&`
-    PAnd,
+    And,
     /// `|`
-    POr,
+    Or,
     /// `^`
-    PXor,
+    Xor,
     /// `!`
-    PNot,
+    Not,
     /// `~`
-    PNeg,
+    Neg,
     /// `&&`
-    PBoolAnd,
+    BoolAnd,
     /// `||`
-    PBoolOr,
+    BoolOr,
     /// `?`
-    PQuestion,
+    Question,
     /// `:`
-    PColon,
+    Colon,
     /// `=`
-    PAssign,
+    Assign,
     /// `+=`
-    PAssignAdd,
+    AssignAdd,
     /// `-=`
-    PAssignSub,
+    AssignSub,
     /// `*=`
-    PAssignMul,
+    AssignMul,
     /// `/=`
-    PAssignDiv,
+    AssignDiv,
     /// `%=`
-    PAssignMod,
+    AssignMod,
     /// `<<=`
-    PAssignLeftSh,
+    AssignLeftSh,
     /// `>>=`
-    PAssignRightSh,
+    AssignRightSh,
     /// `>>>=`
-    PAssignURightSh,
+    AssignURightSh,
     /// `&=`
-    PAssignAnd,
+    AssignAnd,
     /// `|=`
-    PAssignOr,
+    AssignOr,
     /// `^=`
-    PAssignXor,
+    AssignXor,
     /// `=>`
-    PArrow,
+    Arrow,
 }
 impl Display for Punctuator {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
@@ -107,55 +107,55 @@ impl Display for Punctuator {
             f,
             "{}",
             match self {
-                Punctuator::POpenBlock => "{",
-                Punctuator::PCloseBlock => "}",
-                Punctuator::POpenParen => "(",
-                Punctuator::PCloseParen => ")",
-                Punctuator::POpenBracket => "[",
-                Punctuator::PCloseBracket => "]",
-                Punctuator::PDot => ".",
-                Punctuator::PSemicolon => ";",
-                Punctuator::PComma => ",",
-                Punctuator::PLessThan => "<",
-                Punctuator::PGreaterThan => ">",
-                Punctuator::PLessThanOrEq => "<=",
-                Punctuator::PGreaterThanOrEq => ">=",
-                Punctuator::PEq => "==",
-                Punctuator::PNotEq => "!=",
-                Punctuator::PStrictEq => "===",
-                Punctuator::PStrictNotEq => "!==",
-                Punctuator::PAdd => "+",
-                Punctuator::PSub => "-",
-                Punctuator::PMul => "*",
-                Punctuator::PDiv => "/",
-                Punctuator::PMod => "%",
-                Punctuator::PInc => "++",
-                Punctuator::PDec => "--",
-                Punctuator::PLeftSh => "<<",
-                Punctuator::PRightSh => ">>",
-                Punctuator::PURightSh => ">>>",
-                Punctuator::PAnd => "&",
-                Punctuator::POr => "|",
-                Punctuator::PXor => "^",
-                Punctuator::PNot => "!",
-                Punctuator::PNeg => "~",
-                Punctuator::PBoolAnd => "&&",
-                Punctuator::PBoolOr => "||",
-                Punctuator::PQuestion => "?",
-                Punctuator::PColon => ":",
-                Punctuator::PAssign => "=",
-                Punctuator::PAssignAdd => "+=",
-                Punctuator::PAssignSub => "-=",
-                Punctuator::PAssignMul => "*=",
-                Punctuator::PAssignDiv => "/=",
-                Punctuator::PAssignMod => "%=",
-                Punctuator::PAssignLeftSh => "<<=",
-                Punctuator::PAssignRightSh => ">>=",
-                Punctuator::PAssignURightSh => ">>>=",
-                Punctuator::PAssignAnd => "&=",
-                Punctuator::PAssignOr => "|=",
-                Punctuator::PAssignXor => "^=",
-                Punctuator::PArrow => "=>",
+                Punctuator::OpenBlock => "{",
+                Punctuator::CloseBlock => "}",
+                Punctuator::OpenParen => "(",
+                Punctuator::CloseParen => ")",
+                Punctuator::OpenBracket => "[",
+                Punctuator::CloseBracket => "]",
+                Punctuator::Dot => ".",
+                Punctuator::Semicolon => ";",
+                Punctuator::Comma => ",",
+                Punctuator::LessThan => "<",
+                Punctuator::GreaterThan => ">",
+                Punctuator::LessThanOrEq => "<=",
+                Punctuator::GreaterThanOrEq => ">=",
+                Punctuator::Eq => "==",
+                Punctuator::NotEq => "!=",
+                Punctuator::StrictEq => "===",
+                Punctuator::StrictNotEq => "!==",
+                Punctuator::Add => "+",
+                Punctuator::Sub => "-",
+                Punctuator::Mul => "*",
+                Punctuator::Div => "/",
+                Punctuator::Mod => "%",
+                Punctuator::Inc => "++",
+                Punctuator::Dec => "--",
+                Punctuator::LeftSh => "<<",
+                Punctuator::RightSh => ">>",
+                Punctuator::URightSh => ">>>",
+                Punctuator::And => "&",
+                Punctuator::Or => "|",
+                Punctuator::Xor => "^",
+                Punctuator::Not => "!",
+                Punctuator::Neg => "~",
+                Punctuator::BoolAnd => "&&",
+                Punctuator::BoolOr => "||",
+                Punctuator::Question => "?",
+                Punctuator::Colon => ":",
+                Punctuator::Assign => "=",
+                Punctuator::AssignAdd => "+=",
+                Punctuator::AssignSub => "-=",
+                Punctuator::AssignMul => "*=",
+                Punctuator::AssignDiv => "/=",
+                Punctuator::AssignMod => "%=",
+                Punctuator::AssignLeftSh => "<<=",
+                Punctuator::AssignRightSh => ">>=",
+                Punctuator::AssignURightSh => ">>>=",
+                Punctuator::AssignAnd => "&=",
+                Punctuator::AssignOr => "|=",
+                Punctuator::AssignXor => "^=",
+                Punctuator::Arrow => "=>",
             }
         )
     }

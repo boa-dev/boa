@@ -1,9 +1,9 @@
-use serialize::json::from_str;
 use std::char::from_u32;
 use std::error;
 use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
+use std::str::FromStr;
 use syntax::ast::punc::Punctuator;
 use syntax::ast::token::{Token, TokenData};
 
@@ -73,6 +73,24 @@ impl<'a> Lexer<'a> {
 
     fn next(&mut self) -> Result<char, LexerError> {
         self.buffer.next().ok_or(LexerError::new("next failed"))
+    }
+
+    /// Attempt to read until the end of the line and return the string
+    fn read_line(&mut self) -> Result<String, LexerError> {
+        let mut buf = String::new();
+        loop {
+            let ch = self.next()?;
+            match ch {
+                _ if ch.is_ascii_control() => {
+                    break;
+                }
+                _ => {
+                    buf.push(ch);
+                }
+            }
+        }
+
+        Ok(buf)
     }
 
     fn preview_next(&mut self) -> Result<&char, LexerError> {
@@ -175,8 +193,7 @@ impl<'a> Lexer<'a> {
                             let ch = self.preview_next()?;
                             match ch {
                                 ch if ch.is_digit(16) => {
-                                    self.next()?;
-                                    buf.push(*ch);
+                                    buf.push(self.next()?);
                                 }
                                 _ => break,
                             }
@@ -199,14 +216,95 @@ impl<'a> Lexer<'a> {
                                 _ => break,
                             }
                         }
-                        if gone_decimal {
-                            from_str(&buf)
-                        } else {
-                            u64::from_str_radix(&buf, 8)
-                        }
+                        u64::from_str_radix(&buf, 8).unwrap()
                     };
-                    self.push_token(TokenData::TNumericLiteral(num))
+                    self.push_token(TokenData::TNumericLiteral(num as f64))
                 }
+                _ if ch.is_digit(10) => {
+                    let mut buf = ch.to_string();
+                    loop {
+                        let ch = self.preview_next()?;
+                        match ch {
+                            '.' => {
+                                buf.push(self.next()?);
+                            }
+                            _ if ch.is_digit(10) => {
+                                buf.push(self.next()?);
+                            }
+                            _ => break,
+                        }
+                    }
+                    // TODO make this a bit more safe -------------------------------VVVV
+                    self.push_token(TokenData::TNumericLiteral(f64::from_str(&buf).unwrap()))
+                }
+                _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
+                    let mut buf = ch.to_string();
+                    loop {
+                        let ch = self.preview_next()?;
+                        match ch {
+                            _ if ch.is_alphabetic() || ch.is_digit(10) || *ch == '_' => {
+                                buf.push(self.next()?);
+                            }
+                            _ => {
+                                break;
+                            }
+                        }
+                    }
+                    // Match won't compare &String to &str so i need to convert it :(
+                    let buf_compare: &str = &buf;
+                    self.push_token(match buf_compare {
+                        "true" => TokenData::TBooleanLiteral(true),
+                        "false" => TokenData::TBooleanLiteral(false),
+                        "null" => TokenData::TNullLiteral,
+                        slice => match FromStr::from_str(slice) {
+                            Ok(keyword) => TokenData::TKeyword(keyword),
+                            Err(e) => TokenData::TIdentifier(buf.clone()),
+                        },
+                    });
+                }
+                ';' => self.push_punc(Punctuator::Semicolon),
+                ':' => self.push_punc(Punctuator::Colon),
+                '.' => self.push_punc(Punctuator::Dot),
+                '(' => self.push_punc(Punctuator::OpenParen),
+                ')' => self.push_punc(Punctuator::CloseParen),
+                ',' => self.push_punc(Punctuator::Comma),
+                '{' => self.push_punc(Punctuator::OpenBlock),
+                '}' => self.push_punc(Punctuator::CloseBlock),
+                '[' => self.push_punc(Punctuator::OpenBracket),
+                ']' => self.push_punc(Punctuator::CloseBracket),
+                '?' => self.push_punc(Punctuator::Question),
+                '/' => {
+                    let token = match self.preview_next()? {
+                        // Matched comment
+                        '/' => {
+                            let comment = self.read_line()?;
+                            TokenData::TComment(comment)
+                        }
+                        '*' => {
+                            let mut buf = String::new();
+                            loop {
+                                match self.next()? {
+                                    '*' => {
+                                        if self.next_is('/')? {
+                                            break;
+                                        } else {
+                                            buf.push('*')
+                                        }
+                                    }
+                                    ch => buf.push(ch),
+                                }
+                            }
+                            TokenData::TComment(buf)
+                        }
+                        '=' => TokenData::TPunctuator(Punctuator::AssignDiv),
+                        _ => TokenData::TPunctuator(Punctuator::Div),
+                    };
+                    self.push_token(token)
+                }
+                ch => panic!(
+                    "{}:{}: Unexpected '{}'",
+                    self.line_number, self.column_number, ch
+                ),
             }
         }
     }
