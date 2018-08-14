@@ -93,15 +93,17 @@ impl<'a> Lexer<'a> {
         Ok(buf)
     }
 
-    fn preview_next(&mut self) -> Result<&char, LexerError> {
-        // ok_or converts Option to a Result
-        self.buffer
-            .peek()
-            .ok_or(LexerError::new("No Next in preview_next"))
+    /// Preview the next character but don't actually increment
+    fn preview_next(&mut self) -> Result<char, LexerError> {
+        // No need to return a reference, we can return a copy
+        match self.buffer.peek() {
+            Some(v) => Ok(*v),
+            None => Err(LexerError::new("uidhi")),
+        }
     }
 
     fn next_is(&mut self, peek: char) -> Result<bool, LexerError> {
-        let result = self.preview_next()? == &peek;
+        let result = self.preview_next()? == peek;
         if result {
             self.buffer.next();
         }
@@ -205,12 +207,12 @@ impl<'a> Lexer<'a> {
                             let ch = self.preview_next()?;
                             match ch {
                                 ch if ch.is_digit(8) => {
-                                    buf.push(*ch);
+                                    buf.push(ch);
                                     self.next()?;
                                 }
                                 '8' | '9' | '.' => {
                                     gone_decimal = true;
-                                    buf.push(*ch);
+                                    buf.push(ch);
                                     self.next()?;
                                 }
                                 _ => break,
@@ -242,7 +244,7 @@ impl<'a> Lexer<'a> {
                     loop {
                         let ch = self.preview_next()?;
                         match ch {
-                            _ if ch.is_alphabetic() || ch.is_digit(10) || *ch == '_' => {
+                            _ if ch.is_alphabetic() || ch.is_digit(10) || ch == '_' => {
                                 buf.push(self.next()?);
                             }
                             _ => {
