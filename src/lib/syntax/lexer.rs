@@ -114,7 +114,7 @@ impl<'a> Lexer<'a> {
         loop {
             let ch = match self.next() {
                 Ok(ch) => ch,
-                Err(LexerError) => return Err(LexerError),
+                Err(lexer_error) => return Err(lexer_error),
             };
             self.column_number += 1;
             match ch {
@@ -146,7 +146,7 @@ impl<'a> Lexer<'a> {
                                             self.column_number += 2;
                                             let as_num = match u64::from_str_radix(&nums, 16) {
                                                 Ok(v) => v,
-                                                Err(e) => 0,
+                                                Err(_) => 0,
                                             };
                                             match from_u32(as_num as u32) {
                                                 Some(v) => v,
@@ -164,7 +164,7 @@ impl<'a> Lexer<'a> {
                                             self.column_number += 4;
                                             let as_num = match u64::from_str_radix(&nums, 16) {
                                                 Ok(v) => v,
-                                                Err(e) => 0,
+                                                Err(_) => 0,
                                             };
                                             match from_u32(as_num as u32) {
                                                 Some(v) => v,
@@ -202,7 +202,6 @@ impl<'a> Lexer<'a> {
                         }
                         u64::from_str_radix(&buf, 16).unwrap()
                     } else {
-                        let mut gone_decimal = false;
                         loop {
                             let ch = self.preview_next()?;
                             match ch {
@@ -211,7 +210,6 @@ impl<'a> Lexer<'a> {
                                     self.next()?;
                                 }
                                 '8' | '9' | '.' => {
-                                    gone_decimal = true;
                                     buf.push(ch);
                                     self.next()?;
                                 }
@@ -260,7 +258,7 @@ impl<'a> Lexer<'a> {
                         "null" => TokenData::TNullLiteral,
                         slice => match FromStr::from_str(slice) {
                             Ok(keyword) => TokenData::TKeyword(keyword),
-                            Err(e) => TokenData::TIdentifier(buf.clone()),
+                            Err(_) => TokenData::TIdentifier(buf.clone()),
                         },
                     });
                 }
