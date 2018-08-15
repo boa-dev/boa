@@ -25,40 +25,40 @@ impl Token {
 /// Represents the type of Token
 pub enum TokenData {
     /// A boolean literal, which is either `true` or `false`
-    TBooleanLiteral(bool),
+    BooleanLiteral(bool),
     /// The end of the file
-    TEOF,
+    EOF,
     /// An identifier
-    TIdentifier(String),
+    Identifier(String),
     /// A keyword
-    TKeyword(Keyword),
+    Keyword(Keyword),
     /// A `null` literal
-    TNullLiteral,
+    NullLiteral,
     /// A numeric literal
-    TNumericLiteral(f64),
+    NumericLiteral(f64),
     /// A piece of punctuation
-    TPunctuator(Punctuator),
+    Punctuator(Punctuator),
     /// A string literal
-    TStringLiteral(String),
+    StringLiteral(String),
     /// A regular expression
-    TRegularExpression(String),
+    RegularExpression(String),
     /// A comment
-    TComment(String),
+    Comment(String),
 }
 
 impl Display for TokenData {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self.clone() {
-            TokenData::TBooleanLiteral(val) => write!(f, "{}", val),
-            TokenData::TEOF => write!(f, "end of file"),
-            TokenData::TIdentifier(ident) => write!(f, "{}", ident),
-            TokenData::TKeyword(word) => write!(f, "{}", word),
-            TokenData::TNullLiteral => write!(f, "null"),
-            TokenData::TNumericLiteral(num) => write!(f, "{}", num),
-            TokenData::TPunctuator(punc) => write!(f, "{}", punc),
-            TokenData::TStringLiteral(lit) => write!(f, "{}", lit),
-            TokenData::TRegularExpression(reg) => write!(f, "{}", reg),
-            TokenData::TComment(comm) => write!(f, "/*{}*/", comm),
+            TokenData::BooleanLiteral(val) => write!(f, "{}", val),
+            TokenData::EOF => write!(f, "end of file"),
+            TokenData::Identifier(ident) => write!(f, "{}", ident),
+            TokenData::Keyword(word) => write!(f, "{}", word),
+            TokenData::NullLiteral => write!(f, "null"),
+            TokenData::NumericLiteral(num) => write!(f, "{}", num),
+            TokenData::Punctuator(punc) => write!(f, "{}", punc),
+            TokenData::StringLiteral(lit) => write!(f, "{}", lit),
+            TokenData::RegularExpression(reg) => write!(f, "{}", reg),
+            TokenData::Comment(comm) => write!(f, "/*{}*/", comm),
         }
     }
 }

@@ -68,7 +68,7 @@ impl<'a> Lexer<'a> {
 
     /// Push a punctuation token
     fn push_punc(&mut self, punc: Punctuator) {
-        self.push_token(TokenData::TPunctuator(punc));
+        self.push_token(TokenData::Punctuator(punc));
     }
 
     fn next(&mut self) -> Result<char, LexerError> {
@@ -186,7 +186,7 @@ impl<'a> Lexer<'a> {
                             ch => buf.push(ch),
                         }
                     }
-                    self.push_token(TokenData::TStringLiteral(buf));
+                    self.push_token(TokenData::StringLiteral(buf));
                 }
                 '0' => {
                     let mut buf = String::new();
@@ -218,7 +218,7 @@ impl<'a> Lexer<'a> {
                         }
                         u64::from_str_radix(&buf, 8).unwrap()
                     };
-                    self.push_token(TokenData::TNumericLiteral(num as f64))
+                    self.push_token(TokenData::NumericLiteral(num as f64))
                 }
                 _ if ch.is_digit(10) => {
                     let mut buf = ch.to_string();
@@ -235,7 +235,7 @@ impl<'a> Lexer<'a> {
                         }
                     }
                     // TODO make this a bit more safe -------------------------------VVVV
-                    self.push_token(TokenData::TNumericLiteral(f64::from_str(&buf).unwrap()))
+                    self.push_token(TokenData::NumericLiteral(f64::from_str(&buf).unwrap()))
                 }
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();
@@ -253,12 +253,12 @@ impl<'a> Lexer<'a> {
                     // Match won't compare &String to &str so i need to convert it :(
                     let buf_compare: &str = &buf;
                     self.push_token(match buf_compare {
-                        "true" => TokenData::TBooleanLiteral(true),
-                        "false" => TokenData::TBooleanLiteral(false),
-                        "null" => TokenData::TNullLiteral,
+                        "true" => TokenData::BooleanLiteral(true),
+                        "false" => TokenData::BooleanLiteral(false),
+                        "null" => TokenData::NullLiteral,
                         slice => match FromStr::from_str(slice) {
-                            Ok(keyword) => TokenData::TKeyword(keyword),
-                            Err(_) => TokenData::TIdentifier(buf.clone()),
+                            Ok(keyword) => TokenData::Keyword(keyword),
+                            Err(_) => TokenData::Identifier(buf.clone()),
                         },
                     });
                 }
@@ -278,7 +278,7 @@ impl<'a> Lexer<'a> {
                         // Matched comment
                         '/' => {
                             let comment = self.read_line()?;
-                            TokenData::TComment(comment)
+                            TokenData::Comment(comment)
                         }
                         '*' => {
                             let mut buf = String::new();
@@ -294,10 +294,10 @@ impl<'a> Lexer<'a> {
                                     ch => buf.push(ch),
                                 }
                             }
-                            TokenData::TComment(buf)
+                            TokenData::Comment(buf)
                         }
-                        '=' => TokenData::TPunctuator(Punctuator::AssignDiv),
-                        _ => TokenData::TPunctuator(Punctuator::Div),
+                        '=' => TokenData::Punctuator(Punctuator::AssignDiv),
+                        _ => TokenData::Punctuator(Punctuator::Div),
                     };
                     self.push_token(token)
                 }
