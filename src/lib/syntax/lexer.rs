@@ -7,6 +7,20 @@ use std::str::FromStr;
 use syntax::ast::punc::Punctuator;
 use syntax::ast::token::{Token, TokenData};
 
+#[allow(unused)]
+macro_rules! vop {
+    ($this:ident, $assign_op:expr, $op:expr) => {
+        let preview = $this.preview_next()?;
+        match preview {
+            '=' => {
+                $this.next()?;
+                $assign_op;
+            }
+            _ => $op,
+        }
+    };
+}
+
 // Defining an error type
 #[derive(Debug, Clone)]
 pub struct LexerError {
