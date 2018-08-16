@@ -9,16 +9,49 @@ use syntax::ast::token::{Token, TokenData};
 
 #[allow(unused)]
 macro_rules! vop {
-    ($this:ident, $assign_op:expr, $op:expr) => {
+    ($this:ident, $assign_op:expr, $op:expr) => ({
         let preview = $this.preview_next()?;
         match preview {
             '=' => {
                 $this.next()?;
-                $assign_op;
+                $assign_op
             }
             _ => $op,
         }
-    };
+    });
+    ($this:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
+        let preview = $this.preview_next()?;
+        match preview {
+            '=' => {
+                $this.next()?;
+                $assign_op
+            },
+            $($case => $block)+,
+            _ => $op
+        }
+    });
+    ($this:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
+        let preview = $this.preview_next()?;
+        match preview {
+            $($case => $block) +,
+            _ => $op
+        }
+    }
+}
+
+macro_rules! op {
+    ($this:ident, $assign_op:expr, $op:expr) => ({
+        let punc = vop!($this, $assign_op, $op);
+        $this.push_punc(punc);
+    });
+    ($this:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr),+}) => ({
+        let punc = vop!($this, $assign_op, $op, {$($case => $block),+});
+        $this.push_punc(punc);
+    });
+    ($this:ident, $op:expr, {$($case:pat => $block:expr),+}) => ({
+        let punc = vop!($this, $op, {$($case => $block),+});
+        $this.push_punc();
+    });
 }
 
 // Defining an error type
@@ -287,6 +320,7 @@ impl<'a> Lexer<'a> {
                 '[' => self.push_punc(Punctuator::OpenBracket),
                 ']' => self.push_punc(Punctuator::CloseBracket),
                 '?' => self.push_punc(Punctuator::Question),
+                // Comments
                 '/' => {
                     let token = match self.preview_next()? {
                         // Matched comment
@@ -315,6 +349,15 @@ impl<'a> Lexer<'a> {
                     };
                     self.push_token(token)
                 }
+                '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul),
+                '+' => op!(self, Punctuator::AssignAdd, Punctuator::Add, {
+                    '+' => Punctuator::Inc
+                }),
+                '%' => op!(self, Punctuator::AssignMod, Punctuator::Mod),
+                '|' => op!(self, Punctuator::AssignOr, Punctuator::Or, {
+                    '|' => Punctuator::BoolOr
+                }),
+
                 ch => panic!(
                     "{}:{}: Unexpected '{}'",
                     self.line_number, self.column_number, ch
