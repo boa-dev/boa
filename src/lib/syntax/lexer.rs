@@ -120,7 +120,10 @@ impl<'a> Lexer<'a> {
 
     /// next fetches the next token and return it, or a LexerError if there are no more.
     fn next(&mut self) -> Result<char, LexerError> {
-        self.buffer.next().ok_or(LexerError::new("next failed"))
+        match self.buffer.next() {
+            Some(char) => Ok(char),
+            None => Err(LexerError::new("finished")),
+        }
     }
 
     /// read_line attempts to read until the end of the line and returns the String object or a LexerError
@@ -146,7 +149,7 @@ impl<'a> Lexer<'a> {
         // No need to return a reference, we can return a copy
         match self.buffer.peek() {
             Some(v) => Ok(*v),
-            None => Err(LexerError::new("uidhi")),
+            None => Err(LexerError::new("finished")),
         }
     }
 
@@ -161,10 +164,17 @@ impl<'a> Lexer<'a> {
 
     pub fn lex(&mut self) -> Result<(), LexerError> {
         loop {
-            let ch = match self.next() {
-                Ok(ch) => ch,
-                Err(lexer_error) => return Err(lexer_error),
-            };
+            // Check if we've reached the end
+            match self.preview_next() {
+                Ok(_) => (), // If there are still characters, carry on
+                Err(LexerError { details }) => {
+                    if details == "finished" {
+                        // If there are no more characters left in the Chars iterator, we should just return
+                        return Ok(());
+                    }
+                }
+            }
+            let ch = self.next()?;
             self.column_number += 1;
             match ch {
                 '"' | '\'' => {
