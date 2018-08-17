@@ -118,11 +118,12 @@ impl<'a> Lexer<'a> {
         self.push_token(TokenData::Punctuator(punc));
     }
 
+    /// next fetches the next token and return it, or a LexerError if there are no more.
     fn next(&mut self) -> Result<char, LexerError> {
         self.buffer.next().ok_or(LexerError::new("next failed"))
     }
 
-    /// Attempt to read until the end of the line and return the string
+    /// read_line attempts to read until the end of the line and returns the String object or a LexerError
     fn read_line(&mut self) -> Result<String, LexerError> {
         let mut buf = String::new();
         loop {
@@ -149,6 +150,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// next_is compares the character passed in to the next character, if they match true is returned and the buffer is incremented
     fn next_is(&mut self, peek: char) -> Result<bool, LexerError> {
         let result = self.preview_next()? == peek;
         if result {
@@ -353,11 +355,46 @@ impl<'a> Lexer<'a> {
                 '+' => op!(self, Punctuator::AssignAdd, Punctuator::Add, {
                     '+' => Punctuator::Inc
                 }),
+                '-' => op!(self, Punctuator::AssignSub, Punctuator::AssignSub, {
+                    '+' => Punctuator::Inc
+                }),
                 '%' => op!(self, Punctuator::AssignMod, Punctuator::Mod),
                 '|' => op!(self, Punctuator::AssignOr, Punctuator::Or, {
                     '|' => Punctuator::BoolOr
                 }),
-
+                '&' => op!(self, Punctuator::AssignAnd, Punctuator::And, {
+                    '&' => Punctuator::BoolAnd
+                }),
+                '^' => op!(self, Punctuator::AssignXor, Punctuator::Xor),
+                '=' => op!(self, if self.next_is('=')? {
+                    Punctuator::StrictEq
+                } else {
+                    Punctuator::Eq
+                }, Punctuator::Assign, {
+                    '>' => Punctuator::Arrow
+                }),
+                '<' => op!(self, Punctuator::LessThanOrEq, Punctuator::LessThan, {
+                    '<' => vop!(self, Punctuator::AssignLeftSh, Punctuator::LeftSh)
+                }),
+                '>' => op!(self, Punctuator::GreaterThanOrEq, Punctuator::GreaterThan, {
+                    '>' => vop!(self, Punctuator::AssignRightSh, Punctuator::RightSh, {
+                        '>' => vop!(self, Punctuator::AssignURightSh, Punctuator::URightSh)
+                    })
+                }),
+                '!' => op!(
+                    self,
+                    vop!(self, Punctuator::StrictNotEq, Punctuator::NotEq),
+                    Punctuator::Not
+                ),
+                '~' => self.push_punc(Punctuator::Neg),
+                '\n' | '\u{2028}' | '\u{2029}' => {
+                    self.line_number += 1;
+                    self.column_number = 0;
+                }
+                '\r' => {
+                    self.column_number = 0;
+                }
+                ' ' => (),
                 ch => panic!(
                     "{}:{}: Unexpected '{}'",
                     self.line_number, self.column_number, ch
