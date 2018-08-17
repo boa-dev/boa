@@ -4,71 +4,73 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use syntax::ast::keyword::Keyword::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 /// A Javascript Keyword
 pub enum Keyword {
     /// The `break` keyword
-    KBreak,
+    Break,
     /// The `case` keyword
-    KCase,
+    Case,
     /// The `catch` keyword
-    KCatch,
+    Catch,
     /// The `class` keyword, which is reserved for future use
-    KClass,
+    Class,
     /// The `continue` keyword
-    KContinue,
+    Continue,
     /// The `debugger` keyword
-    KDebugger,
+    Debugger,
     /// The `default` keyword
-    KDefault,
+    Default,
     /// The `delete` keyword
-    KDelete,
+    Delete,
     /// The `do` keyword
-    KDo,
+    Do,
     /// The `else` keyword
-    KElse,
+    Else,
     /// The `enum` keyword
-    KEnum,
+    Enum,
     /// The `extends` keyword
-    KExtends,
+    Extends,
     /// The `finally` keyword
-    KFinally,
+    Finally,
     /// The `for` keyword
-    KFor,
+    For,
     /// The `function` keyword
-    KFunction,
+    Function,
     /// The `if` keyword
-    KIf,
+    If,
     /// The `in` keyword
-    KIn,
+    In,
     /// The `instanceof` keyword
-    KInstanceOf,
+    InstanceOf,
     /// The `import` keyword
-    KImport,
+    Import,
+    /// The `let` keyword
+    Let,
     /// The `new` keyword
-    KNew,
+    New,
     /// The `return` keyword
-    KReturn,
+    Return,
     /// The `super` keyword
-    KSuper,
+    Super,
     /// The `switch` keyword
-    KSwitch,
+    Switch,
     /// The `this` keyword
-    KThis,
+    This,
     /// The `throw` keyword
-    KThrow,
+    Throw,
     /// The `try` keyword
-    KTry,
+    Try,
     /// The `typeof` keyword
-    KTypeOf,
+    TypeOf,
     /// The `var` keyword
-    KVar,
+    Var,
     /// The `void` keyword
-    KVoid,
+    Void,
     /// The `while` keyword
-    KWhile,
+    While,
     /// The `with` keyword
-    KWith,
+    With,
 }
 
 #[derive(Debug, Clone)]
@@ -94,37 +96,38 @@ impl FromStr for Keyword {
     type Err = KeywordError;
     fn from_str(s: &str) -> Result<Keyword, Self::Err> {
         match s {
-            "break" => Ok(KBreak),
-            "case" => Ok(KCase),
-            "catch" => Ok(KCatch),
-            "class" => Ok(KClass),
-            "continue" => Ok(KContinue),
-            "debugger" => Ok(KDebugger),
-            "default" => Ok(KDefault),
-            "delete" => Ok(KDelete),
-            "do" => Ok(KDo),
-            "else" => Ok(KElse),
-            "enum" => Ok(KEnum),
-            "extends" => Ok(KExtends),
-            "finally" => Ok(KFinally),
-            "for" => Ok(KFor),
-            "function" => Ok(KFunction),
-            "if" => Ok(KIf),
-            "in" => Ok(KIn),
-            "instanceof" => Ok(KInstanceOf),
-            "import" => Ok(KImport),
-            "new" => Ok(KNew),
-            "return" => Ok(KReturn),
-            "super" => Ok(KSuper),
-            "switch" => Ok(KSwitch),
-            "this" => Ok(KThis),
-            "throw" => Ok(KThrow),
-            "try" => Ok(KTry),
-            "typeof" => Ok(KTypeOf),
-            "var" => Ok(KVar),
-            "void" => Ok(KVoid),
-            "while" => Ok(KWhile),
-            "with" => Ok(KWith),
+            "break" => Ok(Break),
+            "case" => Ok(Case),
+            "catch" => Ok(Catch),
+            "class" => Ok(Class),
+            "continue" => Ok(Continue),
+            "debugger" => Ok(Debugger),
+            "default" => Ok(Default),
+            "delete" => Ok(Delete),
+            "do" => Ok(Do),
+            "else" => Ok(Else),
+            "enum" => Ok(Enum),
+            "extends" => Ok(Extends),
+            "finally" => Ok(Finally),
+            "for" => Ok(For),
+            "function" => Ok(Function),
+            "if" => Ok(If),
+            "in" => Ok(In),
+            "instanceof" => Ok(InstanceOf),
+            "import" => Ok(Import),
+            "let" => Ok(Let),
+            "new" => Ok(New),
+            "return" => Ok(Return),
+            "super" => Ok(Super),
+            "switch" => Ok(Switch),
+            "this" => Ok(This),
+            "throw" => Ok(Throw),
+            "try" => Ok(Try),
+            "typeof" => Ok(TypeOf),
+            "var" => Ok(Var),
+            "void" => Ok(Void),
+            "while" => Ok(While),
+            "with" => Ok(With),
             _ => Err(KeywordError),
         }
     }
@@ -135,37 +138,38 @@ impl Display for Keyword {
             f,
             "{}",
             match *self {
-                KBreak => "break",
-                KCase => "case",
-                KCatch => "catch",
-                KClass => "class",
-                KContinue => "continue",
-                KDebugger => "debugger",
-                KDefault => "default",
-                KDelete => "delete",
-                KDo => "do",
-                KElse => "else",
-                KEnum => "enum",
-                KExtends => "extends",
-                KFinally => "finally",
-                KFor => "for",
-                KFunction => "function",
-                KIf => "if",
-                KIn => "in",
-                KInstanceOf => "instanceof",
-                KImport => "import",
-                KNew => "new",
-                KReturn => "return",
-                KSuper => "super",
-                KSwitch => "switch",
-                KThis => "this",
-                KThrow => "throw",
-                KTry => "try",
-                KTypeOf => "typeof",
-                KVar => "var",
-                KVoid => "void",
-                KWhile => "while",
-                KWith => "with",
+                Break => "break",
+                Case => "case",
+                Catch => "catch",
+                Class => "class",
+                Continue => "continue",
+                Debugger => "debugger",
+                Default => "default",
+                Delete => "delete",
+                Do => "do",
+                Else => "else",
+                Enum => "enum",
+                Extends => "extends",
+                Finally => "finally",
+                For => "for",
+                Function => "function",
+                If => "if",
+                In => "in",
+                InstanceOf => "instanceof",
+                Import => "import",
+                Let => "let",
+                New => "new",
+                Return => "return",
+                Super => "super",
+                Switch => "switch",
+                This => "this",
+                Throw => "throw",
+                Try => "try",
+                TypeOf => "typeof",
+                Var => "var",
+                Void => "void",
+                While => "while",
+                With => "with",
             }
         )
     }

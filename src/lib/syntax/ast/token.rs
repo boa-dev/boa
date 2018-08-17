@@ -1,13 +1,15 @@
-use std::fmt::{Display, Formatter, Result};
+use std::fmt::{Debug, Display, Formatter, Result};
 use syntax::ast::keyword::Keyword;
 use syntax::ast::pos::Position;
 use syntax::ast::punc::Punctuator;
 
 #[derive(Clone, PartialEq)]
 /// Represents a token
+#[derive(Debug)]
 pub struct Token {
-    // // The token
+    /// The token Data
     pub data: TokenData,
+    /// Token position from original source code
     pub pos: Position,
 }
 
@@ -21,7 +23,25 @@ impl Token {
     }
 }
 
-#[derive(Clone, PartialEq)]
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.data)
+    }
+}
+
+pub struct VecToken(Vec<Token>);
+
+impl Debug for VecToken {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        let mut buffer = String::new();
+        for token in &self.0 {
+            buffer.push_str(&token.to_string());
+        }
+        write!(f, "{}", buffer)
+    }
+}
+
+#[derive(Clone, PartialEq, Debug)]
 /// Represents the type of Token
 pub enum TokenData {
     /// A boolean literal, which is either `true` or `false`

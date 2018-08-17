@@ -167,10 +167,12 @@ impl<'a> Lexer<'a> {
             // Check if we've reached the end
             match self.preview_next() {
                 Ok(_) => (), // If there are still characters, carry on
-                Err(LexerError { details }) => {
-                    if details == "finished" {
+                Err(e) => {
+                    if e.details == "finished" {
                         // If there are no more characters left in the Chars iterator, we should just return
                         return Ok(());
+                    } else {
+                        return Err(e);
                     }
                 }
             }

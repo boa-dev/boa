@@ -1,1 +1,1 @@
-console.log('hello world from js');
+let a = (2 * 2)

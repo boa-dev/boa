@@ -1,5 +1,5 @@
 use std::fmt::{Display, Error, Formatter};
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 /// Punctuation
 pub enum Punctuator {
     /// `{`
