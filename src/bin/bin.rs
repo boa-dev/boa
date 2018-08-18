@@ -7,4 +7,5 @@ pub fn main() {
     let mut lexer = Lexer::new(&buffer);
     lexer.lex().expect("finished");
     println!("{:?}", lexer.tokens);
+    println!("Hello World");
 }

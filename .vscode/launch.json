@@ -8,13 +8,13 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch",
-            "program": "${workspaceFolder}/target/debug/bin",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "program": "./target/debug/bin",
+            "cwd": "${workspaceRoot}",
+            "stopOnEntry": false,
             "sourceLanguages": [
                 "rust"
-            ],
-            "stopOnEntry": true
+            ]
         },
         {
             "name": "(Windows) Launch",
