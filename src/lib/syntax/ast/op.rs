@@ -201,11 +201,11 @@ impl Operator for BinOp {
             | BinOp::Comp(CompOp::NotEqual)
             | BinOp::Comp(CompOp::StrictEqual)
             | BinOp::Comp(CompOp::StrictNotEqual) => 9,
-            BinOp::Bit(BitAnd) => 10,
-            BinOp::Bit(BitXor) => 11,
-            BinOp::Bit(BitOr) => 12,
-            BinOp::Log(LogAnd) => 13,
-            BinOp::Log(LogOr) => 14,
+            BinOp::Bit(BitOp::And) => 10,
+            BinOp::Bit(BitOp::Xor) => 11,
+            BinOp::Bit(BitOp::Or) => 12,
+            BinOp::Log(LogOp::And) => 13,
+            BinOp::Log(LogOp::Or) => 14,
         }
     }
 }
@@ -216,10 +216,10 @@ impl Display for BinOp {
             f,
             "{}",
             match *self {
-                BinOp::Num(op) => op.to_string(),
-                BinOp::Bit(op) => op.to_string(),
-                BinOp::Comp(op) => op.to_string(),
-                BinOp::Log(op) => op.to_string(),
+                BinOp::Num(ref op) => op.to_string(),
+                BinOp::Bit(ref op) => op.to_string(),
+                BinOp::Comp(ref op) => op.to_string(),
+                BinOp::Log(ref op) => op.to_string(),
             }
         )
     }
