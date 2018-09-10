@@ -7,6 +7,8 @@ homepage = "https://github.com/jasonwilliams/boa"
 repository = "https://github.com/jasonwilliams/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 license = "Unlicense OR MIT"
+exclude = [".vscode/*", "Dockerfile", "Makefile", ".editorConfig"]
+
 [dependencies]
 
 [lib]
