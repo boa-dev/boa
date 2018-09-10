@@ -40,7 +40,9 @@ pub enum ExprDef {
     UnaryOpExpr(UnaryOp, Box<Expr>),
     /// Make a constant value
     ConstExpr(Const),
-    /// Construct an object from the function and arguments given
+    /// Construct an object from the function and arg{
+    /// uments given
+    ///},
     ConstructExpr(Box<Expr>, Vec<Expr>),
     /// Run several expressions from top-to-bottom
     BlockExpr(Vec<Expr>),
@@ -72,7 +74,9 @@ pub enum ExprDef {
     ThrowExpr(Box<Expr>),
     /// Assign an expression to a value
     AssignExpr(Box<Expr>, Box<Expr>),
-    /// A variable declaration
+    /// {
+    /// A variable declaratio
+    /// }
     VarDeclExpr(Vec<(String, Option<Expr>)>),
     /// Return a string representing the type of the given expression
     TypeOfExpr(Box<Expr>),
@@ -90,7 +94,7 @@ impl Operator for ExprDef {
         }
     }
     fn get_precedence(&self) -> u64 {
-        match *self {
+        match self {
             ExprDef::GetFieldExpr(_, _) | ExprDef::GetConstFieldExpr(_, _) => 1,
             ExprDef::CallExpr(_, _) | ExprDef::ConstructExpr(_, _) => 2,
             ExprDef::UnaryOpExpr(UnaryOp::IncrementPost, _)
@@ -126,25 +130,64 @@ impl Display for ExprDef {
             ExprDef::CallExpr(ref ex, ref args) => {
                 try!(write!(f, "{}(", ex));
                 let arg_strs: Vec<String> = args.iter().map(|arg| arg.to_string()).collect();
-                write!(f, "{})", arg_strs.connect(","))
+                write!(f, "{})", arg_strs.join(","))
             }
-            ExprDef::ConstructExpr(ref func, ref args) => write!(f, "new {}({})", func, args),
+            ExprDef::ConstructExpr(ref func, ref args) => {
+                f.write_fmt(format_args!("new {}", func))?;
+                f.write_str("(")?;
+                let mut first = true;
+                for e in args.iter() {
+                    if !first {
+                        f.write_str(", ")?;
+                    }
+                    first = false;
+                    Display::fmt(e, f)?;
+                }
+                f.write_str(")")
+            }
             ExprDef::WhileLoopExpr(ref cond, ref expr) => write!(f, "while({}) {}", cond, expr),
             ExprDef::IfExpr(ref cond, ref expr, None) => write!(f, "if({}) {}", cond, expr),
             ExprDef::IfExpr(ref cond, ref expr, Some(ref else_e)) => {
                 write!(f, "if({}) {} else {}", cond, expr, else_e)
             }
-            ExprDef::SwitchExpr(ref val, ref vals, None) => write!(f, "switch({}){}", val, vals),
+            ExprDef::SwitchExpr(ref val, ref vals, None) => {
+                f.write_fmt(format_args!("switch({})", val))?;
+                f.write_str(" {")?;
+                for e in vals.iter() {
+                    f.write_fmt(format_args!("case {}: \n", e.0))?;
+                    join_expr(f, &e.1)?;
+                }
+                f.write_str("}")
+            }
             ExprDef::SwitchExpr(ref val, ref vals, Some(ref def)) => {
-                write!(f, "switch({}){}default:{}", val, vals, def)
+                f.write_fmt(format_args!("switch({})", val))?;
+                f.write_str(" {")?;
+                for e in vals.iter() {
+                    f.write_fmt(format_args!("case {}: \n", e.0))?;
+                    join_expr(f, &e.1)?;
+                }
+                f.write_str("default: \n")?;
+                Display::fmt(def, f)?;
+                f.write_str("}")
             }
-            ExprDef::ObjectDeclExpr(ref map) => write!(f, "{}", map),
-            ExprDef::ArrayDeclExpr(ref arr) => write!(f, "{}", arr),
-            ExprDef::FunctionDeclExpr(ref name, ref args, ref expr) => {
-                write!(f, "function {}({}){}", name, args.connect(", "), expr)
+            ExprDef::ObjectDeclExpr(ref map) => {
+                f.write_str("{")?;
+                for (key, value) in map.iter() {
+                    f.write_fmt(format_args!("{}: {},", key, value))?;
+                }
+                f.write_str("}")
             }
+            ExprDef::ArrayDeclExpr(ref arr) => {
+                f.write_str("[")?;
+                join_expr(f, arr)?;
+                f.write_str("]")
+            }
+            ExprDef::FunctionDeclExpr(ref name, ref args, ref expr) => match name {
+                Some(val) => write!(f, "function {}({}){}", val, args.join(", "), expr),
+                None => write!(f, "function ({}){}", args.join(", "), expr),
+            },
             ExprDef::ArrowFunctionDeclExpr(ref args, ref expr) => {
-                write!(f, "({}) => {}", args.connect(", "), expr)
+                write!(f, "({}) => {}", args.join(", "), expr)
             }
             ExprDef::BinOpExpr(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
             ExprDef::UnaryOpExpr(ref op, ref a) => write!(f, "{}{}", op, a),
@@ -152,8 +195,30 @@ impl Display for ExprDef {
             ExprDef::ReturnExpr(None) => write!(f, "{}", "return"),
             ExprDef::ThrowExpr(ref ex) => write!(f, "throw {}", ex),
             ExprDef::AssignExpr(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
-            ExprDef::VarDeclExpr(ref vars) => write!(f, "var {}", vars),
+            ExprDef::VarDeclExpr(ref vars) => {
+                f.write_str("var ")?;
+                for (key, val) in vars.iter() {
+                    match val {
+                        Some(x) => f.write_fmt(format_args!("{} = {}", key, x))?,
+                        None => f.write_fmt(format_args!("{}", key))?,
+                    }
+                }
+                f.write_str("")
+            }
             ExprDef::TypeOfExpr(ref e) => write!(f, "typeof {}", e),
         };
     }
+}
+
+/// join_expr - Utility to join multiple Expressions into a single string
+fn join_expr(f: &mut Formatter, expr: &Vec<Expr>) -> Result {
+    let mut first = true;
+    for e in expr.iter() {
+        if !first {
+            f.write_str(", ")?;
+        }
+        first = false;
+        Display::fmt(e, f)?;
+    }
+    Ok(())
 }
