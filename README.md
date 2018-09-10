@@ -3,4 +3,5 @@ This is an experimental Javascript lexer, parser and Just-in-Time compiler writt
 [![Build Status](https://travis-ci.com/jasonwilliams/boa.svg?branch=master)](https://travis-ci.com/jasonwilliams/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 
-#### Currently a fork/port of js.rs
+
+This project is an attempted rewrite of Bebbington's js.rs and will look very, very similar to it for a while. As that repo has not been touched in a long time a lot of the Rust is out-of-date so a lot of things are probably in error by today's standards
