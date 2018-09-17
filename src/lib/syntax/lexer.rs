@@ -111,9 +111,9 @@ impl<'a> Lexer<'a> {
     ///
     /// # Example
     ///
-    /// ```
-    /// let buffer = read_to_string("yourSourceCode.js").unwrap();
-    /// let lexer = Lexer::new(&buffer);
+    /// ```rust,no_run
+    /// let buffer = std::fs::read_to_string("yourSourceCode.js").unwrap();
+    /// let lexer = js::syntax::lexer::Lexer::new(&buffer);
     /// ```
     pub fn new(buffer: &'a str) -> Lexer<'a> {
         Lexer {
@@ -192,8 +192,8 @@ impl<'a> Lexer<'a> {
                     }
                 }
             }
-            let ch = self.next()?;
             self.column_number += 1;
+            let ch = self.next()?;
             match ch {
                 '"' | '\'' => {
                     let mut buf = String::new();
@@ -263,7 +263,12 @@ impl<'a> Lexer<'a> {
                             ch => buf.push(ch),
                         }
                     }
+                    let str_length = buf.len() as u64;
                     self.push_token(TokenData::StringLiteral(buf));
+                    // Why +1? Quotation marks are not included,
+                    // So technically it would be +2, (for both " ") but we want to be 1 less
+                    // to compensate for the incrementing at the top
+                    self.column_number += str_length + 1;
                 }
                 '0' => {
                     let mut buf = String::new();
@@ -338,6 +343,8 @@ impl<'a> Lexer<'a> {
                             Err(_) => TokenData::Identifier(buf.clone()),
                         },
                     });
+                    // Move position forward the length of keyword
+                    self.column_number += (buf_compare.len() - 1) as u64;
                 }
                 ';' => self.push_punc(Punctuator::Semicolon),
                 ':' => self.push_punc(Punctuator::Colon),

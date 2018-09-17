@@ -14,21 +14,12 @@ pub struct Position {
 impl Position {
     /// Create a new position, positions are usually created by Tokens..
     ///
+    /// See [Token](struct.token/Token.html) for example usage
+    ///
     /// # Arguments
     ///
     /// * `line_number` - The line number the token starts at
     /// * `column_number` - The column number the token starts at
-    ///
-    /// # Example from Token
-    ///
-    /// ```
-    ///  pub fn new(data: TokenData, line_number: u64, column_number: u64) -> Token {
-    ///     Token {
-    ///         data: data,
-    ///         pos: Position::new(line_number, column_number),
-    ///     }
-    /// }
-    /// ```
     pub fn new(line_number: u64, column_number: u64) -> Position {
         Position {
             line_number: line_number,
