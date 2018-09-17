@@ -1,1 +1,1 @@
-console.log("hello world");
+let a = new String("Hello World");
