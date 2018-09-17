@@ -1,3 +1,7 @@
+//! A lexical analyzer for JavaScript source code.
+//!
+//! The Lexer splits its input source code into a sequence of input elements called tokens, represented by the [Token](../ast/token/struct.Token.html) structure.
+//! It also removes whitespace and comments and attaches them to the next token.
 use std::char::from_u32;
 use std::error;
 use std::fmt;
@@ -54,7 +58,7 @@ macro_rules! op {
     });
 }
 
-// Defining an error type
+/// An error that occurred during lexing or compiling of the source input.
 #[derive(Debug, Clone)]
 pub struct LexerError {
     details: String,
@@ -74,7 +78,6 @@ impl fmt::Display for LexerError {
     }
 }
 
-// This is important for other errors to wrap this one.
 impl error::Error for LexerError {
     fn description(&self) -> &str {
         &self.details
@@ -86,7 +89,7 @@ impl error::Error for LexerError {
     }
 }
 
-/// A javascript Lexer
+/// A lexical analyzer for JavaScript source code
 pub struct Lexer<'a> {
     // The list fo tokens generated so far
     pub tokens: Vec<Token>,
@@ -99,6 +102,19 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
+    /// Returns a Lexer with a buffer inside
+    ///
+    /// # Arguments
+    ///
+    /// * `buffer` - A string slice that holds the source code.   
+    /// The buffer needs to have a lifetime as long as the Lexer instance itself
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let buffer = read_to_string("yourSourceCode.js").unwrap();
+    /// let lexer = Lexer::new(&buffer);
+    /// ```
     pub fn new(buffer: &'a str) -> Lexer<'a> {
         Lexer {
             tokens: Vec::new(),
