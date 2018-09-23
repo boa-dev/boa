@@ -1,1 +1,1 @@
-let a = new String("Hello World");
+var a

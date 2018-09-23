@@ -6,6 +6,7 @@ use syntax::ast::keyword::Keyword::*;
 
 #[derive(Clone, PartialEq, Debug)]
 /// A Javascript Keyword
+/// As specificed by https://www.ecma-international.org/ecma-262/#sec-keywords
 pub enum Keyword {
     /// The `break` keyword
     Break,

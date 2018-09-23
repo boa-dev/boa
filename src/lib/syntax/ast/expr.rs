@@ -4,7 +4,7 @@ use syntax::ast::constant::Const;
 use syntax::ast::op::{BinOp, Operator, UnaryOp};
 use syntax::ast::pos::Position;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Expr {
     /// The expression definition
     pub def: ExprDef,
@@ -31,7 +31,7 @@ impl Display for Expr {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 /// A Javascript Expression
 pub enum ExprDef {
     /// Run a operation between 2 expressions

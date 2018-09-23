@@ -12,7 +12,7 @@ pub trait Operator {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 /// A numeric operation between 2 values
 pub enum NumOp {
     /// `a + b` - Addition
@@ -43,7 +43,7 @@ impl Display for NumOp {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 /// A unary operation on a single value
 pub enum UnaryOp {
     /// `a++` - increment the value
@@ -78,7 +78,7 @@ impl Display for UnaryOp {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 /// A bitwise operation between 2 values
 pub enum BitOp {
     /// `a & b` - Bitwise and
@@ -109,7 +109,7 @@ impl Display for BitOp {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 /// A comparitive operation between 2 values
 pub enum CompOp {
     /// `a == b` - Equality
@@ -149,7 +149,7 @@ impl Display for CompOp {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 /// A logical operation between 2 boolean values
 pub enum LogOp {
     /// `a && b` - Logical and
@@ -171,7 +171,7 @@ impl Display for LogOp {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 /// A binary operation between 2 values
 pub enum BinOp {
     /// Numeric operation
