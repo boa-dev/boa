@@ -7,12 +7,14 @@ use syntax::ast::punc::Punctuator;
 use syntax::ast::token::{Token, TokenData};
 
 macro_rules! mk (
-    ($this:expr, $def:expr) => (
-        Expr::new($def, try!($this.get_token($this.pos)).pos, try!($this.get_token($this.pos)).pos)
-    );
-    ($this:expr, $def:expr, $first:expr) => (
+    ($this:expr, $def:expr) => {
+        {
+            Expr::new($def, try!($this.get_token($this.pos)).pos, try!($this.get_token($this.pos)).pos)
+        }
+    };
+    ($this:expr, $def:expr, $first:expr) => {
         Expr::new($def, $first.pos, try!($this.get_token($this.pos)).pos)
-    );
+    };
 );
 
 /// ParseError is an enum which represents errors encounted during parsing an expression
@@ -53,7 +55,6 @@ impl Parser {
             let result = try!(self.parse());
             exprs.push(result);
         }
-        println!("{}", exprs[0]);
         Ok(mk!(self, ExprDef::BlockExpr(exprs)))
     }
 
