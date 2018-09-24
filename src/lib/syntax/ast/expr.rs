@@ -2,25 +2,18 @@ use std::collections::btree_map::BTreeMap;
 use std::fmt::{Display, Formatter, Result};
 use syntax::ast::constant::Const;
 use syntax::ast::op::{BinOp, Operator, UnaryOp};
-use syntax::ast::pos::Position;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Expr {
     /// The expression definition
     pub def: ExprDef,
-    /// The starting position
-    pub start: Position,
-    /// The ending position
-    pub end: Position,
 }
 
 impl Expr {
     /// Create a new expression with a starting and ending position
-    pub fn new(def: ExprDef, start: Position, end: Position) -> Expr {
+    pub fn new(def: ExprDef) -> Expr {
         Expr {
             def: def,
-            start: start,
-            end: end,
         }
     }
 }
