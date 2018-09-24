@@ -5,6 +5,7 @@ use syntax::ast::keyword::Keyword;
 use syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp};
 use syntax::ast::punc::Punctuator;
 use syntax::ast::token::{Token, TokenData};
+use syntax::ast::pos::Position;
 
 macro_rules! mk (
     ($this:expr, $def:expr) => {
@@ -55,7 +56,16 @@ impl Parser {
             let result = try!(self.parse());
             exprs.push(result);
         }
-        Ok(mk!(self, ExprDef::BlockExpr(exprs)))
+
+        // In the case of `BlockExpr` the Positions seem unnecessary
+        // TODO: refactor this or the `mk!` perhaps?
+        Ok(
+            Expr::new(
+                ExprDef::BlockExpr(exprs),
+                Position::new(1, 1),
+                Position::new(1, 1)
+            )
+        )
     }
 
     fn get_token(&self, pos: usize) -> Result<Token, ParseError> {
@@ -120,7 +130,7 @@ impl Parser {
                         }
                     }
                 }
-                Ok(mk!(self, ExprDef::VarDeclExpr(vars)))
+                Ok(Expr::new(ExprDef::VarDeclExpr(vars), Position::new(1, 16), Position::new(1, 16)))
             }
             Keyword::Return => Ok(mk!(
                 self,
