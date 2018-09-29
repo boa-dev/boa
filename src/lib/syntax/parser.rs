@@ -5,16 +5,15 @@ use syntax::ast::keyword::Keyword;
 use syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp};
 use syntax::ast::punc::Punctuator;
 use syntax::ast::token::{Token, TokenData};
-use syntax::ast::pos::Position;
 
 macro_rules! mk (
     ($this:expr, $def:expr) => {
         {
-            Expr::new($def, try!($this.get_token($this.pos)).pos, try!($this.get_token($this.pos)).pos)
+            Expr::new($def)
         }
     };
     ($this:expr, $def:expr, $first:expr) => {
-        Expr::new($def, $first.pos, try!($this.get_token($this.pos)).pos)
+        Expr::new($def)
     };
 );
 
@@ -61,9 +60,7 @@ impl Parser {
         // TODO: refactor this or the `mk!` perhaps?
         Ok(
             Expr::new(
-                ExprDef::BlockExpr(exprs),
-                Position::new(1, 1),
-                Position::new(1, 1)
+                ExprDef::BlockExpr(exprs)
             )
         )
     }
@@ -130,7 +127,7 @@ impl Parser {
                         }
                     }
                 }
-                Ok(Expr::new(ExprDef::VarDeclExpr(vars), Position::new(1, 16), Position::new(1, 16)))
+                Ok(Expr::new(ExprDef::VarDeclExpr(vars)))
             }
             Keyword::Return => Ok(mk!(
                 self,

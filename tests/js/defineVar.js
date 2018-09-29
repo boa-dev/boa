@@ -1,3 +1,6 @@
-var a = 'Jason';
-var b = 'boa';
-console.log(a, b);
+var b = 'Jason';
+if(1===1){
+  b = 'another name';
+}
+
+console.log(b);
