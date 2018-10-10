@@ -10,9 +10,11 @@ license = "Unlicense OR MIT"
 exclude = [".vscode/*", "Dockerfile", "Makefile", ".editorConfig"]
 
 [dependencies]
+gc = "0.3.2"
+gc_derive = "*"
 
 [lib]
-name = "js"
+name = "boa"
 path = "src/lib/lib.rs"
 
 # [[bin]]

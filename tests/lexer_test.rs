@@ -1,8 +1,8 @@
-extern crate js;
-use js::syntax::ast::keyword::Keyword;
-use js::syntax::ast::punc::Punctuator;
-use js::syntax::ast::token::TokenData;
-use js::syntax::lexer::Lexer;
+extern crate boa;
+use boa::syntax::ast::keyword::Keyword;
+use boa::syntax::ast::punc::Punctuator;
+use boa::syntax::ast::token::TokenData;
+use boa::syntax::lexer::Lexer;
 
 #[test]
 /// Check basic variable definition tokens

@@ -1,6 +1,6 @@
-extern crate js;
-use js::syntax::lexer::Lexer;
-use js::syntax::parser::Parser;
+extern crate boa;
+use boa::syntax::lexer::Lexer;
+use boa::syntax::parser::Parser;
 use std::fs::read_to_string;
 
 pub fn main() {
@@ -8,8 +8,8 @@ pub fn main() {
     let mut lexer = Lexer::new(&buffer);
     lexer.lex().unwrap();
     let tokens = lexer.tokens;
-    match Parser::new(tokens).parse_all() {
-        Ok(e) => println!("{}", e),
-        Err(e) => println!("{:?}", e),
-    }
+
+    // Setup executor
+    let expr = Parser::new(tokens).parse_all().unwrap();
+    println!("{}", expr);
 }
