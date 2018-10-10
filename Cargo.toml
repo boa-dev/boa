@@ -12,6 +12,7 @@ exclude = [".vscode/*", "Dockerfile", "Makefile", ".editorConfig"]
 [dependencies]
 gc = "0.3.2"
 gc_derive = "*"
+serde_json = "1.0"
 
 [lib]
 name = "boa"

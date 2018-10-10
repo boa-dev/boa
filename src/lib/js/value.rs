@@ -1,13 +1,16 @@
-use gc::Gc;
+use gc::GcCell;
+use js::function::Function;
 use js::object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt;
+use std::iter::FromIterator;
 use std::str::FromStr;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter
-pub type Value = Gc<ValueData>;
+pub type Value = GcCell<ValueData>;
 
 /// A Javascript value
 pub enum ValueData {
@@ -42,7 +45,7 @@ impl ValueData {
                 .get_field_slice(PROTOTYPE);
             obj.insert(INSTANCE_PROTOTYPE.into_String(), Property::new(obj_proto));
         }
-        Gc::new(ValueData::Object(RefCell::new(obj)))
+        GcCell::new(ValueData::Object(RefCell::new(obj)))
     }
     /// Returns true if the value is an object
     pub fn is_object(&self) -> bool {
@@ -128,8 +131,8 @@ impl ValueData {
             ValueData::Function(ref func) => {
                 let func = func.borrow().clone();
                 match func {
-                    NativeFunc(f) => f.object.clone(),
-                    RegularFunc(f) => f.object.clone(),
+                    Function::NativeFunc(f) => f.object.clone(),
+                    Function::RegularFunc(f) => f.object.clone(),
                 }
             }
             _ => return None,
@@ -146,7 +149,7 @@ impl ValueData {
     pub fn get_field(&self, field: String) -> Value {
         match self.get_prop(field) {
             Some(prop) => prop.value,
-            None => Gc::new(ValueData::Undefined),
+            None => GcCell::new(ValueData::Undefined),
         }
     }
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
@@ -161,8 +164,12 @@ impl ValueData {
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
-                    NativeFunc(ref mut f) => f.object.insert(field.clone(), Property::new(val)),
-                    RegularFunc(ref mut f) => f.object.insert(field.clone(), Property::new(val)),
+                    Function::NativeFunc(ref mut f) => {
+                        f.object.insert(field.clone(), Property::new(val))
+                    }
+                    Function::RegularFunc(ref mut f) => {
+                        f.object.insert(field.clone(), Property::new(val))
+                    }
                 };
             }
             _ => (),
@@ -181,8 +188,8 @@ impl ValueData {
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
-                    NativeFunc(ref mut f) => f.object.insert(field.clone(), prop),
-                    RegularFunc(ref mut f) => f.object.insert(field.clone(), prop),
+                    Function::NativeFunc(ref mut f) => f.object.insert(field.clone(), prop),
+                    Function::RegularFunc(ref mut f) => f.object.insert(field.clone(), prop),
                 };
             }
             _ => (),
@@ -194,12 +201,12 @@ impl ValueData {
         self.set_prop(field.into_String(), prop)
     }
     /// Convert from a JSON value to a JS value
-    pub fn from_json(json: Json) -> ValueData {
+    pub fn from_json(json: serde_json::Value) -> ValueData {
         match json {
-            Number(v) => ValueData::Number(v),
-            String(v) => ValueData::String(v),
-            Boolean(v) => ValueData::Boolean(v),
-            List(vs) => {
+            serde_json::Value::Number(v) => ValueData::Number(v),
+            serde_json::Value::String(v) => ValueData::String(v),
+            serde_json::Value::Boolean(v) => ValueData::Boolean(v),
+            serde_json::Value::List(vs) => {
                 let mut i = 0;
                 let mut data: ObjectData = FromIterator::from_iter(vs.iter().map(|json| {
                     i += 1;
@@ -214,7 +221,7 @@ impl ValueData {
                 );
                 ValueData::Object(RefCell::new(data))
             }
-            Object(obj) => {
+            serde_json::Value::Object(obj) => {
                 let data: ObjectData = FromIterator::from_iter(
                     obj.iter()
                         .map(|(key, json)| (key.clone(), Property::new(to_value(json.clone())))),
@@ -224,8 +231,29 @@ impl ValueData {
             Null => ValueData::Null,
         }
     }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        match *self {
+            ValueData::Null | ValueData::Undefined => serde_json::Value::Null,
+            ValueData::Boolean(b) => serde_json::Value::Boolean(b),
+            ValueData::Object(ref obj) => {
+                let mut nobj = HashMap::new();
+                for (k, v) in obj.borrow().iter() {
+                    if k.as_slice() != INSTANCE_PROTOTYPE.as_slice() {
+                        nobj.insert(k.clone(), v.value.borrow().to_json());
+                    }
+                }
+                serde_json::Value::Object(Box::new(nobj))
+            }
+            ValueData::String(ref str) => serde_json::Value::String(str.clone()),
+            ValueData::Number(num) => serde_json::Value::Number(num),
+            ValueData::Integer(val) => serde_json::Value::Number(val as f64),
+            ValueData::Function(_) => serde_json::Value::Null,
+        }
+    }
 }
-impl fmt::Show for ValueData {
+
+impl fmt::Display for ValueData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ValueData::Null => write!(f, "null"),
@@ -259,8 +287,10 @@ impl fmt::Show for ValueData {
             }
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match v.borrow().clone() {
-                NativeFunc(_) => write!(f, "{}", "function() { [native code] }"),
-                RegularFunc(rf) => write!(f, "function({}){}", rf.args.connect(", "), rf.expr),
+                Function::NativeFunc(_) => write!(f, "{}", "function() { [native code] }"),
+                Function::RegularFunc(rf) => {
+                    write!(f, "function({}){}", rf.args.connect(", "), rf.expr)
+                }
             },
         }
     }
@@ -289,148 +319,128 @@ impl PartialEq for ValueData {
         }
     }
 }
-impl ToJson for ValueData {
-    fn to_json(&self) -> Json {
-        match *self {
-            ValueData::Null | ValueData::Undefined => Null,
-            ValueData::Boolean(b) => Boolean(b),
-            ValueData::Object(ref obj) => {
-                let mut nobj = HashMap::new();
-                for (k, v) in obj.borrow().iter() {
-                    if k.as_slice() != INSTANCE_PROTOTYPE.as_slice() {
-                        nobj.insert(k.clone(), v.value.borrow().to_json());
-                    }
-                }
-                Object(box nobj)
-            }
-            ValueData::String(ref str) => String(str.clone()),
-            ValueData::Number(num) => Number(num),
-            ValueData::Integer(val) => Number(val as f64),
-            ValueData::Function(_) => Null,
-        }
-    }
-}
-impl Add<ValueData, ValueData> for ValueData {
-    fn add(&self, other: &ValueData) -> ValueData {
-        return match (self.clone(), other.clone()) {
-            (ValueData::String(s), other) | (other, ValueData::String(s)) => {
-                ValueData::String(s.clone().append(other.to_str().as_slice()))
-            }
-            (_, _) => ValueData::Number(self.to_num() + other.to_num()),
-        };
-    }
-}
-impl Sub<ValueData, ValueData> for ValueData {
-    fn sub(&self, other: &ValueData) -> ValueData {
-        ValueData::Number(self.to_num() - other.to_num())
-    }
-}
-impl Mul<ValueData, ValueData> for ValueData {
-    fn mul(&self, other: &ValueData) -> ValueData {
-        ValueData::Number(self.to_num() * other.to_num())
-    }
-}
-impl Div<ValueData, ValueData> for ValueData {
-    fn div(&self, other: &ValueData) -> ValueData {
-        ValueData::Number(self.to_num() / other.to_num())
-    }
-}
-impl Rem<ValueData, ValueData> for ValueData {
-    fn rem(&self, other: &ValueData) -> ValueData {
-        ValueData::Number(self.to_num() % other.to_num())
-    }
-}
-impl BitAnd<ValueData, ValueData> for ValueData {
-    fn bitand(&self, other: &ValueData) -> ValueData {
-        ValueData::Integer(self.to_int() & other.to_int())
-    }
-}
-impl BitOr<ValueData, ValueData> for ValueData {
-    fn bitor(&self, other: &ValueData) -> ValueData {
-        ValueData::Integer(self.to_int() | other.to_int())
-    }
-}
-impl BitXor<ValueData, ValueData> for ValueData {
-    fn bitxor(&self, other: &ValueData) -> ValueData {
-        ValueData::Integer(self.to_int() ^ other.to_int())
-    }
-}
-impl Shl<ValueData, ValueData> for ValueData {
-    fn shl(&self, other: &ValueData) -> ValueData {
-        ValueData::Integer(self.to_int() << other.to_int())
-    }
-}
-impl Shr<ValueData, ValueData> for ValueData {
-    fn shr(&self, other: &ValueData) -> ValueData {
-        ValueData::Integer(self.to_int() >> other.to_int())
-    }
-}
-impl Not<ValueData> for ValueData {
-    fn not(&self) -> ValueData {
-        ValueData::Boolean(!self.is_true())
-    }
-}
+
+// impl Add<ValueData, ValueData> for ValueData {
+//     fn add(&self, other: &ValueData) -> ValueData {
+//         return match (self.clone(), other.clone()) {
+//             (ValueData::String(s), other) | (other, ValueData::String(s)) => {
+//                 ValueData::String(s.clone().append(other.to_str().as_slice()))
+//             }
+//             (_, _) => ValueData::Number(self.to_num() + other.to_num()),
+//         };
+//     }
+// }
+// impl Sub<ValueData, ValueData> for ValueData {
+//     fn sub(&self, other: &ValueData) -> ValueData {
+//         ValueData::Number(self.to_num() - other.to_num())
+//     }
+// }
+// impl Mul<ValueData, ValueData> for ValueData {
+//     fn mul(&self, other: &ValueData) -> ValueData {
+//         ValueData::Number(self.to_num() * other.to_num())
+//     }
+// }
+// impl Div<ValueData, ValueData> for ValueData {
+//     fn div(&self, other: &ValueData) -> ValueData {
+//         ValueData::Number(self.to_num() / other.to_num())
+//     }
+// }
+// impl Rem<ValueData, ValueData> for ValueData {
+//     fn rem(&self, other: &ValueData) -> ValueData {
+//         ValueData::Number(self.to_num() % other.to_num())
+//     }
+// }
+// impl BitAnd<ValueData, ValueData> for ValueData {
+//     fn bitand(&self, other: &ValueData) -> ValueData {
+//         ValueData::Integer(self.to_int() & other.to_int())
+//     }
+// }
+// impl BitOr<ValueData, ValueData> for ValueData {
+//     fn bitor(&self, other: &ValueData) -> ValueData {
+//         ValueData::Integer(self.to_int() | other.to_int())
+//     }
+// }
+// impl BitXor<ValueData, ValueData> for ValueData {
+//     fn bitxor(&self, other: &ValueData) -> ValueData {
+//         ValueData::Integer(self.to_int() ^ other.to_int())
+//     }
+// }
+// impl Shl<ValueData, ValueData> for ValueData {
+//     fn shl(&self, other: &ValueData) -> ValueData {
+//         ValueData::Integer(self.to_int() << other.to_int())
+//     }
+// }
+// impl Shr<ValueData, ValueData> for ValueData {
+//     fn shr(&self, other: &ValueData) -> ValueData {
+//         ValueData::Integer(self.to_int() >> other.to_int())
+//     }
+// }
+// impl Not<ValueData> for ValueData {
+//     fn not(&self) -> ValueData {
+//         ValueData::Boolean(!self.is_true())
+//     }
+// }
 /// Conversion to Javascript values from Rust values
 pub trait ToValue {
     /// Convert this value to a Rust value
     fn to_value(&self) -> Value;
 }
 /// Conversion to Rust values from Javascript values
-pub trait FromValue {
+pub trait FromValue<T: std::marker::Sized> {
     /// Convert this value to a Javascript value
-    fn from_value(value: Value) -> Result<Self, &'static str>;
+    fn from_value(value: Value) -> Result<T, &'static str>;
 }
 impl ToValue for String {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.clone()))
+        GcCell::new(ValueData::String(self.clone()))
     }
 }
-impl FromValue for String {
+impl<T> FromValue<T> for String {
     fn from_value(v: Value) -> Result<String, &'static str> {
         Ok(v.borrow().to_str())
     }
 }
 impl<'s> ToValue for &'s str {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(String::from_str(*self)))
+        GcCell::new(ValueData::String(String::from_str(*self)))
     }
 }
 impl ToValue for char {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(String::from_char(1, *self)))
+        GcCell::new(ValueData::String(String::from_char(1, *self)))
     }
 }
-impl FromValue for char {
+impl<T> FromValue<T> for char {
     fn from_value(v: Value) -> Result<char, &'static str> {
         Ok(v.borrow().to_str().as_slice().char_at(0))
     }
 }
 impl ToValue for f64 {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Number(self.clone()))
+        GcCell::new(ValueData::Number(self.clone()))
     }
 }
-impl FromValue for f64 {
+impl<T> FromValue<T> for f64 {
     fn from_value(v: Value) -> Result<f64, &'static str> {
         Ok(v.borrow().to_num())
     }
 }
 impl ToValue for i32 {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Integer(self.clone()))
+        GcCell::new(ValueData::Integer(self.clone()))
     }
 }
-impl FromValue for i32 {
+impl<T> FromValue<T> for i32 {
     fn from_value(v: Value) -> Result<i32, &'static str> {
         Ok(v.borrow().to_int())
     }
 }
 impl ToValue for bool {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Boolean(self.clone()))
+        GcCell::new(ValueData::Boolean(self.clone()))
     }
 }
-impl FromValue for bool {
+impl<T> FromValue<T> for bool {
     fn from_value(v: Value) -> Result<bool, &'static str> {
         Ok(v.borrow().is_true())
     }
@@ -457,28 +467,28 @@ impl<T: ToValue> ToValue for Vec<T> {
         to_value(arr)
     }
 }
-impl<T: FromValue> FromValue for Vec<T> {
+impl<T: FromValue<T>, R> FromValue<R> for Vec<T> {
     fn from_value(v: Value) -> Result<Vec<T>, &'static str> {
         let len = v.borrow().get_field_slice("length").borrow().to_int();
-        let mut vec = Vec::with_capacity(len as uint);
-        for i in range(0, len) {
+        let mut vec = Vec::with_capacity(len);
+        for i in 0..len {
             vec.push(try!(from_value(v.borrow().get_field(i.to_str()))))
         }
         Ok(vec)
     }
 }
-impl ToValue for NativeFunctionData {
+impl ToValue for Function {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Function(RefCell::new(NativeFunc(
-            NativeFunction::new(*self),
+        GcCell::new(ValueData::Function(RefCell::new(Function::NativeFunc(
+            Function::NativeFunction::new(*self),
         ))))
     }
 }
-impl FromValue for NativeFunctionData {
-    fn from_value(v: Value) -> Result<NativeFunctionData, &'static str> {
+impl<T> FromValue<T> for Function {
+    fn from_value(v: Value) -> Result<Function, &'static str> {
         match *v.borrow() {
             ValueData::Function(ref func) => match *func.borrow() {
-                NativeFunc(ref data) => Ok(data.data),
+                Function::NativeFunc(ref data) => Ok(data.data),
                 _ => Err("Value is not a native function"),
             },
             _ => Err("Value is not a function"),
@@ -487,43 +497,34 @@ impl FromValue for NativeFunctionData {
 }
 impl ToValue for ObjectData {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Object(RefCell::new(self.clone())))
+        GcCell::new(ValueData::Object(RefCell::new(self.clone())))
     }
 }
-impl FromValue for ObjectData {
+impl<T> FromValue<T> for ObjectData {
     fn from_value(v: Value) -> Result<ObjectData, &'static str> {
         match *v.borrow() {
             ValueData::Object(ref obj) => Ok(obj.clone().borrow().deref().clone()),
             ValueData::Function(ref func) => Ok(match *func.borrow().deref() {
-                NativeFunc(ref data) => data.object.clone(),
-                RegularFunc(ref data) => data.object.clone(),
+                Function::NativeFunc(ref data) => data.object.clone(),
+                Function::RegularFunc(ref data) => data.object.clone(),
             }),
             _ => Err("Value is not a valid object"),
         }
     }
 }
-impl ToValue for Json {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::from_json(self.clone()))
-    }
-}
-impl FromValue for Json {
-    fn from_value(v: Value) -> Result<Json, &'static str> {
-        Ok(v.borrow().to_json())
-    }
-}
+
 impl ToValue for () {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Null)
+        GcCell::new(ValueData::Null)
     }
 }
-impl FromValue for () {
+impl<T> FromValue<T> for () {
     fn from_value(_: Value) -> Result<(), &'static str> {
         Ok(())
     }
 }
 /// A utility function that just calls FromValue::from_value
-pub fn from_value<A: FromValue>(v: Value) -> Result<A, &'static str> {
+pub fn from_value<A: FromValue<T>>(v: Value) -> Result<A, &'static str> {
     FromValue::from_value(v)
 }
 
