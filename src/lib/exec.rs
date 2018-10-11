@@ -2,7 +2,9 @@ use gc::GcCell;
 use js::object::ObjectData;
 use js::value::{ResultValue, Value, ValueData};
 use js::{function, json, object};
+use std::borrow::Borrow;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use syntax::ast::expr::Expr;
 
 /// An execution engine
@@ -17,8 +19,7 @@ pub trait Executor {
     fn make_scope(&mut self) -> GcCell<RefCell<ObjectData>>;
     /// Destroy the current scope
     fn destroy_scope(&mut self) -> ();
-    /// Run an expression
-    fn run(&mut self, expr: &Expr) -> ResultValue;
+    // fn run(&mut self, expr: &Expr) -> ResultValue;
 }
 
 /// A Javascript intepreter
@@ -39,5 +40,23 @@ impl Executor for Interpreter {
             global: global,
             scopes: Vec::new(),
         }
+    }
+
+    fn set_global(&mut self, name: String, val: Value) -> Value {
+        self.global.borrow().set_field(name, val)
+    }
+
+    fn get_global(&self, name: String) -> Value {
+        self.global.borrow().get_field(name)
+    }
+
+    fn make_scope(&mut self) -> GcCell<RefCell<ObjectData>> {
+        let value = GcCell::new(RefCell::new(HashMap::new()));
+        self.scopes.push(value.clone());
+        value
+    }
+
+    fn destroy_scope(&mut self) -> () {
+        self.scopes.pop();
     }
 }
