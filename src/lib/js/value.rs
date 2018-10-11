@@ -106,4 +106,19 @@ impl Value {
             _ => false,
         }
     }
+
+    /// Converts the value into a 64-bit floating point number
+    pub fn to_num(&self) -> f64 {
+        match *self.ptr {
+            ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => std::f64::NAN,
+            ValueData::String(ref str) => match from_str(str) {
+                Some(num) => num,
+                None => std::f64::NAN,
+            },
+            ValueData::Number(num) => num,
+            ValueData::Boolean(true) => 1.0,
+            ValueData::Boolean(false) | ValueData::Null => 0.0,
+            ValueData::Integer(num) => num as f64,
+        }
+    }
 }
