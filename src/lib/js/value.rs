@@ -349,8 +349,8 @@ impl PartialEq for Value {
             {
                 true
             }
-            (ValueData::Number(ref a), _) if a == other.to_num() => true,
-            (_, ValueData::Number(ref a)) if a == self.to_num() => true,
+            (ValueData::Number(a), _) if *a == other.to_num() => true,
+            (_, ValueData::Number(a)) if *a == self.to_num() => true,
             (ValueData::Integer(a), ValueData::Integer(b)) if a == b => true,
             _ => false,
         }
@@ -489,8 +489,8 @@ impl FromValue for ObjectData {
     fn from_value(v: Value) -> Result<ObjectData, &'static str> {
         match *v.ptr {
             ValueData::Object(ref obj) => {
-                let objData = obj.clone().into_inner();
-                Ok(objData)
+                let obj_data = obj.clone().into_inner();
+                Ok(obj_data)
             }
             ValueData::Function(ref func) => Ok(func.borrow().object.clone()),
             _ => Err("Value is not a valid object"),
