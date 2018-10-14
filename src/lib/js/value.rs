@@ -5,6 +5,7 @@ use serde_json::map::Map;
 use serde_json::Number as JSONNumber;
 use serde_json::Value as JSONValue;
 use std::collections::HashMap;
+use std::f64::NAN;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::iter::FromIterator;
 use std::ops::Deref;
@@ -123,10 +124,10 @@ impl Value {
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
         match *self.ptr {
-            ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => std::f64::NAN,
+            ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => NAN,
             ValueData::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
-                Err(_) => std::f64::NAN,
+                Err(_) => NAN,
             },
             ValueData::Number(num) => num,
             ValueData::Boolean(true) => 1.0,
