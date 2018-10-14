@@ -1,4 +1,5 @@
 extern crate boa;
+
 use boa::syntax::ast::keyword::Keyword;
 use boa::syntax::ast::punc::Punctuator;
 use boa::syntax::ast::token::TokenData;

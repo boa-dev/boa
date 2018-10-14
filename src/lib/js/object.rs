@@ -1,4 +1,4 @@
-use js::value::{Value, ValueData};
+use js::value::Value;
 use std::collections::HashMap;
 pub static PROTOTYPE: &'static str = "prototype";
 pub static INSTANCE_PROTOTYPE: &'static str = "__proto__";

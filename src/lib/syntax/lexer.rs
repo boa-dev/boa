@@ -113,7 +113,7 @@ impl<'a> Lexer<'a> {
     ///
     /// ```rust,no_run
     /// let buffer = std::fs::read_to_string("yourSourceCode.js").unwrap();
-    /// let lexer = js::syntax::lexer::Lexer::new(&buffer);
+    /// let lexer = boa::syntax::lexer::Lexer::new(&buffer);
     /// ```
     pub fn new(buffer: &'a str) -> Lexer<'a> {
         Lexer {
