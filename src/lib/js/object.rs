@@ -8,7 +8,7 @@ pub type ObjectData = HashMap<String, Property>;
 /// A Javascript Property AKA The Property Descriptor   
 /// [[SPEC] - The Property Descriptor Specification Type](https://tc39.github.io/ecma262/#sec-property-descriptor-specification-type)   
 /// [[SPEC] - Default Attribute Values](https://tc39.github.io/ecma262/#table-4)
-#[derive(Trace, Finalize, Clone)]
+#[derive(Trace, Finalize, Clone, Debug)]
 pub struct Property {
     /// If the type of this can be changed and this can be deleted
     pub configurable: bool,

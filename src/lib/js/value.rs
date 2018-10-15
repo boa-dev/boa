@@ -14,14 +14,14 @@ use std::str::FromStr;
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter
-#[derive(Trace, Finalize, Clone)]
+#[derive(Trace, Finalize, Clone, Debug)]
 pub struct Value {
     /// The garbage-collected pointer
     pub ptr: Gc<ValueData>,
 }
 
 /// A Javascript value
-#[derive(Trace, Finalize)]
+#[derive(Trace, Finalize, Debug)]
 pub enum ValueData {
     /// `null` - A null value, for when a value doesn't exist
     Null,

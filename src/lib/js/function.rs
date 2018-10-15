@@ -7,7 +7,7 @@ pub type FunctionData = fn(Vec<Value>, Value, Value, Value) -> ResultValue;
 /// https://tc39.github.io/ecma262/#sec-terms-and-definitions-function
 /// In our implementation, Function is extending Object by holding an object field which some extra data
 
-#[derive(Trace, Finalize)]
+#[derive(Trace, Finalize, Debug)]
 pub struct Function {
     /// The fields associated with the function
     pub object: ObjectData,
