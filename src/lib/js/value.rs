@@ -257,7 +257,7 @@ impl Value {
         }
     }
 
-    fn to_json(&self) -> JSONValue {
+    pub fn to_json(&self) -> JSONValue {
         match *self.ptr {
             ValueData::Null | ValueData::Undefined => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
