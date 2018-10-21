@@ -16,6 +16,13 @@ fn check_string_to_value() {
 }
 
 #[test]
+fn check_undefined() {
+    let u = Value::undefined();
+    assert_eq!(u.get_type(), "undefined");
+    assert_eq!(u.to_string(), "undefined");
+}
+
+#[test]
 fn check_get_set_field() {
     let obj = Value::new_obj(None);
     // Create string and convert it to a Value

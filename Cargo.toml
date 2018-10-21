@@ -13,6 +13,8 @@ exclude = [".vscode/*", "Dockerfile", "Makefile", ".editorConfig"]
 gc = "0.3.2"
 gc_derive = "*"
 serde_json = "1.0"
+rand = "0.5.5"
+time = "0.1"
 
 [lib]
 name = "boa"
