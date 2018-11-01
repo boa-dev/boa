@@ -1,28 +1,29 @@
+use gc::Gc;
 use js::function::Function;
 use js::object::{Property, PROTOTYPE};
-use js::value::{from_value, to_value, ResultValue, Value};
+use js::value::{from_value, to_value, ResultValue, Value, ValueData};
 
 /// Create new string
-pub fn make_string(_: Vec<Value>, _: Value, _: Value, this: Value) -> ResultValue {
+pub fn make_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     this.set_field_slice("length", to_value(0i32));
-    Ok(Value::undefined())
+    Ok(Gc::new(ValueData::Undefined))
 }
 /// Get a string's length
-pub fn get_string_length(_: Vec<Value>, _: Value, _: Value, this: Value) -> ResultValue {
+pub fn get_string_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     let this_str: String = from_value(this).unwrap();
     Ok(to_value::<i32>(this_str.len() as i32))
 }
 /// Create a new `String` object
 pub fn _create(global: Value) -> Value {
-    let string = Function::make(make_string, &["string"]);
-    let proto = Value::new_obj(Some(global));
+    let string = to_value(make_string);
+    let proto = ValueData::new_obj(Some(global));
     let prop = Property {
         configurable: false,
         enumerable: false,
         writable: false,
-        value: Value::undefined(),
-        get: Function::make(get_string_length, &[]),
-        set: Value::undefined(),
+        value: Gc::new(ValueData::Undefined),
+        get: to_value(get_string_length),
+        set: Gc::new(ValueData::Undefined),
     };
     proto.set_prop_slice("length", prop);
     string.set_field_slice(PROTOTYPE, proto);

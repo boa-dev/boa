@@ -4,7 +4,6 @@ use js::value::{to_value, ResultValue, Value, ValueData};
 use std::collections::HashMap;
 use syntax::ast::expr::Expr;
 
-pub type FunctionData = fn(Vec<Value>, Value, Value, Value) -> ResultValue;
 pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
@@ -12,7 +11,7 @@ pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
 /// In our implementation, Function is extending Object by holding an object field which some extra data
 
 /// A Javascript function
-#[derive(Trace, Finalize, Debug)]
+#[derive(Trace, Finalize, Debug, Clone)]
 pub enum Function {
     /// A native javascript function
     NativeFunc(NativeFunction),
@@ -21,7 +20,7 @@ pub enum Function {
 }
 
 /// Represents a regular javascript function in memory
-#[derive(Trace, Finalize, Debug)]
+#[derive(Trace, Finalize, Debug, Clone)]
 pub struct RegularFunction {
     /// The fields associated with the function
     pub object: ObjectData,
@@ -47,7 +46,7 @@ impl RegularFunction {
     }
 }
 
-#[derive(Trace, Finalize, Debug)]
+#[derive(Trace, Finalize, Debug, Clone)]
 /// Represents a native javascript function in memory
 pub struct NativeFunction {
     /// The fields associated with the function
@@ -73,6 +72,6 @@ pub fn _create() -> Value {
 }
 /// Initialise the global object with the `Function` object
 pub fn init(global: Value) {
-    let global_ptr = global.borrow();
-    global_ptr.set_field_slice("Function", _create(global));
+    let global_ptr = &global;
+    global_ptr.set_field_slice("Function", _create());
 }

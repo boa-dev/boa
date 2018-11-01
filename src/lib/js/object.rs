@@ -1,5 +1,5 @@
-use js::function::Function;
-use js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value};
+use gc::Gc;
+use js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData};
 use std::collections::HashMap;
 pub static PROTOTYPE: &'static str = "prototype";
 pub static INSTANCE_PROTOTYPE: &'static str = "__proto__";
@@ -33,15 +33,15 @@ impl Property {
             enumerable: false,
             writable: false,
             value: value,
-            get: Value::undefined(),
-            set: Value::undefined(),
+            get: Gc::new(ValueData::Undefined),
+            set: Gc::new(ValueData::Undefined),
         }
     }
 }
 
 impl ToValue for Property {
     fn to_value(&self) -> Value {
-        let prop = Value::new_obj(None);
+        let prop = ValueData::new_obj(None);
         prop.set_field_slice("configurable", to_value(self.configurable));
         prop.set_field_slice("enumerable", to_value(self.enumerable));
         prop.set_field_slice("writable", to_value(self.writable));
@@ -67,17 +67,17 @@ impl FromValue for Property {
 
 /// Create a new object
 pub fn make_object(_: Vec<Value>, _: Value, _: Value, _: Value) -> ResultValue {
-    Ok(Value::undefined())
+    Ok(Gc::new(ValueData::Undefined))
 }
 
 /// Get the prototype of an object
-pub fn get_proto_of(args: Vec<Value>, _: Value, _: Value, _: Value) -> ResultValue {
+pub fn get_proto_of(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let obj = args.get(0).unwrap();
     Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
 }
 
 /// Set the prototype of an object
-pub fn set_proto_of(args: Vec<Value>, _: Value, _: Value, _: Value) -> ResultValue {
+pub fn set_proto_of(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let obj = args.get(0).unwrap().clone();
     let proto = args.get(1).unwrap().clone();
     obj.set_field_slice(INSTANCE_PROTOTYPE, proto);
@@ -85,21 +85,21 @@ pub fn set_proto_of(args: Vec<Value>, _: Value, _: Value, _: Value) -> ResultVal
 }
 
 /// Define a property in an object
-pub fn define_prop(args: Vec<Value>, _: Value, _: Value, _: Value) -> ResultValue {
+pub fn define_prop(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let obj = args.get(0).unwrap();
     let prop = from_value::<String>(args.get(1).unwrap().clone()).unwrap();
     let desc = from_value::<Property>(args.get(2).unwrap().clone()).unwrap();
     obj.set_prop(prop, desc);
-    Ok(Value::undefined())
+    Ok(Gc::new(ValueData::Undefined))
 }
 
 /// To string
-pub fn to_string(_: Vec<Value>, _: Value, _: Value, this: Value) -> ResultValue {
+pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     Ok(to_value(this.to_string()))
 }
 
 /// Check if it has a property
-pub fn has_own_prop(args: Vec<Value>, _: Value, _: Value, this: Value) -> ResultValue {
+pub fn has_own_prop(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let prop = if args.len() == 0 {
         None
     } else {
@@ -112,24 +112,16 @@ pub fn has_own_prop(args: Vec<Value>, _: Value, _: Value, this: Value) -> Result
 
 /// Create a new `Object` object
 pub fn _create(global: Value) -> Value {
-    let object = Function::make(make_object, &[]);
-    let prototype = Value::new_obj(Some(global));
-    prototype.set_field_slice(
-        "hasOwnProperty",
-        Function::make(has_own_prop, &["property"]),
-    );
-    prototype.set_field_slice("toString", Function::make(to_string, &[]));
-    object.set_field_slice("length", to_value(1i32));
-    object.set_field_slice(PROTOTYPE, prototype);
-    object.set_field_slice(
-        "setPrototypeOf",
-        Function::make(get_proto_of, &["object", "prototype"]),
-    );
-    object.set_field_slice("getPrototypeOf", Function::make(get_proto_of, &["object"]));
-    object.set_field_slice(
-        "defineProperty",
-        Function::make(define_prop, &["object", "property"]),
-    );
+    let object = to_value(make_object);
+    let object_ptr = object;
+    let prototype = ValueData::new_obj(Some(global));
+    prototype.set_field_slice("hasOwnProperty", to_value(has_own_prop));
+    prototype.set_field_slice("toString", to_value(to_string));
+    object_ptr.set_field_slice("length", to_value(1i32));
+    object_ptr.set_field_slice(PROTOTYPE, prototype);
+    object_ptr.set_field_slice("setPrototypeOf", to_value(set_proto_of));
+    object_ptr.set_field_slice("getPrototypeOf", to_value(get_proto_of));
+    object_ptr.set_field_slice("defineProperty", to_value(define_prop));
     object
 }
 

@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result};
 use syntax::ast::constant::Const;
 use syntax::ast::op::{BinOp, Operator, UnaryOp};
 
-#[derive(Clone, Trace, Debug, PartialEq)]
+#[derive(Clone, Trace, Finalize, Debug, PartialEq)]
 pub struct Expr {
     /// The expression definition
     pub def: ExprDef,
@@ -22,7 +22,7 @@ impl Display for Expr {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript Expression
 pub enum ExprDef {
     /// Run a operation between 2 expressions

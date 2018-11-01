@@ -1,17 +1,20 @@
 use gc::{Gc, GcCell};
-use js::function::Function;
+use js::function::{Function, NativeFunction, NativeFunctionData};
 use js::object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE};
 use serde_json::map::Map;
 use serde_json::Number as JSONNumber;
 use serde_json::Value as JSONValue;
 use std::collections::HashMap;
 use std::f64::NAN;
+use std::fmt;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::iter::FromIterator;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Not, Rem, Shl, Shr, Sub};
 use std::str::FromStr;
 
+#[must_use]
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter
@@ -295,7 +298,7 @@ impl ValueData {
 }
 
 impl Display for ValueData {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
@@ -305,10 +308,9 @@ impl Display for ValueData {
                 f,
                 "{}",
                 match v {
-                    // https://tc39.github.io/ecma262/#sec-tostring-applied-to-the-number-type
                     _ if v.is_nan() => "NaN".to_string(),
-                    _ if v.is_infinite() && v.is_sign_positive() => "Infinity".to_string(),
-                    _ if v.is_infinite() && v.is_sign_negative() => "-Infinity".to_string(),
+                    std::f64::INFINITY => "Infinity".to_string(),
+                    std::f64::NEG_INFINITY => "-Infinity".to_string(),
                     _ => v.to_string(),
                 }
             ),
@@ -317,7 +319,7 @@ impl Display for ValueData {
                 match v.borrow().iter().last() {
                     Some((last_key, _)) => {
                         for (key, val) in v.borrow().iter() {
-                            try!(write!(f, "{}: {}", key, val.value));
+                            try!(write!(f, "{}: {}", key, val.value.clone()));
                             if key != last_key {
                                 try!(write!(f, "{}", ", "));
                             }
@@ -328,13 +330,18 @@ impl Display for ValueData {
                 write!(f, "{}", "}")
             }
             ValueData::Integer(v) => write!(f, "{}", v),
-            ValueData::Function(ref v) => write!(f, "function({})", v.borrow().args.join(", ")),
+            ValueData::Function(ref v) => match *v.borrow() {
+                Function::NativeFunc(_) => write!(f, "{}", "function() { [native code] }"),
+                Function::RegularFunc(rf) => {
+                    write!(f, "function({}){}", rf.args.join(", "), rf.expr)
+                }
+            },
         }
     }
 }
 
-impl PartialEq for Value {
-    fn eq(&self, other: &Value) -> bool {
+impl PartialEq for ValueData {
+    fn eq(&self, other: &ValueData) -> bool {
         match (self.clone().deref(), other.clone().deref()) {
             // TODO: fix this
             // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
@@ -356,6 +363,68 @@ impl PartialEq for Value {
     }
 }
 
+impl Add for ValueData {
+    type Output = ValueData;
+    fn add(self, other: ValueData) -> ValueData {
+        return match (self, other) {
+            (ValueData::String(s), other) | (other, ValueData::String(s)) => {
+                ValueData::String(s.clone().append(other.to_string()))
+            }
+            (_, _) => ValueData::Number(self.to_num() + other.to_num()),
+        };
+    }
+}
+impl Sub for ValueData {
+    fn sub(&self, other: &ValueData) -> ValueData {
+        ValueData::Number(self.to_num() - other.to_num())
+    }
+}
+impl Mul for ValueData {
+    fn mul(&self, other: &ValueData) -> ValueData {
+        ValueData::Number(self.to_num() * other.to_num())
+    }
+}
+impl Div for ValueData {
+    fn div(&self, other: &ValueData) -> ValueData {
+        ValueData::Number(self.to_num() / other.to_num())
+    }
+}
+impl Rem for ValueData {
+    fn rem(&self, other: ValueData) -> ValueData {
+        ValueData::Number(self.to_num() % other.to_num())
+    }
+}
+impl BitAnd for ValueData {
+    fn bitand(&self, other: ValueData) -> ValueData {
+        ValueData::Integer(self.to_int() & other.to_int())
+    }
+}
+impl BitOr for ValueData {
+    fn bitor(&self, other: &ValueData) -> ValueData {
+        ValueData::Integer(self.to_int() | other.to_int())
+    }
+}
+impl BitXor for ValueData {
+    fn bitxor(&self, other: &ValueData) -> ValueData {
+        ValueData::Integer(self.to_int() ^ other.to_int())
+    }
+}
+impl Shl for ValueData {
+    fn shl(&self, other: &ValueData) -> ValueData {
+        ValueData::Integer(self.to_int() << other.to_int())
+    }
+}
+impl Shr for ValueData {
+    fn shr(&self, other: &ValueData) -> ValueData {
+        ValueData::Integer(self.to_int() >> other.to_int())
+    }
+}
+impl Not for ValueData {
+    fn not(&self) -> ValueData {
+        ValueData::Boolean(!self.is_true())
+    }
+}
+
 /// Conversion to Javascript values from Rust values
 pub trait ToValue {
     /// Convert this value to a Rust value
@@ -371,7 +440,7 @@ pub trait FromValue {
 
 impl ToValue for String {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.clone())),
+        Gc::new(ValueData::String(self.clone()))
     }
 }
 
@@ -383,17 +452,13 @@ impl FromValue for String {
 
 impl<'s> ToValue for &'s str {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::String(String::from_str(*self).unwrap())),
-        }
+        Gc::new(ValueData::String(String::from_str(*self).unwrap()))
     }
 }
 
 impl ToValue for char {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::String(self.to_string())),
-        }
+        Gc::new(ValueData::String(self.to_string()))
     }
 }
 impl FromValue for char {
@@ -404,9 +469,7 @@ impl FromValue for char {
 
 impl ToValue for f64 {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::Number(*self)),
-        }
+        Gc::new(ValueData::Number(*self))
     }
 }
 impl FromValue for f64 {
@@ -417,9 +480,7 @@ impl FromValue for f64 {
 
 impl ToValue for i32 {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::Integer(*self)),
-        }
+        Gc::new(ValueData::Integer(*self))
     }
 }
 impl FromValue for i32 {
@@ -430,9 +491,7 @@ impl FromValue for i32 {
 
 impl ToValue for bool {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::Boolean(*self)),
-        }
+        Gc::new(ValueData::Boolean(*self))
     }
 }
 impl FromValue for bool {
@@ -477,19 +536,18 @@ impl<T: FromValue> FromValue for Vec<T> {
 
 impl ToValue for ObjectData {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::Object(GcCell::new(self.clone()))),
-        }
+        Gc::new(ValueData::Object(GcCell::new(self.clone())))
     }
 }
+
 impl FromValue for ObjectData {
     fn from_value(v: Value) -> Result<ObjectData, &'static str> {
-        match *v.ptr {
-            ValueData::Object(ref obj) => {
-                let obj_data = obj.clone().into_inner();
-                Ok(obj_data)
-            }
-            ValueData::Function(ref func) => Ok(func.borrow().object.clone()),
+        match *v {
+            ValueData::Object(ref obj) => Ok(obj.clone().borrow().deref().clone()),
+            ValueData::Function(ref func) => Ok(match *func.borrow().deref() {
+                Function::NativeFunc(ref data) => data.object.clone(),
+                Function::RegularFunc(ref data) => data.object.clone(),
+            }),
             _ => Err("Value is not a valid object"),
         }
     }
@@ -497,11 +555,10 @@ impl FromValue for ObjectData {
 
 impl ToValue for JSONValue {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(Value::from_json(self.clone())),
-        }
+        Gc::new(ValueData::from_json(self.clone()))
     }
 }
+
 impl FromValue for JSONValue {
     fn from_value(v: Value) -> Result<JSONValue, &'static str> {
         Ok(v.to_json())
@@ -510,9 +567,7 @@ impl FromValue for JSONValue {
 
 impl ToValue for () {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::Null),
-        }
+        Gc::new(ValueData::Null)
     }
 }
 impl FromValue for () {
@@ -525,9 +580,7 @@ impl<T: ToValue> ToValue for Option<T> {
     fn to_value(&self) -> Value {
         match *self {
             Some(ref v) => v.to_value(),
-            None => Value {
-                ptr: Gc::new(ValueData::Null),
-            },
+            None => Gc::new(ValueData::Null),
         }
     }
 }
@@ -538,6 +591,25 @@ impl<T: FromValue> FromValue for Option<T> {
         } else {
             Some(try!(FromValue::from_value(value)))
         })
+    }
+}
+
+impl ToValue for NativeFunctionData {
+    fn to_value(&self) -> Value {
+        Gc::new(ValueData::Function(GcCell::new(Function::NativeFunc(
+            NativeFunction::new(*self),
+        ))))
+    }
+}
+impl FromValue for NativeFunctionData {
+    fn from_value(v: Value) -> Result<NativeFunctionData, &'static str> {
+        match *v {
+            ValueData::Function(ref func) => match *func.borrow() {
+                Function::NativeFunc(ref data) => Ok(data.data),
+                _ => Err("Value is not a native function"),
+            },
+            _ => Err("Value is not a function"),
+        }
     }
 }
 

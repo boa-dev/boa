@@ -1,9 +1,13 @@
-use gc::Gc;
-use js::value::{to_value, ResultValue, Value, ValueData};
+use gc::{Gc, GcCell};
+use js::function::{Function, RegularFunction};
+use js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
+use js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use js::{array, console, function, json, math, object, string};
 use std::borrow::Borrow;
+use std::collections::HashMap;
 use syntax::ast::constant::Const;
 use syntax::ast::expr::{Expr, ExprDef};
+use syntax::ast::op::BinOp;
 /// A variable scope
 pub struct Scope {
     /// The value of `this` in the scope
@@ -36,9 +40,9 @@ pub struct Interpreter {
     pub scopes: Vec<Scope>,
 }
 
-impl Executor<Expr> for Interpreter {
+impl Executor for Interpreter {
     fn new() -> Interpreter {
-        let global = Value::new_obj(None);
+        let global = ValueData::new_obj(None);
         object::init(global);
         console::init(global);
         math::init(global);
@@ -66,7 +70,7 @@ impl Executor<Expr> for Interpreter {
     fn make_scope(&mut self, this: Value) -> Scope {
         let scope = Scope {
             this: this,
-            vars: Value::new_obj(None),
+            vars: ValueData::new_obj(None),
         };
         self.scopes.push(scope);
         scope
@@ -76,14 +80,10 @@ impl Executor<Expr> for Interpreter {
         self.scopes.pop().unwrap()
     }
 
-    fn compile<'a>(&self, expr: &'a Expr) -> &'a Expr {
-        expr
-    }
-
     fn run(&mut self, expr: &Expr) -> ResultValue {
         match expr.def {
             ExprDef::ConstExpr(Const::Null) => Ok(to_value(None)),
-            ExprDef::ConstExpr(Const::Undefined) => Ok(Value::undefined()),
+            ExprDef::ConstExpr(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
             ExprDef::ConstExpr(Const::Num(num)) => Ok(to_value(num)),
             ExprDef::ConstExpr(Const::Int(num)) => Ok(to_value(num)),
             ExprDef::ConstExpr(Const::String(str)) => Ok(to_value(str)),
@@ -100,11 +100,11 @@ impl Executor<Expr> for Interpreter {
                 Ok(obj)
             }
             ExprDef::LocalExpr(ref name) => {
-                let mut val = Value::undefined();
+                let mut val = Gc::new(ValueData::Undefined);
                 for scope in self.scopes.iter().rev() {
                     let vars = scope.vars;
                     let vars_ptr = vars.borrow();
-                    match *vars_ptr.ptr {
+                    match *vars_ptr.clone() {
                         ValueData::Object(ref obj) => match obj.borrow().get(name) {
                             Some(v) => {
                                 val = v.value;
@@ -143,18 +143,18 @@ impl Executor<Expr> for Interpreter {
                 for arg in args.iter() {
                     v_args.push(try!(self.run(arg)));
                 }
-                match *func.borrow().ptr {
+                match *func {
                     ValueData::Function(ref func) => match *func.borrow() {
-                        NativeFunc(ref ntv) => {
+                        Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(this, try!(self.run(*callee)), v_args)
+                            func(this, try!(self.run(callee)), v_args)
                         }
-                        RegularFunc(ref data) => {
+                        Function::RegularFunc(ref data) => {
                             let scope = self.make_scope(this);
                             let scope_vars_ptr = scope.vars.borrow();
-                            for i in range(0, data.args.len()) {
-                                let name = data.args.get(i);
-                                let expr = v_args.get(i);
+                            for i in 0..data.args.len() {
+                                let name = data.args.get(i).unwrap();
+                                let expr = v_args.get(i).unwrap();
                                 scope_vars_ptr.set_field(name.clone(), *expr);
                             }
                             let result = self.run(&data.expr);
@@ -162,30 +162,32 @@ impl Executor<Expr> for Interpreter {
                             result
                         }
                     },
-                    _ => Err(Gc::new(VUndefined)),
+                    _ => Err(Gc::new(ValueData::Undefined)),
                 }
             }
-            WhileLoopExpr(ref cond, ref expr) => {
-                let mut result = Gc::new(VUndefined);
-                while try!(self.run(*cond)).borrow().is_true() {
-                    result = try!(self.run(*expr));
+            ExprDef::WhileLoopExpr(ref cond, ref expr) => {
+                let mut result = Gc::new(ValueData::Undefined);
+                while try!(self.run(cond)).borrow().is_true() {
+                    result = try!(self.run(expr));
                 }
                 Ok(result)
             }
-            IfExpr(ref cond, ref expr, None) => Ok(if try!(self.run(*cond)).borrow().is_true() {
-                try!(self.run(*expr))
-            } else {
-                Gc::new(VUndefined)
-            }),
-            IfExpr(ref cond, ref expr, Some(ref else_e)) => {
-                Ok(if try!(self.run(*cond)).borrow().is_true() {
-                    try!(self.run(*expr))
+            ExprDef::IfExpr(ref cond, ref expr, None) => {
+                Ok(if try!(self.run(cond)).borrow().is_true() {
+                    try!(self.run(expr))
                 } else {
-                    try!(self.run(*else_e))
+                    Gc::new(ValueData::Undefined)
                 })
             }
-            SwitchExpr(ref val_e, ref vals, ref default) => {
-                let val = try!(self.run(*val_e)).borrow().clone();
+            ExprDef::IfExpr(ref cond, ref expr, Some(ref else_e)) => {
+                Ok(if try!(self.run(cond)).borrow().is_true() {
+                    try!(self.run(expr))
+                } else {
+                    try!(self.run(else_e))
+                })
+            }
+            ExprDef::SwitchExpr(ref val_e, ref vals, ref default) => {
+                let val = try!(self.run(val_e)).borrow().clone();
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
                 for tup in vals.iter() {
@@ -205,61 +207,63 @@ impl Executor<Expr> for Interpreter {
                     }
                 }
                 if !matched && default.is_some() {
-                    result = try!(self.run(*default.as_ref().unwrap()));
+                    result = try!(self.run(default.as_ref().unwrap()));
                 }
                 Ok(result)
             }
-            ObjectDeclExpr(ref map) => {
+            ExprDef::ObjectDeclExpr(ref map) => {
                 let obj = ValueData::new_obj(Some(self.global));
                 for (key, val) in map.iter() {
                     obj.borrow().set_field(key.clone(), try!(self.run(val)));
                 }
                 Ok(obj)
             }
-            ArrayDeclExpr(ref arr) => {
+            ExprDef::ArrayDeclExpr(ref arr) => {
                 let arr_map = ValueData::new_obj(Some(self.global));
                 let mut index: i32 = 0;
                 for val in arr.iter() {
                     let val = try!(self.run(val));
-                    arr_map.borrow().set_field(index.to_str(), val);
+                    arr_map.borrow().set_field(index.to_string(), val);
                     index += 1;
                 }
                 arr_map.borrow().set_field_slice(
                     INSTANCE_PROTOTYPE,
-                    self.get_global("Array".into_strbuf())
+                    self.get_global("Array".to_string())
                         .borrow()
                         .get_field_slice(PROTOTYPE),
                 );
                 arr_map.borrow().set_field_slice("length", to_value(index));
                 Ok(arr_map)
             }
-            FunctionDeclExpr(ref name, ref args, ref expr) => {
-                let function = RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
-                let val = Gc::new(VFunction(RefCell::new(function)));
+            ExprDef::FunctionDeclExpr(ref name, ref args, ref expr) => {
+                let function =
+                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
+                let val = Gc::new(ValueData::Function(GcCell::new(function)));
                 if name.is_some() {
                     self.global.borrow().set_field(name.clone().unwrap(), val);
                 }
                 Ok(val)
             }
-            ArrowFunctionDeclExpr(ref args, ref expr) => {
-                let function = RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
-                Ok(Gc::new(VFunction(RefCell::new(function))))
+            ExprDef::ArrowFunctionDeclExpr(ref args, ref expr) => {
+                let function =
+                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
+                Ok(Gc::new(ValueData::Function(GcCell::new(function))))
             }
-            BinOpExpr(BinNum(ref op), ref a, ref b) => {
-                let v_r_a = try!(self.run(*a));
-                let v_r_b = try!(self.run(*b));
-                let v_a = v_r_a.borrow();
-                let v_b = v_r_b.borrow();
+            ExprDef::BinOpExpr(BinOp::Num(ref op), ref a, ref b) => {
+                let v_r_a = try!(self.run(a));
+                let v_r_b = try!(self.run(b));
+                let v_a = *v_r_a;
+                let v_b = *v_r_b;
                 Ok(Gc::new(match *op {
-                    OpAdd => *v_a + *v_b,
-                    OpSub => *v_a - *v_b,
-                    OpMul => *v_a * *v_b,
-                    OpDiv => *v_a / *v_b,
-                    OpMod => *v_a % *v_b,
+                    OpAdd => v_a + *v_b,
+                    OpSub => v_a - *v_b,
+                    OpMul => v_a * *v_b,
+                    OpDiv => v_a / *v_b,
+                    OpMod => v_a % *v_b,
                 }))
             }
-            UnaryOpExpr(ref op, ref a) => {
-                let v_r_a = try!(self.run(*a));
+            ExprDef::UnaryOpExpr(ref op, ref a) => {
+                let v_r_a = try!(self.run(a));
                 let v_a = v_r_a.borrow();
                 Ok(match *op {
                     UnaryMinus => to_value(-v_a.to_num()),
@@ -268,32 +272,32 @@ impl Executor<Expr> for Interpreter {
                     _ => unreachable!(),
                 })
             }
-            BinOpExpr(BinBit(ref op), ref a, ref b) => {
-                let v_r_a = try!(self.run(*a));
-                let v_r_b = try!(self.run(*b));
-                let v_a = v_r_a.borrow();
-                let v_b = v_r_b.borrow();
+            ExprDef::BinOpExpr(BinOp::Bit(ref op), ref a, ref b) => {
+                let v_r_a = try!(self.run(a));
+                let v_r_b = try!(self.run(b));
+                let v_a = *v_r_a;
+                let v_b = *v_r_b;
                 Ok(Gc::new(match *op {
-                    BitAnd => *v_a & *v_b,
-                    BitOr => *v_a | *v_b,
-                    BitXor => *v_a ^ *v_b,
-                    BitShl => *v_a << *v_b,
-                    BitShr => *v_a >> *v_b,
+                    BitAnd => v_a & v_b,
+                    BitOr => v_a | v_b,
+                    BitXor => v_a ^ v_b,
+                    BitShl => v_a << v_b,
+                    BitShr => v_a >> v_b,
                 }))
             }
-            BinOpExpr(BinComp(ref op), ref a, ref b) => {
-                let v_r_a = try!(self.run(*a));
-                let v_r_b = try!(self.run(*b));
+            ExprDef::BinOpExpr(BinOp::Comp(ref op), ref a, ref b) => {
+                let v_r_a = try!(self.run(a));
+                let v_r_b = try!(self.run(b));
                 let v_a = v_r_a.borrow();
                 let v_b = v_r_b.borrow();
                 Ok(to_value(match *op {
-                    CompEqual if v_a.is_object() => v_r_a.ptr_eq(&v_r_b),
+                    CompEqual if v_a.is_object() => v_r_a == v_r_b,
                     CompEqual => v_a == v_b,
-                    CompNotEqual if v_a.is_object() => !v_r_a.ptr_eq(&v_r_b),
+                    CompNotEqual if v_a.is_object() => v_r_a != v_r_b,
                     CompNotEqual => v_a != v_b,
-                    CompStrictEqual if v_a.is_object() => v_r_a.ptr_eq(&v_r_b),
+                    CompStrictEqual if v_a.is_object() => v_r_a == v_r_b,
                     CompStrictEqual => v_a == v_b,
-                    CompStrictNotEqual if v_a.is_object() => !v_r_a.ptr_eq(&v_r_b),
+                    CompStrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
                     CompStrictNotEqual => v_a != v_b,
                     CompGreaterThan => v_a.to_num() > v_b.to_num(),
                     CompGreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
@@ -301,30 +305,30 @@ impl Executor<Expr> for Interpreter {
                     CompLessThanOrEqual => v_a.to_num() <= v_b.to_num(),
                 }))
             }
-            BinOpExpr(BinLog(ref op), ref a, ref b) => {
-                let v_a = from_value::<bool>(try!(self.run(*a))).unwrap();
-                let v_b = from_value::<bool>(try!(self.run(*b))).unwrap();
+            ExprDef::BinOpExpr(BinOp::Log(ref op), ref a, ref b) => {
+                let v_a = from_value::<bool>(try!(self.run(a))).unwrap();
+                let v_b = from_value::<bool>(try!(self.run(b))).unwrap();
                 Ok(match *op {
                     LogAnd => to_value(v_a && v_b),
                     LogOr => to_value(v_a || v_b),
                 })
             }
-            ConstructExpr(ref callee, ref args) => {
-                let func = try!(self.run(*callee));
+            ExprDef::ConstructExpr(ref callee, ref args) => {
+                let func = try!(self.run(callee));
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
                     v_args.push(try!(self.run(arg)));
                 }
-                let this = Gc::new(VObject(RefCell::new(TreeMap::new())));
+                let this = Gc::new(ValueData::Object(GcCell::new(HashMap::new())));
                 this.borrow()
                     .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
-                match *func.borrow() {
-                    VFunction(ref func) => match *func.borrow() {
-                        NativeFunc(ref ntv) => {
+                match *func {
+                    ValueData::Function(ref func) => match *func {
+                        Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(this, try!(self.run(*callee)), v_args)
+                            func(this, try!(self.run(callee)), v_args)
                         }
-                        RegularFunc(ref data) => {
+                        Function::RegularFunc(ref data) => {
                             let scope = self.make_scope(this);
                             let scope_vars_ptr = scope.vars.borrow();
                             for i in range(0, data.args.len()) {
@@ -337,16 +341,16 @@ impl Executor<Expr> for Interpreter {
                             result
                         }
                     },
-                    _ => Ok(Gc::new(VUndefined)),
+                    _ => Ok(Gc::new(ValueData::Undefined)),
                 }
             }
-            ReturnExpr(ref ret) => match *ret {
-                Some(ref v) => self.run(*v),
-                None => Ok(Gc::new(VUndefined)),
+            ExprDef::ReturnExpr(ref ret) => match *ret {
+                Some(ref v) => self.run(v),
+                None => Ok(Gc::new(ValueData::Undefined)),
             },
-            ThrowExpr(ref ex) => Err(try!(self.run(*ex))),
-            AssignExpr(ref ref_e, ref val_e) => {
-                let val = try!(self.run(*val_e));
+            ExprDef::ThrowExpr(ref ex) => Err(try!(self.run(*ex))),
+            ExprDef::AssignExpr(ref ref_e, ref val_e) => {
+                let val = try!(self.run(val_e));
                 match ref_e.def {
                     LocalExpr(ref name) => {
                         self.scope().vars.borrow().set_field(name.clone(), val);
@@ -359,7 +363,7 @@ impl Executor<Expr> for Interpreter {
                 }
                 Ok(val)
             }
-            VarDeclExpr(ref vars) => {
+            ExprDef::VarDeclExpr(ref vars) => {
                 let scope_vars = self.scope().vars;
                 let scope_vars_ptr = scope_vars.borrow();
                 for var in vars.iter() {
@@ -370,17 +374,17 @@ impl Executor<Expr> for Interpreter {
                     };
                     scope_vars_ptr.set_field(name.clone(), val);
                 }
-                Ok(Gc::new(VUndefined))
+                Ok(Gc::new(ValueData::Undefined))
             }
-            TypeOfExpr(ref val_e) => {
+            ExprDef::TypeOfExpr(ref val_e) => {
                 let val = try!(self.run(*val_e));
                 Ok(to_value(match *val.borrow() {
-                    VUndefined => "undefined",
+                    ValueData::Undefined => "undefined",
                     ValueData::Null | VObject(_) => "object",
                     VBoolean(_) => "boolean",
                     VNumber(_) | VInteger(_) => "number",
                     VString(_) => "string",
-                    VFunction(_) => "function",
+                    ValueData::Function(_) => "function",
                 }))
             }
         }
