@@ -8,7 +8,11 @@ pub mod error;
 pub mod function;
 /// The global `JSON` object
 pub mod json;
+/// The global `Math` object
+pub mod math;
 /// The global `Object` object
 pub mod object;
+/// The global `String` object
+pub mod string;
 /// Javascript values, utility methods and conversion between Javascript values and Rust values
 pub mod value;

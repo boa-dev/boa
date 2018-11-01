@@ -14,14 +14,14 @@ pub fn get_string_length(_: Vec<Value>, _: Value, _: Value, this: Value) -> Resu
 }
 /// Create a new `String` object
 pub fn _create(global: Value) -> Value {
-    let string = Function::make(make_string, ["string"]);
+    let string = Function::make(make_string, &["string"]);
     let proto = Value::new_obj(Some(global));
     let prop = Property {
         configurable: false,
         enumerable: false,
         writable: false,
         value: Value::undefined(),
-        get: Function::make(get_string_length, []),
+        get: Function::make(get_string_length, &[]),
         set: Value::undefined(),
     };
     proto.set_prop_slice("length", prop);

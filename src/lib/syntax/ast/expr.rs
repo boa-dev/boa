@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result};
 use syntax::ast::constant::Const;
 use syntax::ast::op::{BinOp, Operator, UnaryOp};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Trace, Debug, PartialEq)]
 pub struct Expr {
     /// The expression definition
     pub def: ExprDef,
@@ -12,9 +12,7 @@ pub struct Expr {
 impl Expr {
     /// Create a new expression with a starting and ending position
     pub fn new(def: ExprDef) -> Expr {
-        Expr {
-            def: def,
-        }
+        Expr { def: def }
     }
 }
 

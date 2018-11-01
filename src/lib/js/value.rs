@@ -9,16 +9,13 @@ use std::f64::NAN;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::iter::FromIterator;
 use std::ops::Deref;
+use std::ops::DerefMut;
 use std::str::FromStr;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter
-#[derive(Trace, Finalize, Clone, Debug)]
-pub struct Value {
-    /// The garbage-collected pointer
-    pub ptr: Gc<ValueData>,
-}
+pub type Value = Gc<ValueData>;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug)]
@@ -41,7 +38,7 @@ pub enum ValueData {
     Function(GcCell<Function>),
 }
 
-impl Value {
+impl ValueData {
     /// Returns a new empty object
     pub fn new_obj(global: Option<Value>) -> Value {
         let mut obj: ObjectData = HashMap::new();
@@ -50,19 +47,14 @@ impl Value {
                 .unwrap()
                 .get_field_slice("Object")
                 .get_field_slice(PROTOTYPE);
-            obj.insert(
-                INSTANCE_PROTOTYPE.to_string(),
-                Property::from_value(obj_proto),
-            );
+            obj.insert(INSTANCE_PROTOTYPE.to_string(), Property::new(obj_proto));
         }
-        Value {
-            ptr: Gc::new(ValueData::Object(GcCell::new(obj))),
-        }
+        Gc::new(ValueData::Object(GcCell::new(obj)))
     }
 
     /// Returns true if the value is an object
     pub fn is_object(&self) -> bool {
-        match *self.ptr {
+        match *self {
             ValueData::Object(_) => true,
             _ => false,
         }
@@ -70,7 +62,7 @@ impl Value {
 
     /// Returns true if the value is undefined
     pub fn is_undefined(&self) -> bool {
-        match *self.ptr {
+        match *self {
             ValueData::Undefined => true,
             _ => false,
         }
@@ -78,7 +70,7 @@ impl Value {
 
     /// Returns true if the value is null
     pub fn is_null(&self) -> bool {
-        match *self.ptr {
+        match *self {
             ValueData::Null => true,
             _ => false,
         }
@@ -86,7 +78,7 @@ impl Value {
 
     /// Returns true if the value is null or undefined
     pub fn is_null_or_undefined(&self) -> bool {
-        match *self.ptr {
+        match *self {
             ValueData::Null | ValueData::Undefined => true,
             _ => false,
         }
@@ -94,7 +86,7 @@ impl Value {
 
     /// Returns true if the value is a 64-bit floating-point number
     pub fn is_double(&self) -> bool {
-        match *self.ptr {
+        match *self {
             ValueData::Number(_) => true,
             _ => false,
         }
@@ -102,7 +94,7 @@ impl Value {
 
     /// Returns true if the value is a string
     pub fn is_string(&self) -> bool {
-        match *self.ptr {
+        match *self {
             ValueData::String(_) => true,
             _ => false,
         }
@@ -111,7 +103,7 @@ impl Value {
     /// Returns true if the value is true
     /// [toBoolean](https://tc39.github.io/ecma262/#sec-toboolean)
     pub fn is_true(&self) -> bool {
-        match *self.ptr {
+        match *self {
             ValueData::Object(_) => true,
             ValueData::String(ref s) if !s.is_empty() => true,
             ValueData::Number(n) if n >= 1.0 && n % 1.0 == 0.0 => true,
@@ -123,7 +115,7 @@ impl Value {
 
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
-        match *self.ptr {
+        match *self {
             ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => NAN,
             ValueData::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
@@ -138,7 +130,7 @@ impl Value {
 
     /// Converts the value into a 32-bit integer
     pub fn to_int(&self) -> i32 {
-        match *self.ptr {
+        match *self {
             ValueData::Object(_)
             | ValueData::Undefined
             | ValueData::Null
@@ -157,7 +149,7 @@ impl Value {
     /// Resolve the property in the object
     /// Returns a copy of the Property
     pub fn get_prop(&self, field: String) -> Option<Property> {
-        let obj: ObjectData = match *self.ptr {
+        let obj: ObjectData = match *self {
             ValueData::Object(ref obj) => {
                 let hash = obj.clone();
                 hash.into_inner()
@@ -179,9 +171,7 @@ impl Value {
     pub fn get_field(&self, field: String) -> Value {
         match self.get_prop(field) {
             Some(prop) => prop.value.clone(),
-            None => Value {
-                ptr: Gc::new(ValueData::Undefined),
-            },
+            None => Gc::new(ValueData::Undefined),
         }
     }
 
@@ -192,15 +182,20 @@ impl Value {
 
     /// Set the field in the value
     pub fn set_field(&self, field: String, val: Value) -> Value {
-        match *self.ptr {
+        match *self {
             ValueData::Object(ref obj) => {
                 obj.borrow_mut()
-                    .insert(field.clone(), Property::from_value(val.clone()));
+                    .insert(field.clone(), Property::new(val.clone()));
             }
             ValueData::Function(ref func) => {
-                func.borrow_mut()
-                    .object
-                    .insert(field.clone(), Property::from_value(val.clone()));
+                match *func.borrow_mut().deref_mut() {
+                    Function::NativeFunc(ref mut f) => {
+                        f.object.insert(field.clone(), Property::new(val))
+                    }
+                    Function::RegularFunc(ref mut f) => {
+                        f.object.insert(field.clone(), Property::new(val))
+                    }
+                };
             }
             _ => (),
         }
@@ -214,16 +209,24 @@ impl Value {
 
     /// Set the property in the value
     pub fn set_prop(&self, field: String, prop: Property) -> Property {
-        match *self.ptr {
+        match *self {
             ValueData::Object(ref obj) => {
-                obj.borrow_mut().insert(field.clone(), prop.clone());
+                obj.borrow_mut().insert(field.clone(), prop);
             }
             ValueData::Function(ref func) => {
-                func.borrow_mut().object.insert(field.clone(), prop.clone());
+                match *func.borrow_mut().deref_mut() {
+                    Function::NativeFunc(ref mut f) => f.object.insert(field.clone(), prop),
+                    Function::RegularFunc(ref mut f) => f.object.insert(field.clone(), prop),
+                };
             }
             _ => (),
         }
         prop
+    }
+
+    /// Set the property in the value
+    pub fn set_prop_slice<'t>(&self, field: &'t str, prop: Property) -> Property {
+        self.set_prop(field.to_string(), prop)
     }
 
     /// Convert from a JSON value to a JS value
@@ -238,19 +241,20 @@ impl Value {
                     i += 1;
                     (
                         (i - 1).to_string().to_string(),
-                        Property::from_value(to_value(json.clone())),
+                        Property::new(to_value(json.clone())),
                     )
                 }));
                 data.insert(
                     "length".to_string(),
-                    Property::from_value(to_value(vs.len() as i32)),
+                    Property::new(to_value(vs.len() as i32)),
                 );
                 ValueData::Object(GcCell::new(data))
             }
             JSONValue::Object(obj) => {
-                let data: ObjectData = FromIterator::from_iter(obj.iter().map(|(key, json)| {
-                    (key.clone(), Property::from_value(to_value(json.clone())))
-                }));
+                let data: ObjectData = FromIterator::from_iter(
+                    obj.iter()
+                        .map(|(key, json)| (key.clone(), Property::new(to_value(json.clone())))),
+                );
                 ValueData::Object(GcCell::new(data))
             }
             JSONValue::Null => ValueData::Null,
@@ -258,7 +262,7 @@ impl Value {
     }
 
     pub fn to_json(&self) -> JSONValue {
-        match *self.ptr {
+        match *self {
             ValueData::Null | ValueData::Undefined => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
@@ -279,7 +283,7 @@ impl Value {
 
     /// Get the type of the value
     pub fn get_type(&self) -> &'static str {
-        match *self.ptr {
+        match *self {
             ValueData::Number(_) | ValueData::Integer(_) => "number",
             ValueData::String(_) => "string",
             ValueData::Boolean(_) => "boolean",
@@ -288,17 +292,11 @@ impl Value {
             _ => "object",
         }
     }
-    /// Get the value for undefined
-    pub fn undefined() -> Value {
-        Value {
-            ptr: Gc::new(ValueData::Undefined),
-        }
-    }
 }
 
-impl Display for Value {
+impl Display for ValueData {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        match *self.ptr {
+        match *self {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
@@ -337,7 +335,7 @@ impl Display for Value {
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {
-        match (self.ptr.clone().deref(), other.ptr.clone().deref()) {
+        match (self.clone().deref(), other.clone().deref()) {
             // TODO: fix this
             // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
             _ if self.is_null_or_undefined() && other.is_null_or_undefined() => true,
@@ -373,9 +371,7 @@ pub trait FromValue {
 
 impl ToValue for String {
     fn to_value(&self) -> Value {
-        Value {
-            ptr: Gc::new(ValueData::String(self.clone())),
-        }
+        Gc::new(ValueData::String(self.clone())),
     }
 }
 
@@ -450,7 +446,7 @@ impl<'s, T: ToValue> ToValue for &'s [T] {
         let mut arr = HashMap::new();
         let mut i = 0;
         for item in self.iter() {
-            arr.insert(i.to_string(), Property::from_value(item.to_value()));
+            arr.insert(i.to_string(), Property::new(item.to_value()));
             i += 1;
         }
         to_value(arr)
@@ -461,7 +457,7 @@ impl<T: ToValue> ToValue for Vec<T> {
         let mut arr = HashMap::new();
         let mut i = 0;
         for item in self.iter() {
-            arr.insert(i.to_string(), Property::from_value(item.to_value()));
+            arr.insert(i.to_string(), Property::new(item.to_value()));
             i += 1;
         }
         to_value(arr)
