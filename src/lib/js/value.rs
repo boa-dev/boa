@@ -368,59 +368,69 @@ impl Add for ValueData {
     fn add(self, other: ValueData) -> ValueData {
         return match (self, other) {
             (ValueData::String(s), other) | (other, ValueData::String(s)) => {
-                ValueData::String(s.clone().append(other.to_string()))
+                ValueData::String(s.clone() + &other.to_string())
             }
             (_, _) => ValueData::Number(self.to_num() + other.to_num()),
         };
     }
 }
 impl Sub for ValueData {
-    fn sub(&self, other: &ValueData) -> ValueData {
+    type Output = ValueData;
+    fn sub(self, other: ValueData) -> ValueData {
         ValueData::Number(self.to_num() - other.to_num())
     }
 }
 impl Mul for ValueData {
-    fn mul(&self, other: &ValueData) -> ValueData {
+    type Output = ValueData;
+    fn mul(self, other: ValueData) -> ValueData {
         ValueData::Number(self.to_num() * other.to_num())
     }
 }
 impl Div for ValueData {
-    fn div(&self, other: &ValueData) -> ValueData {
+    type Output = ValueData;
+    fn div(self, other: ValueData) -> ValueData {
         ValueData::Number(self.to_num() / other.to_num())
     }
 }
 impl Rem for ValueData {
-    fn rem(&self, other: ValueData) -> ValueData {
+    type Output = ValueData;
+    fn rem(self, other: ValueData) -> ValueData {
         ValueData::Number(self.to_num() % other.to_num())
     }
 }
 impl BitAnd for ValueData {
-    fn bitand(&self, other: ValueData) -> ValueData {
+    type Output = ValueData;
+    fn bitand(self, other: ValueData) -> ValueData {
         ValueData::Integer(self.to_int() & other.to_int())
     }
 }
 impl BitOr for ValueData {
-    fn bitor(&self, other: &ValueData) -> ValueData {
+    type Output = ValueData;
+    fn bitor(self, other: ValueData) -> ValueData {
         ValueData::Integer(self.to_int() | other.to_int())
     }
 }
 impl BitXor for ValueData {
-    fn bitxor(&self, other: &ValueData) -> ValueData {
+    type Output = ValueData;
+    fn bitxor(self, other: ValueData) -> ValueData {
         ValueData::Integer(self.to_int() ^ other.to_int())
     }
 }
 impl Shl for ValueData {
-    fn shl(&self, other: &ValueData) -> ValueData {
+    type Output = ValueData;
+    fn shl(self, other: ValueData) -> ValueData {
         ValueData::Integer(self.to_int() << other.to_int())
     }
 }
 impl Shr for ValueData {
-    fn shr(&self, other: &ValueData) -> ValueData {
+    type Output = ValueData;
+    fn shr(self, other: ValueData) -> ValueData {
         ValueData::Integer(self.to_int() >> other.to_int())
     }
 }
 impl Not for ValueData {
-    fn not(&self) -> ValueData {
+    type Output = ValueData;
+    fn not(self) -> ValueData {
         ValueData::Boolean(!self.is_true())
     }
 }

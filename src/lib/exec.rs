@@ -255,16 +255,16 @@ impl Executor for Interpreter {
                 let v_a = *v_r_a;
                 let v_b = *v_r_b;
                 Ok(Gc::new(match *op {
-                    OpAdd => v_a + *v_b,
-                    OpSub => v_a - *v_b,
-                    OpMul => v_a * *v_b,
-                    OpDiv => v_a / *v_b,
-                    OpMod => v_a % *v_b,
+                    OpAdd => v_a + v_b,
+                    OpSub => v_a - v_b,
+                    OpMul => v_a * v_b,
+                    OpDiv => v_a / v_b,
+                    OpMod => v_a % v_b,
                 }))
             }
             ExprDef::UnaryOpExpr(ref op, ref a) => {
                 let v_r_a = try!(self.run(a));
-                let v_a = v_r_a.borrow();
+                let v_a = *v_r_a;
                 Ok(match *op {
                     UnaryMinus => to_value(-v_a.to_num()),
                     UnaryPlus => to_value(v_a.to_num()),
