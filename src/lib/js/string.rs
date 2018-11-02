@@ -1,5 +1,5 @@
 use gc::Gc;
-use js::function::Function;
+use js::function::NativeFunctionData;
 use js::object::{Property, PROTOTYPE};
 use js::value::{from_value, to_value, ResultValue, Value, ValueData};
 
@@ -15,7 +15,7 @@ pub fn get_string_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 }
 /// Create a new `String` object
 pub fn _create(global: Value) -> Value {
-    let string = to_value(make_string);
+    let string = to_value(make_string as NativeFunctionData);
     let proto = ValueData::new_obj(Some(global));
     let prop = Property {
         configurable: false,
