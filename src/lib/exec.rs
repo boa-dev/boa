@@ -7,7 +7,7 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use syntax::ast::constant::Const;
 use syntax::ast::expr::{Expr, ExprDef};
-use syntax::ast::op::BinOp;
+use syntax::ast::op::{BinOp, CompOp};
 /// A variable scope
 pub struct Scope {
     /// The value of `this` in the scope
@@ -195,13 +195,13 @@ impl Executor for Interpreter {
                 })
             }
             ExprDef::SwitchExpr(ref val_e, ref vals, ref default) => {
-                let val = try!(self.run(val_e)).borrow().clone();
+                let val = try!(self.run(val_e)).clone();
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
                 for tup in vals.iter() {
                     let tup: &(Expr, Vec<Expr>) = tup;
                     match *tup {
-                        (ref cond, ref block) if (val == *try!(self.run(cond)).borrow()) => {
+                        (ref cond, ref block) if (val == try!(self.run(cond))) => {
                             matched = true;
                             let last_expr = block.last().unwrap();
                             for expr in block.iter() {
@@ -299,18 +299,18 @@ impl Executor for Interpreter {
                 let v_a = v_r_a.borrow();
                 let v_b = v_r_b.borrow();
                 Ok(to_value(match *op {
-                    CompEqual if v_a.is_object() => v_r_a == v_r_b,
-                    CompEqual => v_a == v_b,
-                    CompNotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompNotEqual => v_a != v_b,
-                    CompStrictEqual if v_a.is_object() => v_r_a == v_r_b,
-                    CompStrictEqual => v_a == v_b,
-                    CompStrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompStrictNotEqual => v_a != v_b,
-                    CompGreaterThan => v_a.to_num() > v_b.to_num(),
-                    CompGreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
-                    CompLessThan => v_a.to_num() < v_b.to_num(),
-                    CompLessThanOrEqual => v_a.to_num() <= v_b.to_num(),
+                    CompOp::Equal if v_a.is_object() => v_r_a == v_r_b,
+                    CompOp::Equal => v_a == v_b,
+                    CompOp::NotEqual if v_a.is_object() => v_r_a != v_r_b,
+                    CompOp::NotEqual => v_a != v_b,
+                    CompOp::StrictEqual if v_a.is_object() => v_r_a == v_r_b,
+                    CompOp::StrictEqual => v_a == v_b,
+                    CompOp::StrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
+                    CompOp::StrictNotEqual => v_a != v_b,
+                    CompOp::GreaterThan => v_a.to_num() > v_b.to_num(),
+                    CompOp::GreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
+                    CompOp::LessThan => v_a.to_num() < v_b.to_num(),
+                    CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
                 }))
             }
             ExprDef::BinOpExpr(BinOp::Log(ref op), ref a, ref b) => {

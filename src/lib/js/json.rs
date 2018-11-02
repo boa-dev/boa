@@ -1,3 +1,4 @@
+use js::function::NativeFunctionData;
 /// The JSON Object
 /// https://tc39.github.io/ecma262/#sec-json-object
 use js::value::{to_value, ResultValue, Value, ValueData};
@@ -21,8 +22,8 @@ pub fn stringify(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Create a new `JSON` object
 pub fn _create(global: Value) -> Value {
     let object = ValueData::new_obj(Some(global));
-    object.set_field_slice("stringify", to_value(stringify));
-    object.set_field_slice("parse", to_value(parse));
+    object.set_field_slice("stringify", to_value(stringify as NativeFunctionData));
+    object.set_field_slice("parse", to_value(parse as NativeFunctionData));
     object
 }
 

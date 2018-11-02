@@ -1,4 +1,5 @@
 use gc::Gc;
+use js::function::NativeFunctionData;
 use js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData};
 use std::collections::HashMap;
 pub static PROTOTYPE: &'static str = "prototype";
@@ -66,7 +67,7 @@ impl FromValue for Property {
 }
 
 /// Create a new object
-pub fn make_object(_: Vec<Value>, _: Value, _: Value, _: Value) -> ResultValue {
+pub fn make_object(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -112,16 +113,28 @@ pub fn has_own_prop(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
 /// Create a new `Object` object
 pub fn _create(global: Value) -> Value {
-    let object = to_value(make_object);
+    let object = to_value(make_object as NativeFunctionData);
     let object_ptr = object;
     let prototype = ValueData::new_obj(Some(global));
-    prototype.set_field_slice("hasOwnProperty", to_value(has_own_prop));
-    prototype.set_field_slice("toString", to_value(to_string));
+    prototype.set_field_slice(
+        "hasOwnProperty",
+        to_value(has_own_prop as NativeFunctionData),
+    );
+    prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
     object_ptr.set_field_slice("length", to_value(1i32));
     object_ptr.set_field_slice(PROTOTYPE, prototype);
-    object_ptr.set_field_slice("setPrototypeOf", to_value(set_proto_of));
-    object_ptr.set_field_slice("getPrototypeOf", to_value(get_proto_of));
-    object_ptr.set_field_slice("defineProperty", to_value(define_prop));
+    object_ptr.set_field_slice(
+        "setPrototypeOf",
+        to_value(set_proto_of as NativeFunctionData),
+    );
+    object_ptr.set_field_slice(
+        "getPrototypeOf",
+        to_value(get_proto_of as NativeFunctionData),
+    );
+    object_ptr.set_field_slice(
+        "defineProperty",
+        to_value(define_prop as NativeFunctionData),
+    );
     object
 }
 

@@ -1,4 +1,5 @@
-use js::value::{from_value, to_value, ResultValue, Value};
+use js::function::NativeFunctionData;
+use js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use rand::random;
 use std::f64;
 
@@ -141,7 +142,7 @@ pub fn pow(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Generate a random floating-point number between 0 and 1
-pub fn _random(_: Vec<Value>, _: Value, _: Value, _: Value) -> ResultValue {
+pub fn _random(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(random::<f64>()))
 }
 /// Round a number to the nearest integer
@@ -186,7 +187,7 @@ pub fn tan(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 /// Create a new `Math` object
 pub fn _create(global: Value) -> Value {
-    let math = Value::new_obj(Some(global));
+    let math = ValueData::new_obj(Some(global));
     math.set_field_slice("E", to_value(f64::consts::E));
     math.set_field_slice("LN2", to_value(f64::consts::LN_2));
     math.set_field_slice("LN10", to_value(f64::consts::LN_10));
@@ -195,25 +196,25 @@ pub fn _create(global: Value) -> Value {
     math.set_field_slice("SQRT1_2", to_value(0.5f64.sqrt()));
     math.set_field_slice("SQRT2", to_value(f64::consts::SQRT_2));
     math.set_field_slice("PI", to_value(f64::consts::PI));
-    math.set_field_slice("abs", to_value(abs));
-    math.set_field_slice("acos", to_value(acos));
-    math.set_field_slice("asin", to_value(asin));
-    math.set_field_slice("atan", to_value(atan));
-    math.set_field_slice("atan2", to_value(atan2));
-    math.set_field_slice("cbrt", to_value(cbrt));
-    math.set_field_slice("ceil", to_value(ceil));
-    math.set_field_slice("cos", to_value(cos));
-    math.set_field_slice("exp", to_value(exp));
-    math.set_field_slice("floor", to_value(floor, &["num"]));
-    math.set_field_slice("log", to_value(log));
-    math.set_field_slice("max", to_value(max));
-    math.set_field_slice("min", to_value(min));
-    math.set_field_slice("pow", to_value(pow));
-    math.set_field_slice("random", to_value(_random));
-    math.set_field_slice("round", to_value(round));
-    math.set_field_slice("sin", to_value(sin));
-    math.set_field_slice("sqrt", to_value(sqrt));
-    math.set_field_slice("tan", to_value(tan));
+    math.set_field_slice("abs", to_value(abs as NativeFunctionData));
+    math.set_field_slice("acos", to_value(acos as NativeFunctionData));
+    math.set_field_slice("asin", to_value(asin as NativeFunctionData));
+    math.set_field_slice("atan", to_value(atan as NativeFunctionData));
+    math.set_field_slice("atan2", to_value(atan2 as NativeFunctionData));
+    math.set_field_slice("cbrt", to_value(cbrt as NativeFunctionData));
+    math.set_field_slice("ceil", to_value(ceil as NativeFunctionData));
+    math.set_field_slice("cos", to_value(cos as NativeFunctionData));
+    math.set_field_slice("exp", to_value(exp as NativeFunctionData));
+    math.set_field_slice("floor", to_value(floor as NativeFunctionData));
+    math.set_field_slice("log", to_value(log as NativeFunctionData));
+    math.set_field_slice("max", to_value(max as NativeFunctionData));
+    math.set_field_slice("min", to_value(min as NativeFunctionData));
+    math.set_field_slice("pow", to_value(pow as NativeFunctionData));
+    math.set_field_slice("random", to_value(_random as NativeFunctionData));
+    math.set_field_slice("round", to_value(round as NativeFunctionData));
+    math.set_field_slice("sin", to_value(sin as NativeFunctionData));
+    math.set_field_slice("sqrt", to_value(sqrt as NativeFunctionData));
+    math.set_field_slice("tan", to_value(tan as NativeFunctionData));
     math
 }
 /// Initialise the `Math` object on the global object
