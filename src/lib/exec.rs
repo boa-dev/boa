@@ -40,6 +40,14 @@ pub struct Interpreter {
     pub scopes: Vec<Scope>,
 }
 
+impl Interpreter {
+    #[inline(always)]
+    /// Get the current scope
+    pub fn scope(&self) -> Scope {
+        *self.scopes.get(self.scopes.len() - 1).unwrap()
+    }
+}
+
 impl Executor for Interpreter {
     fn new() -> Interpreter {
         let global = ValueData::new_obj(None);
@@ -323,7 +331,7 @@ impl Executor for Interpreter {
                 this.borrow()
                     .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
                 match *func {
-                    ValueData::Function(ref func) => match *func {
+                    ValueData::Function(ref func) => match func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
                             func(this, try!(self.run(callee)), v_args)
@@ -331,9 +339,9 @@ impl Executor for Interpreter {
                         Function::RegularFunc(ref data) => {
                             let scope = self.make_scope(this);
                             let scope_vars_ptr = scope.vars.borrow();
-                            for i in range(0, data.args.len()) {
-                                let name = data.args.get(i);
-                                let expr = v_args.get(i);
+                            for i in 0..data.args.len() {
+                                let name = data.args.get(i).unwrap();
+                                let expr = v_args.get(i).unwrap();
                                 scope_vars_ptr.set_field(name.clone(), *expr);
                             }
                             let result = self.run(&data.expr);
@@ -348,15 +356,15 @@ impl Executor for Interpreter {
                 Some(ref v) => self.run(v),
                 None => Ok(Gc::new(ValueData::Undefined)),
             },
-            ExprDef::ThrowExpr(ref ex) => Err(try!(self.run(*ex))),
+            ExprDef::ThrowExpr(ref ex) => Err(try!(self.run(ex))),
             ExprDef::AssignExpr(ref ref_e, ref val_e) => {
                 let val = try!(self.run(val_e));
                 match ref_e.def {
-                    LocalExpr(ref name) => {
+                    ExprDef::LocalExpr(ref name) => {
                         self.scope().vars.borrow().set_field(name.clone(), val);
                     }
-                    GetConstFieldExpr(ref obj, ref field) => {
-                        let val_obj = try!(self.run(*obj));
+                    ExprDef::GetConstFieldExpr(ref obj, ref field) => {
+                        let val_obj = try!(self.run(obj));
                         val_obj.borrow().set_field(field.clone(), val);
                     }
                     _ => (),
@@ -377,13 +385,13 @@ impl Executor for Interpreter {
                 Ok(Gc::new(ValueData::Undefined))
             }
             ExprDef::TypeOfExpr(ref val_e) => {
-                let val = try!(self.run(*val_e));
-                Ok(to_value(match *val.borrow() {
+                let val = try!(self.run(val_e));
+                Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
-                    ValueData::Null | VObject(_) => "object",
-                    VBoolean(_) => "boolean",
-                    VNumber(_) | VInteger(_) => "number",
-                    VString(_) => "string",
+                    ValueData::Null | ValueData::Object(_) => "object",
+                    ValueData::Boolean(_) => "boolean",
+                    ValueData::Number(_) | ValueData::Integer(_) => "number",
+                    ValueData::String(_) => "string",
                     ValueData::Function(_) => "function",
                 }))
             }
