@@ -1,5 +1,5 @@
 use gc::Gc;
-use js::function::Function;
+use js::function::NativeFunctionData;
 use js::object::PROTOTYPE;
 use js::value::{to_value, ResultValue, Value, ValueData};
 
@@ -11,7 +11,7 @@ pub fn make_error(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Get the string representation of the error
-pub fn to_string(_: Vec<Value>, _: Value, _: Value, this: Value) -> ResultValue {
+pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     let name = this.get_field_slice("name");
     let message = this.get_field_slice("message");
     Ok(to_value(format!("{}: {}", name, message).to_string()))
@@ -22,8 +22,8 @@ pub fn _create(global: Value) -> Value {
     let prototype_ptr = prototype;
     prototype_ptr.set_field_slice("message", to_value(""));
     prototype_ptr.set_field_slice("name", to_value("Error"));
-    prototype_ptr.set_field_slice("toString", to_value(to_string));
-    let error = to_value(make_error);
+    prototype_ptr.set_field_slice("toString", to_value(to_string as NativeFunctionData));
+    let error = to_value(make_error as NativeFunctionData);
     let error_ptr = error;
     error_ptr.set_field_slice(PROTOTYPE, prototype);
     error

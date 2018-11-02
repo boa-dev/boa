@@ -22,7 +22,7 @@ pub fn _create(global: Value) -> Value {
         enumerable: false,
         writable: false,
         value: Gc::new(ValueData::Undefined),
-        get: to_value(get_string_length),
+        get: to_value(get_string_length as NativeFunctionData),
         set: Gc::new(ValueData::Undefined),
     };
     proto.set_prop_slice("length", prop);

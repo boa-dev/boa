@@ -1,4 +1,3 @@
-use js::function::Function;
 /// The JSON Object
 /// https://tc39.github.io/ecma262/#sec-json-object
 use js::value::{to_value, ResultValue, Value, ValueData};

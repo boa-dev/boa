@@ -7,7 +7,7 @@ use serde_json::Value as JSONValue;
 use std::collections::HashMap;
 use std::f64::NAN;
 use std::fmt;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::fmt::Display;
 use std::iter::FromIterator;
 use std::ops::Deref;
 use std::ops::DerefMut;

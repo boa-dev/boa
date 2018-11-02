@@ -90,15 +90,15 @@ impl Executor for Interpreter {
 
     fn run(&mut self, expr: &Expr) -> ResultValue {
         match expr.def {
-            ExprDef::ConstExpr(Const::Null) => Ok(to_value(None)),
+            ExprDef::ConstExpr(Const::Null) => Ok(to_value(None::<()>)),
             ExprDef::ConstExpr(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
             ExprDef::ConstExpr(Const::Num(num)) => Ok(to_value(num)),
             ExprDef::ConstExpr(Const::Int(num)) => Ok(to_value(num)),
             ExprDef::ConstExpr(Const::String(str)) => Ok(to_value(str)),
             ExprDef::ConstExpr(Const::Bool(val)) => Ok(to_value(val)),
-            ExprDef::ConstExpr(Const::RegExp(_, _, _)) => Ok(to_value(None)),
+            ExprDef::ConstExpr(Const::RegExp(_, _, _)) => Ok(to_value(None::<()>)),
             ExprDef::BlockExpr(ref es) => {
-                let mut obj = to_value(None);
+                let mut obj = to_value(None::<()>);
                 for e in es.iter() {
                     let val = try!(self.run(e));
                     if e == es.last().unwrap() {

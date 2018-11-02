@@ -1,4 +1,3 @@
-use js::function::Function;
 use js::value::{from_value, to_value, ResultValue, Value};
 use rand::random;
 use std::f64;
