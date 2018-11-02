@@ -193,10 +193,10 @@ impl ValueData {
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => {
-                        f.object.insert(field.clone(), Property::new(val))
+                        f.object.insert(field.clone(), Property::new(val.clone()))
                     }
                     Function::RegularFunc(ref mut f) => {
-                        f.object.insert(field.clone(), Property::new(val))
+                        f.object.insert(field.clone(), Property::new(val.clone()))
                     }
                 };
             }

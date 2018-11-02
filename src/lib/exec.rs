@@ -200,18 +200,17 @@ impl Executor for Interpreter {
                 let mut matched = false;
                 for tup in vals.iter() {
                     let tup: &(Expr, Vec<Expr>) = tup;
-                    match *tup {
-                        (ref cond, ref block) if (val == try!(self.run(cond))) => {
-                            matched = true;
-                            let last_expr = block.last().unwrap();
-                            for expr in block.iter() {
-                                let e_result = try!(self.run(expr));
-                                if expr == last_expr {
-                                    result = e_result;
-                                }
+                    let cond = &tup.0;
+                    let block = &tup.1;
+                    if val == try!(self.run(cond)) {
+                        matched = true;
+                        let last_expr = block.last().unwrap();
+                        for expr in block.iter() {
+                            let e_result = try!(self.run(expr));
+                            if expr == last_expr {
+                                result = e_result;
                             }
                         }
-                        _ => (),
                     }
                 }
                 if !matched && default.is_some() {
