@@ -72,6 +72,6 @@ pub fn _create() -> Value {
 }
 /// Initialise the global object with the `Function` object
 pub fn init(global: Value) {
-    let global_ptr = &global;
+    let global_ptr = global;
     global_ptr.set_field_slice("Function", _create());
 }

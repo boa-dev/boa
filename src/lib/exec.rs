@@ -7,7 +7,7 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use syntax::ast::constant::Const;
 use syntax::ast::expr::{Expr, ExprDef};
-use syntax::ast::op::{BinOp, CompOp};
+use syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp};
 /// A variable scope
 pub struct Scope {
     /// The value of `this` in the scope
@@ -25,7 +25,7 @@ pub trait Executor {
     /// Resolve the global variable `name`
     fn get_global(&self, name: String) -> Value;
     /// Create a new scope and return it
-    fn make_scope(&mut self, this: Value) -> Scope;
+    fn make_scope(&mut self, this: Value) -> &Scope;
     /// Destroy the current scope
     fn destroy_scope(&mut self) -> Scope;
     /// Run an expression
@@ -43,26 +43,26 @@ pub struct Interpreter {
 impl Interpreter {
     #[inline(always)]
     /// Get the current scope
-    pub fn scope(&self) -> Scope {
-        *self.scopes.get(self.scopes.len() - 1).unwrap()
+    pub fn scope(&self) -> &Scope {
+        self.scopes.get(self.scopes.len() - 1).unwrap()
     }
 }
 
 impl Executor for Interpreter {
     fn new() -> Interpreter {
         let global = ValueData::new_obj(None);
-        object::init(global);
-        console::init(global);
-        math::init(global);
-        array::init(global);
-        function::init(global);
-        json::init(global);
-        string::init(global);
+        object::init(global.clone());
+        console::init(global.clone());
+        math::init(global.clone());
+        array::init(global.clone());
+        function::init(global.clone());
+        json::init(global.clone());
+        string::init(global.clone());
         Interpreter {
-            global: global,
+            global: global.clone(),
             scopes: vec![Scope {
-                this: global,
-                vars: global,
+                this: global.clone(),
+                vars: global.clone(),
             }],
         }
     }
@@ -75,13 +75,13 @@ impl Executor for Interpreter {
         self.global.borrow().get_field(name)
     }
 
-    fn make_scope(&mut self, this: Value) -> Scope {
+    fn make_scope(&mut self, this: Value) -> &Scope {
         let scope = Scope {
             this: this,
             vars: ValueData::new_obj(None),
         };
         self.scopes.push(scope);
-        scope
+        &scope
     }
 
     fn destroy_scope(&mut self) -> Scope {
@@ -110,7 +110,7 @@ impl Executor for Interpreter {
             ExprDef::LocalExpr(ref name) => {
                 let mut val = Gc::new(ValueData::Undefined);
                 for scope in self.scopes.iter().rev() {
-                    let vars = scope.vars;
+                    let vars = scope.vars.clone();
                     let vars_ptr = vars.borrow();
                     match *vars_ptr.clone() {
                         ValueData::Object(ref obj) => match obj.borrow().get(name) {
@@ -262,20 +262,20 @@ impl Executor for Interpreter {
                 let v_a = *v_r_a;
                 let v_b = *v_r_b;
                 Ok(Gc::new(match *op {
-                    OpAdd => v_a + v_b,
-                    OpSub => v_a - v_b,
-                    OpMul => v_a * v_b,
-                    OpDiv => v_a / v_b,
-                    OpMod => v_a % v_b,
+                    NumOp::Add => v_a + v_b,
+                    NumOp::Sub => v_a - v_b,
+                    NumOp::Mul => v_a * v_b,
+                    NumOp::Div => v_a / v_b,
+                    NumOp::Mod => v_a % v_b,
                 }))
             }
             ExprDef::UnaryOpExpr(ref op, ref a) => {
                 let v_r_a = try!(self.run(a));
                 let v_a = *v_r_a;
                 Ok(match *op {
-                    UnaryMinus => to_value(-v_a.to_num()),
-                    UnaryPlus => to_value(v_a.to_num()),
-                    UnaryNot => Gc::new(!v_a),
+                    UnaryOp::Minus => to_value(-v_a.to_num()),
+                    UnaryOp::Plus => to_value(v_a.to_num()),
+                    UnaryOp::Not => Gc::new(!v_a),
                     _ => unreachable!(),
                 })
             }
@@ -285,11 +285,11 @@ impl Executor for Interpreter {
                 let v_a = *v_r_a;
                 let v_b = *v_r_b;
                 Ok(Gc::new(match *op {
-                    BitAnd => v_a & v_b,
-                    BitOr => v_a | v_b,
-                    BitXor => v_a ^ v_b,
-                    BitShl => v_a << v_b,
-                    BitShr => v_a >> v_b,
+                    BitOp::And => v_a & v_b,
+                    BitOp::Or => v_a | v_b,
+                    BitOp::Xor => v_a ^ v_b,
+                    BitOp::Shl => v_a << v_b,
+                    BitOp::Shr => v_a >> v_b,
                 }))
             }
             ExprDef::BinOpExpr(BinOp::Comp(ref op), ref a, ref b) => {
@@ -316,8 +316,8 @@ impl Executor for Interpreter {
                 let v_a = from_value::<bool>(try!(self.run(a))).unwrap();
                 let v_b = from_value::<bool>(try!(self.run(b))).unwrap();
                 Ok(match *op {
-                    LogAnd => to_value(v_a && v_b),
-                    LogOr => to_value(v_a || v_b),
+                    LogOp::And => to_value(v_a && v_b),
+                    LogOp::Or => to_value(v_a || v_b),
                 })
             }
             ExprDef::ConstructExpr(ref callee, ref args) => {
@@ -360,7 +360,10 @@ impl Executor for Interpreter {
                 let val = try!(self.run(val_e));
                 match ref_e.def {
                     ExprDef::LocalExpr(ref name) => {
-                        self.scope().vars.borrow().set_field(name.clone(), val);
+                        self.scope()
+                            .vars
+                            .borrow()
+                            .set_field(name.clone(), val.clone());
                     }
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                         let val_obj = try!(self.run(obj));
