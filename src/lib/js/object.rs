@@ -114,24 +114,23 @@ pub fn has_own_prop(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Create a new `Object` object
 pub fn _create(global: Value) -> Value {
     let object = to_value(make_object as NativeFunctionData);
-    let object_ptr = object;
     let prototype = ValueData::new_obj(Some(global));
     prototype.set_field_slice(
         "hasOwnProperty",
         to_value(has_own_prop as NativeFunctionData),
     );
     prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
-    object_ptr.set_field_slice("length", to_value(1i32));
-    object_ptr.set_field_slice(PROTOTYPE, prototype);
-    object_ptr.set_field_slice(
+    object.set_field_slice("length", to_value(1i32));
+    object.set_field_slice(PROTOTYPE, prototype);
+    object.set_field_slice(
         "setPrototypeOf",
         to_value(set_proto_of as NativeFunctionData),
     );
-    object_ptr.set_field_slice(
+    object.set_field_slice(
         "getPrototypeOf",
         to_value(get_proto_of as NativeFunctionData),
     );
-    object_ptr.set_field_slice(
+    object.set_field_slice(
         "defineProperty",
         to_value(define_prop as NativeFunctionData),
     );

@@ -9,6 +9,7 @@ use syntax::ast::constant::Const;
 use syntax::ast::expr::{Expr, ExprDef};
 use syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp};
 /// A variable scope
+#[derive(Trace, Finalize, Clone, Debug)]
 pub struct Scope {
     /// The value of `this` in the scope
     pub this: Value,
@@ -25,7 +26,7 @@ pub trait Executor {
     /// Resolve the global variable `name`
     fn get_global(&self, name: String) -> Value;
     /// Create a new scope and return it
-    fn make_scope(&mut self, this: Value) -> &Scope;
+    fn make_scope(&mut self, this: Value) -> Scope;
     /// Destroy the current scope
     fn destroy_scope(&mut self) -> Scope;
     /// Run an expression
@@ -75,13 +76,13 @@ impl Executor for Interpreter {
         self.global.borrow().get_field(name)
     }
 
-    fn make_scope(&mut self, this: Value) -> &Scope {
+    fn make_scope(&mut self, this: Value) -> Scope {
         let scope = Scope {
             this: this,
             vars: ValueData::new_obj(None),
         };
-        self.scopes.push(scope);
-        &scope
+        self.scopes.push(scope.clone());
+        scope
     }
 
     fn destroy_scope(&mut self) -> Scope {
@@ -94,7 +95,7 @@ impl Executor for Interpreter {
             ExprDef::ConstExpr(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
             ExprDef::ConstExpr(Const::Num(num)) => Ok(to_value(num)),
             ExprDef::ConstExpr(Const::Int(num)) => Ok(to_value(num)),
-            ExprDef::ConstExpr(Const::String(str)) => Ok(to_value(str)),
+            ExprDef::ConstExpr(Const::String(ref str)) => Ok(to_value(str.to_owned())),
             ExprDef::ConstExpr(Const::Bool(val)) => Ok(to_value(val)),
             ExprDef::ConstExpr(Const::RegExp(_, _, _)) => Ok(to_value(None::<()>)),
             ExprDef::BlockExpr(ref es) => {
@@ -115,7 +116,7 @@ impl Executor for Interpreter {
                     match *vars_ptr.clone() {
                         ValueData::Object(ref obj) => match obj.borrow().get(name) {
                             Some(v) => {
-                                val = v.value;
+                                val = v.value.clone();
                                 break;
                             }
                             None => (),

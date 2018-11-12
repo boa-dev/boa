@@ -19,13 +19,11 @@ pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 /// Create a new `Error` object
 pub fn _create(global: Value) -> Value {
     let prototype = ValueData::new_obj(Some(global));
-    let prototype_ptr = prototype;
-    prototype_ptr.set_field_slice("message", to_value(""));
-    prototype_ptr.set_field_slice("name", to_value("Error"));
-    prototype_ptr.set_field_slice("toString", to_value(to_string as NativeFunctionData));
+    prototype.set_field_slice("message", to_value(""));
+    prototype.set_field_slice("name", to_value("Error"));
+    prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
     let error = to_value(make_error as NativeFunctionData);
-    let error_ptr = error;
-    error_ptr.set_field_slice(PROTOTYPE, prototype);
+    error.set_field_slice(PROTOTYPE, prototype);
     error
 }
 /// Initialise the global object with the `Error` object

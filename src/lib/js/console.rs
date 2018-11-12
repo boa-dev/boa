@@ -5,8 +5,10 @@ use std::iter::FromIterator;
 use time::{now, strftime};
 /// Print a javascript value to the standard output stream
 pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    let args: Vec<String> =
-        FromIterator::from_iter(args.iter().map(|x| from_value::<String>(*x).unwrap()));
+    let args: Vec<String> = FromIterator::from_iter(
+        args.iter()
+            .map(|x| from_value::<String>(x.clone()).unwrap()),
+    );
     println!("{}: {}", strftime("%X", &now()).unwrap(), args.join(" "));
     Ok(Gc::new(ValueData::Undefined))
 }

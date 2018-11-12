@@ -218,8 +218,10 @@ impl ValueData {
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
-                    Function::NativeFunc(ref mut f) => f.object.insert(field.clone(), prop),
-                    Function::RegularFunc(ref mut f) => f.object.insert(field.clone(), prop),
+                    Function::NativeFunc(ref mut f) => f.object.insert(field.clone(), prop.clone()),
+                    Function::RegularFunc(ref mut f) => {
+                        f.object.insert(field.clone(), prop.clone())
+                    }
                 };
             }
             _ => (),
@@ -309,8 +311,8 @@ impl Display for ValueData {
                 "{}",
                 match v {
                     _ if v.is_nan() => "NaN".to_string(),
-                    std::f64::INFINITY => "Infinity".to_string(),
-                    std::f64::NEG_INFINITY => "-Infinity".to_string(),
+                    _ if v.is_infinite() && v.is_sign_negative() => "-Infinity".to_string(),
+                    _ if v.is_infinite() => "Infinity".to_string(),
                     _ => v.to_string(),
                 }
             ),
