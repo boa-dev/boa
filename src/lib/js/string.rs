@@ -31,5 +31,5 @@ pub fn _create(global: Value) -> Value {
 }
 /// Initialise the `String` object on the global object
 pub fn init(global: Value) {
-    global.set_field_slice("String", _create(global));
+    global.set_field_slice("String", _create(global.clone()));
 }

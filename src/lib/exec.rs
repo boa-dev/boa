@@ -139,12 +139,15 @@ impl Executor for Interpreter {
                 let (this, func) = match callee.def {
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                         let obj = try!(self.run(obj));
-                        (obj, obj.borrow().get_field(field.clone()))
+                        (obj.clone(), obj.borrow().get_field(field.clone()))
                     }
                     ExprDef::GetFieldExpr(ref obj, ref field) => {
                         let obj = try!(self.run(obj));
                         let field = try!(self.run(field));
-                        (obj, obj.borrow().get_field(field.borrow().to_string()))
+                        (
+                            obj.clone(),
+                            obj.borrow().get_field(field.borrow().to_string()),
+                        )
                     }
                     _ => (self.global.clone(), try!(self.run(&callee.clone()))),
                 };
@@ -164,7 +167,7 @@ impl Executor for Interpreter {
                             for i in 0..data.args.len() {
                                 let name = data.args.get(i).unwrap();
                                 let expr = v_args.get(i).unwrap();
-                                scope_vars_ptr.set_field(name.clone(), *expr);
+                                scope_vars_ptr.set_field(name.clone(), expr.clone());
                             }
                             let result = self.run(&data.expr);
                             self.destroy_scope();
@@ -220,14 +223,14 @@ impl Executor for Interpreter {
                 Ok(result)
             }
             ExprDef::ObjectDeclExpr(ref map) => {
-                let obj = ValueData::new_obj(Some(self.global));
+                let obj = ValueData::new_obj(Some(self.global.clone()));
                 for (key, val) in map.iter() {
                     obj.borrow().set_field(key.clone(), try!(self.run(val)));
                 }
                 Ok(obj)
             }
             ExprDef::ArrayDeclExpr(ref arr) => {
-                let arr_map = ValueData::new_obj(Some(self.global));
+                let arr_map = ValueData::new_obj(Some(self.global.clone()));
                 let mut index: i32 = 0;
                 for val in arr.iter() {
                     let val = try!(self.run(val));
@@ -248,7 +251,9 @@ impl Executor for Interpreter {
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
                 let val = Gc::new(ValueData::Function(GcCell::new(function)));
                 if name.is_some() {
-                    self.global.borrow().set_field(name.clone().unwrap(), val);
+                    self.global
+                        .borrow()
+                        .set_field(name.clone().unwrap(), val.clone());
                 }
                 Ok(val)
             }
@@ -260,8 +265,8 @@ impl Executor for Interpreter {
             ExprDef::BinOpExpr(BinOp::Num(ref op), ref a, ref b) => {
                 let v_r_a = try!(self.run(a));
                 let v_r_b = try!(self.run(b));
-                let v_a = *v_r_a;
-                let v_b = *v_r_b;
+                let v_a = (*v_r_a).clone();
+                let v_b = (*v_r_b).clone();
                 Ok(Gc::new(match *op {
                     NumOp::Add => v_a + v_b,
                     NumOp::Sub => v_a - v_b,
@@ -272,7 +277,7 @@ impl Executor for Interpreter {
             }
             ExprDef::UnaryOpExpr(ref op, ref a) => {
                 let v_r_a = try!(self.run(a));
-                let v_a = *v_r_a;
+                let v_a = (*v_r_a).clone();
                 Ok(match *op {
                     UnaryOp::Minus => to_value(-v_a.to_num()),
                     UnaryOp::Plus => to_value(v_a.to_num()),
@@ -283,8 +288,8 @@ impl Executor for Interpreter {
             ExprDef::BinOpExpr(BinOp::Bit(ref op), ref a, ref b) => {
                 let v_r_a = try!(self.run(a));
                 let v_r_b = try!(self.run(b));
-                let v_a = *v_r_a;
-                let v_b = *v_r_b;
+                let v_a = (*v_r_a).clone();
+                let v_b = (*v_r_b).clone();
                 Ok(Gc::new(match *op {
                     BitOp::And => v_a & v_b,
                     BitOp::Or => v_a | v_b,
@@ -342,7 +347,7 @@ impl Executor for Interpreter {
                             for i in 0..data.args.len() {
                                 let name = data.args.get(i).unwrap();
                                 let expr = v_args.get(i).unwrap();
-                                scope_vars_ptr.set_field(name.clone(), *expr);
+                                scope_vars_ptr.set_field(name.clone(), (*expr).clone());
                             }
                             let result = self.run(&data.expr);
                             self.destroy_scope();
@@ -368,14 +373,14 @@ impl Executor for Interpreter {
                     }
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                         let val_obj = try!(self.run(obj));
-                        val_obj.borrow().set_field(field.clone(), val);
+                        val_obj.borrow().set_field(field.clone(), val.clone());
                     }
                     _ => (),
                 }
                 Ok(val)
             }
             ExprDef::VarDeclExpr(ref vars) => {
-                let scope_vars = self.scope().vars;
+                let scope_vars = self.scope().vars.clone();
                 let scope_vars_ptr = scope_vars.borrow();
                 for var in vars.iter() {
                     let (name, value) = var.clone();

@@ -67,7 +67,7 @@ impl FromValue for Property {
 }
 
 /// Create a new object
-pub fn make_object(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn make_object(_: Value, _: Value, _args: Vec<Value>) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 

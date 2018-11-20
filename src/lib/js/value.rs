@@ -21,7 +21,7 @@ pub type ResultValue = Result<Value, Value>;
 pub type Value = Gc<ValueData>;
 
 /// A Javascript value
-#[derive(Trace, Finalize, Debug)]
+#[derive(Trace, Finalize, Debug, Clone)]
 pub enum ValueData {
     /// `null` - A null value, for when a value doesn't exist
     Null,
@@ -214,7 +214,7 @@ impl ValueData {
     pub fn set_prop(&self, field: String, prop: Property) -> Property {
         match *self {
             ValueData::Object(ref obj) => {
-                obj.borrow_mut().insert(field.clone(), prop);
+                obj.borrow_mut().insert(field.clone(), prop.clone());
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
@@ -334,7 +334,7 @@ impl Display for ValueData {
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "{}", "function() { [native code] }"),
-                Function::RegularFunc(rf) => {
+                Function::RegularFunc(ref rf) => {
                     write!(f, "function({}){}", rf.args.join(", "), rf.expr)
                 }
             },
@@ -344,7 +344,7 @@ impl Display for ValueData {
 
 impl PartialEq for ValueData {
     fn eq(&self, other: &ValueData) -> bool {
-        match (self.clone().deref(), other.clone().deref()) {
+        match (self.clone(), other.clone()) {
             // TODO: fix this
             // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
             _ if self.is_null_or_undefined() && other.is_null_or_undefined() => true,
@@ -357,8 +357,8 @@ impl PartialEq for ValueData {
             {
                 true
             }
-            (ValueData::Number(a), _) if *a == other.to_num() => true,
-            (_, ValueData::Number(a)) if *a == self.to_num() => true,
+            (ValueData::Number(a), _) if a == other.to_num() => true,
+            (_, ValueData::Number(a)) if a == self.to_num() => true,
             (ValueData::Integer(a), ValueData::Integer(b)) if a == b => true,
             _ => false,
         }
@@ -368,8 +368,8 @@ impl PartialEq for ValueData {
 impl Add for ValueData {
     type Output = ValueData;
     fn add(self, other: ValueData) -> ValueData {
-        return match (self, other) {
-            (ValueData::String(s), other) | (other, ValueData::String(s)) => {
+        return match (self.clone(), other.clone()) {
+            (ValueData::String(ref s), ref other) | (ref other, ValueData::String(ref s)) => {
                 ValueData::String(s.clone() + &other.to_string())
             }
             (_, _) => ValueData::Number(self.to_num() + other.to_num()),
@@ -555,7 +555,7 @@ impl ToValue for ObjectData {
 impl FromValue for ObjectData {
     fn from_value(v: Value) -> Result<ObjectData, &'static str> {
         match *v {
-            ValueData::Object(ref obj) => Ok(obj.clone().borrow().deref().clone()),
+            ValueData::Object(ref obj) => Ok(obj.clone().into_inner()),
             ValueData::Function(ref func) => Ok(match *func.borrow().deref() {
                 Function::NativeFunc(ref data) => data.object.clone(),
                 Function::RegularFunc(ref data) => data.object.clone(),

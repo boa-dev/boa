@@ -142,7 +142,7 @@ pub fn pow(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Generate a random floating-point number between 0 and 1
-pub fn _random(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn _random(_: Value, _: Value, _args: Vec<Value>) -> ResultValue {
     Ok(to_value(random::<f64>()))
 }
 /// Round a number to the nearest integer
