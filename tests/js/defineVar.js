@@ -1,2 +1,2 @@
-var b = 'Jason';
-typeof b;
+var b = [1, 2, 3];
+b[1];

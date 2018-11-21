@@ -6,3 +6,9 @@ This is an experimental Javascript lexer, parser and Just-in-Time compiler writt
 
 
 This project is an attempted rewrite of Bebbington's js.rs and will look very, very similar to it for a while. As that repo has not been touched in a long time a lot of the Rust is out-of-date so a lot of things are probably in error by today's standards
+
+#### Usage
+* Checkout this project
+* Build `cargo build`
+* `cargo run`
+* You can make changes to tests/js/defineVar.js and build again
