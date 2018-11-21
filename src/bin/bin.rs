@@ -1,4 +1,5 @@
 extern crate boa;
+use boa::exec::{Executor, Interpreter};
 use boa::syntax::lexer::Lexer;
 use boa::syntax::parser::Parser;
 use std::fs::read_to_string;
@@ -12,4 +13,11 @@ pub fn main() {
     // Setup executor
     let expr = Parser::new(tokens).parse_all().unwrap();
     println!("{}", expr);
+
+    let mut engine: Interpreter = Executor::new();
+    let result = engine.run(&expr);
+    match result {
+        Ok(v) => print!("{}", v),
+        Err(v) => print!("Error: {}", v),
+    }
 }
