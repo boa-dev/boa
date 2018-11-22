@@ -1,3 +1,3 @@
-var a = 1;
-var b = 2;
-b + a;
+var a = "jason";
+var b = 1;
+a + b;

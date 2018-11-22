@@ -11,4 +11,4 @@ This project is an attempted rewrite of Bebbington's js.rs and will look very, v
 * Checkout this project
 * Build `cargo build`
 * `cargo run`
-* You can make changes to tests/js/defineVar.js and build again
+* You can make changes to tests/js/test.js and build again
