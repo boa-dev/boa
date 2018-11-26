@@ -101,7 +101,7 @@ impl Executor for Interpreter {
             ExprDef::BlockExpr(ref es) => {
                 let mut obj = to_value(None::<()>);
                 for e in es.iter() {
-                    let val = try!(self.run(e));
+                    let val = self.run(e)?;
                     if e == es.last().unwrap() {
                         obj = val;
                     }
@@ -127,39 +127,40 @@ impl Executor for Interpreter {
                 Ok(val)
             }
             ExprDef::GetConstFieldExpr(ref obj, ref field) => {
-                let val_obj = try!(self.run(obj));
+                let val_obj = self.run(obj)?;
+                println!("{:?}", val_obj.get_field(String::from("length")));
                 Ok(val_obj.borrow().get_field(field.clone()))
             }
             ExprDef::GetFieldExpr(ref obj, ref field) => {
-                let val_obj = try!(self.run(obj));
-                let val_field = try!(self.run(field));
+                let val_obj = self.run(obj)?;
+                let val_field = self.run(field)?;
                 Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
             }
             ExprDef::CallExpr(ref callee, ref args) => {
                 let (this, func) = match callee.def {
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
-                        let obj = try!(self.run(obj));
+                        let obj = self.run(obj)?;
                         (obj.clone(), obj.borrow().get_field(field.clone()))
                     }
                     ExprDef::GetFieldExpr(ref obj, ref field) => {
-                        let obj = try!(self.run(obj));
-                        let field = try!(self.run(field));
+                        let obj = self.run(obj)?;
+                        let field = self.run(field)?;
                         (
                             obj.clone(),
                             obj.borrow().get_field(field.borrow().to_string()),
                         )
                     }
-                    _ => (self.global.clone(), try!(self.run(&callee.clone()))),
+                    _ => (self.global.clone(), self.run(&callee.clone())?),
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
-                    v_args.push(try!(self.run(arg)));
+                    v_args.push(self.run(arg)?);
                 }
                 match *func {
                     ValueData::Function(ref func) => match *func.borrow() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(this, try!(self.run(callee)), v_args)
+                            func(this, self.run(callee)?, v_args)
                         }
                         Function::RegularFunc(ref data) => {
                             let scope = self.make_scope(this);
@@ -179,8 +180,8 @@ impl Executor for Interpreter {
             }
             ExprDef::WhileLoopExpr(ref cond, ref expr) => {
                 let mut result = Gc::new(ValueData::Undefined);
-                while try!(self.run(cond)).borrow().is_true() {
-                    result = try!(self.run(expr));
+                while self.run(cond)?.borrow().is_true() {
+                    result = self.run(expr)?;
                 }
                 Ok(result)
             }

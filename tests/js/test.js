@@ -1,3 +1,2 @@
-var a = "jason";
-var b = 1;
-a + b;
+var a = new String("jason");
+a;

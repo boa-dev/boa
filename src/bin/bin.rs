@@ -12,6 +12,7 @@ pub fn main() {
 
     // Setup executor
     let expr = Parser::new(tokens).parse_all().unwrap();
+    print!("{:#?}", expr);
 
     let mut engine: Interpreter = Executor::new();
     let result = engine.run(&expr);
