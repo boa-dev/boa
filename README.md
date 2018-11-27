@@ -9,8 +9,9 @@ This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust cod
 
 #### Roadmap
 * Boxing/Unboxing of primitive types (using "string".length)
-* Supporting non-semicolons
 * Adding support for constructors
+* Better error output
+* 
 
 #### Usage
 * Checkout this project
