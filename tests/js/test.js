@@ -1,2 +1,2 @@
-var a = new String("jason");
+a = { a: 1 };
 a;

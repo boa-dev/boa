@@ -1,6 +1,11 @@
 [[package]]
-name = "Boa"
-version = "0.1.3"
+name = "bitflags"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "boa"
+version = "0.1.4"
 dependencies = [
  "gc 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gc_derive 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -8,11 +13,6 @@ dependencies = [
  "serde_json 1.0.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "bitflags"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "cloudabi"
