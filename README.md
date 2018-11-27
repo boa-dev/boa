@@ -5,7 +5,12 @@ This is an experimental Javascript lexer, parser and Just-in-Time compiler writt
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
 
 
-This project is an attempted rewrite of Bebbington's js.rs and will look very, very similar to it for a while. As that repo has not been touched in a long time a lot of the Rust is out-of-date so a lot of things are probably in error by today's standards
+This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust code has been rewritten from scratch.
+
+#### Roadmap
+* Boxing/Unboxing of primitive types (using "string".length)
+* Supporting non-semicolons
+* Adding support for constructors
 
 #### Usage
 * Checkout this project
