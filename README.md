@@ -11,7 +11,6 @@ This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust cod
 * Boxing/Unboxing of primitive types (using "string".length)
 * Adding support for constructors
 * Better error output
-* 
 
 #### Usage
 * Checkout this project
