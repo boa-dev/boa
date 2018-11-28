@@ -163,7 +163,7 @@ impl ValueData {
         // TODO: Move this to a better place
         if self.is_string() && field == "length" {
             if let ValueData::String(ref s) = *self {
-                return Some(Property::new(to_value(s.len() as f64)))
+                return Some(Property::new(to_value(s.len() as i32)))
             }
         }
 
