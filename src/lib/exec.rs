@@ -95,6 +95,9 @@ impl Executor for Interpreter {
             ExprDef::ConstExpr(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
             ExprDef::ConstExpr(Const::Num(num)) => Ok(to_value(num)),
             ExprDef::ConstExpr(Const::Int(num)) => Ok(to_value(num)),
+            // we can't move String from Const into value, because const is a garbage collected value
+            // Which means Drop() get's called on Const, but str will be gone at that point.
+            // Do Const values need to be garbage collected? We no longer need them once we've generated Values
             ExprDef::ConstExpr(Const::String(ref str)) => Ok(to_value(str.to_owned())),
             ExprDef::ConstExpr(Const::Bool(val)) => Ok(to_value(val)),
             ExprDef::ConstExpr(Const::RegExp(_, _, _)) => Ok(to_value(None::<()>)),
@@ -128,7 +131,6 @@ impl Executor for Interpreter {
             }
             ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
-                println!("{:?}", val_obj.get_field(String::from("length")));
                 Ok(val_obj.borrow().get_field(field.clone()))
             }
             ExprDef::GetFieldExpr(ref obj, ref field) => {

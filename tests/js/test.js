@@ -1,2 +1,2 @@
-a = { a: 1 };
-a;
+var a =  'jabra888';
+a.length;

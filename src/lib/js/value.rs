@@ -55,6 +55,13 @@ impl ValueData {
         Gc::new(ValueData::Object(GcCell::new(obj)))
     }
 
+    /// Similar to `new_obj`, but you can pass a prototype to create from
+    pub fn new_obj_from_prototype(proto: Value) -> Value {
+        let mut obj: ObjectData = HashMap::new();
+        obj.insert(INSTANCE_PROTOTYPE.to_string(), Property::new(proto));
+        Gc::new(ValueData::Object(GcCell::new(obj)))
+    }
+
     /// Returns true if the value is an object
     pub fn is_object(&self) -> bool {
         match *self {
@@ -152,6 +159,13 @@ impl ValueData {
     /// Resolve the property in the object
     /// Returns a copy of the Property
     pub fn get_prop(&self, field: String) -> Option<Property> {
+        // handle length
+        // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
+        // TODO: Maybe we need a GetLengthProperty for value types
+        if let ValueData::String(ref s) = *self {
+            return Some(Property::new(to_value(s.len() as f64)))
+        }
+
         let obj: ObjectData = match *self {
             ValueData::Object(ref obj) => {
                 let hash = obj.clone();
