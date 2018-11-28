@@ -8,7 +8,7 @@ This is an experimental Javascript lexer, parser and Just-in-Time compiler writt
 This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust code has been rewritten from scratch.
 
 #### Roadmap
-* Boxing/Unboxing of primitive types (using "string".length)
+* ~string.length~ - works in 0.1.5
 * Adding support for constructors
 * Better error output
 
