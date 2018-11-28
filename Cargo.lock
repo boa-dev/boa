@@ -1,6 +1,6 @@
 [[package]]
 name = "Boa"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "gc 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gc_derive 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
