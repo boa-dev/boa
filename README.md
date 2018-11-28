@@ -11,9 +11,11 @@ This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust cod
 * ~string.length~ - works in 0.1.5
 * Adding support for constructors
 * Better error output
+* Passing [test262](https://github.com/tc39/test262)
 
 #### Usage
 * Checkout this project
 * Build `cargo build`
 * `cargo run`
 * You can make changes to tests/js/test.js and build again
+* If any JS doesn't work its a bug! Please raise an issue
