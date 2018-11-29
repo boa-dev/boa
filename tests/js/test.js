@@ -1,2 +1,2 @@
-var a =  'jabrjjja888';
-a.length;
+var a = new String("test");
+a;

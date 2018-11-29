@@ -1,5 +1,5 @@
-use js::function::NativeFunctionData;
-use js::value::{from_value, to_value, ResultValue, Value, ValueData};
+use crate::js::function::NativeFunctionData;
+use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use rand::random;
 use std::f64;
 

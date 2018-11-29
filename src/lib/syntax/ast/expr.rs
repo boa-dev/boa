@@ -1,7 +1,7 @@
 use std::collections::btree_map::BTreeMap;
 use std::fmt::{Display, Formatter, Result};
-use syntax::ast::constant::Const;
-use syntax::ast::op::{BinOp, Operator, UnaryOp};
+use crate::syntax::ast::constant::Const;
+use crate::syntax::ast::op::{BinOp, Operator, UnaryOp};
 
 #[derive(Clone, Trace, Finalize, Debug, PartialEq)]
 pub struct Expr {
@@ -109,9 +109,9 @@ impl Display for ExprDef {
         return match *self {
             ExprDef::ConstExpr(ref c) => write!(f, "{}", c),
             ExprDef::BlockExpr(ref block) => {
-                try!(write!(f, "{}", "{"));
+                r#try!(write!(f, "{}", "{"));
                 for expr in block.iter() {
-                    try!(write!(f, "{};", expr));
+                    r#try!(write!(f, "{};", expr));
                 }
                 write!(f, "{}", "}")
             }
@@ -119,7 +119,7 @@ impl Display for ExprDef {
             ExprDef::GetConstFieldExpr(ref ex, ref field) => write!(f, "{}.{}", ex, field),
             ExprDef::GetFieldExpr(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
             ExprDef::CallExpr(ref ex, ref args) => {
-                try!(write!(f, "{}(", ex));
+                r#try!(write!(f, "{}(", ex));
                 let arg_strs: Vec<String> = args.iter().map(|arg| arg.to_string()).collect();
                 write!(f, "{})", arg_strs.join(","))
             }

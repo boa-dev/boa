@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display, Formatter, Result};
-use syntax::ast::keyword::Keyword;
-use syntax::ast::pos::Position;
-use syntax::ast::punc::Punctuator;
+use crate::syntax::ast::keyword::Keyword;
+use crate::syntax::ast::pos::Position;
+use crate::syntax::ast::punc::Punctuator;
 
 #[derive(Clone, PartialEq)]
 /// Represents a token

@@ -1,6 +1,6 @@
 use gc::Gc;
-use js::function::NativeFunctionData;
-use js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData};
+use crate::js::function::NativeFunctionData;
+use crate::js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData};
 use std::collections::HashMap;
 pub static PROTOTYPE: &'static str = "prototype";
 pub static INSTANCE_PROTOTYPE: &'static str = "__proto__";

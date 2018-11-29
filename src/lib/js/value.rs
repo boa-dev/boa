@@ -1,6 +1,6 @@
 use gc::{Gc, GcCell};
-use js::function::{Function, NativeFunction, NativeFunctionData};
-use js::object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE};
+use crate::js::function::{Function, NativeFunction, NativeFunctionData};
+use crate::js::object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE};
 use serde_json::map::Map;
 use serde_json::Number as JSONNumber;
 use serde_json::Value as JSONValue;
@@ -36,6 +36,7 @@ pub enum ValueData {
     /// `Number` - A 32-bit integer, such as `42`
     Integer(i32),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
+    /// Some Objects will need an internal slot to hold private values, so our second ObjectData is for that
     Object(GcCell<ObjectData>),
     /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
     Function(GcCell<Function>),
@@ -160,7 +161,7 @@ impl ValueData {
     /// Returns a copy of the Property
     pub fn get_prop(&self, field: String) -> Option<Property> {
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
-        // TODO: Move this to a better place
+        // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
             if let ValueData::String(ref s) = *self {
                 return Some(Property::new(to_value(s.len() as i32)))
@@ -173,7 +174,10 @@ impl ValueData {
                 hash.into_inner()
             }
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            // ValueData::Function(ref func) => func.clone().object,
+            ValueData::Function(ref func) => match func.clone().into_inner() {
+                Function::NativeFunc(ref func) => func.object.clone(),
+                Function::RegularFunc(ref func) => func.object.clone()
+            }
             _ => return None,
         };
         match obj.get(&field) {
@@ -332,13 +336,13 @@ impl Display for ValueData {
                 }
             ),
             ValueData::Object(ref v) => {
-                try!(write!(f, "{}", "{"));
+                r#try!(write!(f, "{}", "{"));
                 match v.borrow().iter().last() {
                     Some((last_key, _)) => {
                         for (key, val) in v.borrow().iter() {
-                            try!(write!(f, "{}: {}", key, val.value.clone()));
+                            r#try!(write!(f, "{}: {}", key, val.value.clone()));
                             if key != last_key {
-                                try!(write!(f, "{}", ", "));
+                                r#try!(write!(f, "{}", ", "));
                             }
                         }
                     }
@@ -555,7 +559,7 @@ impl<T: FromValue> FromValue for Vec<T> {
         let len = v.get_field_slice("length").to_int();
         let mut vec = Vec::with_capacity(len as usize);
         for i in 0..len {
-            vec.push(try!(from_value(v.get_field(i.to_string()))))
+            vec.push(r#try!(from_value(v.get_field(i.to_string()))))
         }
         Ok(vec)
     }
@@ -616,7 +620,7 @@ impl<T: FromValue> FromValue for Option<T> {
         Ok(if value.is_null_or_undefined() {
             None
         } else {
-            Some(try!(FromValue::from_value(value)))
+            Some(r#try!(FromValue::from_value(value)))
         })
     }
 }

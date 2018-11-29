@@ -1,6 +1,6 @@
 use gc::Gc;
-use js::function::NativeFunctionData;
-use js::value::{from_value, to_value, ResultValue, Value, ValueData};
+use crate::js::function::NativeFunctionData;
+use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use std::iter::FromIterator;
 use time::{now, strftime};
 /// Print a javascript value to the standard output stream

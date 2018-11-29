@@ -8,8 +8,8 @@ use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
 use std::str::FromStr;
-use syntax::ast::punc::Punctuator;
-use syntax::ast::token::{Token, TokenData};
+use crate::syntax::ast::punc::Punctuator;
+use crate::syntax::ast::token::{Token, TokenData};
 
 #[allow(unused)]
 macro_rules! vop {

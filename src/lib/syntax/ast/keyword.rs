@@ -2,7 +2,7 @@ use std::error;
 use std::fmt::Error;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use syntax::ast::keyword::Keyword::*;
+use crate::syntax::ast::keyword::Keyword::*;
 
 #[derive(Clone, PartialEq, Debug)]
 /// A Javascript Keyword

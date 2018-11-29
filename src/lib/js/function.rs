@@ -1,10 +1,12 @@
 use gc::Gc;
-use js::object::{ObjectData, Property};
-use js::value::{to_value, ResultValue, Value, ValueData};
+use crate::js::object::{ObjectData, Property};
+use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use std::collections::HashMap;
-use syntax::ast::expr::Expr;
+use crate::syntax::ast::expr::Expr;
 
+/// fn(this, callee, arguments)
 pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
+
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
 /// https://tc39.github.io/ecma262/#sec-terms-and-definitions-function

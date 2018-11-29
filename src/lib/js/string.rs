@@ -1,12 +1,16 @@
 use gc::Gc;
-use js::function::NativeFunctionData;
-use js::object::{Property, PROTOTYPE};
-use js::value::{from_value, to_value, ResultValue, Value, ValueData};
+use crate::js::function::NativeFunctionData;
+use crate::js::object::{Property, PROTOTYPE};
+use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 
 /// Create new string
-pub fn make_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    this.set_field_slice("length", to_value(0i32));
-    Ok(Gc::new(ValueData::Undefined))
+/// https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19
+pub fn make_string(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    // If we're constructing a string, we should set the initial length
+    // To do this we need to convert the string back to a Rust String, then get the .len()
+    let a: String = from_value(args[0].clone()).unwrap();
+    this.set_field_slice("length", to_value(a.len() as i32));
+    Ok(this)
 }
 /// Get a string's length
 pub fn get_string_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {

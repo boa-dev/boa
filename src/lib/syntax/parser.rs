@@ -1,10 +1,10 @@
 use std::collections::btree_map::BTreeMap;
-use syntax::ast::constant::Const;
-use syntax::ast::expr::{Expr, ExprDef};
-use syntax::ast::keyword::Keyword;
-use syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp};
-use syntax::ast::punc::Punctuator;
-use syntax::ast::token::{Token, TokenData};
+use crate::syntax::ast::constant::Const;
+use crate::syntax::ast::expr::{Expr, ExprDef};
+use crate::syntax::ast::keyword::Keyword;
+use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp};
+use crate::syntax::ast::punc::Punctuator;
+use crate::syntax::ast::token::{Token, TokenData};
 
 macro_rules! mk (
     ($this:expr, $def:expr) => {
@@ -52,7 +52,7 @@ impl Parser {
     pub fn parse_all(&mut self) -> ParseResult {
         let mut exprs = Vec::new();
         while self.pos < self.tokens.len() {
-            let result = try!(self.parse());
+            let result = r#try!(self.parse());
             exprs.push(result);
         }
 
@@ -72,7 +72,7 @@ impl Parser {
     fn parse_struct(&mut self, keyword: Keyword) -> ParseResult {
         match keyword {
             Keyword::Throw => {
-                let thrown = try!(self.parse());
+                let thrown = r#try!(self.parse());
                 Ok(mk!(self, ExprDef::ThrowExpr(Box::new(thrown))))
             }
             Keyword::Var => {
@@ -171,10 +171,10 @@ impl Parser {
                 ))
             }
             Keyword::Switch => {
-                try!(self.expect_punc(Punctuator::OpenParen, "switch value"));
+                r#try!(self.expect_punc(Punctuator::OpenParen, "switch value"));
                 let value = self.parse();
-                try!(self.expect_punc(Punctuator::CloseParen, "switch value"));
-                try!(self.expect_punc(Punctuator::OpenBlock, "switch block"));
+                r#try!(self.expect_punc(Punctuator::CloseParen, "switch value"));
+                r#try!(self.expect_punc(Punctuator::OpenBlock, "switch block"));
                 let mut cases = Vec::new();
                 let mut default = None;
                 while self.pos + 1 < self.tokens.len() {
@@ -184,26 +184,26 @@ impl Parser {
                         TokenData::Keyword(Keyword::Case) => {
                             let cond = self.parse();
                             let mut block = Vec::new();
-                            try!(self.expect_punc(Punctuator::Colon, "switch case"));
+                            r#try!(self.expect_punc(Punctuator::Colon, "switch case"));
                             loop {
-                                match try!(self.get_token(self.pos)).data {
+                                match r#try!(self.get_token(self.pos)).data {
                                     TokenData::Keyword(Keyword::Case)
                                     | TokenData::Keyword(Keyword::Default) => break,
                                     TokenData::Punctuator(Punctuator::CloseBlock) => break,
-                                    _ => block.push(try!(self.parse())),
+                                    _ => block.push(r#try!(self.parse())),
                                 }
                             }
                             cases.push((cond.unwrap(), block));
                         }
                         TokenData::Keyword(Keyword::Default) => {
                             let mut block = Vec::new();
-                            try!(self.expect_punc(Punctuator::Colon, "default switch case"));
+                            r#try!(self.expect_punc(Punctuator::Colon, "default switch case"));
                             loop {
-                                match try!(self.get_token(self.pos)).data {
+                                match r#try!(self.get_token(self.pos)).data {
                                     TokenData::Keyword(Keyword::Case)
                                     | TokenData::Keyword(Keyword::Default) => break,
                                     TokenData::Punctuator(Punctuator::CloseBlock) => break,
-                                    _ => block.push(try!(self.parse())),
+                                    _ => block.push(r#try!(self.parse())),
                                 }
                             }
                             default = Some(mk!(self, ExprDef::BlockExpr(block)));
@@ -222,7 +222,7 @@ impl Parser {
                         }
                     }
                 }
-                try!(self.expect_punc(Punctuator::CloseBlock, "switch block"));
+                r#try!(self.expect_punc(Punctuator::CloseBlock, "switch block"));
                 Ok(mk!(
                     self,
                     ExprDef::SwitchExpr(
@@ -237,7 +237,7 @@ impl Parser {
             }
             Keyword::Function => {
                 // function [identifier] () { etc }
-                let tk = try!(self.get_token(self.pos));
+                let tk = r#try!(self.get_token(self.pos));
                 let name = match tk.data {
                     TokenData::Identifier(ref name) => {
                         self.pos += 1;
@@ -268,7 +268,7 @@ impl Parser {
                         }
                     }
                     self.pos += 1;
-                    if try!(self.get_token(self.pos)).data
+                    if r#try!(self.get_token(self.pos)).data
                         == TokenData::Punctuator(Punctuator::Comma)
                     {
                         self.pos += 1;
@@ -291,13 +291,13 @@ impl Parser {
         if self.pos > self.tokens.len() {
             return Err(ParseError::AbruptEnd);
         }
-        let token = try!(self.get_token(self.pos));
+        let token = r#try!(self.get_token(self.pos));
         self.pos += 1;
         let expr: Expr = match token.data {
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_)
                 if self.pos < self.tokens.len() =>
             {
-                try!(self.parse())
+                r#try!(self.parse())
             }
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_) => {
                 mk!(self, ExprDef::ConstExpr(Const::Undefined))
@@ -310,15 +310,15 @@ impl Parser {
                 mk!(self, ExprDef::ConstExpr(Const::Undefined))
             }
             TokenData::Identifier(s) => mk!(self, ExprDef::LocalExpr(s)),
-            TokenData::Keyword(keyword) => try!(self.parse_struct(keyword)),
+            TokenData::Keyword(keyword) => r#try!(self.parse_struct(keyword)),
             TokenData::Punctuator(Punctuator::OpenParen) => {
-                match try!(self.get_token(self.pos)).data {
+                match r#try!(self.get_token(self.pos)).data {
                     TokenData::Punctuator(Punctuator::CloseParen)
-                        if try!(self.get_token(self.pos + 1)).data
+                        if r#try!(self.get_token(self.pos + 1)).data
                             == TokenData::Punctuator(Punctuator::Arrow) =>
                     {
                         self.pos += 2;
-                        let expr = try!(self.parse());
+                        let expr = r#try!(self.parse());
                         mk!(
                             self,
                             ExprDef::ArrowFunctionDeclExpr(Vec::new(), Box::new(expr)),
@@ -326,8 +326,8 @@ impl Parser {
                         )
                     }
                     _ => {
-                        let next = try!(self.parse());
-                        let next_tok = try!(self.get_token(self.pos));
+                        let next = r#try!(self.parse());
+                        let next_tok = r#try!(self.get_token(self.pos));
                         self.pos += 1;
                         match next_tok.data {
                             TokenData::Punctuator(Punctuator::CloseParen) => next,
@@ -338,7 +338,7 @@ impl Parser {
                                         ExprDef::LocalExpr(ref name) => (*name).clone(),
                                         _ => "".to_string(),
                                     },
-                                    match try!(self.get_token(self.pos)).data {
+                                    match r#try!(self.get_token(self.pos)).data {
                                         TokenData::Identifier(ref id) => id.clone(),
                                         _ => "".to_string(),
                                     },
@@ -346,7 +346,7 @@ impl Parser {
                                 let mut expect_ident = true;
                                 loop {
                                     self.pos += 1;
-                                    let curr_tk = try!(self.get_token(self.pos));
+                                    let curr_tk = r#try!(self.get_token(self.pos));
                                     match curr_tk.data {
                                         TokenData::Identifier(ref id) if expect_ident => {
                                             args.push(id.clone());
@@ -380,11 +380,11 @@ impl Parser {
                                         }
                                     }
                                 }
-                                try!(self.expect(
+                                r#try!(self.expect(
                                     TokenData::Punctuator(Punctuator::Arrow),
                                     "arrow function"
                                 ));
-                                let expr = try!(self.parse());
+                                let expr = r#try!(self.parse());
                                 mk!(
                                     self,
                                     ExprDef::ArrowFunctionDeclExpr(args, Box::new(expr)),
@@ -404,10 +404,10 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::OpenBracket) => {
                 let mut array: Vec<Expr> = Vec::new();
-                let mut expect_comma_or_end = try!(self.get_token(self.pos)).data
+                let mut expect_comma_or_end = r#try!(self.get_token(self.pos)).data
                     == TokenData::Punctuator(Punctuator::CloseBracket);
                 loop {
-                    let token = try!(self.get_token(self.pos));
+                    let token = r#try!(self.get_token(self.pos));
                     if token.data == TokenData::Punctuator(Punctuator::CloseBracket)
                         && expect_comma_or_end
                     {
@@ -432,7 +432,7 @@ impl Parser {
                             "array declaration",
                         ));
                     } else {
-                        let parsed = try!(self.parse());
+                        let parsed = r#try!(self.parse());
                         self.pos -= 1;
                         array.push(parsed);
                         expect_comma_or_end = true;
@@ -442,7 +442,7 @@ impl Parser {
                 mk!(self, ExprDef::ArrayDeclExpr(array), token)
             }
             TokenData::Punctuator(Punctuator::OpenBlock)
-                if try!(self.get_token(self.pos)).data
+                if r#try!(self.get_token(self.pos)).data
                     == TokenData::Punctuator(Punctuator::CloseBlock) =>
             {
                 self.pos += 1;
@@ -453,15 +453,15 @@ impl Parser {
                 )
             }
             TokenData::Punctuator(Punctuator::OpenBlock)
-                if try!(self.get_token(self.pos + 1)).data
+                if r#try!(self.get_token(self.pos + 1)).data
                     == TokenData::Punctuator(Punctuator::Colon) =>
             {
                 let mut map = Box::new(BTreeMap::new());
-                while try!(self.get_token(self.pos - 1)).data
+                while r#try!(self.get_token(self.pos - 1)).data
                     == TokenData::Punctuator(Punctuator::Comma)
                     || map.len() == 0
                 {
-                    let tk = try!(self.get_token(self.pos));
+                    let tk = r#try!(self.get_token(self.pos));
                     let name = match tk.data {
                         TokenData::Identifier(ref id) => id.clone(),
                         TokenData::StringLiteral(ref str) => str.clone(),
@@ -477,11 +477,11 @@ impl Parser {
                         }
                     };
                     self.pos += 1;
-                    try!(self.expect(
+                    r#try!(self.expect(
                         TokenData::Punctuator(Punctuator::Colon),
                         "object declaration"
                     ));
-                    let value = try!(self.parse());
+                    let value = r#try!(self.parse());
                     map.insert(name, value);
                     self.pos += 1;
                 }
@@ -490,12 +490,12 @@ impl Parser {
             TokenData::Punctuator(Punctuator::OpenBlock) => {
                 let mut exprs = Vec::new();
                 loop {
-                    if try!(self.get_token(self.pos)).data
+                    if r#try!(self.get_token(self.pos)).data
                         == TokenData::Punctuator(Punctuator::CloseBlock)
                     {
                         break;
                     } else {
-                        exprs.push(try!(self.parse()));
+                        exprs.push(r#try!(self.parse()));
                     }
                 }
                 self.pos += 1;
@@ -503,23 +503,23 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::Sub) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::Minus, Box::new(try!(self.parse())))
+                ExprDef::UnaryOpExpr(UnaryOp::Minus, Box::new(r#try!(self.parse())))
             ),
             TokenData::Punctuator(Punctuator::Add) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::Plus, Box::new(try!(self.parse())))
+                ExprDef::UnaryOpExpr(UnaryOp::Plus, Box::new(r#try!(self.parse())))
             ),
             TokenData::Punctuator(Punctuator::Not) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::Not, Box::new(try!(self.parse())))
+                ExprDef::UnaryOpExpr(UnaryOp::Not, Box::new(r#try!(self.parse())))
             ),
             TokenData::Punctuator(Punctuator::Inc) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::IncrementPre, Box::new(try!(self.parse())))
+                ExprDef::UnaryOpExpr(UnaryOp::IncrementPre, Box::new(r#try!(self.parse())))
             ),
             TokenData::Punctuator(Punctuator::Dec) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::DecrementPre, Box::new(try!(self.parse())))
+                ExprDef::UnaryOpExpr(UnaryOp::DecrementPre, Box::new(r#try!(self.parse())))
             ),
             _ => return Err(ParseError::Expected(Vec::new(), token.clone(), "script")),
         };
@@ -537,7 +537,7 @@ impl Parser {
         match next.data {
             TokenData::Punctuator(Punctuator::Dot) => {
                 self.pos += 1;
-                let tk = try!(self.get_token(self.pos));
+                let tk = r#try!(self.get_token(self.pos));
                 match tk.data {
                     TokenData::Identifier(ref s) => {
                         result = mk!(
@@ -557,11 +557,11 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::OpenParen) => {
                 let mut args = Vec::new();
-                let mut expect_comma_or_end = try!(self.get_token(self.pos + 1)).data
+                let mut expect_comma_or_end = r#try!(self.get_token(self.pos + 1)).data
                     == TokenData::Punctuator(Punctuator::CloseParen);
                 loop {
                     self.pos += 1;
-                    let token = try!(self.get_token(self.pos));
+                    let token = r#try!(self.get_token(self.pos));
                     if token.data == TokenData::Punctuator(Punctuator::CloseParen)
                         && expect_comma_or_end
                     {
@@ -581,7 +581,7 @@ impl Parser {
                             "function call arguments",
                         ));
                     } else {
-                        let parsed = try!(self.parse());
+                        let parsed = r#try!(self.parse());
                         self.pos -= 1;
                         args.push(parsed);
                         expect_comma_or_end = true;
@@ -591,9 +591,9 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::Question) => {
                 self.pos += 1;
-                let if_e = try!(self.parse());
-                try!(self.expect(TokenData::Punctuator(Punctuator::Colon), "if expression"));
-                let else_e = try!(self.parse());
+                let if_e = r#try!(self.parse());
+                r#try!(self.expect(TokenData::Punctuator(Punctuator::Colon), "if expression"));
+                let else_e = r#try!(self.parse());
                 result = mk!(
                     self,
                     ExprDef::IfExpr(Box::new(expr), Box::new(if_e), Some(Box::new(else_e)))
@@ -601,8 +601,8 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::OpenBracket) => {
                 self.pos += 1;
-                let index = try!(self.parse());
-                try!(self.expect(
+                let index = r#try!(self.parse());
+                r#try!(self.expect(
                     TokenData::Punctuator(Punctuator::CloseBracket),
                     "array index"
                 ));
@@ -613,7 +613,7 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::Assign) => {
                 self.pos += 1;
-                let next = try!(self.parse());
+                let next = r#try!(self.parse());
                 result = mk!(self, ExprDef::AssignExpr(Box::new(expr), Box::new(next)));
             }
             TokenData::Punctuator(Punctuator::Arrow) => {
@@ -623,79 +623,79 @@ impl Parser {
                     ExprDef::LocalExpr(ref name) => args.push((*name).clone()),
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
-                let next = try!(self.parse());
+                let next = r#try!(self.parse());
                 result = mk!(self, ExprDef::ArrowFunctionDeclExpr(args, Box::new(next)));
             }
             TokenData::Punctuator(Punctuator::Add) => {
-                result = try!(self.binop(BinOp::Num(NumOp::Add), expr))
+                result = r#try!(self.binop(BinOp::Num(NumOp::Add), expr))
             }
             TokenData::Punctuator(Punctuator::Sub) => {
-                result = try!(self.binop(BinOp::Num(NumOp::Sub), expr))
+                result = r#try!(self.binop(BinOp::Num(NumOp::Sub), expr))
             }
             TokenData::Punctuator(Punctuator::Mul) => {
-                result = try!(self.binop(BinOp::Num(NumOp::Mul), expr))
+                result = r#try!(self.binop(BinOp::Num(NumOp::Mul), expr))
             }
             TokenData::Punctuator(Punctuator::Div) => {
-                result = try!(self.binop(BinOp::Num(NumOp::Div), expr))
+                result = r#try!(self.binop(BinOp::Num(NumOp::Div), expr))
             }
             TokenData::Punctuator(Punctuator::Mod) => {
-                result = try!(self.binop(BinOp::Num(NumOp::Mod), expr))
+                result = r#try!(self.binop(BinOp::Num(NumOp::Mod), expr))
             }
             TokenData::Punctuator(Punctuator::BoolAnd) => {
-                result = try!(self.binop(BinOp::Log(LogOp::And), expr))
+                result = r#try!(self.binop(BinOp::Log(LogOp::And), expr))
             }
             TokenData::Punctuator(Punctuator::BoolOr) => {
-                result = try!(self.binop(BinOp::Log(LogOp::Or), expr))
+                result = r#try!(self.binop(BinOp::Log(LogOp::Or), expr))
             }
             TokenData::Punctuator(Punctuator::And) => {
-                result = try!(self.binop(BinOp::Bit(BitOp::And), expr))
+                result = r#try!(self.binop(BinOp::Bit(BitOp::And), expr))
             }
             TokenData::Punctuator(Punctuator::Or) => {
-                result = try!(self.binop(BinOp::Bit(BitOp::Or), expr))
+                result = r#try!(self.binop(BinOp::Bit(BitOp::Or), expr))
             }
             TokenData::Punctuator(Punctuator::Xor) => {
-                result = try!(self.binop(BinOp::Bit(BitOp::Xor), expr))
+                result = r#try!(self.binop(BinOp::Bit(BitOp::Xor), expr))
             }
             TokenData::Punctuator(Punctuator::LeftSh) => {
-                result = try!(self.binop(BinOp::Bit(BitOp::Shl), expr))
+                result = r#try!(self.binop(BinOp::Bit(BitOp::Shl), expr))
             }
             TokenData::Punctuator(Punctuator::RightSh) => {
-                result = try!(self.binop(BinOp::Bit(BitOp::Shr), expr))
+                result = r#try!(self.binop(BinOp::Bit(BitOp::Shr), expr))
             }
             TokenData::Punctuator(Punctuator::Eq) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::Equal), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::Equal), expr))
             }
             TokenData::Punctuator(Punctuator::NotEq) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::NotEqual), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::NotEqual), expr))
             }
             TokenData::Punctuator(Punctuator::StrictEq) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::StrictEqual), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::StrictEqual), expr))
             }
             TokenData::Punctuator(Punctuator::StrictNotEq) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::StrictNotEqual), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::StrictNotEqual), expr))
             }
             TokenData::Punctuator(Punctuator::LessThan) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::LessThan), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::LessThan), expr))
             }
             TokenData::Punctuator(Punctuator::LessThanOrEq) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::LessThanOrEqual), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::LessThanOrEqual), expr))
             }
             TokenData::Punctuator(Punctuator::GreaterThan) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::GreaterThan), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::GreaterThan), expr))
             }
             TokenData::Punctuator(Punctuator::GreaterThanOrEq) => {
-                result = try!(self.binop(BinOp::Comp(CompOp::GreaterThanOrEqual), expr))
+                result = r#try!(self.binop(BinOp::Comp(CompOp::GreaterThanOrEqual), expr))
             }
             TokenData::Punctuator(Punctuator::Inc) => {
                 result = mk!(
                     self,
-                    ExprDef::UnaryOpExpr(UnaryOp::IncrementPost, Box::new(try!(self.parse())))
+                    ExprDef::UnaryOpExpr(UnaryOp::IncrementPost, Box::new(r#try!(self.parse())))
                 )
             }
             TokenData::Punctuator(Punctuator::Dec) => {
                 result = mk!(
                     self,
-                    ExprDef::UnaryOpExpr(UnaryOp::DecrementPost, Box::new(try!(self.parse())))
+                    ExprDef::UnaryOpExpr(UnaryOp::DecrementPost, Box::new(r#try!(self.parse())))
                 )
             }
             _ => carry_on = false,
@@ -710,7 +710,7 @@ impl Parser {
     fn binop(&mut self, op: BinOp, orig: Expr) -> Result<Expr, ParseError> {
         let (precedence, assoc) = op.get_precedence_and_assoc();
         self.pos += 1;
-        let next = try!(self.parse());
+        let next = r#try!(self.parse());
         Ok(match next.def {
             ExprDef::BinOpExpr(ref op2, ref a, ref b) => {
                 let other_precedence = op2.get_precedence();
