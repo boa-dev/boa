@@ -19,3 +19,6 @@ This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust cod
 * `cargo run`
 * You can make changes to tests/js/test.js and build again
 * If any JS doesn't work its a bug! Please raise an issue
+
+#### Example
+![Example](docs/img/boaTest.gif)
