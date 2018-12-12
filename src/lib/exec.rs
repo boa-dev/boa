@@ -1,13 +1,13 @@
-use gc::{Gc, GcCell};
 use crate::js::function::{Function, RegularFunction};
 use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use crate::js::{array, console, function, json, math, object, string};
-use std::borrow::Borrow;
-use std::collections::HashMap;
 use crate::syntax::ast::constant::Const;
 use crate::syntax::ast::expr::{Expr, ExprDef};
 use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp};
+use gc::{Gc, GcCell};
+use std::borrow::Borrow;
+use std::collections::HashMap;
 /// A variable scope
 #[derive(Trace, Finalize, Clone, Debug)]
 pub struct Scope {
@@ -117,7 +117,7 @@ impl Executor for Interpreter {
                     let vars = scope.vars.clone();
                     let vars_ptr = vars.borrow();
                     match *vars_ptr.clone() {
-                        ValueData::Object(ref obj) => match obj.borrow().get(name) {
+                        ValueData::Object(ref obj, _) => match obj.borrow().get(name) {
                             Some(v) => {
                                 val = v.value.clone();
                                 break;
@@ -335,14 +335,17 @@ impl Executor for Interpreter {
                 for arg in args.iter() {
                     v_args.push(r#try!(self.run(arg)));
                 }
-                let this = Gc::new(ValueData::Object(GcCell::new(HashMap::new())));
+                let this = Gc::new(ValueData::Object(
+                    GcCell::new(HashMap::new()),
+                    GcCell::new(HashMap::new()),
+                ));
+                // Create a blank object, then set its __proto__ property to the [Constructor].prototype
                 this.borrow()
                     .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
                 match *func {
                     ValueData::Function(ref func) => match func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            println!("{:#?}", this);
                             func(this, self.run(callee)?, v_args)
                         }
                         Function::RegularFunc(ref data) => {
@@ -400,7 +403,7 @@ impl Executor for Interpreter {
                 let val = r#try!(self.run(val_e));
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
-                    ValueData::Null | ValueData::Object(_) => "object",
+                    ValueData::Null | ValueData::Object(_, _) => "object",
                     ValueData::Boolean(_) => "boolean",
                     ValueData::Number(_) | ValueData::Integer(_) => "number",
                     ValueData::String(_) => "string",
