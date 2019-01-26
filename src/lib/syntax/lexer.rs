@@ -391,7 +391,7 @@ impl<'a> Lexer<'a> {
                     '+' => Punctuator::Inc
                 }),
                 '-' => op!(self, Punctuator::AssignSub, Punctuator::AssignSub, {
-                    '+' => Punctuator::Inc
+                    '-' => Punctuator::Dec
                 }),
                 '%' => op!(self, Punctuator::AssignMod, Punctuator::Mod),
                 '|' => op!(self, Punctuator::AssignOr, Punctuator::Or, {
