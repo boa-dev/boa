@@ -47,7 +47,7 @@ impl ValueData {
     /// Returns a new empty object
     pub fn new_obj(global: Option<Value>) -> Value {
         let mut obj: ObjectData = HashMap::new();
-        let mut private_obj: ObjectData = HashMap::new();
+        let private_obj: ObjectData = HashMap::new();
         if global.is_some() {
             let obj_proto = global
                 .unwrap()
@@ -64,7 +64,7 @@ impl ValueData {
     /// Similar to `new_obj`, but you can pass a prototype to create from
     pub fn new_obj_from_prototype(proto: Value) -> Value {
         let mut obj: ObjectData = HashMap::new();
-        let mut private_obj: ObjectData = HashMap::new();
+        let private_obj: ObjectData = HashMap::new();
         obj.insert(INSTANCE_PROTOTYPE.to_string(), Property::new(proto));
         Gc::new(ValueData::Object(
             GcCell::new(obj),
@@ -343,7 +343,7 @@ impl ValueData {
             JSONValue::Bool(v) => ValueData::Boolean(v),
             JSONValue::Array(vs) => {
                 let mut i = 0;
-                let mut private_data: ObjectData = HashMap::new();
+                let private_data: ObjectData = HashMap::new();
                 let mut data: ObjectData = FromIterator::from_iter(vs.iter().map(|json| {
                     i += 1;
                     (
@@ -358,7 +358,7 @@ impl ValueData {
                 ValueData::Object(GcCell::new(data), GcCell::new(private_data))
             }
             JSONValue::Object(obj) => {
-                let mut private_data: ObjectData = HashMap::new();
+                let private_data: ObjectData = HashMap::new();
                 let data: ObjectData = FromIterator::from_iter(
                     obj.iter()
                         .map(|(key, json)| (key.clone(), Property::new(to_value(json.clone())))),
@@ -651,7 +651,7 @@ impl<T: FromValue> FromValue for Vec<T> {
 
 impl ToValue for ObjectData {
     fn to_value(&self) -> Value {
-        let mut private_obj: ObjectData = HashMap::new();
+        let private_obj: ObjectData = HashMap::new();
         Gc::new(ValueData::Object(
             GcCell::new(self.clone()),
             GcCell::new(private_obj),
