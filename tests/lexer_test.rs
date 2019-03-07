@@ -52,3 +52,19 @@ fn check_positions() {
     assert_eq!(lexer.tokens[6].pos.column_number, 27);
     assert_eq!(lexer.tokens[6].pos.line_number, 1);
 }
+
+// Increment/Decrement
+#[test]
+fn check_decrement_advances_lexer_2_places() {
+    // Here we want an example of decrementing an integer
+    let s = &String::from("let a = b--;");
+    let mut lexer = Lexer::new(s);
+    lexer.lex().expect("finished");
+    assert_eq!(lexer.tokens[4].data, TokenData::Punctuator(Punctuator::Dec));
+    // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
+    // and move the curser forward by 2, meaning the next token should be a semicolon
+    assert_eq!(
+        lexer.tokens[5].data,
+        TokenData::Punctuator(Punctuator::Semicolon)
+    );
+}
