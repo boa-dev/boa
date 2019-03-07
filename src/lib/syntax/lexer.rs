@@ -2,14 +2,14 @@
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens, represented by the [Token](../ast/token/struct.Token.html) structure.
 //! It also removes whitespace and comments and attaches them to the next token.
+use crate::syntax::ast::punc::Punctuator;
+use crate::syntax::ast::token::{Token, TokenData};
 use std::char::from_u32;
 use std::error;
 use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
 use std::str::FromStr;
-use crate::syntax::ast::punc::Punctuator;
-use crate::syntax::ast::token::{Token, TokenData};
 
 #[allow(unused)]
 macro_rules! vop {
@@ -390,8 +390,11 @@ impl<'a> Lexer<'a> {
                 '+' => op!(self, Punctuator::AssignAdd, Punctuator::Add, {
                     '+' => Punctuator::Inc
                 }),
-                '-' => op!(self, Punctuator::AssignSub, Punctuator::AssignSub, {
-                    '-' => Punctuator::Dec
+                '-' => op!(self, Punctuator::AssignSub, Punctuator::Sub, {
+                    '-' => {
+                        self.next()?;
+                        Punctuator::Dec
+                    }
                 }),
                 '%' => op!(self, Punctuator::AssignMod, Punctuator::Mod),
                 '|' => op!(self, Punctuator::AssignOr, Punctuator::Or, {
