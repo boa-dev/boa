@@ -2,14 +2,16 @@ use gc::Gc;
 use crate::js::function::NativeFunctionData;
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use std::iter::FromIterator;
-use time::{now, strftime};
+use chrono::Local;
+
 /// Print a javascript value to the standard output stream
 pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(
         args.iter()
             .map(|x| from_value::<String>(x.clone()).unwrap()),
     );
-    println!("{}: {}", strftime("%X", &now()).unwrap(), args.join(" "));
+
+    println!("{}: {}", Local::now().format("%X").to_string(), args.join(" "));
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Print a javascript value to the standard error stream
@@ -18,7 +20,7 @@ pub fn error(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
         args.iter()
             .map(|x| from_value::<String>(x.clone()).unwrap()),
     );
-    eprintln!("{}: {}", strftime("%X", &now()).unwrap(), args.join(" "));
+    println!("{}: {}", Local::now().format("%X").to_string(), args.join(" "));
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Create a new `console` object
