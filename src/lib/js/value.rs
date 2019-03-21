@@ -80,6 +80,14 @@ impl ValueData {
         }
     }
 
+    /// Returns true if the value is a function
+    pub fn is_function(&self) -> bool {
+        match *self {
+            ValueData::Function(_) => true,
+            _ => false,
+        }
+    }
+
     /// Returns true if the value is undefined
     pub fn is_undefined(&self) -> bool {
         match *self {
@@ -419,8 +427,9 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            ValueData::Object(ref v, _) => {
+            ValueData::Object(ref v, ref p) => {
                 write!(f, "{}", "{")?;
+                // Print public properties
                 match v.borrow().iter().last() {
                     Some((last_key, _)) => {
                         for (key, val) in v.borrow().iter() {
@@ -431,7 +440,20 @@ impl Display for ValueData {
                         }
                     }
                     None => (),
-                }
+                };
+
+                // Print private properties
+                match p.borrow().iter().last() {
+                    Some((last_key, _)) => {
+                        for (key, val) in p.borrow().iter() {
+                            r#try!(write!(f, "(Private) {}: {}", key, val.value.clone()));
+                            if key != last_key {
+                                r#try!(write!(f, "{}", ", "));
+                            }
+                        }
+                    }
+                    None => (),
+                };
                 write!(f, "{}", "}")
             }
             ValueData::Integer(v) => write!(f, "{}", v),
