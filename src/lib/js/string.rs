@@ -23,9 +23,11 @@ pub fn get_string_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     Ok(to_value::<i32>(this_str.len() as i32))
 }
 
-/// Get the string representation of the error
-pub fn to_string(_: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    Ok(to_value(format!("{}", String::from("test")).to_string()))
+/// Get the string value to a primitive string
+pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+    // Get String from String Object and send it back as a new value
+    let primitive_val = this.get_private_field(String::from("PrimitiveValue"));
+    Ok(to_value(format!("{}", primitive_val).to_string()))
 }
 
 /// Create a new `String` object
