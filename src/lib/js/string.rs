@@ -51,3 +51,14 @@ pub fn _create(global: Value) -> Value {
 pub fn init(global: Value) {
     global.set_field_slice("String", _create(global.clone()));
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn check_string_constructor_is_function() {
+        let global = ValueData::new_obj(None);
+        let string_constructor = _create(global);
+        assert_eq!(string_constructor.is_function(), true);
+    }
+}
