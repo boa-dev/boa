@@ -626,6 +626,17 @@ impl FromValue for i32 {
     }
 }
 
+impl ToValue for usize {
+    fn to_value(&self) -> Value {
+        Gc::new(ValueData::Integer(*self as i32))
+    }
+}
+impl FromValue for usize {
+    fn from_value(v: Value) -> Result<usize, &'static str> {
+        Ok(v.to_int() as usize)
+    }
+}
+
 impl ToValue for bool {
     fn to_value(&self) -> Value {
         Gc::new(ValueData::Boolean(*self))
