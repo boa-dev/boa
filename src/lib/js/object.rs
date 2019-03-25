@@ -3,9 +3,11 @@ use crate::js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Va
 use gc::Gc;
 use std::collections::HashMap;
 
-/// Made for convenience, usually set on constructors as a key to point to their respective prototype object
+/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.  
+/// As this string will be used a lot throughout the program, its best being a static global string which will be referenced
 pub static PROTOTYPE: &'static str = "prototype";
-/// Made for convenience, usually set on instances as a key to point to their respective prototype object
+/// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.  
+/// As this string will be used a lot throughout the program, its best being a static global string which will be referenced
 pub static INSTANCE_PROTOTYPE: &'static str = "__proto__";
 
 pub type ObjectData = HashMap<String, Property>;
