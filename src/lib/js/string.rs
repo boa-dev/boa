@@ -31,7 +31,7 @@ pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     Ok(to_value(format!("{}", primitive_val).to_string()))
 }
 
-/// Get the character at the supplied index
+/// Returns a single element String containing the code unit at index pos within the String value resulting from converting this object to a String. If there is no element at that index, the result is the empty String. The result is a String value, not a String object.
 /// https://tc39.github.io/ecma262/#sec-string.prototype.charat
 pub fn char_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //         ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
@@ -53,7 +53,7 @@ pub fn char_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value::<char>(primitive_val.chars().nth(pos).unwrap()))
 }
 
-/// Get the character (UTF 16) of string
+/// Returns a Number (a nonnegative integer less than 216) that is the numeric value of the code unit at index pos within the String resulting from converting this object to a String. If there is no element at that index, the result is NaN.
 /// https://tc39.github.io/ecma262/#sec-string.prototype.charcodeat
 pub fn char_code_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //              ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
