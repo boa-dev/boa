@@ -1,2 +1,2 @@
 var a = new String("test");
-a.toString();
+a.charAt(9);

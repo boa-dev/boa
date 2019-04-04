@@ -284,6 +284,7 @@ impl<'a> Lexer<'a> {
                         }
                         u64::from_str_radix(&buf, 16).unwrap()
                     } else {
+                        let mut gone_decimal = false;
                         loop {
                             let ch = self.preview_next()?;
                             match ch {
@@ -292,13 +293,22 @@ impl<'a> Lexer<'a> {
                                     self.next()?;
                                 }
                                 '8' | '9' | '.' => {
+                                    gone_decimal = true;
                                     buf.push(ch);
                                     self.next()?;
                                 }
                                 _ => break,
                             }
                         }
-                        u64::from_str_radix(&buf, 8).unwrap()
+                        if gone_decimal {
+                            u64::from_str(&buf).unwrap()
+                        } else {
+                            if buf.is_empty() {
+                                0
+                            } else {
+                                u64::from_str_radix(&buf, 8).unwrap()
+                            }
+                        }
                     };
                     self.push_token(TokenData::NumericLiteral(num as f64))
                 }
