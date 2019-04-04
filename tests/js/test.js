@@ -1,2 +1,2 @@
-var a = new String("test");
-a.charAt(9);
+var a = new String("ABC");
+a.charCodeAt(-1);
