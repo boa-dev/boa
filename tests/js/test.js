@@ -1,2 +1,3 @@
-var a = new String("ABC");
-a.charCodeAt(-1);
+var a = 1;
+b = 2;
+a + b;

@@ -270,6 +270,14 @@ impl ValueData {
         }
     }
 
+    /// Check to see if the Value has the field, mainly used by environment records
+    pub fn has_field(&self, field: String) -> bool {
+        match self.get_prop(field) {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     pub fn get_field_slice<'a>(&self, field: &'a str) -> Value {
         self.get_field(field.to_string())

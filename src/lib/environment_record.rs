@@ -3,13 +3,35 @@
 //! https://tc39.github.io/ecma262/#sec-environment-records
 //! https://tc39.github.io/ecma262/#sec-lexical-environments
 //!
-//! Some environments are stored as JSObjects. This is for GC, i.e we want to keep an environment if a variable is closed-over (a closure is returned)
+//! Some environments are stored as JSObjects. This is for GC, i.e we want to keep an environment if a variable is closed-over (a closure is returned).   
+//! All of the logic to handle scope/environment records are stored in here.
+//!
+//! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
 
 use crate::js::value::{Value, ValueData};
+use gc::Gc;
 
-struct DeclaritiveEnvironmentRecord {
+/// A declarative Environment Record binds the set of identifiers defined by the
+/// declarations contained within its scope.
+struct DeclerativeEnvironmentRecord {
     env_rec: Value,
+}
+
+impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
+    fn has_binding(&self, name: String) -> bool {
+        self.env_rec.has_field(name)
+    }
+
+    fn create_mutable_binding(&self, name: String, deletion: bool) {
+        if !self.env_rec.has_field(name) {
+            // TODO: change this when error handling comes into play
+            panic!("Identifier {} has already been declared", name);
+        }
+
+        let undefined = Gc::new(ValueData::Undefined);
+        self.env_rec.set_field(name, undefined);
+    }
 }
 
 /// https://tc39.github.io/ecma262/#sec-environment-records

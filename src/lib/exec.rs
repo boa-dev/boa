@@ -43,7 +43,6 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    #[inline(always)]
     /// Get the current scope
     pub fn scope(&self) -> &Scope {
         self.scopes.get(self.scopes.len() - 1).unwrap()
