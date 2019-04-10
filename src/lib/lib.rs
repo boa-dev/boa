@@ -6,7 +6,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate gc_derive;
 
-pub mod environment_record;
+pub mod environment_records;
 pub mod exec;
 pub mod js;
 pub mod syntax;
