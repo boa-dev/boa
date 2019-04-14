@@ -16,7 +16,7 @@ use crate::js::value::Value;
 /// In this implementation we have a trait which represents the behaviour of all EnvironmentRecord types.
 pub trait EnvironmentRecordTrait {
     /// Determine if an Environment Record has a binding for the String value N. Return true if it does and false if it does not.
-    fn has_binding(&self, name: String) -> bool;
+    fn has_binding(&self, name: &String) -> bool;
 
     /// Create a new but uninitialized mutable binding in an Environment Record. The String value N is the text of the bound name.
     /// If the Boolean argument deletion is true the binding may be subsequently deleted.
@@ -62,4 +62,7 @@ pub trait EnvironmentRecordTrait {
     /// If this Environment Record is associated with a with statement, return the with object.
     /// Otherwise, return undefined.
     fn with_base_object(&self) -> Value;
+
+    // Get the next environment up
+    fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>>;
 }

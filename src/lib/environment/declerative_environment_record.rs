@@ -5,7 +5,7 @@
 //! A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.github.io/ecma262/#sec-declarative-environment-records)
 
-use crate::environment_records::environment_record::EnvironmentRecordTrait;
+use crate::environment::environment_record::EnvironmentRecordTrait;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
@@ -24,13 +24,14 @@ pub struct DeclerativeEnvironmentRecordBinding {
 
 /// A declarative Environment Record binds the set of identifiers defined by the
 /// declarations contained within its scope.
-struct DeclerativeEnvironmentRecord {
-    env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
+pub struct DeclerativeEnvironmentRecord {
+    pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
+    pub outer_env: Box<EnvironmentRecordTrait>,
 }
 
 impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
-    fn has_binding(&self, name: String) -> bool {
-        self.env_rec.contains_key(&name)
+    fn has_binding(&self, name: &String) -> bool {
+        self.env_rec.contains_key(name)
     }
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) {
@@ -147,5 +148,9 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
 
     fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
+    }
+
+    fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
+        Some(&self.outer_env)
     }
 }

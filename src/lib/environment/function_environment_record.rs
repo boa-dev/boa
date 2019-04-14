@@ -8,15 +8,15 @@
 //! from within the function.
 //! More info:  https://tc39.github.io/ecma262/#sec-function-environment-records
 
-use crate::environment_records::declerative_environment_record::DeclerativeEnvironmentRecordBinding;
-use crate::environment_records::environment_record::EnvironmentRecordTrait;
+use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecordBinding;
+use crate::environment::environment_record::EnvironmentRecordTrait;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
 
 /// Different binding status for `this`.
 /// Usually set on a function environment record
-enum BindingStatus {
+pub enum BindingStatus {
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
     Lexical,
     /// If initialized the function environment record has already been bound with a `this` value
@@ -26,22 +26,24 @@ enum BindingStatus {
 }
 
 /// https://tc39.github.io/ecma262/#table-16
-struct FunctionEnvironmentRecord {
-    env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
+pub struct FunctionEnvironmentRecord {
+    pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
     /// This is the this value used for this invocation of the function.
-    this_value: Value,
+    pub this_value: Value,
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
-    this_binding_status: BindingStatus,
+    pub this_binding_status: BindingStatus,
     /// The function object whose invocation caused this Environment Record to be created.
-    function_object: Value,
+    pub function_object: Value,
     /// If the associated function has super property accesses and is not an ArrowFunction,
     /// [[HomeObject]] is the object that the function is bound to as a method.
     /// The default value for [[HomeObject]] is undefined.
-    home_object: Value,
+    pub home_object: Value,
     /// If this Environment Record was created by the [[Construct]] internal method,
     /// [[NewTarget]] is the value of the [[Construct]] newTarget parameter.
     /// Otherwise, its value is undefined.
-    new_target: Value,
+    pub new_target: Value,
+    /// Reference to the outer environment to help with the scope chain
+    pub outer_env: Box<EnvironmentRecordTrait>,
 }
 
 impl FunctionEnvironmentRecord {
@@ -83,8 +85,8 @@ impl FunctionEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
-    fn has_binding(&self, name: String) -> bool {
-        self.env_rec.contains_key(&name)
+    fn has_binding(&self, name: &String) -> bool {
+        self.env_rec.contains_key(name)
     }
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) {
@@ -213,5 +215,9 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
+    }
+
+    fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
+        Some(&self.outer_env)
     }
 }
