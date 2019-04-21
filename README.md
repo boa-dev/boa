@@ -9,7 +9,8 @@ This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust cod
 
 #### Roadmap
 * ~string.length~ - works in 0.1.5
-* Adding support for constructors
+* Adding support for constructors - half working, in progress
+* better environment and scope support - in progress
 * Better error output
 * Passing [test262](https://github.com/tc39/test262)
 
