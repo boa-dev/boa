@@ -43,7 +43,8 @@ pub struct FunctionEnvironmentRecord {
     /// Otherwise, its value is undefined.
     pub new_target: Value,
     /// Reference to the outer environment to help with the scope chain
-    pub outer_env: Box<EnvironmentRecordTrait>,
+    /// Option type is needed as some environments can be created before we know what the outer env is
+    pub outer_env: Option<Box<EnvironmentRecordTrait>>,
 }
 
 impl FunctionEnvironmentRecord {
@@ -218,6 +219,13 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
-        Some(&self.outer_env)
+        match &self.outer_env {
+            Some(outer) => Some(&outer),
+            None => None,
+        }
+    }
+
+    fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
+        self.outer_env = Some(env);
     }
 }

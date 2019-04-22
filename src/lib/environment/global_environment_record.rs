@@ -15,9 +15,9 @@ use gc::Gc;
 use std::collections::HashSet;
 
 pub struct GlobalEnvironmentRecord {
-    pub object_record: ObjectEnvironmentRecord,
+    pub object_record: Box<ObjectEnvironmentRecord>,
     pub global_this_binding: Value,
-    pub declerative_record: DeclerativeEnvironmentRecord,
+    pub declerative_record: Box<DeclerativeEnvironmentRecord>,
     pub var_names: HashSet<String>,
 }
 
@@ -35,9 +35,9 @@ impl GlobalEnvironmentRecord {
     }
 
     fn has_restricted_global_property(&self, name: &String) -> bool {
-        let globalObject = &self.object_record.bindings;
-        let existingProp = globalObject.get_prop(name.clone());
-        match existingProp {
+        let global_object = &self.object_record.bindings;
+        let existing_prop = global_object.get_prop(name.clone());
+        match existing_prop {
             Some(prop) => {
                 if prop.value.is_undefined() || prop.configurable == true {
                     return false;
@@ -177,5 +177,9 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
         None
+    }
+
+    fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
+        unimplemented!()
     }
 }

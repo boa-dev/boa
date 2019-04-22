@@ -14,7 +14,7 @@ use gc::Gc;
 pub struct ObjectEnvironmentRecord {
     pub bindings: Value,
     pub with_environment: bool,
-    pub outer_env: Box<EnvironmentRecordTrait>,
+    pub outer_env: Option<Box<EnvironmentRecordTrait>>,
 }
 
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
@@ -42,7 +42,9 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         bindings.set_prop(name, prop);
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) {}
+    fn create_immutable_binding(&mut self, _name: String, _strict: bool) {
+        unimplemented!()
+    }
 
     fn initialize_binding(&mut self, name: String, value: Value) {
         // We should never need to check if a binding has been created,
@@ -97,6 +99,13 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
-        Some(&self.outer_env)
+        match &self.outer_env {
+            Some(outer) => Some(&outer),
+            None => None,
+        }
+    }
+
+    fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
+        self.outer_env = Some(env);
     }
 }

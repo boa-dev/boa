@@ -1,4 +1,3 @@
-use crate::environment::environment_record::EnvironmentRecordTrait;
 use crate::js::function::{Function, RegularFunction};
 use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};

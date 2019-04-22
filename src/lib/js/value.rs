@@ -184,11 +184,11 @@ impl ValueData {
 
     /// remove_prop removes a property from a Value object.
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
-    pub fn remove_prop(&mut self, field: &String) {
+    pub fn remove_prop(&self, field: &String) {
         match *self {
-            ValueData::Object(ref mut obj, _) => obj.borrow_mut().deref_mut().remove(field),
+            ValueData::Object(ref obj, _) => obj.borrow_mut().deref_mut().remove(field),
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            ValueData::Function(ref mut func) => match func.borrow_mut().deref_mut() {
+            ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
                 Function::NativeFunc(ref mut func) => func.object.remove(field),
                 Function::RegularFunc(ref mut func) => func.object.remove(field),
             },
@@ -235,7 +235,7 @@ impl ValueData {
     /// Set_prop, which will overwrite prop with a new Property
     /// Mostly used internally for now
     pub fn update_prop(
-        &mut self,
+        &self,
         field: String,
         value: Option<Value>,
         enumerable: Option<bool>,
@@ -243,9 +243,9 @@ impl ValueData {
         configurable: Option<bool>,
     ) {
         let obj: Option<ObjectData> = match self {
-            ValueData::Object(ref mut obj, _) => Some(obj.borrow_mut().deref_mut().clone()),
+            ValueData::Object(ref obj, _) => Some(obj.borrow_mut().deref_mut().clone()),
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            ValueData::Function(ref mut func) => match func.borrow_mut().deref_mut() {
+            ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
                 Function::NativeFunc(ref mut func) => Some(func.object.clone()),
                 Function::RegularFunc(ref mut func) => Some(func.object.clone()),
             },

@@ -9,9 +9,12 @@
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecord;
 use crate::environment::environment_record::EnvironmentRecordTrait;
 use crate::environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord};
+use crate::environment::global_environment_record::GlobalEnvironmentRecord;
+use crate::environment::object_environment_record::ObjectEnvironmentRecord;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
+use std::collections::HashSet;
 use std::debug_assert;
 
 /// Recursively search the tree of environments to find the correct binding, otherwise return undefined
@@ -36,7 +39,9 @@ fn get_identifier_reference(
     };
 }
 
-fn new_declerative_environment(env: Box<EnvironmentRecordTrait>) -> Box<EnvironmentRecordTrait> {
+fn new_declerative_environment(
+    env: Option<Box<EnvironmentRecordTrait>>,
+) -> Box<DeclerativeEnvironmentRecord> {
     Box::new(DeclerativeEnvironmentRecord {
         env_rec: HashMap::new(),
         outer_env: env,
@@ -46,8 +51,8 @@ fn new_declerative_environment(env: Box<EnvironmentRecordTrait>) -> Box<Environm
 fn new_function_environment(
     F: Value,
     new_target: Value,
-    outer: Box<EnvironmentRecordTrait>,
-) -> Box<EnvironmentRecordTrait> {
+    outer: Option<Box<EnvironmentRecordTrait>>,
+) -> Box<FunctionEnvironmentRecord> {
     debug_assert!(F.is_function());
     debug_assert!(new_target.is_object() || new_target.is_undefined());
     Box::new(FunctionEnvironmentRecord {
@@ -59,4 +64,31 @@ fn new_function_environment(
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.github.io/ecma262/#sec-ecmascript-function-objects
         this_value: Gc::new(ValueData::Undefined), // TODO: this_value should start as an Option as its not always there to begin with
     })
+}
+
+fn new_object_environment(
+    object: Value,
+    environment: Option<Box<EnvironmentRecordTrait>>,
+) -> Box<ObjectEnvironmentRecord> {
+    Box::new(ObjectEnvironmentRecord {
+        bindings: object,
+        outer_env: environment,
+        /// Object Environment Records created for with statements (13.11)
+        /// can provide their binding object as an implicit this value for use in function calls.
+        /// The capability is controlled by a withEnvironment Boolean value that is associated
+        /// with each object Environment Record. By default, the value of withEnvironment is false
+        /// for any object Environment Record.
+        with_environment: false,
+    })
+}
+
+fn new_global_environment(global: Value, this_value: Value) {
+    let obj_rec = new_object_environment(global, None);
+    let dcl_rec = new_declerative_environment(None);
+    Box::new(GlobalEnvironmentRecord {
+        object_record: obj_rec,
+        global_this_binding: this_value,
+        declerative_record: dcl_rec,
+        var_names: HashSet::new(),
+    });
 }

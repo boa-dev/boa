@@ -26,7 +26,7 @@ pub struct DeclerativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 pub struct DeclerativeEnvironmentRecord {
     pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
-    pub outer_env: Box<EnvironmentRecordTrait>,
+    pub outer_env: Option<Box<EnvironmentRecordTrait>>,
 }
 
 impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
@@ -151,6 +151,13 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
     }
 
     fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
-        Some(&self.outer_env)
+        match &self.outer_env {
+            Some(outer) => Some(&outer),
+            None => None,
+        }
+    }
+
+    fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
+        self.outer_env = Some(env);
     }
 }

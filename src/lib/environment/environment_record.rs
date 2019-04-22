@@ -63,6 +63,9 @@ pub trait EnvironmentRecordTrait {
     /// Otherwise, return undefined.
     fn with_base_object(&self) -> Value;
 
-    // Get the next environment up
+    /// Get the next environment up
     fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>>;
+
+    /// Set the next environment up
+    fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>);
 }
