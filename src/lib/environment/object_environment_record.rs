@@ -12,9 +12,9 @@ use crate::js::value::{Value, ValueData};
 use gc::Gc;
 
 pub struct ObjectEnvironmentRecord {
-    bindings: Value,
-    with_environment: bool,
-    outer_env: Box<EnvironmentRecordTrait>,
+    pub bindings: Value,
+    pub with_environment: bool,
+    pub outer_env: Box<EnvironmentRecordTrait>,
 }
 
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
@@ -33,9 +33,9 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn create_mutable_binding(&mut self, name: String, deletion: bool) {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
-        let bindings = self.bindings;
+        let bindings = &mut self.bindings;
         let uninitialized = Gc::new(ValueData::Undefined);
-        let prop = Property::new(uninitialized);
+        let mut prop = Property::new(uninitialized);
         prop.enumerable = true;
         prop.writable = true;
         prop.configurable = deletion;
@@ -54,9 +54,9 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
         debug_assert!(value.is_object() || value.is_function());
-        let result = value.update_prop(name, Some(value), None, None, None);
-        // We should check something has been set on something otherwise its a bug
-        debug_assert!(result.is_some());
+
+        let bindings = &mut self.bindings;
+        bindings.update_prop(name, Some(value.clone()), None, None, Some(strict));
     }
 
     fn get_binding_value(&self, name: String, strict: bool) -> Value {
@@ -90,7 +90,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // Object Environment Records return undefined as their
         // WithBaseObject unless their withEnvironment flag is true.
         if self.with_environment {
-            return self.bindings;
+            return self.bindings.clone();
         }
 
         Gc::new(ValueData::Undefined)
