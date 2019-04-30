@@ -65,7 +65,7 @@ pub fn error(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Create a new `console` object
-pub fn _create(global: Value) -> Value {
+pub fn _create(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
     console.set_field_slice("log", to_value(log as NativeFunctionData));
     console.set_field_slice("error", to_value(error as NativeFunctionData));
@@ -73,6 +73,6 @@ pub fn _create(global: Value) -> Value {
     console
 }
 /// Initialise the global object with the `console` object
-pub fn init(global: Value) {
-    global.set_field_slice("console", _create(global.clone()));
+pub fn init(global: &Value) {
+    global.set_field_slice("console", _create(global));
 }

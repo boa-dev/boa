@@ -1,6 +1,6 @@
-use gc::Gc;
 use crate::js::function::NativeFunctionData;
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
+use gc::Gc;
 
 /// Create a new array
 pub fn make_array(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
@@ -14,6 +14,6 @@ pub fn _create() -> Value {
     array
 }
 /// Initialise the global object with the `Array` object
-pub fn init(global: Value) {
+pub fn init(global: &Value) {
     global.set_field_slice("Array", _create());
 }

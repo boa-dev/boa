@@ -9,7 +9,7 @@
 //! More info:  https://tc39.github.io/ecma262/#sec-function-environment-records
 
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecordBinding;
-use crate::environment::environment_record::EnvironmentRecordTrait;
+use crate::environment::environment_record::{EnvironmentRecordTrait, EnvironmentType};
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
@@ -214,6 +214,21 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
+    fn get_this_binding(&self) -> Option<Value> {
+        if self.has_this_binding() {
+            return Some(self.this_value.clone());
+        }
+
+        // If there is no "this" binding, check the outer scope
+        if self.outer_env.is_some() && self.outer_env.unwrap().has_this_binding() {
+            return self.outer_env.unwrap().get_this_binding();
+        }
+
+        // In theory we should never land here, functions should either have a "this"
+        // or be in a scope which has a "this"
+        None
+    }
+
     fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
     }
@@ -227,5 +242,9 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
         self.outer_env = Some(env);
+    }
+
+    fn get_environment_type(&self) -> EnvironmentType {
+        return EnvironmentType::Function;
     }
 }

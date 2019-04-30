@@ -6,10 +6,10 @@
 //! Property keys that are not strings in the form of an IdentifierName are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.github.io/ecma262/#sec-object-environment-records)
 
-use crate::environment::environment_record::EnvironmentRecordTrait;
+use crate::environment::environment_record::{EnvironmentRecordTrait, EnvironmentType};
 use crate::js::object::Property;
 use crate::js::value::{Value, ValueData};
-use gc::Gc;
+use gc::{custom_trace, Gc};
 
 pub struct ObjectEnvironmentRecord {
     pub bindings: Value,
@@ -84,6 +84,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         false
     }
 
+    fn get_this_binding(&self) -> Option<Value> {
+        None
+    }
+
     fn has_super_binding(&self) -> bool {
         false
     }
@@ -108,4 +112,18 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
         self.outer_env = Some(env);
     }
+
+    fn get_environment_type(&self) -> EnvironmentType {
+        return EnvironmentType::Object;
+    }
+}
+
+unsafe impl gc::Trace for ObjectEnvironmentRecord {
+    custom_trace!(this, {
+        mark(this);
+    });
+}
+
+impl gc::Finalize for ObjectEnvironmentRecord {
+    fn finalize(&self) {}
 }

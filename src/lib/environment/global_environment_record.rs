@@ -8,7 +8,7 @@
 //! More info:  https://tc39.github.io/ecma262/#sec-global-environment-records
 
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecord;
-use crate::environment::environment_record::EnvironmentRecordTrait;
+use crate::environment::environment_record::{EnvironmentRecordTrait, EnvironmentType};
 use crate::environment::object_environment_record::ObjectEnvironmentRecord;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
@@ -22,19 +22,19 @@ pub struct GlobalEnvironmentRecord {
 }
 
 impl GlobalEnvironmentRecord {
-    fn get_this_binding(&self) -> Value {
+    pub fn get_this_binding(&self) -> Value {
         return self.global_this_binding.clone();
     }
 
-    fn has_var_decleration(&self, name: &String) -> bool {
+    pub fn has_var_decleration(&self, name: &String) -> bool {
         return self.var_names.contains(name);
     }
 
-    fn has_lexical_decleration(&self, name: &String) -> bool {
+    pub fn has_lexical_decleration(&self, name: &String) -> bool {
         self.declerative_record.has_binding(name)
     }
 
-    fn has_restricted_global_property(&self, name: &String) -> bool {
+    pub fn has_restricted_global_property(&self, name: &String) -> bool {
         let global_object = &self.object_record.bindings;
         let existing_prop = global_object.get_prop(name.clone());
         match existing_prop {
@@ -48,7 +48,7 @@ impl GlobalEnvironmentRecord {
         }
     }
 
-    fn create_global_var_binding(&mut self, name: String, deletion: bool) {
+    pub fn create_global_var_binding(&mut self, name: String, deletion: bool) {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
         let has_property = global_object.has_field(name.clone());
@@ -64,7 +64,7 @@ impl GlobalEnvironmentRecord {
         }
     }
 
-    fn create_global_function_binding(&mut self, name: String, value: Value, deletion: bool) {
+    pub fn create_global_function_binding(&mut self, name: String, value: Value, deletion: bool) {
         let global_object = &mut self.object_record.bindings;
         let existing_prop = global_object.get_prop(name.clone());
         match existing_prop {
@@ -167,6 +167,10 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         true
     }
 
+    fn get_this_binding(&self) -> Option<Value> {
+        Some(self.global_this_binding.clone())
+    }
+
     fn has_super_binding(&self) -> bool {
         false
     }
@@ -181,5 +185,9 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
         unimplemented!()
+    }
+
+    fn get_environment_type(&self) -> EnvironmentType {
+        return EnvironmentType::Global;
     }
 }

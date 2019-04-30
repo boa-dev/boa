@@ -45,7 +45,7 @@ pub enum ValueData {
 
 impl ValueData {
     /// Returns a new empty object
-    pub fn new_obj(global: Option<Value>) -> Value {
+    pub fn new_obj(global: Option<&Value>) -> Value {
         let mut obj: ObjectData = HashMap::new();
         let private_obj: ObjectData = HashMap::new();
         if global.is_some() {

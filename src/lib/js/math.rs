@@ -186,7 +186,7 @@ pub fn tan(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Create a new `Math` object
-pub fn _create(global: Value) -> Value {
+pub fn _create(global: &Value) -> Value {
     let math = ValueData::new_obj(Some(global));
     math.set_field_slice("E", to_value(f64::consts::E));
     math.set_field_slice("LN2", to_value(f64::consts::LN_2));
@@ -218,6 +218,6 @@ pub fn _create(global: Value) -> Value {
     math
 }
 /// Initialise the `Math` object on the global object
-pub fn init(global: Value) {
-    global.set_field_slice("Math", _create(global.clone()));
+pub fn init(global: &Value) {
+    global.set_field_slice("Math", _create(global));
 }
