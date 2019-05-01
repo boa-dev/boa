@@ -5,7 +5,8 @@
 //! A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.github.io/ecma262/#sec-declarative-environment-records)
 
-use crate::environment::environment_record::EnvironmentType;
+use crate::environment::environment_record_trait::EnvironmentRecordTrait;
+use crate::environment::lexical_environment::Environment;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
@@ -15,6 +16,7 @@ use std::collections::hash_map::HashMap;
 ///
 /// So we need to create a struct to hold these values.
 /// From this point onwards, a binding is referring to one of these structures.
+#[derive(Trace, Finalize, Debug, Clone)]
 pub struct DeclerativeEnvironmentRecordBinding {
     pub value: Option<Value>,
     pub can_delete: bool,
@@ -24,12 +26,13 @@ pub struct DeclerativeEnvironmentRecordBinding {
 
 /// A declarative Environment Record binds the set of identifiers defined by the
 /// declarations contained within its scope.
+#[derive(Trace, Finalize, Debug, Clone)]
 pub struct DeclerativeEnvironmentRecord {
     pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
-    pub outer_env: Option<Box<EnvironmentRecordTrait>>,
+    pub outer_env: Option<Environment>,
 }
 
-impl DeclerativeEnvironmentRecord {
+impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
     fn has_binding(&self, name: &String) -> bool {
         self.env_rec.contains_key(name)
     }
@@ -146,30 +149,7 @@ impl DeclerativeEnvironmentRecord {
         false
     }
 
-    fn get_this_binding(&self) -> Option<Value> {
-        if self.outer_env.is_some() && self.outer_env.unwrap().has_this_binding() {
-            return self.outer_env.unwrap().get_this_binding();
-        }
-
-        None
-    }
-
     fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
-    }
-
-    fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
-        match &self.outer_env {
-            Some(outer) => Some(&outer),
-            None => None,
-        }
-    }
-
-    fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
-        self.outer_env = Some(env);
-    }
-
-    fn get_environment_type(&self) -> EnvironmentType {
-        return EnvironmentType::Declerative;
     }
 }

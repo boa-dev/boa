@@ -9,13 +9,14 @@
 //! More info:  https://tc39.github.io/ecma262/#sec-function-environment-records
 
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecordBinding;
-use crate::environment::environment_record::{EnvironmentRecordTrait, EnvironmentType};
+use crate::environment::lexical_environment::Environment;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
 
 /// Different binding status for `this`.
 /// Usually set on a function environment record
+#[derive(Trace, Finalize, Debug, Clone)]
 pub enum BindingStatus {
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
     Lexical,
@@ -26,6 +27,7 @@ pub enum BindingStatus {
 }
 
 /// https://tc39.github.io/ecma262/#table-16
+#[derive(Trace, Finalize, Debug, Clone)]
 pub struct FunctionEnvironmentRecord {
     pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
     /// This is the this value used for this invocation of the function.
@@ -44,11 +46,11 @@ pub struct FunctionEnvironmentRecord {
     pub new_target: Value,
     /// Reference to the outer environment to help with the scope chain
     /// Option type is needed as some environments can be created before we know what the outer env is
-    pub outer_env: Option<Box<EnvironmentRecordTrait>>,
+    pub outer_env: Option<Environment>,
 }
 
 impl FunctionEnvironmentRecord {
-    fn bind_this_value(&mut self, value: Value) {
+    pub fn bind_this_value(&mut self, value: Value) {
         match self.this_binding_status {
             // You can not bind an arrow function, their `this` value comes from the lexical scope above
             BindingStatus::Lexical => {
@@ -68,7 +70,7 @@ impl FunctionEnvironmentRecord {
         }
     }
 
-    fn get_this_binding(&self) -> Value {
+    pub fn get_this_binding(&self) -> Value {
         match self.this_binding_status {
             BindingStatus::Lexical => {
                 // TODO: change this when error handling comes into play
@@ -83,14 +85,12 @@ impl FunctionEnvironmentRecord {
         }
     }
     // TODO: get_super_base can't implement until GetPrototypeof is implemented on object
-}
 
-impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
-    fn has_binding(&self, name: &String) -> bool {
+    pub fn has_binding(&self, name: &String) -> bool {
         self.env_rec.contains_key(name)
     }
 
-    fn create_mutable_binding(&mut self, name: String, deletion: bool) {
+    pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
         if !self.env_rec.contains_key(&name) {
             // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
@@ -107,7 +107,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         );
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) {
+    pub fn create_immutable_binding(&mut self, name: String, strict: bool) {
         if !self.env_rec.contains_key(&name) {
             // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
@@ -124,7 +124,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         );
     }
 
-    fn initialize_binding(&mut self, name: String, value: Value) {
+    pub fn initialize_binding(&mut self, name: String, value: Value) {
         match self.env_rec.get_mut(&name) {
             Some(ref mut record) => {
                 match record.value {
@@ -139,7 +139,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn set_mutable_binding(&mut self, name: String, value: Value, mut strict: bool) {
+    pub fn set_mutable_binding(&mut self, name: String, value: Value, mut strict: bool) {
         if self.env_rec.get(&name).is_none() {
             if strict == true {
                 // TODO: change this when error handling comes into play
@@ -171,7 +171,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn get_binding_value(&self, name: String, _strict: bool) -> Value {
+    pub fn get_binding_value(&self, name: String, _strict: bool) -> Value {
         if self.env_rec.get(&name).is_some() && self.env_rec.get(&name).unwrap().value.is_some() {
             let record: &DeclerativeEnvironmentRecordBinding = self.env_rec.get(&name).unwrap();
             record.value.as_ref().unwrap().clone()
@@ -181,7 +181,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn delete_binding(&mut self, name: String) -> bool {
+    pub fn delete_binding(&mut self, name: String) -> bool {
         if self.env_rec.get(&name).is_some() {
             if self.env_rec.get(&name).unwrap().can_delete {
                 self.env_rec.remove(&name);
@@ -194,7 +194,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn has_super_binding(&self) -> bool {
+    pub fn has_super_binding(&self) -> bool {
         match self.this_binding_status {
             BindingStatus::Lexical => false,
             _ => {
@@ -207,44 +207,25 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn has_this_binding(&self) -> bool {
+    pub fn has_this_binding(&self) -> bool {
         match self.this_binding_status {
             BindingStatus::Lexical => false,
             _ => true,
         }
     }
 
-    fn get_this_binding(&self) -> Option<Value> {
-        if self.has_this_binding() {
-            return Some(self.this_value.clone());
-        }
-
-        // If there is no "this" binding, check the outer scope
-        if self.outer_env.is_some() && self.outer_env.unwrap().has_this_binding() {
-            return self.outer_env.unwrap().get_this_binding();
-        }
-
-        // In theory we should never land here, functions should either have a "this"
-        // or be in a scope which has a "this"
-        None
-    }
-
-    fn with_base_object(&self) -> Value {
+    pub fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
     }
 
-    fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>> {
+    pub fn get_outer_environment(&self) -> Option<&Environment> {
         match &self.outer_env {
             Some(outer) => Some(&outer),
             None => None,
         }
     }
 
-    fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>) {
+    pub fn set_outer_environment(&mut self, env: Environment) {
         self.outer_env = Some(env);
-    }
-
-    fn get_environment_type(&self) -> EnvironmentType {
-        return EnvironmentType::Function;
     }
 }
