@@ -6,20 +6,21 @@
 //! Property keys that are not strings in the form of an IdentifierName are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.github.io/ecma262/#sec-object-environment-records)
 
-use crate::environment::lexical_environment::Environment;
+use crate::environment::environment_record_trait::EnvironmentRecordTrait;
+use crate::environment::lexical_environment::{Environment, EnvironmentType};
 use crate::js::object::Property;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {
     pub bindings: Value,
     pub with_environment: bool,
     pub outer_env: Option<Environment>,
 }
 
-impl ObjectEnvironmentRecord {
-    pub fn has_binding(&self, name: &String) -> bool {
+impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
+    fn has_binding(&self, name: &String) -> bool {
         if !self.bindings.has_field(name.to_string()) {
             return false;
         }
@@ -31,7 +32,7 @@ impl ObjectEnvironmentRecord {
         true
     }
 
-    pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
+    fn create_mutable_binding(&mut self, name: String, deletion: bool) {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;
@@ -43,11 +44,11 @@ impl ObjectEnvironmentRecord {
         bindings.set_prop(name, prop);
     }
 
-    pub fn create_immutable_binding(&mut self, _name: String, _strict: bool) {
+    fn create_immutable_binding(&mut self, _name: String, _strict: bool) {
         unimplemented!()
     }
 
-    pub fn initialize_binding(&mut self, name: String, value: Value) {
+    fn initialize_binding(&mut self, name: String, value: Value) {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
@@ -55,14 +56,14 @@ impl ObjectEnvironmentRecord {
         return self.set_mutable_binding(name, value, false);
     }
 
-    pub fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
+    fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
         debug_assert!(value.is_object() || value.is_function());
 
         let bindings = &mut self.bindings;
         bindings.update_prop(name, Some(value.clone()), None, None, Some(strict));
     }
 
-    pub fn get_binding_value(&self, name: String, strict: bool) -> Value {
+    fn get_binding_value(&self, name: String, strict: bool) -> Value {
         if self.bindings.has_field(name.clone()) {
             return self.bindings.get_field(name);
         }
@@ -76,24 +77,20 @@ impl ObjectEnvironmentRecord {
         Gc::new(ValueData::Undefined)
     }
 
-    pub fn delete_binding(&mut self, name: String) -> bool {
+    fn delete_binding(&mut self, name: String) -> bool {
         self.bindings.remove_prop(&name);
         true
     }
 
-    pub fn has_this_binding(&self) -> bool {
+    fn has_this_binding(&self) -> bool {
         false
     }
 
-    pub fn get_this_binding(&self) -> Option<Value> {
-        None
-    }
-
-    pub fn has_super_binding(&self) -> bool {
+    fn has_super_binding(&self) -> bool {
         false
     }
 
-    pub fn with_base_object(&self) -> Value {
+    fn with_base_object(&self) -> Value {
         // Object Environment Records return undefined as their
         // WithBaseObject unless their withEnvironment flag is true.
         if self.with_environment {
@@ -103,14 +100,25 @@ impl ObjectEnvironmentRecord {
         Gc::new(ValueData::Undefined)
     }
 
-    pub fn get_outer_environment(&self) -> Option<&Environment> {
+    fn get_outer_environment(&self) -> Option<Environment> {
         match &self.outer_env {
-            Some(outer) => Some(&outer),
+            Some(outer) => Some(outer.clone()),
             None => None,
         }
     }
 
-    pub fn set_outer_environment(&mut self, env: Environment) {
+    fn set_outer_environment(&mut self, env: Environment) {
         self.outer_env = Some(env);
+    }
+
+    fn get_environment_type(&self) -> EnvironmentType {
+        return EnvironmentType::Function;
+    }
+
+    fn get_global_object(&self) -> Option<Value> {
+        match &self.outer_env {
+            Some(outer) => outer.get_global_object(),
+            None => None,
+        }
     }
 }

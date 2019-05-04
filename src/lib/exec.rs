@@ -1,5 +1,3 @@
-use crate::environment::environment_record::EnvironmentRecordTrait;
-use crate::environment::global_environment_record::GlobalEnvironmentRecord;
 use crate::environment::lexical_environment::{new_function_environment, LexicalEnvironment};
 use crate::js::function::{Function, RegularFunction};
 use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
@@ -118,11 +116,7 @@ impl Executor for Interpreter {
                 //         _ => unreachable!(),
                 //     }
                 // }
-                let val = match self.environment.get_binding_value(name.to_string(), false) {
-                    Some(val) => val,
-                    None => Gc::new(ValueData::Undefined),
-                };
-
+                let val = self.environment.get_binding_value(name.to_string());
                 Ok(val)
             }
             ExprDef::GetConstFieldExpr(ref obj, ref field) => {
@@ -148,13 +142,7 @@ impl Executor for Interpreter {
                             obj.borrow().get_field(field.borrow().to_string()),
                         )
                     }
-                    _ => (
-                        self.environment
-                            .get_current_environment()
-                            .get_this_binding()
-                            .unwrap(),
-                        self.run(&callee.clone())?,
-                    ),
+                    _ => (Gc::new(ValueData::Undefined), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
@@ -167,12 +155,12 @@ impl Executor for Interpreter {
                             func(this, self.run(callee)?, v_args)
                         }
                         Function::RegularFunc(ref data) => {
-                            // New target is only needed for constructors, just pass undefined
+                            // New target (second argument) is only needed for constructors, just pass undefined
                             let undefined = Gc::new(ValueData::Undefined);
                             self.environment.push(new_function_environment(
-                                func,
+                                func.clone(),
                                 undefined,
-                                Some(self.environment.get_current_environment()),
+                                Some(self.environment.get_current_environment().clone()),
                             ));
                             // let scope = self.make_scope(this);
                             // let scope_vars_ptr = scope.vars.borrow();
@@ -180,11 +168,14 @@ impl Executor for Interpreter {
                                 let name = data.args.get(i).unwrap();
                                 let expr = v_args.get(i).unwrap();
                                 // scope_vars_ptr.set_field(name.clone(), expr.clone());
-                                self.environment
-                                    .set_mutable_binding(name.clone(), *expr, false);
+                                self.environment.set_mutable_binding(
+                                    name.clone(),
+                                    expr.to_owned(),
+                                    false,
+                                );
                             }
                             let result = self.run(&data.expr);
-                            self.destroy_scope();
+                            self.environment.pop();
                             result
                         }
                     },
@@ -237,7 +228,7 @@ impl Executor for Interpreter {
                 Ok(result)
             }
             ExprDef::ObjectDeclExpr(ref map) => {
-                let global_val = &self.environment.object_record.bindings;
+                let global_val = &self.environment.get_global_object().unwrap();
                 let obj = ValueData::new_obj(Some(global_val));
                 for (key, val) in map.iter() {
                     obj.borrow().set_field(key.clone(), self.run(val)?);
@@ -245,7 +236,7 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::ArrayDeclExpr(ref arr) => {
-                let global_val = &self.environment.object_record.bindings;
+                let global_val = &self.environment.get_global_object().unwrap();
                 let arr_map = ValueData::new_obj(Some(global_val));
                 let mut index: i32 = 0;
                 for val in arr.iter() {
@@ -256,7 +247,7 @@ impl Executor for Interpreter {
                 arr_map.borrow().set_field_slice(
                     INSTANCE_PROTOTYPE,
                     self.environment
-                        .get_binding_value("Array".to_string(), false)
+                        .get_binding_value("Array".to_string())
                         .borrow()
                         .get_field_slice(PROTOTYPE),
                 );

@@ -8,12 +8,15 @@
 //! More info:  https://tc39.github.io/ecma262/#sec-global-environment-records
 
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecord;
+use crate::environment::environment_record_trait::EnvironmentRecordTrait;
+use crate::environment::lexical_environment::{Environment, EnvironmentError, EnvironmentType};
 use crate::environment::object_environment_record::ObjectEnvironmentRecord;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::HashSet;
+use std::convert::TryFrom;
 
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: Box<ObjectEnvironmentRecord>,
     pub global_this_binding: Value,
@@ -92,15 +95,15 @@ impl GlobalEnvironmentRecord {
     }
 }
 
-impl GlobalEnvironmentRecord {
-    pub fn has_binding(&self, name: &String) -> bool {
+impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
+    fn has_binding(&self, name: &String) -> bool {
         if self.declerative_record.has_binding(name) {
             return true;
         }
         self.object_record.has_binding(name)
     }
 
-    pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
+    fn create_mutable_binding(&mut self, name: String, deletion: bool) {
         if self.declerative_record.has_binding(&name) {
             // TODO: change to exception
             panic!("Binding already exists!");
@@ -110,7 +113,7 @@ impl GlobalEnvironmentRecord {
             .create_mutable_binding(name.clone(), deletion)
     }
 
-    pub fn create_immutable_binding(&mut self, name: String, strict: bool) {
+    fn create_immutable_binding(&mut self, name: String, strict: bool) {
         if self.declerative_record.has_binding(&name) {
             // TODO: change to exception
             panic!("Binding already exists!");
@@ -119,7 +122,7 @@ impl GlobalEnvironmentRecord {
             .create_immutable_binding(name.clone(), strict)
     }
 
-    pub fn initialize_binding(&mut self, name: String, value: Value) {
+    fn initialize_binding(&mut self, name: String, value: Value) {
         if self.declerative_record.has_binding(&name) {
             // TODO: assert binding is in the object environment record
             return self
@@ -128,7 +131,7 @@ impl GlobalEnvironmentRecord {
         }
     }
 
-    pub fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
+    fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
         if self.declerative_record.has_binding(&name) {
             return self
                 .declerative_record
@@ -137,14 +140,14 @@ impl GlobalEnvironmentRecord {
         self.object_record.set_mutable_binding(name, value, strict)
     }
 
-    pub fn get_binding_value(&self, name: String, strict: bool) -> Value {
+    fn get_binding_value(&self, name: String, strict: bool) -> Value {
         if self.declerative_record.has_binding(&name) {
             return self.declerative_record.get_binding_value(name, strict);
         }
         return self.object_record.get_binding_value(name, strict);
     }
 
-    pub fn delete_binding(&mut self, name: String) -> bool {
+    fn delete_binding(&mut self, name: String) -> bool {
         if self.declerative_record.has_binding(&name) {
             return self.declerative_record.delete_binding(name.clone());
         }
@@ -163,27 +166,31 @@ impl GlobalEnvironmentRecord {
         true
     }
 
-    pub fn has_this_binding(&self) -> bool {
+    fn has_this_binding(&self) -> bool {
         true
     }
 
-    pub fn has_super_binding(&self) -> bool {
+    fn has_super_binding(&self) -> bool {
         false
     }
 
-    pub fn with_base_object(&self) -> Value {
+    fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
     }
 
-    pub fn get_outer_environment(&self) -> Option<&Environment> {
+    fn get_outer_environment(&self) -> Option<Environment> {
         None
     }
 
-    pub fn set_outer_environment(&mut self, env: Environment) {
+    fn set_outer_environment(&mut self, env: Environment) {
         unimplemented!()
     }
 
-    pub fn get_environment_type(&self) -> EnvironmentType {
+    fn get_environment_type(&self) -> EnvironmentType {
         return EnvironmentType::Global;
+    }
+
+    fn get_global_object(&self) -> Option<Value> {
+        Some(self.global_this_binding.clone())
     }
 }

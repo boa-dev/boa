@@ -9,7 +9,8 @@
 //! More info:  https://tc39.github.io/ecma262/#sec-function-environment-records
 
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecordBinding;
-use crate::environment::lexical_environment::Environment;
+use crate::environment::environment_record_trait::EnvironmentRecordTrait;
+use crate::environment::lexical_environment::{Environment, EnvironmentType};
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
@@ -27,7 +28,7 @@ pub enum BindingStatus {
 }
 
 /// https://tc39.github.io/ecma262/#table-16
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Trace, Finalize, Clone)]
 pub struct FunctionEnvironmentRecord {
     pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
     /// This is the this value used for this invocation of the function.
@@ -84,13 +85,16 @@ impl FunctionEnvironmentRecord {
             BindingStatus::Initialized => self.this_value.clone(),
         }
     }
+}
+
+impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     // TODO: get_super_base can't implement until GetPrototypeof is implemented on object
 
-    pub fn has_binding(&self, name: &String) -> bool {
+    fn has_binding(&self, name: &String) -> bool {
         self.env_rec.contains_key(name)
     }
 
-    pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
+    fn create_mutable_binding(&mut self, name: String, deletion: bool) {
         if !self.env_rec.contains_key(&name) {
             // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
@@ -107,7 +111,7 @@ impl FunctionEnvironmentRecord {
         );
     }
 
-    pub fn create_immutable_binding(&mut self, name: String, strict: bool) {
+    fn create_immutable_binding(&mut self, name: String, strict: bool) {
         if !self.env_rec.contains_key(&name) {
             // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
@@ -124,7 +128,7 @@ impl FunctionEnvironmentRecord {
         );
     }
 
-    pub fn initialize_binding(&mut self, name: String, value: Value) {
+    fn initialize_binding(&mut self, name: String, value: Value) {
         match self.env_rec.get_mut(&name) {
             Some(ref mut record) => {
                 match record.value {
@@ -139,7 +143,7 @@ impl FunctionEnvironmentRecord {
         }
     }
 
-    pub fn set_mutable_binding(&mut self, name: String, value: Value, mut strict: bool) {
+    fn set_mutable_binding(&mut self, name: String, value: Value, mut strict: bool) {
         if self.env_rec.get(&name).is_none() {
             if strict == true {
                 // TODO: change this when error handling comes into play
@@ -171,7 +175,7 @@ impl FunctionEnvironmentRecord {
         }
     }
 
-    pub fn get_binding_value(&self, name: String, _strict: bool) -> Value {
+    fn get_binding_value(&self, name: String, _strict: bool) -> Value {
         if self.env_rec.get(&name).is_some() && self.env_rec.get(&name).unwrap().value.is_some() {
             let record: &DeclerativeEnvironmentRecordBinding = self.env_rec.get(&name).unwrap();
             record.value.as_ref().unwrap().clone()
@@ -181,7 +185,7 @@ impl FunctionEnvironmentRecord {
         }
     }
 
-    pub fn delete_binding(&mut self, name: String) -> bool {
+    fn delete_binding(&mut self, name: String) -> bool {
         if self.env_rec.get(&name).is_some() {
             if self.env_rec.get(&name).unwrap().can_delete {
                 self.env_rec.remove(&name);
@@ -194,7 +198,7 @@ impl FunctionEnvironmentRecord {
         }
     }
 
-    pub fn has_super_binding(&self) -> bool {
+    fn has_super_binding(&self) -> bool {
         match self.this_binding_status {
             BindingStatus::Lexical => false,
             _ => {
@@ -207,25 +211,36 @@ impl FunctionEnvironmentRecord {
         }
     }
 
-    pub fn has_this_binding(&self) -> bool {
+    fn has_this_binding(&self) -> bool {
         match self.this_binding_status {
             BindingStatus::Lexical => false,
             _ => true,
         }
     }
 
-    pub fn with_base_object(&self) -> Value {
+    fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
     }
 
-    pub fn get_outer_environment(&self) -> Option<&Environment> {
+    fn get_outer_environment(&self) -> Option<Environment> {
         match &self.outer_env {
-            Some(outer) => Some(&outer),
+            Some(outer) => Some(outer.clone()),
             None => None,
         }
     }
 
-    pub fn set_outer_environment(&mut self, env: Environment) {
+    fn set_outer_environment(&mut self, env: Environment) {
         self.outer_env = Some(env);
+    }
+
+    fn get_environment_type(&self) -> EnvironmentType {
+        return EnvironmentType::Function;
+    }
+
+    fn get_global_object(&self) -> Option<Value> {
+        match &self.outer_env {
+            Some(ref outer) => outer.get_global_object(),
+            None => None,
+        }
     }
 }

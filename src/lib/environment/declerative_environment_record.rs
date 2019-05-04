@@ -6,7 +6,7 @@
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.github.io/ecma262/#sec-declarative-environment-records)
 
 use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::lexical_environment::Environment;
+use crate::environment::lexical_environment::{Environment, EnvironmentType};
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::hash_map::HashMap;
@@ -26,7 +26,7 @@ pub struct DeclerativeEnvironmentRecordBinding {
 
 /// A declarative Environment Record binds the set of identifiers defined by the
 /// declarations contained within its scope.
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Trace, Finalize, Clone)]
 pub struct DeclerativeEnvironmentRecord {
     pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
     pub outer_env: Option<Environment>,
@@ -151,5 +151,24 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
 
     fn with_base_object(&self) -> Value {
         Gc::new(ValueData::Undefined)
+    }
+
+    fn get_outer_environment(&self) -> Option<Environment> {
+        None
+    }
+
+    fn set_outer_environment(&mut self, env: Environment) {
+        self.outer_env = Some(env);
+    }
+
+    fn get_environment_type(&self) -> EnvironmentType {
+        return EnvironmentType::Declerative;
+    }
+
+    fn get_global_object(&self) -> Option<Value> {
+        match &self.outer_env {
+            Some(outer) => outer.get_global_object(),
+            None => None,
+        }
     }
 }

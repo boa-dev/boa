@@ -16,92 +16,133 @@ use gc::Gc;
 use std::collections::hash_map::HashMap;
 use std::collections::{HashSet, VecDeque};
 use std::debug_assert;
+use std::error;
+use std::fmt;
 
-pub type Environment = Gc<EnvironmentRecordTrait>;
+/// Environments are wrapped in a Box and then in a GC wrapper
+pub type Environment = Gc<Box<EnvironmentRecordTrait>>;
 
-#[derive(Trace, Finalize, Debug, Clone)]
-pub enum EnvironmentData {
-    Declerative(DeclerativeEnvironmentRecord),
-    Function(FunctionEnvironmentRecord),
-    Global(GlobalEnvironmentRecord),
-    Object(ObjectEnvironmentRecord),
+/// Give each environment an easy way to declare its own type
+/// This helps with comparisons
+pub enum EnvironmentType {
+    Declerative,
+    Function,
+    Global,
+    Object,
 }
 
 pub struct LexicalEnvironment {
     environment_stack: VecDeque<Environment>,
 }
 
+/// An error that occurred during lexing or compiling of the source input.
+#[derive(Debug, Clone)]
+pub struct EnvironmentError {
+    details: String,
+}
+
+impl EnvironmentError {
+    pub fn new(msg: &str) -> EnvironmentError {
+        EnvironmentError {
+            details: msg.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for EnvironmentError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.details)
+    }
+}
+
+impl error::Error for EnvironmentError {
+    fn description(&self) -> &str {
+        &self.details
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        // Generic error, underlying cause isn't tracked.
+        None
+    }
+}
+
 impl LexicalEnvironment {
     pub fn new(global: Value) -> LexicalEnvironment {
         let global_env = new_global_environment(global.clone(), global.clone());
-        let lexical_env = LexicalEnvironment {
+        let mut lexical_env = LexicalEnvironment {
             environment_stack: VecDeque::new(),
         };
 
+        lexical_env.push(global_env);
         lexical_env
     }
 
     pub fn push(&mut self, env: Environment) {
+        let currentEnv: Environment = self.get_current_environment().clone();
+        env.set_outer_environment(currentEnv);
         self.environment_stack.push_back(env);
     }
 
-    pub fn pop(&mut self, env: Environment) {
+    pub fn pop(&mut self) {
         self.environment_stack.pop_back();
     }
 
-    pub fn get_current_environment(&self) -> &Environment {
+    pub fn get_global_object(&self) -> Option<Value> {
+        let global = &self.environment_stack[0];
+        global.get_global_object()
+    }
+
+    pub fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
+        let env = self.get_current_environment();
+        env.set_mutable_binding(name, value, strict);
+    }
+
+    /// get_current_environment_ref is used when you only need to borrow the environment
+    /// (you only need to add a new variable binding, or you want to fetch a value)
+    pub fn get_current_environment_ref(&self) -> &Environment {
         &self
             .environment_stack
             .get(self.environment_stack.len() - 1)
             .unwrap()
     }
 
-    pub fn get_binding_value<T: EnvironmentRecordTrait>(
-        &self,
-        name: String,
-        strict: bool,
-    ) -> Value {
-        for &env in self.environment_stack.iter().rev() {
-            let binding: &T = match *env {
-                EnvironmentData::Declerative(ref env_rec) => env_rec,
-                EnvironmentData::Function(ref env_rec) => env_rec,
-                EnvironmentData::Object(ref env_rec) => env_rec,
-                EnvironmentData::Global(ref env_rec) => env_rec,
-            };
+    /// When neededing to clone an environment (linking it with another environnment)
+    /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
+    pub fn get_current_environment(&mut self) -> &mut Environment {
+        self.environment_stack
+            .get_mut(self.environment_stack.len() - 1)
+            .unwrap()
+    }
 
-            // Binding found in this environment
-            if binding {
-                return Some(env.get_binding_value(name, strict));
+    pub fn get_binding_value(&mut self, name: String) -> Value {
+        let env: Environment = self.get_current_environment().clone();
+        let result = env.has_binding(&name);
+        if result {
+            return env.get_binding_value(name, false);
+        }
+
+        // Check outer scope
+        if env.get_outer_environment().is_some() {
+            let mut outer: Option<Environment> = env.get_outer_environment();
+            while outer.is_some() {
+                if outer.as_ref().unwrap().has_binding(&name) {
+                    return outer.unwrap().get_binding_value(name, false);
+                }
+                outer = outer.unwrap().get_outer_environment();
             }
         }
 
-        None
+        Gc::new(ValueData::Undefined)
     }
 }
 
-/// Recursively search the tree of environments to find the correct binding, otherwise return undefined
-pub fn get_identifier_reference(lex: Option<&Environment>, name: String, strict: bool) -> Value {
-    return match lex {
-        None => Gc::new(ValueData::Undefined),
-        Some(env) => {
-            // Environment found
-            let exists = env.has_binding(&name);
-            // Binding found in this environment
-            if exists {
-                return env.get_binding_value(name, strict);
-            }
-            // Env found but no binding, it may be in the next env up
-            let outer: Option<&Environment> = env.get_outer_environment();
-            get_identifier_reference(outer, name, strict)
-        }
-    };
-}
-
 pub fn new_declerative_environment(env: Option<Environment>) -> Environment {
-    Gc::new(DeclerativeEnvironmentRecord {
+    let boxedEnv = Box::new(DeclerativeEnvironmentRecord {
         env_rec: HashMap::new(),
         outer_env: env,
-    })
+    });
+
+    Gc::new(boxedEnv)
 }
 
 pub fn new_function_environment(
@@ -111,7 +152,7 @@ pub fn new_function_environment(
 ) -> Environment {
     debug_assert!(F.is_function());
     debug_assert!(new_target.is_object() || new_target.is_undefined());
-    Gc::new(EnvironmentData::Function(FunctionEnvironmentRecord {
+    Gc::new(Box::new(FunctionEnvironmentRecord {
         env_rec: HashMap::new(),
         function_object: F.clone(),
         this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
@@ -123,7 +164,7 @@ pub fn new_function_environment(
 }
 
 pub fn new_object_environment(object: Value, environment: Option<Environment>) -> Environment {
-    Gc::new(EnvironmentData::Object(ObjectEnvironmentRecord {
+    Gc::new(Box::new(ObjectEnvironmentRecord {
         bindings: object,
         outer_env: environment,
         /// Object Environment Records created for with statements (13.11)
@@ -136,9 +177,23 @@ pub fn new_object_environment(object: Value, environment: Option<Environment>) -
 }
 
 pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
-    let obj_rec = new_object_environment(global, None);
-    let dcl_rec = new_declerative_environment(None);
-    Gc::new(EnvironmentData::Global(GlobalEnvironmentRecord {
+    let obj_rec = Box::new(ObjectEnvironmentRecord {
+        bindings: global,
+        outer_env: None,
+        /// Object Environment Records created for with statements (13.11)
+        /// can provide their binding object as an implicit this value for use in function calls.
+        /// The capability is controlled by a withEnvironment Boolean value that is associated
+        /// with each object Environment Record. By default, the value of withEnvironment is false
+        /// for any object Environment Record.
+        with_environment: false,
+    });
+
+    let dcl_rec = Box::new(DeclerativeEnvironmentRecord {
+        env_rec: HashMap::new(),
+        outer_env: None,
+    });
+
+    Gc::new(Box::new(GlobalEnvironmentRecord {
         object_record: obj_rec,
         global_this_binding: this_value,
         declerative_record: dcl_rec,

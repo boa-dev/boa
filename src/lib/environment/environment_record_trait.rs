@@ -8,6 +8,7 @@
 //!
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
+use crate::environment::lexical_environment::{Environment, EnvironmentType};
 use crate::js::value::Value;
 use gc::{Finalize, Trace};
 
@@ -64,9 +65,15 @@ pub trait EnvironmentRecordTrait: Trace + Finalize {
     /// Otherwise, return undefined.
     fn with_base_object(&self) -> Value;
 
-    // /// Get the next environment up
-    // fn get_outer_environment(&self) -> Option<&Box<EnvironmentRecordTrait>>;
+    /// Get the next environment up
+    fn get_outer_environment(&self) -> Option<Environment>;
 
-    // /// Set the next environment up
-    // fn set_outer_environment(&mut self, env: Box<EnvironmentRecordTrait>);
+    /// Set the next environment up
+    fn set_outer_environment(&mut self, env: Environment);
+
+    /// Get the type of environment this is
+    fn get_environment_type(&self) -> EnvironmentType;
+
+    /// Fetch global variable
+    fn get_global_object(&self) -> Option<Value>;
 }
