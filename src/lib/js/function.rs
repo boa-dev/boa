@@ -1,8 +1,8 @@
-use gc::Gc;
 use crate::js::object::{ObjectData, Property};
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
-use std::collections::HashMap;
 use crate::syntax::ast::expr::Expr;
+use gc::Gc;
+use std::collections::HashMap;
 
 /// fn(this, callee, arguments)
 pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
@@ -73,7 +73,7 @@ pub fn _create() -> Value {
     to_value(function)
 }
 /// Initialise the global object with the `Function` object
-pub fn init(global: Value) {
+pub fn init(global: &Value) {
     let global_ptr = global;
     global_ptr.set_field_slice("Function", _create());
 }

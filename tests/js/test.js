@@ -1,2 +1,7 @@
-var a = new String("ABC");
-a.charCodeAt(-1);
+var a = "World";
+function jason() {
+  console.log(a);
+  return true;
+}
+
+jason();

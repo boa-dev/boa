@@ -1,7 +1,7 @@
-use gc::Gc;
 use crate::js::function::NativeFunctionData;
 use crate::js::object::PROTOTYPE;
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
+use gc::Gc;
 
 /// Create a new error
 pub fn make_error(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
@@ -17,7 +17,7 @@ pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     Ok(to_value(format!("{}: {}", name, message).to_string()))
 }
 /// Create a new `Error` object
-pub fn _create(global: Value) -> Value {
+pub fn _create(global: &Value) -> Value {
     let prototype = ValueData::new_obj(Some(global));
     prototype.set_field_slice("message", to_value(""));
     prototype.set_field_slice("name", to_value("Error"));
@@ -27,6 +27,6 @@ pub fn _create(global: Value) -> Value {
     error
 }
 /// Initialise the global object with the `Error` object
-pub fn init(global: Value) {
-    global.set_field_slice("Error", _create(global.clone()));
+pub fn init(global: &Value) {
+    global.set_field_slice("Error", _create(global));
 }

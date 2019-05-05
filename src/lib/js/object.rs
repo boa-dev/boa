@@ -118,7 +118,7 @@ pub fn has_own_prop(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 
 /// Create a new `Object` object
-pub fn _create(global: Value) -> Value {
+pub fn _create(global: &Value) -> Value {
     let object = to_value(make_object as NativeFunctionData);
     let prototype = ValueData::new_obj(Some(global));
     prototype.set_field_slice(
@@ -144,6 +144,6 @@ pub fn _create(global: Value) -> Value {
 }
 
 /// Initialise the `Object` object on the global object
-pub fn init(global: Value) {
-    global.set_field_slice("Object", _create(global.clone()));
+pub fn init(global: &Value) {
+    global.set_field_slice("Object", _create(global));
 }
