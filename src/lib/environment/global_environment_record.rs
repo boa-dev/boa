@@ -9,12 +9,11 @@
 
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecord;
 use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::lexical_environment::{Environment, EnvironmentError, EnvironmentType};
+use crate::environment::lexical_environment::{Environment, EnvironmentType};
 use crate::environment::object_environment_record::ObjectEnvironmentRecord;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::HashSet;
-use std::convert::TryFrom;
 
 #[derive(Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
@@ -182,7 +181,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         None
     }
 
-    fn set_outer_environment(&mut self, env: Environment) {
+    fn set_outer_environment(&mut self, _env: Environment) {
         unimplemented!()
     }
 

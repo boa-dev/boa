@@ -155,12 +155,13 @@ impl Executor for Interpreter {
                             func(this, self.run(callee)?, v_args)
                         }
                         Function::RegularFunc(ref data) => {
+                            let env = &mut self.environment;
                             // New target (second argument) is only needed for constructors, just pass undefined
                             let undefined = Gc::new(ValueData::Undefined);
-                            self.environment.push(new_function_environment(
+                            env.push(new_function_environment(
                                 func.clone(),
                                 undefined,
-                                Some(self.environment.get_current_environment().clone()),
+                                Some(env.get_current_environment_ref().clone()),
                             ));
                             // let scope = self.make_scope(this);
                             // let scope_vars_ptr = scope.vars.borrow();
@@ -399,7 +400,8 @@ impl Executor for Interpreter {
                         Some(v) => r#try!(self.run(&v)),
                         None => Gc::new(ValueData::Null),
                     };
-                    scope_vars_ptr.set_field(name.clone(), val);
+                    scope_vars_ptr.set_field(name.clone(), val.clone());
+                    self.environment.set_mutable_binding(name, val, false);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }

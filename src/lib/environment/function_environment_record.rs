@@ -239,7 +239,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn get_global_object(&self) -> Option<Value> {
         match &self.outer_env {
-            Some(ref outer) => outer.get_global_object(),
+            Some(ref outer) => outer.borrow().get_global_object(),
             None => None,
         }
     }

@@ -167,7 +167,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
 
     fn get_global_object(&self) -> Option<Value> {
         match &self.outer_env {
-            Some(outer) => outer.get_global_object(),
+            Some(outer) => outer.borrow().get_global_object(),
             None => None,
         }
     }
