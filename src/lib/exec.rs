@@ -76,14 +76,12 @@ impl Executor for Interpreter {
                 Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
             }
             ExprDef::CallExpr(ref callee, ref args) => {
-                dbg!(&callee.def);
                 let (this, func) = match callee.def {
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                         let obj = self.run(obj)?;
                         (obj.clone(), obj.borrow().get_field(field.clone()))
                     }
                     ExprDef::GetFieldExpr(ref obj, ref field) => {
-                        dbg!(&obj);
                         let obj = self.run(obj)?;
                         let field = self.run(field)?;
                         (
@@ -91,7 +89,10 @@ impl Executor for Interpreter {
                             obj.borrow().get_field(field.borrow().to_string()),
                         )
                     }
-                    _ => (Gc::new(ValueData::Undefined), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
+                    _ => (
+                        self.environment.get_global_object().unwrap(),
+                        self.run(&callee.clone())?,
+                    ), // 'this' binding should come from the function's self-contained environment
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
@@ -205,7 +206,9 @@ impl Executor for Interpreter {
                 let val = Gc::new(ValueData::Function(GcCell::new(function)));
                 if name.is_some() {
                     self.environment
-                        .set_mutable_binding(name.clone().unwrap(), val.clone(), false)
+                        .create_mutable_binding(name.clone().unwrap(), false);
+                    self.environment
+                        .initialize_binding(name.clone().unwrap(), val.clone())
                 }
                 Ok(val)
             }

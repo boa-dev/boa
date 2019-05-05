@@ -128,6 +128,8 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
                 .declerative_record
                 .initialize_binding(name.clone(), value);
         }
+
+        panic!("Should not initialized binding without creating first.");
     }
 
     fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
