@@ -1,2 +1,6 @@
-var a = 1;
-a;
+function jason() {
+  console.log("hello");
+  return true;
+}
+
+jason();

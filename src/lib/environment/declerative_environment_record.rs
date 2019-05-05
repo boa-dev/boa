@@ -38,7 +38,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
     }
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) {
-        if !self.env_rec.contains_key(&name) {
+        if self.env_rec.contains_key(&name) {
             // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
         }
@@ -102,7 +102,6 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
         if record.strict {
             strict = true
         }
-
         if record.value.is_none() {
             // TODO: change this when error handling comes into play
             panic!("Reference Error: Cannot set mutable binding for {}", name);

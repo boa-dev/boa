@@ -93,9 +93,20 @@ impl LexicalEnvironment {
         global.borrow().get_global_object()
     }
 
+    pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
+        self.get_current_environment()
+            .borrow_mut()
+            .create_mutable_binding(name, deletion)
+    }
+
     pub fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
         let env = self.get_current_environment();
         env.borrow_mut().set_mutable_binding(name, value, strict);
+    }
+
+    pub fn initialize_binding(&mut self, name: String, value: Value) {
+        let env = self.get_current_environment();
+        env.borrow_mut().initialize_binding(name, value);
     }
 
     /// get_current_environment_ref is used when you only need to borrow the environment
