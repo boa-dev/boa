@@ -1,5 +1,6 @@
+var a = "World";
 function jason() {
-  console.log("hello");
+  console.log(a);
   return true;
 }
 

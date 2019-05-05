@@ -24,6 +24,7 @@ pub type Environment = Gc<GcCell<Box<EnvironmentRecordTrait>>>;
 
 /// Give each environment an easy way to declare its own type
 /// This helps with comparisons
+#[derive(Debug)]
 pub enum EnvironmentType {
     Declerative,
     Function,
