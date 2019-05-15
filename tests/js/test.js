@@ -1,2 +1,5 @@
-var a = new String("ABC");
-a.charCodeAt(-1);
+function a() {
+  return "jase";
+}
+
+a();
