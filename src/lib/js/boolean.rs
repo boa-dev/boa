@@ -11,7 +11,7 @@ pub fn _create(global: Value) -> Value {
     boolean
 }
 /// Initialise the global object with the `Error` object
-pub fn init(global: Value) {
+pub fn init(global: &Value) {
     let global_ptr = global.borrow();
     global_ptr.set_field_slice("Boolean", _create(global));
 }

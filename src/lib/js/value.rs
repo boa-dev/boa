@@ -45,7 +45,7 @@ pub enum ValueData {
 
 impl ValueData {
     /// Returns a new empty object
-    pub fn new_obj(global: Option<Value>) -> Value {
+    pub fn new_obj(global: Option<&Value>) -> Value {
         let mut obj: ObjectData = HashMap::new();
         let private_obj: ObjectData = HashMap::new();
         if global.is_some() {
@@ -70,6 +70,14 @@ impl ValueData {
             GcCell::new(obj),
             GcCell::new(private_obj),
         ))
+    }
+
+    /// This will tell us if we can exten an object or not, not properly implemented yet, for now always returns true
+    /// For scalar types it should be false, for objects check the private field for extensibilaty. By default true
+    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false
+    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false
+    pub fn is_extensible(&self) -> bool {
+        true
     }
 
     /// Returns true if the value is an object
@@ -174,6 +182,20 @@ impl ValueData {
         }
     }
 
+    /// remove_prop removes a property from a Value object.
+    /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
+    pub fn remove_prop(&self, field: &String) {
+        match *self {
+            ValueData::Object(ref obj, _) => obj.borrow_mut().deref_mut().remove(field),
+            // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
+            ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
+                Function::NativeFunc(ref mut func) => func.object.remove(field),
+                Function::RegularFunc(ref mut func) => func.object.remove(field),
+            },
+            _ => None,
+        };
+    }
+
     /// Resolve the property in the object
     /// Returns a copy of the Property
     pub fn get_prop(&self, field: String) -> Option<Property> {
@@ -188,6 +210,8 @@ impl ValueData {
         let obj: ObjectData = match *self {
             ValueData::Object(ref obj, _) => {
                 let hash = obj.clone();
+                // TODO: This will break, we should return a GcCellRefMut instead
+                // into_inner will consume the wrapped value and remove it from the hashmap
                 hash.into_inner()
             }
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
@@ -204,6 +228,45 @@ impl ValueData {
                 Some(prop) => prop.value.get_prop(field),
                 None => None,
             },
+        }
+    }
+
+    /// update_prop will overwrite individual [Property] fields, unlike
+    /// Set_prop, which will overwrite prop with a new Property
+    /// Mostly used internally for now
+    pub fn update_prop(
+        &self,
+        field: String,
+        value: Option<Value>,
+        enumerable: Option<bool>,
+        writable: Option<bool>,
+        configurable: Option<bool>,
+    ) {
+        let obj: Option<ObjectData> = match self {
+            ValueData::Object(ref obj, _) => Some(obj.borrow_mut().deref_mut().clone()),
+            // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
+            ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
+                Function::NativeFunc(ref mut func) => Some(func.object.clone()),
+                Function::RegularFunc(ref mut func) => Some(func.object.clone()),
+            },
+            _ => None,
+        };
+
+        if obj.is_none() {
+            return ();
+        }
+
+        let mut hashmap = obj.unwrap();
+        // Use value, or walk up the prototype chain
+        match hashmap.get_mut(&field) {
+            Some(ref mut prop) => {
+                prop.value = value.unwrap_or(prop.value.clone());
+                prop.enumerable = enumerable.unwrap_or(prop.enumerable);
+                prop.writable = writable.unwrap_or(prop.writable);
+                prop.configurable = configurable.unwrap_or(prop.configurable);
+            }
+            // Try again with next prop up the chain
+            None => (),
         }
     }
 
@@ -267,6 +330,14 @@ impl ValueData {
                 }
             }
             None => Gc::new(ValueData::Undefined),
+        }
+    }
+
+    /// Check to see if the Value has the field, mainly used by environment records
+    pub fn has_field(&self, field: String) -> bool {
+        match self.get_prop(field) {
+            Some(_) => true,
+            None => false,
         }
     }
 

@@ -20,7 +20,7 @@ pub fn stringify(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 
 /// Create a new `JSON` object
-pub fn _create(global: Value) -> Value {
+pub fn _create(global: &Value) -> Value {
     let object = ValueData::new_obj(Some(global));
     object.set_field_slice("stringify", to_value(stringify as NativeFunctionData));
     object.set_field_slice("parse", to_value(parse as NativeFunctionData));
@@ -28,6 +28,6 @@ pub fn _create(global: Value) -> Value {
 }
 
 /// Initialise the global object with the `JSON` object
-pub fn init(global: Value) {
-    global.set_field_slice("JSON", _create(global.clone()));
+pub fn init(global: &Value) {
+    global.set_field_slice("JSON", _create(global));
 }
