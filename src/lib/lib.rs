@@ -28,6 +28,7 @@ pub fn exec(src: String) {
     let mut lexer = Lexer::new(&src);
     lexer.lex().unwrap();
     let tokens = lexer.tokens;
+    // dbg!(&tokens);
 
     // Setup executor
     let expr = Parser::new(tokens).parse_all().unwrap();
@@ -58,7 +59,7 @@ pub fn evaluate(src: &str) -> String {
         Ok(v) => {
             expr = v;
         }
-        Err(v) => {
+        Err(_v) => {
             log("parsing fail");
             return String::from("parsing failed");
         }

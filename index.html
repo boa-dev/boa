@@ -19,18 +19,33 @@
       height: 400px;
       border: 1px solid #8db5e4;
       margin-bottom: 16px;
+      flex: 2;
+      margin-right: 16px;
     }
 
     .container {
       margin: 0 auto;
     }
+
+    .demo__repl {
+      display: flex;
+    }
+
+    .output {
+      flex: 1;
+      border: 1px solid black;
+      padding: 8px;
+      font-size: 2rem;
+    }
   </style>
   <body>
     <div class="container">
       <img class="demo__img" src="assets/01_rust_loves_js.png" />
-      <textarea class="form-control textbox"> </textarea>
+      <div class="demo__repl">
+        <textarea class="form-control textbox"> </textarea>
+        <p class="output"></p>
+      </div>
       <button type="buttont" class="btn btn-primary">Evaluate</button>
-      <p class="output">Test</p>
     </div>
   </body>
 </html>

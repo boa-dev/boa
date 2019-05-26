@@ -15,6 +15,6 @@ function clickHandler(evt) {
   let t0 = performance.now();
   let result = window.evaluate(text);
   let t1 = performance.now();
-  p.textContent = `${t1 - t0}ms: ${result}`;
+  p.textContent = `> ${result}`;
   console.log(result);
 }
