@@ -69,6 +69,6 @@ pub fn evaluate(src: &str) -> String {
     let result = engine.run(&expr);
     match result {
         Ok(v) => v.to_string(),
-        Err(v) => String::from("Error"),
+        Err(_v) => String::from("Error"),
     }
 }

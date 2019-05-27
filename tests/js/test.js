@@ -1,7 +1,7 @@
 function getConf() {
-  var conf = "JSConf EU";
+  const conf = "JSConf EU";
   if (conf == "JSConf EU") {
-    var b = "bar";
+    const b = "bar";
     return conf;
   }
 }

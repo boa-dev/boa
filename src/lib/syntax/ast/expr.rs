@@ -1,7 +1,7 @@
-use std::collections::btree_map::BTreeMap;
-use std::fmt::{Display, Formatter, Result};
 use crate::syntax::ast::constant::Const;
 use crate::syntax::ast::op::{BinOp, Operator, UnaryOp};
+use std::collections::btree_map::BTreeMap;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone, Trace, Finalize, Debug, PartialEq)]
 pub struct Expr {
@@ -31,9 +31,9 @@ pub enum ExprDef {
     UnaryOpExpr(UnaryOp, Box<Expr>),
     /// Make a constant value
     ConstExpr(Const),
+    /// Const declaration
+    ConstDeclExpr(Vec<(String, Option<Expr>)>),
     /// Construct an object from the function and arg{
-    /// uments given
-    ///},
     ConstructExpr(Box<Expr>, Vec<Expr>),
     /// Run several expressions from top-to-bottom
     BlockExpr(Vec<Expr>),
@@ -69,6 +69,8 @@ pub enum ExprDef {
     /// A variable declaratio
     /// }
     VarDeclExpr(Vec<(String, Option<Expr>)>),
+    /// Let declaraton
+    LetDeclExpr(Vec<(String, Option<Expr>)>),
     /// Return a string representing the type of the given expression
     TypeOfExpr(Box<Expr>),
 }
@@ -186,7 +188,9 @@ impl Display for ExprDef {
             ExprDef::ReturnExpr(None) => write!(f, "{}", "return"),
             ExprDef::ThrowExpr(ref ex) => write!(f, "throw {}", ex),
             ExprDef::AssignExpr(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
-            ExprDef::VarDeclExpr(ref vars) => {
+            ExprDef::VarDeclExpr(ref vars)
+            | ExprDef::LetDeclExpr(ref vars)
+            | ExprDef::ConstDeclExpr(ref vars) => {
                 f.write_str("var ")?;
                 for (key, val) in vars.iter() {
                     match val {

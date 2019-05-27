@@ -1,10 +1,10 @@
-use std::collections::btree_map::BTreeMap;
 use crate::syntax::ast::constant::Const;
 use crate::syntax::ast::expr::{Expr, ExprDef};
 use crate::syntax::ast::keyword::Keyword;
 use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp};
 use crate::syntax::ast::punc::Punctuator;
 use crate::syntax::ast::token::{Token, TokenData};
+use std::collections::btree_map::BTreeMap;
 
 macro_rules! mk (
     ($this:expr, $def:expr) => {
@@ -75,7 +75,8 @@ impl Parser {
                 let thrown = r#try!(self.parse());
                 Ok(mk!(self, ExprDef::ThrowExpr(Box::new(thrown))))
             }
-            Keyword::Var => {
+            // vars, lets and consts are similar in parsing structure, we can group them together
+            Keyword::Var | Keyword::Let | Keyword::Const => {
                 let mut vars = Vec::new();
                 loop {
                     let name = match self.get_token(self.pos) {
@@ -123,7 +124,12 @@ impl Parser {
                         }
                     }
                 }
-                Ok(Expr::new(ExprDef::VarDeclExpr(vars)))
+
+                match keyword {
+                    Keyword::Let => Ok(Expr::new(ExprDef::LetDeclExpr(vars))),
+                    Keyword::Const => Ok(Expr::new(ExprDef::ConstDeclExpr(vars))),
+                    _ => Ok(Expr::new(ExprDef::VarDeclExpr(vars))),
+                }
             }
             Keyword::Return => Ok(mk!(
                 self,

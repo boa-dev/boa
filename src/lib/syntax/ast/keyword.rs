@@ -1,8 +1,8 @@
+use crate::syntax::ast::keyword::Keyword::*;
 use std::error;
 use std::fmt::Error;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use crate::syntax::ast::keyword::Keyword::*;
 
 #[derive(Clone, PartialEq, Debug)]
 /// A Javascript Keyword
@@ -18,6 +18,8 @@ pub enum Keyword {
     Class,
     /// The `continue` keyword
     Continue,
+    /// The `const` keyword
+    Const,
     /// The `debugger` keyword
     Debugger,
     /// The `default` keyword
@@ -102,6 +104,7 @@ impl FromStr for Keyword {
             "catch" => Ok(Catch),
             "class" => Ok(Class),
             "continue" => Ok(Continue),
+            "const" => Ok(Const),
             "debugger" => Ok(Debugger),
             "default" => Ok(Default),
             "delete" => Ok(Delete),
@@ -144,6 +147,7 @@ impl Display for Keyword {
                 Catch => "catch",
                 Class => "class",
                 Continue => "continue",
+                Const => "const",
                 Debugger => "debugger",
                 Default => "default",
                 Delete => "delete",
