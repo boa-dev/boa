@@ -24,7 +24,7 @@ In the console you can use `window.evaluate` to pass JavaScript in
 - ~string.length~ - works in 0.1.5
 - Adding support for constructors - half working, in progress
 - ~better environment and scope support~ - Finished (05/05/2019)
-- `let` and `const` support - Next
+- ~`let` and `const` support~
 - Better error output
 - Passing [test262](https://github.com/tc39/test262)
 
@@ -38,4 +38,4 @@ In the console you can use `window.evaluate` to pass JavaScript in
 
 #### Example
 
-![Example](docs/img/boaTest.gif)
+![Example](docs/img/latestDemo.gif)

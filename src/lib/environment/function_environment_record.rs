@@ -112,7 +112,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) {
-        if !self.env_rec.contains_key(&name) {
+        if self.env_rec.contains_key(&name) {
             // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
         }
