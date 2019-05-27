@@ -419,7 +419,10 @@ impl<'a> Lexer<'a> {
                 } else {
                     Punctuator::Eq
                 }, Punctuator::Assign, {
-                    '>' => Punctuator::Arrow
+                    '>' => {
+                        self.next()?;
+                        Punctuator::Arrow
+                    }
                 }),
                 '<' => op!(self, Punctuator::LessThanOrEq, Punctuator::LessThan, {
                     '<' => vop!(self, Punctuator::AssignLeftSh, Punctuator::LeftSh)

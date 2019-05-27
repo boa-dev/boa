@@ -1,7 +1,9 @@
 function getConf() {
-  const conf = "JSConf EU";
-  if (conf == "JSConf EU") {
-    const b = "bar";
-    return conf;
-  }
+  let jase = () => {
+    console.log("Hello");
+  };
+
+  jase();
 }
+
+getConf();
