@@ -7,7 +7,17 @@ This is an experimental Javascript lexer, parser and Just-in-Time compiler writt
 
 This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust code has been rewritten from scratch.
 
-#### WASM
+### Contributing
+
+If you don't already have Rust installed rustup is the recommended tool to use. It will install Rust and allow you to switch between nightly, stable and beta. You can also install additional components.
+```
+curl https://sh.rustup.rs -sSf | sh
+```
+
+Then simply clone this project and `cargo build`
+To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`
+
+#### Web Assembly
 
 This interpreter can be exposed to javascript!
 You can build the example locally with:
