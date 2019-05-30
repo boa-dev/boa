@@ -1,9 +1,2 @@
-function getConf() {
-  let jase = () => {
-    console.log("Hello");
-  };
-
-  jase();
-}
-
-getConf();
+console.log("\uD83D\uDE00");
+console.log("\u{1F600}");
