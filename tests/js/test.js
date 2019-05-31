@@ -1,9 +1,1 @@
-function getConf() {
-  let jase = () => {
-    console.log("Hello");
-  };
-
-  jase();
-}
-
-getConf();
+let a = "hello world";

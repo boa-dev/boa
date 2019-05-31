@@ -24,21 +24,19 @@ extern "C" {
     fn log(s: &str);
 }
 
-pub fn exec(src: String) {
+pub fn exec(src: String) -> String {
     let mut lexer = Lexer::new(&src);
     lexer.lex().unwrap();
     let tokens = lexer.tokens;
-    // dbg!(&tokens);
 
     // Setup executor
     let expr = Parser::new(tokens).parse_all().unwrap();
-    print!("{:#?}", expr);
 
     let mut engine: Interpreter = Executor::new();
     let result = engine.run(&expr);
     match result {
-        Ok(v) => print!("{}", v),
-        Err(v) => print!("Error: {}", v),
+        Ok(v) => v.to_string(),
+        Err(v) => String::from(format!("{}: {}", "Error", v.to_string())),
     }
 }
 

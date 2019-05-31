@@ -4,7 +4,7 @@
 //! It also removes whitespace and comments and attaches them to the next token.
 use crate::syntax::ast::punc::Punctuator;
 use crate::syntax::ast::token::{Token, TokenData};
-use std::char::from_u32;
+use std::char::{decode_utf16, from_u32};
 use std::error;
 use std::fmt;
 use std::iter::Peekable;
@@ -169,6 +169,20 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Utility Function, while ``f(char)`` is true, read chars and move curser.
+    /// All chars are returned as a string
+    fn take_char_while<F>(&mut self, mut f: F) -> Result<String, LexerError>
+    where
+        F: FnMut(char) -> bool,
+    {
+        let mut s = String::new();
+        while self.buffer.peek().is_some() && f(self.preview_next()?) {
+            s.push(self.next()?);
+        }
+
+        Ok(s)
+    }
+
     /// next_is compares the character passed in to the next character, if they match true is returned and the buffer is incremented
     fn next_is(&mut self, peek: char) -> Result<bool, LexerError> {
         let result = self.preview_next()? == peek;
@@ -234,21 +248,60 @@ impl<'a> Lexer<'a> {
                                             }
                                         }
                                         'u' => {
-                                            let mut nums = String::new();
-                                            for _ in 0u8..4 {
-                                                nums.push(self.next()?);
-                                            }
-                                            self.column_number += 4;
-                                            let as_num = match u64::from_str_radix(&nums, 16) {
-                                                Ok(v) => v,
-                                                Err(_) => 0,
-                                            };
-                                            match from_u32(as_num as u32) {
-                                                Some(v) => v,
-                                                None => panic!(
-                                                    "{}:{}: {} is not a valid unicode scalar value",
-                                                    self.line_number, self.column_number, as_num
-                                                ),
+                                            // There are 2 types of codepoints. Surragate codepoints and unicode codepoints.
+                                            // UTF-16 could be surrogate codepoints, "\uXXXX\uXXXX" which make up a single unicode codepoint.
+                                            // We will need to loop to make sure we catch all UTF-16 codepoints
+                                            // Example Test: https://github.com/tc39/test262/blob/ee3715ee56744ccc8aeb22a921f442e98090b3c1/implementation-contributed/v8/mjsunit/es6/unicode-escapes.js#L39-L44
+
+                                            // Support \u{X..X} (Unicode Codepoint)
+                                            if self.next_is('{')? {
+                                                let s = self
+                                                    .take_char_while(|c| c.is_alphanumeric())
+                                                    .unwrap();
+
+                                                // We know this is a single unicode codepoint, convert to u32
+                                                let as_num = match u32::from_str_radix(&s, 16) {
+                                                    Ok(v) => v,
+                                                    Err(_) => 0,
+                                                };
+                                                let c = from_u32(as_num)
+                                                    .expect("Invalid Unicode escape sequence");
+
+                                                self.next()?; // '}'
+                                                self.column_number += s.len() as u64 + 3;
+                                                c
+                                            } else {
+                                                let mut codepoints: Vec<u16> = vec![];
+                                                loop {
+                                                    // Collect each character after \u e.g \uD83D will give "D83D"
+                                                    let s = self
+                                                        .take_char_while(|c| c.is_alphanumeric())
+                                                        .unwrap();
+
+                                                    // Convert to u16
+                                                    let as_num = match u16::from_str_radix(&s, 16) {
+                                                        Ok(v) => v,
+                                                        Err(_) => 0,
+                                                    };
+
+                                                    codepoints.push(as_num);
+                                                    self.column_number += s.len() as u64 + 2;
+
+                                                    // Check for another UTF-16 codepoint
+                                                    if self.next_is('\\')? && self.next_is('u')? {
+                                                        continue;
+                                                    }
+                                                    break;
+                                                }
+
+                                                // codepoints length should either be 1 (unicode codepoint) or 2 (surrogate codepoint).
+                                                // Rust's decode_utf16 will deal with it regardless
+                                                let c = decode_utf16(codepoints.iter().cloned())
+                                                    .next()
+                                                    .unwrap()
+                                                    .unwrap();
+
+                                                c
                                             }
                                         }
                                         '\'' | '"' => escape,
@@ -315,7 +368,11 @@ impl<'a> Lexer<'a> {
                 _ if ch.is_digit(10) => {
                     let mut buf = ch.to_string();
                     loop {
-                        let ch = self.preview_next()?;
+                        // There might not be a next character
+                        let ch = match self.preview_next() {
+                            Ok(c) => c,
+                            Err(_) => break,
+                        };
                         match ch {
                             '.' => {
                                 buf.push(self.next()?);
@@ -520,6 +577,25 @@ mod tests {
             lexer.tokens[5].data,
             TokenData::Punctuator(Punctuator::Semicolon)
         );
+    }
+
+    // TODO: Missing support for 5e3 5e+3 5e-3 0b10 0O123 0999 (octal notation)
+    #[test]
+    fn numbers() {
+        let mut lexer = Lexer::new("1 2 0x34 056 7.89;");
+        lexer.lex().expect("finished");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(52.0));
+        assert_eq!(lexer.tokens[3].data, TokenData::NumericLiteral(46.0));
+        assert_eq!(lexer.tokens[4].data, TokenData::NumericLiteral(7.89));
+    }
+
+    #[test]
+    fn test_single_number_without_semicolon() {
+        let mut lexer = Lexer::new("1");
+        lexer.lex().expect("finished");
+        dbg!(lexer.tokens);
     }
 
 }
