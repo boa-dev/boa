@@ -10,6 +10,7 @@ This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust cod
 ### Contributing
 
 If you don't already have Rust installed rustup is the recommended tool to use. It will install Rust and allow you to switch between nightly, stable and beta. You can also install additional components.
+
 ```
 curl https://sh.rustup.rs -sSf | sh
 ```
@@ -29,9 +30,14 @@ $ yarn serve
 
 In the console you can use `window.evaluate` to pass JavaScript in
 
+##### Live Demo
+
+https://jasonwilliams.github.io/boa/
+
 #### Roadmap
 
 - ~string.length~ - works in 0.1.5
+- Better lexing of numbers
 - Adding support for constructors - half working, in progress
 - ~better environment and scope support~ - Finished (05/05/2019)
 - ~`let` and `const` support~
