@@ -7,6 +7,12 @@ This is an experimental Javascript lexer, parser and Just-in-Time compiler writt
 
 This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust code has been rewritten from scratch.
 
+#### Live Demo
+
+https://jasonwilliams.github.io/boa/
+
+You can get more verbose errors when running from the commnand line
+
 ### Contributing
 
 If you don't already have Rust installed rustup is the recommended tool to use. It will install Rust and allow you to switch between nightly, stable and beta. You can also install additional components.
@@ -29,10 +35,6 @@ $ yarn serve
 ```
 
 In the console you can use `window.evaluate` to pass JavaScript in
-
-##### Live Demo
-
-https://jasonwilliams.github.io/boa/
 
 #### Roadmap
 
