@@ -2,6 +2,7 @@
 // webpack/webpack#6615, but in theory `import { greet } from './pkg/hello_world';`
 // will work here one day as well!
 const rust = import("./pkg/boa");
+// const image = import("./assets/01_rust_loves_js.png");
 
 rust.then(m => {
   window.evaluate = m.evaluate;
