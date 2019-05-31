@@ -67,6 +67,9 @@ pub fn evaluate(src: &str) -> String {
     let result = engine.run(&expr);
     match result {
         Ok(v) => v.to_string(),
-        Err(_v) => String::from("Error"),
+        Err(v) => {
+            log(&format!("{} {}", "asudihsiu", v.to_string()));
+            String::from(format!("{}: {}", "error", v.to_string()))
+        }
     }
 }

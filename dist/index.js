@@ -55,8 +55,8 @@
 /******/ 		"./pkg/boa_bg.wasm": function() {
 /******/ 			return {
 /******/ 				"./boa": {
-/******/ 					"__wbg_log_e93ebc22f4028df1": function(p0i32,p1i32) {
-/******/ 						return installedModules["./pkg/boa.js"].exports["__wbg_log_e93ebc22f4028df1"](p0i32,p1i32);
+/******/ 					"__wbg_log_38ac309e9be4446e": function(p0i32,p1i32) {
+/******/ 						return installedModules["./pkg/boa.js"].exports["__wbg_log_38ac309e9be4446e"](p0i32,p1i32);
 /******/ 					},
 /******/ 					"__wbindgen_throw": function(p0i32,p1i32) {
 /******/ 						return installedModules["./pkg/boa.js"].exports["__wbindgen_throw"](p0i32,p1i32);
@@ -159,7 +159,7 @@
 /******/ 				promises.push(installedWasmModuleData);
 /******/ 			else {
 /******/ 				var importObject = wasmImportObjects[wasmModuleId]();
-/******/ 				var req = fetch(__webpack_require__.p + "" + {"./pkg/boa_bg.wasm":"8a22a58c982a4c57c865"}[wasmModuleId] + ".module.wasm");
+/******/ 				var req = fetch(__webpack_require__.p + "" + {"./pkg/boa_bg.wasm":"84dd4a70af06018bf716"}[wasmModuleId] + ".module.wasm");
 /******/ 				var promise;
 /******/ 				if(importObject instanceof Promise && typeof WebAssembly.compileStreaming === 'function') {
 /******/ 					promise = Promise.all([WebAssembly.compileStreaming(req), importObject]).then(function(items) {
