@@ -1,6 +1,6 @@
 [package]
 name = "Boa"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["Jason Williams <jase.williams@gmail.com>"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 homepage = "https://github.com/jasonwilliams/boa"
