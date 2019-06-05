@@ -336,6 +336,17 @@ impl<'a> Lexer<'a> {
                             }
                         }
                         u64::from_str_radix(&buf, 16).unwrap()
+                    } else if self.next_is('b')? {
+                        loop {
+                            let ch = self.preview_next()?;
+                            match ch {
+                                ch if ch.is_digit(2) => {
+                                    buf.push(self.next()?);
+                                }
+                                _ => break,
+                            }
+                        }
+                        u64::from_str_radix(&buf, 2).unwrap()
                     } else {
                         let mut gone_decimal = false;
                         loop {
@@ -343,6 +354,9 @@ impl<'a> Lexer<'a> {
                             match ch {
                                 ch if ch.is_digit(8) => {
                                     buf.push(ch);
+                                    self.next()?;
+                                }
+                                'O' | 'o' => {
                                     self.next()?;
                                 }
                                 '8' | '9' | '.' => {
@@ -374,7 +388,7 @@ impl<'a> Lexer<'a> {
                             Err(_) => break,
                         };
                         match ch {
-                            '.' => {
+                            '.' | 'e' | '+' | '-' => {
                                 buf.push(self.next()?);
                             }
                             _ if ch.is_digit(10) => {
@@ -579,16 +593,21 @@ mod tests {
         );
     }
 
-    // TODO: Missing support for 5e3 5e+3 5e-3 0b10 0O123 0999 (octal notation)
     #[test]
     fn numbers() {
-        let mut lexer = Lexer::new("1 2 0x34 056 7.89;");
+        let mut lexer = Lexer::new("1 2 0x34 056 7.89 5e3 5e+3 5e-3 0b10 0O123 0999;");
         lexer.lex().expect("finished");
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
         assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(52.0));
         assert_eq!(lexer.tokens[3].data, TokenData::NumericLiteral(46.0));
         assert_eq!(lexer.tokens[4].data, TokenData::NumericLiteral(7.89));
+        assert_eq!(lexer.tokens[5].data, TokenData::NumericLiteral(5000.0));
+        assert_eq!(lexer.tokens[6].data, TokenData::NumericLiteral(5000.0));
+        assert_eq!(lexer.tokens[7].data, TokenData::NumericLiteral(0.005));
+        assert_eq!(lexer.tokens[8].data, TokenData::NumericLiteral(2.0));
+        assert_eq!(lexer.tokens[9].data, TokenData::NumericLiteral(83.0));
+        assert_eq!(lexer.tokens[10].data, TokenData::NumericLiteral(999.0));
     }
 
     #[test]
