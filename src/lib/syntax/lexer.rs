@@ -436,7 +436,18 @@ impl<'a> Lexer<'a> {
                 }
                 ';' => self.push_punc(Punctuator::Semicolon),
                 ':' => self.push_punc(Punctuator::Colon),
-                '.' => self.push_punc(Punctuator::Dot),
+                '.' => {
+                    // . or ...
+                    if self.next_is('.') {
+                        if self.next_is('.') {
+                            self.push_punc(Punctuator::Spread);
+                        } else {
+                            return Err(LexerError::new("Expecting Token ."));
+                        }
+                    } else {
+                        self.push_punc(Punctuator::Dot);
+                    };
+                }
                 '(' => self.push_punc(Punctuator::OpenParen),
                 ')' => self.push_punc(Punctuator::CloseParen),
                 ',' => self.push_punc(Punctuator::Comma),
@@ -544,10 +555,171 @@ mod tests {
     use crate::syntax::ast::keyword::Keyword;
 
     #[test]
+    fn check_string() {
+        let s = "'aaa' \"bbb\"";
+        let mut lexer = Lexer::new(s);
+        lexer.lex().unwrap();
+        assert_eq!(
+            lexer.tokens[0].data,
+            TokenData::StringLiteral("aaa".to_string())
+        );
+
+        assert_eq!(
+            lexer.tokens[1].data,
+            TokenData::StringLiteral("bbb".to_string())
+        );
+    }
+
+    #[test]
+    fn check_punctuators() {
+        // TODO: Support ** ++
+        // https://tc39.es/ecma262/#sec-punctuators
+        let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
+                 + - * % -- << >> >>> & | ^ ! ~ && || ? : \
+                 = += -= *= &= **= <<= >>= >>>= &= |= ^= =>";
+        let mut lexer = Lexer::new(s);
+        lexer.lex().unwrap();
+        assert_eq!(
+            lexer.tokens[0].data,
+            TokenData::Punctuator(Punctuator::OpenBlock)
+        );
+        assert_eq!(
+            lexer.tokens[1].data,
+            TokenData::Punctuator(Punctuator::OpenParen)
+        );
+        assert_eq!(
+            lexer.tokens[2].data,
+            TokenData::Punctuator(Punctuator::CloseParen)
+        );
+        assert_eq!(
+            lexer.tokens[3].data,
+            TokenData::Punctuator(Punctuator::OpenBracket)
+        );
+        assert_eq!(
+            lexer.tokens[4].data,
+            TokenData::Punctuator(Punctuator::CloseBracket)
+        );
+        assert_eq!(lexer.tokens[5].data, TokenData::Punctuator(Punctuator::Dot));
+        assert_eq!(
+            lexer.tokens[6].data,
+            TokenData::Punctuator(Punctuator::Spread)
+        );
+        assert_eq!(
+            lexer.tokens[7].data,
+            TokenData::Punctuator(Punctuator::Semicolon)
+        );
+        assert_eq!(
+            lexer.tokens[8].data,
+            TokenData::Punctuator(Punctuator::Comma)
+        );
+        assert_eq!(
+            lexer.tokens[9].data,
+            TokenData::Punctuator(Punctuator::LessThan)
+        );
+        assert_eq!(
+            lexer.tokens[10].data,
+            TokenData::Punctuator(Punctuator::GreaterThan)
+        );
+        assert_eq!(
+            lexer.tokens[11].data,
+            TokenData::Punctuator(Punctuator::LessThanOrEq)
+        );
+        assert_eq!(
+            lexer.tokens[12].data,
+            TokenData::Punctuator(Punctuator::GreaterThanOrEq)
+        );
+        assert_eq!(lexer.tokens[13].data, TokenData::Punctuator(Punctuator::Eq));
+        assert_eq!(
+            lexer.tokens[14].data,
+            TokenData::Punctuator(Punctuator::NotEq)
+        );
+        assert_eq!(
+            lexer.tokens[15].data,
+            TokenData::Punctuator(Punctuator::StrictEq)
+        );
+        assert_eq!(
+            lexer.tokens[16].data,
+            TokenData::Punctuator(Punctuator::StrictNotEq)
+        );
+        assert_eq!(
+            lexer.tokens[17].data,
+            TokenData::Punctuator(Punctuator::Add)
+        );
+        assert_eq!(
+            lexer.tokens[18].data,
+            TokenData::Punctuator(Punctuator::Sub)
+        );
+        assert_eq!(
+            lexer.tokens[19].data,
+            TokenData::Punctuator(Punctuator::Mul)
+        );
+        assert_eq!(
+            lexer.tokens[20].data,
+            TokenData::Punctuator(Punctuator::Mod)
+        );
+        assert_eq!(
+            lexer.tokens[21].data,
+            TokenData::Punctuator(Punctuator::Dec)
+        );
+        assert_eq!(
+            lexer.tokens[22].data,
+            TokenData::Punctuator(Punctuator::LeftSh)
+        );
+    }
+
+    #[test]
+    fn check_keywords() {
+        // https://tc39.es/ecma262/#sec-keywords
+        let s = "await break case catch class const continue debugger default delete \
+                 do else export extends finally for function if import in instanceof \
+                 new return super switch this throw try typeof var void while with yield";
+
+        let mut lexer = Lexer::new(s);
+        lexer.lex().unwrap();
+        assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Await));
+        assert_eq!(lexer.tokens[1].data, TokenData::Keyword(Keyword::Break));
+        assert_eq!(lexer.tokens[2].data, TokenData::Keyword(Keyword::Case));
+        assert_eq!(lexer.tokens[3].data, TokenData::Keyword(Keyword::Catch));
+        assert_eq!(lexer.tokens[4].data, TokenData::Keyword(Keyword::Class));
+        assert_eq!(lexer.tokens[5].data, TokenData::Keyword(Keyword::Const));
+        assert_eq!(lexer.tokens[6].data, TokenData::Keyword(Keyword::Continue));
+        assert_eq!(lexer.tokens[7].data, TokenData::Keyword(Keyword::Debugger));
+        assert_eq!(lexer.tokens[8].data, TokenData::Keyword(Keyword::Default));
+        assert_eq!(lexer.tokens[9].data, TokenData::Keyword(Keyword::Delete));
+        assert_eq!(lexer.tokens[10].data, TokenData::Keyword(Keyword::Do));
+        assert_eq!(lexer.tokens[11].data, TokenData::Keyword(Keyword::Else));
+        assert_eq!(lexer.tokens[12].data, TokenData::Keyword(Keyword::Export));
+        assert_eq!(lexer.tokens[13].data, TokenData::Keyword(Keyword::Extends));
+        assert_eq!(lexer.tokens[14].data, TokenData::Keyword(Keyword::Finally));
+        assert_eq!(lexer.tokens[15].data, TokenData::Keyword(Keyword::For));
+        assert_eq!(lexer.tokens[16].data, TokenData::Keyword(Keyword::Function));
+        assert_eq!(lexer.tokens[17].data, TokenData::Keyword(Keyword::If));
+        assert_eq!(lexer.tokens[18].data, TokenData::Keyword(Keyword::Import));
+        assert_eq!(lexer.tokens[19].data, TokenData::Keyword(Keyword::In));
+        assert_eq!(
+            lexer.tokens[20].data,
+            TokenData::Keyword(Keyword::InstanceOf)
+        );
+        assert_eq!(lexer.tokens[21].data, TokenData::Keyword(Keyword::New));
+        assert_eq!(lexer.tokens[22].data, TokenData::Keyword(Keyword::Return));
+        assert_eq!(lexer.tokens[23].data, TokenData::Keyword(Keyword::Super));
+        assert_eq!(lexer.tokens[24].data, TokenData::Keyword(Keyword::Switch));
+        assert_eq!(lexer.tokens[25].data, TokenData::Keyword(Keyword::This));
+        assert_eq!(lexer.tokens[26].data, TokenData::Keyword(Keyword::Throw));
+        assert_eq!(lexer.tokens[27].data, TokenData::Keyword(Keyword::Try));
+        assert_eq!(lexer.tokens[28].data, TokenData::Keyword(Keyword::TypeOf));
+        assert_eq!(lexer.tokens[29].data, TokenData::Keyword(Keyword::Var));
+        assert_eq!(lexer.tokens[30].data, TokenData::Keyword(Keyword::Void));
+        assert_eq!(lexer.tokens[31].data, TokenData::Keyword(Keyword::While));
+        assert_eq!(lexer.tokens[32].data, TokenData::Keyword(Keyword::With));
+        assert_eq!(lexer.tokens[33].data, TokenData::Keyword(Keyword::Yield));
+    }
+
+    #[test]
     fn check_variable_definition_tokens() {
         let s = &String::from("let a = 'hello';");
         let mut lexer = Lexer::new(s);
-        lexer.lex().expect("finished");
+        lexer.lex().unwrap();
         assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Let));
         assert_eq!(lexer.tokens[1].data, TokenData::Identifier("a".to_string()));
         assert_eq!(
@@ -565,7 +737,7 @@ mod tests {
         let s = &String::from("console.log(\"hello world\");");
         // -------------------123456789
         let mut lexer = Lexer::new(s);
-        lexer.lex().expect("finished");
+        lexer.lex().unwrap();
         // The first column is 1 (not zero indexed)
         assert_eq!(lexer.tokens[0].pos.column_number, 1);
         assert_eq!(lexer.tokens[0].pos.line_number, 1);
@@ -595,7 +767,7 @@ mod tests {
         // Here we want an example of decrementing an integer
         let s = &String::from("let a = b--;");
         let mut lexer = Lexer::new(s);
-        lexer.lex().expect("finished");
+        lexer.lex().unwrap();
         assert_eq!(lexer.tokens[4].data, TokenData::Punctuator(Punctuator::Dec));
         // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
         // and move the curser forward by 2, meaning the next token should be a semicolon
@@ -608,7 +780,7 @@ mod tests {
     #[test]
     fn numbers() {
         let mut lexer = Lexer::new("1 2 0x34 056 7.89 5e3 5e+3 5e-3 0b10 0O123 0999");
-        lexer.lex().expect("finished");
+        lexer.lex().unwrap();
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
         assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(52.0));
@@ -625,7 +797,7 @@ mod tests {
     #[test]
     fn test_single_number_without_semicolon() {
         let mut lexer = Lexer::new("1");
-        lexer.lex().expect("finished");
+        lexer.lex().unwrap();
         dbg!(lexer.tokens);
     }
 

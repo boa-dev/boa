@@ -8,6 +8,8 @@ use std::str::FromStr;
 /// A Javascript Keyword
 /// As specificed by https://www.ecma-international.org/ecma-262/#sec-keywords
 pub enum Keyword {
+    /// The `await` keyword
+    Await,
     /// The `break` keyword
     Break,
     /// The `case` keyword
@@ -32,6 +34,8 @@ pub enum Keyword {
     Else,
     /// The `enum` keyword
     Enum,
+    /// The `export` keyword
+    Export,
     /// The `extends` keyword
     Extends,
     /// The `finally` keyword
@@ -74,6 +78,8 @@ pub enum Keyword {
     While,
     /// The `with` keyword
     With,
+    /// The 'yield' keyword
+    Yield,
 }
 
 #[derive(Debug, Clone)]
@@ -99,6 +105,7 @@ impl FromStr for Keyword {
     type Err = KeywordError;
     fn from_str(s: &str) -> Result<Keyword, Self::Err> {
         match s {
+            "await" => Ok(Await),
             "break" => Ok(Break),
             "case" => Ok(Case),
             "catch" => Ok(Catch),
@@ -112,6 +119,7 @@ impl FromStr for Keyword {
             "else" => Ok(Else),
             "enum" => Ok(Enum),
             "extends" => Ok(Extends),
+            "export" => Ok(Export),
             "finally" => Ok(Finally),
             "for" => Ok(For),
             "function" => Ok(Function),
@@ -132,6 +140,7 @@ impl FromStr for Keyword {
             "void" => Ok(Void),
             "while" => Ok(While),
             "with" => Ok(With),
+            "yield" => Ok(Yield),
             _ => Err(KeywordError),
         }
     }
@@ -142,6 +151,7 @@ impl Display for Keyword {
             f,
             "{}",
             match *self {
+                Await => "await",
                 Break => "break",
                 Case => "case",
                 Catch => "catch",
@@ -155,6 +165,7 @@ impl Display for Keyword {
                 Else => "else",
                 Enum => "enum",
                 Extends => "extends",
+                Export => "export",
                 Finally => "finally",
                 For => "for",
                 Function => "function",
@@ -175,6 +186,7 @@ impl Display for Keyword {
                 Void => "void",
                 While => "while",
                 With => "with",
+                Yield => "yield",
             }
         )
     }
