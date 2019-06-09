@@ -30,14 +30,20 @@ macro_rules! vop {
                 $this.next()?;
                 $assign_op
             },
-            $($case => $block)+,
+            $($case => {
+                $this.next()?;
+                $block
+            })+,
             _ => $op
         }
     });
     ($this:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
         let preview = $this.preview_next().unwrap();
         match preview {
-            $($case => $block) +,
+            $($case => {
+                $this.next()?;
+                $block
+            })+,
             _ => $op
         }
     }
@@ -496,7 +502,6 @@ impl<'a> Lexer<'a> {
                 }),
                 '-' => op!(self, Punctuator::AssignSub, Punctuator::Sub, {
                     '-' => {
-                        self.next()?;
                         Punctuator::Dec
                     }
                 }),
@@ -514,7 +519,6 @@ impl<'a> Lexer<'a> {
                     Punctuator::Eq
                 }, Punctuator::Assign, {
                     '>' => {
-                        self.next()?;
                         Punctuator::Arrow
                     }
                 }),
