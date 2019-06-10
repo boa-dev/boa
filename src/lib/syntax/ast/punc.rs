@@ -24,7 +24,9 @@ pub enum Punctuator {
     AssignMul,
     /// `|=`
     AssignOr,
-    /// `>>>=`
+    /// `**=`
+    AssignPow,
+    /// `>>=`
     AssignRightSh,
     /// `-=`
     AssignSub,
@@ -84,6 +86,8 @@ pub enum Punctuator {
     OpenParen,
     /// `|`
     Or,
+    /// `**`
+    Pow,
     /// `?`
     Question,
     /// `>>`
@@ -120,6 +124,7 @@ impl Display for Punctuator {
                 Punctuator::AssignMod => "%=",
                 Punctuator::AssignMul => "*=",
                 Punctuator::AssignOr => "|=",
+                Punctuator::AssignPow => "**=",
                 Punctuator::AssignRightSh => ">>=",
                 Punctuator::AssignSub => "-=",
                 Punctuator::AssignURightSh => ">>>=",
@@ -150,6 +155,7 @@ impl Display for Punctuator {
                 Punctuator::OpenBracket => "[",
                 Punctuator::OpenParen => "(",
                 Punctuator::Or => "|",
+                Punctuator::Pow => "**",
                 Punctuator::Question => "?",
                 Punctuator::RightSh => ">>",
                 Punctuator::Semicolon => ";",

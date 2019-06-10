@@ -496,7 +496,9 @@ impl<'a> Lexer<'a> {
                     };
                     self.push_token(token)
                 }
-                '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul),
+                '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul, {
+                    '*' => vop!(self, Punctuator::AssignPow, Punctuator::Pow)
+                }),
                 '+' => op!(self, Punctuator::AssignAdd, Punctuator::Add, {
                     '+' => Punctuator::Inc
                 }),
@@ -576,11 +578,10 @@ mod tests {
 
     #[test]
     fn check_punctuators() {
-        // TODO: Support ** ++
         // https://tc39.es/ecma262/#sec-punctuators
         let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
                  + - * % -- << >> >>> & | ^ ! ~ && || ? : \
-                 = += -= *= &= **= <<= >>= >>>= &= |= ^= =>";
+                 = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
         let mut lexer = Lexer::new(s);
         lexer.lex().unwrap();
         assert_eq!(
@@ -668,6 +669,107 @@ mod tests {
         assert_eq!(
             lexer.tokens[22].data,
             TokenData::Punctuator(Punctuator::LeftSh)
+        );
+        assert_eq!(
+            lexer.tokens[23].data,
+            TokenData::Punctuator(Punctuator::RightSh)
+        );
+        assert_eq!(
+            lexer.tokens[24].data,
+            TokenData::Punctuator(Punctuator::URightSh)
+        );
+        assert_eq!(
+            lexer.tokens[25].data,
+            TokenData::Punctuator(Punctuator::And)
+        );
+        assert_eq!(lexer.tokens[26].data, TokenData::Punctuator(Punctuator::Or));
+        assert_eq!(
+            lexer.tokens[27].data,
+            TokenData::Punctuator(Punctuator::Xor)
+        );
+        assert_eq!(
+            lexer.tokens[28].data,
+            TokenData::Punctuator(Punctuator::Not)
+        );
+        assert_eq!(
+            lexer.tokens[29].data,
+            TokenData::Punctuator(Punctuator::Neg)
+        );
+        assert_eq!(
+            lexer.tokens[30].data,
+            TokenData::Punctuator(Punctuator::BoolAnd)
+        );
+        assert_eq!(
+            lexer.tokens[31].data,
+            TokenData::Punctuator(Punctuator::BoolOr)
+        );
+        assert_eq!(
+            lexer.tokens[32].data,
+            TokenData::Punctuator(Punctuator::Question)
+        );
+        assert_eq!(
+            lexer.tokens[33].data,
+            TokenData::Punctuator(Punctuator::Colon)
+        );
+        assert_eq!(
+            lexer.tokens[34].data,
+            TokenData::Punctuator(Punctuator::Assign)
+        );
+        assert_eq!(
+            lexer.tokens[35].data,
+            TokenData::Punctuator(Punctuator::AssignAdd)
+        );
+        assert_eq!(
+            lexer.tokens[36].data,
+            TokenData::Punctuator(Punctuator::AssignSub)
+        );
+        assert_eq!(
+            lexer.tokens[37].data,
+            TokenData::Punctuator(Punctuator::AssignMul)
+        );
+        assert_eq!(
+            lexer.tokens[38].data,
+            TokenData::Punctuator(Punctuator::AssignAnd)
+        );
+        assert_eq!(
+            lexer.tokens[39].data,
+            TokenData::Punctuator(Punctuator::AssignPow)
+        );
+        assert_eq!(
+            lexer.tokens[40].data,
+            TokenData::Punctuator(Punctuator::Inc)
+        );
+        assert_eq!(
+            lexer.tokens[41].data,
+            TokenData::Punctuator(Punctuator::Pow)
+        );
+        assert_eq!(
+            lexer.tokens[42].data,
+            TokenData::Punctuator(Punctuator::AssignLeftSh)
+        );
+        assert_eq!(
+            lexer.tokens[43].data,
+            TokenData::Punctuator(Punctuator::AssignRightSh)
+        );
+        assert_eq!(
+            lexer.tokens[44].data,
+            TokenData::Punctuator(Punctuator::AssignURightSh)
+        );
+        assert_eq!(
+            lexer.tokens[45].data,
+            TokenData::Punctuator(Punctuator::AssignAnd)
+        );
+        assert_eq!(
+            lexer.tokens[46].data,
+            TokenData::Punctuator(Punctuator::AssignOr)
+        );
+        assert_eq!(
+            lexer.tokens[47].data,
+            TokenData::Punctuator(Punctuator::AssignXor)
+        );
+        assert_eq!(
+            lexer.tokens[48].data,
+            TokenData::Punctuator(Punctuator::Arrow)
         );
     }
 
