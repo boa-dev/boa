@@ -77,6 +77,46 @@ pub fn char_code_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(utf16_val as f64))
 }
 
+/// Returns a String that is the result of concatenating this String and all strings provided as
+/// arguments
+/// https://tc39.github.io/ecma262/#sec-string.prototype.concat
+pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    //        ^^ represents instance  ^^ represents arguments 
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+
+    let mut new_str = primitive_val.clone();
+
+    for arg in args {
+        let concat_str: String = from_value(arg).unwrap();
+        new_str.push_str(&concat_str);
+    }
+
+    Ok(to_value(new_str))
+}
+
+/// Returns a String that is the result of repeating this String the number of times given by the
+/// first argument
+/// https://tc39.github.io/ecma262/#sec-string.prototype.repeat
+pub fn repeat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    //        ^^ represents instance  ^^ represents arguments (only care about the first one in this case)
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+
+    let repeat_times: i32 = from_value(args[0].clone()).unwrap();
+    let mut new_str = String::new();
+
+    for _ in 0..repeat_times {
+        new_str.push_str(&primitive_val);
+    }
+
+    Ok(to_value(new_str))
+}
+
 /// Create a new `String` object
 pub fn _create(global: &Value) -> Value {
     let string = to_value(make_string as NativeFunctionData);
@@ -93,6 +133,8 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("charAt", to_value(char_at as NativeFunctionData));
     proto.set_field_slice("charCodeAt", to_value(char_code_at as NativeFunctionData));
     proto.set_field_slice("toString", to_value(to_string as NativeFunctionData));
+    proto.set_field_slice("concat", to_value(concat as NativeFunctionData));
+    proto.set_field_slice("repeat", to_value(repeat as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
     string
 }
