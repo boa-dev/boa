@@ -129,18 +129,8 @@ pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length: i32 = primitive_val.chars().count() as i32;
 
-    let from: i32;
-    let to: i32;
-    if start < 0 {
-        from = max(length + start, 0);
-    } else {
-        from = min(start, length);
-    }
-    if end < 0 {
-        to = max(length + end, 0);
-    } else {
-        to = min(end, length);
-    }
+    let from: i32 = if start < 0 {max(length + start, 0)} else {min(start, length)};
+    let to: i32 = if end < 0 {max(length + end, 0)} else {min(end, length)};
 
     let span = max(to - from, 0);
 
