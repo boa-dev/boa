@@ -3,6 +3,7 @@ use crate::js::object::{Property, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 use std::f64::NAN;
+use std::cmp::{min, max};
 
 /// Create new string
 /// https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19
@@ -107,13 +108,46 @@ pub fn repeat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let primitive_val: String =
         from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
 
-    let repeat_times: i32 = from_value(args[0].clone()).unwrap();
-    let mut new_str = String::new();
+    let repeat_times: usize = from_value(args[0].clone()).unwrap();
+    Ok(to_value(primitive_val.repeat(repeat_times)))
+}
 
-    for _ in 0..repeat_times {
-        new_str.push_str(&primitive_val);
+/// Returns a String which contains the slice of the JS String from character at "start" index up
+/// to but not including character at "end" index
+/// https://tc39.github.io/ecma262/#sec-string.prototype.slice
+pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    //       ^^ represents instance  ^^ represents arguments)
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+
+    let start: i32 = from_value(args[0].clone()).unwrap();
+    let end: i32 = from_value(args[1].clone()).unwrap();
+
+    // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
+    // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
+    let length: i32 = primitive_val.chars().count() as i32;
+
+    let from: i32;
+    let to: i32;
+    if start < 0 {
+        from = max(length + start, 0);
+    } else {
+        from = min(start, length);
+    }
+    if end < 0 {
+        to = max(length + start, 0);
+    } else {
+        to = min(end, length);
     }
 
+    let span = max(to - from, 0);
+
+    let mut new_str = String::new();
+    for i in from..from + span {
+        new_str.push(primitive_val.chars().nth(i as usize).unwrap());
+    }
     Ok(to_value(new_str))
 }
 
@@ -135,6 +169,7 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("toString", to_value(to_string as NativeFunctionData));
     proto.set_field_slice("concat", to_value(concat as NativeFunctionData));
     proto.set_field_slice("repeat", to_value(repeat as NativeFunctionData));
+    proto.set_field_slice("slice", to_value(slice as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
     string
 }
