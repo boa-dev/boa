@@ -137,7 +137,7 @@ pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
         from = min(start, length);
     }
     if end < 0 {
-        to = max(length + start, 0);
+        to = max(length + end, 0);
     } else {
         to = min(end, length);
     }
