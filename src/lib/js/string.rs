@@ -141,6 +141,39 @@ pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(new_str))
 }
 
+/// Returns a Boolean indicating whether the sequence of code units of the
+/// "search string" is the same as the corresponding code units of this string
+/// starting at index "position"
+/// https://tc39.github.io/ecma262/#sec-string.prototype.startswith
+pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    //             ^^ represents instance  ^^ represents arguments)
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+
+    let pattern: String = from_value(args[0].clone()).unwrap();
+    // If less than 2 args specified, position is 'undefined', defaults to 0
+    let position: i32 = 
+        if args.len() < 2 {0} else {from_value(args[1].clone()).unwrap()};
+
+    let length: i32 = primitive_val.chars().count() as i32;
+    let search_length: i32 = pattern.chars().count() as i32;
+    let start = min(max(position, 0), length);
+
+    if search_length + start > length {
+        Ok(to_value(false))
+    } else {
+        // Cut a "slice" of chars from 'this' string starting at "start" and
+        // "search_length" chars long
+        let this_chars = primitive_val.chars()
+            .skip(start as usize).take(search_length as usize);
+        let search_chars = pattern.chars();
+        // Return whether the "slice" is equal to the pattern
+        Ok(to_value(this_chars.eq(search_chars)))
+    }
+}
+
 /// Create a new `String` object
 pub fn _create(global: &Value) -> Value {
     let string = to_value(make_string as NativeFunctionData);
@@ -160,6 +193,7 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("concat", to_value(concat as NativeFunctionData));
     proto.set_field_slice("repeat", to_value(repeat as NativeFunctionData));
     proto.set_field_slice("slice", to_value(slice as NativeFunctionData));
+    proto.set_field_slice("startsWith", to_value(starts_with as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
     string
 }
