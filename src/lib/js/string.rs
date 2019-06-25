@@ -168,13 +168,10 @@ pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     if end > length {
         Ok(to_value(false))
     } else {
-        // Cut a "slice" of chars from 'this' string starting at "start" and
-        // "search_length" chars long
-        let this_chars = primitive_val.chars()
-            .skip(start as usize).take(search_length as usize);
-        let search_chars = search_string.chars();
-        // Return whether the "slice" is equal to the search_string
-        Ok(to_value(this_chars.eq(search_chars)))
+        // Only use the part of the string from "start"
+        let this_string: String = primitive_val.chars()
+            .skip(start as usize).collect();
+        Ok(to_value(this_string.starts_with(&search_string)))
     }
 }
 
@@ -206,13 +203,10 @@ pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     if start < 0 {
         Ok(to_value(false))
     } else {
-        // Cut a "slice" of chars from 'this' string starting at "start" and
-        // "search_length" chars long
-        let this_chars = primitive_val.chars()
-            .skip(start as usize).take(search_length as usize);
-        let search_chars = search_string.chars();
-        // Return whether the "slice" is equal to the search_string
-        Ok(to_value(this_chars.eq(search_chars)))
+        // Only use the part of the string up to "end"
+        let this_string: String = primitive_val.chars()
+            .take(end as usize).collect();
+        Ok(to_value(this_string.ends_with(&search_string)))
     }
 }
 
@@ -246,6 +240,87 @@ pub fn includes(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(this_string.contains(&search_string)))
 }
 
+/// If searchString appears as a substring of the result of converting this
+/// object to a String, at one or more indices that are greater than or equal to
+/// position, then the smallest such index is returned; otherwise, -1 is
+/// returned. If position is undefined, 0 is assumed, so as to search all of the
+/// String. 
+/// https://tc39.github.io/ecma262/#sec-string.prototype.includes
+pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    //          ^^ represents instance  ^^ represents arguments)
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+
+    // TODO: Should throw TypeError if search_string is regular expression
+    let search_string: String = from_value(args[0].clone()).unwrap();
+
+    let length: i32 = primitive_val.chars().count() as i32;
+
+    // If less than 2 args specified, position is 'undefined', defaults to 0
+    let position: i32 = if args.len() < 2 {0} 
+                        else {from_value(args[1].clone()).unwrap()};
+
+    let start = min(max(position, 0), length);
+
+    // Here cannot use the &str method "find", because this returns the byte
+    // index: we need to return the char index in the JS String
+    // Instead, iterate over the part we're checking until the slice we're
+    // checking "starts with" the search string
+    for index in start..length {
+        let this_string: String = primitive_val.chars()
+            .skip(index as usize).collect();
+        if this_string.starts_with(&search_string) {
+            // Explicitly return early with the index value
+            return Ok(to_value(index))
+        }
+    }
+    // Didn't find a match, so return -1
+    Ok(to_value(-1 as i32))
+}
+
+//// If searchString appears as a substring of the result of converting this
+/// object to a String at one or more indices that are smaller than or equal to
+/// position, then the greatest such index is returned; otherwise, -1 is
+/// returned. If position is undefined, the length of the String value is
+/// assumed, so as to search all of the String.
+/// https://tc39.github.io/ecma262/#sec-string.prototype.lastindexof
+pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    //               ^^ represents instance  ^^ represents arguments)
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+
+    // TODO: Should throw TypeError if search_string is regular expression
+    let search_string: String = from_value(args[0].clone()).unwrap();
+
+    let length: i32 = primitive_val.chars().count() as i32;
+
+    // If less than 2 args specified, position is 'undefined', defaults to 0
+    let position: i32 = if args.len() < 2 {0} 
+                        else {from_value(args[1].clone()).unwrap()};
+
+    let start = min(max(position, 0), length);
+
+    // Here cannot use the &str method "rfind", because this returns the last
+    // byte index: we need to return the last char index in the JS String
+    // Instead, iterate over the part we're checking keeping track of the higher
+    // index we found that "starts with" the search string
+    let mut highest_index: i32 = -1;
+    for index in start..length {
+        let this_string: String = primitive_val.chars()
+            .skip(index as usize).collect();
+        if this_string.starts_with(&search_string) {
+            highest_index = index;
+        }
+    }
+
+    // This will still be -1 if no matches were found, else with be >= 0
+    Ok(to_value(highest_index))
+}
+
 /// Create a new `String` object
 pub fn _create(global: &Value) -> Value {
     let string = to_value(make_string as NativeFunctionData);
@@ -268,6 +343,8 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("startsWith", to_value(starts_with as NativeFunctionData));
     proto.set_field_slice("endsWith", to_value(ends_with as NativeFunctionData));
     proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
+    proto.set_field_slice("indexOf", to_value(index_of as NativeFunctionData));
+    proto.set_field_slice("lastIndexOf", to_value(last_index_of as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
     string
 }
