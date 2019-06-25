@@ -153,14 +153,14 @@ pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
         from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
 
     // TODO: Should throw TypeError if pattern is regular expression
-    let pattern: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(args[0].clone()).unwrap();
 
     let length: i32 = primitive_val.chars().count() as i32;
-    let search_length: i32 = pattern.chars().count() as i32;
+    let search_length: i32 = search_string.chars().count() as i32;
 
     // If less than 2 args specified, position is 'undefined', defaults to 0
-    let position: i32 = 
-        if args.len() < 2 {0} else {from_value(args[1].clone()).unwrap()};
+    let position: i32 = if args.len() < 2 {0} 
+                        else {from_value(args[1].clone()).unwrap()};
 
     let start = min(max(position, 0), length);
     let end = start + search_length;
@@ -172,12 +172,16 @@ pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
         // "search_length" chars long
         let this_chars = primitive_val.chars()
             .skip(start as usize).take(search_length as usize);
-        let search_chars = pattern.chars();
-        // Return whether the "slice" is equal to the pattern
+        let search_chars = search_string.chars();
+        // Return whether the "slice" is equal to the search_string
         Ok(to_value(this_chars.eq(search_chars)))
     }
 }
 
+/// Returns a Boolean indicating whether the sequence of code units of the
+/// "search string"  is the same as the corresponding code units of this string
+/// starting at position "end position" - length
+/// https://tc39.github.io/ecma262/#sec-string.prototype.endswith
 pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //           ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
@@ -185,16 +189,16 @@ pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let primitive_val: String =
         from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
 
-    // TODO: Should throw TypeError if pattern is regular expression
-    let pattern: String = from_value(args[0].clone()).unwrap();
+    // TODO: Should throw TypeError if search_string is regular expression
+    let search_string: String = from_value(args[0].clone()).unwrap();
 
     let length: i32 = primitive_val.chars().count() as i32;
-    let search_length: i32 = pattern.chars().count() as i32;
+    let search_length: i32 = search_string.chars().count() as i32;
 
     // If less than 2 args specified, end_position is 'undefined', defaults to
     // length of this
-    let end_position: i32 = 
-        if args.len() < 2 {length} else {from_value(args[1].clone()).unwrap()};
+    let end_position: i32 = if args.len() < 2 {length} 
+                            else {from_value(args[1].clone()).unwrap()};
 
     let end = min(max(end_position, 0), length);
     let start = end - search_length;
@@ -206,10 +210,40 @@ pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
         // "search_length" chars long
         let this_chars = primitive_val.chars()
             .skip(start as usize).take(search_length as usize);
-        let search_chars = pattern.chars();
-        // Return whether the "slice" is equal to the pattern
+        let search_chars = search_string.chars();
+        // Return whether the "slice" is equal to the search_string
         Ok(to_value(this_chars.eq(search_chars)))
     }
+}
+
+/// Returns a Boolean indicating whether searchString appears as a substring of
+/// the result of converting this object to a String, at one or more indices
+/// that are greater than or equal to position. If position is undefined, 0 is
+/// assumed, so as to search all of the String.
+/// https://tc39.github.io/ecma262/#sec-string.prototype.includes
+pub fn includes(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    //          ^^ represents instance  ^^ represents arguments)
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+
+    // TODO: Should throw TypeError if search_string is regular expression
+    let search_string: String = from_value(args[0].clone()).unwrap();
+
+    let length: i32 = primitive_val.chars().count() as i32;
+
+    // If less than 2 args specified, position is 'undefined', defaults to 0
+    let position: i32 = if args.len() < 2 {0} 
+                        else {from_value(args[1].clone()).unwrap()};
+
+    let start = min(max(position, 0), length);
+
+    // Take the string from "this" and use only the part of it after "start"
+    let this_string: String = primitive_val.chars()
+        .skip(start as usize).collect();
+
+    Ok(to_value(this_string.contains(&search_string)))
 }
 
 /// Create a new `String` object
@@ -233,6 +267,7 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("slice", to_value(slice as NativeFunctionData));
     proto.set_field_slice("startsWith", to_value(starts_with as NativeFunctionData));
     proto.set_field_slice("endsWith", to_value(ends_with as NativeFunctionData));
+    proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
     string
 }
