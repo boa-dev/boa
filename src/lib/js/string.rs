@@ -319,6 +319,7 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
     // This will still be -1 if no matches were found, else with be >= 0
     Ok(to_value(highest_index))
+}
 
 fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
