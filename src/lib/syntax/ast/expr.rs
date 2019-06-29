@@ -111,9 +111,9 @@ impl Display for ExprDef {
         return match *self {
             ExprDef::ConstExpr(ref c) => write!(f, "{}", c),
             ExprDef::BlockExpr(ref block) => {
-                r#try!(write!(f, "{}", "{"));
+                write!(f, "{}", "{")?;
                 for expr in block.iter() {
-                    r#try!(write!(f, "{};", expr));
+                    write!(f, "{};", expr)?;
                 }
                 write!(f, "{}", "}")
             }
@@ -121,7 +121,7 @@ impl Display for ExprDef {
             ExprDef::GetConstFieldExpr(ref ex, ref field) => write!(f, "{}.{}", ex, field),
             ExprDef::GetFieldExpr(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
             ExprDef::CallExpr(ref ex, ref args) => {
-                r#try!(write!(f, "{}(", ex));
+                write!(f, "{}(", ex)?;
                 let arg_strs: Vec<String> = args.iter().map(|arg| arg.to_string()).collect();
                 write!(f, "{})", arg_strs.join(","))
             }
