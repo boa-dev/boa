@@ -319,6 +319,41 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
     // This will still be -1 if no matches were found, else with be >= 0
     Ok(to_value(highest_index))
+
+fn is_trimmable_whitespace(c: char) -> bool {
+    // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
+    //
+    // Rust uses \p{White_Space} by default, which also includes:
+    // `\u{0085}' (next line)
+    // And does not include:
+    // '\u{FEFF}' (zero width non-breaking space)
+    match c {
+        // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
+        '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' => true,
+        // Unicode Space_Seperator category
+        '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}'  => true,
+        // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
+        '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}' => true,
+        _ => false,
+    }
+}
+
+pub fn trim(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+    let this_str: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
+}
+
+pub fn trim_start(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+    let this_str: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    Ok(to_value(this_str.trim_start_matches(is_trimmable_whitespace)))
+}
+
+pub fn trim_end(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+    let this_str: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 
 /// Create a new `String` object
@@ -345,6 +380,8 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
     proto.set_field_slice("indexOf", to_value(index_of as NativeFunctionData));
     proto.set_field_slice("lastIndexOf", to_value(last_index_of as NativeFunctionData));
+    proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
+    proto.set_field_slice("trimStart", to_value(trim_start as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
     string
 }

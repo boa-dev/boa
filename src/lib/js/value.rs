@@ -142,8 +142,8 @@ impl ValueData {
         match *self {
             ValueData::Object(_, _) => true,
             ValueData::String(ref s) if !s.is_empty() => true,
-            ValueData::Number(n) if n >= 1.0 && n % 1.0 == 0.0 => true,
-            ValueData::Integer(n) if n > 1 => true,
+            ValueData::Number(n) if n != 0.0 && !n.is_nan() => true,
+            ValueData::Integer(n) if n != 0 => true,
             ValueData::Boolean(v) => v,
             _ => false,
         }
@@ -878,6 +878,23 @@ mod tests {
         let s = String::from("bar").to_value();
         obj.set_field_slice("foo", s);
         assert_eq!(obj.get_field_slice("foo").to_string(), "bar");
+    }
+
+    #[test]
+    fn check_integer_is_true() {
+        assert_eq!(1.to_value().is_true(), true);
+        assert_eq!(0.to_value().is_true(), false);
+        assert_eq!((-1).to_value().is_true(), true);
+    }
+
+    #[test]
+    fn check_number_is_true() {
+        assert_eq!(1.0.to_value().is_true(), true);
+        assert_eq!(0.1.to_value().is_true(), true);
+        assert_eq!(0.0.to_value().is_true(), false);
+        assert_eq!((-0.0).to_value().is_true(), false);
+        assert_eq!((-1.0).to_value().is_true(), true);
+        assert_eq!(NAN.to_value().is_true(), false);
     }
 
 }
