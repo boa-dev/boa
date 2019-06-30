@@ -1,2 +1,2 @@
-let a = "hello world";
+let a = [];
 a;
