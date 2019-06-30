@@ -504,9 +504,9 @@ impl Display for ValueData {
                 match v.borrow().iter().last() {
                     Some((last_key, _)) => {
                         for (key, val) in v.borrow().iter() {
-                            r#try!(write!(f, "{}: {}", key, val.value.clone()));
+                            write!(f, "{}: {}", key, val.value.clone())?;
                             if key != last_key {
-                                r#try!(write!(f, "{}", ", "));
+                                write!(f, "{}", ", ")?;
                             }
                         }
                     }
@@ -517,9 +517,9 @@ impl Display for ValueData {
                 match p.borrow().iter().last() {
                     Some((last_key, _)) => {
                         for (key, val) in p.borrow().iter() {
-                            r#try!(write!(f, "(Private) {}: {}", key, val.value.clone()));
+                            write!(f, "(Private) {}: {}", key, val.value.clone())?;
                             if key != last_key {
-                                r#try!(write!(f, "{}", ", "));
+                                write!(f, "{}", ", ")?;
                             }
                         }
                     }
@@ -747,7 +747,7 @@ impl<T: FromValue> FromValue for Vec<T> {
         let len = v.get_field_slice("length").to_int();
         let mut vec = Vec::with_capacity(len as usize);
         for i in 0..len {
-            vec.push(r#try!(from_value(v.get_field(i.to_string()))))
+            vec.push(from_value(v.get_field(i.to_string()))?)
         }
         Ok(vec)
     }
@@ -812,7 +812,7 @@ impl<T: FromValue> FromValue for Option<T> {
         Ok(if value.is_null_or_undefined() {
             None
         } else {
-            Some(r#try!(FromValue::from_value(value)))
+            Some(FromValue::from_value(value)?)
         })
     }
 }

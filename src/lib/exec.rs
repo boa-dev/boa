@@ -135,32 +135,32 @@ impl Executor for Interpreter {
                 Ok(result)
             }
             ExprDef::IfExpr(ref cond, ref expr, None) => {
-                Ok(if r#try!(self.run(cond)).borrow().is_true() {
-                    r#try!(self.run(expr))
+                Ok(if self.run(cond)?.borrow().is_true() {
+                    self.run(expr)?
                 } else {
                     Gc::new(ValueData::Undefined)
                 })
             }
             ExprDef::IfExpr(ref cond, ref expr, Some(ref else_e)) => {
-                Ok(if r#try!(self.run(cond)).borrow().is_true() {
-                    r#try!(self.run(expr))
+                Ok(if self.run(cond)?.borrow().is_true() {
+                    self.run(expr)?
                 } else {
-                    r#try!(self.run(else_e))
+                    self.run(else_e)?
                 })
             }
             ExprDef::SwitchExpr(ref val_e, ref vals, ref default) => {
-                let val = r#try!(self.run(val_e)).clone();
+                let val = self.run(val_e)?.clone();
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
                 for tup in vals.iter() {
                     let tup: &(Expr, Vec<Expr>) = tup;
                     let cond = &tup.0;
                     let block = &tup.1;
-                    if val == r#try!(self.run(cond)) {
+                    if val == self.run(cond)? {
                         matched = true;
                         let last_expr = block.last().unwrap();
                         for expr in block.iter() {
-                            let e_result = r#try!(self.run(expr));
+                            let e_result = self.run(expr)?;
                             if expr == last_expr {
                                 result = e_result;
                             }
@@ -168,7 +168,7 @@ impl Executor for Interpreter {
                     }
                 }
                 if !matched && default.is_some() {
-                    result = r#try!(self.run(default.as_ref().unwrap()));
+                    result = self.run(default.as_ref().unwrap())?;
                 }
                 Ok(result)
             }
@@ -217,8 +217,8 @@ impl Executor for Interpreter {
                 Ok(Gc::new(ValueData::Function(GcCell::new(function))))
             }
             ExprDef::BinOpExpr(BinOp::Num(ref op), ref a, ref b) => {
-                let v_r_a = r#try!(self.run(a));
-                let v_r_b = r#try!(self.run(b));
+                let v_r_a = self.run(a)?;
+                let v_r_b = self.run(b)?;
                 let v_a = (*v_r_a).clone();
                 let v_b = (*v_r_b).clone();
                 Ok(Gc::new(match *op {
@@ -230,7 +230,7 @@ impl Executor for Interpreter {
                 }))
             }
             ExprDef::UnaryOpExpr(ref op, ref a) => {
-                let v_r_a = r#try!(self.run(a));
+                let v_r_a = self.run(a)?;
                 let v_a = (*v_r_a).clone();
                 Ok(match *op {
                     UnaryOp::Minus => to_value(-v_a.to_num()),
@@ -240,8 +240,8 @@ impl Executor for Interpreter {
                 })
             }
             ExprDef::BinOpExpr(BinOp::Bit(ref op), ref a, ref b) => {
-                let v_r_a = r#try!(self.run(a));
-                let v_r_b = r#try!(self.run(b));
+                let v_r_a = self.run(a)?;
+                let v_r_b = self.run(b)?;
                 let v_a = (*v_r_a).clone();
                 let v_b = (*v_r_b).clone();
                 Ok(Gc::new(match *op {
@@ -253,8 +253,8 @@ impl Executor for Interpreter {
                 }))
             }
             ExprDef::BinOpExpr(BinOp::Comp(ref op), ref a, ref b) => {
-                let v_r_a = r#try!(self.run(a));
-                let v_r_b = r#try!(self.run(b));
+                let v_r_a = self.run(a)?;
+                let v_r_b = self.run(b)?;
                 let v_a = v_r_a.borrow();
                 let v_b = v_r_b.borrow();
                 Ok(to_value(match *op {
@@ -273,8 +273,8 @@ impl Executor for Interpreter {
                 }))
             }
             ExprDef::BinOpExpr(BinOp::Log(ref op), ref a, ref b) => {
-                let v_a = from_value::<bool>(r#try!(self.run(a))).unwrap();
-                let v_b = from_value::<bool>(r#try!(self.run(b))).unwrap();
+                let v_a = from_value::<bool>(self.run(a)?).unwrap();
+                let v_b = from_value::<bool>(self.run(b)?).unwrap();
                 Ok(match *op {
                     LogOp::And => to_value(v_a && v_b),
                     LogOp::Or => to_value(v_a || v_b),
@@ -284,7 +284,7 @@ impl Executor for Interpreter {
                 let func = self.run(callee)?;
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
-                    v_args.push(r#try!(self.run(arg)));
+                    v_args.push(self.run(arg)?);
                 }
                 let this = Gc::new(ValueData::Object(
                     GcCell::new(HashMap::new()),
@@ -326,7 +326,7 @@ impl Executor for Interpreter {
                 Some(ref v) => self.run(v),
                 None => Ok(Gc::new(ValueData::Undefined)),
             },
-            ExprDef::ThrowExpr(ref ex) => Err(r#try!(self.run(ex))),
+            ExprDef::ThrowExpr(ref ex) => Err(self.run(ex)?),
             ExprDef::AssignExpr(ref ref_e, ref val_e) => {
                 let val = self.run(val_e)?;
                 match ref_e.def {
@@ -336,7 +336,7 @@ impl Executor for Interpreter {
                             .initialize_binding(name.clone(), val.clone());
                     }
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
-                        let val_obj = r#try!(self.run(obj));
+                        let val_obj = self.run(obj)?;
                         val_obj.borrow().set_field(field.clone(), val.clone());
                     }
                     _ => (),
@@ -347,7 +347,7 @@ impl Executor for Interpreter {
                 for var in vars.iter() {
                     let (name, value) = var.clone();
                     let val = match value {
-                        Some(v) => r#try!(self.run(&v)),
+                        Some(v) => self.run(&v)?,
                         None => Gc::new(ValueData::Null),
                     };
                     self.environment.create_mutable_binding(name.clone(), false);
@@ -359,7 +359,7 @@ impl Executor for Interpreter {
                 for var in vars.iter() {
                     let (name, value) = var.clone();
                     let val = match value {
-                        Some(v) => r#try!(self.run(&v)),
+                        Some(v) => self.run(&v)?,
                         None => Gc::new(ValueData::Null),
                     };
                     self.environment.create_mutable_binding(name.clone(), false);
@@ -371,7 +371,7 @@ impl Executor for Interpreter {
                 for var in vars.iter() {
                     let (name, value) = var.clone();
                     let val = match value {
-                        Some(v) => r#try!(self.run(&v)),
+                        Some(v) => self.run(&v)?,
                         None => Gc::new(ValueData::Null),
                     };
                     self.environment
@@ -381,7 +381,7 @@ impl Executor for Interpreter {
                 Ok(Gc::new(ValueData::Undefined))
             }
             ExprDef::TypeOfExpr(ref val_e) => {
-                let val = r#try!(self.run(val_e));
+                let val = self.run(val_e)?;
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
                     ValueData::Null | ValueData::Object(_, _) => "object",
