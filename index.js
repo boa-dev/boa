@@ -55,8 +55,8 @@
 /******/ 		"./pkg/boa_bg.wasm": function() {
 /******/ 			return {
 /******/ 				"./boa": {
-/******/ 					"__wbg_log_961dd0434e74b74e": function(p0i32,p1i32) {
-/******/ 						return installedModules["./pkg/boa.js"].exports["__wbg_log_961dd0434e74b74e"](p0i32,p1i32);
+/******/ 					"__wbg_log_a49ab9a10e878c0d": function(p0i32,p1i32) {
+/******/ 						return installedModules["./pkg/boa.js"].exports["__wbg_log_a49ab9a10e878c0d"](p0i32,p1i32);
 /******/ 					},
 /******/ 					"__wbindgen_throw": function(p0i32,p1i32) {
 /******/ 						return installedModules["./pkg/boa.js"].exports["__wbindgen_throw"](p0i32,p1i32);
@@ -122,8 +122,6 @@
 /******/ 				}
 /******/ 				script.src = jsonpScriptSrc(chunkId);
 /******/
-/******/ 				// create error before stack unwound to get useful stacktrace later
-/******/ 				var error = new Error();
 /******/ 				onScriptComplete = function (event) {
 /******/ 					// avoid mem leaks in IE.
 /******/ 					script.onerror = script.onload = null;
@@ -133,7 +131,7 @@
 /******/ 						if(chunk) {
 /******/ 							var errorType = event && (event.type === 'load' ? 'missing' : event.type);
 /******/ 							var realSrc = event && event.target && event.target.src;
-/******/ 							error.message = 'Loading chunk ' + chunkId + ' failed.\n(' + errorType + ': ' + realSrc + ')';
+/******/ 							var error = new Error('Loading chunk ' + chunkId + ' failed.\n(' + errorType + ': ' + realSrc + ')');
 /******/ 							error.type = errorType;
 /******/ 							error.request = realSrc;
 /******/ 							chunk[1](error);
@@ -161,7 +159,7 @@
 /******/ 				promises.push(installedWasmModuleData);
 /******/ 			else {
 /******/ 				var importObject = wasmImportObjects[wasmModuleId]();
-/******/ 				var req = fetch(__webpack_require__.p + "" + {"./pkg/boa_bg.wasm":"894cdce282a11561fbdd"}[wasmModuleId] + ".module.wasm");
+/******/ 				var req = fetch(__webpack_require__.p + "" + {"./pkg/boa_bg.wasm":"3fc364a5ca4ea87f9cb2"}[wasmModuleId] + ".module.wasm");
 /******/ 				var promise;
 /******/ 				if(importObject instanceof Promise && typeof WebAssembly.compileStreaming === 'function') {
 /******/ 					promise = Promise.all([WebAssembly.compileStreaming(req), importObject]).then(function(items) {
