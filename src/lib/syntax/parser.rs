@@ -151,14 +151,14 @@ impl Parser {
                 let cond = self.parse()?;
                 self.expect_punc(Punctuator::CloseParen, "if block")?;
                 let expr = self.parse()?;
-                let next = self.get_token(self.pos + 1);
+                let next = self.get_token(self.pos);
                 Ok(mk!(
                     self,
                     ExprDef::IfExpr(
                         Box::new(cond),
                         Box::new(expr),
                         if next.is_ok() && next.unwrap().data == TokenData::Keyword(Keyword::Else) {
-                            self.pos += 2;
+                            self.pos += 1;
                             Some(Box::new(self.parse()?))
                         } else {
                             None
