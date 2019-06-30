@@ -1,8 +1,37 @@
 extern crate boa;
 use boa::exec;
 use std::fs::read_to_string;
+use std::env;
+use std::process::exit;
 
-pub fn main() {
-    let buffer = read_to_string("tests/js/test.js").unwrap();
+fn print_usage() {
+    println!("Usage:
+boa [file.js]
+    Interpret and execute file.js
+    (if no file given, defaults to tests/js/test.js");
+}
+
+pub fn main() -> Result<(), std::io::Error> {
+    let args: Vec<String> = env::args().collect();
+    let read_file;
+
+    match args.len() {
+        // No arguments passed, default to "test.js"
+        1 => {
+            read_file = "tests/js/test.js";
+        },
+        // One argument passed, assumed this is the test file
+        2 => {
+            read_file = &args[1];
+        }
+        // Some other number of arguments passed: not supported
+        _ => {
+            print_usage();
+            exit(1);
+        }
+    }
+
+    let buffer = read_to_string(read_file)?;
     dbg!(exec(buffer));
+    Ok(())
 }
