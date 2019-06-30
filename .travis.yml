@@ -7,3 +7,4 @@ before_script:
   - rustup component add rustfmt
 script:
   - cargo fmt --verbose -- --check
+  - cargo test --verbose
