@@ -45,3 +45,8 @@ If you want to develop on the web assembly side you can run yarn serve then go t
 ### Setup
 
 VScode is commonly used with the [Rust (RLS) plugin](https://github.com/rust-lang/rls-vscode).
+
+## Communication
+
+We have a Discord server, feel free to ask questions here:
+https://discord.gg/tUFFk9Y
