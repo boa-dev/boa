@@ -8,7 +8,6 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let this_ptr = this.clone();
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
-    let array_obj = ValueData::new_obj(None);
     match args.len() {
         0 => {
             this_ptr.set_field_slice("length", to_value(0i32));
@@ -21,11 +20,10 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
             this_ptr.set_field_slice("length", to_value(n));
             for k in 0..n {
                 let index_str = k.to_string();
-                array_obj.set_field(index_str, args[k].clone());
+                this_ptr.set_field(index_str, args[k].clone());
             }
         }
     }
-    this_ptr.set_field_slice("ArrayObject", array_obj);
     Ok(this_ptr)
 }
 
@@ -33,10 +31,7 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     // Access the inner hash map which represents the actual Array contents
     // (mapping between indices and values)
-    let this_array: ObjectData = 
-        from_value(this.get_field(String::from("ArrayObject")))
-        .unwrap();
-    Ok(to_value(this_array.len() as i32))
+    Ok(this.get_field_slice("length"))
 }
 
 /// Create a new `Array` object
