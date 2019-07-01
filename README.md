@@ -7,7 +7,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust code has been rewritten from scratch.
 
-#### Live Demo
+#### Live Demo (WASM)
 
 https://jasonwilliams.github.io/boa/
 
