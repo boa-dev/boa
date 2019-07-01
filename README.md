@@ -48,6 +48,10 @@ See Project view
 - You can make changes to tests/js/test.js and build again
 - If any JS doesn't work its a bug! Please raise an issue
 
+#### Communication 
+
+Feel free to contact us on Discord https://discord.gg/tUFFk9Y
+
 #### Example
 
 ![Example](docs/img/latestDemo.gif)
