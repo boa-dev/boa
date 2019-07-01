@@ -1,14 +1,16 @@
 extern crate boa;
 use boa::exec;
-use std::fs::read_to_string;
 use std::env;
+use std::fs::read_to_string;
 use std::process::exit;
 
 fn print_usage() {
-    println!("Usage:
+    println!(
+        "Usage:
 boa [file.js]
     Interpret and execute file.js
-    (if no file given, defaults to tests/js/test.js");
+    (if no file given, defaults to tests/js/test.js"
+    );
 }
 
 pub fn main() -> Result<(), std::io::Error> {
@@ -19,7 +21,7 @@ pub fn main() -> Result<(), std::io::Error> {
         // No arguments passed, default to "test.js"
         1 => {
             read_file = "tests/js/test.js";
-        },
+        }
         // One argument passed, assumed this is the test file
         2 => {
             read_file = &args[1];
