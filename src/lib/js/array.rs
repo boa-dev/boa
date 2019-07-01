@@ -28,18 +28,14 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // between indices and values): this creates an Object with no prototype
     this.set_field_slice("length", to_value(0i32));
     match args.len() {
-        0 => {
-            create_array_object(this, Vec::new())
-        }
+        0 => create_array_object(this, Vec::new()),
         1 => {
             let array = create_array_object(this, Vec::new()).unwrap();
             let size: i32 = from_value(args[0].clone()).unwrap();
             array.set_field_slice("length", to_value(size));
             Ok(array)
         }
-        _ => {
-            create_array_object(this, args)
-        }
+        _ => create_array_object(this, args),
     }
 }
 
@@ -51,7 +47,7 @@ pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 }
 
 /// Array.prototype.concat(...arguments)
-/// 
+///
 /// When the concat method is called with zero or more arguments, it returns an
 /// array containing the array elements of the object followed by the array
 /// elements of each argument in order.
@@ -59,7 +55,7 @@ pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     if args.len() == 0 {
         // If concat is called with no arguments, it returns the original array
-        return Ok(this.clone())
+        return Ok(this.clone());
     }
 
     // Make a new array (using this object as the prototype basis for the new
