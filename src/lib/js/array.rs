@@ -1,7 +1,6 @@
 use crate::js::function::NativeFunctionData;
 use crate::js::object::{Property, PROTOTYPE, ObjectData};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
-use std::collections::HashMap;
 use gc::Gc;
 
 /// Create a new array
