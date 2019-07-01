@@ -7,34 +7,35 @@ use gc::Gc;
 /// Create a new array
 pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let this_ptr = this.clone();
+    // Make a new Object which will internally represent the Array (mapping
+    // between indices and values): this creates an Object with no prototype
+    let array_obj = ValueData::new_obj(None);
     match args.len() {
         0 => {
             this_ptr.set_field_slice("length", to_value(0i32));
-            let array_obj: ObjectData = HashMap::new();
-            this_ptr.set_private_field_slice("ArrayValue", to_value(array_obj));
         }
         1 => {
-            let length_chosen: i32 = from_value(args[0]).unwrap();
+            let length_chosen: i32 = from_value(args[0].clone()).unwrap();
             this_ptr.set_field_slice("length", to_value(length_chosen));
-            let array_obj: ObjectData = HashMap::with_capacity(length_chosen as usize);
-            this_ptr.set_private_field_slice("ArrayValue", to_value(array_obj));
         }
         n => {
             this_ptr.set_field_slice("length", to_value(n));
-            let array_obj: ObjectData = HashMap::new();
             for k in 0..n {
                 let index_str = k.to_string();
-                array_obj.insert(index_str, Property::new(from_value(args[k]).unwrap()));
+                array_obj.set_field(index_str, args[k].clone());
             }
         }
     }
-    Ok(to_value(this_ptr))
+    this_ptr.set_field_slice("ArrayObject", array_obj);
+    Ok(this_ptr)
 }
 
 /// Get an array's length
 pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+    // Access the inner hash map which represents the actual Array contents
+    // (mapping between indices and values)
     let this_array: ObjectData = 
-        from_value(this.get_private_field(String::from("PrimitiveValue")))
+        from_value(this.get_field(String::from("ArrayObject")))
         .unwrap();
     Ok(to_value(this_array.len() as i32))
 }
