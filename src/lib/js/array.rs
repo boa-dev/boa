@@ -1,5 +1,5 @@
 use crate::js::function::NativeFunctionData;
-use crate::js::object::{Property, PROTOTYPE, ObjectData};
+use crate::js::object::{Property, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 
@@ -44,7 +44,7 @@ pub fn _create(global: &Value) -> Value {
         writable: false,
         value: Gc::new(ValueData::Undefined),
         get: to_value(get_array_length as NativeFunctionData),
-        set: Gc::new(ValueData::Undefined)
+        set: Gc::new(ValueData::Undefined),
     };
     proto.set_prop_slice("length", length);
     array.set_field_slice(PROTOTYPE, proto);

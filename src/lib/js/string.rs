@@ -2,8 +2,8 @@ use crate::js::function::NativeFunctionData;
 use crate::js::object::{Property, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;
+use std::cmp::{max, min};
 use std::f64::NAN;
-use std::cmp::{min, max};
 
 /// Create new string
 /// https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19
@@ -82,7 +82,7 @@ pub fn char_code_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// arguments
 /// https://tc39.github.io/ecma262/#sec-string.prototype.concat
 pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    //        ^^ represents instance  ^^ represents arguments 
+    //        ^^ represents instance  ^^ represents arguments
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String =
@@ -129,8 +129,16 @@ pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length: i32 = primitive_val.chars().count() as i32;
 
-    let from: i32 = if start < 0 {max(length + start, 0)} else {min(start, length)};
-    let to: i32 = if end < 0 {max(length + end, 0)} else {min(end, length)};
+    let from: i32 = if start < 0 {
+        max(length + start, 0)
+    } else {
+        min(start, length)
+    };
+    let to: i32 = if end < 0 {
+        max(length + end, 0)
+    } else {
+        min(end, length)
+    };
 
     let span = max(to - from, 0);
 
@@ -159,8 +167,11 @@ pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let search_length: i32 = search_string.chars().count() as i32;
 
     // If less than 2 args specified, position is 'undefined', defaults to 0
-    let position: i32 = if args.len() < 2 {0} 
-                        else {from_value(args[1].clone()).unwrap()};
+    let position: i32 = if args.len() < 2 {
+        0
+    } else {
+        from_value(args[1].clone()).unwrap()
+    };
 
     let start = min(max(position, 0), length);
     let end = start + search_length;
@@ -169,8 +180,7 @@ pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
         Ok(to_value(false))
     } else {
         // Only use the part of the string from "start"
-        let this_string: String = primitive_val.chars()
-            .skip(start as usize).collect();
+        let this_string: String = primitive_val.chars().skip(start as usize).collect();
         Ok(to_value(this_string.starts_with(&search_string)))
     }
 }
@@ -194,8 +204,11 @@ pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
     // If less than 2 args specified, end_position is 'undefined', defaults to
     // length of this
-    let end_position: i32 = if args.len() < 2 {length} 
-                            else {from_value(args[1].clone()).unwrap()};
+    let end_position: i32 = if args.len() < 2 {
+        length
+    } else {
+        from_value(args[1].clone()).unwrap()
+    };
 
     let end = min(max(end_position, 0), length);
     let start = end - search_length;
@@ -204,8 +217,7 @@ pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
         Ok(to_value(false))
     } else {
         // Only use the part of the string up to "end"
-        let this_string: String = primitive_val.chars()
-            .take(end as usize).collect();
+        let this_string: String = primitive_val.chars().take(end as usize).collect();
         Ok(to_value(this_string.ends_with(&search_string)))
     }
 }
@@ -228,14 +240,16 @@ pub fn includes(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let length: i32 = primitive_val.chars().count() as i32;
 
     // If less than 2 args specified, position is 'undefined', defaults to 0
-    let position: i32 = if args.len() < 2 {0} 
-                        else {from_value(args[1].clone()).unwrap()};
+    let position: i32 = if args.len() < 2 {
+        0
+    } else {
+        from_value(args[1].clone()).unwrap()
+    };
 
     let start = min(max(position, 0), length);
 
     // Take the string from "this" and use only the part of it after "start"
-    let this_string: String = primitive_val.chars()
-        .skip(start as usize).collect();
+    let this_string: String = primitive_val.chars().skip(start as usize).collect();
 
     Ok(to_value(this_string.contains(&search_string)))
 }
@@ -244,7 +258,7 @@ pub fn includes(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// object to a String, at one or more indices that are greater than or equal to
 /// position, then the smallest such index is returned; otherwise, -1 is
 /// returned. If position is undefined, 0 is assumed, so as to search all of the
-/// String. 
+/// String.
 /// https://tc39.github.io/ecma262/#sec-string.prototype.includes
 pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //          ^^ represents instance  ^^ represents arguments)
@@ -259,8 +273,11 @@ pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let length: i32 = primitive_val.chars().count() as i32;
 
     // If less than 2 args specified, position is 'undefined', defaults to 0
-    let position: i32 = if args.len() < 2 {0} 
-                        else {from_value(args[1].clone()).unwrap()};
+    let position: i32 = if args.len() < 2 {
+        0
+    } else {
+        from_value(args[1].clone()).unwrap()
+    };
 
     let start = min(max(position, 0), length);
 
@@ -269,11 +286,10 @@ pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // Instead, iterate over the part we're checking until the slice we're
     // checking "starts with" the search string
     for index in start..length {
-        let this_string: String = primitive_val.chars()
-            .skip(index as usize).collect();
+        let this_string: String = primitive_val.chars().skip(index as usize).collect();
         if this_string.starts_with(&search_string) {
             // Explicitly return early with the index value
-            return Ok(to_value(index))
+            return Ok(to_value(index));
         }
     }
     // Didn't find a match, so return -1
@@ -299,8 +315,11 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let length: i32 = primitive_val.chars().count() as i32;
 
     // If less than 2 args specified, position is 'undefined', defaults to 0
-    let position: i32 = if args.len() < 2 {0} 
-                        else {from_value(args[1].clone()).unwrap()};
+    let position: i32 = if args.len() < 2 {
+        0
+    } else {
+        from_value(args[1].clone()).unwrap()
+    };
 
     let start = min(max(position, 0), length);
 
@@ -310,8 +329,7 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // index we found that "starts with" the search string
     let mut highest_index: i32 = -1;
     for index in start..length {
-        let this_string: String = primitive_val.chars()
-            .skip(index as usize).collect();
+        let this_string: String = primitive_val.chars().skip(index as usize).collect();
         if this_string.starts_with(&search_string) {
             highest_index = index;
         }
@@ -332,7 +350,7 @@ fn is_trimmable_whitespace(c: char) -> bool {
         // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
         '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' => true,
         // Unicode Space_Seperator category
-        '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}'  => true,
+        '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' => true,
         // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
         '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}' => true,
         _ => false,
@@ -348,7 +366,9 @@ pub fn trim(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 pub fn trim_start(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     let this_str: String =
         from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
-    Ok(to_value(this_str.trim_start_matches(is_trimmable_whitespace)))
+    Ok(to_value(
+        this_str.trim_start_matches(is_trimmable_whitespace),
+    ))
 }
 
 pub fn trim_end(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
