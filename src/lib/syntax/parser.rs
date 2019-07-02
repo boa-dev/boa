@@ -770,10 +770,6 @@ mod tests {
         let mut lexer = Lexer::new(js);
         lexer.lex().unwrap();
 
-        dbg!(Parser::new(lexer.tokens).parse_all().unwrap());
-        let mut lexer = Lexer::new(js);
-        lexer.lex().unwrap();
-
         assert_eq!(
             Parser::new(lexer.tokens).parse_all().unwrap(),
             Expr::new(ExprDef::BlockExpr(expr.into()))
@@ -990,23 +986,17 @@ mod tests {
 
     #[test]
     fn check_operations() {
-        use crate::syntax::ast::constant::Const;
+        use crate::syntax::ast::{constant::Const, op::BinOp};
 
-        fn create_bin_op(op: NumOp, exp1: Expr, exp2: Expr) -> Expr {
-            use crate::syntax::ast::op::BinOp;
-
-            Expr::new(ExprDef::BinOpExpr(
-                BinOp::Num(op),
-                Box::new(exp1),
-                Box::new(exp2),
-            ))
+        fn create_bin_op(op: BinOp, exp1: Expr, exp2: Expr) -> Expr {
+            Expr::new(ExprDef::BinOpExpr(op, Box::new(exp1), Box::new(exp2)))
         }
 
         // Check numeric operations
         check_parser(
             "a + b",
             &[create_bin_op(
-                NumOp::Add,
+                BinOp::Num(NumOp::Add),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::LocalExpr(String::from("b"))),
             )],
@@ -1014,7 +1004,7 @@ mod tests {
         check_parser(
             "a+1",
             &[create_bin_op(
-                NumOp::Add,
+                BinOp::Num(NumOp::Add),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
             )],
@@ -1022,7 +1012,7 @@ mod tests {
         check_parser(
             "a - b",
             &[create_bin_op(
-                NumOp::Sub,
+                BinOp::Num(NumOp::Sub),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::LocalExpr(String::from("b"))),
             )],
@@ -1030,7 +1020,7 @@ mod tests {
         check_parser(
             "a-1",
             &[create_bin_op(
-                NumOp::Sub,
+                BinOp::Num(NumOp::Sub),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
             )],
@@ -1038,7 +1028,7 @@ mod tests {
         check_parser(
             "a / b",
             &[create_bin_op(
-                NumOp::Div,
+                BinOp::Num(NumOp::Div),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::LocalExpr(String::from("b"))),
             )],
@@ -1046,7 +1036,7 @@ mod tests {
         check_parser(
             "a/2",
             &[create_bin_op(
-                NumOp::Div,
+                BinOp::Num(NumOp::Div),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
             )],
@@ -1054,7 +1044,7 @@ mod tests {
         check_parser(
             "a * b",
             &[create_bin_op(
-                NumOp::Mul,
+                BinOp::Num(NumOp::Mul),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::LocalExpr(String::from("b"))),
             )],
@@ -1062,7 +1052,7 @@ mod tests {
         check_parser(
             "a*2",
             &[create_bin_op(
-                NumOp::Mul,
+                BinOp::Num(NumOp::Mul),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
             )],
@@ -1070,7 +1060,7 @@ mod tests {
         check_parser(
             "a % b",
             &[create_bin_op(
-                NumOp::Mod,
+                BinOp::Num(NumOp::Mod),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::LocalExpr(String::from("b"))),
             )],
@@ -1078,7 +1068,7 @@ mod tests {
         check_parser(
             "a%2",
             &[create_bin_op(
-                NumOp::Mod,
+                BinOp::Num(NumOp::Mod),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
             )],
@@ -1088,22 +1078,108 @@ mod tests {
         check_parser(
             "a + d*(b-3)+1",
             &[create_bin_op(
-                NumOp::Add,
+                BinOp::Num(NumOp::Add),
                 Expr::new(ExprDef::LocalExpr(String::from("a"))),
                 create_bin_op(
-                    NumOp::Add,
+                    BinOp::Num(NumOp::Add),
                     // FIXME: shouldn't the last addition be on the right?
                     Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
                     create_bin_op(
-                        NumOp::Mul,
+                        BinOp::Num(NumOp::Mul),
                         Expr::new(ExprDef::LocalExpr(String::from("d"))),
                         create_bin_op(
-                            NumOp::Sub,
+                            BinOp::Num(NumOp::Sub),
                             Expr::new(ExprDef::LocalExpr(String::from("b"))),
                             Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
                         ),
                     ),
                 ),
+            )],
+        );
+
+        // Check bitwise operations
+        check_parser(
+            "a & b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::And),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a&b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::And),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a | b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Or),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a|b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Or),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a ^ b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Xor),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a^b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Xor),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a << b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shl),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a<<b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shl),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a >> b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shr),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a>>b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shr),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
             )],
         );
     }
