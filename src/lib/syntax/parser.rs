@@ -757,3 +757,430 @@ impl Parser {
         self.expect(TokenData::Punctuator(p), routine)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::syntax::{
+        ast::expr::{Expr, ExprDef},
+        lexer::Lexer,
+    };
+
+    fn check_parser(js: &str, expr: &[Expr]) {
+        let mut lexer = Lexer::new(js);
+        lexer.lex().unwrap();
+
+        assert_eq!(
+            Parser::new(lexer.tokens).parse_all().unwrap(),
+            Expr::new(ExprDef::BlockExpr(expr.into()))
+        );
+    }
+
+    fn check_invalid(js: &str) {
+        let mut lexer = Lexer::new(js);
+        lexer.lex().unwrap();
+
+        assert!(Parser::new(lexer.tokens).parse_all().is_err());
+    }
+
+    #[test]
+    fn check_string() {
+        use crate::syntax::ast::constant::Const;
+
+        // Check empty string
+        check_parser(
+            "\"\"",
+            &[Expr::new(ExprDef::ConstExpr(Const::String(String::new())))],
+        );
+
+        // Check non-empty string
+        check_parser(
+            "\"hello\"",
+            &[Expr::new(ExprDef::ConstExpr(Const::String(String::from(
+                "hello",
+            ))))],
+        );
+    }
+
+    #[test]
+    fn check_array() {
+        use crate::syntax::ast::constant::Const;
+
+        // Check empty array
+        check_parser("[]", &[Expr::new(ExprDef::ArrayDeclExpr(vec![]))]);
+
+        // Check array with empty slot
+        // FIXME: This does not work, it should ignore the comma:
+        // <https://tc39.es/ecma262/#prod-ArrayAssignmentPattern>
+        // check_parser("[,]", &[Expr::new(ExprDef::ArrayDeclExpr(vec![]))]);
+
+        // Check numeric array
+        check_parser(
+            "[1, 2, 3]",
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            ]))],
+        );
+
+        // Check numeric array with trailing comma
+        // FIXME: This does not work, it should ignore the trailing comma:
+        // <https://tc39.es/ecma262/#prod-ArrayAssignmentPattern>
+        // check_parser("[1, 2, 3,]", &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+        //     Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+        //     Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+        //     Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+        // ]))]);
+
+        // Check combined array
+        check_parser(
+            "[1, \"a\", 2]",
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::ConstExpr(Const::String(String::from("a")))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+            ]))],
+        );
+
+        // Check combined array with empty string
+        check_parser(
+            "[1, \"\", 2]",
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::ConstExpr(Const::String(String::new()))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+            ]))],
+        );
+    }
+
+    #[test]
+    fn check_declarations() {
+        use crate::syntax::ast::constant::Const;
+
+        // Check `var` declaration
+        check_parser(
+            "var a = 5;",
+            &[Expr::new(ExprDef::VarDeclExpr(vec![(
+                String::from("a"),
+                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+            )]))],
+        );
+
+        // Check `var` declaration with no spaces
+        check_parser(
+            "var a=5;",
+            &[Expr::new(ExprDef::VarDeclExpr(vec![(
+                String::from("a"),
+                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+            )]))],
+        );
+
+        // Check empty `var` declaration
+        check_parser(
+            "var a;",
+            &[Expr::new(ExprDef::VarDeclExpr(vec![(
+                String::from("a"),
+                None,
+            )]))],
+        );
+
+        // Check multiple `var` declaration
+        check_parser(
+            "var a = 5, b, c = 6;",
+            &[Expr::new(ExprDef::VarDeclExpr(vec![
+                (
+                    String::from("a"),
+                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                ),
+                (String::from("b"), None),
+                (
+                    String::from("c"),
+                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(6.0)))),
+                ),
+            ]))],
+        );
+
+        // Check `let` declaration
+        check_parser(
+            "let a = 5;",
+            &[Expr::new(ExprDef::LetDeclExpr(vec![(
+                String::from("a"),
+                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+            )]))],
+        );
+
+        // Check `let` declaration with no spaces
+        check_parser(
+            "let a=5;",
+            &[Expr::new(ExprDef::LetDeclExpr(vec![(
+                String::from("a"),
+                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+            )]))],
+        );
+
+        // Check empty `let` declaration
+        check_parser(
+            "let a;",
+            &[Expr::new(ExprDef::LetDeclExpr(vec![(
+                String::from("a"),
+                None,
+            )]))],
+        );
+
+        // Check multiple `let` declaration
+        check_parser(
+            "let a = 5, b, c = 6;",
+            &[Expr::new(ExprDef::LetDeclExpr(vec![
+                (
+                    String::from("a"),
+                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                ),
+                (String::from("b"), None),
+                (
+                    String::from("c"),
+                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(6.0)))),
+                ),
+            ]))],
+        );
+
+        // Check `const` declaration
+        check_parser(
+            "const a = 5;",
+            &[Expr::new(ExprDef::ConstDeclExpr(vec![(
+                String::from("a"),
+                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+            )]))],
+        );
+
+        // Check `const` declaration with no spaces
+        check_parser(
+            "const a=5;",
+            &[Expr::new(ExprDef::ConstDeclExpr(vec![(
+                String::from("a"),
+                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+            )]))],
+        );
+
+        // Check empty `const` declaration
+        // FIXME: This does not work, it should fail to parse an unitialized const declaration:
+        // <https://tc39.es/ecma262/#sec-let-and-const-declarations-static-semantics-early-errors>
+        // check_invalid("const a;");
+
+        // Check multiple `const` declaration
+        check_parser(
+            "const a = 5, b, c = 6;",
+            &[Expr::new(ExprDef::ConstDeclExpr(vec![
+                (
+                    String::from("a"),
+                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                ),
+                (String::from("b"), None),
+                (
+                    String::from("c"),
+                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(6.0)))),
+                ),
+            ]))],
+        );
+    }
+
+    #[test]
+    fn check_operations() {
+        use crate::syntax::ast::{constant::Const, op::BinOp};
+
+        fn create_bin_op(op: BinOp, exp1: Expr, exp2: Expr) -> Expr {
+            Expr::new(ExprDef::BinOpExpr(op, Box::new(exp1), Box::new(exp2)))
+        }
+
+        // Check numeric operations
+        check_parser(
+            "a + b",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Add),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a+1",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Add),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+            )],
+        );
+        check_parser(
+            "a - b",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Sub),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a-1",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Sub),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+            )],
+        );
+        check_parser(
+            "a / b",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Div),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a/2",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Div),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+            )],
+        );
+        check_parser(
+            "a * b",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Mul),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a*2",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Mul),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+            )],
+        );
+        check_parser(
+            "a % b",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Mod),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a%2",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Mod),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+            )],
+        );
+
+        // Check complex numeric operations
+        check_parser(
+            "a + d*(b-3)+1",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Add),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                create_bin_op(
+                    BinOp::Num(NumOp::Add),
+                    // FIXME: shouldn't the last addition be on the right?
+                    Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                    create_bin_op(
+                        BinOp::Num(NumOp::Mul),
+                        Expr::new(ExprDef::LocalExpr(String::from("d"))),
+                        create_bin_op(
+                            BinOp::Num(NumOp::Sub),
+                            Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                            Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+                        ),
+                    ),
+                ),
+            )],
+        );
+
+        // Check bitwise operations
+        check_parser(
+            "a & b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::And),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a&b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::And),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a | b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Or),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a|b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Or),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a ^ b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Xor),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a^b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Xor),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a << b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shl),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a<<b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shl),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+
+        check_parser(
+            "a >> b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shr),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a>>b",
+            &[create_bin_op(
+                BinOp::Bit(BitOp::Shr),
+                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+            )],
+        );
+    }
+}
