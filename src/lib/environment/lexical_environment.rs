@@ -20,7 +20,7 @@ use std::error;
 use std::fmt;
 
 /// Environments are wrapped in a Box and then in a GC wrapper
-pub type Environment = Gc<GcCell<Box<EnvironmentRecordTrait>>>;
+pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
 
 /// Give each environment an easy way to declare its own type
 /// This helps with comparisons
@@ -61,7 +61,7 @@ impl error::Error for EnvironmentError {
         &self.details
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         // Generic error, underlying cause isn't tracked.
         None
     }
