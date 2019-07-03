@@ -97,6 +97,7 @@ pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// The arguments are appended to the end of the array, in the order in which
 /// they appear. The new length of the array is returned as the result of the
 /// call.
+/// https://tc39.es/ecma262/#sec-array.prototype.push
 pub fn push(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let new_array = add_to_array_object(this, args)?;
     Ok(new_array.get_field_slice("length"))
@@ -105,6 +106,7 @@ pub fn push(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Array.prototype.pop ( )
 ///
 /// The last element of the array is removed from the array and returned.
+/// https://tc39.es/ecma262/#sec-array.prototype.pop
 pub fn pop(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     let curr_length: i32 = from_value(this.get_field_slice("length")).unwrap();
     if curr_length < 1 {
@@ -124,6 +126,7 @@ pub fn pop(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 /// The elements of the array are converted to Strings, and these Strings are
 /// then concatenated, separated by occurrences of the separator. If no
 /// separator is provided, a single comma is used as the separator.
+/// https://tc39.es/ecma262/#sec-array.prototype.join
 pub fn join(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let separator: String;
 
