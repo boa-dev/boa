@@ -77,31 +77,67 @@ impl Executor for Interpreter {
             }
             ExprDef::CallExpr(ref callee, ref args) => {
                 let (this, func) = match callee.def {
-                    ExprDef::GetConstFieldExpr(ref obj, ref field) => {
-                        let obj = self.run(obj)?;
+                    ExprDef::GetConstFieldExpr(ref obj_expr, ref field) => {
+                        let val = self.run(obj_expr)?;
 
-                        let temp = Gc::new(ValueData::Object(
-                            GcCell::new(HashMap::new()),
-                            GcCell::new(HashMap::new()),
-                        ));
-                        // obj could be either a "const" value or an object
+                        // val could be either a primitive ("const") value or an object
                         // if a primitive value we need to box into an object
-                        // let global = self.environment.get_global_object().unwrap();
-                        // let func = match *obj {
-                        //     ValueData::Boolean(_) => {
-                        //         get_boolean_prototype_func(global.clone(), field.clone())
-                        //     }
-                        //     ValueData::Number(_) | ValueData::Integer(_) => {
-                        //         get_number_prototype_func(global.clone(), field.clone())
-                        //     }
-                        //     ValueData::String(_) => {
-                        //         get_string_prototype_func(global.clone(), field.clone())
-                        //     }
-                        //     _ => Gc::new(ValueData::Undefined),
-                        // };
-
-
-                        (obj.clone(), obj.borrow().get_field(field.clone()))
+                        if val.is_primitive() && !val.is_null_or_undefined() {
+                            let global = self.environment.get_global_object().unwrap();
+                            match *val {
+                                ValueData::Boolean(_) => {
+                                    // Fetch the global Boolean constructor function
+                                    let boolean_constructor = global.get_field_slice("Boolean");
+                                    // Call it with val being the primitive value as its argument
+                                    // This is the equivalent to calling new Boolean(1);
+                                    let instance = self
+                                        .construct_new_object(
+                                            boolean_constructor.clone(),
+                                            vec![val.clone()],
+                                        )
+                                        .unwrap();
+                                    // func_to_call represents the field/func on the PROTOTYPE object we're trying to use
+                                    let func_to_call = instance.get_field(field.clone());
+                                    // Return the instance and the function
+                                    (instance, func_to_call)
+                                }
+                                ValueData::Number(_) | ValueData::Integer(_) => {
+                                    // Fetch the global Number constructor function
+                                    let number_constructor = global.get_field_slice("Number");
+                                    // Call it with val being the primitive value as its argument
+                                    // This is the equivalent to calling new Number(1);
+                                    let instance = self
+                                        .construct_new_object(
+                                            number_constructor.clone(),
+                                            vec![val.clone()],
+                                        )
+                                        .unwrap();
+                                    // func_to_call represents the field/func on the PROTOTYPE object we're trying to use
+                                    let func_to_call = instance.get_field(field.clone());
+                                    // Return the instance and the function
+                                    (instance, func_to_call)
+                                }
+                                ValueData::String(_) => {
+                                    // Fetch the global String constructor function
+                                    let string_constructor = global.get_field_slice("String");
+                                    // Call it with val being the primitive value as its argument
+                                    // This is the equivalent to calling new String(1);
+                                    let instance = self
+                                        .construct_new_object(
+                                            string_constructor.clone(),
+                                            vec![val.clone()],
+                                        )
+                                        .unwrap();
+                                    // func_to_call represents the field/func on the PROTOTYPE object we're trying to use
+                                    let func_to_call = instance.get_field(field.clone());
+                                    // Return the instance and the function
+                                    (instance, func_to_call)
+                                }
+                                _ => (Gc::new(ValueData::Undefined), Gc::new(ValueData::Undefined)),
+                            }
+                        } else {
+                            (val.clone(), val.borrow().get_field(field.clone()))
+                        }
                     }
                     ExprDef::GetFieldExpr(ref obj, ref field) => {
                         let obj = self.run(obj)?;
@@ -116,6 +152,7 @@ impl Executor for Interpreter {
                         self.run(&callee.clone())?,
                     ), // 'this' binding should come from the function's self-contained environment
                 };
+
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
@@ -306,45 +343,14 @@ impl Executor for Interpreter {
             }
             ExprDef::ConstructExpr(ref callee, ref args) => {
                 let func = self.run(callee)?;
+
+                // Parse arguments into Values
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
                 }
-                let this = Gc::new(ValueData::Object(
-                    GcCell::new(HashMap::new()),
-                    GcCell::new(HashMap::new()),
-                ));
-                // Create a blank object, then set its __proto__ property to the [Constructor].prototype
-                this.borrow()
-                    .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
-                match *func {
-                    ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
-                        Function::NativeFunc(ref ntv) => {
-                            let func = ntv.data;
-                            func(this, self.run(callee)?, v_args)
-                        }
-                        Function::RegularFunc(ref data) => {
-                            // Create new scope
-                            let env = &mut self.environment;
-                            env.push(new_function_environment(
-                                func.clone(),
-                                this.clone(),
-                                Some(env.get_current_environment_ref().clone()),
-                            ));
 
-                            for i in 0..data.args.len() {
-                                let name = data.args.get(i).unwrap();
-                                let expr = v_args.get(i).unwrap();
-                                env.create_mutable_binding(name.clone(), false);
-                                env.initialize_binding(name.clone(), expr.to_owned());
-                            }
-                            let result = self.run(&data.expr);
-                            self.environment.pop();
-                            result
-                        }
-                    },
-                    _ => Ok(Gc::new(ValueData::Undefined)),
-                }
+                self.construct_new_object(func, v_args)
             }
             ExprDef::ReturnExpr(ref ret) => match *ret {
                 Some(ref v) => self.run(v),
@@ -420,45 +426,23 @@ impl Executor for Interpreter {
 }
 
 impl Interpreter {
-
-    pub fn get_boolean_prototype_func(global: Value, func: String) -> Value {
-        global
-            .get_field_slice("Boolean")
-            .get_field_slice("prototype")
-            .get_field(func)
-    }
-
-    pub fn get_number_prototype_func(global: Value, func: String) -> Value {
-        global
-            .get_field_slice("Number")
-            .get_field_slice("prototype")
-            .get_field(func)
-    }
-
-    pub fn get_string_prototype_func(global: Value, func: String) -> Value {
-        global
-            .get_field_slice("String")
-            .get_field_slice("prototype")
-            .get_field(func)
-    }
-
-    pub fn construct_new_object(&mut self, func: Value, args: Vec<Expr>) {
-        let mut v_args = Vec::with_capacity(args.len());
-        for arg in args.iter() {
-            v_args.push(self.run(arg)?);
-        }
+    /// Construct a new instance from a function, this will return an object
+    /// who's `__proto__` is set to `func.prototype`
+    pub fn construct_new_object(&mut self, func: Value, v_args: Vec<Value>) -> ResultValue {
+        // Construct a new empty object
         let this = Gc::new(ValueData::Object(
             GcCell::new(HashMap::new()),
             GcCell::new(HashMap::new()),
         ));
-        // Create a blank object, then set its __proto__ property to the [Constructor].prototype
+
+        // Set its __proto__ property to the [Constructor].prototype
         this.borrow()
             .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
         match *func {
             ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
                 Function::NativeFunc(ref ntv) => {
                     let func = ntv.data;
-                    func(this, self.run(callee)?, v_args)
+                    func(this, Gc::new(ValueData::Undefined), v_args)
                 }
                 Function::RegularFunc(ref data) => {
                     // Create new scope

@@ -1,2 +1,1 @@
-let a = new String("hello");
-a.charCodeAt();
+"hello".endsWith("s");
