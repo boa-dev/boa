@@ -136,6 +136,22 @@ impl ValueData {
         }
     }
 
+    /// Returns true if the value is a primitive value
+    /// https://tc39.es/ecma262/#sec-primitive-value
+    pub fn is_primitive(&self) -> bool {
+        match *self {
+            ValueData::Boolean(_) | 
+            ValueData::Number(_) | 
+            ValueData::String(_) | 
+            ValueData::Integer(_) |
+            ValueData::Undefined |
+            ValueData::Null => {
+                true
+            }
+            _ => false
+        }
+    }
+
     /// Returns true if the value is true
     /// [toBoolean](https://tc39.github.io/ecma262/#sec-toboolean)
     pub fn is_true(&self) -> bool {

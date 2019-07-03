@@ -1,7 +1,7 @@
 use crate::environment::lexical_environment::{new_function_environment, LexicalEnvironment};
 use crate::js::function::{Function, RegularFunction};
 use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
-use crate::js::value::{from_value, to_value, ResultValue, ValueData};
+use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use crate::js::{array, console, function, json, math, object, string};
 use crate::syntax::ast::constant::Const;
 use crate::syntax::ast::expr::{Expr, ExprDef};
@@ -72,12 +72,35 @@ impl Executor for Interpreter {
             ExprDef::GetFieldExpr(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 let val_field = self.run(field)?;
+
                 Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
             }
             ExprDef::CallExpr(ref callee, ref args) => {
                 let (this, func) = match callee.def {
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                         let obj = self.run(obj)?;
+
+                        let temp = Gc::new(ValueData::Object(
+                            GcCell::new(HashMap::new()),
+                            GcCell::new(HashMap::new()),
+                        ));
+                        // obj could be either a "const" value or an object
+                        // if a primitive value we need to box into an object
+                        // let global = self.environment.get_global_object().unwrap();
+                        // let func = match *obj {
+                        //     ValueData::Boolean(_) => {
+                        //         get_boolean_prototype_func(global.clone(), field.clone())
+                        //     }
+                        //     ValueData::Number(_) | ValueData::Integer(_) => {
+                        //         get_number_prototype_func(global.clone(), field.clone())
+                        //     }
+                        //     ValueData::String(_) => {
+                        //         get_string_prototype_func(global.clone(), field.clone())
+                        //     }
+                        //     _ => Gc::new(ValueData::Undefined),
+                        // };
+
+
                         (obj.clone(), obj.borrow().get_field(field.clone()))
                     }
                     ExprDef::GetFieldExpr(ref obj, ref field) => {
@@ -97,6 +120,7 @@ impl Executor for Interpreter {
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
                 }
+
                 match *func {
                     ValueData::Function(ref inner_func) => match *inner_func.borrow() {
                         Function::NativeFunc(ref ntv) => {
@@ -392,5 +416,73 @@ impl Executor for Interpreter {
                 }))
             }
         }
+    }
+}
+
+impl Interpreter {
+
+    pub fn get_boolean_prototype_func(global: Value, func: String) -> Value {
+        global
+            .get_field_slice("Boolean")
+            .get_field_slice("prototype")
+            .get_field(func)
+    }
+
+    pub fn get_number_prototype_func(global: Value, func: String) -> Value {
+        global
+            .get_field_slice("Number")
+            .get_field_slice("prototype")
+            .get_field(func)
+    }
+
+    pub fn get_string_prototype_func(global: Value, func: String) -> Value {
+        global
+            .get_field_slice("String")
+            .get_field_slice("prototype")
+            .get_field(func)
+    }
+
+    pub fn construct_new_object(&mut self, func: Value, args: Vec<Expr>) {
+        let mut v_args = Vec::with_capacity(args.len());
+        for arg in args.iter() {
+            v_args.push(self.run(arg)?);
+        }
+        let this = Gc::new(ValueData::Object(
+            GcCell::new(HashMap::new()),
+            GcCell::new(HashMap::new()),
+        ));
+        // Create a blank object, then set its __proto__ property to the [Constructor].prototype
+        this.borrow()
+            .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
+        match *func {
+            ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
+                Function::NativeFunc(ref ntv) => {
+                    let func = ntv.data;
+                    func(this, self.run(callee)?, v_args)
+                }
+                Function::RegularFunc(ref data) => {
+                    // Create new scope
+                    let env = &mut self.environment;
+                    env.push(new_function_environment(
+                        func.clone(),
+                        this.clone(),
+                        Some(env.get_current_environment_ref().clone()),
+                    ));
+
+
+                    for i in 0..data.args.len() {
+                        let name = data.args.get(i).unwrap();
+                        let expr = v_args.get(i).unwrap();
+                        env.create_mutable_binding(name.clone(), false);
+                        env.initialize_binding(name.clone(), expr.to_owned());
+                    }
+                    let result = self.run(&data.expr);
+                    self.environment.pop();
+                    result
+                }
+            },
+            _ => Ok(Gc::new(ValueData::Undefined)),
+        }
+
     }
 }
