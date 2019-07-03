@@ -413,7 +413,6 @@ impl Interpreter {
                         Some(env.get_current_environment_ref().clone()),
                     ));
 
-
                     for i in 0..data.args.len() {
                         let name = data.args.get(i).unwrap();
                         let expr = v_args.get(i).unwrap();
@@ -432,7 +431,6 @@ impl Interpreter {
     /// `box_into_instance` converts a primitive value into an equivalent Object.
     /// Returns `Undefined` if not applicable
     pub fn box_into_instance(&mut self, val: Value) -> Value {
-
         // val could be either a primitive ("const") value or an object
         // if a primitive value we need to box into an object
         let global = self.environment.get_global_object().unwrap();

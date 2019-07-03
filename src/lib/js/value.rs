@@ -140,15 +140,13 @@ impl ValueData {
     /// https://tc39.es/ecma262/#sec-primitive-value
     pub fn is_primitive(&self) -> bool {
         match *self {
-            ValueData::Boolean(_) | 
-            ValueData::Number(_) | 
-            ValueData::String(_) | 
-            ValueData::Integer(_) |
-            ValueData::Undefined |
-            ValueData::Null => {
-                true
-            }
-            _ => false
+            ValueData::Boolean(_)
+            | ValueData::Number(_)
+            | ValueData::String(_)
+            | ValueData::Integer(_)
+            | ValueData::Undefined
+            | ValueData::Null => true,
+            _ => false,
         }
     }
 
