@@ -1,1 +1,1 @@
-"hello".endsWith("s");
+"hello"["endsWith"]("o");

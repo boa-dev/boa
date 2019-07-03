@@ -35,7 +35,7 @@ impl Executor for Interpreter {
         json::init(&global);
         string::init(&global);
         Interpreter {
-            environment: LexicalEnvironment::new(global.clone()),
+            environment: LexicalEnvironment::new(global),
         }
     }
 
@@ -83,69 +83,29 @@ impl Executor for Interpreter {
                         // val could be either a primitive ("const") value or an object
                         // if a primitive value we need to box into an object
                         if val.is_primitive() && !val.is_null_or_undefined() {
-                            let global = self.environment.get_global_object().unwrap();
-                            match *val {
-                                ValueData::Boolean(_) => {
-                                    // Fetch the global Boolean constructor function
-                                    let boolean_constructor = global.get_field_slice("Boolean");
-                                    // Call it with val being the primitive value as its argument
-                                    // This is the equivalent to calling new Boolean(1);
-                                    let instance = self
-                                        .construct_new_object(
-                                            boolean_constructor.clone(),
-                                            vec![val.clone()],
-                                        )
-                                        .unwrap();
-                                    // func_to_call represents the field/func on the PROTOTYPE object we're trying to use
-                                    let func_to_call = instance.get_field(field.clone());
-                                    // Return the instance and the function
-                                    (instance, func_to_call)
-                                }
-                                ValueData::Number(_) | ValueData::Integer(_) => {
-                                    // Fetch the global Number constructor function
-                                    let number_constructor = global.get_field_slice("Number");
-                                    // Call it with val being the primitive value as its argument
-                                    // This is the equivalent to calling new Number(1);
-                                    let instance = self
-                                        .construct_new_object(
-                                            number_constructor.clone(),
-                                            vec![val.clone()],
-                                        )
-                                        .unwrap();
-                                    // func_to_call represents the field/func on the PROTOTYPE object we're trying to use
-                                    let func_to_call = instance.get_field(field.clone());
-                                    // Return the instance and the function
-                                    (instance, func_to_call)
-                                }
-                                ValueData::String(_) => {
-                                    // Fetch the global String constructor function
-                                    let string_constructor = global.get_field_slice("String");
-                                    // Call it with val being the primitive value as its argument
-                                    // This is the equivalent to calling new String(1);
-                                    let instance = self
-                                        .construct_new_object(
-                                            string_constructor.clone(),
-                                            vec![val.clone()],
-                                        )
-                                        .unwrap();
-                                    // func_to_call represents the field/func on the PROTOTYPE object we're trying to use
-                                    let func_to_call = instance.get_field(field.clone());
-                                    // Return the instance and the function
-                                    (instance, func_to_call)
-                                }
-                                _ => (Gc::new(ValueData::Undefined), Gc::new(ValueData::Undefined)),
-                            }
+                            let instance = self.box_into_instance(val);
+                            let func_to_call = instance.get_field(field.clone());
+                            (instance, func_to_call)
                         } else {
                             (val.clone(), val.borrow().get_field(field.clone()))
                         }
                     }
                     ExprDef::GetFieldExpr(ref obj, ref field) => {
-                        let obj = self.run(obj)?;
+                        let val = self.run(obj)?;
                         let field = self.run(field)?;
-                        (
-                            obj.clone(),
-                            obj.borrow().get_field(field.borrow().to_string()),
-                        )
+
+                        // val could be either a primitive ("const") value or an object
+                        // if a primitive value we need to box into an object
+                        if val.is_primitive() && !val.is_null_or_undefined() {
+                            let instance = self.box_into_instance(val);
+                            let func_to_call = instance.get_field(field.borrow().to_string());
+                            (instance, func_to_call)
+                        } else {
+                            (
+                                val.clone(),
+                                val.borrow().get_field(field.borrow().to_string()),
+                            )
+                        }
                     }
                     _ => (
                         self.environment.get_global_object().unwrap(),
@@ -467,6 +427,50 @@ impl Interpreter {
             },
             _ => Ok(Gc::new(ValueData::Undefined)),
         }
+    }
 
+    /// `box_into_instance` converts a primitive value into an equivalent Object.
+    /// Returns `Undefined` if not applicable
+    pub fn box_into_instance(&mut self, val: Value) -> Value {
+
+        // val could be either a primitive ("const") value or an object
+        // if a primitive value we need to box into an object
+        let global = self.environment.get_global_object().unwrap();
+        match *val {
+            ValueData::Boolean(_) => {
+                // Fetch the global Boolean constructor function
+                let boolean_constructor = global.get_field_slice("Boolean");
+                // Call it with val being the primitive value as its argument
+                // This is the equivalent to calling new Boolean(1);
+                let instance = self
+                    .construct_new_object(boolean_constructor, vec![val])
+                    .unwrap();
+                // Return the instance
+                instance
+            }
+            ValueData::Number(_) | ValueData::Integer(_) => {
+                // Fetch the global Number constructor function
+                let number_constructor = global.get_field_slice("Number");
+                // Call it with val being the primitive value as its argument
+                // This is the equivalent to calling new Number(1);
+                let instance = self
+                    .construct_new_object(number_constructor, vec![val])
+                    .unwrap();
+                // Return the instance
+                instance
+            }
+            ValueData::String(_) => {
+                // Fetch the global String constructor function
+                let string_constructor = global.get_field_slice("String");
+                // Call it with val being the primitive value as its argument
+                // This is the equivalent to calling new String(1);
+                let instance = self
+                    .construct_new_object(string_constructor, vec![val])
+                    .unwrap();
+                // Return the instance
+                instance
+            }
+            _ => Gc::new(ValueData::Undefined),
+        }
     }
 }
