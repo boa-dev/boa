@@ -342,7 +342,12 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Abstract method StringPad
 /// Performs the actual string padding for padStart/End.
 /// https://tc39.es/ecma262/#sec-stringpad
-fn string_pad(primitive: String, max_length: i32, fill_string: Option<String>, at_start: bool) -> ResultValue {
+fn string_pad(
+    primitive: String,
+    max_length: i32,
+    fill_string: Option<String>,
+    at_start: bool,
+) -> ResultValue {
     let primitive_length = primitive.len() as i32;
 
     if max_length <= primitive_length {
@@ -351,7 +356,7 @@ fn string_pad(primitive: String, max_length: i32, fill_string: Option<String>, a
 
     let filler = match fill_string {
         Some(filler) => filler,
-        None => String::from(" ")
+        None => String::from(" "),
     };
 
     if filler == String::from("") {
@@ -375,40 +380,40 @@ fn string_pad(primitive: String, max_length: i32, fill_string: Option<String>, a
 }
 
 /// String.prototype.padEnd ( maxLength [ , fillString ] )
-/// 
+///
 /// Pads the string with the given filler at the end of the string.
-/// Filler defaults to single space. 
+/// Filler defaults to single space.
 /// https://tc39.es/ecma262/#sec-string.prototype.padend
 pub fn pad_end(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let primitive_val: String =
         from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
     if args.len() < 1 {
-        return Err(to_value("padEnd requires maxLength argument"))
+        return Err(to_value("padEnd requires maxLength argument"));
     }
     let max_length = from_value(args[0].clone()).unwrap();
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap())
+        _ => Some(from_value(args[1].clone()).unwrap()),
     };
 
     string_pad(primitive_val, max_length, fill_string, false)
 }
 
 /// String.prototype.padStart ( maxLength [ , fillString ] )
-/// 
+///
 /// Pads the string with the given filler at the start of the string.
-/// Filler defaults to single space. 
+/// Filler defaults to single space.
 /// https://tc39.es/ecma262/#sec-string.prototype.padstart
 pub fn pad_start(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let primitive_val: String =
         from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
     if args.len() < 1 {
-        return Err(to_value("padStart requires maxLength argument"))
+        return Err(to_value("padStart requires maxLength argument"));
     }
     let max_length = from_value(args[0].clone()).unwrap();
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap())
+        _ => Some(from_value(args[1].clone()).unwrap()),
     };
 
     string_pad(primitive_val, max_length, fill_string, true)
