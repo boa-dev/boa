@@ -811,9 +811,9 @@ mod tests {
         // Check array with empty slot
         check_parser(
             "[,]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-                Expr::new(ExprDef::ConstExpr(Const::Undefined))
-            ]))],
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![Expr::new(
+                ExprDef::ConstExpr(Const::Undefined),
+            )]))],
         );
 
         // Check numeric array
