@@ -407,41 +407,40 @@ impl Parser {
                 }
             }
             TokenData::Punctuator(Punctuator::OpenBracket) => {
-                let mut array: Vec<Expr> = Vec::new();
-                let mut expect_comma_or_end = self.get_token(self.pos)?.data
-                    == TokenData::Punctuator(Punctuator::CloseBracket);
+                let mut array: Vec<Expr> = vec![];
+                let mut saw_expr_last = false;
                 loop {
                     let token = self.get_token(self.pos)?;
-                    if token.data == TokenData::Punctuator(Punctuator::CloseBracket)
-                        && expect_comma_or_end
-                    {
-                        self.pos += 1;
-                        break;
-                    } else if token.data == TokenData::Punctuator(Punctuator::Comma)
-                        && expect_comma_or_end
-                    {
-                        expect_comma_or_end = false;
-                    } else if token.data == TokenData::Punctuator(Punctuator::Comma)
-                        && !expect_comma_or_end
-                    {
-                        array.push(mk!(self, ExprDef::ConstExpr(Const::Null)));
-                        expect_comma_or_end = false;
-                    } else if expect_comma_or_end {
-                        return Err(ParseError::Expected(
-                            vec![
-                                TokenData::Punctuator(Punctuator::Comma),
-                                TokenData::Punctuator(Punctuator::CloseBracket),
-                            ],
-                            token.clone(),
-                            "array declaration",
-                        ));
-                    } else {
-                        let parsed = self.parse()?;
-                        self.pos -= 1;
-                        array.push(parsed);
-                        expect_comma_or_end = true;
+                    match token.data {
+                        TokenData::Punctuator(Punctuator::CloseBracket) => {
+                            self.pos += 1;
+                            break;
+                        }
+                        TokenData::Punctuator(Punctuator::Comma) => {
+                            if !saw_expr_last {
+                                // An elision indicates that a space is saved in the array
+                                array.push(mk!(self, ExprDef::ConstExpr(Const::Undefined)))
+                            }
+                            saw_expr_last = false;
+                            self.pos += 1;
+                        }
+                        _ if saw_expr_last => {
+                            // Two expressions in a row is not allowed, they must be comma-separated
+                            return Err(ParseError::Expected(
+                                vec![
+                                    TokenData::Punctuator(Punctuator::Comma),
+                                    TokenData::Punctuator(Punctuator::CloseBracket),
+                                ],
+                                token.clone(),
+                                "array declaration",
+                            ));
+                        }
+                        _ => {
+                            let parsed = self.parse()?;
+                            saw_expr_last = true;
+                            array.push(parsed);
+                        }
                     }
-                    self.pos += 1;
                 }
                 mk!(self, ExprDef::ArrayDeclExpr(array), token)
             }
@@ -810,9 +809,12 @@ mod tests {
         check_parser("[]", &[Expr::new(ExprDef::ArrayDeclExpr(vec![]))]);
 
         // Check array with empty slot
-        // FIXME: This does not work, it should ignore the comma:
-        // <https://tc39.es/ecma262/#prod-ArrayAssignmentPattern>
-        // check_parser("[,]", &[Expr::new(ExprDef::ArrayDeclExpr(vec![]))]);
+        check_parser(
+            "[,]",
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+                Expr::new(ExprDef::ConstExpr(Const::Undefined))
+            ]))],
+        );
 
         // Check numeric array
         check_parser(
@@ -825,13 +827,37 @@ mod tests {
         );
 
         // Check numeric array with trailing comma
-        // FIXME: This does not work, it should ignore the trailing comma:
-        // <https://tc39.es/ecma262/#prod-ArrayAssignmentPattern>
-        // check_parser("[1, 2, 3,]", &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-        //     Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
-        //     Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
-        //     Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
-        // ]))]);
+        check_parser(
+            "[1, 2, 3,]",
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            ]))],
+        );
+
+        // Check numeric array with an elision
+        check_parser(
+            "[1, 2, , 3]",
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Undefined)),
+                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            ]))],
+        );
+
+        // Check numeric array with repeated elision
+        check_parser(
+            "[1, 2, ,, 3]",
+            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
+                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+                Expr::new(ExprDef::ConstExpr(Const::Undefined)),
+                Expr::new(ExprDef::ConstExpr(Const::Undefined)),
+                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            ]))],
+        );
 
         // Check combined array
         check_parser(
