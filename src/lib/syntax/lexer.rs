@@ -146,7 +146,7 @@ impl<'a> Lexer<'a> {
     /// next fetches the next token and return it, or a LexerError if there are no more.
     fn next(&mut self) -> Result<char, LexerError> {
         match self.buffer.next() {
-            Some(char) => Ok(char),
+            Some(ch) => Ok(ch),
             None => Err(LexerError::new("finished")),
         }
     }
@@ -171,11 +171,7 @@ impl<'a> Lexer<'a> {
 
     /// Preview the next character but don't actually increment
     fn preview_next(&mut self) -> Option<char> {
-        // No need to return a reference, we can return a copy
-        match self.buffer.peek() {
-            Some(v) => Some(*v),
-            None => None,
-        }
+        self.buffer.peek().copied()
     }
 
     /// Utility Function, while ``f(char)`` is true, read chars and move curser.
@@ -194,10 +190,7 @@ impl<'a> Lexer<'a> {
 
     /// next_is compares the character passed in to the next character, if they match true is returned and the buffer is incremented
     fn next_is(&mut self, peek: char) -> bool {
-        let result = match self.preview_next() {
-            Some(v) => v == peek,
-            None => false,
-        };
+        let result = self.preview_next() == Some(peek);
         if result {
             self.buffer.next();
         }
@@ -350,7 +343,7 @@ impl<'a> Lexer<'a> {
                         loop {
                             let next_ch = self.preview_next().unwrap_or('_');
                             match next_ch {
-                                next_ch if ch.is_digit(8) => {
+                                next_ch if next_ch.is_digit(8) => {
                                     buf.push(next_ch);
                                     self.next()?;
                                 }
@@ -359,7 +352,7 @@ impl<'a> Lexer<'a> {
                                 }
                                 '8' | '9' | '.' => {
                                     gone_decimal = true;
-                                    buf.push(ch);
+                                    buf.push(next_ch);
                                     self.next()?;
                                 }
                                 _ => break,
