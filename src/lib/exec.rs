@@ -6,7 +6,7 @@ use crate::{
         json, math, object,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         string,
-        value::{from_value, to_value, ResultValue, ValueData},
+        value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     syntax::ast::{
         constant::Const,
@@ -15,7 +15,7 @@ use crate::{
     },
 };
 use gc::{Gc, GcCell};
-use std::borrow::Borrow;
+use std::{borrow::Borrow, ops::Deref};
 
 /// An execution engine
 pub trait Executor {
@@ -106,34 +106,8 @@ impl Executor for Interpreter {
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
                 }
-                match *func {
-                    ValueData::Function(ref inner_func) => match *inner_func.as_ref().borrow() {
-                        Function::NativeFunc(ref ntv) => {
-                            let func = ntv.data;
-                            func(&this, &v_args, &self)
-                        }
-                        Function::RegularFunc(ref data) => {
-                            let env = &mut self.environment;
-                            // New target (second argument) is only needed for constructors, just pass undefined
-                            let undefined = Gc::new(ValueData::Undefined);
-                            env.push(new_function_environment(
-                                func.clone(),
-                                undefined,
-                                Some(env.get_current_environment_ref().clone()),
-                            ));
-                            for i in 0..data.args.len() {
-                                let name = data.args.get(i).unwrap();
-                                let expr = v_args.get(i).unwrap();
-                                self.environment.create_mutable_binding(name.clone(), false);
-                                self.environment.initialize_binding(name, expr.to_owned());
-                            }
-                            let result = self.run(&data.expr);
-                            self.environment.pop();
-                            result
-                        }
-                    },
-                    _ => Err(Gc::new(ValueData::Undefined)),
-                }
+
+                self.call(&func, &this, v_args)
             }
             ExprDef::WhileLoop(ref cond, ref expr) => {
                 let mut result = Gc::new(ValueData::Undefined);
@@ -393,6 +367,116 @@ impl Executor for Interpreter {
                     ValueData::Function(_) => "function",
                 }))
             }
+        }
+    }
+}
+
+impl Interpreter {
+    /// https://tc39.es/ecma262/#sec-call
+    fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
+        match (*f).deref() {
+            ValueData::Function(ref inner_func) => match *inner_func.deref().borrow() {
+                Function::NativeFunc(ref ntv) => {
+                    let func = ntv.data;
+                    func(v, &arguments_list, &self)
+                }
+                Function::RegularFunc(ref data) => {
+                    let env = &mut self.environment;
+                    // New target (second argument) is only needed for constructors, just pass undefined
+                    let undefined = Gc::new(ValueData::Undefined);
+                    env.push(new_function_environment(
+                        f.clone(),
+                        undefined,
+                        Some(env.get_current_environment_ref().clone()),
+                    ));
+                    for i in 0..data.args.len() {
+                        let name = data.args.get(i).unwrap();
+                        let expr = arguments_list.get(i).unwrap();
+                        self.environment.create_mutable_binding(name.clone(), false);
+                        self.environment.initialize_binding(name, expr.to_owned());
+                    }
+                    let result = self.run(&data.expr);
+                    self.environment.pop();
+                    result
+                }
+            },
+            _ => Err(Gc::new(ValueData::Undefined)),
+        }
+    }
+
+    /// https://tc39.es/ecma262/#sec-ordinarytoprimitive
+    fn ordinary_to_primitive(&mut self, o: &Value, hint: &str) -> Value {
+        debug_assert!(o.get_type() == "object");
+        debug_assert!(hint == "string" || hint == "number");
+        let method_names: Vec<&str> = if hint == "string" {
+            vec!["toString", "valueOf"]
+        } else {
+            vec!["valueOf", "toString"]
+        };
+        for name in method_names.iter() {
+            let method: Value = o.get_field_slice(name);
+            if method.is_function() {
+                let result = self.call(&method, &o, vec![]);
+                match result {
+                    Ok(val) => {
+                        if val.is_object() {
+                            // TODO: throw exception
+                            continue;
+                        } else {
+                            return val;
+                        }
+                    }
+                    Err(_) => continue,
+                }
+            }
+        }
+
+        Gc::new(ValueData::Undefined)
+    }
+
+    /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
+    /// https://tc39.es/ecma262/#sec-toprimitive
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_primitive(&mut self, input: &Value, preferred_type: Option<&str>) -> Value {
+        let mut hint: &str;
+        match (*input).deref() {
+            ValueData::Object(_) => {
+                hint = match preferred_type {
+                    None => "default",
+                    Some(pt) => match pt {
+                        "string" => "string",
+                        "number" => "number",
+                        _ => "default",
+                    },
+                };
+
+                // Skip d, e we don't support Symbols yet
+                // TODO: add when symbols are supported
+                if hint == "default" {
+                    hint = "number";
+                };
+
+                self.ordinary_to_primitive(&input, hint)
+            }
+            _ => input.clone(),
+        }
+    }
+    /// to_string() converts a value into a String
+    /// https://tc39.es/ecma262/#sec-tostring
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_string(&mut self, value: &Value) -> Value {
+        match *value.deref().borrow() {
+            ValueData::Undefined => to_value("undefined"),
+            ValueData::Null => to_value("null"),
+            ValueData::Boolean(ref boolean) => to_value(boolean.to_string()),
+            ValueData::Number(ref num) => to_value(num.to_string()),
+            ValueData::Integer(ref num) => to_value(num.to_string()),
+            ValueData::String(ref string) => to_value(string.clone()),
+            ValueData::Object(_) => {
+                let prim_value = self.to_primitive(value, Some("string"));
+                self.to_string(&prim_value)
+            }
+            _ => to_value("function(){...}"),
         }
     }
 }
