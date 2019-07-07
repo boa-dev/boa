@@ -1,5 +1,3 @@
-#![allow(clippy::needless_pass_by_value)]
-
 use crate::js::{
     function::NativeFunctionData,
     value::{from_value, to_value, ResultValue, Value, ValueData},

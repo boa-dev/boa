@@ -34,7 +34,6 @@ pub struct RegularFunction {
 
 impl RegularFunction {
     /// Make a new regular function
-    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     pub fn new(expr: Expr, args: Vec<String>) -> Self {
         let mut object = HashMap::new();
         object.insert(

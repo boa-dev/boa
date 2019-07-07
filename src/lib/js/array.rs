@@ -4,7 +4,6 @@ use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 
 /// Create a new array
-#[allow(clippy::needless_pass_by_value)]
 pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let this_ptr = this.clone();
     // Make a new Object which will internally represent the Array (mapping
@@ -29,7 +28,6 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 
 /// Get an array's length
-#[allow(clippy::needless_pass_by_value)]
 pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     // Access the inner hash map which represents the actual Array contents
     // (mapping between indices and values)

@@ -1,9 +1,3 @@
-#![allow(
-    clippy::needless_pass_by_value,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap
-)]
-
 use crate::js::{
     function::NativeFunctionData,
     object::{Property, PROTOTYPE},

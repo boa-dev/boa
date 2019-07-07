@@ -1,7 +1,7 @@
-#![allow(clippy::needless_pass_by_value)]
-
-use crate::js::function::NativeFunctionData;
-use crate::js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData};
+use crate::js::{
+    function::NativeFunctionData,
+    value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData},
+};
 use gc::Gc;
 use std::collections::HashMap;
 

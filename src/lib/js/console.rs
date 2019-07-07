@@ -8,7 +8,6 @@ use std::iter::FromIterator;
 
 /// Print a javascript value to the standard output stream
 /// <https://console.spec.whatwg.org/#logger>
-#[allow(clippy::needless_pass_by_value)]
 pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(args.iter().map(|x| {
         // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
@@ -50,7 +49,6 @@ pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Print a javascript value to the standard error stream
-#[allow(clippy::needless_pass_by_value)]
 pub fn error(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(
         args.iter()

@@ -19,13 +19,12 @@ pub struct ObjectEnvironmentRecord {
     pub outer_env: Option<Environment>,
 }
 
-#[allow(clippy::if_same_then_else, clippy::needless_bool)]
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn has_binding(&self, name: &str) -> bool {
         if self.bindings.has_field(name) {
-            // if self.with_environment {
-            //     // TODO: implement unscopables
-            // }
+            if self.with_environment {
+                // TODO: implement unscopables
+            }
             true
         } else {
             false
@@ -63,15 +62,14 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         bindings.update_prop(name, Some(value.clone()), None, None, Some(strict));
     }
 
-    #[allow(unused_variables)]
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {
         if self.bindings.has_field(name) {
             self.bindings.get_field(name)
         } else {
-            // if strict {
-            //     // TODO: throw error here
-            //     // Error handling not implemented yet
-            // }
+            if strict {
+                // TODO: throw error here
+                // Error handling not implemented yet
+            }
             Gc::new(ValueData::Undefined)
         }
     }
