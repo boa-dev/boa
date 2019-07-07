@@ -74,7 +74,7 @@ impl Parser {
                 Ok(mk!(self, ExprDef::ThrowExpr(Box::new(thrown))))
             }
             // vars, lets and consts are similar in parsing structure, we can group them together
-            Keyword::Var | Keyword::Let | Keyword::Const => {
+            Keyword::Var | Keyword::Let => {
                 let mut vars = Vec::new();
                 loop {
                     let name = match self.get_token(self.pos) {
@@ -86,7 +86,7 @@ impl Parser {
                             return Err(ParseError::Expected(
                                 vec![TokenData::Identifier("identifier".to_string())],
                                 tok,
-                                "var statement",
+                                "var/let declaration",
                             ))
                         }
                         Err(ParseError::AbruptEnd) => break,
@@ -125,9 +125,56 @@ impl Parser {
 
                 match keyword {
                     Keyword::Let => Ok(Expr::new(ExprDef::LetDeclExpr(vars))),
-                    Keyword::Const => Ok(Expr::new(ExprDef::ConstDeclExpr(vars))),
                     _ => Ok(Expr::new(ExprDef::VarDeclExpr(vars))),
                 }
+            }
+            Keyword::Const => {
+                let mut vars = Vec::new();
+                loop {
+                    let name = match self.get_token(self.pos) {
+                        Ok(Token {
+                            data: TokenData::Identifier(ref name),
+                            ..
+                        }) => name.clone(),
+                        Ok(tok) => {
+                            return Err(ParseError::Expected(
+                                vec![TokenData::Identifier("identifier".to_string())],
+                                tok,
+                                "const declaration",
+                            ))
+                        }
+                        Err(ParseError::AbruptEnd) => break,
+                        Err(e) => return Err(e),
+                    };
+                    self.pos += 1;
+                    match self.get_token(self.pos) {
+                        Ok(Token {
+                            data: TokenData::Punctuator(Punctuator::Assign),
+                            ..
+                        }) => {
+                            self.pos += 1;
+                            let val = self.parse()?;
+                            vars.push((name, val));
+                            match self.get_token(self.pos) {
+                                Ok(Token {
+                                    data: TokenData::Punctuator(Punctuator::Comma),
+                                    ..
+                                }) => self.pos += 1,
+                                _ => break,
+                            }
+                        }
+                        Ok(tok) => {
+                            return Err(ParseError::Expected(
+                                vec![TokenData::Punctuator(Punctuator::Assign)],
+                                tok,
+                                "const declration",
+                            ))
+                        }
+                        _ => break,
+                    }
+                }
+
+                Ok(Expr::new(ExprDef::ConstDeclExpr(vars)))
             }
             Keyword::Return => Ok(mk!(
                 self,
@@ -947,7 +994,7 @@ mod tests {
             "const a = 5;",
             &[Expr::new(ExprDef::ConstDeclExpr(vec![(
                 String::from("a"),
-                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(5.0))),
             )]))],
         );
 
@@ -956,27 +1003,24 @@ mod tests {
             "const a=5;",
             &[Expr::new(ExprDef::ConstDeclExpr(vec![(
                 String::from("a"),
-                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                Expr::new(ExprDef::ConstExpr(Const::Num(5.0))),
             )]))],
         );
 
         // Check empty `const` declaration
-        // FIXME: This does not work, it should fail to parse an unitialized const declaration:
-        // <https://tc39.es/ecma262/#sec-let-and-const-declarations-static-semantics-early-errors>
-        // check_invalid("const a;");
+        check_invalid("const a;");
 
         // Check multiple `const` declaration
         check_parser(
-            "const a = 5, b, c = 6;",
+            "const a = 5, c = 6;",
             &[Expr::new(ExprDef::ConstDeclExpr(vec![
                 (
                     String::from("a"),
-                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                    Expr::new(ExprDef::ConstExpr(Const::Num(5.0))),
                 ),
-                (String::from("b"), None),
                 (
                     String::from("c"),
-                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(6.0)))),
+                    Expr::new(ExprDef::ConstExpr(Const::Num(6.0))),
                 ),
             ]))],
         );

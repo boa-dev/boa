@@ -36,7 +36,7 @@ pub enum ExprDef {
     /// Make a constant value
     ConstExpr(Const),
     /// Const declaration
-    ConstDeclExpr(Vec<(String, Option<Expr>)>),
+    ConstDeclExpr(Vec<(String, Expr)>),
     /// Construct an object from the function and arg{
     ConstructExpr(Box<Expr>, Vec<Expr>),
     /// Run several expressions from top-to-bottom
@@ -192,17 +192,26 @@ impl Display for ExprDef {
             ExprDef::ReturnExpr(None) => write!(f, "return"),
             ExprDef::ThrowExpr(ref ex) => write!(f, "throw {}", ex),
             ExprDef::AssignExpr(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
-            ExprDef::VarDeclExpr(ref vars)
-            | ExprDef::LetDeclExpr(ref vars)
-            | ExprDef::ConstDeclExpr(ref vars) => {
-                f.write_str("var ")?;
+            ExprDef::VarDeclExpr(ref vars) | ExprDef::LetDeclExpr(ref vars) => {
+                if let ExprDef::VarDeclExpr(_) = *self {
+                    f.write_str("var ")?;
+                } else {
+                    f.write_str("let ")?;
+                }
                 for (key, val) in vars.iter() {
                     match val {
                         Some(x) => f.write_fmt(format_args!("{} = {}", key, x))?,
                         None => f.write_fmt(format_args!("{}", key))?,
                     }
                 }
-                f.write_str("")
+                Ok(())
+            }
+            ExprDef::ConstDeclExpr(ref vars) => {
+                f.write_str("const ")?;
+                for (key, val) in vars.iter() {
+                    f.write_fmt(format_args!("{} = {}", key, val))?
+                }
+                Ok(())
             }
             ExprDef::TypeOfExpr(ref e) => write!(f, "typeof {}", e),
         }

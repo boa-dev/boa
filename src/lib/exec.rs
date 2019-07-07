@@ -368,14 +368,10 @@ impl Executor for Interpreter {
                 Ok(Gc::new(ValueData::Undefined))
             }
             ExprDef::ConstDeclExpr(ref vars) => {
-                for var in vars.iter() {
-                    let (name, value) = var.clone();
-                    let val = match value {
-                        Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Null),
-                    };
+                for (name, value) in vars.iter() {
                     self.environment
                         .create_immutable_binding(name.clone(), false);
+                    let val = self.run(&value)?;
                     self.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
