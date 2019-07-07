@@ -1,11 +1,12 @@
 use crate::js::function::NativeFunctionData;
 /// The JSON Object
-/// https://tc39.github.io/ecma262/#sec-json-object
+/// <https://tc39.github.io/ecma262/#sec-json-object>
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use serde_json::{self, to_string_pretty, Value as JSONValue};
 
 /// Parse a JSON string into a Javascript object
-/// https://tc39.github.io/ecma262/#sec-json.parse
+/// <https://tc39.github.io/ecma262/#sec-json.parse>
+#[allow(clippy::needless_pass_by_value)]
 pub fn parse(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     match serde_json::from_str::<JSONValue>(&args.get(0).unwrap().clone().to_string()) {
         Ok(json) => Ok(to_value(json)),
@@ -13,6 +14,7 @@ pub fn parse(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }
 }
 /// Process a Javascript object into a JSON string
+#[allow(clippy::needless_pass_by_value)]
 pub fn stringify(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let obj = args.get(0).unwrap();
     let json = obj.to_json();

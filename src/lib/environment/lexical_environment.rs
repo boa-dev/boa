@@ -1,6 +1,6 @@
 //! # Lexical Environment
 //!
-//! https://tc39.github.io/ecma262/#sec-lexical-environment-operations
+//! <https://tc39.github.io/ecma262/#sec-lexical-environment-operations>
 //!
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
@@ -24,7 +24,7 @@ pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
 
 /// Give each environment an easy way to declare its own type
 /// This helps with comparisons
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum EnvironmentType {
     Declerative,
     Function,
@@ -32,6 +32,7 @@ pub enum EnvironmentType {
     Object,
 }
 
+#[derive(Debug)]
 pub struct LexicalEnvironment {
     environment_stack: VecDeque<Environment>,
 }
@@ -43,8 +44,8 @@ pub struct EnvironmentError {
 }
 
 impl EnvironmentError {
-    pub fn new(msg: &str) -> EnvironmentError {
-        EnvironmentError {
+    pub fn new(msg: &str) -> Self {
+        Self {
             details: msg.to_string(),
         }
     }
@@ -68,9 +69,9 @@ impl error::Error for EnvironmentError {
 }
 
 impl LexicalEnvironment {
-    pub fn new(global: Value) -> LexicalEnvironment {
-        let global_env = new_global_environment(global.clone(), global.clone());
-        let mut lexical_env = LexicalEnvironment {
+    pub fn new(global: Value) -> Self {
+        let global_env = new_global_environment(global.clone(), global);
+        let mut lexical_env = Self {
             environment_stack: VecDeque::new(),
         };
 
@@ -106,12 +107,12 @@ impl LexicalEnvironment {
             .create_immutable_binding(name, deletion)
     }
 
-    pub fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
+    pub fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
         let env = self.get_current_environment();
         env.borrow_mut().set_mutable_binding(name, value, strict);
     }
 
-    pub fn initialize_binding(&mut self, name: String, value: Value) {
+    pub fn initialize_binding(&mut self, name: &str, value: Value) {
         let env = self.get_current_environment();
         env.borrow_mut().initialize_binding(name, value);
     }
@@ -131,10 +132,10 @@ impl LexicalEnvironment {
         self.environment_stack.back_mut().unwrap()
     }
 
-    pub fn get_binding_value(&mut self, name: String) -> Value {
+    pub fn get_binding_value(&mut self, name: &str) -> Value {
         let env: Environment = self.get_current_environment().clone();
         let borrowed_env = env.borrow();
-        let result = borrowed_env.has_binding(&name);
+        let result = borrowed_env.has_binding(name);
         if result {
             return borrowed_env.get_binding_value(name, false);
         }
@@ -172,10 +173,10 @@ pub fn new_function_environment(
     debug_assert!(new_target.is_object() || new_target.is_undefined());
     Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
         env_rec: HashMap::new(),
-        function_object: f.clone(),
+        function_object: f,
         this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
         home_object: Gc::new(ValueData::Undefined),
-        new_target: new_target,
+        new_target,
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.github.io/ecma262/#sec-ecmascript-function-objects
         this_value: Gc::new(ValueData::Undefined), // TODO: this_value should start as an Option as its not always there to begin with
     })))

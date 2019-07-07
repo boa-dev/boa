@@ -1,12 +1,12 @@
-use crate::syntax::ast::keyword::Keyword::*;
-use std::error;
-use std::fmt::Error;
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
+use std::{
+    error,
+    fmt::{Display, Error, Formatter},
+    str::FromStr,
+};
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 /// A Javascript Keyword
-/// As specificed by https://www.ecma-international.org/ecma-262/#sec-keywords
+/// As specificed by <https://www.ecma-international.org/ecma-262/#sec-keywords>
 pub enum Keyword {
     /// The `await` keyword
     Await,
@@ -82,7 +82,7 @@ pub enum Keyword {
     Yield,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct KeywordError;
 impl Display for KeywordError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
@@ -103,44 +103,44 @@ impl error::Error for KeywordError {
 }
 impl FromStr for Keyword {
     type Err = KeywordError;
-    fn from_str(s: &str) -> Result<Keyword, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "await" => Ok(Await),
-            "break" => Ok(Break),
-            "case" => Ok(Case),
-            "catch" => Ok(Catch),
-            "class" => Ok(Class),
-            "continue" => Ok(Continue),
-            "const" => Ok(Const),
-            "debugger" => Ok(Debugger),
-            "default" => Ok(Default),
-            "delete" => Ok(Delete),
-            "do" => Ok(Do),
-            "else" => Ok(Else),
-            "enum" => Ok(Enum),
-            "extends" => Ok(Extends),
-            "export" => Ok(Export),
-            "finally" => Ok(Finally),
-            "for" => Ok(For),
-            "function" => Ok(Function),
-            "if" => Ok(If),
-            "in" => Ok(In),
-            "instanceof" => Ok(InstanceOf),
-            "import" => Ok(Import),
-            "let" => Ok(Let),
-            "new" => Ok(New),
-            "return" => Ok(Return),
-            "super" => Ok(Super),
-            "switch" => Ok(Switch),
-            "this" => Ok(This),
-            "throw" => Ok(Throw),
-            "try" => Ok(Try),
-            "typeof" => Ok(TypeOf),
-            "var" => Ok(Var),
-            "void" => Ok(Void),
-            "while" => Ok(While),
-            "with" => Ok(With),
-            "yield" => Ok(Yield),
+            "await" => Ok(Keyword::Await),
+            "break" => Ok(Keyword::Break),
+            "case" => Ok(Keyword::Case),
+            "catch" => Ok(Keyword::Catch),
+            "class" => Ok(Keyword::Class),
+            "continue" => Ok(Keyword::Continue),
+            "const" => Ok(Keyword::Const),
+            "debugger" => Ok(Keyword::Debugger),
+            "default" => Ok(Keyword::Default),
+            "delete" => Ok(Keyword::Delete),
+            "do" => Ok(Keyword::Do),
+            "else" => Ok(Keyword::Else),
+            "enum" => Ok(Keyword::Enum),
+            "extends" => Ok(Keyword::Extends),
+            "export" => Ok(Keyword::Export),
+            "finally" => Ok(Keyword::Finally),
+            "for" => Ok(Keyword::For),
+            "function" => Ok(Keyword::Function),
+            "if" => Ok(Keyword::If),
+            "in" => Ok(Keyword::In),
+            "instanceof" => Ok(Keyword::InstanceOf),
+            "import" => Ok(Keyword::Import),
+            "let" => Ok(Keyword::Let),
+            "new" => Ok(Keyword::New),
+            "return" => Ok(Keyword::Return),
+            "super" => Ok(Keyword::Super),
+            "switch" => Ok(Keyword::Switch),
+            "this" => Ok(Keyword::This),
+            "throw" => Ok(Keyword::Throw),
+            "try" => Ok(Keyword::Try),
+            "typeof" => Ok(Keyword::TypeOf),
+            "var" => Ok(Keyword::Var),
+            "void" => Ok(Keyword::Void),
+            "while" => Ok(Keyword::While),
+            "with" => Ok(Keyword::With),
+            "yield" => Ok(Keyword::Yield),
             _ => Err(KeywordError),
         }
     }
@@ -151,42 +151,42 @@ impl Display for Keyword {
             f,
             "{}",
             match *self {
-                Await => "await",
-                Break => "break",
-                Case => "case",
-                Catch => "catch",
-                Class => "class",
-                Continue => "continue",
-                Const => "const",
-                Debugger => "debugger",
-                Default => "default",
-                Delete => "delete",
-                Do => "do",
-                Else => "else",
-                Enum => "enum",
-                Extends => "extends",
-                Export => "export",
-                Finally => "finally",
-                For => "for",
-                Function => "function",
-                If => "if",
-                In => "in",
-                InstanceOf => "instanceof",
-                Import => "import",
-                Let => "let",
-                New => "new",
-                Return => "return",
-                Super => "super",
-                Switch => "switch",
-                This => "this",
-                Throw => "throw",
-                Try => "try",
-                TypeOf => "typeof",
-                Var => "var",
-                Void => "void",
-                While => "while",
-                With => "with",
-                Yield => "yield",
+                Keyword::Await => "await",
+                Keyword::Break => "break",
+                Keyword::Case => "case",
+                Keyword::Catch => "catch",
+                Keyword::Class => "class",
+                Keyword::Continue => "continue",
+                Keyword::Const => "const",
+                Keyword::Debugger => "debugger",
+                Keyword::Default => "default",
+                Keyword::Delete => "delete",
+                Keyword::Do => "do",
+                Keyword::Else => "else",
+                Keyword::Enum => "enum",
+                Keyword::Extends => "extends",
+                Keyword::Export => "export",
+                Keyword::Finally => "finally",
+                Keyword::For => "for",
+                Keyword::Function => "function",
+                Keyword::If => "if",
+                Keyword::In => "in",
+                Keyword::InstanceOf => "instanceof",
+                Keyword::Import => "import",
+                Keyword::Let => "let",
+                Keyword::New => "new",
+                Keyword::Return => "return",
+                Keyword::Super => "super",
+                Keyword::Switch => "switch",
+                Keyword::This => "this",
+                Keyword::Throw => "throw",
+                Keyword::Try => "try",
+                Keyword::TypeOf => "typeof",
+                Keyword::Var => "var",
+                Keyword::Void => "void",
+                Keyword::While => "while",
+                Keyword::With => "with",
+                Keyword::Yield => "yield",
             }
         )
     }

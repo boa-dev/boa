@@ -7,39 +7,37 @@ use std::fmt::Write;
 use std::iter::FromIterator;
 
 /// Print a javascript value to the standard output stream
-/// https://console.spec.whatwg.org/#logger
+/// <https://console.spec.whatwg.org/#logger>
+#[allow(clippy::needless_pass_by_value)]
 pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(args.iter().map(|x| {
         // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
         // The input is a vector of Values, we generate a vector of strings then pass them to println!
-        return match *x.clone() {
+        match *x.clone() {
             // We don't want to print private (compiler) or prototype properties
             ValueData::Object(ref v, _) => {
                 // Create empty formatted string to start writing to
                 // TODO: once constructor is set on objects, we can do specific output for Strings, Numbers etc
                 let mut s = String::new();
-                write!(s, "{}", "{").unwrap();
-                match v.borrow().iter().last() {
-                    Some((last_key, _)) => {
-                        for (key, val) in v.borrow().iter() {
-                            // Don't print prototype properties
-                            if key == INSTANCE_PROTOTYPE {
-                                continue;
-                            }
-                            write!(s, "{}: {}", key, val.value.clone()).unwrap();
-                            if key != last_key {
-                                write!(s, "{}", ", ").unwrap();
-                            }
+                write!(s, "{{").unwrap();
+                if let Some((last_key, _)) = v.borrow().iter().last() {
+                    for (key, val) in v.borrow().iter() {
+                        // Don't print prototype properties
+                        if key == INSTANCE_PROTOTYPE {
+                            continue;
+                        }
+                        write!(s, "{}: {}", key, val.value.clone()).unwrap();
+                        if key != last_key {
+                            write!(s, ", ").unwrap();
                         }
                     }
-                    None => (),
                 }
-                write!(s, "{}", "}").unwrap();
+                write!(s, "}}").unwrap();
                 s
             }
 
             _ => from_value::<String>(x.clone()).unwrap(),
-        };
+        }
 
         // from_value::<String>(x.clone()).unwrap()
     }));
@@ -52,6 +50,7 @@ pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Print a javascript value to the standard error stream
+#[allow(clippy::needless_pass_by_value)]
 pub fn error(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(
         args.iter()
