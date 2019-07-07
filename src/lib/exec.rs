@@ -19,13 +19,14 @@ pub trait Executor {
 }
 
 /// A Javascript intepreter
+#[derive(Debug)]
 pub struct Interpreter {
     /// An object representing the global object
     environment: LexicalEnvironment,
 }
 
 impl Executor for Interpreter {
-    fn new() -> Interpreter {
+    fn new() -> Self {
         let global = ValueData::new_obj(None);
         object::init(&global);
         console::init(&global);
@@ -34,11 +35,12 @@ impl Executor for Interpreter {
         function::init(&global);
         json::init(&global);
         string::init(&global);
-        Interpreter {
+        Self {
             environment: LexicalEnvironment::new(global.clone()),
         }
     }
 
+    #[allow(clippy::match_same_arms)]
     fn run(&mut self, expr: &Expr) -> ResultValue {
         match expr.def {
             ExprDef::ConstExpr(Const::Null) => Ok(to_value(None::<()>)),
@@ -62,30 +64,30 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::LocalExpr(ref name) => {
-                let val = self.environment.get_binding_value(name.to_string());
+                let val = self.environment.get_binding_value(name);
                 Ok(val)
             }
             ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
-                Ok(val_obj.borrow().get_field(field.clone()))
+                Ok(val_obj.borrow().get_field(field))
             }
             ExprDef::GetFieldExpr(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 let val_field = self.run(field)?;
-                Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
+                Ok(val_obj.borrow().get_field(&val_field.borrow().to_string()))
             }
             ExprDef::CallExpr(ref callee, ref args) => {
                 let (this, func) = match callee.def {
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                         let obj = self.run(obj)?;
-                        (obj.clone(), obj.borrow().get_field(field.clone()))
+                        (obj.clone(), obj.borrow().get_field(field))
                     }
                     ExprDef::GetFieldExpr(ref obj, ref field) => {
                         let obj = self.run(obj)?;
                         let field = self.run(field)?;
                         (
                             obj.clone(),
-                            obj.borrow().get_field(field.borrow().to_string()),
+                            obj.borrow().get_field(&field.borrow().to_string()),
                         )
                     }
                     _ => (
@@ -116,8 +118,7 @@ impl Executor for Interpreter {
                                 let name = data.args.get(i).unwrap();
                                 let expr = v_args.get(i).unwrap();
                                 self.environment.create_mutable_binding(name.clone(), false);
-                                self.environment
-                                    .initialize_binding(name.clone(), expr.to_owned());
+                                self.environment.initialize_binding(name, expr.to_owned());
                             }
                             let result = self.run(&data.expr);
                             self.environment.pop();
@@ -192,7 +193,7 @@ impl Executor for Interpreter {
                 arr_map.borrow().set_field_slice(
                     INSTANCE_PROTOTYPE,
                     self.environment
-                        .get_binding_value("Array".to_string())
+                        .get_binding_value("Array")
                         .borrow()
                         .get_field_slice(PROTOTYPE),
                 );
@@ -207,7 +208,7 @@ impl Executor for Interpreter {
                     self.environment
                         .create_mutable_binding(name.clone().unwrap(), false);
                     self.environment
-                        .initialize_binding(name.clone().unwrap(), val.clone())
+                        .initialize_binding(name.as_ref().unwrap(), val.clone())
                 }
                 Ok(val)
             }
@@ -312,7 +313,7 @@ impl Executor for Interpreter {
                                 let name = data.args.get(i).unwrap();
                                 let expr = v_args.get(i).unwrap();
                                 env.create_mutable_binding(name.clone(), false);
-                                env.initialize_binding(name.clone(), expr.to_owned());
+                                env.initialize_binding(name, expr.to_owned());
                             }
                             let result = self.run(&data.expr);
                             self.environment.pop();
@@ -332,8 +333,7 @@ impl Executor for Interpreter {
                 match ref_e.def {
                     ExprDef::LocalExpr(ref name) => {
                         self.environment.create_mutable_binding(name.clone(), false);
-                        self.environment
-                            .initialize_binding(name.clone(), val.clone());
+                        self.environment.initialize_binding(name, val.clone());
                     }
                     ExprDef::GetConstFieldExpr(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
@@ -351,7 +351,7 @@ impl Executor for Interpreter {
                         None => Gc::new(ValueData::Null),
                     };
                     self.environment.create_mutable_binding(name.clone(), false);
-                    self.environment.initialize_binding(name, val);
+                    self.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
@@ -363,7 +363,7 @@ impl Executor for Interpreter {
                         None => Gc::new(ValueData::Null),
                     };
                     self.environment.create_mutable_binding(name.clone(), false);
-                    self.environment.initialize_binding(name, val);
+                    self.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
@@ -372,7 +372,7 @@ impl Executor for Interpreter {
                     self.environment
                         .create_immutable_binding(name.clone(), false);
                     let val = self.run(&value)?;
-                    self.environment.initialize_binding(name.clone(), val);
+                    self.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }

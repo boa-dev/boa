@@ -1,7 +1,11 @@
-use crate::syntax::ast::constant::Const;
-use crate::syntax::ast::op::{BinOp, Operator, UnaryOp};
-use std::collections::btree_map::BTreeMap;
-use std::fmt::{Display, Formatter, Result};
+use crate::syntax::ast::{
+    constant::Const,
+    op::{BinOp, Operator, UnaryOp},
+};
+use std::{
+    collections::btree_map::BTreeMap,
+    fmt::{Display, Formatter, Result},
+};
 
 #[derive(Clone, Trace, Finalize, Debug, PartialEq)]
 pub struct Expr {
@@ -11,8 +15,8 @@ pub struct Expr {
 
 impl Expr {
     /// Create a new expression with a starting and ending position
-    pub fn new(def: ExprDef) -> Expr {
-        Expr { def: def }
+    pub fn new(def: ExprDef) -> Self {
+        Self { def }
     }
 }
 
@@ -108,21 +112,21 @@ impl Operator for ExprDef {
 
 impl Display for ExprDef {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        return match *self {
+        match *self {
             ExprDef::ConstExpr(ref c) => write!(f, "{}", c),
             ExprDef::BlockExpr(ref block) => {
-                write!(f, "{}", "{")?;
+                write!(f, "{{")?;
                 for expr in block.iter() {
                     write!(f, "{};", expr)?;
                 }
-                write!(f, "{}", "}")
+                write!(f, "}}")
             }
             ExprDef::LocalExpr(ref s) => write!(f, "{}", s),
             ExprDef::GetConstFieldExpr(ref ex, ref field) => write!(f, "{}.{}", ex, field),
             ExprDef::GetFieldExpr(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
             ExprDef::CallExpr(ref ex, ref args) => {
                 write!(f, "{}(", ex)?;
-                let arg_strs: Vec<String> = args.iter().map(|arg| arg.to_string()).collect();
+                let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
                 write!(f, "{})", arg_strs.join(","))
             }
             ExprDef::ConstructExpr(ref func, ref args) => {
@@ -185,33 +189,37 @@ impl Display for ExprDef {
             ExprDef::BinOpExpr(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
             ExprDef::UnaryOpExpr(ref op, ref a) => write!(f, "{}{}", op, a),
             ExprDef::ReturnExpr(Some(ref ex)) => write!(f, "return {}", ex),
-            ExprDef::ReturnExpr(None) => write!(f, "{}", "return"),
+            ExprDef::ReturnExpr(None) => write!(f, "return"),
             ExprDef::ThrowExpr(ref ex) => write!(f, "throw {}", ex),
             ExprDef::AssignExpr(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
             ExprDef::VarDeclExpr(ref vars) | ExprDef::LetDeclExpr(ref vars) => {
-                f.write_str("var ")?;
+                if let ExprDef::VarDeclExpr(_) = *self {
+                    f.write_str("var ")?;
+                } else {
+                    f.write_str("let ")?;
+                }
                 for (key, val) in vars.iter() {
                     match val {
                         Some(x) => f.write_fmt(format_args!("{} = {}", key, x))?,
                         None => f.write_fmt(format_args!("{}", key))?,
                     }
                 }
-                f.write_str("")
+                Ok(())
             }
             ExprDef::ConstDeclExpr(ref vars) => {
-                f.write_str("var ")?;
+                f.write_str("const ")?;
                 for (key, val) in vars.iter() {
                     f.write_fmt(format_args!("{} = {}", key, val))?
                 }
-                f.write_str("")
+                Ok(())
             }
             ExprDef::TypeOfExpr(ref e) => write!(f, "typeof {}", e),
-        };
+        }
     }
 }
 
-/// join_expr - Utility to join multiple Expressions into a single string
-fn join_expr(f: &mut Formatter, expr: &Vec<Expr>) -> Result {
+/// `join_expr` - Utility to join multiple Expressions into a single string
+fn join_expr(f: &mut Formatter, expr: &[Expr]) -> Result {
     let mut first = true;
     for e in expr.iter() {
         if !first {

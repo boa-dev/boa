@@ -17,7 +17,7 @@ macro_rules! mk (
     };
 );
 
-/// ParseError is an enum which represents errors encounted during parsing an expression
+/// `ParseError` is an enum which represents errors encounted during parsing an expression
 #[derive(Debug, Clone)]
 pub enum ParseError {
     /// When it expected a certain kind of token, but got another as part of something
@@ -32,6 +32,7 @@ pub enum ParseError {
 
 pub type ParseResult = Result<Expr, ParseError>;
 
+#[derive(Debug)]
 pub struct Parser {
     /// The tokens being input
     tokens: Vec<Token>,
@@ -41,11 +42,8 @@ pub struct Parser {
 
 impl Parser {
     /// Create a new parser, using `tokens` as input
-    pub fn new(tokens: Vec<Token>) -> Parser {
-        Parser {
-            tokens: tokens,
-            pos: 0,
-        }
+    pub fn new(tokens: Vec<Token>) -> Self {
+        Self { tokens, pos: 0 }
     }
 
     /// Parse all expressions in the token array
@@ -791,10 +789,10 @@ impl Parser {
     fn expect(&mut self, tk: TokenData, routine: &'static str) -> Result<(), ParseError> {
         self.pos += 1;
         let curr_tk = self.get_token(self.pos - 1)?;
-        if curr_tk.data != tk {
-            Err(ParseError::Expected(vec![tk], curr_tk, routine))
-        } else {
+        if curr_tk.data == tk {
             Ok(())
+        } else {
+            Err(ParseError::Expected(vec![tk], curr_tk, routine))
         }
     }
 

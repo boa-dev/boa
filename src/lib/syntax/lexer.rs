@@ -2,16 +2,18 @@
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens, represented by the [Token](../ast/token/struct.Token.html) structure.
 //! It also removes whitespace and comments and attaches them to the next token.
-use crate::syntax::ast::punc::Punctuator;
-use crate::syntax::ast::token::{Token, TokenData};
-use std::char::{decode_utf16, from_u32};
-use std::error;
-use std::fmt;
-use std::iter::Peekable;
-use std::str::Chars;
-use std::str::FromStr;
+use crate::syntax::ast::{
+    punc::Punctuator,
+    token::{Token, TokenData},
+};
 
-#[allow(unused)]
+use std::{
+    char::{decode_utf16, from_u32},
+    error, fmt,
+    iter::Peekable,
+    str::{Chars, FromStr},
+};
+
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
         let preview = $this.preview_next().unwrap();
@@ -71,8 +73,8 @@ pub struct LexerError {
 }
 
 impl LexerError {
-    fn new(msg: &str) -> LexerError {
-        LexerError {
+    fn new(msg: &str) -> Self {
+        Self {
             details: msg.to_string(),
         }
     }
@@ -96,6 +98,7 @@ impl error::Error for LexerError {
 }
 
 /// A lexical analyzer for JavaScript source code
+#[derive(Debug)]
 pub struct Lexer<'a> {
     // The list fo tokens generated so far
     pub tokens: Vec<Token>,
@@ -143,7 +146,7 @@ impl<'a> Lexer<'a> {
     /// next fetches the next token and return it, or a LexerError if there are no more.
     fn next(&mut self) -> Result<char, LexerError> {
         match self.buffer.next() {
-            Some(char) => Ok(char),
+            Some(ch) => Ok(ch),
             None => Err(LexerError::new("finished")),
         }
     }
@@ -168,11 +171,7 @@ impl<'a> Lexer<'a> {
 
     /// Preview the next character but don't actually increment
     fn preview_next(&mut self) -> Option<char> {
-        // No need to return a reference, we can return a copy
-        match self.buffer.peek() {
-            Some(v) => Some(*v),
-            None => None,
-        }
+        self.buffer.peek().copied()
     }
 
     /// Utility Function, while ``f(char)`` is true, read chars and move curser.
@@ -191,10 +190,7 @@ impl<'a> Lexer<'a> {
 
     /// next_is compares the character passed in to the next character, if they match true is returned and the buffer is incremented
     fn next_is(&mut self, peek: char) -> bool {
-        let result = match self.preview_next() {
-            Some(v) => v == peek,
-            None => false,
-        };
+        let result = self.preview_next() == Some(peek);
         if result {
             self.buffer.next();
         }
@@ -204,11 +200,8 @@ impl<'a> Lexer<'a> {
     pub fn lex(&mut self) -> Result<(), LexerError> {
         loop {
             // Check if we've reached the end
-            match self.preview_next() {
-                Some(_) => (), // If there are still characters, carry on
-                None => {
-                    return Ok(());
-                }
+            if self.preview_next().is_none() {
+                return Ok(());
             }
             self.column_number += 1;
             let ch = self.next()?;
@@ -235,7 +228,7 @@ impl<'a> Lexer<'a> {
                                         '0' => '\0',
                                         'x' => {
                                             let mut nums = String::with_capacity(2);
-                                            for _ in 0u8..2 {
+                                            for _ in 0_u8..2 {
                                                 nums.push(self.next()?);
                                             }
                                             self.column_number += 2;
@@ -260,7 +253,7 @@ impl<'a> Lexer<'a> {
                                             // Support \u{X..X} (Unicode Codepoint)
                                             if self.next_is('{') {
                                                 let s = self
-                                                    .take_char_while(|c| c.is_alphanumeric())
+                                                    .take_char_while(char::is_alphanumeric)
                                                     .unwrap();
 
                                                 // We know this is a single unicode codepoint, convert to u32
@@ -279,7 +272,7 @@ impl<'a> Lexer<'a> {
                                                 loop {
                                                     // Collect each character after \u e.g \uD83D will give "D83D"
                                                     let s = self
-                                                        .take_char_while(|c| c.is_alphanumeric())
+                                                        .take_char_while(char::is_alphanumeric)
                                                         .unwrap();
 
                                                     // Convert to u16
@@ -300,12 +293,10 @@ impl<'a> Lexer<'a> {
 
                                                 // codepoints length should either be 1 (unicode codepoint) or 2 (surrogate codepoint).
                                                 // Rust's decode_utf16 will deal with it regardless
-                                                let c = decode_utf16(codepoints.iter().cloned())
+                                                decode_utf16(codepoints.iter().cloned())
                                                     .next()
                                                     .unwrap()
-                                                    .unwrap();
-
-                                                c
+                                                    .unwrap()
                                             }
                                         }
                                         '\'' | '"' => escape,
@@ -317,7 +308,7 @@ impl<'a> Lexer<'a> {
                                     buf.push(escaped_ch);
                                 }
                             }
-                            ch => buf.push(ch),
+                            next_ch => buf.push(next_ch),
                         }
                     }
                     let str_length = buf.len() as u64;
@@ -330,40 +321,30 @@ impl<'a> Lexer<'a> {
                 '0' => {
                     let mut buf = String::new();
                     let num = if self.next_is('x') {
-                        loop {
-                            match self.preview_next() {
-                                Some(ch) => {
-                                    if ch.is_digit(16) {
-                                        buf.push(self.next()?);
-                                    } else {
-                                        break;
-                                    }
-                                }
-                                None => break,
-                            };
+                        while let Some(ch) = self.preview_next() {
+                            if ch.is_digit(16) {
+                                buf.push(self.next()?);
+                            } else {
+                                break;
+                            }
                         }
                         u64::from_str_radix(&buf, 16).unwrap()
                     } else if self.next_is('b') {
-                        loop {
-                            match self.preview_next() {
-                                Some(ch) => {
-                                    if ch.is_digit(2) {
-                                        buf.push(self.next()?);
-                                    } else {
-                                        break;
-                                    }
-                                }
-                                None => break,
+                        while let Some(ch) = self.preview_next() {
+                            if ch.is_digit(2) {
+                                buf.push(self.next()?);
+                            } else {
+                                break;
                             }
                         }
                         u64::from_str_radix(&buf, 2).unwrap()
                     } else {
                         let mut gone_decimal = false;
                         loop {
-                            let ch = self.preview_next().unwrap_or('_');
-                            match ch {
-                                ch if ch.is_digit(8) => {
-                                    buf.push(ch);
+                            let next_ch = self.preview_next().unwrap_or('_');
+                            match next_ch {
+                                next_ch if next_ch.is_digit(8) => {
+                                    buf.push(next_ch);
                                     self.next()?;
                                 }
                                 'O' | 'o' => {
@@ -371,7 +352,7 @@ impl<'a> Lexer<'a> {
                                 }
                                 '8' | '9' | '.' => {
                                     gone_decimal = true;
-                                    buf.push(ch);
+                                    buf.push(next_ch);
                                     self.next()?;
                                 }
                                 _ => break,
@@ -379,24 +360,17 @@ impl<'a> Lexer<'a> {
                         }
                         if gone_decimal {
                             u64::from_str(&buf).unwrap()
+                        } else if buf.is_empty() {
+                            0
                         } else {
-                            if buf.is_empty() {
-                                0
-                            } else {
-                                u64::from_str_radix(&buf, 8).unwrap()
-                            }
+                            u64::from_str_radix(&buf, 8).unwrap()
                         }
                     };
                     self.push_token(TokenData::NumericLiteral(num as f64))
                 }
                 _ if ch.is_digit(10) => {
                     let mut buf = ch.to_string();
-                    'digitloop: loop {
-                        // There might not be a next character
-                        let ch = match self.preview_next() {
-                            Some(c) => c,
-                            None => break,
-                        };
+                    'digitloop: while let Some(ch) = self.preview_next() {
                         match ch {
                             '.' => loop {
                                 buf.push(self.next()?);
@@ -424,18 +398,11 @@ impl<'a> Lexer<'a> {
                 }
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();
-                    loop {
-                        let ch = match self.preview_next() {
-                            Some(ch) => ch,
-                            None => break,
-                        };
-                        match ch {
-                            _ if ch.is_alphabetic() || ch.is_digit(10) || ch == '_' => {
-                                buf.push(self.next()?);
-                            }
-                            _ => {
-                                break;
-                            }
+                    while let Some(ch) = self.preview_next() {
+                        if ch.is_alphabetic() || ch.is_digit(10) || ch == '_' {
+                            buf.push(self.next()?);
+                        } else {
+                            break;
                         }
                     }
                     // Match won't compare &String to &str so i need to convert it :(
@@ -444,10 +411,13 @@ impl<'a> Lexer<'a> {
                         "true" => TokenData::BooleanLiteral(true),
                         "false" => TokenData::BooleanLiteral(false),
                         "null" => TokenData::NullLiteral,
-                        slice => match FromStr::from_str(slice) {
-                            Ok(keyword) => TokenData::Keyword(keyword),
-                            Err(_) => TokenData::Identifier(buf.clone()),
-                        },
+                        slice => {
+                            if let Ok(keyword) = FromStr::from_str(slice) {
+                                TokenData::Keyword(keyword)
+                            } else {
+                                TokenData::Identifier(buf.clone())
+                            }
+                        }
                     });
                     // Move position forward the length of keyword
                     self.column_number += (buf_compare.len() - 1) as u64;
@@ -476,37 +446,36 @@ impl<'a> Lexer<'a> {
                 '?' => self.push_punc(Punctuator::Question),
                 // Comments
                 '/' => {
-                    let ch = match self.preview_next() {
-                        Some(ch) => ch,
-                        None => return Err(LexerError::new("Expecting Token /,*,=")),
-                    };
-
-                    let token = match ch {
-                        // Matched comment
-                        '/' => {
-                            let comment = self.read_line()?;
-                            TokenData::Comment(comment)
-                        }
-                        '*' => {
-                            let mut buf = String::new();
-                            loop {
-                                match self.next()? {
-                                    '*' => {
-                                        if self.next_is('/') {
-                                            break;
-                                        } else {
-                                            buf.push('*')
-                                        }
-                                    }
-                                    ch => buf.push(ch),
-                                }
+                    if let Some(ch) = self.preview_next() {
+                        let token = match ch {
+                            // Matched comment
+                            '/' => {
+                                let comment = self.read_line()?;
+                                TokenData::Comment(comment)
                             }
-                            TokenData::Comment(buf)
-                        }
-                        '=' => TokenData::Punctuator(Punctuator::AssignDiv),
-                        _ => TokenData::Punctuator(Punctuator::Div),
-                    };
-                    self.push_token(token)
+                            '*' => {
+                                let mut buf = String::new();
+                                loop {
+                                    match self.next()? {
+                                        '*' => {
+                                            if self.next_is('/') {
+                                                break;
+                                            } else {
+                                                buf.push('*')
+                                            }
+                                        }
+                                        next_ch => buf.push(next_ch),
+                                    }
+                                }
+                                TokenData::Comment(buf)
+                            }
+                            '=' => TokenData::Punctuator(Punctuator::AssignDiv),
+                            _ => TokenData::Punctuator(Punctuator::Div),
+                        };
+                        self.push_token(token)
+                    } else {
+                        return Err(LexerError::new("Expecting Token /,*,="));
+                    }
                 }
                 '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul, {
                     '*' => vop!(self, Punctuator::AssignPow, Punctuator::Pow)

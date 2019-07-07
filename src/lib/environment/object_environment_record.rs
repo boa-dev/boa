@@ -3,7 +3,7 @@
 //! Each object Environment Record is associated with an object called its binding object.
 //! An object Environment Record binds the set of string identifier names that directly
 //! correspond to the property names of its binding object.
-//! Property keys that are not strings in the form of an IdentifierName are not included in the set of bound identifiers.
+//! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.github.io/ecma262/#sec-object-environment-records)
 
 use crate::environment::environment_record_trait::EnvironmentRecordTrait;
@@ -12,7 +12,7 @@ use crate::js::object::Property;
 use crate::js::value::{Value, ValueData};
 use gc::Gc;
 
-#[derive(Trace, Finalize, Clone)]
+#[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {
     pub bindings: Value,
     pub with_environment: bool,
@@ -20,16 +20,15 @@ pub struct ObjectEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
-    fn has_binding(&self, name: &String) -> bool {
-        if !self.bindings.has_field(name.to_string()) {
-            return false;
+    fn has_binding(&self, name: &str) -> bool {
+        if self.bindings.has_field(name) {
+            if self.with_environment {
+                // TODO: implement unscopables
+            }
+            true
+        } else {
+            false
         }
-        if !self.with_environment {
-            return true;
-        }
-
-        // TODO: implement unscopables
-        true
     }
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) {
@@ -48,37 +47,35 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         unimplemented!()
     }
 
-    fn initialize_binding(&mut self, name: String, value: Value) {
+    fn initialize_binding(&mut self, name: &str, value: Value) {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
         debug_assert!(self.has_binding(&name));
-        return self.set_mutable_binding(name, value, false);
+        self.set_mutable_binding(name, value, false)
     }
 
-    fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
+    fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
         debug_assert!(value.is_object() || value.is_function());
 
         let bindings = &mut self.bindings;
         bindings.update_prop(name, Some(value.clone()), None, None, Some(strict));
     }
 
-    fn get_binding_value(&self, name: String, strict: bool) -> Value {
-        if self.bindings.has_field(name.clone()) {
-            return self.bindings.get_field(name);
+    fn get_binding_value(&self, name: &str, strict: bool) -> Value {
+        if self.bindings.has_field(name) {
+            self.bindings.get_field(name)
+        } else {
+            if strict {
+                // TODO: throw error here
+                // Error handling not implemented yet
+            }
+            Gc::new(ValueData::Undefined)
         }
-
-        if !strict {
-            return Gc::new(ValueData::Undefined);
-        }
-
-        // TODO: throw error here
-        // Error handling not implemented yet
-        Gc::new(ValueData::Undefined)
     }
 
-    fn delete_binding(&mut self, name: String) -> bool {
-        self.bindings.remove_prop(&name);
+    fn delete_binding(&mut self, name: &str) -> bool {
+        self.bindings.remove_prop(name);
         true
     }
 
@@ -112,13 +109,14 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
-        return EnvironmentType::Function;
+        EnvironmentType::Function
     }
 
     fn get_global_object(&self) -> Option<Value> {
-        match &self.outer_env {
-            Some(outer) => outer.borrow().get_global_object(),
-            None => None,
+        if let Some(outer) = &self.outer_env {
+            outer.borrow().get_global_object()
+        } else {
+            None
         }
     }
 }

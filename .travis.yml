@@ -4,7 +4,8 @@ rust:
   - beta
 cache: cargo
 before_script:
-  - rustup component add rustfmt
+  - rustup component add rustfmt clippy
 script:
   - cargo fmt --verbose -- --check
+  - cargo clippy --verbose
   - cargo test --verbose

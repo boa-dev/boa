@@ -21,7 +21,7 @@ pub enum Const {
 
 impl Display for Const {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        return match *self {
+        match *self {
             Const::String(ref st) => write!(f, "\"{}\"", st),
             Const::RegExp(ref reg, _, _) => write!(f, "~/{}/", reg),
             Const::Num(num) => write!(f, "{}", num),
@@ -29,6 +29,6 @@ impl Display for Const {
             Const::Bool(v) => write!(f, "{}", v),
             Const::Null => write!(f, "null"),
             Const::Undefined => write!(f, "undefined"),
-        };
+        }
     }
 }

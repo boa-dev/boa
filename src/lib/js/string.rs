@@ -1,12 +1,16 @@
-use crate::js::function::NativeFunctionData;
-use crate::js::object::{Property, PROTOTYPE};
-use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
+use crate::js::{
+    function::NativeFunctionData,
+    object::{Property, PROTOTYPE},
+    value::{from_value, to_value, ResultValue, Value, ValueData},
+};
 use gc::Gc;
-use std::cmp::{max, min};
-use std::f64::NAN;
+use std::{
+    cmp::{max, min},
+    f64::NAN,
+};
 
 /// Create new string
-/// https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19
+/// <https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19>
 // This gets called when a new String() is created, it's called by exec:346
 pub fn make_string(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // If we're constructing a string, we should set the initial length
@@ -20,73 +24,77 @@ pub fn make_string(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
 /// Get a string's length
 pub fn get_string_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
     Ok(to_value::<i32>(this_str.len() as i32))
 }
 
 /// Get the string value to a primitive string
 pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     // Get String from String Object and send it back as a new value
-    let primitive_val = this.get_private_field(String::from("PrimitiveValue"));
+    let primitive_val = this.get_private_field("PrimitiveValue");
     Ok(to_value(format!("{}", primitive_val).to_string()))
 }
 
-/// Returns a single element String containing the code unit at index pos within the String value resulting from converting this object to a String. If there is no element at that index, the result is the empty String. The result is a String value, not a String object.
-/// https://tc39.github.io/ecma262/#sec-string.prototype.charat
+/// Returns a single element String containing the code unit at index pos within the String value
+/// resulting from converting this object to a String. If there is no element at that index, the
+/// result is the empty String. The result is a String value, not a String object.
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.charat>
 pub fn char_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //         ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
-    let pos = from_value(args[0].clone()).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let pos: i32 = from_value(args[0].clone()).unwrap();
 
-    // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
-    // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
+    // Calling .len() on a string would give the wrong result, as they are bytes not the number of
+    // unicode code points
+    // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of
+    // bytes is an O(1) operation.
     let length = primitive_val.chars().count();
 
     // We should return an empty string is pos is out of range
-    if pos >= length || pos < 0 as usize {
+    if pos >= length as i32 || pos < 0 {
         return Ok(to_value::<String>(String::new()));
     }
 
-    Ok(to_value::<char>(primitive_val.chars().nth(pos).unwrap()))
+    Ok(to_value::<char>(
+        primitive_val.chars().nth(pos as usize).unwrap(),
+    ))
 }
 
-/// Returns a Number (a nonnegative integer less than 216) that is the numeric value of the code unit at index pos within the String resulting from converting this object to a String. If there is no element at that index, the result is NaN.
-/// https://tc39.github.io/ecma262/#sec-string.prototype.charcodeat
+/// Returns a Number (a nonnegative integer less than 216) that is the numeric value of the code
+/// unit at index pos within the String resulting from converting this object to a String. If there
+/// is no element at that index, the result is NaN.
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.charcodeat>
 pub fn char_code_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //              ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length = primitive_val.chars().count();
-    let pos = from_value(args[0].clone()).unwrap();
+    let pos: i32 = from_value(args[0].clone()).unwrap();
 
-    if pos >= length || pos < 0 as usize {
+    if pos >= length as i32 || pos < 0 {
         return Ok(to_value(NAN));
     }
 
-    let utf16_val = primitive_val.encode_utf16().nth(pos).unwrap();
+    let utf16_val = primitive_val.encode_utf16().nth(pos as usize).unwrap();
     // If there is no element at that index, the result is NaN
     // TODO: We currently don't have NaN
-    Ok(to_value(utf16_val as f64))
+    Ok(to_value(f64::from(utf16_val)))
 }
 
 /// Returns a String that is the result of concatenating this String and all strings provided as
 /// arguments
-/// https://tc39.github.io/ecma262/#sec-string.prototype.concat
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.concat>
 pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //        ^^ represents instance  ^^ represents arguments
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     let mut new_str = primitive_val.clone();
 
@@ -100,13 +108,12 @@ pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
 /// Returns a String that is the result of repeating this String the number of times given by the
 /// first argument
-/// https://tc39.github.io/ecma262/#sec-string.prototype.repeat
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.repeat>
 pub fn repeat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //        ^^ represents instance  ^^ represents arguments (only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     let repeat_times: usize = from_value(args[0].clone()).unwrap();
     Ok(to_value(primitive_val.repeat(repeat_times)))
@@ -114,13 +121,12 @@ pub fn repeat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
 /// Returns a String which contains the slice of the JS String from character at "start" index up
 /// to but not including character at "end" index
-/// https://tc39.github.io/ecma262/#sec-string.prototype.slice
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.slice>
 pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //       ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     let start: i32 = from_value(args[0].clone()).unwrap();
     let end: i32 = from_value(args[1].clone()).unwrap();
@@ -152,13 +158,12 @@ pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Returns a Boolean indicating whether the sequence of code units of the
 /// "search string" is the same as the corresponding code units of this string
 /// starting at index "position"
-/// https://tc39.github.io/ecma262/#sec-string.prototype.startswith
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.startswith>
 pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //             ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if pattern is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -188,13 +193,12 @@ pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Returns a Boolean indicating whether the sequence of code units of the
 /// "search string"  is the same as the corresponding code units of this string
 /// starting at position "end position" - length
-/// https://tc39.github.io/ecma262/#sec-string.prototype.endswith
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.endswith>
 pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //           ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -226,13 +230,12 @@ pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// the result of converting this object to a String, at one or more indices
 /// that are greater than or equal to position. If position is undefined, 0 is
 /// assumed, so as to search all of the String.
-/// https://tc39.github.io/ecma262/#sec-string.prototype.includes
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
 pub fn includes(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //          ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -259,13 +262,12 @@ pub fn includes(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// position, then the smallest such index is returned; otherwise, -1 is
 /// returned. If position is undefined, 0 is assumed, so as to search all of the
 /// String.
-/// https://tc39.github.io/ecma262/#sec-string.prototype.includes
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
 pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //          ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -293,7 +295,7 @@ pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
         }
     }
     // Didn't find a match, so return -1
-    Ok(to_value(-1 as i32))
+    Ok(to_value(-1))
 }
 
 //// If searchString appears as a substring of the result of converting this
@@ -301,13 +303,12 @@ pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// position, then the greatest such index is returned; otherwise, -1 is
 /// returned. If position is undefined, the length of the String value is
 /// assumed, so as to search all of the String.
-/// https://tc39.github.io/ecma262/#sec-string.prototype.lastindexof
+/// <https://tc39.github.io/ecma262/#sec-string.prototype.lastindexof>
 pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //               ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -348,9 +349,9 @@ fn is_trimmable_whitespace(c: char) -> bool {
     // '\u{FEFF}' (zero width non-breaking space)
     match c {
         // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
-        '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' => true,
+        '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' |
         // Unicode Space_Seperator category
-        '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' => true,
+        '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
         // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
         '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}' => true,
         _ => false,
@@ -358,22 +359,19 @@ fn is_trimmable_whitespace(c: char) -> bool {
 }
 
 pub fn trim(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
 pub fn trim_start(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
     Ok(to_value(
         this_str.trim_start_matches(is_trimmable_whitespace),
     ))
 }
 
 pub fn trim_end(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String =
-        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 
