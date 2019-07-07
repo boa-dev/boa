@@ -3,8 +3,8 @@ use crate::js::object::{Property, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 
-/// Utility function for creating array objects: array_obj can be any array with
-/// prototype already set (it will be wiped and recreated from array_contents)
+/// Utility function for creating array objects: `array_obj` can be any array with
+/// prototype already set (it will be wiped and recreated from `array_contents`)
 fn create_array_object(array_obj: Value, array_contents: Vec<Value>) -> ResultValue {
     let array_obj_ptr = array_obj.clone();
 
@@ -14,11 +14,10 @@ fn create_array_object(array_obj: Value, array_contents: Vec<Value>) -> ResultVa
         array_obj_ptr.remove_prop(&n.to_string());
     }
 
-    for (n, value) in array_contents.iter().enumerate() {
-        array_obj_ptr.set_field(n.to_string(), value.clone());
-    }
-
     array_obj_ptr.set_field_slice("length", to_value(array_contents.len() as i32));
+    for (n, value) in array_contents.into_iter().enumerate() {
+        array_obj_ptr.set_field(n.to_string(), value);
+    }
     Ok(array_obj_ptr)
 }
 
@@ -41,7 +40,7 @@ fn add_to_array_object(array_ptr: Value, add_values: Vec<Value>) -> ResultValue 
 pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
-    this.set_field_slice("length", to_value(0i32));
+    this.set_field_slice("length", to_value(0_i32));
     match args.len() {
         0 => create_array_object(this, Vec::new()),
         1 => {
@@ -66,11 +65,11 @@ pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 /// When the concat method is called with zero or more arguments, it returns an
 /// array containing the array elements of the object followed by the array
 /// elements of each argument in order.
-/// https://tc39.es/ecma262/#sec-array.prototype.concat
+/// <https://tc39.es/ecma262/#sec-array.prototype.concat>
 pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    if args.len() == 0 {
+    if args.is_empty() {
         // If concat is called with no arguments, it returns the original array
-        return Ok(this.clone());
+        return Ok(this);
     }
 
     // Make a new array (using this object as the prototype basis for the new
@@ -79,13 +78,13 @@ pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 
     let this_length: i32 = from_value(this.get_field_slice("length")).unwrap();
     for n in 0..this_length {
-        new_values.push(this.get_field(n.to_string()));
+        new_values.push(this.get_field(&n.to_string()));
     }
 
     for concat_array in args {
         let concat_length: i32 = from_value(concat_array.get_field_slice("length")).unwrap();
         for n in 0..concat_length {
-            new_values.push(concat_array.get_field(n.to_string()));
+            new_values.push(concat_array.get_field(&n.to_string()));
         }
     }
 
@@ -97,7 +96,7 @@ pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// The arguments are appended to the end of the array, in the order in which
 /// they appear. The new length of the array is returned as the result of the
 /// call.
-/// https://tc39.es/ecma262/#sec-array.prototype.push
+/// <https://tc39.es/ecma262/#sec-array.prototype.push>
 pub fn push(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let new_array = add_to_array_object(this, args)?;
     Ok(new_array.get_field_slice("length"))
@@ -106,7 +105,7 @@ pub fn push(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Array.prototype.pop ( )
 ///
 /// The last element of the array is removed from the array and returned.
-/// https://tc39.es/ecma262/#sec-array.prototype.pop
+/// <https://tc39.es/ecma262/#sec-array.prototype.pop>
 pub fn pop(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     let curr_length: i32 = from_value(this.get_field_slice("length")).unwrap();
     if curr_length < 1 {
@@ -115,7 +114,7 @@ pub fn pop(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
         ));
     }
     let pop_index = curr_length - 1;
-    let pop_value: Value = this.get_field(pop_index.to_string());
+    let pop_value: Value = this.get_field(&pop_index.to_string());
     this.remove_prop(&pop_index.to_string());
     this.set_field_slice("length", to_value(pop_index));
     Ok(pop_value)
@@ -126,20 +125,18 @@ pub fn pop(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 /// The elements of the array are converted to Strings, and these Strings are
 /// then concatenated, separated by occurrences of the separator. If no
 /// separator is provided, a single comma is used as the separator.
-/// https://tc39.es/ecma262/#sec-array.prototype.join
+/// <https://tc39.es/ecma262/#sec-array.prototype.join>
 pub fn join(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    let separator: String;
-
-    if args.len() > 0 {
-        separator = args[0].to_string();
+    let separator = if args.is_empty() {
+        String::from(",")
     } else {
-        separator = ",".to_string();
-    }
+        args[0].to_string()
+    };
 
     let mut elem_strs: Vec<String> = Vec::new();
     let length: i32 = from_value(this.get_field_slice("length")).unwrap();
     for n in 0..length {
-        let elem_str: String = this.get_field(n.to_string()).to_string();
+        let elem_str: String = this.get_field(&n.to_string()).to_string();
         elem_strs.push(elem_str);
     }
 
@@ -160,10 +157,10 @@ pub fn _create(global: &Value) -> Value {
     };
     proto.set_prop_slice("length", length);
     let concat_func = to_value(concat as NativeFunctionData);
-    concat_func.set_field_slice("length", to_value(1 as i32));
+    concat_func.set_field_slice("length", to_value(1_i32));
     proto.set_field_slice("concat", concat_func);
     let push_func = to_value(push as NativeFunctionData);
-    push_func.set_field_slice("length", to_value(1 as i32));
+    push_func.set_field_slice("length", to_value(1_i32));
     proto.set_field_slice("push", push_func);
     proto.set_field_slice("pop", to_value(pop as NativeFunctionData));
     proto.set_field_slice("join", to_value(join as NativeFunctionData));

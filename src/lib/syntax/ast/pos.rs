@@ -1,4 +1,4 @@
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 /// A position in the Javascript source code
 /// Stores both the column number and the line number
 ///
@@ -20,10 +20,10 @@ impl Position {
     ///
     /// * `line_number` - The line number the token starts at
     /// * `column_number` - The column number the token starts at
-    pub fn new(line_number: u64, column_number: u64) -> Position {
-        Position {
-            line_number: line_number,
-            column_number: column_number,
+    pub fn new(line_number: u64, column_number: u64) -> Self {
+        Self {
+            line_number,
+            column_number,
         }
     }
 }

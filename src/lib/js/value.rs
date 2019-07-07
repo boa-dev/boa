@@ -1,18 +1,17 @@
-use crate::js::function::{Function, NativeFunction, NativeFunctionData};
-use crate::js::object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE};
+use crate::js::{
+    function::{Function, NativeFunction, NativeFunctionData},
+    object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
+};
 use gc::{Gc, GcCell};
-use serde_json::map::Map;
-use serde_json::Number as JSONNumber;
-use serde_json::Value as JSONValue;
-use std::collections::HashMap;
-use std::f64::NAN;
-use std::fmt;
-use std::fmt::Display;
-use std::iter::FromIterator;
-use std::ops::Deref;
-use std::ops::DerefMut;
-use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Not, Rem, Shl, Shr, Sub};
-use std::str::FromStr;
+use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
+use std::{
+    collections::HashMap,
+    f64::NAN,
+    fmt::{self, Display},
+    iter::FromIterator,
+    ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Not, Rem, Shl, Shr, Sub},
+    str::FromStr,
+};
 
 #[must_use]
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
@@ -160,7 +159,7 @@ impl ValueData {
             ValueData::Number(num) => num,
             ValueData::Boolean(true) => 1.0,
             ValueData::Boolean(false) | ValueData::Null => 0.0,
-            ValueData::Integer(num) => num as f64,
+            ValueData::Integer(num) => f64::from(num),
         }
     }
 
@@ -184,7 +183,7 @@ impl ValueData {
 
     /// remove_prop removes a property from a Value object.
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
-    pub fn remove_prop(&self, field: &String) {
+    pub fn remove_prop(&self, field: &str) {
         match *self {
             ValueData::Object(ref obj, _) => obj.borrow_mut().deref_mut().remove(field),
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
@@ -198,7 +197,7 @@ impl ValueData {
 
     /// Resolve the property in the object
     /// Returns a copy of the Property
-    pub fn get_prop(&self, field: String) -> Option<Property> {
+    pub fn get_prop(&self, field: &str) -> Option<Property> {
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
@@ -222,7 +221,7 @@ impl ValueData {
             _ => return None,
         };
 
-        match obj.get(&field) {
+        match obj.get(field) {
             Some(val) => Some(val.clone()),
             None => match obj.get(&INSTANCE_PROTOTYPE.to_string()) {
                 Some(prop) => prop.value.get_prop(field),
@@ -236,7 +235,7 @@ impl ValueData {
     /// Mostly used internally for now
     pub fn update_prop(
         &self,
-        field: String,
+        field: &str,
         value: Option<Value>,
         enumerable: Option<bool>,
         writable: Option<bool>,
@@ -252,27 +251,20 @@ impl ValueData {
             _ => None,
         };
 
-        if obj.is_none() {
-            return ();
-        }
-
-        let mut hashmap = obj.unwrap();
-        // Use value, or walk up the prototype chain
-        match hashmap.get_mut(&field) {
-            Some(ref mut prop) => {
-                prop.value = value.unwrap_or(prop.value.clone());
+        if let Some(mut hashmap) = obj {
+            // Use value, or walk up the prototype chain
+            if let Some(ref mut prop) = hashmap.get_mut(field) {
+                prop.value = value.unwrap_or_else(|| prop.value.clone());
                 prop.enumerable = enumerable.unwrap_or(prop.enumerable);
                 prop.writable = writable.unwrap_or(prop.writable);
                 prop.configurable = configurable.unwrap_or(prop.configurable);
             }
-            // Try again with next prop up the chain
-            None => (),
         }
     }
 
     /// Resolve the property in the object
     /// Returns a copy of the Property
-    pub fn get_private_prop(&self, field: String) -> Option<Property> {
+    pub fn get_private_prop(&self, field: &str) -> Option<Property> {
         let obj: ObjectData = match *self {
             ValueData::Object(_, ref obj) => {
                 let hash = obj.clone();
@@ -281,7 +273,7 @@ impl ValueData {
             _ => return None,
         };
 
-        match obj.get(&field) {
+        match obj.get(field) {
             Some(val) => Some(val.clone()),
             None => match obj.get(&INSTANCE_PROTOTYPE.to_string()) {
                 Some(prop) => prop.value.get_prop(field),
@@ -292,7 +284,7 @@ impl ValueData {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
-    pub fn get_private_field(&self, field: String) -> Value {
+    pub fn get_private_field(&self, field: &str) -> Value {
         match self.get_private_prop(field) {
             Some(prop) => prop.value.clone(),
             None => Gc::new(ValueData::Undefined),
@@ -301,7 +293,7 @@ impl ValueData {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
-    pub fn get_field(&self, field: String) -> Value {
+    pub fn get_field(&self, field: &str) -> Value {
         match self.get_prop(field) {
             Some(prop) => {
                 // If the Property has [[Get]] set to a function, we should run that and return the Value
@@ -334,32 +326,28 @@ impl ValueData {
     }
 
     /// Check to see if the Value has the field, mainly used by environment records
-    pub fn has_field(&self, field: String) -> bool {
-        match self.get_prop(field) {
-            Some(_) => true,
-            None => false,
-        }
+    pub fn has_field(&self, field: &str) -> bool {
+        self.get_prop(field).is_some()
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
-    pub fn get_field_slice<'a>(&self, field: &'a str) -> Value {
-        self.get_field(field.to_string())
+    pub fn get_field_slice(&self, field: &str) -> Value {
+        self.get_field(field)
     }
 
     /// Set the field in the value
     pub fn set_field(&self, field: String, val: Value) -> Value {
         match *self {
             ValueData::Object(ref obj, _) => {
-                obj.borrow_mut()
-                    .insert(field.clone(), Property::new(val.clone()));
+                obj.borrow_mut().insert(field, Property::new(val.clone()));
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => {
-                        f.object.insert(field.clone(), Property::new(val.clone()))
+                        f.object.insert(field, Property::new(val.clone()))
                     }
                     Function::RegularFunc(ref mut f) => {
-                        f.object.insert(field.clone(), Property::new(val.clone()))
+                        f.object.insert(field, Property::new(val.clone()))
                     }
                 };
             }
@@ -375,12 +363,8 @@ impl ValueData {
 
     /// Set the private field in the value
     pub fn set_private_field(&self, field: String, val: Value) -> Value {
-        match *self {
-            ValueData::Object(_, ref obj) => {
-                obj.borrow_mut()
-                    .insert(field.clone(), Property::new(val.clone()));
-            }
-            _ => (),
+        if let ValueData::Object(_, ref obj) = *self {
+            obj.borrow_mut().insert(field, Property::new(val.clone()));
         }
         val
     }
@@ -394,14 +378,12 @@ impl ValueData {
     pub fn set_prop(&self, field: String, prop: Property) -> Property {
         match *self {
             ValueData::Object(ref obj, _) => {
-                obj.borrow_mut().insert(field.clone(), prop.clone());
+                obj.borrow_mut().insert(field, prop.clone());
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
-                    Function::NativeFunc(ref mut f) => f.object.insert(field.clone(), prop.clone()),
-                    Function::RegularFunc(ref mut f) => {
-                        f.object.insert(field.clone(), prop.clone())
-                    }
+                    Function::NativeFunc(ref mut f) => f.object.insert(field, prop.clone()),
+                    Function::RegularFunc(ref mut f) => f.object.insert(field, prop.clone()),
                 };
             }
             _ => (),
@@ -415,7 +397,7 @@ impl ValueData {
     }
 
     /// Convert from a JSON value to a JS value
-    pub fn from_json(json: JSONValue) -> ValueData {
+    pub fn from_json(json: JSONValue) -> Self {
         match json {
             JSONValue::Number(v) => ValueData::Number(v.as_f64().unwrap()),
             JSONValue::String(v) => ValueData::String(v),
@@ -453,13 +435,13 @@ impl ValueData {
             ValueData::Null | ValueData::Undefined => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj, _) => {
-                let mut nobj = Map::new();
+                let mut new_obj = Map::new();
                 for (k, v) in obj.borrow().iter() {
                     if k != INSTANCE_PROTOTYPE {
-                        nobj.insert(k.clone(), v.value.to_json());
+                        new_obj.insert(k.clone(), v.value.to_json());
                     }
                 }
-                JSONValue::Object(nobj)
+                JSONValue::Object(new_obj)
             }
             ValueData::String(ref str) => JSONValue::String(str.clone()),
             ValueData::Number(num) => JSONValue::Number(JSONNumber::from_f64(num).unwrap()),
@@ -499,37 +481,31 @@ impl Display for ValueData {
                 }
             ),
             ValueData::Object(ref v, ref p) => {
-                write!(f, "{}", "{")?;
+                write!(f, "{{")?;
                 // Print public properties
-                match v.borrow().iter().last() {
-                    Some((last_key, _)) => {
-                        for (key, val) in v.borrow().iter() {
-                            write!(f, "{}: {}", key, val.value.clone())?;
-                            if key != last_key {
-                                write!(f, "{}", ", ")?;
-                            }
+                if let Some((last_key, _)) = v.borrow().iter().last() {
+                    for (key, val) in v.borrow().iter() {
+                        write!(f, "{}: {}", key, val.value.clone())?;
+                        if key != last_key {
+                            write!(f, ", ")?;
                         }
                     }
-                    None => (),
                 };
 
                 // Print private properties
-                match p.borrow().iter().last() {
-                    Some((last_key, _)) => {
-                        for (key, val) in p.borrow().iter() {
-                            write!(f, "(Private) {}: {}", key, val.value.clone())?;
-                            if key != last_key {
-                                write!(f, "{}", ", ")?;
-                            }
+                if let Some((last_key, _)) = p.borrow().iter().last() {
+                    for (key, val) in p.borrow().iter() {
+                        write!(f, "(Private) {}: {}", key, val.value.clone())?;
+                        if key != last_key {
+                            write!(f, ", ")?;
                         }
                     }
-                    None => (),
                 };
-                write!(f, "{}", "}")
+                write!(f, "}}")
             }
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
-                Function::NativeFunc(_) => write!(f, "{}", "function() { [native code] }"),
+                Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
                 Function::RegularFunc(ref rf) => {
                     write!(f, "function({}){}", rf.args.join(", "), rf.expr)
                 }
@@ -539,7 +515,7 @@ impl Display for ValueData {
 }
 
 impl PartialEq for ValueData {
-    fn eq(&self, other: &ValueData) -> bool {
+    fn eq(&self, other: &Self) -> bool {
         match (self.clone(), other.clone()) {
             // TODO: fix this
             // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
@@ -562,73 +538,72 @@ impl PartialEq for ValueData {
 }
 
 impl Add for ValueData {
-    type Output = ValueData;
-    fn add(self, other: ValueData) -> ValueData {
-        return match (self.clone(), other.clone()) {
-            (ValueData::String(ref s), ref other) | (ref other, ValueData::String(ref s)) => {
-                ValueData::String(s.clone() + &other.to_string())
-            }
-            (_, _) => ValueData::Number(self.to_num() + other.to_num()),
-        };
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        match (self, other) {
+            (ValueData::String(ref s), ref o) => ValueData::String(s.clone() + &o.to_string()),
+            (ref s, ValueData::String(ref o)) => ValueData::String(s.to_string() + o),
+            (ref s, ref o) => ValueData::Number(s.to_num() + o.to_num()),
+        }
     }
 }
 impl Sub for ValueData {
-    type Output = ValueData;
-    fn sub(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
         ValueData::Number(self.to_num() - other.to_num())
     }
 }
 impl Mul for ValueData {
-    type Output = ValueData;
-    fn mul(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self {
         ValueData::Number(self.to_num() * other.to_num())
     }
 }
 impl Div for ValueData {
-    type Output = ValueData;
-    fn div(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn div(self, other: Self) -> Self {
         ValueData::Number(self.to_num() / other.to_num())
     }
 }
 impl Rem for ValueData {
-    type Output = ValueData;
-    fn rem(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn rem(self, other: Self) -> Self {
         ValueData::Number(self.to_num() % other.to_num())
     }
 }
 impl BitAnd for ValueData {
-    type Output = ValueData;
-    fn bitand(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn bitand(self, other: Self) -> Self {
         ValueData::Integer(self.to_int() & other.to_int())
     }
 }
 impl BitOr for ValueData {
-    type Output = ValueData;
-    fn bitor(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn bitor(self, other: Self) -> Self {
         ValueData::Integer(self.to_int() | other.to_int())
     }
 }
 impl BitXor for ValueData {
-    type Output = ValueData;
-    fn bitxor(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn bitxor(self, other: Self) -> Self {
         ValueData::Integer(self.to_int() ^ other.to_int())
     }
 }
 impl Shl for ValueData {
-    type Output = ValueData;
-    fn shl(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn shl(self, other: Self) -> Self {
         ValueData::Integer(self.to_int() << other.to_int())
     }
 }
 impl Shr for ValueData {
-    type Output = ValueData;
-    fn shr(self, other: ValueData) -> ValueData {
+    type Output = Self;
+    fn shr(self, other: Self) -> Self {
         ValueData::Integer(self.to_int() >> other.to_int())
     }
 }
 impl Not for ValueData {
-    type Output = ValueData;
-    fn not(self) -> ValueData {
+    type Output = Self;
+    fn not(self) -> Self {
         ValueData::Boolean(!self.is_true())
     }
 }
@@ -653,7 +628,7 @@ impl ToValue for String {
 }
 
 impl FromValue for String {
-    fn from_value(v: Value) -> Result<String, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(v.to_string())
     }
 }
@@ -670,7 +645,7 @@ impl ToValue for char {
     }
 }
 impl FromValue for char {
-    fn from_value(v: Value) -> Result<char, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(v.to_string().chars().next().unwrap())
     }
 }
@@ -681,7 +656,7 @@ impl ToValue for f64 {
     }
 }
 impl FromValue for f64 {
-    fn from_value(v: Value) -> Result<f64, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(v.to_num())
     }
 }
@@ -692,7 +667,7 @@ impl ToValue for i32 {
     }
 }
 impl FromValue for i32 {
-    fn from_value(v: Value) -> Result<i32, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(v.to_int())
     }
 }
@@ -703,7 +678,7 @@ impl ToValue for usize {
     }
 }
 impl FromValue for usize {
-    fn from_value(v: Value) -> Result<usize, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(v.to_int() as usize)
     }
 }
@@ -714,7 +689,7 @@ impl ToValue for bool {
     }
 }
 impl FromValue for bool {
-    fn from_value(v: Value) -> Result<bool, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(v.is_true())
     }
 }
@@ -722,10 +697,8 @@ impl FromValue for bool {
 impl<'s, T: ToValue> ToValue for &'s [T] {
     fn to_value(&self) -> Value {
         let mut arr = HashMap::new();
-        let mut i = 0;
-        for item in self.iter() {
+        for (i, item) in self.iter().enumerate() {
             arr.insert(i.to_string(), Property::new(item.to_value()));
-            i += 1;
         }
         to_value(arr)
     }
@@ -733,21 +706,19 @@ impl<'s, T: ToValue> ToValue for &'s [T] {
 impl<T: ToValue> ToValue for Vec<T> {
     fn to_value(&self) -> Value {
         let mut arr = HashMap::new();
-        let mut i = 0;
-        for item in self.iter() {
+        for (i, item) in self.iter().enumerate() {
             arr.insert(i.to_string(), Property::new(item.to_value()));
-            i += 1;
         }
         to_value(arr)
     }
 }
 
 impl<T: FromValue> FromValue for Vec<T> {
-    fn from_value(v: Value) -> Result<Vec<T>, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         let len = v.get_field_slice("length").to_int();
-        let mut vec = Vec::with_capacity(len as usize);
+        let mut vec = Self::with_capacity(len as usize);
         for i in 0..len {
-            vec.push(from_value(v.get_field(i.to_string()))?)
+            vec.push(from_value(v.get_field(&i.to_string()))?)
         }
         Ok(vec)
     }
@@ -755,7 +726,7 @@ impl<T: FromValue> FromValue for Vec<T> {
 
 impl ToValue for ObjectData {
     fn to_value(&self) -> Value {
-        let private_obj: ObjectData = HashMap::new();
+        let private_obj: Self = HashMap::new();
         Gc::new(ValueData::Object(
             GcCell::new(self.clone()),
             GcCell::new(private_obj),
@@ -764,7 +735,7 @@ impl ToValue for ObjectData {
 }
 
 impl FromValue for ObjectData {
-    fn from_value(v: Value) -> Result<ObjectData, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         match *v {
             ValueData::Object(ref obj, _) => Ok(obj.clone().into_inner()),
             ValueData::Function(ref func) => Ok(match *func.borrow().deref() {
@@ -783,7 +754,7 @@ impl ToValue for JSONValue {
 }
 
 impl FromValue for JSONValue {
-    fn from_value(v: Value) -> Result<JSONValue, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(v.to_json())
     }
 }
@@ -808,7 +779,7 @@ impl<T: ToValue> ToValue for Option<T> {
     }
 }
 impl<T: FromValue> FromValue for Option<T> {
-    fn from_value(value: Value) -> Result<Option<T>, &'static str> {
+    fn from_value(value: Value) -> Result<Self, &'static str> {
         Ok(if value.is_null_or_undefined() {
             None
         } else {
@@ -825,7 +796,7 @@ impl ToValue for NativeFunctionData {
     }
 }
 impl FromValue for NativeFunctionData {
-    fn from_value(v: Value) -> Result<NativeFunctionData, &'static str> {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
         match *v {
             ValueData::Function(ref func) => match *func.borrow() {
                 Function::NativeFunc(ref data) => Ok(data.data),
@@ -836,12 +807,12 @@ impl FromValue for NativeFunctionData {
     }
 }
 
-/// A utility function that just calls FromValue::from_value
+/// A utility function that just calls `FromValue::from_value`
 pub fn from_value<A: FromValue>(v: Value) -> Result<A, &'static str> {
     FromValue::from_value(v)
 }
 
-/// A utility function that just calls ToValue::to_value
+/// A utility function that just calls `ToValue::to_value`
 pub fn to_value<A: ToValue>(v: A) -> Value {
     v.to_value()
 }

@@ -1,5 +1,7 @@
-use crate::js::function::NativeFunctionData;
-use crate::js::value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData};
+use crate::js::{
+    function::NativeFunctionData,
+    value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData},
+};
 use gc::Gc;
 use std::collections::HashMap;
 
@@ -34,12 +36,12 @@ pub struct Property {
 
 impl Property {
     /// Make a new property with the given value
-    pub fn new(value: Value) -> Property {
-        Property {
+    pub fn new(value: Value) -> Self {
+        Self {
             configurable: false,
             enumerable: false,
             writable: false,
-            value: value,
+            value,
             get: Gc::new(ValueData::Undefined),
             set: Gc::new(ValueData::Undefined),
         }
@@ -60,8 +62,8 @@ impl ToValue for Property {
 }
 
 impl FromValue for Property {
-    fn from_value(v: Value) -> Result<Property, &'static str> {
-        Ok(Property {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
+        Ok(Self {
             configurable: from_value(v.get_field_slice("configurable")).unwrap(),
             enumerable: from_value(v.get_field_slice("enumerable")).unwrap(),
             writable: from_value(v.get_field_slice("writable")).unwrap(),
@@ -107,13 +109,13 @@ pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 
 /// Check if it has a property
 pub fn has_own_prop(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    let prop = if args.len() == 0 {
+    let prop = if args.is_empty() {
         None
     } else {
         from_value::<String>(args.get(0).unwrap().clone()).ok()
     };
     Ok(to_value(
-        prop.is_some() && this.get_prop(prop.unwrap()).is_some(),
+        prop.is_some() && this.get_prop(&prop.unwrap()).is_some(),
     ))
 }
 
@@ -126,7 +128,7 @@ pub fn _create(global: &Value) -> Value {
         to_value(has_own_prop as NativeFunctionData),
     );
     prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
-    object.set_field_slice("length", to_value(1i32));
+    object.set_field_slice("length", to_value(1_i32));
     object.set_field_slice(PROTOTYPE, prototype);
     object.set_field_slice(
         "setPrototypeOf",

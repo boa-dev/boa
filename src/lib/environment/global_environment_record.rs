@@ -5,7 +5,7 @@
 //! A global Environment Record provides the bindings for built-in globals (clause 18),
 //! properties of the global object, and for all top-level declarations (13.2.8, 13.2.10)
 //! that occur within a Script.
-//! More info:  https://tc39.github.io/ecma262/#sec-global-environment-records
+//! More info:  <https://tc39.github.io/ecma262/#sec-global-environment-records>
 
 use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecord;
 use crate::environment::environment_record_trait::EnvironmentRecordTrait;
@@ -15,7 +15,7 @@ use crate::js::value::{Value, ValueData};
 use gc::Gc;
 use std::collections::HashSet;
 
-#[derive(Trace, Finalize, Clone)]
+#[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: Box<ObjectEnvironmentRecord>,
     pub global_this_binding: Value,
@@ -25,23 +25,23 @@ pub struct GlobalEnvironmentRecord {
 
 impl GlobalEnvironmentRecord {
     pub fn get_this_binding(&self) -> Value {
-        return self.global_this_binding.clone();
+        self.global_this_binding.clone()
     }
 
-    pub fn has_var_decleration(&self, name: &String) -> bool {
-        return self.var_names.contains(name);
+    pub fn has_var_decleration(&self, name: &str) -> bool {
+        self.var_names.contains(name)
     }
 
-    pub fn has_lexical_decleration(&self, name: &String) -> bool {
+    pub fn has_lexical_decleration(&self, name: &str) -> bool {
         self.declerative_record.has_binding(name)
     }
 
-    pub fn has_restricted_global_property(&self, name: &String) -> bool {
+    pub fn has_restricted_global_property(&self, name: &str) -> bool {
         let global_object = &self.object_record.bindings;
-        let existing_prop = global_object.get_prop(name.clone());
+        let existing_prop = global_object.get_prop(name);
         match existing_prop {
             Some(prop) => {
-                if prop.value.is_undefined() || prop.configurable == true {
+                if prop.value.is_undefined() || prop.configurable {
                     return false;
                 }
                 true
@@ -53,35 +53,24 @@ impl GlobalEnvironmentRecord {
     pub fn create_global_var_binding(&mut self, name: String, deletion: bool) {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
-        let has_property = global_object.has_field(name.clone());
+        let has_property = global_object.has_field(&name);
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
             obj_rec.create_mutable_binding(name.clone(), deletion);
-            obj_rec.initialize_binding(name.clone(), Gc::new(ValueData::Undefined));
+            obj_rec.initialize_binding(&name, Gc::new(ValueData::Undefined));
         }
 
         let var_declared_names = &mut self.var_names;
         if !var_declared_names.contains(&name) {
-            var_declared_names.insert(name.clone());
+            var_declared_names.insert(name);
         }
     }
 
-    pub fn create_global_function_binding(&mut self, name: String, value: Value, deletion: bool) {
+    pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {
         let global_object = &mut self.object_record.bindings;
-        let existing_prop = global_object.get_prop(name.clone());
-        match existing_prop {
-            Some(prop) => {
-                if prop.value.is_undefined() || prop.configurable {
-                    global_object.update_prop(
-                        name,
-                        Some(value),
-                        Some(true),
-                        Some(true),
-                        Some(deletion),
-                    );
-                }
-            }
-            None => {
+        let existing_prop = global_object.get_prop(&name);
+        if let Some(prop) = existing_prop {
+            if prop.value.is_undefined() || prop.configurable {
                 global_object.update_prop(
                     name,
                     Some(value),
@@ -90,12 +79,14 @@ impl GlobalEnvironmentRecord {
                     Some(deletion),
                 );
             }
+        } else {
+            global_object.update_prop(name, Some(value), Some(true), Some(true), Some(deletion));
         }
     }
 }
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
-    fn has_binding(&self, name: &String) -> bool {
+    fn has_binding(&self, name: &str) -> bool {
         if self.declerative_record.has_binding(name) {
             return true;
         }
@@ -121,18 +112,16 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
             .create_immutable_binding(name.clone(), strict)
     }
 
-    fn initialize_binding(&mut self, name: String, value: Value) {
+    fn initialize_binding(&mut self, name: &str, value: Value) {
         if self.declerative_record.has_binding(&name) {
             // TODO: assert binding is in the object environment record
-            return self
-                .declerative_record
-                .initialize_binding(name.clone(), value);
+            return self.declerative_record.initialize_binding(name, value);
         }
 
         panic!("Should not initialized binding without creating first.");
     }
 
-    fn set_mutable_binding(&mut self, name: String, value: Value, strict: bool) {
+    fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
         if self.declerative_record.has_binding(&name) {
             return self
                 .declerative_record
@@ -141,25 +130,25 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         self.object_record.set_mutable_binding(name, value, strict)
     }
 
-    fn get_binding_value(&self, name: String, strict: bool) -> Value {
+    fn get_binding_value(&self, name: &str, strict: bool) -> Value {
         if self.declerative_record.has_binding(&name) {
             return self.declerative_record.get_binding_value(name, strict);
         }
-        return self.object_record.get_binding_value(name, strict);
+        self.object_record.get_binding_value(name, strict)
     }
 
-    fn delete_binding(&mut self, name: String) -> bool {
+    fn delete_binding(&mut self, name: &str) -> bool {
         if self.declerative_record.has_binding(&name) {
-            return self.declerative_record.delete_binding(name.clone());
+            return self.declerative_record.delete_binding(name);
         }
 
         let global: &Value = &self.object_record.bindings;
-        if global.has_field(name.clone()) {
-            let status = self.object_record.delete_binding(name.clone());
+        if global.has_field(name) {
+            let status = self.object_record.delete_binding(name);
             if status {
                 let var_names = &mut self.var_names;
-                if var_names.contains(&name) {
-                    var_names.remove(&name);
+                if var_names.contains(name) {
+                    var_names.remove(name);
                     return status;
                 }
             }
@@ -188,7 +177,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
-        return EnvironmentType::Global;
+        EnvironmentType::Global
     }
 
     fn get_global_object(&self) -> Option<Value> {

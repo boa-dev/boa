@@ -5,7 +5,7 @@ use gc::Gc;
 
 /// Create a new error
 pub fn make_error(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    if args.len() >= 1 {
+    if !args.is_empty() {
         this.set_field_slice("message", to_value(args.get(0).unwrap().to_string()));
     }
     Ok(Gc::new(ValueData::Undefined))

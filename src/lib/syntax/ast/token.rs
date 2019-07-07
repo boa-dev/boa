@@ -1,6 +1,4 @@
-use crate::syntax::ast::keyword::Keyword;
-use crate::syntax::ast::pos::Position;
-use crate::syntax::ast::punc::Punctuator;
+use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
 use std::fmt::{Debug, Display, Formatter, Result};
 
 #[derive(Clone, PartialEq)]
@@ -15,9 +13,9 @@ pub struct Token {
 
 impl Token {
     /// Create a new detailed token from the token data, line number and column number
-    pub fn new(data: TokenData, line_number: u64, column_number: u64) -> Token {
-        Token {
-            data: data,
+    pub fn new(data: TokenData, line_number: u64, column_number: u64) -> Self {
+        Self {
+            data,
             pos: Position::new(line_number, column_number),
         }
     }
@@ -68,17 +66,17 @@ pub enum TokenData {
 
 impl Display for TokenData {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        match self.clone() {
-            TokenData::BooleanLiteral(val) => write!(f, "{}", val),
+        match *self {
+            TokenData::BooleanLiteral(ref val) => write!(f, "{}", val),
             TokenData::EOF => write!(f, "end of file"),
-            TokenData::Identifier(ident) => write!(f, "{}", ident),
-            TokenData::Keyword(word) => write!(f, "{}", word),
+            TokenData::Identifier(ref ident) => write!(f, "{}", ident),
+            TokenData::Keyword(ref word) => write!(f, "{}", word),
             TokenData::NullLiteral => write!(f, "null"),
-            TokenData::NumericLiteral(num) => write!(f, "{}", num),
-            TokenData::Punctuator(punc) => write!(f, "{}", punc),
-            TokenData::StringLiteral(lit) => write!(f, "{}", lit),
-            TokenData::RegularExpression(reg) => write!(f, "{}", reg),
-            TokenData::Comment(comm) => write!(f, "/*{}*/", comm),
+            TokenData::NumericLiteral(ref num) => write!(f, "{}", num),
+            TokenData::Punctuator(ref punc) => write!(f, "{}", punc),
+            TokenData::StringLiteral(ref lit) => write!(f, "{}", lit),
+            TokenData::RegularExpression(ref reg) => write!(f, "{}", reg),
+            TokenData::Comment(ref comm) => write!(f, "/*{}*/", comm),
         }
     }
 }
