@@ -55,3 +55,7 @@ Feel free to contact us on Discord https://discord.gg/tUFFk9Y
 #### Example
 
 ![Example](docs/img/latestDemo.gif)
+
+### License
+
+This project is licensed under the Unlicense or MIT licenses, at your option.
