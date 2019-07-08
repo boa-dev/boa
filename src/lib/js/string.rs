@@ -19,6 +19,9 @@ pub fn make_string(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // this.set_field_slice("length", to_value(a.len() as i32));
 
     this.set_private_field_slice("PrimitiveValue", args[0].clone());
+    // This value is used by console.log and other routines to match Object type
+    // to its Javascript Identifier (global constructor method name)
+    this.set_private_field_slice("type", to_value("String"));
     Ok(this)
 }
 

@@ -41,6 +41,9 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
     this.set_field_slice("length", to_value(0_i32));
+    // This value is used by console.log and other routines to match Object type
+    // to its Javascript Identifier (global constructor method name)
+    this.set_private_field_slice("type", to_value("Array"));
     match args.len() {
         0 => create_array_object(this, Vec::new()),
         1 => {

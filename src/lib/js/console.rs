@@ -6,39 +6,73 @@ use gc::Gc;
 use std::fmt::Write;
 use std::iter::FromIterator;
 
-/// Print a javascript value to the standard output stream
-/// <https://console.spec.whatwg.org/#logger>
-pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    let args: Vec<String> = FromIterator::from_iter(args.iter().map(|x| {
-        // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
-        // The input is a vector of Values, we generate a vector of strings then pass them to println!
-        match *x.clone() {
-            // We don't want to print private (compiler) or prototype properties
-            ValueData::Object(ref v, _) => {
-                // Create empty formatted string to start writing to
-                // TODO: once constructor is set on objects, we can do specific output for Strings, Numbers etc
-                let mut s = String::new();
-                write!(s, "{{").unwrap();
-                if let Some((last_key, _)) = v.borrow().iter().last() {
-                    for (key, val) in v.borrow().iter() {
-                        // Don't print prototype properties
-                        if key == INSTANCE_PROTOTYPE {
-                            continue;
-                        }
-                        write!(s, "{}: {}", key, val.value.clone()).unwrap();
-                        if key != last_key {
+/// Create the String representation of the Javascript object or primitive for
+/// printing
+fn log_string_from(x: Value) -> String {
+    match *x {
+        // We don't want to print private (compiler) or prototype properties
+        ValueData::Object(ref v, ref p) => {
+            // Create empty formatted string to start writing to
+            let mut s = String::new();
+            // Can use the private "type" field of an Object to match on
+            // which type of Object it represents for special printing
+            let obj_type: String = match p.borrow().get("type") {
+                Some(type_val) => from_value(type_val.value.clone()).unwrap(),
+                None => String::new(),
+            };
+            match &obj_type[..] {
+                "String" => {
+                    let str_val: String = from_value(p.borrow().get("PrimitiveValue").unwrap().value.clone()).unwrap();
+                    write!(s, "{}", str_val).unwrap();
+                }
+                "Array" => {
+                    write!(s, "[").unwrap();
+                    let len: i32 = from_value(v.borrow().get("length").unwrap().value.clone()).unwrap();
+                    for i in 0..len {
+                        // Introduce recursive call to stringify any objects
+                        // which are part of the Array
+                        let arr_str = log_string_from(v.borrow().get(&i.to_string()).unwrap().value.clone());
+                        write!(s, "{}", arr_str).unwrap();
+                        if i != len - 1 {
                             write!(s, ", ").unwrap();
                         }
                     }
+                    write!(s, "]").unwrap();
                 }
-                write!(s, "}}").unwrap();
-                s
+                _ => {
+                    write!(s, "{{").unwrap();
+                    if let Some((last_key, _)) = v.borrow().iter().last() {
+                        for (key, val) in v.borrow().iter() {
+                            // Don't print prototype properties
+                            if key == INSTANCE_PROTOTYPE {
+                                continue;
+                            }
+                            // Introduce recursive call to stringify any objects
+                            // which are keys of the object
+                            write!(s, "{}: {}", key, log_string_from(val.value.clone())).unwrap();
+                            if key != last_key {
+                                write!(s, ", ").unwrap();
+                            }
+                        }
+                    }
+                    write!(s, "}}").unwrap();
+                }
             }
-
-            _ => from_value::<String>(x.clone()).unwrap(),
+            s
         }
 
-        // from_value::<String>(x.clone()).unwrap()
+        _ => from_value::<String>(x.clone()).unwrap(),
+    }
+}
+
+/// Print a javascript value to the standard output stream
+/// <https://console.spec.whatwg.org/#logger>
+pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
+    // The input is a vector of Values, we generate a vector of strings then
+    // pass them to println!
+    let args: Vec<String> = FromIterator::from_iter(args.iter().map(|x| {
+        log_string_from(x.clone())
     }));
 
     println!(
