@@ -8,7 +8,6 @@ use crate::syntax::ast::expr::{Expr, ExprDef};
 use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp};
 use gc::{Gc, GcCell};
 use std::borrow::Borrow;
-use std::collections::HashMap;
 
 /// An execution engine
 pub trait Executor {
@@ -287,10 +286,7 @@ impl Executor for Interpreter {
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
                 }
-                let this = Gc::new(ValueData::Object(
-                    GcCell::new(HashMap::new()),
-                    GcCell::new(HashMap::new()),
-                ));
+                let this = ValueData::new_obj(None);
                 // Create a blank object, then set its __proto__ property to the [Constructor].prototype
                 this.borrow()
                     .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));

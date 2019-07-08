@@ -239,8 +239,8 @@ impl Parser {
                             loop {
                                 match self.get_token(self.pos)?.data {
                                     TokenData::Keyword(Keyword::Case)
-                                    | TokenData::Keyword(Keyword::Default) => break,
-                                    TokenData::Punctuator(Punctuator::CloseBlock) => break,
+                                    | TokenData::Keyword(Keyword::Default)
+                                    | TokenData::Punctuator(Punctuator::CloseBlock) => break,
                                     _ => block.push(self.parse()?),
                                 }
                             }
@@ -252,8 +252,8 @@ impl Parser {
                             loop {
                                 match self.get_token(self.pos)?.data {
                                     TokenData::Keyword(Keyword::Case)
-                                    | TokenData::Keyword(Keyword::Default) => break,
-                                    TokenData::Punctuator(Punctuator::CloseBlock) => break,
+                                    | TokenData::Keyword(Keyword::Default)
+                                    | TokenData::Punctuator(Punctuator::CloseBlock) => break,
                                     _ => block.push(self.parse()?),
                                 }
                             }

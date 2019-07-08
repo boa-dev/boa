@@ -14,13 +14,13 @@ pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
         // The input is a vector of Values, we generate a vector of strings then pass them to println!
         match *x.clone() {
             // We don't want to print private (compiler) or prototype properties
-            ValueData::Object(ref v, _) => {
+            ValueData::Object(ref v) => {
                 // Create empty formatted string to start writing to
                 // TODO: once constructor is set on objects, we can do specific output for Strings, Numbers etc
                 let mut s = String::new();
                 write!(s, "{{").unwrap();
-                if let Some((last_key, _)) = v.borrow().iter().last() {
-                    for (key, val) in v.borrow().iter() {
+                if let Some((last_key, _)) = v.borrow().properties.iter().last() {
+                    for (key, val) in v.borrow().properties.iter() {
                         // Don't print prototype properties
                         if key == INSTANCE_PROTOTYPE {
                             continue;

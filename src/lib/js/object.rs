@@ -18,14 +18,25 @@ pub static INSTANCE_PROTOTYPE: &'static str = "__proto__";
 pub struct ObjectData {
     /// Kind
     pub kind: ObjectKind,
-    /// Internal Slots \[\[Prototype\]\]
-    pub slots: HashMap<String, Value>,
+    /// Internal Slots
+    pub internal_slots: HashMap<String, Value>,
     /// Properties
     pub properties: HashMap<String, Property>,
     /// Symbol Properties
-    pub sym_properties: HashMap<usize, Property>
+    pub sym_properties: HashMap<usize, Property>,
 }
 
+impl ObjectData {
+    /// Return a new ObjectData struct, with `kind` set to Ordinary
+    pub fn default() -> ObjectData {
+        ObjectData {
+            kind: ObjectKind::Ordinary,
+            internal_slots: HashMap::new(),
+            properties: HashMap::new(),
+            sym_properties: HashMap::new(),
+        }
+    }
+}
 #[derive(Trace, Finalize, Clone, Debug)]
 pub enum ObjectKind {
     Function,
