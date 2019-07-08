@@ -1,6 +1,6 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
-    object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
+    object::{ObjectData, ObjectKind, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
 };
 use gc::{Gc, GcCell};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
@@ -35,9 +35,7 @@ pub enum ValueData {
     /// `Number` - A 32-bit integer, such as `42`
     Integer(i32),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
-    /// Some Objects will need an internal slot to hold private values, so our second ObjectData is for that
-    /// The second object storage is optional for now
-    Object(GcCell<ObjectData>, GcCell<ObjectData>),
+    Object(GcCell<ObjectData>),
     /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
     Function(GcCell<Function>),
 }
@@ -45,29 +43,37 @@ pub enum ValueData {
 impl ValueData {
     /// Returns a new empty object
     pub fn new_obj(global: Option<&Value>) -> Value {
-        let mut obj: ObjectData = HashMap::new();
-        let private_obj: ObjectData = HashMap::new();
+        let mut obj = ObjectData {
+            kind: ObjectKind::Ordinary,
+            slots: HashMap::new(),
+            properties: HashMap::new(),
+            sym_properties: HashMap::new()
+        };
+
         if global.is_some() {
             let obj_proto = global
                 .unwrap()
                 .get_field_slice("Object")
                 .get_field_slice(PROTOTYPE);
-            obj.insert(INSTANCE_PROTOTYPE.to_string(), Property::new(obj_proto));
+            obj.properties.insert(INSTANCE_PROTOTYPE.to_string(), Property::new(obj_proto));
         }
         Gc::new(ValueData::Object(
-            GcCell::new(obj),
-            GcCell::new(private_obj),
+            GcCell::new(obj)
         ))
     }
 
     /// Similar to `new_obj`, but you can pass a prototype to create from
     pub fn new_obj_from_prototype(proto: Value) -> Value {
-        let mut obj: ObjectData = HashMap::new();
-        let private_obj: ObjectData = HashMap::new();
-        obj.insert(INSTANCE_PROTOTYPE.to_string(), Property::new(proto));
+        let mut obj = ObjectData {
+            kind: ObjectKind::Ordinary,
+            slots: HashMap::new(),
+            properties: HashMap::new(),
+            sym_properties: HashMap::new()
+        };
+
+        obj.slots.insert(INSTANCE_PROTOTYPE.to_string(), proto);
         Gc::new(ValueData::Object(
             GcCell::new(obj),
-            GcCell::new(private_obj),
         ))
     }
 
@@ -82,7 +88,7 @@ impl ValueData {
     /// Returns true if the value is an object
     pub fn is_object(&self) -> bool {
         match *self {
-            ValueData::Object(_, _) => true,
+            ValueData::Object(_) => true,
             _ => false,
         }
     }
@@ -139,7 +145,7 @@ impl ValueData {
     /// [toBoolean](https://tc39.github.io/ecma262/#sec-toboolean)
     pub fn is_true(&self) -> bool {
         match *self {
-            ValueData::Object(_, _) => true,
+            ValueData::Object(_) => true,
             ValueData::String(ref s) if !s.is_empty() => true,
             ValueData::Number(n) if n != 0.0 && !n.is_nan() => true,
             ValueData::Integer(n) if n != 0 => true,
@@ -151,7 +157,7 @@ impl ValueData {
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
         match *self {
-            ValueData::Object(_, _) | ValueData::Undefined | ValueData::Function(_) => NAN,
+            ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => NAN,
             ValueData::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => NAN,
@@ -166,7 +172,7 @@ impl ValueData {
     /// Converts the value into a 32-bit integer
     pub fn to_int(&self) -> i32 {
         match *self {
-            ValueData::Object(_, _)
+            ValueData::Object(_)
             | ValueData::Undefined
             | ValueData::Null
             | ValueData::Boolean(false)
@@ -185,7 +191,7 @@ impl ValueData {
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
     pub fn remove_prop(&self, field: &str) {
         match *self {
-            ValueData::Object(ref obj, _) => obj.borrow_mut().deref_mut().remove(field),
+            ValueData::Object(ref obj) => obj.borrow_mut().deref_mut().property.remove(field),
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
             ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
                 Function::NativeFunc(ref mut func) => func.object.remove(field),

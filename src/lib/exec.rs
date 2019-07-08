@@ -380,7 +380,7 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
-                    ValueData::Null | ValueData::Object(_, _) => "object",
+                    ValueData::Null | ValueData::Object(_) => "object",
                     ValueData::Boolean(_) => "boolean",
                     ValueData::Number(_) | ValueData::Integer(_) => "number",
                     ValueData::String(_) => "string",
