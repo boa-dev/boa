@@ -340,6 +340,86 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(highest_index))
 }
 
+/// Abstract method StringPad
+/// Performs the actual string padding for padStart/End.
+/// https://tc39.es/ecma262/#sec-stringpad
+fn string_pad(
+    primitive: String,
+    max_length: i32,
+    fill_string: Option<String>,
+    at_start: bool,
+) -> ResultValue {
+    let primitive_length = primitive.len() as i32;
+
+    if max_length <= primitive_length {
+        return Ok(to_value(primitive));
+    }
+
+    let filler = match fill_string {
+        Some(filler) => filler,
+        None => String::from(" "),
+    };
+
+    if filler == String::from("") {
+        return Ok(to_value(primitive));
+    }
+
+    let fill_len = max_length - primitive_length;
+    let mut fill_str = String::new();
+
+    while fill_str.len() < fill_len as usize {
+        fill_str.push_str(&filler);
+    }
+    // Cut to size max_length
+    let concat_fill_str: String = fill_str.chars().take(fill_len as usize).collect();
+
+    if at_start {
+        return Ok(to_value(concat_fill_str + &primitive));
+    } else {
+        return Ok(to_value(primitive + &concat_fill_str));
+    }
+}
+
+/// String.prototype.padEnd ( maxLength [ , fillString ] )
+///
+/// Pads the string with the given filler at the end of the string.
+/// Filler defaults to single space.
+/// https://tc39.es/ecma262/#sec-string.prototype.padend
+pub fn pad_end(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    if args.len() < 1 {
+        return Err(to_value("padEnd requires maxLength argument"));
+    }
+    let max_length = from_value(args[0].clone()).unwrap();
+    let fill_string: Option<String> = match args.len() {
+        1 => None,
+        _ => Some(from_value(args[1].clone()).unwrap()),
+    };
+
+    string_pad(primitive_val, max_length, fill_string, false)
+}
+
+/// String.prototype.padStart ( maxLength [ , fillString ] )
+///
+/// Pads the string with the given filler at the start of the string.
+/// Filler defaults to single space.
+/// https://tc39.es/ecma262/#sec-string.prototype.padstart
+pub fn pad_start(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    let primitive_val: String =
+        from_value(this.get_private_field(String::from("PrimitiveValue"))).unwrap();
+    if args.len() < 1 {
+        return Err(to_value("padStart requires maxLength argument"));
+    }
+    let max_length = from_value(args[0].clone()).unwrap();
+    let fill_string: Option<String> = match args.len() {
+        1 => None,
+        _ => Some(from_value(args[1].clone()).unwrap()),
+    };
+
+    string_pad(primitive_val, max_length, fill_string, true)
+}
+
 fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
@@ -399,6 +479,8 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
     proto.set_field_slice("indexOf", to_value(index_of as NativeFunctionData));
     proto.set_field_slice("lastIndexOf", to_value(last_index_of as NativeFunctionData));
+    proto.set_field_slice("padEnd", to_value(pad_end as NativeFunctionData));
+    proto.set_field_slice("padStart", to_value(pad_start as NativeFunctionData));
     proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
     proto.set_field_slice("trimStart", to_value(trim_start as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
