@@ -22,16 +22,20 @@ fn log_string_from(x: Value) -> String {
             };
             match &obj_type[..] {
                 "String" => {
-                    let str_val: String = from_value(p.borrow().get("PrimitiveValue").unwrap().value.clone()).unwrap();
+                    let str_val: String =
+                        from_value(p.borrow().get("PrimitiveValue").unwrap().value.clone())
+                            .unwrap();
                     write!(s, "{}", str_val).unwrap();
                 }
                 "Array" => {
                     write!(s, "[").unwrap();
-                    let len: i32 = from_value(v.borrow().get("length").unwrap().value.clone()).unwrap();
+                    let len: i32 =
+                        from_value(v.borrow().get("length").unwrap().value.clone()).unwrap();
                     for i in 0..len {
                         // Introduce recursive call to stringify any objects
                         // which are part of the Array
-                        let arr_str = log_string_from(v.borrow().get(&i.to_string()).unwrap().value.clone());
+                        let arr_str =
+                            log_string_from(v.borrow().get(&i.to_string()).unwrap().value.clone());
                         write!(s, "{}", arr_str).unwrap();
                         if i != len - 1 {
                             write!(s, ", ").unwrap();
@@ -71,9 +75,8 @@ pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
     // The input is a vector of Values, we generate a vector of strings then
     // pass them to println!
-    let args: Vec<String> = FromIterator::from_iter(args.iter().map(|x| {
-        log_string_from(x.clone())
-    }));
+    let args: Vec<String> =
+        FromIterator::from_iter(args.iter().map(|x| log_string_from(x.clone())));
 
     println!(
         "{}: {}",
