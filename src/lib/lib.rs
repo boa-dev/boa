@@ -32,9 +32,9 @@ pub mod js;
 pub mod syntax;
 
 use crate::exec::{Executor, Interpreter};
+use crate::syntax::ast::expr::Expr;
 use crate::syntax::lexer::Lexer;
 use crate::syntax::parser::Parser;
-use crate::syntax::ast::expr::Expr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]

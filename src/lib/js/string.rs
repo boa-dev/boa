@@ -441,4 +441,19 @@ mod tests {
         // TODO: fix next line
         //assert_eq!(c, String::from("2"));
     }
+
+    #[test]
+    fn concat() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const hello = "Hello, ";
+        const world = "world! ";
+        const nice = "Have a nice day."
+        "#;
+        forward(&mut engine, init);
+        let a = dbg!(forward(&mut engine, "hello.concat(world, nice)"));
+        let b = dbg!(forward(&mut engine, "hello + world + nice"));
+        //assert_eq!(a, String::from("Hello, world! Have a nice day."));
+        assert_eq!(b, String::from("Hello, world! Have a nice day."));
+    }
 }
