@@ -147,8 +147,8 @@ pub fn join(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 
 /// Array.prototype.reverse ( )
-/// 
-/// The elements of the array are rearranged so as to reverse their order. 
+///
+/// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
 /// https://tc39.es/ecma262/#sec-array.prototype.reverse
 pub fn reverse(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
@@ -180,7 +180,7 @@ pub fn reverse(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 }
 
 /// Array.prototype.shift ( )
-/// 
+///
 /// The first element of the array is removed from the array and returned.
 /// https://tc39.es/ecma262/#sec-array.prototype.shift
 pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
@@ -216,14 +216,14 @@ pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 ///
 /// The arguments are prepended to the start of the array, such that their order
 /// within the array is the same as the order in which they appear in the
-/// argument list. 
+/// argument list.
 /// https://tc39.es/ecma262/#sec-array.prototype.unshift
 pub fn unshift(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
     let argc: i32 = args.len() as i32;
 
     if argc > 0 {
-        for k in len..0 {
+        for k in (1..=len).rev() {
             let from = (k - 1).to_string();
             let to = (k + argc - 1).to_string();
 
@@ -235,7 +235,7 @@ pub fn unshift(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
             }
         }
         for j in 0..argc {
-            this.set_field(j.to_string(), args[usize::from(j)]);
+            this.set_field_slice(&j.to_string(), args[j as usize].clone());
         }
     }
 
@@ -266,6 +266,7 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("join", to_value(join as NativeFunctionData));
     proto.set_field_slice("reverse", to_value(reverse as NativeFunctionData));
     proto.set_field_slice("shift", to_value(shift as NativeFunctionData));
+    proto.set_field_slice("unshift", to_value(unshift as NativeFunctionData));
     array.set_field_slice(PROTOTYPE, proto);
     array
 }
