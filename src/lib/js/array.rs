@@ -167,7 +167,34 @@ pub fn _create(global: &Value) -> Value {
     array.set_field_slice(PROTOTYPE, proto);
     array
 }
+
 /// Initialise the global object with the `Array` object
 pub fn init(global: &Value) {
     global.set_field_slice("Array", _create(global));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::exec::Executor;
+    use crate::forward;
+
+    #[test]
+    fn join() {
+        let mut engine = Executor::new();
+        let init = r#"
+        let empty = [ ];
+        let one = ["a"];
+        let many = ["a", "b", "c"];
+        "#;
+        forward(&mut engine, init);
+        // Empty
+        let empty = dbg!(forward(&mut engine, "empty.join('.')"));
+        assert_eq!(empty, String::from(""));
+        // One
+        let one = dbg!(forward(&mut engine, "one.join('.')"));
+        assert_eq!(one, String::from("a"));
+        // Many
+        let many = dbg!(forward(&mut engine, "many.join('.')"));
+        assert_eq!(many, String::from("a.b.c"));
+    }
 }
