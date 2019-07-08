@@ -161,8 +161,8 @@ pub fn reverse(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
         let upper_exists = this.has_field(upper.to_string());
         let lower_exists = this.has_field(lower.to_string());
 
-        let upper_value = this.get_field(upper.to_string());
-        let lower_value = this.get_field(lower.to_string());
+        let upper_value = this.get_field(&upper.to_string());
+        let lower_value = this.get_field(&lower.to_string());
 
         if upper_exists && lower_exists {
             this.set_field(upper.to_string(), lower_value);
@@ -189,7 +189,7 @@ pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     if len == 0 {
         this.set_field_slice("length", to_value(0i32));
         // Since length is 0, this will be an Undefined value
-        return Ok(this.get_field(0.to_string()));
+        return Ok(this.get_field(&0.to_string()));
     }
 
     let first: Value = this.get_field(0.to_string());
@@ -198,11 +198,11 @@ pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
         let from = k.to_string();
         let to = (k - 1).to_string();
 
-        let from_value = this.get_field(from);
-        if from_value != Gc::new(ValueData::Undefined) {
-            this.set_field(to, from_value);
-        } else {
+        let from_value = this.get_field(&from);
+        if from_value == Gc::new(ValueData::Undefined) {
             this.remove_prop(&to);
+        } else {
+            this.set_field(to, from_value);
         }
     }
 
@@ -227,7 +227,7 @@ pub fn unshift(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
             let from = (k - 1).to_string();
             let to = (k + argc - 1).to_string();
 
-            let from_value = this.get_field(from);
+            let from_value = this.get_field(&from);
             if from_value != Gc::new(ValueData::Undefined) {
                 this.set_field(to, from_value);
             } else {
