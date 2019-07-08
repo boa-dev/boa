@@ -19,21 +19,21 @@ pub struct ObjectData {
     /// Kind
     pub kind: ObjectKind,
     /// Internal Slots
-    pub internal_slots: HashMap<String, Value>,
+    pub internal_slots: Box<HashMap<String, Value>>,
     /// Properties
-    pub properties: HashMap<String, Property>,
+    pub properties: Box<HashMap<String, Property>>,
     /// Symbol Properties
-    pub sym_properties: HashMap<usize, Property>,
+    pub sym_properties: Box<HashMap<usize, Property>>,
 }
 
 impl ObjectData {
     /// Return a new ObjectData struct, with `kind` set to Ordinary
     pub fn default() -> ObjectData {
-        ObjectData {
+        Self {
             kind: ObjectKind::Ordinary,
-            internal_slots: HashMap::new(),
-            properties: HashMap::new(),
-            sym_properties: HashMap::new(),
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
         }
     }
 }

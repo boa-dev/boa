@@ -7,6 +7,7 @@ use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     f64::NAN,
     fmt::{self, Display},
+    mem::size_of,
     ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Not, Rem, Shl, Shr, Sub},
     str::FromStr,
 };
@@ -35,7 +36,7 @@ pub enum ValueData {
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
     Object(GcCell<ObjectData>),
     /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
-    Function(GcCell<Function>),
+    Function(Box<GcCell<Function>>),
 }
 
 impl ValueData {
@@ -772,8 +773,8 @@ impl<T: FromValue> FromValue for Option<T> {
 
 impl ToValue for NativeFunctionData {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Function(GcCell::new(Function::NativeFunc(
-            NativeFunction::new(*self),
+        Gc::new(ValueData::Function(Box::new(GcCell::new(
+            Function::NativeFunc(NativeFunction::new(*self)),
         ))))
     }
 }
