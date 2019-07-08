@@ -7,7 +7,6 @@ use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     f64::NAN,
     fmt::{self, Display},
-    mem::size_of,
     ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Not, Rem, Shl, Shr, Sub},
     str::FromStr,
 };
