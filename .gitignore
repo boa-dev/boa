@@ -1,3 +1,8 @@
+# IDE
+.idea/
+*.iml
+
+# Build
 target
 **/*.rs.bk
 node_modules
