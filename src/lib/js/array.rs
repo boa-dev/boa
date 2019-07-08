@@ -158,8 +158,8 @@ pub fn reverse(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     for lower in 0..middle {
         let upper = len - lower - 1;
 
-        let upper_exists = this.has_field(upper.to_string());
-        let lower_exists = this.has_field(lower.to_string());
+        let upper_exists = this.has_field(&upper.to_string());
+        let lower_exists = this.has_field(&lower.to_string());
 
         let upper_value = this.get_field(&upper.to_string());
         let lower_value = this.get_field(&lower.to_string());
@@ -192,7 +192,7 @@ pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
         return Ok(this.get_field(&0.to_string()));
     }
 
-    let first: Value = this.get_field(0.to_string());
+    let first: Value = this.get_field(&0.to_string());
 
     for k in 1..len {
         let from = k.to_string();
