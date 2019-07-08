@@ -179,6 +179,28 @@ mod tests {
     use crate::forward;
 
     #[test]
+    fn concat() {
+        let mut engine = Executor::new();
+        let init = r#"
+        let empty = [ ];
+        let one = [1];
+        "#;
+        forward(&mut engine, init);
+        /// Empty ++ Empty
+        let ee = dbg!(forward(&mut engine, "empty.concat(empty)"));
+        //assert_eq!(ee, String::from(""));
+        /// Empty ++ NonEmpty
+        let en = dbg!(forward(&mut engine, "empty.concat(one)"));
+        assert_eq!(en, String::from("a"));
+        /// NonEmpty ++ Empty
+        let ne = dbg!(forward(&mut engine, "one.concat(empty)"));
+        //assert_eq!(ne, String::from("a.b.c"));
+        /// NonEmpty ++ NonEmpty
+        let nn = dbg!(forward(&mut engine, "one.concat(one)"));
+        //assert_eq!(nn, String::from("a.b.c"));
+    }
+
+    #[test]
     fn join() {
         let mut engine = Executor::new();
         let init = r#"
@@ -187,13 +209,13 @@ mod tests {
         let many = ["a", "b", "c"];
         "#;
         forward(&mut engine, init);
-        // Empty
+        /// Empty
         let empty = dbg!(forward(&mut engine, "empty.join('.')"));
         assert_eq!(empty, String::from(""));
-        // One
+        /// One
         let one = dbg!(forward(&mut engine, "one.join('.')"));
         assert_eq!(one, String::from("a"));
-        // Many
+        /// Many
         let many = dbg!(forward(&mut engine, "many.join('.')"));
         assert_eq!(many, String::from("a.b.c"));
     }
