@@ -1,6 +1,6 @@
 use crate::environment::lexical_environment::{new_function_environment, LexicalEnvironment};
 use crate::js::function::{Function, RegularFunction};
-use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
+use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE, ObjectKind};
 use crate::js::value::{from_value, to_value, ResultValue, ValueData};
 use crate::js::{array, console, function, json, math, object, string};
 use crate::syntax::ast::constant::Const;
@@ -8,7 +8,6 @@ use crate::syntax::ast::expr::{Expr, ExprDef};
 use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp};
 use gc::{Gc, GcCell};
 use std::borrow::Borrow;
-use std::collections::HashMap;
 
 /// An execution engine
 pub trait Executor {
@@ -100,7 +99,7 @@ impl Executor for Interpreter {
                     v_args.push(self.run(arg)?);
                 }
                 match *func {
-                    ValueData::Function(ref inner_func) => match *inner_func.borrow() {
+                    ValueData::Function(ref inner_func) => match *inner_func.as_ref().borrow() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
                             func(this, self.run(callee)?, v_args)
@@ -184,6 +183,8 @@ impl Executor for Interpreter {
             ExprDef::ArrayDeclExpr(ref arr) => {
                 let global_val = &self.environment.get_global_object().unwrap();
                 let arr_map = ValueData::new_obj(Some(global_val));
+                // Note that this object is an Array
+                arr_map.set_kind(ObjectKind::Array);
                 let mut index: i32 = 0;
                 for val in arr.iter() {
                     let val = self.run(val)?;
@@ -203,7 +204,7 @@ impl Executor for Interpreter {
             ExprDef::FunctionDeclExpr(ref name, ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
-                let val = Gc::new(ValueData::Function(GcCell::new(function)));
+                let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
                 if name.is_some() {
                     self.environment
                         .create_mutable_binding(name.clone().unwrap(), false);
@@ -215,7 +216,9 @@ impl Executor for Interpreter {
             ExprDef::ArrowFunctionDeclExpr(ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
-                Ok(Gc::new(ValueData::Function(GcCell::new(function))))
+                Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
+                    function,
+                )))))
             }
             ExprDef::BinOpExpr(BinOp::Num(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
@@ -287,10 +290,7 @@ impl Executor for Interpreter {
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
                 }
-                let this = Gc::new(ValueData::Object(
-                    GcCell::new(HashMap::new()),
-                    GcCell::new(HashMap::new()),
-                ));
+                let this = ValueData::new_obj(None);
                 // Create a blank object, then set its __proto__ property to the [Constructor].prototype
                 this.borrow()
                     .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
@@ -380,7 +380,7 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
-                    ValueData::Null | ValueData::Object(_, _) => "object",
+                    ValueData::Null | ValueData::Object(_) => "object",
                     ValueData::Boolean(_) => "boolean",
                     ValueData::Number(_) | ValueData::Integer(_) => "number",
                     ValueData::String(_) => "string",

@@ -1,5 +1,5 @@
 use crate::js::function::NativeFunctionData;
-use crate::js::object::INSTANCE_PROTOTYPE;
+use crate::js::object::{INSTANCE_PROTOTYPE, ObjectKind};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use chrono::Local;
 use gc::Gc;
@@ -11,31 +11,27 @@ use std::iter::FromIterator;
 fn log_string_from(x: Value) -> String {
     match *x {
         // We don't want to print private (compiler) or prototype properties
-        ValueData::Object(ref v, ref p) => {
+        ValueData::Object(ref v) => {
             // Create empty formatted string to start writing to
             let mut s = String::new();
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
-            let obj_type: String = match p.borrow().get("type") {
-                Some(type_val) => from_value(type_val.value.clone()).unwrap(),
-                None => String::new(),
-            };
-            match &obj_type[..] {
-                "String" => {
+            match v.borrow().kind {
+                ObjectKind::String => {
                     let str_val: String =
-                        from_value(p.borrow().get("PrimitiveValue").unwrap().value.clone())
+                        from_value(v.borrow().internal_slots.get("PrimitiveValue").unwrap().clone())
                             .unwrap();
                     write!(s, "{}", str_val).unwrap();
                 }
-                "Array" => {
+                ObjectKind::Array => {
                     write!(s, "[").unwrap();
                     let len: i32 =
-                        from_value(v.borrow().get("length").unwrap().value.clone()).unwrap();
+                        from_value(v.borrow().properties.get("length").unwrap().value.clone()).unwrap();
                     for i in 0..len {
                         // Introduce recursive call to stringify any objects
                         // which are part of the Array
                         let arr_str =
-                            log_string_from(v.borrow().get(&i.to_string()).unwrap().value.clone());
+                            log_string_from(v.borrow().properties.get(&i.to_string()).unwrap().value.clone());
                         write!(s, "{}", arr_str).unwrap();
                         if i != len - 1 {
                             write!(s, ", ").unwrap();
@@ -45,8 +41,8 @@ fn log_string_from(x: Value) -> String {
                 }
                 _ => {
                     write!(s, "{{").unwrap();
-                    if let Some((last_key, _)) = v.borrow().iter().last() {
-                        for (key, val) in v.borrow().iter() {
+                    if let Some((last_key, _)) = v.borrow().properties.iter().last() {
+                        for (key, val) in v.borrow().properties.iter() {
                             // Don't print prototype properties
                             if key == INSTANCE_PROTOTYPE {
                                 continue;

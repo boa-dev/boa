@@ -24,9 +24,6 @@ pub fn _create(global: &Value) -> Value {
     let object = ValueData::new_obj(Some(global));
     object.set_field_slice("stringify", to_value(stringify as NativeFunctionData));
     object.set_field_slice("parse", to_value(parse as NativeFunctionData));
-    // This value is used by console.log and other routines to match Object type
-    // to its Javascript Identifier (global constructor method name)
-    object.set_private_field_slice("type", to_value("JSON"));
     object
 }
 

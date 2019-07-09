@@ -2,7 +2,6 @@ use crate::js::object::{ObjectData, Property};
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use crate::syntax::ast::expr::Expr;
 use gc::Gc;
-use std::collections::HashMap;
 
 /// fn(this, callee, arguments)
 pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
@@ -35,8 +34,8 @@ pub struct RegularFunction {
 impl RegularFunction {
     /// Make a new regular function
     pub fn new(expr: Expr, args: Vec<String>) -> Self {
-        let mut object = HashMap::new();
-        object.insert(
+        let mut object = ObjectData::default();
+        object.properties.insert(
             "arguments".to_string(),
             Property::new(Gc::new(ValueData::Integer(args.len() as i32))),
         );
@@ -55,14 +54,14 @@ pub struct NativeFunction {
 impl NativeFunction {
     /// Make a new native function with the given function data
     pub fn new(data: NativeFunctionData) -> Self {
-        let object = HashMap::new();
+        let object = ObjectData::default();
         Self { object, data }
     }
 }
 
 /// Create a new `Function` object
 pub fn _create() -> Value {
-    let function: ObjectData = HashMap::new();
+    let function: ObjectData = ObjectData::default();
     to_value(function)
 }
 /// Initialise the global object with the `Function` object

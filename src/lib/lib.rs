@@ -11,10 +11,11 @@
     trivial_numeric_casts
 )]
 // Debug trait derivation will show an error if forbidden.
-#![deny(unused_qualifications, unsafe_code)]
+#![deny(unused_qualifications)]
 #![deny(clippy::all)]
 #![warn(clippy::pedantic)]
 #![allow(
+    unsafe_code,
     clippy::many_single_char_names,
     clippy::unreadable_literal,
     clippy::excessive_precision,

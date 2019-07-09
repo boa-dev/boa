@@ -1,5 +1,5 @@
 use crate::js::function::NativeFunctionData;
-use crate::js::object::{Property, PROTOTYPE};
+use crate::js::object::{Property, PROTOTYPE, ObjectKind};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 
@@ -43,7 +43,7 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     this.set_field_slice("length", to_value(0_i32));
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
-    this.set_private_field_slice("type", to_value("Array"));
+    this.set_kind(ObjectKind::Array);
     match args.len() {
         0 => create_array_object(this, Vec::new()),
         1 => {

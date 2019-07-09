@@ -1,5 +1,5 @@
 use crate::js::function::NativeFunctionData;
-use crate::js::object::PROTOTYPE;
+use crate::js::object::{PROTOTYPE, ObjectKind};
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 
@@ -10,7 +10,7 @@ pub fn make_error(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
-    this.set_private_field_slice("type", to_value("Error"));
+    this.set_kind(ObjectKind::Error);
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Get the string representation of the error

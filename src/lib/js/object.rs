@@ -13,7 +13,39 @@ pub static PROTOTYPE: &'static str = "prototype";
 /// As this string will be used a lot throughout the program, its best being a static global string which will be referenced
 pub static INSTANCE_PROTOTYPE: &'static str = "__proto__";
 
-pub type ObjectData = HashMap<String, Property>;
+/// `ObjectData` is the representation of an object in JavaScript
+#[derive(Trace, Finalize, Debug, Clone)]
+pub struct ObjectData {
+    /// Kind
+    pub kind: ObjectKind,
+    /// Internal Slots
+    pub internal_slots: Box<HashMap<String, Value>>,
+    /// Properties
+    pub properties: Box<HashMap<String, Property>>,
+    /// Symbol Properties
+    pub sym_properties: Box<HashMap<usize, Property>>,
+}
+
+impl ObjectData {
+    /// Return a new ObjectData struct, with `kind` set to Ordinary
+    pub fn default() -> ObjectData {
+        Self {
+            kind: ObjectKind::Ordinary,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+        }
+    }
+}
+#[derive(Trace, Finalize, Clone, Debug)]
+pub enum ObjectKind {
+    Function,
+    Array,
+    String,
+    Symbol,
+    Error,
+    Ordinary,
+}
 
 /// A Javascript Property AKA The Property Descriptor   
 /// [[SPEC] - The Property Descriptor Specification Type](https://tc39.github.io/ecma262/#sec-property-descriptor-specification-type)   
