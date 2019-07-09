@@ -2,9 +2,10 @@ use crate::js::object::{ObjectData, Property};
 use crate::syntax::ast::expr::Expr;
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use gc::{Gc, Trace, custom_trace};
+use crate::exec::Interpreter;
 
-/// fn(this, callee, arguments)
-pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
+/// fn(this, arguments, ctx)
+pub type NativeFunctionData = fn(&Value, Vec<Value>, &Interpreter) -> ResultValue;
 
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
