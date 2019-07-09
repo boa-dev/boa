@@ -386,8 +386,7 @@ fn string_pad(
 /// Filler defaults to single space.
 /// https://tc39.es/ecma262/#sec-string.prototype.padend
 pub fn pad_end(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    let primitive_val: String =
-        from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     if args.len() < 1 {
         return Err(to_value("padEnd requires maxLength argument"));
     }
@@ -406,8 +405,7 @@ pub fn pad_end(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Filler defaults to single space.
 /// https://tc39.es/ecma262/#sec-string.prototype.padstart
 pub fn pad_start(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
-    let primitive_val: String =
-        from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     if args.len() < 1 {
         return Err(to_value("padStart requires maxLength argument"));
     }
