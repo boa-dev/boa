@@ -500,11 +500,24 @@ mod tests {
         const zh = new String('中文');
         "#;
         forward(&mut engine, init);
+        let pass = String::from("true");
+        assert_eq!(dbg!(forward(&mut engine, "empty.startsWith('')")), pass);
+        assert_eq!(dbg!(forward(&mut engine, "en.startsWith('e')")), pass);
+        assert_eq!(dbg!(forward(&mut engine, "zh.startsWith('中')")), pass);
+    }
 
-        let empty = dbg!(forward(&mut engine, "empty.startsWith('')"));
-        // Todo: fix this
-        //assert_eq!(empty, String::from("true"));
-        //assert_eq!(dbg!(forward(&mut engine, "en.startsWith('e')")), empty);
-        //assert_eq!(dbg!(forward(&mut engine, "zh.startsWith('中')")), empty);
+    #[test]
+    fn ends_with() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const empty = new String('');
+        const en = new String('english');
+        const zh = new String('中文');
+        "#;
+        forward(&mut engine, init);
+        let pass = String::from("true");
+        assert_eq!(dbg!(forward(&mut engine, "empty.endsWith('')")), pass);
+        assert_eq!(dbg!(forward(&mut engine, "en.endsWith('h')")), pass);
+        assert_eq!(dbg!(forward(&mut engine, "zh.endsWith('文')")), pass);
     }
 }
