@@ -18,20 +18,20 @@ pub fn make_string(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     // let a: String = from_value(args[0].clone()).unwrap();
     // this.set_field_slice("length", to_value(a.len() as i32));
 
-    this.set_private_field_slice("PrimitiveValue", args[0].clone());
+    this.set_internal_slot("PrimitiveValue", args[0].clone());
     Ok(this)
 }
 
 /// Get a string's length
 pub fn get_string_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value::<i32>(this_str.chars().count() as i32))
 }
 
 /// Get the string value to a primitive string
 pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     // Get String from String Object and send it back as a new value
-    let primitive_val = this.get_private_field("PrimitiveValue");
+    let primitive_val = this.get_internal_slot("PrimitiveValue");
     Ok(to_value(format!("{}", primitive_val).to_string()))
 }
 
@@ -43,7 +43,7 @@ pub fn char_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //         ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     let pos: i32 = from_value(args[0].clone()).unwrap();
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of
@@ -70,7 +70,7 @@ pub fn char_code_at(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //              ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
@@ -94,7 +94,7 @@ pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //        ^^ represents instance  ^^ represents arguments
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     let mut new_str = primitive_val.clone();
 
@@ -113,7 +113,7 @@ pub fn repeat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //        ^^ represents instance  ^^ represents arguments (only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     let repeat_times: usize = from_value(args[0].clone()).unwrap();
     Ok(to_value(primitive_val.repeat(repeat_times)))
@@ -126,7 +126,7 @@ pub fn slice(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //       ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     let start: i32 = from_value(args[0].clone()).unwrap();
     let end: i32 = from_value(args[1].clone()).unwrap();
@@ -163,7 +163,7 @@ pub fn starts_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //             ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if pattern is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -198,7 +198,7 @@ pub fn ends_with(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //           ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -235,7 +235,7 @@ pub fn includes(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //          ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -267,7 +267,7 @@ pub fn index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //          ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -308,7 +308,7 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     //               ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(args[0].clone()).unwrap();
@@ -340,6 +340,84 @@ pub fn last_index_of(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(highest_index))
 }
 
+/// Abstract method StringPad
+/// Performs the actual string padding for padStart/End.
+/// https://tc39.es/ecma262/#sec-stringpad
+fn string_pad(
+    primitive: String,
+    max_length: i32,
+    fill_string: Option<String>,
+    at_start: bool,
+) -> ResultValue {
+    let primitive_length = primitive.len() as i32;
+
+    if max_length <= primitive_length {
+        return Ok(to_value(primitive));
+    }
+
+    let filler = match fill_string {
+        Some(filler) => filler,
+        None => String::from(" "),
+    };
+
+    if filler == "" {
+        return Ok(to_value(primitive));
+    }
+
+    let fill_len = max_length - primitive_length;
+    let mut fill_str = String::new();
+
+    while fill_str.len() < fill_len as usize {
+        fill_str.push_str(&filler);
+    }
+    // Cut to size max_length
+    let concat_fill_str: String = fill_str.chars().take(fill_len as usize).collect();
+
+    if at_start {
+        Ok(to_value(concat_fill_str + &primitive))
+    } else {
+        Ok(to_value(primitive + &concat_fill_str))
+    }
+}
+
+/// String.prototype.padEnd ( maxLength [ , fillString ] )
+///
+/// Pads the string with the given filler at the end of the string.
+/// Filler defaults to single space.
+/// https://tc39.es/ecma262/#sec-string.prototype.padend
+pub fn pad_end(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    if args.is_empty() {
+        return Err(to_value("padEnd requires maxLength argument"));
+    }
+    let max_length = from_value(args[0].clone()).unwrap();
+    let fill_string: Option<String> = match args.len() {
+        1 => None,
+        _ => Some(from_value(args[1].clone()).unwrap()),
+    };
+
+    string_pad(primitive_val, max_length, fill_string, false)
+}
+
+/// String.prototype.padStart ( maxLength [ , fillString ] )
+///
+/// Pads the string with the given filler at the start of the string.
+/// Filler defaults to single space.
+/// https://tc39.es/ecma262/#sec-string.prototype.padstart
+pub fn pad_start(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    if args.is_empty() {
+        return Err(to_value("padStart requires maxLength argument"));
+    }
+    let max_length = from_value(args[0].clone()).unwrap();
+    let fill_string: Option<String> = match args.len() {
+        1 => None,
+        _ => Some(from_value(args[1].clone()).unwrap()),
+    };
+
+    string_pad(primitive_val, max_length, fill_string, true)
+}
+
 fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
@@ -359,19 +437,19 @@ fn is_trimmable_whitespace(c: char) -> bool {
 }
 
 pub fn trim(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
 pub fn trim_start(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value(
         this_str.trim_start_matches(is_trimmable_whitespace),
     ))
 }
 
 pub fn trim_end(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
-    let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
+    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 
@@ -399,6 +477,8 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
     proto.set_field_slice("indexOf", to_value(index_of as NativeFunctionData));
     proto.set_field_slice("lastIndexOf", to_value(last_index_of as NativeFunctionData));
+    proto.set_field_slice("padEnd", to_value(pad_end as NativeFunctionData));
+    proto.set_field_slice("padStart", to_value(pad_start as NativeFunctionData));
     proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
     proto.set_field_slice("trimStart", to_value(trim_start as NativeFunctionData));
     string.set_field_slice(PROTOTYPE, proto);
