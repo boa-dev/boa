@@ -360,7 +360,7 @@ fn string_pad(
         None => String::from(" "),
     };
 
-    if filler == String::from("") {
+    if filler == "" {
         return Ok(to_value(primitive));
     }
 
@@ -374,9 +374,9 @@ fn string_pad(
     let concat_fill_str: String = fill_str.chars().take(fill_len as usize).collect();
 
     if at_start {
-        return Ok(to_value(concat_fill_str + &primitive));
+        Ok(to_value(concat_fill_str + &primitive))
     } else {
-        return Ok(to_value(primitive + &concat_fill_str));
+        Ok(to_value(primitive + &concat_fill_str))
     }
 }
 
@@ -387,7 +387,7 @@ fn string_pad(
 /// https://tc39.es/ecma262/#sec-string.prototype.padend
 pub fn pad_end(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
-    if args.len() < 1 {
+    if args.is_empty() {
         return Err(to_value("padEnd requires maxLength argument"));
     }
     let max_length = from_value(args[0].clone()).unwrap();
@@ -406,7 +406,7 @@ pub fn pad_end(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// https://tc39.es/ecma262/#sec-string.prototype.padstart
 pub fn pad_start(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
-    if args.len() < 1 {
+    if args.is_empty() {
         return Err(to_value("padStart requires maxLength argument"));
     }
     let max_length = from_value(args[0].clone()).unwrap();
