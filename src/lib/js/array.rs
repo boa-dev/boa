@@ -143,6 +143,103 @@ pub fn join(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(elem_strs.join(&separator)))
 }
 
+/// Array.prototype.reverse ( )
+///
+/// The elements of the array are rearranged so as to reverse their order.
+/// The object is returned as the result of the call.
+/// https://tc39.es/ecma262/#sec-array.prototype.reverse
+pub fn reverse(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let middle: i32 = len / 2;
+
+    for lower in 0..middle {
+        let upper = len - lower - 1;
+
+        let upper_exists = this.has_field(&upper.to_string());
+        let lower_exists = this.has_field(&lower.to_string());
+
+        let upper_value = this.get_field(&upper.to_string());
+        let lower_value = this.get_field(&lower.to_string());
+
+        if upper_exists && lower_exists {
+            this.set_field(upper.to_string(), lower_value);
+            this.set_field(lower.to_string(), upper_value);
+        } else if upper_exists {
+            this.set_field(lower.to_string(), upper_value);
+            this.remove_prop(&upper.to_string());
+        } else if lower_exists {
+            this.set_field(upper.to_string(), lower_value);
+            this.remove_prop(&lower.to_string());
+        }
+    }
+
+    Ok(this)
+}
+
+/// Array.prototype.shift ( )
+///
+/// The first element of the array is removed from the array and returned.
+/// https://tc39.es/ecma262/#sec-array.prototype.shift
+pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+
+    if len == 0 {
+        this.set_field_slice("length", to_value(0i32));
+        // Since length is 0, this will be an Undefined value
+        return Ok(this.get_field(&0.to_string()));
+    }
+
+    let first: Value = this.get_field(&0.to_string());
+
+    for k in 1..len {
+        let from = k.to_string();
+        let to = (k - 1).to_string();
+
+        let from_value = this.get_field(&from);
+        if from_value == Gc::new(ValueData::Undefined) {
+            this.remove_prop(&to);
+        } else {
+            this.set_field(to, from_value);
+        }
+    }
+
+    this.remove_prop(&(len - 1).to_string());
+    this.set_field_slice("length", to_value(len - 1));
+
+    Ok(first)
+}
+
+/// Array.prototype.unshift ( ...items )
+///
+/// The arguments are prepended to the start of the array, such that their order
+/// within the array is the same as the order in which they appear in the
+/// argument list.
+/// https://tc39.es/ecma262/#sec-array.prototype.unshift
+pub fn unshift(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let argc: i32 = args.len() as i32;
+
+    if argc > 0 {
+        for k in (1..=len).rev() {
+            let from = (k - 1).to_string();
+            let to = (k + argc - 1).to_string();
+
+            let from_value = this.get_field(&from);
+            if from_value != Gc::new(ValueData::Undefined) {
+                this.set_field(to, from_value);
+            } else {
+                this.remove_prop(&to);
+            }
+        }
+        for j in 0..argc {
+            this.set_field_slice(&j.to_string(), args[j as usize].clone());
+        }
+    }
+
+    this.set_field_slice("length", to_value(len + argc));
+    Ok(to_value(len + argc))
+}
+
 /// Create a new `Array` object
 pub fn _create(global: &Value) -> Value {
     let array = to_value(make_array as NativeFunctionData);
@@ -164,6 +261,9 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("push", push_func);
     proto.set_field_slice("pop", to_value(pop as NativeFunctionData));
     proto.set_field_slice("join", to_value(join as NativeFunctionData));
+    proto.set_field_slice("reverse", to_value(reverse as NativeFunctionData));
+    proto.set_field_slice("shift", to_value(shift as NativeFunctionData));
+    proto.set_field_slice("unshift", to_value(unshift as NativeFunctionData));
     array.set_field_slice(PROTOTYPE, proto);
     array
 }
