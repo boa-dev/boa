@@ -473,6 +473,7 @@ mod tests {
         const zh = new String('中文');
         "#;
         forward(&mut engine, init);
+
         let empty = String::from("");
         assert_eq!(dbg!(forward(&mut engine, "empty.repeat(0)")), empty);
         assert_eq!(dbg!(forward(&mut engine, "empty.repeat(1)")), empty);
@@ -480,7 +481,30 @@ mod tests {
         assert_eq!(dbg!(forward(&mut engine, "en.repeat(0)")), empty);
         assert_eq!(dbg!(forward(&mut engine, "zh.repeat(0)")), empty);
 
-        assert_eq!(dbg!(forward(&mut engine, "en.repeat(1)")), String::from("english"));
-        assert_eq!(dbg!(forward(&mut engine, "zh.repeat(2)")), String::from("中文中文"));
+        assert_eq!(
+            dbg!(forward(&mut engine, "en.repeat(1)")),
+            String::from("english")
+        );
+        assert_eq!(
+            dbg!(forward(&mut engine, "zh.repeat(2)")),
+            String::from("中文中文")
+        );
+    }
+
+    #[test]
+    fn starts_with() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const empty = new String('');
+        const en = new String('english');
+        const zh = new String('中文');
+        "#;
+        forward(&mut engine, init);
+
+        let empty = dbg!(forward(&mut engine, "empty.startsWith('')"));
+        // Todo: fix this
+        //assert_eq!(empty, String::from("true"));
+        //assert_eq!(dbg!(forward(&mut engine, "en.startsWith('e')")), empty);
+        //assert_eq!(dbg!(forward(&mut engine, "zh.startsWith('中')")), empty);
     }
 }
