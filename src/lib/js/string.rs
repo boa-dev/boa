@@ -25,7 +25,7 @@ pub fn make_string(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// Get a string's length
 pub fn get_string_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
     let this_str: String = from_value(this.get_private_field("PrimitiveValue")).unwrap();
-    Ok(to_value::<i32>(this_str.len() as i32))
+    Ok(to_value::<i32>(this_str.chars().count() as i32))
 }
 
 /// Get the string value to a primitive string
@@ -429,17 +429,23 @@ mod tests {
         let mut engine = Executor::new();
         let init = r#"
         const a = new String(' ');
-        const b = new String(' \b ');
-        const c = new String('\ud834\udf06');
+        const b = new String('\ud834\udf06');
+        const c = new String(' \b ');
+        cosnt d = new String('中文长度')
         "#;
         forward(&mut engine, init);
         let a = dbg!(forward(&mut engine, "a.length"));
         assert_eq!(a, String::from("1"));
         let b = dbg!(forward(&mut engine, "b.length"));
-        assert_eq!(b, String::from("3"));
+        // TODO: fix this
+        // unicode surrogate pair length should be 1
+        // utf16/usc2 length should be 2
+        // utf8 length should be 4
+        //assert_eq!(b, String::from("2"));
         let c = dbg!(forward(&mut engine, "c.length"));
-        // TODO: fix next line
-        //assert_eq!(c, String::from("2"));
+        assert_eq!(c, String::from("3"));
+        let d = dbg!(forward(&mut engine, "d.length"));
+        assert_eq!(d, String::from("4"));
     }
 
     #[test]
