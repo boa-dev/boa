@@ -1,7 +1,7 @@
 use crate::js::object::{ObjectData, Property};
-use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use crate::syntax::ast::expr::Expr;
-use gc::Gc;
+use crate::js::value::{to_value, ResultValue, Value, ValueData};
+use gc::{Gc, Trace, custom_trace};
 
 /// fn(this, callee, arguments)
 pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
@@ -43,7 +43,7 @@ impl RegularFunction {
     }
 }
 
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Finalize, Debug, Clone)]
 /// Represents a native javascript function in memory
 pub struct NativeFunction {
     /// The fields associated with the function
@@ -51,6 +51,7 @@ pub struct NativeFunction {
     /// The callable function data
     pub data: NativeFunctionData,
 }
+
 impl NativeFunction {
     /// Make a new native function with the given function data
     pub fn new(data: NativeFunctionData) -> Self {
@@ -58,6 +59,11 @@ impl NativeFunction {
         Self { object, data }
     }
 }
+
+unsafe impl Trace for NativeFunction {
+    custom_trace!(this, mark(&this.object));
+}
+
 
 /// Create a new `Function` object
 pub fn _create() -> Value {
