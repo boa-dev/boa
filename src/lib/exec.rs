@@ -214,7 +214,9 @@ impl Executor for Interpreter {
             ExprDef::ArrowFunctionDeclExpr(ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
-                Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(function)))))
+                Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
+                    function,
+                )))))
             }
             ExprDef::BinOpExpr(BinOp::Num(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
