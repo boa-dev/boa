@@ -1,6 +1,6 @@
 use crate::environment::lexical_environment::{new_function_environment, LexicalEnvironment};
 use crate::js::function::{Function, RegularFunction};
-use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE, ObjectKind};
+use crate::js::object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, ValueData};
 use crate::js::{array, console, function, json, math, object, string};
 use crate::syntax::ast::constant::Const;

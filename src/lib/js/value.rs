@@ -1,6 +1,6 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
-    object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE, ObjectKind},
+    object::{ObjectData, ObjectKind, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
 };
 use gc::{Gc, GcCell};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
@@ -356,7 +356,7 @@ impl ValueData {
     }
 
     /// Set the kind of an object
-    pub fn set_kind(&self, kind: ObjectKind) -> ObjectKind{
+    pub fn set_kind(&self, kind: ObjectKind) -> ObjectKind {
         if let ValueData::Object(ref obj) = *self {
             obj.borrow_mut().kind = kind.clone();
         }

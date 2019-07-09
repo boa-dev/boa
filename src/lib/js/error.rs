@@ -1,5 +1,5 @@
 use crate::js::function::NativeFunctionData;
-use crate::js::object::{PROTOTYPE, ObjectKind};
+use crate::js::object::{ObjectKind, PROTOTYPE};
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 

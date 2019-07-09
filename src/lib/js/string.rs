@@ -1,6 +1,6 @@
 use crate::js::{
     function::NativeFunctionData,
-    object::{Property, PROTOTYPE, ObjectKind},
+    object::{ObjectKind, Property, PROTOTYPE},
     value::{from_value, to_value, ResultValue, Value, ValueData},
 };
 use gc::Gc;

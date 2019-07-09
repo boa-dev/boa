@@ -1,5 +1,5 @@
 use crate::js::function::NativeFunctionData;
-use crate::js::object::{INSTANCE_PROTOTYPE, ObjectKind};
+use crate::js::object::{ObjectKind, INSTANCE_PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use chrono::Local;
 use gc::Gc;
@@ -18,20 +18,32 @@ fn log_string_from(x: Value) -> String {
             // which type of Object it represents for special printing
             match v.borrow().kind {
                 ObjectKind::String => {
-                    let str_val: String =
-                        from_value(v.borrow().internal_slots.get("PrimitiveValue").unwrap().clone())
-                            .unwrap();
+                    let str_val: String = from_value(
+                        v.borrow()
+                            .internal_slots
+                            .get("PrimitiveValue")
+                            .unwrap()
+                            .clone(),
+                    )
+                    .unwrap();
                     write!(s, "{}", str_val).unwrap();
                 }
                 ObjectKind::Array => {
                     write!(s, "[").unwrap();
                     let len: i32 =
-                        from_value(v.borrow().properties.get("length").unwrap().value.clone()).unwrap();
+                        from_value(v.borrow().properties.get("length").unwrap().value.clone())
+                            .unwrap();
                     for i in 0..len {
                         // Introduce recursive call to stringify any objects
                         // which are part of the Array
-                        let arr_str =
-                            log_string_from(v.borrow().properties.get(&i.to_string()).unwrap().value.clone());
+                        let arr_str = log_string_from(
+                            v.borrow()
+                                .properties
+                                .get(&i.to_string())
+                                .unwrap()
+                                .value
+                                .clone(),
+                        );
                         write!(s, "{}", arr_str).unwrap();
                         if i != len - 1 {
                             write!(s, ", ").unwrap();
