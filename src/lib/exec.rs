@@ -102,7 +102,7 @@ impl Executor for Interpreter {
                     ValueData::Function(ref inner_func) => match *inner_func.as_ref().borrow() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(this, self.run(callee)?, v_args)
+                            func(&this, v_args, &self)
                         }
                         Function::RegularFunc(ref data) => {
                             let env = &mut self.environment;
@@ -296,7 +296,7 @@ impl Executor for Interpreter {
                     ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(this, self.run(callee)?, v_args)
+                            func(&this, v_args, &self)
                         }
                         Function::RegularFunc(ref data) => {
                             // Create new scope

@@ -1,3 +1,4 @@
+use crate::exec::Interpreter;
 use crate::js::{
     function::NativeFunctionData,
     value::{from_value, to_value, ResultValue, Value, ValueData},
@@ -6,7 +7,7 @@ use rand::random;
 use std::f64;
 
 /// Get the absolute value of a number
-pub fn abs(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn abs(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -16,7 +17,7 @@ pub fn abs(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the arccos of a number
-pub fn acos(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn acos(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -26,7 +27,7 @@ pub fn acos(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the arcsine of a number
-pub fn asin(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn asin(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -36,7 +37,7 @@ pub fn asin(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the arctangent of a number
-pub fn atan(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn atan(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -46,7 +47,7 @@ pub fn atan(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the arctangent of a numbers
-pub fn atan2(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn atan2(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -56,7 +57,7 @@ pub fn atan2(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the cubic root of a number
-pub fn cbrt(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn cbrt(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -66,7 +67,7 @@ pub fn cbrt(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get lowest integer above a number
-pub fn ceil(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn ceil(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -76,7 +77,7 @@ pub fn ceil(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the cosine of a number
-pub fn cos(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn cos(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -86,7 +87,7 @@ pub fn cos(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the power to raise the natural logarithm to get the number
-pub fn exp(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn exp(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -96,7 +97,7 @@ pub fn exp(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the highest integer below a number
-pub fn floor(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn floor(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -106,7 +107,7 @@ pub fn floor(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the natural logarithm of a number
-pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn log(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -116,7 +117,7 @@ pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the maximum of several numbers
-pub fn max(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn max(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     let mut max = f64::NEG_INFINITY;
     for arg in &args {
         let num = arg.to_num();
@@ -125,7 +126,7 @@ pub fn max(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(max))
 }
 /// Get the minimum of several numbers
-pub fn min(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn min(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     let mut max = f64::INFINITY;
     for arg in &args {
         let num = arg.to_num();
@@ -134,7 +135,7 @@ pub fn min(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(to_value(max))
 }
 /// Raise a number to a power
-pub fn pow(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn pow(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.len() >= 2 {
         let num: f64 = from_value(args.get(0).unwrap().clone()).unwrap();
         let power: f64 = from_value(args.get(1).unwrap().clone()).unwrap();
@@ -144,11 +145,11 @@ pub fn pow(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Generate a random floating-point number between 0 and 1
-pub fn _random(_: Value, _: Value, _args: Vec<Value>) -> ResultValue {
+pub fn _random(_: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(random::<f64>()))
 }
 /// Round a number to the nearest integer
-pub fn round(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn round(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -158,7 +159,7 @@ pub fn round(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the sine of a number
-pub fn sin(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn sin(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -168,7 +169,7 @@ pub fn sin(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the square root of a number
-pub fn sqrt(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn sqrt(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -178,7 +179,7 @@ pub fn sqrt(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     }))
 }
 /// Get the tangent of a number
-pub fn tan(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn tan(_: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {

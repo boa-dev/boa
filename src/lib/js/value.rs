@@ -65,8 +65,8 @@ impl ValueData {
 
     /// This will tell us if we can exten an object or not, not properly implemented yet, for now always returns true
     /// For scalar types it should be false, for objects check the private field for extensibilaty. By default true
-    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false
-    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false/>
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/>
     pub fn is_extensible(&self) -> bool {
         true
     }
@@ -280,15 +280,7 @@ impl ValueData {
                 let prop_getter = match *prop.get {
                     ValueData::Function(ref v) => match *v.borrow() {
                         Function::NativeFunc(ref ntv) => {
-                            let func = ntv.data;
-                            Some(
-                                func(
-                                    Gc::new(self.clone()),
-                                    Gc::new(self.clone()),
-                                    vec![Gc::new(self.clone())],
-                                )
-                                .unwrap(),
-                            )
+                            None // this never worked properly anyway
                         }
                         _ => None,
                     },

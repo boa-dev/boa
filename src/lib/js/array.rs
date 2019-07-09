@@ -1,3 +1,4 @@
+use crate::exec::Interpreter;
 use crate::js::function::NativeFunctionData;
 use crate::js::object::{Property, PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
@@ -5,7 +6,7 @@ use gc::Gc;
 
 /// Utility function for creating array objects: `array_obj` can be any array with
 /// prototype already set (it will be wiped and recreated from `array_contents`)
-fn create_array_object(array_obj: Value, array_contents: Vec<Value>) -> ResultValue {
+fn create_array_object(array_obj: &Value, array_contents: Vec<Value>) -> ResultValue {
     let array_obj_ptr = array_obj.clone();
 
     // Wipe existing contents of the array object
@@ -23,7 +24,7 @@ fn create_array_object(array_obj: Value, array_contents: Vec<Value>) -> ResultVa
 
 /// Utility function which takes an existing array object and puts additional
 /// values on the end, correctly rewriting the length
-fn add_to_array_object(array_ptr: Value, add_values: Vec<Value>) -> ResultValue {
+fn add_to_array_object(array_ptr: &Value, add_values: Vec<Value>) -> ResultValue {
     let orig_length: i32 = from_value(array_ptr.get_field_slice("length")).unwrap();
 
     for (n, value) in add_values.iter().enumerate() {
@@ -33,11 +34,11 @@ fn add_to_array_object(array_ptr: Value, add_values: Vec<Value>) -> ResultValue 
 
     array_ptr.set_field_slice("length", to_value(orig_length + add_values.len() as i32));
 
-    Ok(array_ptr)
+    Ok(array_ptr.clone())
 }
 
 /// Create a new array
-pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn make_array(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
     this.set_field_slice("length", to_value(0_i32));
@@ -54,7 +55,7 @@ pub fn make_array(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 
 /// Get an array's length
-pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+pub fn get_array_length(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
     // Access the inner hash map which represents the actual Array contents
     // (mapping between indices and values)
     Ok(this.get_field_slice("length"))
@@ -66,10 +67,10 @@ pub fn get_array_length(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 /// array containing the array elements of the object followed by the array
 /// elements of each argument in order.
 /// <https://tc39.es/ecma262/#sec-array.prototype.concat>
-pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn concat(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     if args.is_empty() {
         // If concat is called with no arguments, it returns the original array
-        return Ok(this);
+        return Ok(this.clone());
     }
 
     // Make a new array (using this object as the prototype basis for the new
@@ -97,7 +98,7 @@ pub fn concat(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 /// they appear. The new length of the array is returned as the result of the
 /// call.
 /// <https://tc39.es/ecma262/#sec-array.prototype.push>
-pub fn push(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn push(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     let new_array = add_to_array_object(this, args)?;
     Ok(new_array.get_field_slice("length"))
 }
@@ -106,7 +107,7 @@ pub fn push(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 ///
 /// The last element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.pop>
-pub fn pop(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+pub fn pop(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
     let curr_length: i32 = from_value(this.get_field_slice("length")).unwrap();
     if curr_length < 1 {
         return Err(to_value(
@@ -126,7 +127,7 @@ pub fn pop(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 /// then concatenated, separated by occurrences of the separator. If no
 /// separator is provided, a single comma is used as the separator.
 /// <https://tc39.es/ecma262/#sec-array.prototype.join>
-pub fn join(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn join(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     let separator = if args.is_empty() {
         String::from(",")
     } else {
@@ -147,8 +148,8 @@ pub fn join(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
 ///
 /// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
-/// https://tc39.es/ecma262/#sec-array.prototype.reverse
-pub fn reverse(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+/// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
+pub fn reverse(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
     let middle: i32 = len / 2;
 
@@ -173,14 +174,14 @@ pub fn reverse(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
         }
     }
 
-    Ok(this)
+    Ok(this.clone())
 }
 
 /// Array.prototype.shift ( )
 ///
 /// The first element of the array is removed from the array and returned.
-/// https://tc39.es/ecma262/#sec-array.prototype.shift
-pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+/// <https://tc39.es/ecma262/#sec-array.prototype.shift/>
+pub fn shift(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
 
     if len == 0 {
@@ -214,8 +215,8 @@ pub fn shift(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
 /// The arguments are prepended to the start of the array, such that their order
 /// within the array is the same as the order in which they appear in the
 /// argument list.
-/// https://tc39.es/ecma262/#sec-array.prototype.unshift
-pub fn unshift(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+/// <https://tc39.es/ecma262/#sec-array.prototype.unshift/>
+pub fn unshift(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
     let argc: i32 = args.len() as i32;
 
