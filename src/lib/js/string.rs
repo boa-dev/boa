@@ -514,17 +514,17 @@ mod tests {
         cosnt d = new String('中文长度')
         "#;
         forward(&mut engine, init);
-        let a = dbg!(forward(&mut engine, "a.length"));
+        let a = forward(&mut engine, "a.length");
         assert_eq!(a, String::from("1"));
-        let b = dbg!(forward(&mut engine, "b.length"));
+        let b = forward(&mut engine, "b.length");
         // TODO: fix this
         // unicode surrogate pair length should be 1
         // utf16/usc2 length should be 2
         // utf8 length should be 4
         //assert_eq!(b, String::from("2"));
-        let c = dbg!(forward(&mut engine, "c.length"));
+        let c = forward(&mut engine, "c.length");
         assert_eq!(c, String::from("3"));
-        let d = dbg!(forward(&mut engine, "d.length"));
+        let d = forward(&mut engine, "d.length");
         assert_eq!(d, String::from("4"));
     }
 
@@ -537,8 +537,8 @@ mod tests {
         const nice = new String('Have a nice day.');
         "#;
         forward(&mut engine, init);
-        let a = dbg!(forward(&mut engine, "hello.concat(world, nice)"));
-        let b = dbg!(forward(&mut engine, "hello + world + nice"));
+        let a = forward(&mut engine, "hello.concat(world, nice)");
+        let b = forward(&mut engine, "hello + world + nice");
         // Todo: fix this
         //assert_eq!(a, String::from("Hello, world! Have a nice day."));
         //assert_eq!(b, String::from("Hello, world! Have a nice day."));
@@ -555,18 +555,18 @@ mod tests {
         forward(&mut engine, init);
 
         let empty = String::from("");
-        assert_eq!(dbg!(forward(&mut engine, "empty.repeat(0)")), empty);
-        assert_eq!(dbg!(forward(&mut engine, "empty.repeat(1)")), empty);
+        assert_eq!(forward(&mut engine, "empty.repeat(0)"), empty);
+        assert_eq!(forward(&mut engine, "empty.repeat(1)"), empty);
 
-        assert_eq!(dbg!(forward(&mut engine, "en.repeat(0)")), empty);
-        assert_eq!(dbg!(forward(&mut engine, "zh.repeat(0)")), empty);
+        assert_eq!(forward(&mut engine, "en.repeat(0)"), empty);
+        assert_eq!(forward(&mut engine, "zh.repeat(0)"), empty);
 
         assert_eq!(
-            dbg!(forward(&mut engine, "en.repeat(1)")),
+            forward(&mut engine, "en.repeat(1)"),
             String::from("english")
         );
         assert_eq!(
-            dbg!(forward(&mut engine, "zh.repeat(2)")),
+            forward(&mut engine, "zh.repeat(2)"),
             String::from("中文中文")
         );
     }
@@ -581,9 +581,9 @@ mod tests {
         "#;
         forward(&mut engine, init);
         let pass = String::from("true");
-        assert_eq!(dbg!(forward(&mut engine, "empty.startsWith('')")), pass);
-        assert_eq!(dbg!(forward(&mut engine, "en.startsWith('e')")), pass);
-        assert_eq!(dbg!(forward(&mut engine, "zh.startsWith('中')")), pass);
+        assert_eq!(forward(&mut engine, "empty.startsWith('')"), pass);
+        assert_eq!(forward(&mut engine, "en.startsWith('e')"), pass);
+        assert_eq!(forward(&mut engine, "zh.startsWith('中')"), pass);
     }
 
     #[test]
@@ -596,8 +596,8 @@ mod tests {
         "#;
         forward(&mut engine, init);
         let pass = String::from("true");
-        assert_eq!(dbg!(forward(&mut engine, "empty.endsWith('')")), pass);
-        assert_eq!(dbg!(forward(&mut engine, "en.endsWith('h')")), pass);
-        assert_eq!(dbg!(forward(&mut engine, "zh.endsWith('文')")), pass);
+        assert_eq!(forward(&mut engine, "empty.endsWith('')"), pass);
+        assert_eq!(forward(&mut engine, "en.endsWith('h')"), pass);
+        assert_eq!(forward(&mut engine, "zh.endsWith('文')"), pass);
     }
 }

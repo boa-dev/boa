@@ -52,6 +52,8 @@ fn parser_expr(src: &str) -> Expr {
     Parser::new(tokens).parse_all().unwrap()
 }
 
+/// Execute the code using an existing Interpreter
+/// The str is consumed and the state of the Interpreter is changed
 pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
     let expr = parser_expr(src);
@@ -62,6 +64,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     }
 }
 
+/// Create a clean Interpreter and execute the code
 pub fn exec(src: &str) -> String {
     let mut engine: Interpreter = Executor::new();
     forward(&mut engine, src)
