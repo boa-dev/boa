@@ -17,7 +17,13 @@
     clippy::pedantic,
     clippy::restriction,
     clippy::cognitive_complexity,
-    missing_docs
+    //missing_docs
+)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::missing_inline_in_public_items,
+    clippy::implicit_return,
+    clippy::wildcard_enum_match_arm
 )]
 
 pub mod environment;
