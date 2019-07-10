@@ -1,12 +1,17 @@
-use crate::exec::Interpreter;
-use crate::js::object::{ObjectData, Property};
-use crate::js::value::{to_value, ResultValue, Value, ValueData};
-use crate::syntax::ast::expr::Expr;
-use gc::{custom_trace, Gc, Trace};
+use crate::{
+    exec::Interpreter,
+    js::{
+        object::{ObjectData, Property},
+        value::{to_value, ResultValue, Value, ValueData},
+    },
+    syntax::ast::expr::Expr,
+};
+use gc::{custom_trace, Gc};
+use gc_derive::{Finalize, Trace};
 use std::fmt::{self, Debug};
 
 /// fn(this, arguments, ctx)
-pub type NativeFunctionData = fn(&Value, Vec<Value>, &Interpreter) -> ResultValue;
+pub type NativeFunctionData = fn(&Value, &[Value], &Interpreter) -> ResultValue;
 
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
@@ -68,7 +73,7 @@ impl Debug for NativeFunction {
     }
 }
 
-unsafe impl Trace for NativeFunction {
+unsafe impl gc::Trace for NativeFunction {
     custom_trace!(this, mark(&this.object));
 }
 

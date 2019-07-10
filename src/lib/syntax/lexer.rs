@@ -6,7 +6,6 @@ use crate::syntax::ast::{
     punc::Punctuator,
     token::{Token, TokenData},
 };
-
 use std::{
     char::{decode_utf16, from_u32},
     error, fmt,

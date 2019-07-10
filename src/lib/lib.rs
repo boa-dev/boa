@@ -13,28 +13,22 @@
 // Debug trait derivation will show an error if forbidden.
 #![deny(unused_qualifications)]
 #![deny(clippy::all)]
-#![warn(clippy::pedantic)]
-#![allow(
-    unsafe_code,
-    clippy::many_single_char_names,
-    clippy::unreadable_literal,
-    clippy::excessive_precision,
-    clippy::module_name_repetitions,
-    clippy::pub_enum_variant_names,
-    clippy::cognitive_complexity
+#![warn(
+    clippy::pedantic,
+    clippy::restriction,
+    clippy::cognitive_complexity,
+    missing_docs
 )]
-
-#[macro_use]
-extern crate gc_derive;
 
 pub mod environment;
 pub mod exec;
 pub mod js;
 pub mod syntax;
 
-use crate::exec::{Executor, Interpreter};
-use crate::syntax::lexer::Lexer;
-use crate::syntax::parser::Parser;
+use crate::{
+    exec::{Executor, Interpreter},
+    syntax::{lexer::Lexer, parser::Parser},
+};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]

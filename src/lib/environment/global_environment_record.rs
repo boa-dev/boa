@@ -7,12 +7,17 @@
 //! that occur within a Script.
 //! More info:  <https://tc39.github.io/ecma262/#sec-global-environment-records>
 
-use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecord;
-use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::lexical_environment::{Environment, EnvironmentType};
-use crate::environment::object_environment_record::ObjectEnvironmentRecord;
-use crate::js::value::{Value, ValueData};
+use crate::{
+    environment::{
+        declerative_environment_record::DeclerativeEnvironmentRecord,
+        environment_record_trait::EnvironmentRecordTrait,
+        lexical_environment::{Environment, EnvironmentType},
+        object_environment_record::ObjectEnvironmentRecord,
+    },
+    js::value::{Value, ValueData},
+};
 use gc::Gc;
+use gc_derive::{Finalize, Trace};
 use std::collections::HashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]

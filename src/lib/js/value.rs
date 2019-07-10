@@ -3,6 +3,7 @@ use crate::js::{
     object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
 };
 use gc::{Gc, GcCell};
+use gc_derive::{Finalize, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     f64::NAN,
@@ -279,7 +280,7 @@ impl ValueData {
                 // If the Property has [[Get]] set to a function, we should run that and return the Value
                 let prop_getter = match *prop.get {
                     ValueData::Function(ref v) => match *v.borrow() {
-                        Function::NativeFunc(ref ntv) => {
+                        Function::NativeFunc(ref _ntv) => {
                             None // this never worked properly anyway
                         }
                         _ => None,
@@ -408,7 +409,7 @@ impl ValueData {
 
     pub fn to_json(&self) -> JSONValue {
         match *self {
-            ValueData::Null | ValueData::Undefined => JSONValue::Null,
+            ValueData::Null | ValueData::Undefined | ValueData::Function(_) => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
                 let mut new_obj = Map::new();
@@ -422,7 +423,6 @@ impl ValueData {
             ValueData::String(ref str) => JSONValue::String(str.clone()),
             ValueData::Number(num) => JSONValue::Number(JSONNumber::from_f64(num).unwrap()),
             ValueData::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
-            ValueData::Function(_) => JSONValue::Null,
         }
     }
 
