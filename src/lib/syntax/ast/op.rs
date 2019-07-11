@@ -1,3 +1,4 @@
+use gc_derive::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
 /// Represents an operator

@@ -2,6 +2,7 @@ use crate::syntax::ast::{
     constant::Const,
     op::{BinOp, Operator, UnaryOp},
 };
+use gc_derive::{Finalize, Trace};
 use std::{
     collections::btree_map::BTreeMap,
     fmt::{Display, Formatter, Result},

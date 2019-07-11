@@ -1,10 +1,13 @@
-use crate::exec::Interpreter;
-use crate::js::{
-    function::NativeFunctionData,
-    object::{Property, PROTOTYPE},
-    value::{from_value, to_value, ResultValue, Value, ValueData},
+use crate::{
+    exec::Interpreter,
+    js::{
+        function::NativeFunctionData,
+        object::{Property, PROTOTYPE},
+        value::{from_value, to_value, ResultValue, Value, ValueData},
+    },
 };
 use gc::Gc;
+use gc_derive::{Finalize, Trace};
 use std::{
     cmp::{max, min},
     f64::NAN,
@@ -13,7 +16,7 @@ use std::{
 /// Create new string
 /// <https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19>
 // This gets called when a new String() is created, it's called by exec:346
-pub fn make_string(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn make_string(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     // If we're constructing a string, we should set the initial length
     // To do this we need to convert the string back to a Rust String, then get the .len()
     // let a: String = from_value(args[0].clone()).unwrap();
@@ -24,13 +27,13 @@ pub fn make_string(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultVal
 }
 
 /// Get a string's length
-pub fn get_string_length(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn get_string_length(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value::<i32>(this_str.len() as i32))
 }
 
 /// Get the string value to a primitive string
-pub fn to_string(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn to_string(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     // Get String from String Object and send it back as a new value
     let primitive_val = this.get_internal_slot("PrimitiveValue");
     Ok(to_value(format!("{}", primitive_val).to_string()))
@@ -40,7 +43,7 @@ pub fn to_string(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
 /// resulting from converting this object to a String. If there is no element at that index, the
 /// result is the empty String. The result is a String value, not a String object.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.charat>
-pub fn char_at(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn char_at(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //         ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -67,7 +70,7 @@ pub fn char_at(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
 /// unit at index pos within the String resulting from converting this object to a String. If there
 /// is no element at that index, the result is NaN.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.charcodeat>
-pub fn char_code_at(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn char_code_at(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //              ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -91,7 +94,7 @@ pub fn char_code_at(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultVa
 /// Returns a String that is the result of concatenating this String and all strings provided as
 /// arguments
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.concat>
-pub fn concat(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn concat(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //        ^^ represents instance  ^^ represents arguments
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -100,7 +103,7 @@ pub fn concat(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
     let mut new_str = primitive_val.clone();
 
     for arg in args {
-        let concat_str: String = from_value(arg).unwrap();
+        let concat_str: String = from_value(arg.clone()).unwrap();
         new_str.push_str(&concat_str);
     }
 
@@ -110,7 +113,7 @@ pub fn concat(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
 /// Returns a String that is the result of repeating this String the number of times given by the
 /// first argument
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.repeat>
-pub fn repeat(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn repeat(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //        ^^ represents instance  ^^ represents arguments (only care about the first one in this case)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -123,7 +126,7 @@ pub fn repeat(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
 /// Returns a String which contains the slice of the JS String from character at "start" index up
 /// to but not including character at "end" index
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.slice>
-pub fn slice(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn slice(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //       ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -160,7 +163,7 @@ pub fn slice(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
 /// "search string" is the same as the corresponding code units of this string
 /// starting at index "position"
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.startswith>
-pub fn starts_with(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn starts_with(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //             ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -195,7 +198,7 @@ pub fn starts_with(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultVal
 /// "search string"  is the same as the corresponding code units of this string
 /// starting at position "end position" - length
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.endswith>
-pub fn ends_with(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn ends_with(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //           ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -232,7 +235,7 @@ pub fn ends_with(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue
 /// that are greater than or equal to position. If position is undefined, 0 is
 /// assumed, so as to search all of the String.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
-pub fn includes(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn includes(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //          ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -264,7 +267,7 @@ pub fn includes(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue 
 /// returned. If position is undefined, 0 is assumed, so as to search all of the
 /// String.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
-pub fn index_of(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn index_of(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //          ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -305,7 +308,7 @@ pub fn index_of(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue 
 /// returned. If position is undefined, the length of the String value is
 /// assumed, so as to search all of the String.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.lastindexof>
-pub fn last_index_of(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn last_index_of(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     //               ^^ represents instance  ^^ represents arguments)
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -341,7 +344,7 @@ pub fn last_index_of(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultV
     Ok(to_value(highest_index))
 }
 
-/// Abstract method StringPad
+/// Abstract method `StringPad`
 /// Performs the actual string padding for padStart/End.
 /// <https://tc39.es/ecma262/#sec-stringpad/>
 fn string_pad(
@@ -386,7 +389,7 @@ fn string_pad(
 /// Pads the string with the given filler at the end of the string.
 /// Filler defaults to single space.
 /// <https://tc39.es/ecma262/#sec-string.prototype.padend/>
-pub fn pad_end(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn pad_end(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     if args.is_empty() {
         return Err(to_value("padEnd requires maxLength argument"));
@@ -405,7 +408,7 @@ pub fn pad_end(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
 /// Pads the string with the given filler at the start of the string.
 /// Filler defaults to single space.
 /// <https://tc39.es/ecma262/#sec-string.prototype.padstart/>
-pub fn pad_start(this: &Value, args: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn pad_start(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     if args.is_empty() {
         return Err(to_value("padStart requires maxLength argument"));
@@ -437,19 +440,19 @@ fn is_trimmable_whitespace(c: char) -> bool {
     }
 }
 
-pub fn trim(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn trim(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
-pub fn trim_start(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn trim_start(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value(
         this_str.trim_start_matches(is_trimmable_whitespace),
     ))
 }
 
-pub fn trim_end(this: &Value, _: Vec<Value>, _: &Interpreter) -> ResultValue {
+pub fn trim_end(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
