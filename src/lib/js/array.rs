@@ -272,7 +272,57 @@ pub fn _create(global: &Value) -> Value {
     array.set_field_slice(PROTOTYPE, proto);
     array
 }
+
 /// Initialise the global object with the `Array` object
 pub fn init(global: &Value) {
     global.set_field_slice("Array", _create(global));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::exec::Executor;
+    use crate::forward;
+
+    #[test]
+    fn concat() {
+        //TODO: array display formatter
+        let mut engine = Executor::new();
+        let init = r#"
+        let empty = new Array();
+        let one = new Array(1);
+        "#;
+        forward(&mut engine, init);
+        // Empty ++ Empty
+        let ee = forward(&mut engine, "empty.concat(empty)");
+        //assert_eq!(ee, String::from(""));
+        // Empty ++ NonEmpty
+        let en = forward(&mut engine, "empty.concat(one)");
+        //assert_eq!(en, String::from("a"));
+        // NonEmpty ++ Empty
+        let ne = forward(&mut engine, "one.concat(empty)");
+        //assert_eq!(ne, String::from("a.b.c"));
+        // NonEmpty ++ NonEmpty
+        let nn = forward(&mut engine, "one.concat(one)");
+        //assert_eq!(nn, String::from("a.b.c"));
+    }
+
+    #[test]
+    fn join() {
+        let mut engine = Executor::new();
+        let init = r#"
+        let empty = [ ];
+        let one = ["a"];
+        let many = ["a", "b", "c"];
+        "#;
+        forward(&mut engine, init);
+        // Empty
+        let empty = forward(&mut engine, "empty.join('.')");
+        assert_eq!(empty, String::from(""));
+        // One
+        let one = forward(&mut engine, "one.join('.')");
+        assert_eq!(one, String::from("a"));
+        // Many
+        let many = forward(&mut engine, "many.join('.')");
+        assert_eq!(many, String::from("a.b.c"));
+    }
 }

@@ -29,7 +29,7 @@ pub fn make_string(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue
 /// Get a string's length
 pub fn get_string_length(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
-    Ok(to_value::<i32>(this_str.len() as i32))
+    Ok(to_value::<i32>(this_str.chars().count() as i32))
 }
 
 /// Get the string value to a primitive string
@@ -488,6 +488,7 @@ pub fn _create(global: &Value) -> Value {
     string.set_field_slice(PROTOTYPE, proto);
     string
 }
+
 /// Initialise the `String` object on the global object
 pub fn init(global: &Value) {
     global.set_field_slice("String", _create(global));
@@ -496,10 +497,111 @@ pub fn init(global: &Value) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::exec::Executor;
+    use crate::forward;
+
     #[test]
     fn check_string_constructor_is_function() {
         let global = ValueData::new_obj(None);
         let string_constructor = _create(&global);
         assert_eq!(string_constructor.is_function(), true);
+    }
+
+    #[test]
+    fn length() {
+        //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
+        let mut engine = Executor::new();
+        let init = r#"
+        const a = new String(' ');
+        const b = new String('\ud834\udf06');
+        const c = new String(' \b ');
+        cosnt d = new String('中文长度')
+        "#;
+        forward(&mut engine, init);
+        let a = forward(&mut engine, "a.length");
+        assert_eq!(a, String::from("1"));
+        let b = forward(&mut engine, "b.length");
+        // TODO: fix this
+        // unicode surrogate pair length should be 1
+        // utf16/usc2 length should be 2
+        // utf8 length should be 4
+        //assert_eq!(b, String::from("2"));
+        let c = forward(&mut engine, "c.length");
+        assert_eq!(c, String::from("3"));
+        let d = forward(&mut engine, "d.length");
+        assert_eq!(d, String::from("4"));
+    }
+
+    #[test]
+    fn concat() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const hello = new String('Hello, ');
+        const world = new String('world! ');
+        const nice = new String('Have a nice day.');
+        "#;
+        forward(&mut engine, init);
+        let a = forward(&mut engine, "hello.concat(world, nice)");
+        let b = forward(&mut engine, "hello + world + nice");
+        // Todo: fix this
+        //assert_eq!(a, String::from("Hello, world! Have a nice day."));
+        //assert_eq!(b, String::from("Hello, world! Have a nice day."));
+    }
+
+    #[test]
+    fn repeat() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const empty = new String('');
+        const en = new String('english');
+        const zh = new String('中文');
+        "#;
+        forward(&mut engine, init);
+
+        let empty = String::from("");
+        assert_eq!(forward(&mut engine, "empty.repeat(0)"), empty);
+        assert_eq!(forward(&mut engine, "empty.repeat(1)"), empty);
+
+        assert_eq!(forward(&mut engine, "en.repeat(0)"), empty);
+        assert_eq!(forward(&mut engine, "zh.repeat(0)"), empty);
+
+        assert_eq!(
+            forward(&mut engine, "en.repeat(1)"),
+            String::from("english")
+        );
+        assert_eq!(
+            forward(&mut engine, "zh.repeat(2)"),
+            String::from("中文中文")
+        );
+    }
+
+    #[test]
+    fn starts_with() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const empty = new String('');
+        const en = new String('english');
+        const zh = new String('中文');
+        "#;
+        forward(&mut engine, init);
+        let pass = String::from("true");
+        assert_eq!(forward(&mut engine, "empty.startsWith('')"), pass);
+        assert_eq!(forward(&mut engine, "en.startsWith('e')"), pass);
+        assert_eq!(forward(&mut engine, "zh.startsWith('中')"), pass);
+    }
+
+    #[test]
+    fn ends_with() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const empty = new String('');
+        const en = new String('english');
+        const zh = new String('中文');
+        "#;
+        forward(&mut engine, init);
+        let pass = String::from("true");
+        assert_eq!(forward(&mut engine, "empty.endsWith('')"), pass);
+        assert_eq!(forward(&mut engine, "en.endsWith('h')"), pass);
+        assert_eq!(forward(&mut engine, "zh.endsWith('文')"), pass);
     }
 }
