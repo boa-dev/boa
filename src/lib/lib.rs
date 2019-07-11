@@ -33,6 +33,7 @@ pub mod js;
 pub mod syntax;
 
 use crate::exec::{Executor, Interpreter};
+use crate::syntax::ast::expr::Expr;
 use crate::syntax::lexer::Lexer;
 use crate::syntax::parser::Parser;
 use wasm_bindgen::prelude::*;
@@ -45,20 +46,29 @@ extern "C" {
     fn log(s: &str);
 }
 
-pub fn exec(src: &str) -> String {
+fn parser_expr(src: &str) -> Expr {
     let mut lexer = Lexer::new(src);
     lexer.lex().unwrap();
     let tokens = lexer.tokens;
+    Parser::new(tokens).parse_all().unwrap()
+}
 
+/// Execute the code using an existing Interpreter
+/// The str is consumed and the state of the Interpreter is changed
+pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
-    let expr = Parser::new(tokens).parse_all().unwrap();
-
-    let mut engine: Interpreter = Executor::new();
+    let expr = parser_expr(src);
     let result = engine.run(&expr);
     match result {
         Ok(v) => v.to_string(),
         Err(v) => format!("{}: {}", "Error", v.to_string()),
     }
+}
+
+/// Create a clean Interpreter and execute the code
+pub fn exec(src: &str) -> String {
+    let mut engine: Interpreter = Executor::new();
+    forward(&mut engine, src)
 }
 
 #[wasm_bindgen]
@@ -72,7 +82,7 @@ pub fn evaluate(src: &str) -> String {
     let tokens = lexer.tokens;
 
     // Setup executor
-    let expr: syntax::ast::expr::Expr;
+    let expr: Expr;
 
     match Parser::new(tokens).parse_all() {
         Ok(v) => {
