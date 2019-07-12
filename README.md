@@ -11,7 +11,7 @@ This project is an attempted rewrite of Bebbington's js.rs. Most of the Rust cod
 
 https://jasonwilliams.github.io/boa/
 
-You can get more verbose errors when running from the commnand line
+You can get more verbose errors when running from the command line
 
 ### Contributing
 
