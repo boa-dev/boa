@@ -33,7 +33,7 @@ pub mod syntax;
 
 use crate::{
     exec::{Executor, Interpreter},
-    syntax::{lexer::Lexer, parser::Parser},
+    syntax::{lexer::Lexer, parser::Parser, ast::expr::Expr},
 };
 use wasm_bindgen::prelude::*;
 
