@@ -70,6 +70,11 @@ pub struct Property {
 }
 
 impl Property {
+    /// Checks if the provided Value can be used as a property key.
+    pub fn is_property_key(value: &Value) -> bool {
+        value.is_string() // || value.is_symbol() // Uncomment this when we are handeling symbols.
+    }
+
     /// Make a new property with the given value
     pub fn new(value: Value) -> Self {
         Self {
@@ -183,4 +188,18 @@ pub fn _create(global: &Value) -> Value {
 /// Initialise the `Object` object on the global object
 pub fn init(global: &Value) {
     global.set_field_slice("Object", _create(global));
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn is_property_key_test() {
+        let v = Value::new(ValueData::String(String::from("Boop")));
+        assert!(Property::is_property_key(&v));
+
+        let v = Value::new(ValueData::Boolean(true));
+        assert!(!Property::is_property_key(&v));
+    }
 }
