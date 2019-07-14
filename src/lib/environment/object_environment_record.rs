@@ -6,11 +6,18 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.github.io/ecma262/#sec-object-environment-records)
 
-use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::lexical_environment::{Environment, EnvironmentType};
-use crate::js::object::Property;
-use crate::js::value::{Value, ValueData};
+use crate::{
+    environment::{
+        environment_record_trait::EnvironmentRecordTrait,
+        lexical_environment::{Environment, EnvironmentType},
+    },
+    js::{
+        object::Property,
+        value::{Value, ValueData},
+    },
+};
 use gc::Gc;
+use gc_derive::{Finalize, Trace};
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {

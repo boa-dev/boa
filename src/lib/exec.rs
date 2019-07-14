@@ -1,11 +1,19 @@
-use crate::environment::lexical_environment::{new_function_environment, LexicalEnvironment};
-use crate::js::function::{Function, RegularFunction};
-use crate::js::object::{INSTANCE_PROTOTYPE, PROTOTYPE};
-use crate::js::value::{from_value, to_value, ResultValue, ValueData};
-use crate::js::{array, console, function, json, math, object, string};
-use crate::syntax::ast::constant::Const;
-use crate::syntax::ast::expr::{Expr, ExprDef};
-use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp};
+use crate::{
+    environment::lexical_environment::{new_function_environment, LexicalEnvironment},
+    js::{
+        array, console, function,
+        function::{Function, RegularFunction},
+        json, math, object,
+        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
+        string,
+        value::{from_value, to_value, ResultValue, ValueData},
+    },
+    syntax::ast::{
+        constant::Const,
+        expr::{Expr, ExprDef},
+        op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
+    },
+};
 use gc::{Gc, GcCell};
 use std::borrow::Borrow;
 
@@ -102,7 +110,7 @@ impl Executor for Interpreter {
                     ValueData::Function(ref inner_func) => match *inner_func.as_ref().borrow() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(this, self.run(callee)?, v_args)
+                            func(&this, &v_args, &self)
                         }
                         Function::RegularFunc(ref data) => {
                             let env = &mut self.environment;
@@ -296,7 +304,7 @@ impl Executor for Interpreter {
                     ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(this, self.run(callee)?, v_args)
+                            func(&this, &v_args, &self)
                         }
                         Function::RegularFunc(ref data) => {
                             // Create new scope

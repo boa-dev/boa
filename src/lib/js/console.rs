@@ -1,3 +1,4 @@
+use crate::exec::Interpreter;
 use crate::js::function::NativeFunctionData;
 use crate::js::object::INSTANCE_PROTOTYPE;
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
@@ -8,7 +9,7 @@ use std::iter::FromIterator;
 
 /// Print a javascript value to the standard output stream
 /// <https://console.spec.whatwg.org/#logger>
-pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn log(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(args.iter().map(|x| {
         // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
         // The input is a vector of Values, we generate a vector of strings then pass them to println!
@@ -49,7 +50,7 @@ pub fn log(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Print a javascript value to the standard error stream
-pub fn error(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn error(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(
         args.iter()
             .map(|x| from_value::<String>(x.clone()).unwrap()),

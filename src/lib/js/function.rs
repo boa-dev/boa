@@ -1,10 +1,17 @@
-use crate::js::object::{ObjectData, Property};
-use crate::js::value::{to_value, ResultValue, Value, ValueData};
-use crate::syntax::ast::expr::Expr;
-use gc::Gc;
+use crate::{
+    exec::Interpreter,
+    js::{
+        object::{ObjectData, Property},
+        value::{to_value, ResultValue, Value, ValueData},
+    },
+    syntax::ast::expr::Expr,
+};
+use gc::{custom_trace, Gc};
+use gc_derive::{Finalize, Trace};
+use std::fmt::{self, Debug};
 
-/// fn(this, callee, arguments)
-pub type NativeFunctionData = fn(Value, Value, Vec<Value>) -> ResultValue;
+/// fn(this, arguments, ctx)
+pub type NativeFunctionData = fn(&Value, &[Value], &Interpreter) -> ResultValue;
 
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
@@ -43,7 +50,7 @@ impl RegularFunction {
     }
 }
 
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Finalize, Clone)]
 /// Represents a native javascript function in memory
 pub struct NativeFunction {
     /// The fields associated with the function
@@ -51,12 +58,23 @@ pub struct NativeFunction {
     /// The callable function data
     pub data: NativeFunctionData,
 }
+
 impl NativeFunction {
     /// Make a new native function with the given function data
     pub fn new(data: NativeFunctionData) -> Self {
         let object = ObjectData::default();
         Self { object, data }
     }
+}
+
+impl Debug for NativeFunction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({:?})", self.object)
+    }
+}
+
+unsafe impl gc::Trace for NativeFunction {
+    custom_trace!(this, mark(&this.object));
 }
 
 /// Create a new `Function` object

@@ -8,11 +8,16 @@
 //! from within the function.
 //! More info: <https://tc39.github.io/ecma262/#sec-function-environment-records>
 
-use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecordBinding;
-use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::lexical_environment::{Environment, EnvironmentType};
-use crate::js::value::{Value, ValueData};
+use crate::{
+    environment::{
+        declerative_environment_record::DeclerativeEnvironmentRecordBinding,
+        environment_record_trait::EnvironmentRecordTrait,
+        lexical_environment::{Environment, EnvironmentType},
+    },
+    js::value::{Value, ValueData},
+};
 use gc::Gc;
+use gc_derive::{Finalize, Trace};
 use std::collections::hash_map::HashMap;
 
 /// Different binding status for `this`.

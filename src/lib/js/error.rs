@@ -1,17 +1,22 @@
-use crate::js::function::NativeFunctionData;
-use crate::js::object::PROTOTYPE;
-use crate::js::value::{to_value, ResultValue, Value, ValueData};
+use crate::{
+    exec::Interpreter,
+    js::{
+        function::NativeFunctionData,
+        object::PROTOTYPE,
+        value::{to_value, ResultValue, Value, ValueData},
+    },
+};
 use gc::Gc;
 
 /// Create a new error
-pub fn make_error(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn make_error(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     if !args.is_empty() {
         this.set_field_slice("message", to_value(args.get(0).unwrap().to_string()));
     }
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Get the string representation of the error
-pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+pub fn to_string(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     let name = this.get_field_slice("name");
     let message = this.get_field_slice("message");
     Ok(to_value(format!("{}: {}", name, message).to_string()))

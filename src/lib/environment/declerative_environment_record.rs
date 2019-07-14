@@ -5,10 +5,15 @@
 //! A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.github.io/ecma262/#sec-declarative-environment-records)
 
-use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::lexical_environment::{Environment, EnvironmentType};
-use crate::js::value::{Value, ValueData};
+use crate::{
+    environment::{
+        environment_record_trait::EnvironmentRecordTrait,
+        lexical_environment::{Environment, EnvironmentType},
+    },
+    js::value::{Value, ValueData},
+};
 use gc::Gc;
+use gc_derive::{Finalize, Trace};
 use std::collections::hash_map::HashMap;
 
 /// Declerative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
