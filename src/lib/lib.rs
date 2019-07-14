@@ -49,7 +49,7 @@ fn parser_expr(src: &str) -> Expr {
     let mut lexer = Lexer::new(src);
     lexer.lex().expect("Failed lexing");
     let tokens = lexer.tokens;
-    Parser::new(tokens).parse_all().unwrap()
+    Parser::new(tokens).parse_all().expect("etes");
 }
 
 /// Execute the code using an existing Interpreter
