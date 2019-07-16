@@ -1,5 +1,12 @@
+# IDE
+.idea/
+*.iml
+
+# Build
 target
+dist
 **/*.rs.bk
 node_modules
 .DS_Store
 yarn-error.log
+.vscode/settings.json

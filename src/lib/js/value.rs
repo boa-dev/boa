@@ -3,6 +3,7 @@ use crate::js::{
     object::{ObjectData, ObjectKind, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
 };
 use gc::{Gc, GcCell};
+use gc_derive::{Finalize, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     f64::NAN,
@@ -65,8 +66,8 @@ impl ValueData {
 
     /// This will tell us if we can exten an object or not, not properly implemented yet, for now always returns true
     /// For scalar types it should be false, for objects check the private field for extensibilaty. By default true
-    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false
-    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false/>
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/>
     pub fn is_extensible(&self) -> bool {
         true
     }
@@ -279,16 +280,8 @@ impl ValueData {
                 // If the Property has [[Get]] set to a function, we should run that and return the Value
                 let prop_getter = match *prop.get {
                     ValueData::Function(ref v) => match *v.borrow() {
-                        Function::NativeFunc(ref ntv) => {
-                            let func = ntv.data;
-                            Some(
-                                func(
-                                    Gc::new(self.clone()),
-                                    Gc::new(self.clone()),
-                                    vec![Gc::new(self.clone())],
-                                )
-                                .unwrap(),
-                            )
+                        Function::NativeFunc(ref _ntv) => {
+                            None // this never worked properly anyway
                         }
                         _ => None,
                     },
@@ -424,7 +417,7 @@ impl ValueData {
 
     pub fn to_json(&self) -> JSONValue {
         match *self {
-            ValueData::Null | ValueData::Undefined => JSONValue::Null,
+            ValueData::Null | ValueData::Undefined | ValueData::Function(_) => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
                 let mut new_obj = Map::new();
@@ -438,7 +431,6 @@ impl ValueData {
             ValueData::String(ref str) => JSONValue::String(str.clone()),
             ValueData::Number(num) => JSONValue::Number(JSONNumber::from_f64(num).unwrap()),
             ValueData::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
-            ValueData::Function(_) => JSONValue::Null,
         }
     }
 

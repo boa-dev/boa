@@ -1,2 +1,2 @@
-let a = new String("iisiojdou");
-a;
+const a = new String("12345");
+a.length;

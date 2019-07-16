@@ -1,8 +1,12 @@
-use crate::js::{
-    function::NativeFunctionData,
-    value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData},
+use crate::{
+    exec::Interpreter,
+    js::{
+        function::NativeFunctionData,
+        value::{from_value, to_value, FromValue, ResultValue, ToValue, Value, ValueData},
+    },
 };
 use gc::Gc;
+use gc_derive::{Finalize, Trace};
 use std::collections::HashMap;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.  
@@ -67,6 +71,11 @@ pub struct Property {
 }
 
 impl Property {
+    /// Checks if the provided Value can be used as a property key.
+    pub fn is_property_key(value: &Value) -> bool {
+        value.is_string() // || value.is_symbol() // Uncomment this when we are handeling symbols.
+    }
+
     /// Make a new property with the given value
     pub fn new(value: Value) -> Self {
         Self {
@@ -107,18 +116,18 @@ impl FromValue for Property {
 }
 
 /// Create a new object
-pub fn make_object(_: Value, _: Value, _args: Vec<Value>) -> ResultValue {
+pub fn make_object(_: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
 /// Get the prototype of an object
-pub fn get_proto_of(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn get_proto_of(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap();
     Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
 }
 
 /// Set the prototype of an object
-pub fn set_proto_of(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn set_proto_of(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap().clone();
     let proto = args.get(1).unwrap().clone();
     obj.set_field_slice(INSTANCE_PROTOTYPE, proto);
@@ -126,7 +135,7 @@ pub fn set_proto_of(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 
 /// Define a property in an object
-pub fn define_prop(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn define_prop(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap();
     let prop = from_value::<String>(args.get(1).unwrap().clone()).unwrap();
     let desc = from_value::<Property>(args.get(2).unwrap().clone()).unwrap();
@@ -135,12 +144,12 @@ pub fn define_prop(_: Value, _: Value, args: Vec<Value>) -> ResultValue {
 }
 
 /// To string
-pub fn to_string(this: Value, _: Value, _: Vec<Value>) -> ResultValue {
+pub fn to_string(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
     Ok(to_value(this.to_string()))
 }
 
 /// Check if it has a property
-pub fn has_own_prop(this: Value, _: Value, args: Vec<Value>) -> ResultValue {
+pub fn has_own_prop(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     let prop = if args.is_empty() {
         None
     } else {
@@ -180,4 +189,18 @@ pub fn _create(global: &Value) -> Value {
 /// Initialise the `Object` object on the global object
 pub fn init(global: &Value) {
     global.set_field_slice("Object", _create(global));
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn is_property_key_test() {
+        let v = Value::new(ValueData::String(String::from("Boop")));
+        assert!(Property::is_property_key(&v));
+
+        let v = Value::new(ValueData::Boolean(true));
+        assert!(!Property::is_property_key(&v));
+    }
 }

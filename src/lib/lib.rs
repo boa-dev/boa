@@ -13,28 +13,28 @@
 // Debug trait derivation will show an error if forbidden.
 #![deny(unused_qualifications)]
 #![deny(clippy::all)]
-#![warn(clippy::pedantic)]
-#![allow(
-    unsafe_code,
-    clippy::many_single_char_names,
-    clippy::unreadable_literal,
-    clippy::excessive_precision,
-    clippy::module_name_repetitions,
-    clippy::pub_enum_variant_names,
-    clippy::cognitive_complexity
+#![warn(
+    clippy::pedantic,
+    clippy::restriction,
+    clippy::cognitive_complexity,
+    //missing_docs
 )]
-
-#[macro_use]
-extern crate gc_derive;
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::missing_inline_in_public_items,
+    clippy::implicit_return,
+    clippy::wildcard_enum_match_arm
+)]
 
 pub mod environment;
 pub mod exec;
 pub mod js;
 pub mod syntax;
 
-use crate::exec::{Executor, Interpreter};
-use crate::syntax::lexer::Lexer;
-use crate::syntax::parser::Parser;
+use crate::{
+    exec::{Executor, Interpreter},
+    syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
+};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -45,20 +45,29 @@ extern "C" {
     fn log(s: &str);
 }
 
-pub fn exec(src: &str) -> String {
+fn parser_expr(src: &str) -> Expr {
     let mut lexer = Lexer::new(src);
     lexer.lex().unwrap();
     let tokens = lexer.tokens;
+    Parser::new(tokens).parse_all().unwrap()
+}
 
+/// Execute the code using an existing Interpreter
+/// The str is consumed and the state of the Interpreter is changed
+pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
-    let expr = Parser::new(tokens).parse_all().unwrap();
-
-    let mut engine: Interpreter = Executor::new();
+    let expr = parser_expr(src);
     let result = engine.run(&expr);
     match result {
         Ok(v) => v.to_string(),
         Err(v) => format!("{}: {}", "Error", v.to_string()),
     }
+}
+
+/// Create a clean Interpreter and execute the code
+pub fn exec(src: &str) -> String {
+    let mut engine: Interpreter = Executor::new();
+    forward(&mut engine, src)
 }
 
 #[wasm_bindgen]
@@ -72,7 +81,7 @@ pub fn evaluate(src: &str) -> String {
     let tokens = lexer.tokens;
 
     // Setup executor
-    let expr: syntax::ast::expr::Expr;
+    let expr: Expr;
 
     match Parser::new(tokens).parse_all() {
         Ok(v) => {
