@@ -80,7 +80,7 @@ fn log_string_from(x: Value) -> String {
 
 /// Print a javascript value to the standard output stream
 /// <https://console.spec.whatwg.org/#logger>
-pub fn log(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue  {
+pub fn log(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
     // The input is a vector of Values, we generate a vector of strings then
     // pass them to println!
