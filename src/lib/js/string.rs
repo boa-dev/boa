@@ -2,7 +2,7 @@ use crate::{
     exec::Interpreter,
     js::{
         function::NativeFunctionData,
-        object::{Property, PROTOTYPE},
+        object::{ObjectKind, Property, PROTOTYPE},
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
@@ -22,6 +22,9 @@ pub fn make_string(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue
     // let a: String = from_value(args[0].clone()).unwrap();
     // this.set_field_slice("length", to_value(a.len() as i32));
 
+    // This value is used by console.log and other routines to match Object type
+    // to its Javascript Identifier (global constructor method name)
+    this.set_kind(ObjectKind::String);
     this.set_internal_slot("PrimitiveValue", args[0].clone());
     Ok(this.clone())
 }

@@ -4,7 +4,7 @@ use crate::{
         array, console, function,
         function::{Function, RegularFunction},
         json, math, object,
-        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         string,
         value::{from_value, to_value, ResultValue, ValueData},
     },
@@ -191,6 +191,8 @@ impl Executor for Interpreter {
             ExprDef::ArrayDeclExpr(ref arr) => {
                 let global_val = &self.environment.get_global_object().unwrap();
                 let arr_map = ValueData::new_obj(Some(global_val));
+                // Note that this object is an Array
+                arr_map.set_kind(ObjectKind::Array);
                 let mut index: i32 = 0;
                 for val in arr.iter() {
                     let val = self.run(val)?;

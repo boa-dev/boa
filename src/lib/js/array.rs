@@ -2,7 +2,7 @@ use crate::{
     exec::Interpreter,
     js::{
         function::NativeFunctionData,
-        object::{Property, PROTOTYPE},
+        object::{ObjectKind, Property, PROTOTYPE},
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
@@ -46,6 +46,9 @@ pub fn make_array(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue 
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
     this.set_field_slice("length", to_value(0_i32));
+    // This value is used by console.log and other routines to match Object type
+    // to its Javascript Identifier (global constructor method name)
+    this.set_kind(ObjectKind::Array);
     match args.len() {
         0 => create_array_object(this, &[]),
         1 => {

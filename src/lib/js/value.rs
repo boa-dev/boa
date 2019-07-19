@@ -1,6 +1,6 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
-    object::{ObjectData, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
+    object::{ObjectData, ObjectKind, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
 };
 use gc::{Gc, GcCell};
 use gc_derive::{Finalize, Trace};
@@ -346,6 +346,14 @@ impl ValueData {
                 .insert(field.to_string(), val.clone());
         }
         val
+    }
+
+    /// Set the kind of an object
+    pub fn set_kind(&self, kind: ObjectKind) -> ObjectKind {
+        if let ValueData::Object(ref obj) = *self {
+            obj.borrow_mut().kind = kind.clone();
+        }
+        kind
     }
 
     /// Set the property in the value

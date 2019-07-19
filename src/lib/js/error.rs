@@ -2,7 +2,7 @@ use crate::{
     exec::Interpreter,
     js::{
         function::NativeFunctionData,
-        object::PROTOTYPE,
+        object::{ObjectKind, PROTOTYPE},
         value::{to_value, ResultValue, Value, ValueData},
     },
 };
@@ -13,6 +13,9 @@ pub fn make_error(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue 
     if !args.is_empty() {
         this.set_field_slice("message", to_value(args.get(0).unwrap().to_string()));
     }
+    // This value is used by console.log and other routines to match Object type
+    // to its Javascript Identifier (global constructor method name)
+    this.set_kind(ObjectKind::Error);
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Get the string representation of the error

@@ -45,6 +45,7 @@ impl ObjectData {
 pub enum ObjectKind {
     Function,
     Array,
+    String,
     Symbol,
     Error,
     Ordinary,
