@@ -47,7 +47,7 @@ extern "C" {
 
 fn parser_expr(src: &str) -> Expr {
     let mut lexer = Lexer::new(src);
-    lexer.lex().unwrap();
+    lexer.lex().expect("Failed Lexing");
     let tokens = lexer.tokens;
     Parser::new(tokens).parse_all().unwrap()
 }
