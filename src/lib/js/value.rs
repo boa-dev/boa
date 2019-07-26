@@ -46,7 +46,7 @@ impl ValueData {
 
         if global.is_some() {
             let obj_proto = global
-                .unwrap()
+                .expect("Expected global object in making-new-object")
                 .get_field_slice("Object")
                 .get_field_slice(PROTOTYPE);
             obj.properties

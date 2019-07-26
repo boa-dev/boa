@@ -23,10 +23,10 @@ fn log_string_from(x: Value) -> String {
                         v.borrow()
                             .internal_slots
                             .get("PrimitiveValue")
-                            .unwrap()
+                            .expect("Cannot get primitive value from String")
                             .clone(),
                     )
-                    .unwrap();
+                    .expect("Cannot clone primitive value from String");
                     write!(s, "{}", str_val).unwrap();
                 }
                 ObjectKind::Array => {

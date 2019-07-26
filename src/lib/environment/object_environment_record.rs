@@ -50,8 +50,8 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         bindings.set_prop(name, prop);
     }
 
-    fn create_immutable_binding(&mut self, _name: String, _strict: bool) {
-        unimplemented!()
+    fn create_immutable_binding(&mut self, _name: String, _strict: bool) -> bool {
+        true
     }
 
     fn initialize_binding(&mut self, name: &str, value: Value) {

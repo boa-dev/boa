@@ -22,7 +22,7 @@ fn hello_world_parser(c: &mut Criterion) {
     c.bench_function("Hello World (Parser)", move |b| {
         b.iter(|| {
             let mut lexer = Lexer::new(SRC);
-            lexer.lex().unwrap();
+            lexer.lex().expect("failed to lex");
             let tokens = lexer.tokens;
             Parser::new(black_box(tokens)).parse_all().unwrap();
         })

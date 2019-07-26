@@ -40,6 +40,7 @@ pub struct RegularFunction {
 
 impl RegularFunction {
     /// Make a new regular function
+    #[allow(clippy::cast_possible_wrap)]
     pub fn new(expr: Expr, args: Vec<String>) -> Self {
         let mut object = ObjectData::default();
         object.properties.insert(
@@ -69,7 +70,11 @@ impl NativeFunction {
 
 impl Debug for NativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({:?})", self.object)
+        write!(f, "{{")?;
+        for (key, val) in self.object.properties.iter() {
+            write!(f, "{}: {}", key, val.value.clone())?;
+        }
+        write!(f, "}}")
     }
 }
 

@@ -101,7 +101,7 @@ impl LexicalEnvironment {
             .create_mutable_binding(name, deletion)
     }
 
-    pub fn create_immutable_binding(&mut self, name: String, deletion: bool) {
+    pub fn create_immutable_binding(&mut self, name: String, deletion: bool) -> bool {
         self.get_current_environment()
             .borrow_mut()
             .create_immutable_binding(name, deletion)

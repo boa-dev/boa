@@ -544,7 +544,7 @@ mod tests {
     fn check_string() {
         let s = "'aaa' \"bbb\"";
         let mut lexer = Lexer::new(s);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         assert_eq!(
             lexer.tokens[0].data,
             TokenData::StringLiteral("aaa".to_string())
@@ -563,7 +563,7 @@ mod tests {
                  + - * % -- << >> >>> & | ^ ! ~ && || ? : \
                  = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
         let mut lexer = Lexer::new(s);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         assert_eq!(
             lexer.tokens[0].data,
             TokenData::Punctuator(Punctuator::OpenBlock)
@@ -761,7 +761,7 @@ mod tests {
                  new return super switch this throw try typeof var void while with yield";
 
         let mut lexer = Lexer::new(s);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Await));
         assert_eq!(lexer.tokens[1].data, TokenData::Keyword(Keyword::Break));
         assert_eq!(lexer.tokens[2].data, TokenData::Keyword(Keyword::Case));
@@ -805,7 +805,7 @@ mod tests {
     fn check_variable_definition_tokens() {
         let s = &String::from("let a = 'hello';");
         let mut lexer = Lexer::new(s);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Let));
         assert_eq!(lexer.tokens[1].data, TokenData::Identifier("a".to_string()));
         assert_eq!(
@@ -823,7 +823,7 @@ mod tests {
         let s = &String::from("console.log(\"hello world\");");
         // -------------------123456789
         let mut lexer = Lexer::new(s);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         // The first column is 1 (not zero indexed)
         assert_eq!(lexer.tokens[0].pos.column_number, 1);
         assert_eq!(lexer.tokens[0].pos.line_number, 1);
@@ -853,7 +853,7 @@ mod tests {
         // Here we want an example of decrementing an integer
         let s = &String::from("let a = b--;");
         let mut lexer = Lexer::new(s);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[4].data, TokenData::Punctuator(Punctuator::Dec));
         // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
         // and move the curser forward by 2, meaning the next token should be a semicolon
@@ -866,7 +866,7 @@ mod tests {
     #[test]
     fn numbers() {
         let mut lexer = Lexer::new("1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999");
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
         assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(52.0));
@@ -884,14 +884,13 @@ mod tests {
     #[test]
     fn test_single_number_without_semicolon() {
         let mut lexer = Lexer::new("1");
-        lexer.lex().unwrap();
-        dbg!(lexer.tokens);
+        lexer.lex().expect("failed to lex");
     }
 
     #[test]
     fn test_number_followed_by_dot() {
         let mut lexer = Lexer::new("1..");
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Dot));
     }

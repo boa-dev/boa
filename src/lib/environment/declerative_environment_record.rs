@@ -59,7 +59,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
         );
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) {
+    fn create_immutable_binding(&mut self, name: String, strict: bool) -> bool {
         if self.env_rec.contains_key(&name) {
             // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
@@ -74,6 +74,8 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
                 strict,
             },
         );
+
+        true
     }
 
     fn initialize_binding(&mut self, name: &str, value: Value) {
