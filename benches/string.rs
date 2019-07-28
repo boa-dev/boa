@@ -22,11 +22,15 @@ fn hello_world_parser(c: &mut Criterion) {
     let mut lexer = Lexer::new(SRC);
     lexer.lex().expect("failed to lex");
     let tokens = lexer.tokens;
-    c.bench_function_over_inputs("Hello World (Parser)", move |b, tok| {
-        b.iter(|| {
-            Parser::new(black_box(tok.to_vec())).parse_all().unwrap();
-        })
-    }, vec![tokens]);
+    c.bench_function_over_inputs(
+        "Hello World (Parser)",
+        move |b, tok| {
+            b.iter(|| {
+                Parser::new(black_box(tok.to_vec())).parse_all().unwrap();
+            })
+        },
+        vec![tokens],
+    );
 }
 
 fn hello_world(c: &mut Criterion) {
