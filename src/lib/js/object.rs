@@ -32,7 +32,7 @@ pub struct ObjectData {
 
 impl ObjectData {
     /// Return a new ObjectData struct, with `kind` set to Ordinary
-    pub fn default() -> ObjectData {
+    pub fn default() -> Self {
         Self {
             kind: ObjectKind::Ordinary,
             internal_slots: Box::new(HashMap::new()),

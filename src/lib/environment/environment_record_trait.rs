@@ -31,7 +31,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// The String value N is the text of the bound name.
     /// If strict is true then attempts to set it after it has been initialized will always throw an exception,
     /// regardless of the strict mode setting of operations that reference that binding.
-    fn create_immutable_binding(&mut self, name: String, strict: bool);
+    fn create_immutable_binding(&mut self, name: String, strict: bool) -> bool;
 
     /// Set the value of an already existing but uninitialized binding in an Environment Record.
     /// The String value N is the text of the bound name.

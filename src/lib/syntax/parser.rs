@@ -54,14 +54,14 @@ impl Parser {
             exprs.push(result);
         }
 
-        // In the case of `BlockExpr` the Positions seem unnecessary
+        // In the case of `Block` the Positions seem unnecessary
         // TODO: refactor this or the `mk!` perhaps?
-        Ok(Expr::new(ExprDef::BlockExpr(exprs)))
+        Ok(Expr::new(ExprDef::Block(exprs)))
     }
 
     fn get_token(&self, pos: usize) -> Result<Token, ParseError> {
         if pos < self.tokens.len() {
-            Ok(self.tokens[pos].clone())
+            Ok(self.tokens.get(pos).expect("failed getting token").clone())
         } else {
             Err(ParseError::AbruptEnd)
         }
@@ -71,7 +71,7 @@ impl Parser {
         match keyword {
             Keyword::Throw => {
                 let thrown = self.parse()?;
-                Ok(mk!(self, ExprDef::ThrowExpr(Box::new(thrown))))
+                Ok(mk!(self, ExprDef::Throw(Box::new(thrown))))
             }
             // vars, lets and consts are similar in parsing structure, we can group them together
             Keyword::Var | Keyword::Let => {
@@ -124,8 +124,8 @@ impl Parser {
                 }
 
                 match keyword {
-                    Keyword::Let => Ok(Expr::new(ExprDef::LetDeclExpr(vars))),
-                    _ => Ok(Expr::new(ExprDef::VarDeclExpr(vars))),
+                    Keyword::Let => Ok(Expr::new(ExprDef::LetDecl(vars))),
+                    _ => Ok(Expr::new(ExprDef::VarDecl(vars))),
                 }
             }
             Keyword::Const => {
@@ -174,23 +174,22 @@ impl Parser {
                     }
                 }
 
-                Ok(Expr::new(ExprDef::ConstDeclExpr(vars)))
+                Ok(Expr::new(ExprDef::ConstDecl(vars)))
             }
             Keyword::Return => Ok(mk!(
                 self,
-                ExprDef::ReturnExpr(Some(Box::new(self.parse()?.clone())))
+                ExprDef::Return(Some(Box::new(self.parse()?.clone())))
             )),
             Keyword::New => {
                 let call = self.parse()?;
                 match call.def {
-                    ExprDef::CallExpr(ref func, ref args) => Ok(mk!(
-                        self,
-                        ExprDef::ConstructExpr(func.clone(), args.clone())
-                    )),
+                    ExprDef::Call(ref func, ref args) => {
+                        Ok(mk!(self, ExprDef::Construct(func.clone(), args.clone())))
+                    }
                     _ => Err(ParseError::ExpectedExpr("constructor", call)),
                 }
             }
-            Keyword::TypeOf => Ok(mk!(self, ExprDef::TypeOfExpr(Box::new(self.parse()?)))),
+            Keyword::TypeOf => Ok(mk!(self, ExprDef::TypeOf(Box::new(self.parse()?)))),
             Keyword::If => {
                 self.expect_punc(Punctuator::OpenParen, "if block")?;
                 let cond = self.parse()?;
@@ -199,7 +198,7 @@ impl Parser {
                 let next = self.get_token(self.pos);
                 Ok(mk!(
                     self,
-                    ExprDef::IfExpr(
+                    ExprDef::If(
                         Box::new(cond),
                         Box::new(expr),
                         if next.is_ok() && next.unwrap().data == TokenData::Keyword(Keyword::Else) {
@@ -218,7 +217,7 @@ impl Parser {
                 let expr = self.parse()?;
                 Ok(mk!(
                     self,
-                    ExprDef::WhileLoopExpr(Box::new(cond), Box::new(expr))
+                    ExprDef::WhileLoop(Box::new(cond), Box::new(expr))
                 ))
             }
             Keyword::Switch => {
@@ -257,7 +256,7 @@ impl Parser {
                                     _ => block.push(self.parse()?),
                                 }
                             }
-                            default = Some(mk!(self, ExprDef::BlockExpr(block)));
+                            default = Some(mk!(self, ExprDef::Block(block)));
                         }
                         TokenData::Punctuator(Punctuator::CloseBlock) => break,
                         _ => {
@@ -276,7 +275,7 @@ impl Parser {
                 self.expect_punc(Punctuator::CloseBlock, "switch block")?;
                 Ok(mk!(
                     self,
-                    ExprDef::SwitchExpr(
+                    ExprDef::Switch(
                         Box::new(value.unwrap()),
                         cases,
                         match default {
@@ -328,7 +327,7 @@ impl Parser {
                 let block = self.parse()?;
                 Ok(mk!(
                     self,
-                    ExprDef::FunctionDeclExpr(name, args, Box::new(block))
+                    ExprDef::FunctionDecl(name, args, Box::new(block))
                 ))
             }
             _ => Err(ParseError::UnexpectedKeyword(keyword)),
@@ -349,16 +348,16 @@ impl Parser {
                 self.parse()?
             }
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_) => {
-                mk!(self, ExprDef::ConstExpr(Const::Undefined))
+                mk!(self, ExprDef::Const(Const::Undefined))
             }
-            TokenData::NumericLiteral(num) => mk!(self, ExprDef::ConstExpr(Const::Num(num))),
-            TokenData::NullLiteral => mk!(self, ExprDef::ConstExpr(Const::Null)),
-            TokenData::StringLiteral(text) => mk!(self, ExprDef::ConstExpr(Const::String(text))),
-            TokenData::BooleanLiteral(val) => mk!(self, ExprDef::ConstExpr(Const::Bool(val))),
+            TokenData::NumericLiteral(num) => mk!(self, ExprDef::Const(Const::Num(num))),
+            TokenData::NullLiteral => mk!(self, ExprDef::Const(Const::Null)),
+            TokenData::StringLiteral(text) => mk!(self, ExprDef::Const(Const::String(text))),
+            TokenData::BooleanLiteral(val) => mk!(self, ExprDef::Const(Const::Bool(val))),
             TokenData::Identifier(ref s) if s == "undefined" => {
-                mk!(self, ExprDef::ConstExpr(Const::Undefined))
+                mk!(self, ExprDef::Const(Const::Undefined))
             }
-            TokenData::Identifier(s) => mk!(self, ExprDef::LocalExpr(s)),
+            TokenData::Identifier(s) => mk!(self, ExprDef::Local(s)),
             TokenData::Keyword(keyword) => self.parse_struct(keyword)?,
             TokenData::Punctuator(Punctuator::OpenParen) => {
                 match self.get_token(self.pos)?.data {
@@ -370,7 +369,7 @@ impl Parser {
                         let expr = self.parse()?;
                         mk!(
                             self,
-                            ExprDef::ArrowFunctionDeclExpr(Vec::new(), Box::new(expr)),
+                            ExprDef::ArrowFunctionDecl(Vec::new(), Box::new(expr)),
                             token
                         )
                     }
@@ -384,7 +383,7 @@ impl Parser {
                                 // at this point it's probably gonna be an arrow function
                                 let mut args = vec![
                                     match next.def {
-                                        ExprDef::LocalExpr(ref name) => (*name).clone(),
+                                        ExprDef::Local(ref name) => (*name).clone(),
                                         _ => "".to_string(),
                                     },
                                     match self.get_token(self.pos)?.data {
@@ -436,7 +435,7 @@ impl Parser {
                                 let expr = self.parse()?;
                                 mk!(
                                     self,
-                                    ExprDef::ArrowFunctionDeclExpr(args, Box::new(expr)),
+                                    ExprDef::ArrowFunctionDecl(args, Box::new(expr)),
                                     token
                                 )
                             }
@@ -464,7 +463,7 @@ impl Parser {
                         TokenData::Punctuator(Punctuator::Comma) => {
                             if !saw_expr_last {
                                 // An elision indicates that a space is saved in the array
-                                array.push(mk!(self, ExprDef::ConstExpr(Const::Undefined)))
+                                array.push(mk!(self, ExprDef::Const(Const::Undefined)))
                             }
                             saw_expr_last = false;
                             self.pos += 1;
@@ -487,18 +486,14 @@ impl Parser {
                         }
                     }
                 }
-                mk!(self, ExprDef::ArrayDeclExpr(array), token)
+                mk!(self, ExprDef::ArrayDecl(array), token)
             }
             TokenData::Punctuator(Punctuator::OpenBlock)
                 if self.get_token(self.pos)?.data
                     == TokenData::Punctuator(Punctuator::CloseBlock) =>
             {
                 self.pos += 1;
-                mk!(
-                    self,
-                    ExprDef::ObjectDeclExpr(Box::new(BTreeMap::new())),
-                    token
-                )
+                mk!(self, ExprDef::ObjectDecl(Box::new(BTreeMap::new())), token)
             }
             TokenData::Punctuator(Punctuator::OpenBlock)
                 if self.get_token(self.pos + 1)?.data
@@ -532,7 +527,7 @@ impl Parser {
                     map.insert(name, value);
                     self.pos += 1;
                 }
-                mk!(self, ExprDef::ObjectDeclExpr(map), token)
+                mk!(self, ExprDef::ObjectDecl(map), token)
             }
             TokenData::Punctuator(Punctuator::OpenBlock) => {
                 let mut exprs = Vec::new();
@@ -546,27 +541,27 @@ impl Parser {
                     }
                 }
                 self.pos += 1;
-                mk!(self, ExprDef::BlockExpr(exprs), token)
+                mk!(self, ExprDef::Block(exprs), token)
             }
             TokenData::Punctuator(Punctuator::Sub) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::Minus, Box::new(self.parse()?))
+                ExprDef::UnaryOp(UnaryOp::Minus, Box::new(self.parse()?))
             ),
             TokenData::Punctuator(Punctuator::Add) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::Plus, Box::new(self.parse()?))
+                ExprDef::UnaryOp(UnaryOp::Plus, Box::new(self.parse()?))
             ),
             TokenData::Punctuator(Punctuator::Not) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::Not, Box::new(self.parse()?))
+                ExprDef::UnaryOp(UnaryOp::Not, Box::new(self.parse()?))
             ),
             TokenData::Punctuator(Punctuator::Inc) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::IncrementPre, Box::new(self.parse()?))
+                ExprDef::UnaryOp(UnaryOp::IncrementPre, Box::new(self.parse()?))
             ),
             TokenData::Punctuator(Punctuator::Dec) => mk!(
                 self,
-                ExprDef::UnaryOpExpr(UnaryOp::DecrementPre, Box::new(self.parse()?))
+                ExprDef::UnaryOp(UnaryOp::DecrementPre, Box::new(self.parse()?))
             ),
             _ => return Err(ParseError::Expected(Vec::new(), token.clone(), "script")),
         };
@@ -587,10 +582,7 @@ impl Parser {
                 let tk = self.get_token(self.pos)?;
                 match tk.data {
                     TokenData::Identifier(ref s) => {
-                        result = mk!(
-                            self,
-                            ExprDef::GetConstFieldExpr(Box::new(expr), s.to_string())
-                        )
+                        result = mk!(self, ExprDef::GetConstField(Box::new(expr), s.to_string()))
                     }
                     _ => {
                         return Err(ParseError::Expected(
@@ -634,7 +626,7 @@ impl Parser {
                         expect_comma_or_end = true;
                     }
                 }
-                result = mk!(self, ExprDef::CallExpr(Box::new(expr), args));
+                result = mk!(self, ExprDef::Call(Box::new(expr), args));
             }
             TokenData::Punctuator(Punctuator::Question) => {
                 self.pos += 1;
@@ -643,7 +635,7 @@ impl Parser {
                 let else_e = self.parse()?;
                 result = mk!(
                     self,
-                    ExprDef::IfExpr(Box::new(expr), Box::new(if_e), Some(Box::new(else_e)))
+                    ExprDef::If(Box::new(expr), Box::new(if_e), Some(Box::new(else_e)))
                 );
             }
             TokenData::Punctuator(Punctuator::OpenBracket) => {
@@ -653,7 +645,7 @@ impl Parser {
                     TokenData::Punctuator(Punctuator::CloseBracket),
                     "array index",
                 )?;
-                result = mk!(self, ExprDef::GetFieldExpr(Box::new(expr), Box::new(index)));
+                result = mk!(self, ExprDef::GetField(Box::new(expr), Box::new(index)));
             }
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_) => {
                 self.pos += 1;
@@ -661,17 +653,17 @@ impl Parser {
             TokenData::Punctuator(Punctuator::Assign) => {
                 self.pos += 1;
                 let next = self.parse()?;
-                result = mk!(self, ExprDef::AssignExpr(Box::new(expr), Box::new(next)));
+                result = mk!(self, ExprDef::Assign(Box::new(expr), Box::new(next)));
             }
             TokenData::Punctuator(Punctuator::Arrow) => {
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
                 match result.def {
-                    ExprDef::LocalExpr(ref name) => args.push((*name).clone()),
+                    ExprDef::Local(ref name) => args.push((*name).clone()),
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
                 let next = self.parse()?;
-                result = mk!(self, ExprDef::ArrowFunctionDeclExpr(args, Box::new(next)));
+                result = mk!(self, ExprDef::ArrowFunctionDecl(args, Box::new(next)));
             }
             TokenData::Punctuator(Punctuator::Add) => {
                 result = self.binop(BinOp::Num(NumOp::Add), expr)?
@@ -736,13 +728,13 @@ impl Parser {
             TokenData::Punctuator(Punctuator::Inc) => {
                 result = mk!(
                     self,
-                    ExprDef::UnaryOpExpr(UnaryOp::IncrementPost, Box::new(self.parse()?))
+                    ExprDef::UnaryOp(UnaryOp::IncrementPost, Box::new(self.parse()?))
                 )
             }
             TokenData::Punctuator(Punctuator::Dec) => {
                 result = mk!(
                     self,
-                    ExprDef::UnaryOpExpr(UnaryOp::DecrementPost, Box::new(self.parse()?))
+                    ExprDef::UnaryOp(UnaryOp::DecrementPost, Box::new(self.parse()?))
                 )
             }
             _ => carry_on = false,
@@ -759,28 +751,28 @@ impl Parser {
         self.pos += 1;
         let next = self.parse()?;
         Ok(match next.def {
-            ExprDef::BinOpExpr(ref op2, ref a, ref b) => {
+            ExprDef::BinOp(ref op2, ref a, ref b) => {
                 let other_precedence = op2.get_precedence();
                 if precedence < other_precedence || (precedence == other_precedence && !assoc) {
                     mk!(
                         self,
-                        ExprDef::BinOpExpr(
+                        ExprDef::BinOp(
                             op2.clone(),
                             b.clone(),
                             Box::new(mk!(
                                 self,
-                                ExprDef::BinOpExpr(op.clone(), Box::new(orig), a.clone())
+                                ExprDef::BinOp(op.clone(), Box::new(orig), a.clone())
                             ))
                         )
                     )
                 } else {
                     mk!(
                         self,
-                        ExprDef::BinOpExpr(op, Box::new(orig), Box::new(next.clone()))
+                        ExprDef::BinOp(op, Box::new(orig), Box::new(next.clone()))
                     )
                 }
             }
-            _ => mk!(self, ExprDef::BinOpExpr(op, Box::new(orig), Box::new(next))),
+            _ => mk!(self, ExprDef::BinOp(op, Box::new(orig), Box::new(next))),
         })
     }
 
@@ -812,17 +804,17 @@ mod tests {
 
     fn check_parser(js: &str, expr: &[Expr]) {
         let mut lexer = Lexer::new(js);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
 
         assert_eq!(
             Parser::new(lexer.tokens).parse_all().unwrap(),
-            Expr::new(ExprDef::BlockExpr(expr.into()))
+            Expr::new(ExprDef::Block(expr.into()))
         );
     }
 
     fn check_invalid(js: &str) {
         let mut lexer = Lexer::new(js);
-        lexer.lex().unwrap();
+        lexer.lex().expect("failed to lex");
 
         assert!(Parser::new(lexer.tokens).parse_all().is_err());
     }
@@ -834,13 +826,13 @@ mod tests {
         // Check empty string
         check_parser(
             "\"\"",
-            &[Expr::new(ExprDef::ConstExpr(Const::String(String::new())))],
+            &[Expr::new(ExprDef::Const(Const::String(String::new())))],
         );
 
         // Check non-empty string
         check_parser(
             "\"hello\"",
-            &[Expr::new(ExprDef::ConstExpr(Const::String(String::from(
+            &[Expr::new(ExprDef::Const(Const::String(String::from(
                 "hello",
             ))))],
         );
@@ -851,76 +843,76 @@ mod tests {
         use crate::syntax::ast::constant::Const;
 
         // Check empty array
-        check_parser("[]", &[Expr::new(ExprDef::ArrayDeclExpr(vec![]))]);
+        check_parser("[]", &[Expr::new(ExprDef::ArrayDecl(vec![]))]);
 
         // Check array with empty slot
         check_parser(
             "[,]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![Expr::new(
-                ExprDef::ConstExpr(Const::Undefined),
+            &[Expr::new(ExprDef::ArrayDecl(vec![Expr::new(
+                ExprDef::Const(Const::Undefined),
             )]))],
         );
 
         // Check numeric array
         check_parser(
             "[1, 2, 3]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            &[Expr::new(ExprDef::ArrayDecl(vec![
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
+                Expr::new(ExprDef::Const(Const::Num(3.0))),
             ]))],
         );
 
         // Check numeric array with trailing comma
         check_parser(
             "[1, 2, 3,]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            &[Expr::new(ExprDef::ArrayDecl(vec![
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
+                Expr::new(ExprDef::Const(Const::Num(3.0))),
             ]))],
         );
 
         // Check numeric array with an elision
         check_parser(
             "[1, 2, , 3]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Undefined)),
-                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            &[Expr::new(ExprDef::ArrayDecl(vec![
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
+                Expr::new(ExprDef::Const(Const::Undefined)),
+                Expr::new(ExprDef::Const(Const::Num(3.0))),
             ]))],
         );
 
         // Check numeric array with repeated elision
         check_parser(
             "[1, 2, ,, 3]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
-                Expr::new(ExprDef::ConstExpr(Const::Undefined)),
-                Expr::new(ExprDef::ConstExpr(Const::Undefined)),
-                Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+            &[Expr::new(ExprDef::ArrayDecl(vec![
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
+                Expr::new(ExprDef::Const(Const::Undefined)),
+                Expr::new(ExprDef::Const(Const::Undefined)),
+                Expr::new(ExprDef::Const(Const::Num(3.0))),
             ]))],
         );
 
         // Check combined array
         check_parser(
             "[1, \"a\", 2]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
-                Expr::new(ExprDef::ConstExpr(Const::String(String::from("a")))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+            &[Expr::new(ExprDef::ArrayDecl(vec![
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
+                Expr::new(ExprDef::Const(Const::String(String::from("a")))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
             ]))],
         );
 
         // Check combined array with empty string
         check_parser(
             "[1, \"\", 2]",
-            &[Expr::new(ExprDef::ArrayDeclExpr(vec![
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
-                Expr::new(ExprDef::ConstExpr(Const::String(String::new()))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+            &[Expr::new(ExprDef::ArrayDecl(vec![
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
+                Expr::new(ExprDef::Const(Const::String(String::new()))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
             ]))],
         );
     }
@@ -932,42 +924,39 @@ mod tests {
         // Check `var` declaration
         check_parser(
             "var a = 5;",
-            &[Expr::new(ExprDef::VarDeclExpr(vec![(
+            &[Expr::new(ExprDef::VarDecl(vec![(
                 String::from("a"),
-                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                Some(Expr::new(ExprDef::Const(Const::Num(5.0)))),
             )]))],
         );
 
         // Check `var` declaration with no spaces
         check_parser(
             "var a=5;",
-            &[Expr::new(ExprDef::VarDeclExpr(vec![(
+            &[Expr::new(ExprDef::VarDecl(vec![(
                 String::from("a"),
-                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                Some(Expr::new(ExprDef::Const(Const::Num(5.0)))),
             )]))],
         );
 
         // Check empty `var` declaration
         check_parser(
             "var a;",
-            &[Expr::new(ExprDef::VarDeclExpr(vec![(
-                String::from("a"),
-                None,
-            )]))],
+            &[Expr::new(ExprDef::VarDecl(vec![(String::from("a"), None)]))],
         );
 
         // Check multiple `var` declaration
         check_parser(
             "var a = 5, b, c = 6;",
-            &[Expr::new(ExprDef::VarDeclExpr(vec![
+            &[Expr::new(ExprDef::VarDecl(vec![
                 (
                     String::from("a"),
-                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                    Some(Expr::new(ExprDef::Const(Const::Num(5.0)))),
                 ),
                 (String::from("b"), None),
                 (
                     String::from("c"),
-                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(6.0)))),
+                    Some(Expr::new(ExprDef::Const(Const::Num(6.0)))),
                 ),
             ]))],
         );
@@ -975,42 +964,39 @@ mod tests {
         // Check `let` declaration
         check_parser(
             "let a = 5;",
-            &[Expr::new(ExprDef::LetDeclExpr(vec![(
+            &[Expr::new(ExprDef::LetDecl(vec![(
                 String::from("a"),
-                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                Some(Expr::new(ExprDef::Const(Const::Num(5.0)))),
             )]))],
         );
 
         // Check `let` declaration with no spaces
         check_parser(
             "let a=5;",
-            &[Expr::new(ExprDef::LetDeclExpr(vec![(
+            &[Expr::new(ExprDef::LetDecl(vec![(
                 String::from("a"),
-                Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                Some(Expr::new(ExprDef::Const(Const::Num(5.0)))),
             )]))],
         );
 
         // Check empty `let` declaration
         check_parser(
             "let a;",
-            &[Expr::new(ExprDef::LetDeclExpr(vec![(
-                String::from("a"),
-                None,
-            )]))],
+            &[Expr::new(ExprDef::LetDecl(vec![(String::from("a"), None)]))],
         );
 
         // Check multiple `let` declaration
         check_parser(
             "let a = 5, b, c = 6;",
-            &[Expr::new(ExprDef::LetDeclExpr(vec![
+            &[Expr::new(ExprDef::LetDecl(vec![
                 (
                     String::from("a"),
-                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(5.0)))),
+                    Some(Expr::new(ExprDef::Const(Const::Num(5.0)))),
                 ),
                 (String::from("b"), None),
                 (
                     String::from("c"),
-                    Some(Expr::new(ExprDef::ConstExpr(Const::Num(6.0)))),
+                    Some(Expr::new(ExprDef::Const(Const::Num(6.0)))),
                 ),
             ]))],
         );
@@ -1018,18 +1004,18 @@ mod tests {
         // Check `const` declaration
         check_parser(
             "const a = 5;",
-            &[Expr::new(ExprDef::ConstDeclExpr(vec![(
+            &[Expr::new(ExprDef::ConstDecl(vec![(
                 String::from("a"),
-                Expr::new(ExprDef::ConstExpr(Const::Num(5.0))),
+                Expr::new(ExprDef::Const(Const::Num(5.0))),
             )]))],
         );
 
         // Check `const` declaration with no spaces
         check_parser(
             "const a=5;",
-            &[Expr::new(ExprDef::ConstDeclExpr(vec![(
+            &[Expr::new(ExprDef::ConstDecl(vec![(
                 String::from("a"),
-                Expr::new(ExprDef::ConstExpr(Const::Num(5.0))),
+                Expr::new(ExprDef::Const(Const::Num(5.0))),
             )]))],
         );
 
@@ -1039,14 +1025,14 @@ mod tests {
         // Check multiple `const` declaration
         check_parser(
             "const a = 5, c = 6;",
-            &[Expr::new(ExprDef::ConstDeclExpr(vec![
+            &[Expr::new(ExprDef::ConstDecl(vec![
                 (
                     String::from("a"),
-                    Expr::new(ExprDef::ConstExpr(Const::Num(5.0))),
+                    Expr::new(ExprDef::Const(Const::Num(5.0))),
                 ),
                 (
                     String::from("c"),
-                    Expr::new(ExprDef::ConstExpr(Const::Num(6.0))),
+                    Expr::new(ExprDef::Const(Const::Num(6.0))),
                 ),
             ]))],
         );
@@ -1057,7 +1043,7 @@ mod tests {
         use crate::syntax::ast::{constant::Const, op::BinOp};
 
         fn create_bin_op(op: BinOp, exp1: Expr, exp2: Expr) -> Expr {
-            Expr::new(ExprDef::BinOpExpr(op, Box::new(exp1), Box::new(exp2)))
+            Expr::new(ExprDef::BinOp(op, Box::new(exp1), Box::new(exp2)))
         }
 
         // Check numeric operations
@@ -1065,80 +1051,80 @@ mod tests {
             "a + b",
             &[create_bin_op(
                 BinOp::Num(NumOp::Add),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a+1",
             &[create_bin_op(
                 BinOp::Num(NumOp::Add),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
             )],
         );
         check_parser(
             "a - b",
             &[create_bin_op(
                 BinOp::Num(NumOp::Sub),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a-1",
             &[create_bin_op(
                 BinOp::Num(NumOp::Sub),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Const(Const::Num(1.0))),
             )],
         );
         check_parser(
             "a / b",
             &[create_bin_op(
                 BinOp::Num(NumOp::Div),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a/2",
             &[create_bin_op(
                 BinOp::Num(NumOp::Div),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
             )],
         );
         check_parser(
             "a * b",
             &[create_bin_op(
                 BinOp::Num(NumOp::Mul),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a*2",
             &[create_bin_op(
                 BinOp::Num(NumOp::Mul),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
             )],
         );
         check_parser(
             "a % b",
             &[create_bin_op(
                 BinOp::Num(NumOp::Mod),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a%2",
             &[create_bin_op(
                 BinOp::Num(NumOp::Mod),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::ConstExpr(Const::Num(2.0))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
             )],
         );
 
@@ -1147,18 +1133,18 @@ mod tests {
             "a + d*(b-3)+1",
             &[create_bin_op(
                 BinOp::Num(NumOp::Add),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
                 create_bin_op(
                     BinOp::Num(NumOp::Add),
                     // FIXME: shouldn't the last addition be on the right?
-                    Expr::new(ExprDef::ConstExpr(Const::Num(1.0))),
+                    Expr::new(ExprDef::Const(Const::Num(1.0))),
                     create_bin_op(
                         BinOp::Num(NumOp::Mul),
-                        Expr::new(ExprDef::LocalExpr(String::from("d"))),
+                        Expr::new(ExprDef::Local(String::from("d"))),
                         create_bin_op(
                             BinOp::Num(NumOp::Sub),
-                            Expr::new(ExprDef::LocalExpr(String::from("b"))),
-                            Expr::new(ExprDef::ConstExpr(Const::Num(3.0))),
+                            Expr::new(ExprDef::Local(String::from("b"))),
+                            Expr::new(ExprDef::Const(Const::Num(3.0))),
                         ),
                     ),
                 ),
@@ -1170,16 +1156,16 @@ mod tests {
             "a & b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::And),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a&b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::And),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
 
@@ -1187,16 +1173,16 @@ mod tests {
             "a | b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Or),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a|b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Or),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
 
@@ -1204,16 +1190,16 @@ mod tests {
             "a ^ b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Xor),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a^b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Xor),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
 
@@ -1221,16 +1207,16 @@ mod tests {
             "a << b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Shl),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a<<b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Shl),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
 
@@ -1238,16 +1224,16 @@ mod tests {
             "a >> b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Shr),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
         check_parser(
             "a>>b",
             &[create_bin_op(
                 BinOp::Bit(BitOp::Shr),
-                Expr::new(ExprDef::LocalExpr(String::from("a"))),
-                Expr::new(ExprDef::LocalExpr(String::from("b"))),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
             )],
         );
     }

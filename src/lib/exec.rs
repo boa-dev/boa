@@ -50,17 +50,17 @@ impl Executor for Interpreter {
     #[allow(clippy::match_same_arms)]
     fn run(&mut self, expr: &Expr) -> ResultValue {
         match expr.def {
-            ExprDef::ConstExpr(Const::Null) => Ok(to_value(None::<()>)),
-            ExprDef::ConstExpr(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
-            ExprDef::ConstExpr(Const::Num(num)) => Ok(to_value(num)),
-            ExprDef::ConstExpr(Const::Int(num)) => Ok(to_value(num)),
+            ExprDef::Const(Const::Null) => Ok(to_value(None::<()>)),
+            ExprDef::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
+            ExprDef::Const(Const::Num(num)) => Ok(to_value(num)),
+            ExprDef::Const(Const::Int(num)) => Ok(to_value(num)),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            ExprDef::ConstExpr(Const::String(ref str)) => Ok(to_value(str.to_owned())),
-            ExprDef::ConstExpr(Const::Bool(val)) => Ok(to_value(val)),
-            ExprDef::ConstExpr(Const::RegExp(_, _, _)) => Ok(to_value(None::<()>)),
-            ExprDef::BlockExpr(ref es) => {
+            ExprDef::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
+            ExprDef::Const(Const::Bool(val)) => Ok(to_value(val)),
+            ExprDef::Const(Const::RegExp(_, _, _)) => Ok(to_value(None::<()>)),
+            ExprDef::Block(ref es) => {
                 let mut obj = to_value(None::<()>);
                 for e in es.iter() {
                     let val = self.run(e)?;
@@ -70,26 +70,26 @@ impl Executor for Interpreter {
                 }
                 Ok(obj)
             }
-            ExprDef::LocalExpr(ref name) => {
+            ExprDef::Local(ref name) => {
                 let val = self.environment.get_binding_value(name);
                 Ok(val)
             }
-            ExprDef::GetConstFieldExpr(ref obj, ref field) => {
+            ExprDef::GetConstField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 Ok(val_obj.borrow().get_field(field))
             }
-            ExprDef::GetFieldExpr(ref obj, ref field) => {
+            ExprDef::GetField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 let val_field = self.run(field)?;
                 Ok(val_obj.borrow().get_field(&val_field.borrow().to_string()))
             }
-            ExprDef::CallExpr(ref callee, ref args) => {
+            ExprDef::Call(ref callee, ref args) => {
                 let (this, func) = match callee.def {
-                    ExprDef::GetConstFieldExpr(ref obj, ref field) => {
+                    ExprDef::GetConstField(ref obj, ref field) => {
                         let obj = self.run(obj)?;
                         (obj.clone(), obj.borrow().get_field(field))
                     }
-                    ExprDef::GetFieldExpr(ref obj, ref field) => {
+                    ExprDef::GetField(ref obj, ref field) => {
                         let obj = self.run(obj)?;
                         let field = self.run(field)?;
                         (
@@ -135,28 +135,26 @@ impl Executor for Interpreter {
                     _ => Err(Gc::new(ValueData::Undefined)),
                 }
             }
-            ExprDef::WhileLoopExpr(ref cond, ref expr) => {
+            ExprDef::WhileLoop(ref cond, ref expr) => {
                 let mut result = Gc::new(ValueData::Undefined);
                 while self.run(cond)?.borrow().is_true() {
                     result = self.run(expr)?;
                 }
                 Ok(result)
             }
-            ExprDef::IfExpr(ref cond, ref expr, None) => {
-                Ok(if self.run(cond)?.borrow().is_true() {
-                    self.run(expr)?
-                } else {
-                    Gc::new(ValueData::Undefined)
-                })
-            }
-            ExprDef::IfExpr(ref cond, ref expr, Some(ref else_e)) => {
+            ExprDef::If(ref cond, ref expr, None) => Ok(if self.run(cond)?.borrow().is_true() {
+                self.run(expr)?
+            } else {
+                Gc::new(ValueData::Undefined)
+            }),
+            ExprDef::If(ref cond, ref expr, Some(ref else_e)) => {
                 Ok(if self.run(cond)?.borrow().is_true() {
                     self.run(expr)?
                 } else {
                     self.run(else_e)?
                 })
             }
-            ExprDef::SwitchExpr(ref val_e, ref vals, ref default) => {
+            ExprDef::Switch(ref val_e, ref vals, ref default) => {
                 let val = self.run(val_e)?.clone();
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
@@ -180,7 +178,7 @@ impl Executor for Interpreter {
                 }
                 Ok(result)
             }
-            ExprDef::ObjectDeclExpr(ref map) => {
+            ExprDef::ObjectDecl(ref map) => {
                 let global_val = &self.environment.get_global_object().unwrap();
                 let obj = ValueData::new_obj(Some(global_val));
                 for (key, val) in map.iter() {
@@ -188,7 +186,7 @@ impl Executor for Interpreter {
                 }
                 Ok(obj)
             }
-            ExprDef::ArrayDeclExpr(ref arr) => {
+            ExprDef::ArrayDecl(ref arr) => {
                 let global_val = &self.environment.get_global_object().unwrap();
                 let arr_map = ValueData::new_obj(Some(global_val));
                 // Note that this object is an Array
@@ -209,7 +207,7 @@ impl Executor for Interpreter {
                 arr_map.borrow().set_field_slice("length", to_value(index));
                 Ok(arr_map)
             }
-            ExprDef::FunctionDeclExpr(ref name, ref args, ref expr) => {
+            ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
                 let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
@@ -221,14 +219,14 @@ impl Executor for Interpreter {
                 }
                 Ok(val)
             }
-            ExprDef::ArrowFunctionDeclExpr(ref args, ref expr) => {
+            ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
                 Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
                     function,
                 )))))
             }
-            ExprDef::BinOpExpr(BinOp::Num(ref op), ref a, ref b) => {
+            ExprDef::BinOp(BinOp::Num(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
                 let v_r_b = self.run(b)?;
                 let v_a = (*v_r_a).clone();
@@ -241,7 +239,7 @@ impl Executor for Interpreter {
                     NumOp::Mod => v_a % v_b,
                 }))
             }
-            ExprDef::UnaryOpExpr(ref op, ref a) => {
+            ExprDef::UnaryOp(ref op, ref a) => {
                 let v_r_a = self.run(a)?;
                 let v_a = (*v_r_a).clone();
                 Ok(match *op {
@@ -251,7 +249,7 @@ impl Executor for Interpreter {
                     _ => unreachable!(),
                 })
             }
-            ExprDef::BinOpExpr(BinOp::Bit(ref op), ref a, ref b) => {
+            ExprDef::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
                 let v_r_b = self.run(b)?;
                 let v_a = (*v_r_a).clone();
@@ -264,7 +262,7 @@ impl Executor for Interpreter {
                     BitOp::Shr => v_a >> v_b,
                 }))
             }
-            ExprDef::BinOpExpr(BinOp::Comp(ref op), ref a, ref b) => {
+            ExprDef::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
                 let v_r_b = self.run(b)?;
                 let v_a = v_r_a.borrow();
@@ -284,7 +282,7 @@ impl Executor for Interpreter {
                     CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
                 }))
             }
-            ExprDef::BinOpExpr(BinOp::Log(ref op), ref a, ref b) => {
+            ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
                 let v_a = from_value::<bool>(self.run(a)?).unwrap();
                 let v_b = from_value::<bool>(self.run(b)?).unwrap();
                 Ok(match *op {
@@ -292,7 +290,7 @@ impl Executor for Interpreter {
                     LogOp::Or => to_value(v_a || v_b),
                 })
             }
-            ExprDef::ConstructExpr(ref callee, ref args) => {
+            ExprDef::Construct(ref callee, ref args) => {
                 let func = self.run(callee)?;
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
@@ -331,19 +329,19 @@ impl Executor for Interpreter {
                     _ => Ok(Gc::new(ValueData::Undefined)),
                 }
             }
-            ExprDef::ReturnExpr(ref ret) => match *ret {
+            ExprDef::Return(ref ret) => match *ret {
                 Some(ref v) => self.run(v),
                 None => Ok(Gc::new(ValueData::Undefined)),
             },
-            ExprDef::ThrowExpr(ref ex) => Err(self.run(ex)?),
-            ExprDef::AssignExpr(ref ref_e, ref val_e) => {
+            ExprDef::Throw(ref ex) => Err(self.run(ex)?),
+            ExprDef::Assign(ref ref_e, ref val_e) => {
                 let val = self.run(val_e)?;
                 match ref_e.def {
-                    ExprDef::LocalExpr(ref name) => {
+                    ExprDef::Local(ref name) => {
                         self.environment.create_mutable_binding(name.clone(), false);
                         self.environment.initialize_binding(name, val.clone());
                     }
-                    ExprDef::GetConstFieldExpr(ref obj, ref field) => {
+                    ExprDef::GetConstField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
                         val_obj.borrow().set_field(field.clone(), val.clone());
                     }
@@ -351,7 +349,7 @@ impl Executor for Interpreter {
                 }
                 Ok(val)
             }
-            ExprDef::VarDeclExpr(ref vars) => {
+            ExprDef::VarDecl(ref vars) => {
                 for var in vars.iter() {
                     let (name, value) = var.clone();
                     let val = match value {
@@ -363,7 +361,7 @@ impl Executor for Interpreter {
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
-            ExprDef::LetDeclExpr(ref vars) => {
+            ExprDef::LetDecl(ref vars) => {
                 for var in vars.iter() {
                     let (name, value) = var.clone();
                     let val = match value {
@@ -375,7 +373,7 @@ impl Executor for Interpreter {
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
-            ExprDef::ConstDeclExpr(ref vars) => {
+            ExprDef::ConstDecl(ref vars) => {
                 for (name, value) in vars.iter() {
                     self.environment
                         .create_immutable_binding(name.clone(), false);
@@ -384,7 +382,7 @@ impl Executor for Interpreter {
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
-            ExprDef::TypeOfExpr(ref val_e) => {
+            ExprDef::TypeOf(ref val_e) => {
                 let val = self.run(val_e)?;
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",

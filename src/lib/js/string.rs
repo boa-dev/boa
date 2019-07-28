@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use gc::Gc;
-use gc_derive::{Finalize, Trace};
 use std::{
     cmp::{max, min},
     f64::NAN,
@@ -544,8 +543,8 @@ mod tests {
         const nice = new String('Have a nice day.');
         "#;
         forward(&mut engine, init);
-        let a = forward(&mut engine, "hello.concat(world, nice)");
-        let b = forward(&mut engine, "hello + world + nice");
+        let _a = forward(&mut engine, "hello.concat(world, nice)");
+        let _b = forward(&mut engine, "hello + world + nice");
         // Todo: fix this
         //assert_eq!(a, String::from("Hello, world! Have a nice day."));
         //assert_eq!(b, String::from("Hello, world! Have a nice day."));

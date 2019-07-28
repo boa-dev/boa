@@ -14,7 +14,8 @@ fn create_array_object(array_obj: &Value, array_contents: &[Value]) -> ResultVal
     let array_obj_ptr = array_obj.clone();
 
     // Wipe existing contents of the array object
-    let orig_length: i32 = from_value(array_obj.get_field_slice("length")).unwrap();
+    let orig_length: i32 =
+        from_value(array_obj.get_field_slice("length")).expect("failed to convert length to i32");
     for n in 0..orig_length {
         array_obj_ptr.remove_prop(&n.to_string());
     }
@@ -29,7 +30,8 @@ fn create_array_object(array_obj: &Value, array_contents: &[Value]) -> ResultVal
 /// Utility function which takes an existing array object and puts additional
 /// values on the end, correctly rewriting the length
 fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
-    let orig_length: i32 = from_value(array_ptr.get_field_slice("length")).unwrap();
+    let orig_length: i32 =
+        from_value(array_ptr.get_field_slice("length")).expect("failed to conveert lenth to i32");
 
     for (n, value) in add_values.iter().enumerate() {
         let new_index = orig_length + (n as i32);
@@ -296,16 +298,16 @@ mod tests {
         "#;
         forward(&mut engine, init);
         // Empty ++ Empty
-        let ee = forward(&mut engine, "empty.concat(empty)");
+        let _ee = forward(&mut engine, "empty.concat(empty)");
         //assert_eq!(ee, String::from(""));
         // Empty ++ NonEmpty
-        let en = forward(&mut engine, "empty.concat(one)");
+        let _en = forward(&mut engine, "empty.concat(one)");
         //assert_eq!(en, String::from("a"));
         // NonEmpty ++ Empty
-        let ne = forward(&mut engine, "one.concat(empty)");
+        let _ne = forward(&mut engine, "one.concat(empty)");
         //assert_eq!(ne, String::from("a.b.c"));
         // NonEmpty ++ NonEmpty
-        let nn = forward(&mut engine, "one.concat(one)");
+        let _nn = forward(&mut engine, "one.concat(one)");
         //assert_eq!(nn, String::from("a.b.c"));
     }
 

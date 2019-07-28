@@ -23,7 +23,10 @@
     clippy::missing_docs_in_private_items,
     clippy::missing_inline_in_public_items,
     clippy::implicit_return,
-    clippy::wildcard_enum_match_arm
+    clippy::wildcard_enum_match_arm,
+    clippy::cognitive_complexity,
+    clippy::module_name_repetitions,
+    clippy::print_stdout
 )]
 
 pub mod environment;
@@ -47,9 +50,9 @@ extern "C" {
 
 fn parser_expr(src: &str) -> Expr {
     let mut lexer = Lexer::new(src);
-    lexer.lex().unwrap();
+    lexer.lex().expect("lexing failed");
     let tokens = lexer.tokens;
-    Parser::new(tokens).parse_all().unwrap()
+    Parser::new(tokens).parse_all().expect("parsing failed")
 }
 
 /// Execute the code using an existing Interpreter

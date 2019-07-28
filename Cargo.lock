@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "Boa"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "chrono 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "criterion 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",

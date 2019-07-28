@@ -108,11 +108,12 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
             .create_mutable_binding(name.clone(), deletion)
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) {
+    fn create_immutable_binding(&mut self, name: String, strict: bool) -> bool {
         if self.declerative_record.has_binding(&name) {
             // TODO: change to exception
             panic!("Binding already exists!");
         }
+
         self.declerative_record
             .create_immutable_binding(name.clone(), strict)
     }
@@ -178,7 +179,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn set_outer_environment(&mut self, _env: Environment) {
-        unimplemented!()
+        unimplemented!();
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
