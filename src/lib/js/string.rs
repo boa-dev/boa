@@ -18,10 +18,10 @@ use std::{
 pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // If we're constructing a string, we should set the initial length
     // To do this we need to convert the string back to a Rust String, then get the .len()
-    // let a: String = from_value(args[0].clone()).unwrap();
+    // let a: String = from_value(args.get(0).expect("failed to get argument for String method").clone()).unwrap();
     // this.set_field_slice("length", to_value(a.len() as i32));
 
-    // This value is used by console.log and other routines to match Object type
+    // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::String);
     this.set_internal_slot(
@@ -34,7 +34,6 @@ pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
 }
 
 /// Get a string's length
-#[allow(clippy::cast_possible_truncation)]
 pub fn get_string_length(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str = ctx.to_rust_string(this);
     Ok(to_value::<i32>(this_str.chars().count() as i32))
@@ -55,7 +54,12 @@ pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val = ctx.to_rust_string(this);
-    let pos: i32 = from_value(args[0].clone()).unwrap();
+    let pos: i32 = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of
     // unicode code points
@@ -69,7 +73,10 @@ pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     }
 
     Ok(to_value::<char>(
-        primitive_val.chars().nth(pos as usize).unwrap(),
+        primitive_val
+            .chars()
+            .nth(pos as usize)
+            .expect("failed to get value"),
     ))
 }
 
@@ -85,13 +92,21 @@ pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length = primitive_val.chars().count();
-    let pos: i32 = from_value(args[0].clone()).unwrap();
+    let pos: i32 = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     if pos >= length as i32 || pos < 0 {
         return Ok(to_value(NAN));
     }
 
-    let utf16_val = primitive_val.encode_utf16().nth(pos as usize).unwrap();
+    let utf16_val = primitive_val
+        .encode_utf16()
+        .nth(pos as usize)
+        .expect("failed to get utf16 value");
     // If there is no element at that index, the result is NaN
     // TODO: We currently don't have NaN
     Ok(to_value(f64::from(utf16_val)))
@@ -108,7 +123,7 @@ pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     let mut new_str = primitive_val.clone();
 
     for arg in args {
-        let concat_str: String = from_value(arg.clone()).unwrap();
+        let concat_str: String = from_value(arg.clone()).expect("failed to get argument value");
         new_str.push_str(&concat_str);
     }
 
@@ -123,7 +138,12 @@ pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.to_rust_string(this);
 
-    let repeat_times: usize = from_value(args[0].clone()).unwrap();
+    let repeat_times: usize = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
     Ok(to_value(primitive_val.repeat(repeat_times)))
 }
 
@@ -135,20 +155,30 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.to_rust_string(this);
 
-    let start: i32 = from_value(args[0].clone()).unwrap();
-    let end: i32 = from_value(args[1].clone()).unwrap();
+    let start: i32 = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
+    let end: i32 = from_value(
+        args.get(1)
+            .expect("failed to get argument in slice")
+            .clone(),
+    )
+    .expect("failed to parse argument");
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length: i32 = primitive_val.chars().count() as i32;
 
     let from: i32 = if start < 0 {
-        max(length + start, 0)
+        max(length.wrapping_add(start), 0)
     } else {
         min(start, length)
     };
     let to: i32 = if end < 0 {
-        max(length + end, 0)
+        max(length.wrapping_add(end), 0)
     } else {
         min(end, length)
     };
@@ -172,7 +202,12 @@ pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resul
     let primitive_val: String = ctx.to_rust_string(this);
 
     // TODO: Should throw TypeError if pattern is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
     let search_length: i32 = search_string.chars().count() as i32;
@@ -181,11 +216,11 @@ pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resul
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("failed to get arg").clone()).expect("failed to get argument")
     };
 
     let start = min(max(position, 0), length);
-    let end = start + search_length;
+    let end = start.wrapping_add(search_length);
 
     if end > length {
         Ok(to_value(false))
@@ -206,7 +241,12 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let primitive_val: String = ctx.to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
     let search_length: i32 = search_string.chars().count() as i32;
@@ -242,7 +282,12 @@ pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let primitive_val: String = ctx.to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -273,7 +318,12 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let primitive_val: String = ctx.to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -313,7 +363,12 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     let primitive_val: String = ctx.to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -392,7 +447,12 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     if args.is_empty() {
         return Err(to_value("padEnd requires maxLength argument"));
     }
-    let max_length = from_value(args[0].clone()).unwrap();
+    let max_length = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
         _ => Some(from_value(args[1].clone()).unwrap()),
@@ -411,7 +471,12 @@ pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     if args.is_empty() {
         return Err(to_value("padStart requires maxLength argument"));
     }
-    let max_length = from_value(args[0].clone()).unwrap();
+    let max_length = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
         _ => Some(from_value(args[1].clone()).unwrap()),
