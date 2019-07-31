@@ -44,7 +44,7 @@ fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
 }
 
 /// Create a new array
-pub fn make_array(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
     this.set_field_slice("length", to_value(0_i32));
@@ -64,7 +64,7 @@ pub fn make_array(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue 
 }
 
 /// Get an array's length
-pub fn get_array_length(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
+pub fn get_array_length(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     // Access the inner hash map which represents the actual Array contents
     // (mapping between indices and values)
     Ok(this.get_field_slice("length"))
@@ -76,7 +76,7 @@ pub fn get_array_length(this: &Value, _: &[Value], _: &Interpreter) -> ResultVal
 /// array containing the array elements of the object followed by the array
 /// elements of each argument in order.
 /// <https://tc39.es/ecma262/#sec-array.prototype.concat>
-pub fn concat(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         // If concat is called with no arguments, it returns the original array
         return Ok(this.clone());
@@ -107,7 +107,7 @@ pub fn concat(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// they appear. The new length of the array is returned as the result of the
 /// call.
 /// <https://tc39.es/ecma262/#sec-array.prototype.push>
-pub fn push(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let new_array = add_to_array_object(this, args)?;
     Ok(new_array.get_field_slice("length"))
 }
@@ -116,7 +116,7 @@ pub fn push(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 ///
 /// The last element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.pop>
-pub fn pop(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
+pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let curr_length: i32 = from_value(this.get_field_slice("length")).unwrap();
     if curr_length < 1 {
         return Err(to_value(
@@ -136,7 +136,7 @@ pub fn pop(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
 /// then concatenated, separated by occurrences of the separator. If no
 /// separator is provided, a single comma is used as the separator.
 /// <https://tc39.es/ecma262/#sec-array.prototype.join>
-pub fn join(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let separator = if args.is_empty() {
         String::from(",")
     } else {
@@ -158,7 +158,7 @@ pub fn join(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
 /// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
-pub fn reverse(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
+pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
     let middle: i32 = len / 2;
 
@@ -190,7 +190,7 @@ pub fn reverse(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
 ///
 /// The first element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.shift/>
-pub fn shift(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
+pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
 
     if len == 0 {
@@ -225,7 +225,7 @@ pub fn shift(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
 /// within the array is the same as the order in which they appear in the
 /// argument list.
 /// <https://tc39.es/ecma262/#sec-array.prototype.unshift/>
-pub fn unshift(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
     let arg_c: i32 = args.len() as i32;
 

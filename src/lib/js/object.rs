@@ -116,18 +116,18 @@ impl FromValue for Property {
 }
 
 /// Create a new object
-pub fn make_object(_: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
+pub fn make_object(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
 /// Get the prototype of an object
-pub fn get_proto_of(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn get_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap();
     Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
 }
 
 /// Set the prototype of an object
-pub fn set_proto_of(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn set_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap().clone();
     let proto = args.get(1).unwrap().clone();
     obj.set_field_slice(INSTANCE_PROTOTYPE, proto);
@@ -135,7 +135,7 @@ pub fn set_proto_of(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 }
 
 /// Define a property in an object
-pub fn define_prop(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn define_prop(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap();
     let prop = from_value::<String>(args.get(1).unwrap().clone()).unwrap();
     let desc = from_value::<Property>(args.get(2).unwrap().clone()).unwrap();
@@ -144,12 +144,12 @@ pub fn define_prop(_: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 }
 
 /// To string
-pub fn to_string(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
+pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(this.to_string()))
 }
 
 /// Check if it has a property
-pub fn has_own_prop(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn has_own_prop(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let prop = if args.is_empty() {
         None
     } else {

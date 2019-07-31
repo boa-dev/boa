@@ -278,7 +278,7 @@ impl Executor for Interpreter {
                     ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(&this, &v_args, &self)
+                            func(&this, &v_args, self)
                         }
                         Function::RegularFunc(ref data) => {
                             // Create new scope
@@ -378,7 +378,7 @@ impl Interpreter {
             ValueData::Function(ref inner_func) => match *inner_func.deref().borrow() {
                 Function::NativeFunc(ref ntv) => {
                     let func = ntv.data;
-                    func(v, &arguments_list, &self)
+                    func(v, &arguments_list, self)
                 }
                 Function::RegularFunc(ref data) => {
                     let env = &mut self.environment;
@@ -477,6 +477,22 @@ impl Interpreter {
                 self.to_string(&prim_value)
             }
             _ => to_value("function(){...}"),
+        }
+    }
+
+    /// to_rust_string() converts a value into a rust heap allocated string
+    pub fn to_rust_string(&mut self, value: &Value) -> String {
+        match *value.deref().borrow() {
+            ValueData::Null => String::from("null"),
+            ValueData::Boolean(ref boolean) => boolean.to_string(),
+            ValueData::Number(ref num) => num.to_string(),
+            ValueData::Integer(ref num) => num.to_string(),
+            ValueData::String(ref string) => string.clone(),
+            ValueData::Object(_) => {
+                let prim_value = self.to_primitive(value, Some("string"));
+                self.to_string(&prim_value).to_string()
+            }
+            _ => String::from("undefined"),
         }
     }
 }
