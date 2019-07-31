@@ -480,8 +480,8 @@ impl Interpreter {
         }
     }
 
-    /// to_rust_string() converts a value into a rust heap allocated string
-    pub fn to_rust_string(&mut self, value: &Value) -> String {
+    /// value_to_rust_string() converts a value into a rust heap allocated string
+    pub fn value_to_rust_string(&mut self, value: &Value) -> String {
         match *value.deref().borrow() {
             ValueData::Null => String::from("null"),
             ValueData::Boolean(ref boolean) => boolean.to_string(),

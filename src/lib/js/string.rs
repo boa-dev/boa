@@ -35,7 +35,7 @@ pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
 
 /// Get a string's length
 pub fn get_string_length(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let this_str = ctx.to_rust_string(this);
+    let this_str = ctx.value_to_rust_string(this);
     Ok(to_value::<i32>(this_str.chars().count() as i32))
 }
 
@@ -53,7 +53,7 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val = ctx.to_rust_string(this);
+    let primitive_val = ctx.value_to_rust_string(this);
     let pos: i32 = from_value(
         args.get(0)
             .expect("failed to get argument for String method")
@@ -87,7 +87,7 @@ pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
@@ -118,7 +118,7 @@ pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     let mut new_str = primitive_val.clone();
 
@@ -136,7 +136,7 @@ pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     let repeat_times: usize = from_value(
         args.get(0)
@@ -153,7 +153,7 @@ pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     let start: i32 = from_value(
         args.get(0)
@@ -199,7 +199,7 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
 pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if pattern is regular expression
     let search_string: String = from_value(
@@ -238,7 +238,7 @@ pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resul
 pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(
@@ -279,7 +279,7 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(
@@ -315,7 +315,7 @@ pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(
@@ -360,7 +360,7 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
     let search_string: String = from_value(
@@ -443,7 +443,7 @@ fn string_pad(
 /// Filler defaults to single space.
 /// <https://tc39.es/ecma262/#sec-string.prototype.padend/>
 pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
         return Err(to_value("padEnd requires maxLength argument"));
     }
@@ -467,7 +467,7 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 /// Filler defaults to single space.
 /// <https://tc39.es/ecma262/#sec-string.prototype.padstart/>
 pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let primitive_val: String = ctx.to_rust_string(this);
+    let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
         return Err(to_value("padStart requires maxLength argument"));
     }
@@ -504,19 +504,19 @@ fn is_trimmable_whitespace(c: char) -> bool {
 }
 
 pub fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let this_str: String = ctx.to_rust_string(this);
+    let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
 pub fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let this_str: String = ctx.to_rust_string(this);
+    let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(
         this_str.trim_start_matches(is_trimmable_whitespace),
     ))
 }
 
 pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let this_str: String = ctx.to_rust_string(this);
+    let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 
