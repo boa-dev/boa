@@ -1,2 +1,1 @@
-const a = new String("12345");
-a.length;
+"12345".charAt(2);

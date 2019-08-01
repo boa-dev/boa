@@ -15,29 +15,34 @@ use std::{
 /// Create new string
 /// <https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19>
 // This gets called when a new String() is created, it's called by exec:346
-pub fn make_string(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
+pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // If we're constructing a string, we should set the initial length
     // To do this we need to convert the string back to a Rust String, then get the .len()
-    // let a: String = from_value(args[0].clone()).unwrap();
+    // let a: String = from_value(args.get(0).expect("failed to get argument for String method").clone()).unwrap();
     // this.set_field_slice("length", to_value(a.len() as i32));
 
-    // This value is used by console.log and other routines to match Object type
+    // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::String);
-    this.set_internal_slot("PrimitiveValue", args[0].clone());
+    this.set_internal_slot(
+        "StringData",
+        args.get(0)
+            .expect("failed to get StringData for make_string()")
+            .clone(),
+    );
     Ok(this.clone())
 }
 
 /// Get a string's length
-pub fn get_string_length(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
-    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+pub fn get_string_length(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let this_str = ctx.value_to_rust_string(this);
     Ok(to_value::<i32>(this_str.chars().count() as i32))
 }
 
 /// Get the string value to a primitive string
-pub fn to_string(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
+pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     // Get String from String Object and send it back as a new value
-    let primitive_val = this.get_internal_slot("PrimitiveValue");
+    let primitive_val = this.get_internal_slot("StringData");
     Ok(to_value(format!("{}", primitive_val).to_string()))
 }
 
@@ -45,12 +50,16 @@ pub fn to_string(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
 /// resulting from converting this object to a String. If there is no element at that index, the
 /// result is the empty String. The result is a String value, not a String object.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.charat>
-pub fn char_at(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //         ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
+pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
-    let pos: i32 = from_value(args[0].clone()).unwrap();
+    let primitive_val = ctx.value_to_rust_string(this);
+    let pos: i32 = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of
     // unicode code points
@@ -64,7 +73,10 @@ pub fn char_at(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
     }
 
     Ok(to_value::<char>(
-        primitive_val.chars().nth(pos as usize).unwrap(),
+        primitive_val
+            .chars()
+            .nth(pos as usize)
+            .expect("failed to get value"),
     ))
 }
 
@@ -72,22 +84,29 @@ pub fn char_at(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// unit at index pos within the String resulting from converting this object to a String. If there
 /// is no element at that index, the result is NaN.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.charcodeat>
-pub fn char_code_at(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //              ^^ represents instance  ^^ represents arguments (we only care about the first one in this case)
+pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length = primitive_val.chars().count();
-    let pos: i32 = from_value(args[0].clone()).unwrap();
+    let pos: i32 = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     if pos >= length as i32 || pos < 0 {
         return Ok(to_value(NAN));
     }
 
-    let utf16_val = primitive_val.encode_utf16().nth(pos as usize).unwrap();
+    let utf16_val = primitive_val
+        .encode_utf16()
+        .nth(pos as usize)
+        .expect("failed to get utf16 value");
     // If there is no element at that index, the result is NaN
     // TODO: We currently don't have NaN
     Ok(to_value(f64::from(utf16_val)))
@@ -96,16 +115,15 @@ pub fn char_code_at(this: &Value, args: &[Value], _: &Interpreter) -> ResultValu
 /// Returns a String that is the result of concatenating this String and all strings provided as
 /// arguments
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.concat>
-pub fn concat(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //        ^^ represents instance  ^^ represents arguments
+pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     let mut new_str = primitive_val.clone();
 
     for arg in args {
-        let concat_str: String = from_value(arg.clone()).unwrap();
+        let concat_str: String = from_value(arg.clone()).expect("failed to get argument value");
         new_str.push_str(&concat_str);
     }
 
@@ -115,39 +133,52 @@ pub fn concat(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// Returns a String that is the result of repeating this String the number of times given by the
 /// first argument
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.repeat>
-pub fn repeat(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //        ^^ represents instance  ^^ represents arguments (only care about the first one in this case)
+pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
-    let repeat_times: usize = from_value(args[0].clone()).unwrap();
+    let repeat_times: usize = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
     Ok(to_value(primitive_val.repeat(repeat_times)))
 }
 
 /// Returns a String which contains the slice of the JS String from character at "start" index up
 /// to but not including character at "end" index
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.slice>
-pub fn slice(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //       ^^ represents instance  ^^ represents arguments)
+pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
-    let start: i32 = from_value(args[0].clone()).unwrap();
-    let end: i32 = from_value(args[1].clone()).unwrap();
+    let start: i32 = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
+    let end: i32 = from_value(
+        args.get(1)
+            .expect("failed to get argument in slice")
+            .clone(),
+    )
+    .expect("failed to parse argument");
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length: i32 = primitive_val.chars().count() as i32;
 
     let from: i32 = if start < 0 {
-        max(length + start, 0)
+        max(length.wrapping_add(start), 0)
     } else {
         min(start, length)
     };
     let to: i32 = if end < 0 {
-        max(length + end, 0)
+        max(length.wrapping_add(end), 0)
     } else {
         min(end, length)
     };
@@ -165,14 +196,18 @@ pub fn slice(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// "search string" is the same as the corresponding code units of this string
 /// starting at index "position"
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.startswith>
-pub fn starts_with(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //             ^^ represents instance  ^^ represents arguments)
+pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if pattern is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
     let search_length: i32 = search_string.chars().count() as i32;
@@ -181,11 +216,11 @@ pub fn starts_with(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("failed to get arg").clone()).expect("failed to get argument")
     };
 
     let start = min(max(position, 0), length);
-    let end = start + search_length;
+    let end = start.wrapping_add(search_length);
 
     if end > length {
         Ok(to_value(false))
@@ -200,14 +235,18 @@ pub fn starts_with(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue
 /// "search string"  is the same as the corresponding code units of this string
 /// starting at position "end position" - length
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.endswith>
-pub fn ends_with(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //           ^^ represents instance  ^^ represents arguments)
+pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
     let search_length: i32 = search_string.chars().count() as i32;
@@ -237,14 +276,18 @@ pub fn ends_with(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// that are greater than or equal to position. If position is undefined, 0 is
 /// assumed, so as to search all of the String.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
-pub fn includes(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //          ^^ represents instance  ^^ represents arguments)
+pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -269,14 +312,18 @@ pub fn includes(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// returned. If position is undefined, 0 is assumed, so as to search all of the
 /// String.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
-pub fn index_of(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //          ^^ represents instance  ^^ represents arguments)
+pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -310,14 +357,18 @@ pub fn index_of(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// returned. If position is undefined, the length of the String value is
 /// assumed, so as to search all of the String.
 /// <https://tc39.github.io/ecma262/#sec-string.prototype.lastindexof>
-pub fn last_index_of(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    //               ^^ represents instance  ^^ represents arguments)
+pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+    let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(args[0].clone()).unwrap();
+    let search_string: String = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -391,12 +442,17 @@ fn string_pad(
 /// Pads the string with the given filler at the end of the string.
 /// Filler defaults to single space.
 /// <https://tc39.es/ecma262/#sec-string.prototype.padend/>
-pub fn pad_end(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
         return Err(to_value("padEnd requires maxLength argument"));
     }
-    let max_length = from_value(args[0].clone()).unwrap();
+    let max_length = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
         _ => Some(from_value(args[1].clone()).unwrap()),
@@ -410,12 +466,17 @@ pub fn pad_end(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
 /// Pads the string with the given filler at the start of the string.
 /// Filler defaults to single space.
 /// <https://tc39.es/ecma262/#sec-string.prototype.padstart/>
-pub fn pad_start(this: &Value, args: &[Value], _: &Interpreter) -> ResultValue {
-    let primitive_val: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
         return Err(to_value("padStart requires maxLength argument"));
     }
-    let max_length = from_value(args[0].clone()).unwrap();
+    let max_length = from_value(
+        args.get(0)
+            .expect("failed to get argument for String method")
+            .clone(),
+    )
+    .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
         _ => Some(from_value(args[1].clone()).unwrap()),
@@ -442,20 +503,20 @@ fn is_trimmable_whitespace(c: char) -> bool {
     }
 }
 
-pub fn trim(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
-    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+pub fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
-pub fn trim_start(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
-    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+pub fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(
         this_str.trim_start_matches(is_trimmable_whitespace),
     ))
 }
 
-pub fn trim_end(this: &Value, _: &[Value], _: &Interpreter) -> ResultValue {
-    let this_str: String = from_value(this.get_internal_slot("PrimitiveValue")).unwrap();
+pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 

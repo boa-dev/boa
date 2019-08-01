@@ -14,7 +14,7 @@
 #![deny(unused_qualifications)]
 #![deny(clippy::all)]
 #![warn(
-    clippy::pedantic,
+    // clippy::pedantic,
     clippy::restriction,
     clippy::cognitive_complexity,
     //missing_docs
@@ -26,7 +26,10 @@
     clippy::wildcard_enum_match_arm,
     clippy::cognitive_complexity,
     clippy::module_name_repetitions,
-    clippy::print_stdout
+    clippy::print_stdout,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::non_ascii_literal
 )]
 
 pub mod environment;

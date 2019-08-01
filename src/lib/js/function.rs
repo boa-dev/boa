@@ -11,7 +11,7 @@ use gc_derive::{Finalize, Trace};
 use std::fmt::{self, Debug};
 
 /// fn(this, arguments, ctx)
-pub type NativeFunctionData = fn(&Value, &[Value], &Interpreter) -> ResultValue;
+pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> ResultValue;
 
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
