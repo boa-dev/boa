@@ -1,7 +1,7 @@
 use crate::{
     exec::Interpreter,
     js::{
-        object::{ObjectData, Property},
+        object::{Object, Property},
         value::{to_value, ResultValue, Value, ValueData},
     },
     syntax::ast::expr::Expr,
@@ -31,7 +31,7 @@ pub enum Function {
 #[derive(Trace, Finalize, Debug, Clone)]
 pub struct RegularFunction {
     /// The fields associated with the function
-    pub object: ObjectData,
+    pub object: Object,
     /// This function's expression
     pub expr: Expr,
     /// The argument names of the function
@@ -42,7 +42,7 @@ impl RegularFunction {
     /// Make a new regular function
     #[allow(clippy::cast_possible_wrap)]
     pub fn new(expr: Expr, args: Vec<String>) -> Self {
-        let mut object = ObjectData::default();
+        let mut object = Object::default();
         object.properties.insert(
             "arguments".to_string(),
             Property::new(Gc::new(ValueData::Integer(args.len() as i32))),
@@ -55,7 +55,7 @@ impl RegularFunction {
 /// Represents a native javascript function in memory
 pub struct NativeFunction {
     /// The fields associated with the function
-    pub object: ObjectData,
+    pub object: Object,
     /// The callable function data
     pub data: NativeFunctionData,
 }
@@ -63,7 +63,7 @@ pub struct NativeFunction {
 impl NativeFunction {
     /// Make a new native function with the given function data
     pub fn new(data: NativeFunctionData) -> Self {
-        let object = ObjectData::default();
+        let object = Object::default();
         Self { object, data }
     }
 }
@@ -84,7 +84,7 @@ unsafe impl gc::Trace for NativeFunction {
 
 /// Create a new `Function` object
 pub fn _create() -> Value {
-    let function: ObjectData = ObjectData::default();
+    let function: Object = Object::default();
     to_value(function)
 }
 /// Initialise the global object with the `Function` object
