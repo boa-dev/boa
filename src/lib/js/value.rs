@@ -1,6 +1,6 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
-    object::{ObjectData, ObjectKind, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
+    object::{Object, ObjectKind, Property, INSTANCE_PROTOTYPE, PROTOTYPE},
 };
 use gc::{Gc, GcCell};
 use gc_derive::{Finalize, Trace};
@@ -34,7 +34,7 @@ pub enum ValueData {
     /// `Number` - A 32-bit integer, such as `42`
     Integer(i32),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
-    Object(GcCell<ObjectData>),
+    Object(GcCell<Object>),
     /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
     Function(Box<GcCell<Function>>),
 }
@@ -42,25 +42,28 @@ pub enum ValueData {
 impl ValueData {
     /// Returns a new empty object
     pub fn new_obj(global: Option<&Value>) -> Value {
-        let mut obj = ObjectData::default();
+        let mut obj = Object::default();
 
         if global.is_some() {
             let obj_proto = global
                 .expect("Expected global object in making-new-object")
                 .get_field_slice("Object")
                 .get_field_slice(PROTOTYPE);
-            obj.properties
-                .insert(INSTANCE_PROTOTYPE.to_string(), Property::new(obj_proto));
+            obj.internal_slots
+                .insert(INSTANCE_PROTOTYPE.to_string(), obj_proto);
         }
         Gc::new(ValueData::Object(GcCell::new(obj)))
     }
 
-    /// Similar to `new_obj`, but you can pass a prototype to create from
-    pub fn new_obj_from_prototype(proto: Value) -> Value {
-        let mut obj = ObjectData::default();
+    /// Similar to `new_obj`, but you can pass a prototype to create from,
+    /// plus a kind
+    pub fn new_obj_from_prototype(proto: Value, kind: ObjectKind) -> Value {
+        let mut obj = Object::default();
+        obj.kind = kind;
 
         obj.internal_slots
             .insert(INSTANCE_PROTOTYPE.to_string(), proto);
+
         Gc::new(ValueData::Object(GcCell::new(obj)))
     }
 
@@ -199,7 +202,7 @@ impl ValueData {
             }
         }
 
-        let obj: ObjectData = match *self {
+        let obj: Object = match *self {
             ValueData::Object(ref obj) => {
                 let hash = obj.clone();
                 // TODO: This will break, we should return a GcCellRefMut instead
@@ -216,8 +219,8 @@ impl ValueData {
 
         match obj.properties.get(field) {
             Some(val) => Some(val.clone()),
-            None => match obj.properties.get(&INSTANCE_PROTOTYPE.to_string()) {
-                Some(prop) => prop.value.get_prop(field),
+            None => match obj.internal_slots.get(&INSTANCE_PROTOTYPE.to_string()) {
+                Some(value) => value.get_prop(field),
                 None => None,
             },
         }
@@ -234,7 +237,7 @@ impl ValueData {
         writable: Option<bool>,
         configurable: Option<bool>,
     ) {
-        let obj: Option<ObjectData> = match self {
+        let obj: Option<Object> = match self {
             ValueData::Object(ref obj) => Some(obj.borrow_mut().deref_mut().clone()),
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
             ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
@@ -258,7 +261,7 @@ impl ValueData {
     /// Resolve the property in the object
     /// Returns a copy of the Property
     pub fn get_internal_slot(&self, field: &str) -> Value {
-        let obj: ObjectData = match *self {
+        let obj: Object = match *self {
             ValueData::Object(ref obj) => {
                 let hash = obj.clone();
                 hash.into_inner()
@@ -389,7 +392,7 @@ impl ValueData {
             JSONValue::String(v) => ValueData::String(v),
             JSONValue::Bool(v) => ValueData::Boolean(v),
             JSONValue::Array(vs) => {
-                let mut new_obj = ObjectData::default();
+                let mut new_obj = Object::default();
                 for (idx, json) in vs.iter().enumerate() {
                     new_obj
                         .properties
@@ -402,7 +405,7 @@ impl ValueData {
                 ValueData::Object(GcCell::new(new_obj))
             }
             JSONValue::Object(obj) => {
-                let mut new_obj = ObjectData::default();
+                let mut new_obj = Object::default();
                 for (key, json) in obj.iter() {
                     new_obj
                         .properties
@@ -421,9 +424,9 @@ impl ValueData {
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
                 let mut new_obj = Map::new();
-                for (k, v) in obj.borrow().properties.iter() {
+                for (k, v) in obj.borrow().internal_slots.iter() {
                     if k != INSTANCE_PROTOTYPE {
-                        new_obj.insert(k.clone(), v.value.to_json());
+                        new_obj.insert(k.clone(), v.to_json());
                     }
                 }
                 JSONValue::Object(new_obj)
@@ -680,7 +683,7 @@ impl FromValue for bool {
 
 impl<'s, T: ToValue> ToValue for &'s [T] {
     fn to_value(&self) -> Value {
-        let mut arr = ObjectData::default();
+        let mut arr = Object::default();
         for (i, item) in self.iter().enumerate() {
             arr.properties
                 .insert(i.to_string(), Property::new(item.to_value()));
@@ -690,7 +693,7 @@ impl<'s, T: ToValue> ToValue for &'s [T] {
 }
 impl<T: ToValue> ToValue for Vec<T> {
     fn to_value(&self) -> Value {
-        let mut arr = ObjectData::default();
+        let mut arr = Object::default();
         for (i, item) in self.iter().enumerate() {
             arr.properties
                 .insert(i.to_string(), Property::new(item.to_value()));
@@ -710,13 +713,13 @@ impl<T: FromValue> FromValue for Vec<T> {
     }
 }
 
-impl ToValue for ObjectData {
+impl ToValue for Object {
     fn to_value(&self) -> Value {
         Gc::new(ValueData::Object(GcCell::new(self.clone())))
     }
 }
 
-impl FromValue for ObjectData {
+impl FromValue for Object {
     fn from_value(v: Value) -> Result<Self, &'static str> {
         match *v {
             ValueData::Object(ref obj) => Ok(obj.clone().into_inner()),

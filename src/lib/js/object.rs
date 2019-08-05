@@ -7,7 +7,7 @@ use crate::{
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};
-use std::collections::HashMap;
+use std::{borrow::Borrow, collections::HashMap, ops::Deref};
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.  
 /// As this string will be used a lot throughout the program, its best being a static global string which will be referenced
@@ -19,7 +19,7 @@ pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 
 /// `ObjectData` is the representation of an object in JavaScript
 #[derive(Trace, Finalize, Debug, Clone)]
-pub struct ObjectData {
+pub struct Object {
     /// Kind
     pub kind: ObjectKind,
     /// Internal Slots
@@ -30,14 +30,66 @@ pub struct ObjectData {
     pub sym_properties: Box<HashMap<usize, Property>>,
 }
 
-impl ObjectData {
+impl Object {
     /// Return a new ObjectData struct, with `kind` set to Ordinary
     pub fn default() -> Self {
-        Self {
+        Object {
             kind: ObjectKind::Ordinary,
             internal_slots: Box::new(HashMap::new()),
             properties: Box::new(HashMap::new()),
             sym_properties: Box::new(HashMap::new()),
+        }
+    }
+
+    /// Return a new Boolean object whose [[BooleanData]] internal slot is set to argument.
+    fn from_boolean(argument: &Value) -> Self {
+        let mut obj = Object {
+            kind: ObjectKind::Boolean,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+        };
+
+        obj.internal_slots
+            .insert("BooleanData".to_string(), argument.clone());
+        obj
+    }
+
+    /// Return a new Number object whose [[NumberData]] internal slot is set to argument.
+    fn from_number(argument: &Value) -> Self {
+        let mut obj = Object {
+            kind: ObjectKind::Number,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+        };
+
+        obj.internal_slots
+            .insert("NumberData".to_string(), argument.clone());
+        obj
+    }
+
+    /// Return a new String object whose [[StringData]] internal slot is set to argument.
+    fn from_string(argument: &Value) -> Self {
+        let mut obj = Object {
+            kind: ObjectKind::String,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+        };
+
+        obj.internal_slots
+            .insert("StringData".to_string(), argument.clone());
+        obj
+    }
+
+    // https://tc39.es/ecma262/#sec-toobject
+    pub fn from(value: &Value) -> Result<Self, ()> {
+        match *value.deref().borrow() {
+            ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
+            ValueData::Number(_) => Ok(Self::from_number(value)),
+            ValueData::String(_) => Ok(Self::from_string(value)),
+            _ => Err(()),
         }
     }
 }
@@ -49,6 +101,8 @@ pub enum ObjectKind {
     Symbol,
     Error,
     Ordinary,
+    Boolean,
+    Number,
 }
 
 /// A Javascript Property AKA The Property Descriptor   
@@ -130,7 +184,7 @@ pub fn get_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 pub fn set_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap().clone();
     let proto = args.get(1).unwrap().clone();
-    obj.set_field_slice(INSTANCE_PROTOTYPE, proto);
+    obj.set_internal_slot(INSTANCE_PROTOTYPE, proto);
     Ok(obj)
 }
 

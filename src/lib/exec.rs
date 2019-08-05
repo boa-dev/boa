@@ -86,7 +86,10 @@ impl Executor for Interpreter {
             ExprDef::Call(ref callee, ref args) => {
                 let (this, func) = match callee.def {
                     ExprDef::GetConstField(ref obj, ref field) => {
-                        let obj = self.run(obj)?;
+                        let mut obj = self.run(obj)?;
+                        if obj.get_type() != "object" {
+                            obj = self.to_object(&obj).expect("failed to convert to object");
+                        }
                         (obj.clone(), obj.borrow().get_field(field))
                     }
                     ExprDef::GetField(ref obj, ref field) => {
@@ -171,7 +174,7 @@ impl Executor for Interpreter {
                     arr_map.borrow().set_field(index.to_string(), val);
                     index += 1;
                 }
-                arr_map.borrow().set_field_slice(
+                arr_map.borrow().set_internal_slot(
                     INSTANCE_PROTOTYPE,
                     self.environment
                         .get_binding_value("Array")
@@ -272,8 +275,10 @@ impl Executor for Interpreter {
                 }
                 let this = ValueData::new_obj(None);
                 // Create a blank object, then set its __proto__ property to the [Constructor].prototype
-                this.borrow()
-                    .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
+                this.borrow().set_internal_slot(
+                    INSTANCE_PROTOTYPE,
+                    func.borrow().get_field_slice(PROTOTYPE),
+                );
                 match *func {
                     ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {
@@ -477,6 +482,47 @@ impl Interpreter {
                 self.to_string(&prim_value)
             }
             _ => to_value("function(){...}"),
+        }
+    }
+
+    /// The abstract operation ToObject converts argument to a value of type Object
+    /// https://tc39.es/ecma262/#sec-toobject
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_object(&mut self, value: &Value) -> ResultValue {
+        match *value.deref().borrow() {
+            ValueData::Undefined
+            | ValueData::Function(_)
+            | ValueData::Integer(_)
+            | ValueData::Null => Err(Gc::new(ValueData::Undefined)),
+            ValueData::Boolean(_) => {
+                let proto = self
+                    .environment
+                    .get_binding_value("Boolean")
+                    .get_field_slice(PROTOTYPE);
+
+                let bool_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::Boolean);
+                bool_obj.set_internal_slot("BooleanData", value.clone());
+                Ok(bool_obj)
+            }
+            ValueData::Number(_) => {
+                let proto = self
+                    .environment
+                    .get_binding_value("Number")
+                    .get_field_slice(PROTOTYPE);
+                let number_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::Number);
+                number_obj.set_internal_slot("NumberData", value.clone());
+                Ok(number_obj)
+            }
+            ValueData::String(_) => {
+                let proto = self
+                    .environment
+                    .get_binding_value("String")
+                    .get_field_slice(PROTOTYPE);
+                let string_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::String);
+                string_obj.set_internal_slot("StringData", value.clone());
+                Ok(string_obj)
+            }
+            ValueData::Object(_) => Ok(value.clone()),
         }
     }
 
