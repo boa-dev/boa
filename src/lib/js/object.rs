@@ -184,7 +184,7 @@ pub fn get_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 pub fn set_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).unwrap().clone();
     let proto = args.get(1).unwrap().clone();
-    obj.set_field_slice(INSTANCE_PROTOTYPE, proto);
+    obj.set_internal_slot(INSTANCE_PROTOTYPE, proto);
     Ok(obj)
 }
 

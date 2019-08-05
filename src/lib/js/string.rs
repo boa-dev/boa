@@ -645,12 +645,20 @@ mod tests {
         const empty = new String('');
         const en = new String('english');
         const zh = new String('中文');
+
+        const emptyLiteral = '';
+        const enLiteral = 'english';
+        const zhLiteral = '中文';
         "#;
         forward(&mut engine, init);
         let pass = String::from("true");
         assert_eq!(forward(&mut engine, "empty.startsWith('')"), pass);
         assert_eq!(forward(&mut engine, "en.startsWith('e')"), pass);
         assert_eq!(forward(&mut engine, "zh.startsWith('中')"), pass);
+
+        assert_eq!(forward(&mut engine, "emptyLiteral.startsWith('')"), pass);
+        assert_eq!(forward(&mut engine, "enLiteral.startsWith('e')"), pass);
+        assert_eq!(forward(&mut engine, "zhLiteral.startsWith('中')"), pass);
     }
 
     #[test]
@@ -660,11 +668,19 @@ mod tests {
         const empty = new String('');
         const en = new String('english');
         const zh = new String('中文');
+
+        const emptyLiteral = '';
+        const enLiteral = 'english';
+        const zhLiteral = '中文';
         "#;
         forward(&mut engine, init);
         let pass = String::from("true");
         assert_eq!(forward(&mut engine, "empty.endsWith('')"), pass);
         assert_eq!(forward(&mut engine, "en.endsWith('h')"), pass);
         assert_eq!(forward(&mut engine, "zh.endsWith('文')"), pass);
+
+        assert_eq!(forward(&mut engine, "emptyLiteral.endsWith('')"), pass);
+        assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), pass);
+        assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), pass);
     }
 }

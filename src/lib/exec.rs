@@ -174,7 +174,7 @@ impl Executor for Interpreter {
                     arr_map.borrow().set_field(index.to_string(), val);
                     index += 1;
                 }
-                arr_map.borrow().set_field_slice(
+                arr_map.borrow().set_internal_slot(
                     INSTANCE_PROTOTYPE,
                     self.environment
                         .get_binding_value("Array")
@@ -275,8 +275,10 @@ impl Executor for Interpreter {
                 }
                 let this = ValueData::new_obj(None);
                 // Create a blank object, then set its __proto__ property to the [Constructor].prototype
-                this.borrow()
-                    .set_field_slice(INSTANCE_PROTOTYPE, func.borrow().get_field_slice(PROTOTYPE));
+                this.borrow().set_internal_slot(
+                    INSTANCE_PROTOTYPE,
+                    func.borrow().get_field_slice(PROTOTYPE),
+                );
                 match *func {
                     ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {

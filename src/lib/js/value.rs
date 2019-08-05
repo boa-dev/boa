@@ -49,8 +49,8 @@ impl ValueData {
                 .expect("Expected global object in making-new-object")
                 .get_field_slice("Object")
                 .get_field_slice(PROTOTYPE);
-            obj.properties
-                .insert(INSTANCE_PROTOTYPE.to_string(), Property::new(obj_proto));
+            obj.internal_slots
+                .insert(INSTANCE_PROTOTYPE.to_string(), obj_proto);
         }
         Gc::new(ValueData::Object(GcCell::new(obj)))
     }
@@ -424,9 +424,9 @@ impl ValueData {
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
                 let mut new_obj = Map::new();
-                for (k, v) in obj.borrow().properties.iter() {
+                for (k, v) in obj.borrow().internal_slots.iter() {
                     if k != INSTANCE_PROTOTYPE {
-                        new_obj.insert(k.clone(), v.value.to_json());
+                        new_obj.insert(k.clone(), v.to_json());
                     }
                 }
                 JSONValue::Object(new_obj)
