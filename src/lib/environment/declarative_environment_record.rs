@@ -1,4 +1,4 @@
-//! # Declerative Records
+//! # Declarative Records
 //!
 //! Each declarative Environment Record is associated with an ECMAScript program scope containing variable,
 //! `constant`, `let`, `class`, `module`, `import`, and/or function declarations.
@@ -16,13 +16,13 @@ use gc::Gc;
 use gc_derive::{Finalize, Trace};
 use std::collections::hash_map::HashMap;
 
-/// Declerative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
+/// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
 /// Can it be deleted? and strict mode.
 ///
 /// So we need to create a struct to hold these values.
 /// From this point onwards, a binding is referring to one of these structures.
 #[derive(Trace, Finalize, Debug, Clone)]
-pub struct DeclerativeEnvironmentRecordBinding {
+pub struct DeclarativeEnvironmentRecordBinding {
     pub value: Option<Value>,
     pub can_delete: bool,
     pub mutable: bool,
@@ -32,12 +32,12 @@ pub struct DeclerativeEnvironmentRecordBinding {
 /// A declarative Environment Record binds the set of identifiers defined by the
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
-pub struct DeclerativeEnvironmentRecord {
-    pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
+pub struct DeclarativeEnvironmentRecord {
+    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
     pub outer_env: Option<Environment>,
 }
 
-impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
+impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     fn has_binding(&self, name: &str) -> bool {
         self.env_rec.contains_key(name)
     }
@@ -50,7 +50,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
 
         self.env_rec.insert(
             name,
-            DeclerativeEnvironmentRecordBinding {
+            DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: deletion,
                 mutable: true,
@@ -67,7 +67,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
 
         self.env_rec.insert(
             name,
-            DeclerativeEnvironmentRecordBinding {
+            DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: true,
                 mutable: false,
@@ -102,7 +102,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
             return;
         }
 
-        let record: &mut DeclerativeEnvironmentRecordBinding = self.env_rec.get_mut(name).unwrap();
+        let record: &mut DeclarativeEnvironmentRecordBinding = self.env_rec.get_mut(name).unwrap();
         if record.strict {
             strict = true
         }
@@ -121,7 +121,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
 
     fn get_binding_value(&self, name: &str, _strict: bool) -> Value {
         if self.env_rec.get(name).is_some() && self.env_rec.get(name).unwrap().value.is_some() {
-            let record: &DeclerativeEnvironmentRecordBinding = self.env_rec.get(name).unwrap();
+            let record: &DeclarativeEnvironmentRecordBinding = self.env_rec.get(name).unwrap();
             record.value.as_ref().unwrap().clone()
         } else {
             // TODO: change this when error handling comes into play
@@ -163,7 +163,7 @@ impl EnvironmentRecordTrait for DeclerativeEnvironmentRecord {
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
-        EnvironmentType::Declerative
+        EnvironmentType::Declarative
     }
 
     fn get_global_object(&self) -> Option<Value> {

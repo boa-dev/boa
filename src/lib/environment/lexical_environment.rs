@@ -6,7 +6,7 @@
 //! This is the entrypoint to lexical environments.
 //!
 
-use crate::environment::declerative_environment_record::DeclerativeEnvironmentRecord;
+use crate::environment::declarative_environment_record::DeclarativeEnvironmentRecord;
 use crate::environment::environment_record_trait::EnvironmentRecordTrait;
 use crate::environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord};
 use crate::environment::global_environment_record::GlobalEnvironmentRecord;
@@ -26,7 +26,7 @@ pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
 /// This helps with comparisons
 #[derive(Debug, Clone, Copy)]
 pub enum EnvironmentType {
-    Declerative,
+    Declarative,
     Function,
     Global,
     Object,
@@ -155,8 +155,8 @@ impl LexicalEnvironment {
     }
 }
 
-pub fn new_declerative_environment(env: Option<Environment>) -> Environment {
-    let boxed_env = Box::new(DeclerativeEnvironmentRecord {
+pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
+    let boxed_env = Box::new(DeclarativeEnvironmentRecord {
         env_rec: HashMap::new(),
         outer_env: env,
     });
@@ -207,7 +207,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         with_environment: false,
     });
 
-    let dcl_rec = Box::new(DeclerativeEnvironmentRecord {
+    let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
         env_rec: HashMap::new(),
         outer_env: None,
     });
@@ -215,7 +215,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
     Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
         object_record: obj_rec,
         global_this_binding: this_value,
-        declerative_record: dcl_rec,
+        declarative_record: dcl_rec,
         var_names: HashSet::new(),
     })))
 }
