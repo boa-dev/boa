@@ -9,7 +9,7 @@
 
 use crate::{
     environment::{
-        declerative_environment_record::DeclerativeEnvironmentRecord,
+        declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
         object_environment_record::ObjectEnvironmentRecord,
@@ -24,7 +24,7 @@ use std::collections::HashSet;
 pub struct GlobalEnvironmentRecord {
     pub object_record: Box<ObjectEnvironmentRecord>,
     pub global_this_binding: Value,
-    pub declerative_record: Box<DeclerativeEnvironmentRecord>,
+    pub declarative_record: Box<DeclarativeEnvironmentRecord>,
     pub var_names: HashSet<String>,
 }
 
@@ -33,12 +33,12 @@ impl GlobalEnvironmentRecord {
         self.global_this_binding.clone()
     }
 
-    pub fn has_var_decleration(&self, name: &str) -> bool {
+    pub fn has_var_declaration(&self, name: &str) -> bool {
         self.var_names.contains(name)
     }
 
-    pub fn has_lexical_decleration(&self, name: &str) -> bool {
-        self.declerative_record.has_binding(name)
+    pub fn has_lexical_declaration(&self, name: &str) -> bool {
+        self.declarative_record.has_binding(name)
     }
 
     pub fn has_restricted_global_property(&self, name: &str) -> bool {
@@ -92,60 +92,60 @@ impl GlobalEnvironmentRecord {
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     fn has_binding(&self, name: &str) -> bool {
-        if self.declerative_record.has_binding(name) {
+        if self.declarative_record.has_binding(name) {
             return true;
         }
         self.object_record.has_binding(name)
     }
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) {
-        if self.declerative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(&name) {
             // TODO: change to exception
             panic!("Binding already exists!");
         }
 
-        self.declerative_record
+        self.declarative_record
             .create_mutable_binding(name.clone(), deletion)
     }
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) -> bool {
-        if self.declerative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(&name) {
             // TODO: change to exception
             panic!("Binding already exists!");
         }
 
-        self.declerative_record
+        self.declarative_record
             .create_immutable_binding(name.clone(), strict)
     }
 
     fn initialize_binding(&mut self, name: &str, value: Value) {
-        if self.declerative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(&name) {
             // TODO: assert binding is in the object environment record
-            return self.declerative_record.initialize_binding(name, value);
+            return self.declarative_record.initialize_binding(name, value);
         }
 
         panic!("Should not initialized binding without creating first.");
     }
 
     fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
-        if self.declerative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(&name) {
             return self
-                .declerative_record
+                .declarative_record
                 .set_mutable_binding(name, value, strict);
         }
         self.object_record.set_mutable_binding(name, value, strict)
     }
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {
-        if self.declerative_record.has_binding(&name) {
-            return self.declerative_record.get_binding_value(name, strict);
+        if self.declarative_record.has_binding(&name) {
+            return self.declarative_record.get_binding_value(name, strict);
         }
         self.object_record.get_binding_value(name, strict)
     }
 
     fn delete_binding(&mut self, name: &str) -> bool {
-        if self.declerative_record.has_binding(&name) {
-            return self.declerative_record.delete_binding(name);
+        if self.declarative_record.has_binding(&name) {
+            return self.declarative_record.delete_binding(name);
         }
 
         let global: &Value = &self.object_record.bindings;

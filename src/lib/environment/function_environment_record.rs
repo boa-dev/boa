@@ -10,7 +10,7 @@
 
 use crate::{
     environment::{
-        declerative_environment_record::DeclerativeEnvironmentRecordBinding,
+        declarative_environment_record::DeclarativeEnvironmentRecordBinding,
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
@@ -35,7 +35,7 @@ pub enum BindingStatus {
 /// <https://tc39.github.io/ecma262/#table-16>
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct FunctionEnvironmentRecord {
-    pub env_rec: HashMap<String, DeclerativeEnvironmentRecordBinding>,
+    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
     /// This is the this value used for this invocation of the function.
     pub this_value: Value,
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
@@ -107,7 +107,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
         self.env_rec.insert(
             name,
-            DeclerativeEnvironmentRecordBinding {
+            DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: deletion,
                 mutable: true,
@@ -124,7 +124,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
         self.env_rec.insert(
             name,
-            DeclerativeEnvironmentRecordBinding {
+            DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: true,
                 mutable: false,
@@ -159,7 +159,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             return;
         }
 
-        let record: &mut DeclerativeEnvironmentRecordBinding = self.env_rec.get_mut(name).unwrap();
+        let record: &mut DeclarativeEnvironmentRecordBinding = self.env_rec.get_mut(name).unwrap();
         if record.strict {
             strict = true
         }
@@ -179,7 +179,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn get_binding_value(&self, name: &str, _strict: bool) -> Value {
         if self.env_rec.get(name).is_some() && self.env_rec.get(name).unwrap().value.is_some() {
-            let record: &DeclerativeEnvironmentRecordBinding = self.env_rec.get(name).unwrap();
+            let record: &DeclarativeEnvironmentRecordBinding = self.env_rec.get(name).unwrap();
             record.value.as_ref().unwrap().clone()
         } else {
             // TODO: change this when error handling comes into play
