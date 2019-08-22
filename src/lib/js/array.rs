@@ -2,7 +2,8 @@ use crate::{
     exec::Interpreter,
     js::{
         function::NativeFunctionData,
-        object::{ObjectKind, Property, PROTOTYPE},
+        object::{ObjectKind, PROTOTYPE},
+        property::Property,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };

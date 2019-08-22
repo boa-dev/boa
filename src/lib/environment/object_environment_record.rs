@@ -12,7 +12,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     js::{
-        object::Property,
+        property::Property,
         value::{Value, ValueData},
     },
 };

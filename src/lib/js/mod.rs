@@ -16,3 +16,5 @@ pub mod object;
 pub mod string;
 /// Javascript values, utility methods and conversion between Javascript values and Rust values
 pub mod value;
+// Property, used by `Object`
+pub mod property;

@@ -1,7 +1,8 @@
 use crate::{
     exec::Interpreter,
     js::{
-        object::{Object, Property},
+        object::Object,
+        property::Property,
         value::{to_value, ResultValue, Value, ValueData},
     },
     syntax::ast::expr::Expr,
