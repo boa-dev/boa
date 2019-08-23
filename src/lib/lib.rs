@@ -29,7 +29,8 @@
     clippy::print_stdout,
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
-    clippy::non_ascii_literal
+    clippy::non_ascii_literal,
+    clippy::float_arithmetic
 )]
 
 pub mod environment;

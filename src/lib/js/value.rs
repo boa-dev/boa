@@ -44,17 +44,18 @@ pub enum ValueData {
 impl ValueData {
     /// Returns a new empty object
     pub fn new_obj(global: Option<&Value>) -> Value {
-        let mut obj = Object::default();
+        match global {
+            Some(glob) => {
+                let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
 
-        if global.is_some() {
-            let obj_proto = global
-                .expect("Expected global object in making-new-object")
-                .get_field_slice("Object")
-                .get_field_slice(PROTOTYPE);
-            obj.internal_slots
-                .insert(INSTANCE_PROTOTYPE.to_string(), obj_proto);
+                let obj = Object::create(obj_proto);
+                Gc::new(ValueData::Object(GcCell::new(obj)))
+            }
+            None => {
+                let obj = Object::default();
+                Gc::new(ValueData::Object(GcCell::new(obj)))
+            }
         }
-        Gc::new(ValueData::Object(GcCell::new(obj)))
     }
 
     /// Similar to `new_obj`, but you can pass a prototype to create from,
@@ -892,6 +893,44 @@ pub fn from_value<A: FromValue>(v: Value) -> Result<A, &'static str> {
 /// A utility function that just calls `ToValue::to_value`
 pub fn to_value<A: ToValue>(v: A) -> Value {
     v.to_value()
+}
+
+/// The internal comparison abstract operation SameValue(x, y),
+/// where x and y are ECMAScript language values, produces true or false.
+/// Such a comparison is performed as follows:
+///
+/// https://tc39.es/ecma262/#sec-samevalue
+pub fn same_value(x: &Value, y: &Value) -> bool {
+    if x.get_type() != y.get_type() {
+        return false;
+    }
+
+    if x.get_type() == "number" {
+        let native_x: f64 = from_value(x.clone()).expect("failed to get value");
+        let native_y: f64 = from_value(y.clone()).expect("failed to get value");
+        return native_x.abs() - native_y.abs() == 0.0
+    }
+
+    same_value_non_number(x, y)
+}
+
+pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
+    debug_assert!(x.get_type() == y.get_type());
+    match x.get_type() {
+        "undefined" => true,
+        "null" => true,
+        "string" => {
+            if x.to_string() == y.to_string() {
+                return true;
+            }
+            false
+        }
+        "boolean" => {
+            from_value::<bool>(x.clone()).expect("failed to get value")
+                == from_value::<bool>(y.clone()).expect("failed to get value")
+        }
+        _ => false,
+    }
 }
 
 #[cfg(test)]

@@ -3,7 +3,7 @@ use crate::{
     js::{
         function::NativeFunctionData,
         property::Property,
-        value::{from_value, to_value, ResultValue, Value, ValueData},
+        value::{from_value, to_value, ResultValue, Value, ValueData, same_value},
     },
 };
 use gc::Gc;
@@ -45,6 +45,31 @@ impl Object {
             sym_properties: Box::new(HashMap::new()),
             state: None,
         }
+    }
+
+    /// ObjectCreate is used to specify the runtime creation of new ordinary objects
+    ///
+    /// https://tc39.es/ecma262/#sec-objectcreate
+    pub fn create(proto: Value) -> Object {
+        let mut obj = Object::default();
+        obj.internal_slots
+            .insert(INSTANCE_PROTOTYPE.to_string(), proto.clone());
+        obj.internal_slots
+            .insert("extensible".to_string(), to_value(true));
+        obj
+    }
+
+    /// Utility function to get an immutable internal slot or Null
+    pub fn get_internal_slot(&self, name: &str) -> Value {
+        match self.internal_slots.get(name) {
+            Some(v) => v.clone(),
+            None => Gc::new(ValueData::Null),
+        }
+    }
+
+    /// Utility function to set an internal slot
+    pub fn set_internal_slot(&mut self, name: &str, val: Value) {
+        self.internal_slots.insert(name.to_string(), val);
     }
 
     /// Return a new Boolean object whose [[BooleanData]] internal slot is set to argument.
@@ -101,7 +126,61 @@ impl Object {
             _ => Err(()),
         }
     }
+
+    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
+    pub fn get_prototype_of(&self) -> Value {
+        match self.internal_slots.get(PROTOTYPE) {
+            Some(v) => v.clone(),
+            None => Gc::new(ValueData::Null),
+        }
+    }
+
+    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
+    pub fn set_prototype_of(&mut self, val: Value) -> bool {
+        debug_assert!(val.is_object() || val.is_null());
+        
+        let current = self.get_internal_slot(PROTOTYPE);
+        if current == val {
+            return true;
+        }
+        let extensible = self.get_internal_slot("extensible");
+        if extensible.is_null() {
+            return false;
+        }
+        let mut p = val.clone();
+        let mut done = false;
+        while !done {
+            if p.is_null() {
+                done = true
+            } else if same_value(&to_value(self.clone()), &p) {
+                return false
+            } else {
+                p = p.get_internal_slot(PROTOTYPE);
+            }
+        }
+        
+        self.set_internal_slot(PROTOTYPE, val);
+        true
+    }
+
+    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
+    pub fn is_extensible(&self) -> bool {
+        match self.internal_slots.get("extensible") {
+            Some(ref v) => {
+                let v_copy = v.clone();
+                from_value(v_copy.clone()).expect("boolean expected")
+            },
+            None => false
+        }
+    }
+
+    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
+    pub fn prevent_extensions(&mut self) -> bool {
+        self.set_internal_slot("extensible", to_value(false));
+        true
+    }
 }
+
 #[derive(Trace, Finalize, Clone, Debug)]
 pub enum ObjectKind {
     Function,
