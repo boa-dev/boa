@@ -20,6 +20,10 @@ pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter
 pub type Value = Gc<ValueData>;
 
+pub fn undefined() -> Value {
+    Gc::new(ValueData::Undefined)
+}
+
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum ValueData {
@@ -908,7 +912,7 @@ pub fn same_value(x: &Value, y: &Value) -> bool {
     if x.get_type() == "number" {
         let native_x: f64 = from_value(x.clone()).expect("failed to get value");
         let native_y: f64 = from_value(y.clone()).expect("failed to get value");
-        return native_x.abs() - native_y.abs() == 0.0
+        return native_x.abs() - native_y.abs() == 0.0;
     }
 
     same_value_non_number(x, y)

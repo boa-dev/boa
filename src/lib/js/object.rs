@@ -3,7 +3,7 @@ use crate::{
     js::{
         function::NativeFunctionData,
         property::Property,
-        value::{from_value, to_value, ResultValue, Value, ValueData, same_value},
+        value::{from_value, same_value, to_value, ResultValue, Value, ValueData},
     },
 };
 use gc::Gc;
@@ -127,6 +127,7 @@ impl Object {
         }
     }
 
+    /// Returns either the prototype or null
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     pub fn get_prototype_of(&self) -> Value {
         match self.internal_slots.get(PROTOTYPE) {
@@ -138,7 +139,6 @@ impl Object {
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
     pub fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
-        
         let current = self.get_internal_slot(PROTOTYPE);
         if current == val {
             return true;
@@ -153,12 +153,11 @@ impl Object {
             if p.is_null() {
                 done = true
             } else if same_value(&to_value(self.clone()), &p) {
-                return false
+                return false;
             } else {
                 p = p.get_internal_slot(PROTOTYPE);
             }
         }
-        
         self.set_internal_slot(PROTOTYPE, val);
         true
     }
@@ -167,10 +166,10 @@ impl Object {
     pub fn is_extensible(&self) -> bool {
         match self.internal_slots.get("extensible") {
             Some(ref v) => {
-                let v_copy = v.clone();
-                from_value(v_copy.clone()).expect("boolean expected")
-            },
-            None => false
+                // try dereferencing it: `&(*v).clone()`
+                from_value((*v).clone()).expect("boolean expected")
+            }
+            None => false,
         }
     }
 
@@ -178,6 +177,36 @@ impl Object {
     pub fn prevent_extensions(&mut self) -> bool {
         self.set_internal_slot("extensible", to_value(false));
         true
+    }
+    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
+    /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
+    /// So instead we can return an Option with a property or None
+    pub fn get_own_property(&self, prop: &Value) -> Option<Property> {
+        debug_assert!(Property::is_property_key(prop));
+        match self.properties.get(&prop.to_string()) {
+            None => None,
+            Some(ref v) => Some((*v).clone()),
+        }
+    }
+
+    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+    pub fn has_property(&self, val: &Value) -> bool {
+        debug_assert!(Property::is_property_key(val));
+        match self.get_own_property(val) {
+            Some(_) => true,
+            None => {
+                let parent: Value = self.get_prototype_of();
+                if !parent.is_null() {
+                    // the parent value variant should be an object
+                    // In the unlikely event it isn't return false
+                    return match *parent {
+                        ValueData::Object(ref obj) => obj.borrow().has_property(val),
+                        _ => false,
+                    };
+                }
+                false
+            }
+        }
     }
 }
 
