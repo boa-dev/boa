@@ -520,6 +520,131 @@ pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 
+/// Return a String with every code point mapped to its corresponding lowercase equivalent.
+/// With the current implementation the string is always copied even if the resulting String is identical
+/// <https://tc39.es/ecma262/#sec-string.prototype.tolowercase>
+pub fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let this_str: String = ctx.value_to_rust_string(this);
+    // The Rust String is mapped to uppercase using the builtin .to_lowercase().
+    // There might be corner cases where it does not behave exactly like Javascript expects
+    Ok(to_value(this_str.to_lowercase()))
+}
+
+/// Return a String with every code point mapped to its corresponding uppercase equivalent.
+/// With the current implementation the string is always copied even if the resulting String is identical
+/// <https://tc39.es/ecma262/#sec-string.prototype.touppercase>
+pub fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let this_str: String = ctx.value_to_rust_string(this);
+    // The Rust String is mapped to uppercase using the builtin .to_uppercase().
+    // There might be corner cases where it does not behave exactly like Javascript expects
+    Ok(to_value(this_str.to_uppercase()))
+}
+
+/// Return a String which is a subset of the String value resulting from converting this object to a String.
+/// The subset of the string is contained between the start index and the end index.
+/// When both the start and end arguments are specified, the smaller one represent the index of the code unit
+/// from which the returned String will start and the larger one the index of the code unit just after the end.
+/// When only the start index is specified, the end index defaults to being the length of the string.
+/// When no argument is specified, the returned String is the same as the original
+/// <https://tc39.es/ecma262/#sec-string.prototype.substring>
+pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String = ctx.value_to_rust_string(this);
+    // If no args are specified, start is 'undefined', defaults to 0
+    let start = if args.is_empty() {
+        0
+    } else {
+        from_value(
+            args.get(0)
+                .expect("failed to get argument for String method")
+                .clone(),
+        )
+        .expect("failed to parse argument for String method")
+    };
+    let length: i32 = primitive_val.chars().count() as i32;
+    // If less than 2 args specified, end is the length of the this object converted to a String
+    let end = if args.len() < 2 {
+        length
+    } else {
+        from_value(args[1].clone()).expect("failed to parse argument for String method")
+    };
+    // Both start and end args replaced by 0 if they were negative
+    // or by the length of the String if they were greater
+    let final_start = min(max(start, 0), length);
+    let final_end = min(max(end, 0), length);
+    // Start and end are swapped if start is greater than end
+    let from = min(final_start, final_end) as usize;
+    let to = max(final_start, final_end) as usize;
+    // Extract the part of the string contained between the start index and the end index
+    // where start is guaranteed to be smaller or equals to end
+    let extracted_string: String = primitive_val.chars().skip(from).take(to - from).collect();
+    Ok(to_value(extracted_string))
+}
+
+/// Return a String which is a subset of the String value resulting from converting this object to a String.
+/// The subset of the string starts at the start index and is at most length code units long, depending if the string is shorter.
+/// When only the start index is specified, the length become the length of the string.
+/// When the start index is negative, the start index become the number of code units from the end of the string.
+/// When no argument is specified, the returned String is the same as the original
+/// <https://tc39.es/ecma262/#sec-string.prototype.substr>
+pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String by wrapping it in from_value
+    let primitive_val: String = ctx.value_to_rust_string(this);
+    // If no args are specified, start is 'undefined', defaults to 0
+    let mut start = if args.is_empty() {
+        0
+    } else {
+        from_value(
+            args.get(0)
+                .expect("failed to get argument for String method")
+                .clone(),
+        )
+        .expect("failed to parse argument for String method")
+    };
+    let length: i32 = primitive_val.chars().count() as i32;
+    // If less than 2 args specified, end is +infinity, the maximum number value.
+    // Using i32::max_value() should be safe because the final length used is at most
+    // the number of code units from start to the end of the string,
+    // which should always be smaller or equals to both +infinity and i32::max_value
+    let end = if args.len() < 2 {
+        i32::max_value()
+    } else {
+        from_value(args[1].clone()).expect("failed to parse argument for String method")
+    };
+    // If start is negative it become the number of code units from the end of the string
+    if start < 0 {
+        start = max(length + start, 0);
+    }
+    // length replaced by 0 if it was negative
+    // or by the number of code units from start to the end of the string if it was greater
+    let result_length = min(max(end, 0), length - start);
+    // If length is negative we return an empty string
+    // otherwise we extract the part of the string from start and is length code units long
+    if result_length <= 0 {
+        Ok(to_value("".to_string()))
+    } else {
+        let extracted_string: String = primitive_val
+            .chars()
+            .skip(start as usize)
+            .take(result_length as usize)
+            .collect();
+        Ok(to_value(extracted_string))
+    }
+}
+
+/// Get the string value to a primitive string
+/// <https://tc39.es/ecma262/#sec-string.prototype.valueof>
+pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    // Use the to_string method because it is specified to do the same thing in this case
+    to_string(this, args, ctx)
+}
+
 /// Create a new `String` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create constructor function object
@@ -551,6 +676,11 @@ pub fn create_constructor(global: &Value) -> Value {
     proto.set_field_slice("padStart", to_value(pad_start as NativeFunctionData));
     proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
     proto.set_field_slice("trimStart", to_value(trim_start as NativeFunctionData));
+    proto.set_field_slice("toLowerCase", to_value(to_lowercase as NativeFunctionData));
+    proto.set_field_slice("toUpperCase", to_value(to_uppercase as NativeFunctionData));
+    proto.set_field_slice("substring", to_value(substring as NativeFunctionData));
+    proto.set_field_slice("substr", to_value(substr as NativeFunctionData));
+    proto.set_field_slice("valueOf", to_value(value_of as NativeFunctionData));
 
     let string = to_value(string_constructor);
     proto.set_field_slice("constructor", string.clone());
