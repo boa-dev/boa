@@ -316,8 +316,14 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 match ref_e.def {
                     ExprDef::Local(ref name) => {
-                        self.environment.create_mutable_binding(name.clone(), false);
-                        self.environment.initialize_binding(name, val.clone());
+                        if *self.environment.get_binding_value(&name) != ValueData::Undefined {
+                            // Binding already exists
+                            self.environment
+                                .set_mutable_binding(&name, val.clone(), true);
+                        } else {
+                            self.environment.create_mutable_binding(name.clone(), true);
+                            self.environment.initialize_binding(name, val.clone());
+                        }
                     }
                     ExprDef::GetConstField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
