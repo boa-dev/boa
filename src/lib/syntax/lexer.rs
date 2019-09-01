@@ -894,5 +894,4 @@ mod tests {
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Dot));
     }
-
 }

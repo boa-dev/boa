@@ -853,5 +853,4 @@ mod tests {
         assert_eq!((-1.0).to_value().is_true(), true);
         assert_eq!(NAN.to_value().is_true(), false);
     }
-
 }
