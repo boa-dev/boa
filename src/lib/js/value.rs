@@ -1,7 +1,7 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
     object::{Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
-    property::Property
+    property::Property,
 };
 use gc::{Gc, GcCell};
 use gc_derive::{Finalize, Trace};
@@ -853,5 +853,4 @@ mod tests {
         assert_eq!((-1.0).to_value().is_true(), true);
         assert_eq!(NAN.to_value().is_true(), false);
     }
-
 }
