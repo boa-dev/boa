@@ -32,19 +32,18 @@ pub struct Interpreter {
     environment: LexicalEnvironment,
 }
 
+/// Builder for the [`Interpreter`]
+///
+/// [`Interpreter`]: struct.Interpreter.html
+#[derive(Debug)]
+pub struct InterpreterBuilder {
+    /// The global object
+    global: Value,
+}
+
 impl Executor for Interpreter {
     fn new() -> Self {
-        let global = ValueData::new_obj(None);
-        object::init(&global);
-        console::init(&global);
-        math::init(&global);
-        array::init(&global);
-        function::init(&global);
-        json::init(&global);
-        string::init(&global);
-        Self {
-            environment: LexicalEnvironment::new(global.clone()),
-        }
+        InterpreterBuilder::new().build()
     }
 
     #[allow(clippy::match_same_arms)]
@@ -373,6 +372,33 @@ impl Executor for Interpreter {
                 }))
             }
         }
+    }
+}
+
+impl InterpreterBuilder {
+    pub fn new() -> Self {
+        let global = ValueData::new_obj(None);
+        object::init(&global);
+        console::init(&global);
+        math::init(&global);
+        array::init(&global);
+        function::init(&global);
+        json::init(&global);
+        string::init(&global);
+
+        Self { global }
+    }
+
+    pub fn build(self) -> Interpreter {
+        Interpreter {
+            environment: LexicalEnvironment::new(self.global.clone()),
+        }
+    }
+}
+
+impl Default for InterpreterBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
