@@ -5,7 +5,7 @@ use crate::{
         function::{Function, RegularFunction},
         json, math, object,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
-        string,
+        regexp, string,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     syntax::ast::{
@@ -384,6 +384,7 @@ impl InterpreterBuilder {
         array::init(&global);
         function::init(&global);
         json::init(&global);
+        regexp::init(&global);
         string::init(&global);
 
         Self { global }
