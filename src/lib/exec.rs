@@ -389,6 +389,11 @@ impl InterpreterBuilder {
         Self { global }
     }
 
+    pub fn init_globals<F: FnOnce(&Value)>(self, init_fn: F) -> Self {
+        init_fn(&self.global);
+        self
+    }
+
     pub fn build(self) -> Interpreter {
         Interpreter {
             environment: LexicalEnvironment::new(self.global.clone()),
