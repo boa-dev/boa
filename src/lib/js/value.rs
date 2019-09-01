@@ -1,7 +1,7 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
     object::{Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
-    property::Property
+    property::Property,
 };
 use gc::{Gc, GcCell};
 use gc_derive::{Finalize, Trace};
