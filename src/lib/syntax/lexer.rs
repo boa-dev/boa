@@ -298,8 +298,8 @@ impl<'a> Lexer<'a> {
                                                     .unwrap()
                                             }
                                         }
-                                        '\'' | '"' => escape,
-                                        _ => panic!(
+                                        '\'' | '"' | '\\' => escape,
+                                        ch => panic!(
                                             "{}:{}: Invalid escape `{}`",
                                             self.line_number, self.column_number, ch
                                         ),
