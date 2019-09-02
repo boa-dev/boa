@@ -257,12 +257,20 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     result
 }
 
+/// Return a string representing the regular expression
+pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    let body = from_value::<String>(this.get_internal_slot("OriginalSource")).map_err(to_value)?;
+    let flags = this.with_internal_state_ref(|regex: &RegExp| regex.flags.clone());
+    Ok(to_value(format!("/{}/{}", body, flags)))
+}
+
 /// Create a new `RegExp` object
 pub fn _create(global: &Value) -> Value {
     let regexp = to_value(make_regexp as NativeFunctionData);
     let proto = ValueData::new_obj(Some(global));
     proto.set_field_slice("test", to_value(test as NativeFunctionData));
     proto.set_field_slice("exec", to_value(exec as NativeFunctionData));
+    proto.set_field_slice("toString", to_value(to_string as NativeFunctionData));
     proto.set_field_slice("lastIndex", to_value(0));
     proto.set_prop_slice("dotAll", _make_prop(get_dot_all));
     proto.set_prop_slice("flags", _make_prop(get_flags));
@@ -361,5 +369,24 @@ mod tests {
             forward(&mut engine, "result.input"),
             "The Quick Brown Fox Jumps Over The Lazy Dog"
         );
+    }
+
+    #[test]
+    fn test_to_string() {
+        let mut engine = Executor::new();
+
+        assert_eq!(
+            forward(&mut engine, "(new RegExp('a+b+c')).toString()"),
+            "/a+b+c/"
+        );
+        assert_eq!(
+            forward(&mut engine, "(new RegExp('bar', 'g')).toString()"),
+            "/bar/g"
+        );
+        assert_eq!(
+            forward(&mut engine, "(new RegExp('\\\\n', 'g')).toString()"),
+            "/\\n/g"
+        );
+        assert_eq!(forward(&mut engine, "/\\n/g.toString()"), "/\\n/g");
     }
 }
