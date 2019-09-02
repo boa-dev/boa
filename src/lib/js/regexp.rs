@@ -216,11 +216,53 @@ pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     result
 }
 
+/// Search for a match between this regex and a specified string
+pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let arg_str = get_argument::<String>(args, 0)?;
+    let mut last_index = from_value::<usize>(this.get_field("lastIndex")).map_err(to_value)?;
+    let result = this.with_internal_state_ref(|regex: &RegExp| {
+        let mut locations = regex.matcher.capture_locations();
+        let result =
+            match regex
+                .matcher
+                .captures_read_at(&mut locations, arg_str.as_str(), last_index)
+            {
+                Some(m) => {
+                    if regex.use_last_index {
+                        last_index = m.end();
+                    }
+                    let mut result = Vec::with_capacity(locations.len());
+                    for i in 0..locations.len() {
+                        if let Some((start, end)) = locations.get(i) {
+                            result.push(to_value(&arg_str[start..end]));
+                        } else {
+                            result.push(Gc::new(ValueData::Undefined));
+                        }
+                    }
+                    let result = to_value(result);
+                    result.set_prop_slice("index", Property::new(to_value(m.start())));
+                    result.set_prop_slice("input", Property::new(to_value(arg_str)));
+                    result
+                }
+                None => {
+                    if regex.use_last_index {
+                        last_index = 0;
+                    }
+                    Gc::new(ValueData::Null)
+                }
+            };
+        Ok(result)
+    });
+    this.set_field_slice("lastIndex", to_value(last_index));
+    result
+}
+
 /// Create a new `RegExp` object
 pub fn _create(global: &Value) -> Value {
     let regexp = to_value(make_regexp as NativeFunctionData);
     let proto = ValueData::new_obj(Some(global));
     proto.set_field_slice("test", to_value(test as NativeFunctionData));
+    proto.set_field_slice("exec", to_value(exec as NativeFunctionData));
     proto.set_field_slice("lastIndex", to_value(0));
     proto.set_prop_slice("dotAll", _make_prop(get_dot_all));
     proto.set_prop_slice("flags", _make_prop(get_flags));
@@ -300,5 +342,24 @@ mod tests {
         assert_eq!(forward(&mut engine, "regex.lastIndex"), "3");
         assert_eq!(forward(&mut engine, "regex.test('1.0foo')"), "false");
         assert_eq!(forward(&mut engine, "regex.lastIndex"), "0");
+    }
+
+    #[test]
+    fn test_exec() {
+        let mut engine = Executor::new();
+        let init = r#"
+        var re = /quick\s(brown).+?(jumps)/ig;
+        var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
+        "#;
+
+        forward(&mut engine, init);
+        assert_eq!(forward(&mut engine, "result[0]"), "Quick Brown Fox Jumps");
+        assert_eq!(forward(&mut engine, "result[1]"), "Brown");
+        assert_eq!(forward(&mut engine, "result[2]"), "Jumps");
+        assert_eq!(forward(&mut engine, "result.index"), "4");
+        assert_eq!(
+            forward(&mut engine, "result.input"),
+            "The Quick Brown Fox Jumps Over The Lazy Dog"
+        );
     }
 }

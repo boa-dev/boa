@@ -688,6 +688,18 @@ pub trait FromValue {
         Self: Sized;
 }
 
+impl ToValue for Value {
+    fn to_value(&self) -> Value {
+        self.clone()
+    }
+}
+
+impl FromValue for Value {
+    fn from_value(value: Value) -> Result<Self, &'static str> {
+        Ok(value)
+    }
+}
+
 impl ToValue for String {
     fn to_value(&self) -> Value {
         Gc::new(ValueData::String(self.clone()))
