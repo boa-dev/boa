@@ -10,10 +10,14 @@ use gc::Gc;
 use gc_derive::{Finalize, Trace};
 use std::{borrow::Borrow, collections::HashMap, ops::Deref};
 
-/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.  
+pub use internal_state::{InternalState, InternalStateCell};
+
+mod internal_state;
+
+/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
-/// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.  
+/// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.
 pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 
 /// `ObjectData` is the representation of an object in JavaScript
@@ -27,6 +31,8 @@ pub struct Object {
     pub properties: Box<HashMap<String, Property>>,
     /// Symbol Properties
     pub sym_properties: Box<HashMap<usize, Property>>,
+    /// Some rust object that stores internal state
+    pub state: Option<Box<InternalStateCell>>,
 }
 
 impl Object {
@@ -37,6 +43,7 @@ impl Object {
             internal_slots: Box::new(HashMap::new()),
             properties: Box::new(HashMap::new()),
             sym_properties: Box::new(HashMap::new()),
+            state: None,
         }
     }
 
@@ -47,6 +54,7 @@ impl Object {
             internal_slots: Box::new(HashMap::new()),
             properties: Box::new(HashMap::new()),
             sym_properties: Box::new(HashMap::new()),
+            state: None,
         };
 
         obj.internal_slots
@@ -61,6 +69,7 @@ impl Object {
             internal_slots: Box::new(HashMap::new()),
             properties: Box::new(HashMap::new()),
             sym_properties: Box::new(HashMap::new()),
+            state: None,
         };
 
         obj.internal_slots
@@ -75,6 +84,7 @@ impl Object {
             internal_slots: Box::new(HashMap::new()),
             properties: Box::new(HashMap::new()),
             sym_properties: Box::new(HashMap::new()),
+            state: None,
         };
 
         obj.internal_slots
