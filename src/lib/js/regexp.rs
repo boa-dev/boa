@@ -8,14 +8,31 @@ use crate::{
     js::{
         function::NativeFunctionData,
         object::{InternalState, ObjectKind, PROTOTYPE},
+        property::Property,
         value::{from_value, to_value, FromValue, ResultValue, Value, ValueData},
     },
 };
 
 #[derive(Debug)]
 struct RegExp {
+    /// Regex matcher.
     matcher: Regex,
+    /// Update last_index, set if global or sticky flags are set.
     use_last_index: bool,
+    /// String of parsed flags.
+    flags: String,
+    /// Flag 's' - dot matches newline characters.
+    dot_all: bool,
+    /// Flag 'g'
+    global: bool,
+    /// Flag 'i' - ignore case.
+    ignore_case: bool,
+    /// Flag 'm' - '^' and '$' match beginning/end of line.
+    multiline: bool,
+    /// Flag 'y'
+    sticky: bool,
+    /// Flag 'u' - Unicode.
+    unicode: bool,
 }
 
 impl InternalState for RegExp {}
@@ -64,12 +81,60 @@ pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
         }
     }
 
-    let matcher = Regex::new(regex_body.as_str()).expect("failed to create matcher");
-    // use last index if the global or sticky flag are used
-    let use_last_index = regex_flags.contains(|c| c == 'g' || c == 'y');
+    // parse flags
+    let mut sorted_flags = String::new();
+    let mut pattern = String::new();
+    let mut dot_all = false;
+    let mut global = false;
+    let mut ignore_case = false;
+    let mut multiline = false;
+    let mut sticky = false;
+    let mut unicode = false;
+    if regex_flags.contains('g') {
+        global = true;
+        sorted_flags.push('g');
+    }
+    if regex_flags.contains('i') {
+        ignore_case = true;
+        sorted_flags.push('i');
+        pattern.push('i');
+    }
+    if regex_flags.contains('m') {
+        multiline = true;
+        sorted_flags.push('m');
+        pattern.push('m');
+    }
+    if regex_flags.contains('s') {
+        dot_all = true;
+        sorted_flags.push('s');
+        pattern.push('s');
+    }
+    if regex_flags.contains('u') {
+        unicode = true;
+        sorted_flags.push('u');
+        //pattern.push('s'); // rust uses utf-8 anyway
+    }
+    if regex_flags.contains('y') {
+        sticky = true;
+        sorted_flags.push('y');
+    }
+    // the `regex` crate uses '(?{flags})` inside the pattern to enable flags
+    if !pattern.is_empty() {
+        pattern = format!("(?{})", pattern);
+    }
+    pattern.push_str(regex_body.as_str());
+
+    let matcher = Regex::new(pattern.as_str()).expect("failed to create matcher");
     let regexp = RegExp {
         matcher,
-        use_last_index,
+        use_last_index: global || sticky,
+        flags: sorted_flags,
+        dot_all,
+        global,
+        ignore_case,
+        multiline,
+        sticky,
+        unicode,
     };
 
     // This value is used by console.log and other routines to match Object type
@@ -81,6 +146,49 @@ pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
 
     this.set_internal_state(regexp);
     Ok(this.clone())
+}
+
+fn get_dot_all(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.dot_all)))
+}
+
+fn get_flags(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.flags.clone())))
+}
+
+fn get_global(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.global)))
+}
+
+fn get_ignore_case(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.ignore_case)))
+}
+
+fn get_multiline(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.multiline)))
+}
+
+fn get_source(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    Ok(this.get_internal_slot("OriginalSource"))
+}
+
+fn get_sticky(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.sticky)))
+}
+
+fn get_unicode(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.unicode)))
+}
+
+fn _make_prop(getter: NativeFunctionData) -> Property {
+    Property {
+        writable: false,
+        enumerable: false,
+        configurable: true,
+        value: Gc::new(ValueData::Undefined),
+        get: to_value(getter),
+        set: Gc::new(ValueData::Undefined),
+    }
 }
 
 /// Search for a match between this regex and a specified string
@@ -114,6 +222,14 @@ pub fn _create(global: &Value) -> Value {
     let proto = ValueData::new_obj(Some(global));
     proto.set_field_slice("test", to_value(test as NativeFunctionData));
     proto.set_field_slice("lastIndex", to_value(0));
+    proto.set_prop_slice("dotAll", _make_prop(get_dot_all));
+    proto.set_prop_slice("flags", _make_prop(get_flags));
+    proto.set_prop_slice("global", _make_prop(get_global));
+    proto.set_prop_slice("ignoreCase", _make_prop(get_ignore_case));
+    proto.set_prop_slice("multiline", _make_prop(get_multiline));
+    proto.set_prop_slice("source", _make_prop(get_source));
+    proto.set_prop_slice("sticky", _make_prop(get_sticky));
+    proto.set_prop_slice("unicode", _make_prop(get_unicode));
     regexp.set_field_slice(PROTOTYPE, proto);
     regexp
 }
@@ -142,6 +258,34 @@ mod tests {
         assert_eq!(forward(&mut engine, "literal.test('1.0')"), "true");
         assert_eq!(forward(&mut engine, "ctor_literal.test('1.0')"), "true");
     }
+
+    // TODO: uncomment this test when property getters are supported
+
+    //    #[test]
+    //    fn test_flags() {
+    //        let mut engine = Executor::new();
+    //        let init = r#"
+    //                var re_gi = /test/gi;
+    //                var re_sm = /test/sm;
+    //                "#;
+    //
+    //        forward(&mut engine, init);
+    //        assert_eq!(forward(&mut engine, "re_gi.global"), "true");
+    //        assert_eq!(forward(&mut engine, "re_gi.ignoreCase"), "true");
+    //        assert_eq!(forward(&mut engine, "re_gi.multiline"), "false");
+    //        assert_eq!(forward(&mut engine, "re_gi.dotAll"), "false");
+    //        assert_eq!(forward(&mut engine, "re_gi.unicode"), "false");
+    //        assert_eq!(forward(&mut engine, "re_gi.sticky"), "false");
+    //        assert_eq!(forward(&mut engine, "re_gi.flags"), "gi");
+    //
+    //        assert_eq!(forward(&mut engine, "re_sm.global"), "false");
+    //        assert_eq!(forward(&mut engine, "re_sm.ignoreCase"), "false");
+    //        assert_eq!(forward(&mut engine, "re_sm.multiline"), "true");
+    //        assert_eq!(forward(&mut engine, "re_sm.dotAll"), "true");
+    //        assert_eq!(forward(&mut engine, "re_sm.unicode"), "false");
+    //        assert_eq!(forward(&mut engine, "re_sm.sticky"), "false");
+    //        assert_eq!(forward(&mut engine, "re_sm.flags"), "ms");
+    //    }
 
     #[test]
     fn test_last_index() {
