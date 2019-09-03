@@ -5,7 +5,7 @@ use gc_derive::{Finalize, Trace};
 /// A Javascript Property AKA The Property Descriptor   
 /// [[SPEC] - The Property Descriptor Specification Type](https://tc39.github.io/ecma262/#sec-property-descriptor-specification-type)   
 /// [[SPEC] - Default Attribute Values](https://tc39.github.io/ecma262/#table-4)
-/// 
+///
 /// Any field in a JavaScript Property may be present or absent.
 #[derive(Trace, Finalize, Clone, Debug)]
 pub struct Property {
@@ -29,28 +29,19 @@ impl Property {
         value.is_string() // || value.is_symbol() // Uncomment this when we are handeling symbols.
     }
 
-    /// Make a new empty Property
-    pub fn default() -> Self {
+    /// Make a new property with the given value
+    /// The difference between New and Default:
+    ///
+    /// New: zeros everything to make an empty object
+    /// Default: Defaults according to the spec
+    pub fn new() -> Self {
         Self {
             configurable: None,
             enumerable: None,
             writable: None,
             value: None,
             get: None,
-            set: None
-        }
-    }
-
-
-    /// Make a new property with the given value
-    pub fn new(value: Value) -> Self {
-        Self {
-            configurable: Some(false),
-            enumerable: Some(false),
-            writable: Some(false),
-            value: Some(value),
-            get: Some(Gc::new(ValueData::Undefined)),
-            set: Some(Gc::new(ValueData::Undefined))
+            set: None,
         }
     }
 
@@ -90,6 +81,17 @@ impl Property {
         self
     }
 
+    /// Is this an empty Property?
+    ///
+    /// `true` if all fields are set to none
+    pub fn is_none(&self) -> bool {
+        self.get.is_none()
+            && self.set.is_none()
+            && self.writable.is_none()
+            && self.configurable.is_none()
+            && self.enumerable.is_none()
+    }
+
     // https://tc39.es/ecma262/#sec-isaccessordescriptor
     pub fn is_accessor_descriptor(&self) -> bool {
         self.get.is_some() && self.set.is_some()
@@ -103,6 +105,21 @@ impl Property {
     // https://tc39.es/ecma262/#sec-isgenericdescriptor
     pub fn is_generic_descriptor(&self) -> bool {
         !self.is_accessor_descriptor() && !self.is_data_descriptor()
+    }
+}
+
+impl Default for Property {
+    /// Make a default property
+    /// https://tc39.es/ecma262/#table-default-attribute-values
+    fn default() -> Self {
+        Self {
+            configurable: Some(false),
+            enumerable: Some(false),
+            writable: Some(false),
+            value: Some(Gc::new(ValueData::Undefined)),
+            get: Some(Gc::new(ValueData::Undefined)),
+            set: Some(Gc::new(ValueData::Undefined)),
+        }
     }
 }
 

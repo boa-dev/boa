@@ -46,7 +46,7 @@ impl RegularFunction {
         let mut object = Object::default();
         object.properties.insert(
             "arguments".to_string(),
-            Property::new(Gc::new(ValueData::Integer(args.len() as i32))),
+            Property::default().value(Gc::new(ValueData::Integer(args.len() as i32))),
         );
         Self { object, expr, args }
     }

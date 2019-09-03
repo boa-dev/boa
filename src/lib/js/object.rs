@@ -223,21 +223,91 @@ impl Object {
         true
     }
 
-    // pub fn define_own_property(&self, property_key: String, property_descriptor: Property) -> bool {
-    //     let current = self.get_own_property(&to_value(property_key));
-    //     let extensible = self.is_extensible();
+    pub fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
+        let mut current = self.get_own_property(&to_value(property_key.to_string()));
+        let extensible = self.is_extensible();
 
-    //     // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
-    //     if current.is_undefined() {
-    //         if !extensible {
-    //             return false;
-    //         }
+        // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
+        // There currently isn't a property, lets create a new one
+        if current.value.is_none() || current.value.as_ref().expect("failed").is_undefined() {
+            if !extensible {
+                return false;
+            }
 
-    //         if current.is_generic_descriptor() || current.is_data_descriptor() {
+            let mut p = Property::new();
+            if desc.is_generic_descriptor() || desc.is_data_descriptor() {
+                p.value = Some(desc.value.clone().unwrap_or_default());
+                p.writable = Some(desc.writable.unwrap_or_default());
+                p.configurable = Some(desc.configurable.unwrap_or_default());
+                p.enumerable = Some(desc.enumerable.unwrap_or_default());
+            } else {
+                p.get = Some(desc.get.clone().unwrap_or_default());
+                p.set = Some(desc.set.clone().unwrap_or_default());
+                p.configurable = Some(desc.configurable.unwrap_or_default());
+                p.enumerable = Some(desc.enumerable.unwrap_or_default());
+            };
+            self.properties.insert(property_key, p);
+            return true;
+        }
+        // If every field is absent we don't need to set anything
+        if desc.is_none() {
+            return true;
+        }
 
-    //         }
-    //     }
-    // }
+        // 4
+        if current.configurable.unwrap_or(false) {
+            if desc.configurable.is_some() && desc.configurable.unwrap() {
+                return false;
+            }
+
+            if desc.enumerable.is_some()
+                && (desc.enumerable.as_ref().unwrap() == current.enumerable.as_ref().unwrap())
+            {
+                return false;
+            }
+        }
+
+        // 5
+        if desc.is_generic_descriptor() {
+        
+        // 6
+        } else if current.is_data_descriptor() != desc.is_data_descriptor() {
+            // a
+            if !current.configurable.unwrap() {
+                return false;
+            }
+            // b
+            if current.is_data_descriptor() {
+                // Convert to accessor
+                current.value = None;
+                current.writable = None;
+
+            } else { // c
+                // convert to data
+                current.get = None;
+                current.set = None;
+            }
+            self.properties.insert(property_key, current);
+        // 7 
+        } else if current.is_data_descriptor() && desc.is_data_descriptor() {
+            // a
+            if !current.configurable.unwrap()&& !current.writable.unwrap() {
+                if desc.writable.is_some() && desc.writable.unwrap() {
+                    return false;
+                }
+                
+                if desc.value.is_some() && !same_value(&desc.value.clone().unwrap(), &current.value.clone().unwrap()) {
+                    return false;
+                }
+
+                return true;
+            }
+            // 8
+        } else {
+
+        }
+        true
+    }
 }
 
 #[derive(Trace, Finalize, Clone, Debug)]

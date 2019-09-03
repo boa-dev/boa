@@ -205,7 +205,7 @@ impl ValueData {
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
             if let ValueData::String(ref s) = *self {
-                return Some(Property::new(to_value(s.len() as i32)));
+                return Some(Property::default().value(to_value(s.len() as i32)));
             }
         }
 
@@ -392,18 +392,18 @@ impl ValueData {
             ValueData::Object(ref obj) => {
                 obj.borrow_mut()
                     .properties
-                    .insert(field, Property::new(val.clone()));
+                    .insert(field, Property::default().value(val.clone()));
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::new(val.clone())),
+                        .insert(field, Property::default().value(val.clone())),
                     Function::RegularFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::new(val.clone())),
+                        .insert(field, Property::default().value(val.clone())),
                 };
             }
             _ => (),
@@ -480,11 +480,11 @@ impl ValueData {
                 for (idx, json) in vs.iter().enumerate() {
                     new_obj
                         .properties
-                        .insert(idx.to_string(), Property::new(to_value(json.clone())));
+                        .insert(idx.to_string(), Property::default().value(to_value(json.clone())));
                 }
                 new_obj.properties.insert(
                     "length".to_string(),
-                    Property::new(to_value(vs.len() as i32)),
+                    Property::default().value(to_value(vs.len() as i32)),
                 );
                 ValueData::Object(GcCell::new(new_obj))
             }
@@ -493,7 +493,7 @@ impl ValueData {
                 for (key, json) in obj.iter() {
                     new_obj
                         .properties
-                        .insert(key.clone(), Property::new(to_value(json.clone())));
+                        .insert(key.clone(), Property::default().value(to_value(json.clone())));
                 }
 
                 ValueData::Object(GcCell::new(new_obj))
@@ -531,6 +531,12 @@ impl ValueData {
             ValueData::Undefined => "undefined",
             _ => "object",
         }
+    }
+}
+
+impl Default for ValueData {
+    fn default() -> Self {
+        ValueData::Undefined
     }
 }
 
@@ -782,7 +788,7 @@ impl<'s, T: ToValue> ToValue for &'s [T] {
         let mut arr = Object::default();
         for (i, item) in self.iter().enumerate() {
             arr.properties
-                .insert(i.to_string(), Property::new(item.to_value()));
+                .insert(i.to_string(), Property::default().value(item.to_value()));
         }
         to_value(arr)
     }
@@ -792,7 +798,7 @@ impl<T: ToValue> ToValue for Vec<T> {
         let mut arr = Object::default();
         for (i, item) in self.iter().enumerate() {
             arr.properties
-                .insert(i.to_string(), Property::new(item.to_value()));
+                .insert(i.to_string(), Property::default().value(item.to_value()));
         }
         to_value(arr)
     }

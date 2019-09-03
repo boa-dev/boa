@@ -182,9 +182,6 @@ fn get_unicode(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 
 fn _make_prop(getter: NativeFunctionData) -> Property {
     Property::default()
-        .writable(false)
-        .enumerable(false)
-        .configurable(true)
         .get(to_value(getter))
 }
 
@@ -237,8 +234,8 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
                         }
                     }
                     let result = to_value(result);
-                    result.set_prop_slice("index", Property::new(to_value(m.start())));
-                    result.set_prop_slice("input", Property::new(to_value(arg_str)));
+                    result.set_prop_slice("index", Property::default().value(to_value(m.start())));
+                    result.set_prop_slice("input", Property::default().value(to_value(arg_str)));
                     result
                 }
                 None => {
