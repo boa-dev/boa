@@ -114,7 +114,7 @@ impl<'a> Lexer<'a> {
     ///
     /// # Arguments
     ///
-    /// * `buffer` - A string slice that holds the source code.   
+    /// * `buffer` - A string slice that holds the source code.
     /// The buffer needs to have a lifetime as long as the Lexer instance itself
     ///
     /// # Example
@@ -298,8 +298,8 @@ impl<'a> Lexer<'a> {
                                                     .unwrap()
                                             }
                                         }
-                                        '\'' | '"' => escape,
-                                        _ => panic!(
+                                        '\'' | '"' | '\\' => escape,
+                                        ch => panic!(
                                             "{}:{}: Invalid escape `{}`",
                                             self.line_number, self.column_number, ch
                                         ),
@@ -446,12 +446,13 @@ impl<'a> Lexer<'a> {
                 // Comments
                 '/' => {
                     if let Some(ch) = self.preview_next() {
-                        let token = match ch {
-                            // Matched comment
+                        match ch {
+                            // line comment
                             '/' => {
                                 let comment = self.read_line()?;
-                                TokenData::Comment(comment)
+                                self.push_token(TokenData::Comment(comment));
                             }
+                            // block comment
                             '*' => {
                                 let mut buf = String::new();
                                 loop {
@@ -466,14 +467,60 @@ impl<'a> Lexer<'a> {
                                         next_ch => buf.push(next_ch),
                                     }
                                 }
-                                TokenData::Comment(buf)
+                                self.push_token(TokenData::Comment(buf));
                             }
-                            '=' => TokenData::Punctuator(Punctuator::AssignDiv),
-                            _ => TokenData::Punctuator(Punctuator::Div),
-                        };
-                        self.push_token(token)
+                            // division, assigndiv or regex literal
+                            _ => {
+                                // if we fail to parse a regex literal, store a copy of the current
+                                // buffer to restore later on
+                                let original_buffer = self.buffer.clone();
+                                // first, try to parse a regex literal
+                                let mut body = String::new();
+                                let mut regex = false;
+                                loop {
+                                    match self.buffer.next() {
+                                        // end of body
+                                        Some('/') => {
+                                            regex = true;
+                                            break;
+                                        }
+                                        // newline/eof not allowed in regex literal
+                                        Some('\n') | Some('\r') | Some('\u{2028}')
+                                        | Some('\u{2029}') | None => break,
+                                        // escape sequence
+                                        Some('\\') => {
+                                            body.push('\\');
+                                            match self.next()? {
+                                                // newline not allowed in regex literal
+                                                '\n' | '\r' | '\u{2028}' | '\u{2029}' => break,
+                                                ch => body.push(ch),
+                                            }
+                                        }
+                                        Some(ch) => body.push(ch),
+                                    }
+                                }
+                                if regex {
+                                    // body was parsed, now look for flags
+                                    let flags = self.take_char_while(char::is_alphabetic)?;
+                                    self.push_token(TokenData::RegularExpressionLiteral(
+                                        body, flags,
+                                    ));
+                                } else {
+                                    // failed to parse regex, restore original buffer position and
+                                    // parse either div or assigndiv
+                                    self.buffer = original_buffer;
+                                    if self.next_is('=') {
+                                        self.push_token(TokenData::Punctuator(
+                                            Punctuator::AssignDiv,
+                                        ));
+                                    } else {
+                                        self.push_token(TokenData::Punctuator(Punctuator::Div));
+                                    }
+                                }
+                            }
+                        }
                     } else {
-                        return Err(LexerError::new("Expecting Token /,*,="));
+                        return Err(LexerError::new("Expecting Token /,*,= or regex"));
                     }
                 }
                 '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul, {
@@ -893,5 +940,25 @@ mod tests {
         lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Dot));
+    }
+
+    #[test]
+    fn test_regex_literal() {
+        let mut lexer = Lexer::new("/(?:)/");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(
+            lexer.tokens[0].data,
+            TokenData::RegularExpressionLiteral("(?:)".to_string(), "".to_string())
+        );
+    }
+
+    #[test]
+    fn test_regex_literal_flags() {
+        let mut lexer = Lexer::new(r"/\/[^\/]*\/*/gmi");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(
+            lexer.tokens[0].data,
+            TokenData::RegularExpressionLiteral("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
+        );
     }
 }

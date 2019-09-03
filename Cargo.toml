@@ -19,6 +19,7 @@ gc_derive = "0.3.2"
 serde_json = "1.0.40"
 rand = "0.7.0"
 chrono = "0.4.7"
+regex = "^1.2"
 
 # Optional Dependencies
 wasm-bindgen = { version = "0.2.47", optional = true }

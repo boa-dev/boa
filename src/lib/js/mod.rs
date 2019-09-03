@@ -12,6 +12,8 @@ pub mod json;
 pub mod math;
 /// The global `Object` object
 pub mod object;
+/// The global 'RegExp' object
+pub mod regexp;
 /// The global `String` object
 pub mod string;
 /// Javascript values, utility methods and conversion between Javascript values and Rust values

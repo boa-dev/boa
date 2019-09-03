@@ -6,8 +6,6 @@ use std::fmt::{Display, Formatter, Result};
 pub enum Const {
     /// A UTF-8 string, such as `"Hello, world"`
     String(String),
-    // A regular expression, such as `/where('s| is) [wW]ally/`
-    RegExp(String, bool, bool),
     // A 64-bit floating-point number, such as `3.1415`
     Num(f64),
     // A 32-bit integer, such as `42`
@@ -24,7 +22,6 @@ impl Display for Const {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
             Const::String(ref st) => write!(f, "\"{}\"", st),
-            Const::RegExp(ref reg, _, _) => write!(f, "~/{}/", reg),
             Const::Num(num) => write!(f, "{}", num),
             Const::Int(num) => write!(f, "{}", num),
             Const::Bool(v) => write!(f, "{}", v),

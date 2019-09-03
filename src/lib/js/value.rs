@@ -1,12 +1,13 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
-    object::{Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+    object::{InternalState, InternalStateCell, Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
     property::Property,
 };
 use gc::{Gc, GcCell};
 use gc_derive::{Finalize, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
+    any::Any,
     f64::NAN,
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Not, Rem, Shl, Shr, Sub},
@@ -302,6 +303,75 @@ impl ValueData {
         }
     }
 
+    /// Check whether an object has an internal state set.
+    pub fn has_internal_state(&self) -> bool {
+        if let ValueData::Object(ref obj) = *self {
+            obj.borrow().state.is_some()
+        } else {
+            false
+        }
+    }
+
+    /// Get the internal state of an object.
+    pub fn get_internal_state(&self) -> Option<InternalStateCell> {
+        if let ValueData::Object(ref obj) = *self {
+            obj.borrow()
+                .state
+                .as_ref()
+                .map(|state| state.deref().clone())
+        } else {
+            None
+        }
+    }
+
+    /// Run a function with a reference to the internal state.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
+    /// have the concrete type `S`.
+    pub fn with_internal_state_ref<S: Any + InternalState, R, F: FnOnce(&S) -> R>(
+        &self,
+        f: F,
+    ) -> R {
+        if let ValueData::Object(ref obj) = *self {
+            let o = obj.borrow();
+            let state = o
+                .state
+                .as_ref()
+                .expect("no state")
+                .downcast_ref()
+                .expect("wrong state type");
+            f(state)
+        } else {
+            panic!("not an object");
+        }
+    }
+
+    /// Run a function with a mutable reference to the internal state.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
+    /// have the concrete type `S`.
+    pub fn with_internal_state_mut<S: Any + InternalState, R, F: FnOnce(&mut S) -> R>(
+        &self,
+        f: F,
+    ) -> R {
+        if let ValueData::Object(ref obj) = *self {
+            let mut o = obj.borrow_mut();
+            let state = o
+                .state
+                .as_mut()
+                .expect("no state")
+                .downcast_mut()
+                .expect("wrong state type");
+            f(state)
+        } else {
+            panic!("not an object");
+        }
+    }
+
     /// Check to see if the Value has the field, mainly used by environment records
     pub fn has_field(&self, field: &str) -> bool {
         self.get_prop(field).is_some()
@@ -384,6 +454,15 @@ impl ValueData {
     /// Set the property in the value
     pub fn set_prop_slice<'t>(&self, field: &'t str, prop: Property) -> Property {
         self.set_prop(field.to_string(), prop)
+    }
+
+    /// Set internal state of an Object. Discards the previous state if it was set.
+    pub fn set_internal_state<T: Any + InternalState>(&self, state: T) {
+        if let ValueData::Object(ref obj) = *self {
+            obj.borrow_mut()
+                .state
+                .replace(Box::new(InternalStateCell::new(state)));
+        }
     }
 
     /// Convert from a JSON value to a JS value
@@ -607,6 +686,18 @@ pub trait FromValue {
     fn from_value(value: Value) -> Result<Self, &'static str>
     where
         Self: Sized;
+}
+
+impl ToValue for Value {
+    fn to_value(&self) -> Value {
+        self.clone()
+    }
+}
+
+impl FromValue for Value {
+    fn from_value(value: Value) -> Result<Self, &'static str> {
+        Ok(value)
+    }
 }
 
 impl ToValue for String {

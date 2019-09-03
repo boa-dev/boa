@@ -5,7 +5,7 @@ use crate::{
         function::{Function, RegularFunction},
         json, math, object,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
-        string,
+        regexp, string,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     syntax::ast::{
@@ -58,7 +58,6 @@ impl Executor for Interpreter {
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
             ExprDef::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
             ExprDef::Const(Const::Bool(val)) => Ok(to_value(val)),
-            ExprDef::Const(Const::RegExp(_, _, _)) => Ok(to_value(None::<()>)),
             ExprDef::Block(ref es) => {
                 let mut obj = to_value(None::<()>);
                 for e in es.iter() {
@@ -390,6 +389,7 @@ impl InterpreterBuilder {
         array::init(&global);
         function::init(&global);
         json::init(&global);
+        regexp::init(&global);
         string::init(&global);
 
         Self { global }
