@@ -5,20 +5,22 @@ use gc_derive::{Finalize, Trace};
 /// A Javascript Property AKA The Property Descriptor   
 /// [[SPEC] - The Property Descriptor Specification Type](https://tc39.github.io/ecma262/#sec-property-descriptor-specification-type)   
 /// [[SPEC] - Default Attribute Values](https://tc39.github.io/ecma262/#table-4)
+/// 
+/// Any field in a JavaScript Property may be present or absent.
 #[derive(Trace, Finalize, Clone, Debug)]
 pub struct Property {
     /// If the type of this can be changed and this can be deleted
-    pub configurable: bool,
+    pub configurable: Option<bool>,
     /// If the property shows up in enumeration of the object
-    pub enumerable: bool,
+    pub enumerable: Option<bool>,
     /// If this property can be changed with an assignment
-    pub writable: bool,
+    pub writable: Option<bool>,
     /// The value associated with the property
-    pub value: Value,
+    pub value: Option<Value>,
     /// The function serving as getter
-    pub get: Value,
+    pub get: Option<Value>,
     /// The function serving as setter
-    pub set: Value,
+    pub set: Option<Value>,
 }
 
 impl Property {
@@ -27,16 +29,80 @@ impl Property {
         value.is_string() // || value.is_symbol() // Uncomment this when we are handeling symbols.
     }
 
+    /// Make a new empty Property
+    pub fn default() -> Self {
+        Self {
+            configurable: None,
+            enumerable: None,
+            writable: None,
+            value: None,
+            get: None,
+            set: None
+        }
+    }
+
+
     /// Make a new property with the given value
     pub fn new(value: Value) -> Self {
         Self {
-            configurable: false,
-            enumerable: false,
-            writable: false,
-            value,
-            get: Gc::new(ValueData::Undefined),
-            set: Gc::new(ValueData::Undefined),
+            configurable: Some(false),
+            enumerable: Some(false),
+            writable: Some(false),
+            value: Some(value),
+            get: Some(Gc::new(ValueData::Undefined)),
+            set: Some(Gc::new(ValueData::Undefined))
         }
+    }
+
+    /// Set configurable
+    pub fn configurable(mut self, configurable: bool) -> Self {
+        self.configurable = Some(configurable);
+        self
+    }
+
+    /// Set enumerable
+    pub fn enumerable(mut self, enumerable: bool) -> Self {
+        self.enumerable = Some(enumerable);
+        self
+    }
+
+    /// Set writable
+    pub fn writable(mut self, writable: bool) -> Self {
+        self.writable = Some(writable);
+        self
+    }
+
+    /// Set value
+    pub fn value(mut self, value: Value) -> Self {
+        self.value = Some(value);
+        self
+    }
+
+    /// Set get
+    pub fn get(mut self, get: Value) -> Self {
+        self.get = Some(get);
+        self
+    }
+
+    /// Set set
+    pub fn set(mut self, set: Value) -> Self {
+        self.set = Some(set);
+        self
+    }
+
+    // https://tc39.es/ecma262/#sec-isaccessordescriptor
+    pub fn is_accessor_descriptor(&self) -> bool {
+        self.get.is_some() && self.set.is_some()
+    }
+
+    // https://tc39.es/ecma262/#sec-isdatadescriptor
+    pub fn is_data_descriptor(&self) -> bool {
+        self.value.is_some() && self.writable.is_some()
+    }
+
+    // https://tc39.es/ecma262/#sec-isgenericdescriptor
+    pub fn is_generic_descriptor(&self) -> bool {
+        !self.is_accessor_descriptor() && !self.is_data_descriptor()
     }
 }
 
@@ -46,22 +112,39 @@ impl ToValue for Property {
         prop.set_field_slice("configurable", to_value(self.configurable));
         prop.set_field_slice("enumerable", to_value(self.enumerable));
         prop.set_field_slice("writable", to_value(self.writable));
-        prop.set_field_slice("value", self.value.clone());
-        prop.set_field_slice("get", self.get.clone());
-        prop.set_field_slice("set", self.set.clone());
+        prop.set_field_slice("value", to_value(self.value.clone()));
+        prop.set_field_slice("get", to_value(self.get.clone()));
+        prop.set_field_slice("set", to_value(self.set.clone()));
         prop
     }
 }
 
 impl FromValue for Property {
+    /// Attempt to fetch values "configurable", "enumerable", "writable" from the value,
+    /// if they're not there default to false
     fn from_value(v: Value) -> Result<Self, &'static str> {
         Ok(Self {
-            configurable: from_value(v.get_field_slice("configurable")).unwrap(),
-            enumerable: from_value(v.get_field_slice("enumerable")).unwrap(),
-            writable: from_value(v.get_field_slice("writable")).unwrap(),
-            value: v.get_field_slice("value"),
-            get: v.get_field_slice("get"),
-            set: v.get_field_slice("set"),
+            configurable: {
+                match from_value::<bool>(v.get_field_slice("configurable")) {
+                    Ok(v) => Some(v),
+                    Err(_) => Some(false),
+                }
+            },
+            enumerable: {
+                match from_value::<bool>(v.get_field_slice("enumerable")) {
+                    Ok(v) => Some(v),
+                    Err(_) => Some(false),
+                }
+            },
+            writable: {
+                match from_value(v.get_field_slice("writable")) {
+                    Ok(v) => Some(v),
+                    Err(_) => Some(false),
+                }
+            },
+            value: Some(v.get_field_slice("value")),
+            get: Some(v.get_field_slice("get")),
+            set: Some(v.get_field_slice("set")),
         })
     }
 }

@@ -180,34 +180,64 @@ impl Object {
     }
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
-    /// So instead we can return an Option with a property or None
-    pub fn get_own_property(&self, prop: &Value) -> Option<Property> {
+    pub fn get_own_property(&self, prop: &Value) -> Property {
         debug_assert!(Property::is_property_key(prop));
         match self.properties.get(&prop.to_string()) {
-            None => None,
-            Some(ref v) => Some((*v).clone()),
+            // If O does not have an own property with key P, return undefined.
+            // In this case we return a new empty Property
+            None => Property::default(),
+            Some(ref v) => {
+                let mut d = Property::default();
+                if v.is_data_descriptor() {
+                    d.value = v.value.clone();
+                    d.writable = v.writable;
+                } else {
+                    debug_assert!(v.is_accessor_descriptor());
+                    d.get = v.get.clone();
+                    d.set = v.set.clone();
+                }
+                d.enumerable = v.enumerable;
+                d.configurable = v.configurable;
+                d
+            }
         }
     }
 
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
     pub fn has_property(&self, val: &Value) -> bool {
         debug_assert!(Property::is_property_key(val));
-        match self.get_own_property(val) {
-            Some(_) => true,
-            None => {
-                let parent: Value = self.get_prototype_of();
-                if !parent.is_null() {
-                    // the parent value variant should be an object
-                    // In the unlikely event it isn't return false
-                    return match *parent {
-                        ValueData::Object(ref obj) => obj.borrow().has_property(val),
-                        _ => false,
-                    };
-                }
-                false
+        let prop = self.get_own_property(val);
+        if prop.value.is_none() {
+            let parent: Value = self.get_prototype_of();
+            if !parent.is_null() {
+                // the parent value variant should be an object
+                // In the unlikely event it isn't return false
+                return match *parent {
+                    ValueData::Object(ref obj) => obj.borrow().has_property(val),
+                    _ => false,
+                };
             }
+            return false;
         }
+
+        true
     }
+
+    // pub fn define_own_property(&self, property_key: String, property_descriptor: Property) -> bool {
+    //     let current = self.get_own_property(&to_value(property_key));
+    //     let extensible = self.is_extensible();
+
+    //     // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
+    //     if current.is_undefined() {
+    //         if !extensible {
+    //             return false;
+    //         }
+
+    //         if current.is_generic_descriptor() || current.is_data_descriptor() {
+
+    //         }
+    //     }
+    // }
 }
 
 #[derive(Trace, Finalize, Clone, Debug)]

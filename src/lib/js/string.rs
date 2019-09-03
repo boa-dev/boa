@@ -525,14 +525,12 @@ pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue
 pub fn _create(global: &Value) -> Value {
     let string = to_value(make_string as NativeFunctionData);
     let proto = ValueData::new_obj(Some(global));
-    let prop = Property {
-        configurable: false,
-        enumerable: false,
-        writable: false,
-        value: Gc::new(ValueData::Undefined),
-        get: to_value(get_string_length as NativeFunctionData),
-        set: Gc::new(ValueData::Undefined),
-    };
+    let prop = Property::default()
+        .configurable(false)
+        .enumerable(false)
+        .writable(false)
+        .get(to_value(get_string_length as NativeFunctionData));
+
     proto.set_prop_slice("length", prop);
     proto.set_field_slice("charAt", to_value(char_at as NativeFunctionData));
     proto.set_field_slice("charCodeAt", to_value(char_code_at as NativeFunctionData));

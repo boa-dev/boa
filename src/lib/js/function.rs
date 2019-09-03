@@ -73,7 +73,7 @@ impl Debug for NativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{{")?;
         for (key, val) in self.object.properties.iter() {
-            write!(f, "{}: {}", key, val.value.clone())?;
+            write!(f, "{}: {}", key, val.value.as_ref().unwrap_or(&Gc::new(ValueData::Undefined)).clone())?;
         }
         write!(f, "}}")
     }

@@ -257,10 +257,10 @@ impl ValueData {
         if let Some(mut obj_data) = obj {
             // Use value, or walk up the prototype chain
             if let Some(ref mut prop) = obj_data.properties.get_mut(field) {
-                prop.value = value.unwrap_or_else(|| prop.value.clone());
-                prop.enumerable = enumerable.unwrap_or(prop.enumerable);
-                prop.writable = writable.unwrap_or(prop.writable);
-                prop.configurable = configurable.unwrap_or(prop.configurable);
+                prop.value = value;
+                prop.enumerable = enumerable;
+                prop.writable = writable;
+                prop.configurable = configurable;
             }
         }
     }
@@ -284,24 +284,23 @@ impl ValueData {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
+    /// TODO: this function should use the get Value if its set
     pub fn get_field(&self, field: &str) -> Value {
         match self.get_prop(field) {
             Some(prop) => {
                 // If the Property has [[Get]] set to a function, we should run that and return the Value
-                let prop_getter = match *prop.get {
-                    ValueData::Function(ref v) => match *v.borrow() {
-                        Function::NativeFunc(ref _ntv) => {
-                            None // this never worked properly anyway
-                        }
-                        _ => None,
-                    },
-                    _ => None,
+                let prop_getter = match prop.get {
+                    Some(_) => None,
+                    None => None
                 };
 
                 // If the getter is populated, use that. If not use [[Value]] instead
                 match prop_getter {
                     Some(val) => val,
-                    None => prop.value.clone(),
+                    None => {
+                        let val = prop.value.as_ref().unwrap();
+                        val.clone()
+                    }
                 }
             }
             None => Gc::new(ValueData::Undefined),
@@ -557,7 +556,7 @@ impl Display for ValueData {
                 // Print public properties
                 if let Some((last_key, _)) = v.borrow().properties.iter().last() {
                     for (key, val) in v.borrow().properties.iter() {
-                        write!(f, "{}: {}", key, val.value.clone())?;
+                        write!(f, "{}: {}", key, val.value.as_ref().unwrap_or(&Gc::new(ValueData::Undefined)).clone())?;
                         if key != last_key {
                             write!(f, ", ")?;
                         }

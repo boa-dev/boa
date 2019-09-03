@@ -181,14 +181,11 @@ fn get_unicode(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 }
 
 fn _make_prop(getter: NativeFunctionData) -> Property {
-    Property {
-        writable: false,
-        enumerable: false,
-        configurable: true,
-        value: Gc::new(ValueData::Undefined),
-        get: to_value(getter),
-        set: Gc::new(ValueData::Undefined),
-    }
+    Property::default()
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .get(to_value(getter))
 }
 
 /// Search for a match between this regex and a specified string
