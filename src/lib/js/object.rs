@@ -229,23 +229,25 @@ pub fn make_object(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 
 /// Get the prototype of an object
 pub fn get_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let obj = args.get(0).unwrap();
+    let obj = args.get(0).expect("Cannot get object");
     Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
 }
 
 /// Set the prototype of an object
 pub fn set_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let obj = args.get(0).unwrap().clone();
-    let proto = args.get(1).unwrap().clone();
+    let obj = args.get(0).expect("Cannot get object").clone();
+    let proto = args.get(1).expect("Cannot get object").clone();
     obj.set_internal_slot(INSTANCE_PROTOTYPE, proto);
     Ok(obj)
 }
 
 /// Define a property in an object
 pub fn define_prop(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let obj = args.get(0).unwrap();
-    let prop = from_value::<String>(args.get(1).unwrap().clone()).unwrap();
-    let desc = from_value::<Property>(args.get(2).unwrap().clone()).unwrap();
+    let obj = args.get(0).expect("Cannot get object");
+    let prop = from_value::<String>(args.get(1).expect("Cannot get object").clone())
+        .expect("Cannot get object");
+    let desc = from_value::<Property>(args.get(2).expect("Cannot get object").clone())
+        .expect("Cannot get object");
     obj.set_prop(prop, desc);
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -260,10 +262,10 @@ pub fn has_own_prop(this: &Value, args: &[Value], _: &mut Interpreter) -> Result
     let prop = if args.is_empty() {
         None
     } else {
-        from_value::<String>(args.get(0).unwrap().clone()).ok()
+        from_value::<String>(args.get(0).expect("Cannot get object").clone()).ok()
     };
     Ok(to_value(
-        prop.is_some() && this.get_prop(&prop.unwrap()).is_some(),
+        prop.is_some() && this.get_prop(&prop.expect("Cannot get object")).is_some(),
     ))
 }
 
