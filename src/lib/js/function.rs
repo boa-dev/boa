@@ -46,7 +46,7 @@ impl RegularFunction {
         let mut object = Object::default();
         object.properties.insert(
             "arguments".to_string(),
-            Property::new(Gc::new(ValueData::Integer(args.len() as i32))),
+            Property::default().value(Gc::new(ValueData::Integer(args.len() as i32))),
         );
         Self { object, expr, args }
     }
@@ -73,7 +73,7 @@ impl Debug for NativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{{")?;
         for (key, val) in self.object.properties.iter() {
-            write!(f, "{}: {}", key, val.value.clone())?;
+            write!(f, "{}: {}", key, val.value.as_ref().unwrap_or(&Gc::new(ValueData::Undefined)).clone())?;
         }
         write!(f, "}}")
     }

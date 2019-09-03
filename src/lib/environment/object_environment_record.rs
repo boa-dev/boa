@@ -42,11 +42,12 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;
-        let uninitialized = Gc::new(ValueData::Undefined);
-        let mut prop = Property::new(uninitialized);
-        prop.enumerable = true;
-        prop.writable = true;
-        prop.configurable = deletion;
+        let prop = Property::default()
+            .value(Gc::new(ValueData::Undefined))
+            .writable(true)
+            .enumerable(true)
+            .configurable(deletion);
+
         bindings.set_prop(name, prop);
     }
 

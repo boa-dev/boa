@@ -20,6 +20,10 @@ pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter
 pub type Value = Gc<ValueData>;
 
+pub fn undefined() -> Value {
+    Gc::new(ValueData::Undefined)
+}
+
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum ValueData {
@@ -44,17 +48,18 @@ pub enum ValueData {
 impl ValueData {
     /// Returns a new empty object
     pub fn new_obj(global: Option<&Value>) -> Value {
-        let mut obj = Object::default();
+        match global {
+            Some(glob) => {
+                let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
 
-        if global.is_some() {
-            let obj_proto = global
-                .expect("Expected global object in making-new-object")
-                .get_field_slice("Object")
-                .get_field_slice(PROTOTYPE);
-            obj.internal_slots
-                .insert(INSTANCE_PROTOTYPE.to_string(), obj_proto);
+                let obj = Object::create(obj_proto);
+                Gc::new(ValueData::Object(GcCell::new(obj)))
+            }
+            None => {
+                let obj = Object::default();
+                Gc::new(ValueData::Object(GcCell::new(obj)))
+            }
         }
-        Gc::new(ValueData::Object(GcCell::new(obj)))
     }
 
     /// Similar to `new_obj`, but you can pass a prototype to create from,
@@ -200,7 +205,7 @@ impl ValueData {
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
             if let ValueData::String(ref s) = *self {
-                return Some(Property::new(to_value(s.len() as i32)));
+                return Some(Property::default().value(to_value(s.len() as i32)));
             }
         }
 
@@ -252,10 +257,10 @@ impl ValueData {
         if let Some(mut obj_data) = obj {
             // Use value, or walk up the prototype chain
             if let Some(ref mut prop) = obj_data.properties.get_mut(field) {
-                prop.value = value.unwrap_or_else(|| prop.value.clone());
-                prop.enumerable = enumerable.unwrap_or(prop.enumerable);
-                prop.writable = writable.unwrap_or(prop.writable);
-                prop.configurable = configurable.unwrap_or(prop.configurable);
+                prop.value = value;
+                prop.enumerable = enumerable;
+                prop.writable = writable;
+                prop.configurable = configurable;
             }
         }
     }
@@ -279,24 +284,23 @@ impl ValueData {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
+    /// TODO: this function should use the get Value if its set
     pub fn get_field(&self, field: &str) -> Value {
         match self.get_prop(field) {
             Some(prop) => {
                 // If the Property has [[Get]] set to a function, we should run that and return the Value
-                let prop_getter = match *prop.get {
-                    ValueData::Function(ref v) => match *v.borrow() {
-                        Function::NativeFunc(ref _ntv) => {
-                            None // this never worked properly anyway
-                        }
-                        _ => None,
-                    },
-                    _ => None,
+                let prop_getter = match prop.get {
+                    Some(_) => None,
+                    None => None
                 };
 
                 // If the getter is populated, use that. If not use [[Value]] instead
                 match prop_getter {
                     Some(val) => val,
-                    None => prop.value.clone(),
+                    None => {
+                        let val = prop.value.as_ref().unwrap();
+                        val.clone()
+                    }
                 }
             }
             None => Gc::new(ValueData::Undefined),
@@ -388,18 +392,18 @@ impl ValueData {
             ValueData::Object(ref obj) => {
                 obj.borrow_mut()
                     .properties
-                    .insert(field, Property::new(val.clone()));
+                    .insert(field, Property::default().value(val.clone()));
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::new(val.clone())),
+                        .insert(field, Property::default().value(val.clone())),
                     Function::RegularFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::new(val.clone())),
+                        .insert(field, Property::default().value(val.clone())),
                 };
             }
             _ => (),
@@ -476,11 +480,11 @@ impl ValueData {
                 for (idx, json) in vs.iter().enumerate() {
                     new_obj
                         .properties
-                        .insert(idx.to_string(), Property::new(to_value(json.clone())));
+                        .insert(idx.to_string(), Property::default().value(to_value(json.clone())));
                 }
                 new_obj.properties.insert(
                     "length".to_string(),
-                    Property::new(to_value(vs.len() as i32)),
+                    Property::default().value(to_value(vs.len() as i32)),
                 );
                 ValueData::Object(GcCell::new(new_obj))
             }
@@ -489,7 +493,7 @@ impl ValueData {
                 for (key, json) in obj.iter() {
                     new_obj
                         .properties
-                        .insert(key.clone(), Property::new(to_value(json.clone())));
+                        .insert(key.clone(), Property::default().value(to_value(json.clone())));
                 }
 
                 ValueData::Object(GcCell::new(new_obj))
@@ -530,6 +534,12 @@ impl ValueData {
     }
 }
 
+impl Default for ValueData {
+    fn default() -> Self {
+        ValueData::Undefined
+    }
+}
+
 impl Display for ValueData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -552,7 +562,7 @@ impl Display for ValueData {
                 // Print public properties
                 if let Some((last_key, _)) = v.borrow().properties.iter().last() {
                     for (key, val) in v.borrow().properties.iter() {
-                        write!(f, "{}: {}", key, val.value.clone())?;
+                        write!(f, "{}: {}", key, val.value.as_ref().unwrap_or(&Gc::new(ValueData::Undefined)).clone())?;
                         if key != last_key {
                             write!(f, ", ")?;
                         }
@@ -778,7 +788,7 @@ impl<'s, T: ToValue> ToValue for &'s [T] {
         let mut arr = Object::default();
         for (i, item) in self.iter().enumerate() {
             arr.properties
-                .insert(i.to_string(), Property::new(item.to_value()));
+                .insert(i.to_string(), Property::default().value(item.to_value()));
         }
         to_value(arr)
     }
@@ -788,7 +798,7 @@ impl<T: ToValue> ToValue for Vec<T> {
         let mut arr = Object::default();
         for (i, item) in self.iter().enumerate() {
             arr.properties
-                .insert(i.to_string(), Property::new(item.to_value()));
+                .insert(i.to_string(), Property::default().value(item.to_value()));
         }
         to_value(arr)
     }
@@ -892,6 +902,44 @@ pub fn from_value<A: FromValue>(v: Value) -> Result<A, &'static str> {
 /// A utility function that just calls `ToValue::to_value`
 pub fn to_value<A: ToValue>(v: A) -> Value {
     v.to_value()
+}
+
+/// The internal comparison abstract operation SameValue(x, y),
+/// where x and y are ECMAScript language values, produces true or false.
+/// Such a comparison is performed as follows:
+///
+/// https://tc39.es/ecma262/#sec-samevalue
+pub fn same_value(x: &Value, y: &Value) -> bool {
+    if x.get_type() != y.get_type() {
+        return false;
+    }
+
+    if x.get_type() == "number" {
+        let native_x: f64 = from_value(x.clone()).expect("failed to get value");
+        let native_y: f64 = from_value(y.clone()).expect("failed to get value");
+        return native_x.abs() - native_y.abs() == 0.0;
+    }
+
+    same_value_non_number(x, y)
+}
+
+pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
+    debug_assert!(x.get_type() == y.get_type());
+    match x.get_type() {
+        "undefined" => true,
+        "null" => true,
+        "string" => {
+            if x.to_string() == y.to_string() {
+                return true;
+            }
+            false
+        }
+        "boolean" => {
+            from_value::<bool>(x.clone()).expect("failed to get value")
+                == from_value::<bool>(y.clone()).expect("failed to get value")
+        }
+        _ => false,
+    }
 }
 
 #[cfg(test)]

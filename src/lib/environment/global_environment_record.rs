@@ -46,7 +46,7 @@ impl GlobalEnvironmentRecord {
         let existing_prop = global_object.get_prop(name);
         match existing_prop {
             Some(prop) => {
-                if prop.value.is_undefined() || prop.configurable {
+                if prop.value.is_none() || prop.configurable.unwrap_or(false) {
                     return false;
                 }
                 true
@@ -75,7 +75,7 @@ impl GlobalEnvironmentRecord {
         let global_object = &mut self.object_record.bindings;
         let existing_prop = global_object.get_prop(&name);
         if let Some(prop) = existing_prop {
-            if prop.value.is_undefined() || prop.configurable {
+            if prop.value.is_none() || prop.configurable.unwrap_or(false) {
                 global_object.update_prop(
                     name,
                     Some(value),
