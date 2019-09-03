@@ -359,7 +359,7 @@ impl Parser {
             }
             TokenData::Identifier(s) => mk!(self, ExprDef::Local(s)),
             TokenData::Keyword(keyword) => self.parse_struct(keyword)?,
-            TokenData::RegularExpression(body, flags) => Expr::new(ExprDef::Construct(
+            TokenData::RegularExpressionLiteral(body, flags) => Expr::new(ExprDef::Construct(
                 Box::new(Expr::new(ExprDef::Local("RegExp".to_string()))),
                 vec![
                     Expr::new(ExprDef::Const(Const::String(body))),

@@ -59,7 +59,7 @@ pub enum TokenData {
     /// A string literal
     StringLiteral(String),
     /// A regular expression, consisting of body and flags
-    RegularExpression(String, String),
+    RegularExpressionLiteral(String, String),
     /// A comment
     Comment(String),
 }
@@ -75,7 +75,9 @@ impl Display for TokenData {
             TokenData::NumericLiteral(ref num) => write!(f, "{}", num),
             TokenData::Punctuator(ref punc) => write!(f, "{}", punc),
             TokenData::StringLiteral(ref lit) => write!(f, "{}", lit),
-            TokenData::RegularExpression(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
+            TokenData::RegularExpressionLiteral(ref body, ref flags) => {
+                write!(f, "/{}/{}", body, flags)
+            }
             TokenData::Comment(ref comm) => write!(f, "/*{}*/", comm),
         }
     }

@@ -502,7 +502,9 @@ impl<'a> Lexer<'a> {
                                 if regex {
                                     // body was parsed, now look for flags
                                     let flags = self.take_char_while(char::is_alphabetic)?;
-                                    self.push_token(TokenData::RegularExpression(body, flags));
+                                    self.push_token(TokenData::RegularExpressionLiteral(
+                                        body, flags,
+                                    ));
                                 } else {
                                     // failed to parse regex, restore original buffer position and
                                     // parse either div or assigndiv
@@ -946,7 +948,7 @@ mod tests {
         lexer.lex().expect("failed to lex");
         assert_eq!(
             lexer.tokens[0].data,
-            TokenData::RegularExpression("(?:)".to_string(), "".to_string())
+            TokenData::RegularExpressionLiteral("(?:)".to_string(), "".to_string())
         );
     }
 
@@ -956,7 +958,7 @@ mod tests {
         lexer.lex().expect("failed to lex");
         assert_eq!(
             lexer.tokens[0].data,
-            TokenData::RegularExpression("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
+            TokenData::RegularExpressionLiteral("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
         );
     }
 }
