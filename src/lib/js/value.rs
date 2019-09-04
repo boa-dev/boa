@@ -291,7 +291,7 @@ impl ValueData {
                 // If the Property has [[Get]] set to a function, we should run that and return the Value
                 let prop_getter = match prop.get {
                     Some(_) => None,
-                    None => None
+                    None => None,
                 };
 
                 // If the getter is populated, use that. If not use [[Value]] instead
@@ -478,9 +478,10 @@ impl ValueData {
             JSONValue::Array(vs) => {
                 let mut new_obj = Object::default();
                 for (idx, json) in vs.iter().enumerate() {
-                    new_obj
-                        .properties
-                        .insert(idx.to_string(), Property::default().value(to_value(json.clone())));
+                    new_obj.properties.insert(
+                        idx.to_string(),
+                        Property::default().value(to_value(json.clone())),
+                    );
                 }
                 new_obj.properties.insert(
                     "length".to_string(),
@@ -491,9 +492,10 @@ impl ValueData {
             JSONValue::Object(obj) => {
                 let mut new_obj = Object::default();
                 for (key, json) in obj.iter() {
-                    new_obj
-                        .properties
-                        .insert(key.clone(), Property::default().value(to_value(json.clone())));
+                    new_obj.properties.insert(
+                        key.clone(),
+                        Property::default().value(to_value(json.clone())),
+                    );
                 }
 
                 ValueData::Object(GcCell::new(new_obj))
@@ -562,7 +564,15 @@ impl Display for ValueData {
                 // Print public properties
                 if let Some((last_key, _)) = v.borrow().properties.iter().last() {
                     for (key, val) in v.borrow().properties.iter() {
-                        write!(f, "{}: {}", key, val.value.as_ref().unwrap_or(&Gc::new(ValueData::Undefined)).clone())?;
+                        write!(
+                            f,
+                            "{}: {}",
+                            key,
+                            val.value
+                                .as_ref()
+                                .unwrap_or(&Gc::new(ValueData::Undefined))
+                                .clone()
+                        )?;
                         if key != last_key {
                             write!(f, ", ")?;
                         }

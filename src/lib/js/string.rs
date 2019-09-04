@@ -525,8 +525,7 @@ pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue
 pub fn _create(global: &Value) -> Value {
     let string = to_value(make_string as NativeFunctionData);
     let proto = ValueData::new_obj(Some(global));
-    let prop = Property::default()
-        .get(to_value(get_string_length as NativeFunctionData));
+    let prop = Property::default().get(to_value(get_string_length as NativeFunctionData));
 
     proto.set_prop_slice("length", prop);
     proto.set_field_slice("charAt", to_value(char_at as NativeFunctionData));

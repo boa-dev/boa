@@ -255,8 +255,7 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
 pub fn _create(global: &Value) -> Value {
     let array = to_value(make_array as NativeFunctionData);
     let proto = ValueData::new_obj(Some(global));
-    let length = Property::default()
-        .get(to_value(get_array_length as NativeFunctionData));
+    let length = Property::default().get(to_value(get_array_length as NativeFunctionData));
 
     proto.set_prop_slice("length", length);
     let concat_func = to_value(concat as NativeFunctionData);

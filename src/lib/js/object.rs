@@ -269,8 +269,8 @@ impl Object {
 
         // 5
         if desc.is_generic_descriptor() {
-        
-        // 6
+
+            // 6
         } else if current.is_data_descriptor() != desc.is_data_descriptor() {
             // a
             if !current.configurable.unwrap() {
@@ -281,28 +281,33 @@ impl Object {
                 // Convert to accessor
                 current.value = None;
                 current.writable = None;
-
-            } else { // c
+            } else {
+                // c
                 // convert to data
                 current.get = None;
                 current.set = None;
             }
             self.properties.insert(property_key, current);
-        // 7 
+        // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
             // a
-            if !current.configurable.unwrap()&& !current.writable.unwrap() {
+            if !current.configurable.unwrap() && !current.writable.unwrap() {
                 if desc.writable.is_some() && desc.writable.unwrap() {
                     return false;
                 }
-                
-                if desc.value.is_some() && !same_value(&desc.value.clone().unwrap(), &current.value.clone().unwrap()) {
+
+                if desc.value.is_some()
+                    && !same_value(
+                        &desc.value.clone().unwrap(),
+                        &current.value.clone().unwrap(),
+                    )
+                {
                     return false;
                 }
 
                 return true;
             }
-            // 8
+        // 8
         } else {
 
         }

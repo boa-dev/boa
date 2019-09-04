@@ -31,9 +31,17 @@ fn log_string_from(x: Value) -> String {
                 }
                 ObjectKind::Array => {
                     write!(s, "[").unwrap();
-                    let len: i32 =
-                        from_value(v.borrow().properties.get("length").unwrap().value.clone().unwrap().clone())
-                            .unwrap();
+                    let len: i32 = from_value(
+                        v.borrow()
+                            .properties
+                            .get("length")
+                            .unwrap()
+                            .value
+                            .clone()
+                            .unwrap()
+                            .clone(),
+                    )
+                    .unwrap();
                     for i in 0..len {
                         // Introduce recursive call to stringify any objects
                         // which are part of the Array
@@ -64,7 +72,13 @@ fn log_string_from(x: Value) -> String {
                             }
                             // Introduce recursive call to stringify any objects
                             // which are keys of the object
-                            write!(s, "{}: {}", key, log_string_from(val.value.clone().unwrap().clone())).unwrap();
+                            write!(
+                                s,
+                                "{}: {}",
+                                key,
+                                log_string_from(val.value.clone().unwrap().clone())
+                            )
+                            .unwrap();
                             if key != last_key {
                                 write!(s, ", ").unwrap();
                             }
