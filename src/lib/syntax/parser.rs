@@ -1,7 +1,7 @@
 use crate::syntax::ast::constant::Const;
 use crate::syntax::ast::expr::{Expr, ExprDef};
 use crate::syntax::ast::keyword::Keyword;
-use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp};
+use crate::syntax::ast::op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp};
 use crate::syntax::ast::punc::Punctuator;
 use crate::syntax::ast::token::{Token, TokenData};
 use std::collections::btree_map::BTreeMap;
@@ -662,6 +662,36 @@ impl Parser {
                 let next = self.parse()?;
                 result = mk!(self, ExprDef::Assign(Box::new(expr), Box::new(next)));
             }
+            TokenData::Punctuator(Punctuator::AssignAdd) => {
+                result = self.binop(BinOp::Assign(AssignOp::Add), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignSub) => {
+                result = self.binop(BinOp::Assign(AssignOp::Sub), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignMul) => {
+                result = self.binop(BinOp::Assign(AssignOp::Mul), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignDiv) => {
+                result = self.binop(BinOp::Assign(AssignOp::Div), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignAnd) => {
+                result = self.binop(BinOp::Assign(AssignOp::And), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignOr) => {
+                result = self.binop(BinOp::Assign(AssignOp::Or), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignXor) => {
+                result = self.binop(BinOp::Assign(AssignOp::Xor), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignRightSh) => {
+                result = self.binop(BinOp::Assign(AssignOp::Shr), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignLeftSh) => {
+                result = self.binop(BinOp::Assign(AssignOp::Shl), expr)?
+            }
+            TokenData::Punctuator(Punctuator::AssignMod) => {
+                result = self.binop(BinOp::Assign(AssignOp::Mod), expr)?
+            }
             TokenData::Punctuator(Punctuator::Arrow) => {
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
@@ -1241,6 +1271,100 @@ mod tests {
                 BinOp::Bit(BitOp::Shr),
                 Expr::new(ExprDef::Local(String::from("a"))),
                 Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+
+        // Check assign ops
+        check_parser(
+            "a += b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Add),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a -= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Sub),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a *= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Mul),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a /= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Div),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a %= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Mod),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a &= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::And),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a |= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Or),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a ^= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Xor),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a <<= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Shl),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a >>= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Shr),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a %= 10 / 2",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Mod),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                create_bin_op(
+                    BinOp::Num(NumOp::Div),
+                    Expr::new(ExprDef::Const(Const::Num(10.0))),
+                    Expr::new(ExprDef::Const(Const::Num(2.0))),
+                ),
             )],
         );
     }
