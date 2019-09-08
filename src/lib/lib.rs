@@ -45,14 +45,6 @@ use crate::{
 };
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
 fn parser_expr(src: &str) -> Expr {
     let mut lexer = Lexer::new(src);
     lexer.lex().expect("lexing failed");
@@ -88,6 +80,15 @@ pub fn exec(src: &str) -> String {
     forward(&mut engine, src)
 }
 
+// WASM
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> String {
     let mut lexer = Lexer::new(&src);
@@ -113,11 +114,9 @@ pub fn evaluate(src: &str) -> String {
 
     let mut engine: Interpreter = Executor::new();
     let result = engine.run(&expr);
+    log("test2");
     match result {
         Ok(v) => v.to_string(),
-        Err(v) => {
-            log(&format!("{} {}", "asudihsiu", v.to_string()));
-            format!("{}: {}", "error", v.to_string())
-        }
+        Err(v) => format!("{}: {}", "error", v.to_string()),
     }
 }

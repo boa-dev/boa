@@ -37,16 +37,13 @@ pub fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = env::args().collect();
     let read_file;
 
-    match args.len() {
+    if args.len() == 2 {
         // One argument passed, assumed this is the test file
-        2 => {
-            read_file = &args[1];
-        }
+        read_file = &args[1];
+    } else {
         // Some other number of arguments passed: not supported
-        _ => {
-            print_usage();
-            exit(1);
-        }
+        print_usage();
+        exit(1);
     }
 
     let buffer = read_to_string(read_file)?;

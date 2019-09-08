@@ -937,7 +937,6 @@ pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
         }
         "object" => {
             let b = ValueData::new_obj(None);
-            dbg!(b == b);
             *x == *y
         }
         _ => false,
