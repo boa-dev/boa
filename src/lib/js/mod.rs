@@ -1,5 +1,7 @@
 /// The global `Array` object
 pub mod array;
+// The global `Boolean` object
+pub mod boolean;
 /// The global `console` object
 pub mod console;
 /// The global `Error` object

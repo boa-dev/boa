@@ -40,6 +40,7 @@ pub mod syntax;
 
 use crate::{
     exec::{Executor, Interpreter},
+    js::value::ResultValue,
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
 };
 use wasm_bindgen::prelude::*;
@@ -69,6 +70,16 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
         Ok(v) => v.to_string(),
         Err(v) => format!("{}: {}", "Error", v.to_string()),
     }
+}
+
+/// Execute the code using an existing Interpreter
+/// The str is consumed and the state of the Interpreter is changed
+/// Similar to `forward`, except the current value is returned instad of the string
+/// If the interpreter fails parsing an error value is returned instead (error object)
+pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
+    // Setup executor
+    let expr = parser_expr(src);
+    engine.run(&expr)
 }
 
 /// Create a clean Interpreter and execute the code

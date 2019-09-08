@@ -72,6 +72,11 @@ impl Object {
         self.internal_slots.insert(name.to_string(), val);
     }
 
+    /// Utility function to set an internal slot which is a function
+    pub fn set_internal_method(&mut self, name: &str, val: NativeFunctionData) {
+        self.internal_slots.insert(name.to_string(), to_value(val));
+    }
+
     /// Return a new Boolean object whose [[BooleanData]] internal slot is set to argument.
     fn from_boolean(argument: &Value) -> Self {
         let mut obj = Object {
@@ -123,6 +128,7 @@ impl Object {
             ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
             ValueData::Number(_) => Ok(Self::from_number(value)),
             ValueData::String(_) => Ok(Self::from_string(value)),
+            ValueData::Object(ref obj) => Ok(obj.borrow().clone()),
             _ => Err(()),
         }
     }
@@ -152,7 +158,7 @@ impl Object {
         while !done {
             if p.is_null() {
                 done = true
-            } else if same_value(&to_value(self.clone()), &p) {
+            } else if same_value(&to_value(self.clone()), &p, false) {
                 return false;
             } else {
                 p = p.get_internal_slot(PROTOTYPE);
@@ -223,6 +229,7 @@ impl Object {
         true
     }
 
+    #[allow(clippy::option_unwrap_used)]
     pub fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
         let mut current = self.get_own_property(&to_value(property_key.to_string()));
         let extensible = self.is_extensible();
@@ -287,7 +294,7 @@ impl Object {
                 current.get = None;
                 current.set = None;
             }
-            self.properties.insert(property_key, current);
+            self.properties.insert(property_key, current.clone());
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
             // a
@@ -300,6 +307,7 @@ impl Object {
                     && !same_value(
                         &desc.value.clone().unwrap(),
                         &current.value.clone().unwrap(),
+                        false,
                     )
                 {
                     return false;
@@ -309,9 +317,88 @@ impl Object {
             }
         // 8
         } else {
+            if !current.configurable.unwrap() {
+                if desc.set.is_some()
+                    && !same_value(
+                        &desc.set.clone().unwrap(),
+                        &current.set.clone().unwrap(),
+                        false,
+                    )
+                {
+                    return false;
+                }
 
+                if desc.get.is_some()
+                    && !same_value(
+                        &desc.get.clone().unwrap(),
+                        &current.get.clone().unwrap(),
+                        false,
+                    )
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
+        // 9
+        Property::assign(&mut current, &desc);
         true
+    }
+
+    // [[Delete]]
+    pub fn delete(&mut self, prop_key: &Value) -> bool {
+        debug_assert!(Property::is_property_key(prop_key));
+        let desc = self.get_own_property(prop_key);
+        if desc
+            .value
+            .clone()
+            .expect("unable to get value")
+            .is_undefined()
+        {
+            return true;
+        }
+        if desc.configurable.expect("unable to get value") {
+            self.properties.remove(&prop_key.to_string());
+            return true;
+        }
+
+        false
+    }
+
+    // [[Get]]
+    pub fn get(&self, val: &Value) -> Value {
+        debug_assert!(Property::is_property_key(val));
+        let desc = self.get_own_property(val);
+        if desc.value.clone().is_none()
+            || desc
+                .value
+                .clone()
+                .expect("Failed to get object")
+                .is_undefined()
+        {
+            // parent will either be null or an Object
+            let parent = self.get_prototype_of();
+            if parent.is_null() {
+                return Gc::new(ValueData::Undefined);
+            }
+
+            let parent_obj = Object::from(&parent).expect("Failed to get object");
+
+            return parent_obj.get(val);
+        }
+
+        if desc.is_data_descriptor() {
+            return desc.value.clone().expect("failed to extract value");
+        }
+
+        let getter = desc.get.clone();
+        if getter.is_none() || getter.expect("Failed to get object").is_undefined() {
+            return Gc::new(ValueData::Undefined);
+        }
+
+        // TODO!!!!! Call getter from here
+        Gc::new(ValueData::Undefined)
     }
 }
 

@@ -7,7 +7,7 @@ use crate::{
     exec::Interpreter,
     js::{
         function::NativeFunctionData,
-        object::{InternalState, ObjectKind, PROTOTYPE},
+        object::{InternalState, Object, ObjectKind, PROTOTYPE},
         property::Property,
         value::{from_value, to_value, FromValue, ResultValue, Value, ValueData},
     },
@@ -258,8 +258,15 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 }
 
 /// Create a new `RegExp` object
-pub fn _create(global: &Value) -> Value {
-    let regexp = to_value(make_regexp as NativeFunctionData);
+pub fn create_constructor(global: &Value) -> Value {
+    // Create constructor function
+    let mut regexp_constructor = Object::default();
+    regexp_constructor.kind = ObjectKind::Function;
+    regexp_constructor.set_internal_method("construct", make_regexp);
+    // Todo: add call function, currently call points to contructor, this is wrong
+    regexp_constructor.set_internal_method("call", make_regexp);
+
+    // Create prototype
     let proto = ValueData::new_obj(Some(global));
     proto.set_field_slice("test", to_value(test as NativeFunctionData));
     proto.set_field_slice("exec", to_value(exec as NativeFunctionData));
@@ -273,17 +280,16 @@ pub fn _create(global: &Value) -> Value {
     proto.set_prop_slice("source", _make_prop(get_source));
     proto.set_prop_slice("sticky", _make_prop(get_sticky));
     proto.set_prop_slice("unicode", _make_prop(get_unicode));
-    regexp.set_field_slice(PROTOTYPE, proto);
-    regexp
-}
 
-/// Initialise the `RegExp` object on the global object
-pub fn init(global: &Value) {
-    global.set_field_slice("RegExp", _create(global));
+    let regexp = to_value(regexp_constructor);
+    regexp.set_field_slice(PROTOTYPE, proto.clone());
+    proto.set_field_slice("constructor", regexp.clone());
+    regexp
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::exec::Executor;
     use crate::forward;
 
@@ -300,6 +306,13 @@ mod tests {
         assert_eq!(forward(&mut engine, "constructed.test('1.0')"), "true");
         assert_eq!(forward(&mut engine, "literal.test('1.0')"), "true");
         assert_eq!(forward(&mut engine, "ctor_literal.test('1.0')"), "true");
+    }
+
+    #[test]
+    fn check_regexp_constructor_is_function() {
+        let global = ValueData::new_obj(None);
+        let regexp_constructor = create_constructor(&global);
+        assert_eq!(regexp_constructor.is_function(), true);
     }
 
     // TODO: uncomment this test when property getters are supported

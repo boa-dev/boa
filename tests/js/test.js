@@ -1,1 +1,2 @@
-("Jason").charAt(2);
+let a = "hello";
+print(a);

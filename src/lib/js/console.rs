@@ -2,7 +2,6 @@ use crate::exec::Interpreter;
 use crate::js::function::NativeFunctionData;
 use crate::js::object::{ObjectKind, INSTANCE_PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
-use chrono::Local;
 use gc::Gc;
 use std::fmt::Write;
 use std::iter::FromIterator;
@@ -28,6 +27,10 @@ fn log_string_from(x: Value) -> String {
                     )
                     .expect("Cannot clone primitive value from String");
                     write!(s, "{}", str_val).unwrap();
+                }
+                ObjectKind::Boolean => {
+                    let bool_data = v.borrow().get_internal_slot("BooleanData").to_string();
+                    write!(s, "Boolean {{ {} }}", bool_data).unwrap();
                 }
                 ObjectKind::Array => {
                     write!(s, "[").unwrap();
@@ -103,11 +106,7 @@ pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let args: Vec<String> =
         FromIterator::from_iter(args.iter().map(|x| log_string_from(x.clone())));
 
-    println!(
-        "{}: {}",
-        Local::now().format("%X").to_string(),
-        args.join(" ")
-    );
+    println!("{}", args.join(" "));
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Print a javascript value to the standard error stream
@@ -116,11 +115,7 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         args.iter()
             .map(|x| from_value::<String>(x.clone()).unwrap()),
     );
-    println!(
-        "{}: {}",
-        Local::now().format("%X").to_string(),
-        args.join(" ")
-    );
+    println!("{}", args.join(" "));
     Ok(Gc::new(ValueData::Undefined))
 }
 /// Create a new `console` object

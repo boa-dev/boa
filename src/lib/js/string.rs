@@ -2,12 +2,11 @@ use crate::{
     exec::Interpreter,
     js::{
         function::NativeFunctionData,
-        object::{ObjectKind, PROTOTYPE},
+        object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
-use gc::Gc;
 use std::{
     cmp::{max, min},
     f64::NAN,
@@ -522,8 +521,17 @@ pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue
 }
 
 /// Create a new `String` object
-pub fn _create(global: &Value) -> Value {
-    let string = to_value(make_string as NativeFunctionData);
+pub fn create_constructor(global: &Value) -> Value {
+    // Create constructor function object
+    let mut string_constructor = Object::default();
+    string_constructor.kind = ObjectKind::Function;
+
+    string_constructor.set_internal_method("construct", make_string);
+    // Todo: add call internal method (should be easy)
+    // Currently call points to the constructor function, this is wrong
+    string_constructor.set_internal_method("call", make_string);
+
+    // Create prototype
     let proto = ValueData::new_obj(Some(global));
     let prop = Property::default().get(to_value(get_string_length as NativeFunctionData));
 
@@ -543,13 +551,16 @@ pub fn _create(global: &Value) -> Value {
     proto.set_field_slice("padStart", to_value(pad_start as NativeFunctionData));
     proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
     proto.set_field_slice("trimStart", to_value(trim_start as NativeFunctionData));
+
+    let string = to_value(string_constructor);
+    proto.set_field_slice("constructor", string.clone());
     string.set_field_slice(PROTOTYPE, proto);
     string
 }
 
 /// Initialise the `String` object on the global object
 pub fn init(global: &Value) {
-    global.set_field_slice("String", _create(global));
+    global.set_field_slice("String", create_constructor(global));
 }
 
 #[cfg(test)]
@@ -561,7 +572,7 @@ mod tests {
     #[test]
     fn check_string_constructor_is_function() {
         let global = ValueData::new_obj(None);
-        let string_constructor = _create(&global);
+        let string_constructor = create_constructor(&global);
         assert_eq!(string_constructor.is_function(), true);
     }
 

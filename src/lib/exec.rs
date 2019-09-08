@@ -1,7 +1,7 @@
 use crate::{
     environment::lexical_environment::{new_function_environment, LexicalEnvironment},
     js::{
-        array, console, function,
+        array, boolean, console, function,
         function::{Function, RegularFunction},
         json, math, object,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
@@ -266,7 +266,7 @@ impl Executor for Interpreter {
                 })
             }
             ExprDef::Construct(ref callee, ref args) => {
-                let func = self.run(callee)?;
+                let func_object = self.run(callee)?;
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
@@ -275,19 +275,25 @@ impl Executor for Interpreter {
                 // Create a blank object, then set its __proto__ property to the [Constructor].prototype
                 this.borrow().set_internal_slot(
                     INSTANCE_PROTOTYPE,
-                    func.borrow().get_field_slice(PROTOTYPE),
+                    func_object.borrow().get_field_slice(PROTOTYPE),
                 );
-                match *func {
+
+                let construct = func_object.get_internal_slot("construct");
+
+                match *construct {
                     ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
                         Function::NativeFunc(ref ntv) => {
                             let func = ntv.data;
-                            func(&this, &v_args, self)
+                            match func(&this, &v_args, self) {
+                                Ok(_) => Ok(this),
+                                Err(ref v) => Err(v.clone()),
+                            }
                         }
                         Function::RegularFunc(ref data) => {
                             // Create new scope
                             let env = &mut self.environment;
                             env.push(new_function_environment(
-                                func.clone(),
+                                construct.clone(),
                                 this.clone(),
                                 Some(env.get_current_environment_ref().clone()),
                             ));
@@ -386,11 +392,12 @@ impl InterpreterBuilder {
         object::init(&global);
         console::init(&global);
         math::init(&global);
-        array::init(&global);
         function::init(&global);
         json::init(&global);
-        regexp::init(&global);
-        string::init(&global);
+        global.set_field_slice("String", string::create_constructor(&global));
+        global.set_field_slice("RegExp", regexp::create_constructor(&global));
+        global.set_field_slice("Array", array::create_constructor(&global));
+        global.set_field_slice("Boolean", boolean::create_constructor(&global));
 
         Self { global }
     }

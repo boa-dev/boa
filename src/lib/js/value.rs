@@ -94,6 +94,7 @@ impl ValueData {
     pub fn is_function(&self) -> bool {
         match *self {
             ValueData::Function(_) => true,
+            ValueData::Object(ref o) => o.deref().borrow().get_internal_slot("call").is_function(),
             _ => false,
         }
     }
@@ -524,6 +525,7 @@ impl ValueData {
     }
 
     /// Get the type of the value
+    /// https://tc39.es/ecma262/#sec-typeof-operator
     pub fn get_type(&self) -> &'static str {
         match *self {
             ValueData::Number(_) | ValueData::Integer(_) => "number",
@@ -531,7 +533,14 @@ impl ValueData {
             ValueData::Boolean(_) => "boolean",
             ValueData::Null => "null",
             ValueData::Undefined => "undefined",
-            _ => "object",
+            ValueData::Function(_) => "function",
+            ValueData::Object(ref o) => {
+                if o.deref().borrow().get_internal_slot("call").is_null() {
+                    "object"
+                } else {
+                    "function"
+                }
+            }
         }
     }
 }
@@ -559,37 +568,7 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            ValueData::Object(ref v) => {
-                write!(f, "{{")?;
-                // Print public properties
-                if let Some((last_key, _)) = v.borrow().properties.iter().last() {
-                    for (key, val) in v.borrow().properties.iter() {
-                        write!(
-                            f,
-                            "{}: {}",
-                            key,
-                            val.value
-                                .as_ref()
-                                .unwrap_or(&Gc::new(ValueData::Undefined))
-                                .clone()
-                        )?;
-                        if key != last_key {
-                            write!(f, ", ")?;
-                        }
-                    }
-                };
-
-                // Print internal slots
-                if let Some((last_key, _)) = v.borrow().internal_slots.iter().last() {
-                    for (key, val) in v.borrow().internal_slots.iter() {
-                        write!(f, "[[{}]]: {}", key, &val)?;
-                        if key != last_key {
-                            write!(f, ", ")?;
-                        }
-                    }
-                };
-                write!(f, "}}")
-            }
+            ValueData::Object(_) => write!(f, "{{}}"),
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
@@ -919,7 +898,15 @@ pub fn to_value<A: ToValue>(v: A) -> Value {
 /// Such a comparison is performed as follows:
 ///
 /// https://tc39.es/ecma262/#sec-samevalue
-pub fn same_value(x: &Value, y: &Value) -> bool {
+/// strict mode currently compares the pointers
+pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
+    if strict {
+        // Do both Values point to the same underlying valueData?
+        let x_ptr = Gc::into_raw(x.clone());
+        let y_ptr = Gc::into_raw(y.clone());
+        return x_ptr == y_ptr;
+    }
+
     if x.get_type() != y.get_type() {
         return false;
     }
@@ -947,6 +934,11 @@ pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
         "boolean" => {
             from_value::<bool>(x.clone()).expect("failed to get value")
                 == from_value::<bool>(y.clone()).expect("failed to get value")
+        }
+        "object" => {
+            let b = ValueData::new_obj(None);
+            dbg!(b == b);
+            *x == *y
         }
         _ => false,
     }
