@@ -59,9 +59,9 @@
     "@types/webpack-sources" "*"
     source-map "^0.6.0"
 
-"@wasm-tool/wasm-pack-plugin@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@wasm-tool/wasm-pack-plugin/-/wasm-pack-plugin-1.0.1.tgz#dd306b886ebbdfafb67fe3ba79d8efaddeee5cfc"
+"@wasm-tool/wasm-pack-plugin@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@wasm-tool/wasm-pack-plugin/-/wasm-pack-plugin-0.2.1.tgz#022d61681c5ca03ca8d6b134c684bcb0fc564880"
   dependencies:
     chalk "^2.4.1"
     command-exists "^1.2.7"
