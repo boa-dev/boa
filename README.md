@@ -24,6 +24,11 @@ curl https://sh.rustup.rs -sSf | sh
 Then simply clone this project and `cargo build`
 To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`
 
+#### VSCode and Dockerfile
+
+If you don't want to install everything on your machine, you can use the Dockerfile.
+Start VSCode in container mode (you may need the docker container plugin) and use the Dockerfile.
+
 #### Web Assembly
 
 This interpreter can be exposed to javascript!
