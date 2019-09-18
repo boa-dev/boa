@@ -31,6 +31,7 @@ criterion = "^0.3.0"
 crate-type = ["cdylib", "lib"]
 name = "boa"
 path = "src/lib/lib.rs"
+bench = false
 
 [[bench]]
 name = "string"
@@ -43,7 +44,9 @@ harness = false
 [[bin]]
 name = "boa"
 path = "src/bin/bin.rs"
+bench = false
 
 [[bin]]
 name = "boashell"
 path = "src/bin/shell.rs"
+bench = false
