@@ -935,10 +935,7 @@ pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
             from_value::<bool>(x.clone()).expect("failed to get value")
                 == from_value::<bool>(y.clone()).expect("failed to get value")
         }
-        "object" => {
-            let b = ValueData::new_obj(None);
-            *x == *y
-        }
+        "object" => *x == *y,
         _ => false,
     }
 }
