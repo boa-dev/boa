@@ -36,6 +36,10 @@ path = "src/lib/lib.rs"
 name = "string"
 harness = false
 
+[[bench]]
+name = "fib"
+harness = false
+
 [[bin]]
 name = "boa"
 path = "src/bin/bin.rs"

@@ -30,6 +30,7 @@ pub trait Executor {
 pub struct Interpreter {
     /// An object representing the global object
     environment: LexicalEnvironment,
+    is_return: bool,
 }
 
 /// Builder for the [`Interpreter`]
@@ -62,7 +63,13 @@ impl Executor for Interpreter {
                 let mut obj = to_value(None::<()>);
                 for e in es.iter() {
                     let val = self.run(e)?;
-                    if e == es.last().unwrap() {
+                    // early return
+                    if self.is_return {
+                        obj = val;
+                        self.is_return = false;
+                        break;
+                    }
+                    if e == es.last().expect("unable to get last value") {
                         obj = val;
                     }
                 }
@@ -312,10 +319,15 @@ impl Executor for Interpreter {
                     _ => Ok(Gc::new(ValueData::Undefined)),
                 }
             }
-            ExprDef::Return(ref ret) => match *ret {
-                Some(ref v) => self.run(v),
-                None => Ok(Gc::new(ValueData::Undefined)),
-            },
+            ExprDef::Return(ref ret) => {
+                let result = match *ret {
+                    Some(ref v) => self.run(v),
+                    None => Ok(Gc::new(ValueData::Undefined)),
+                };
+                // Set flag for return
+                self.is_return = true;
+                result
+            }
             ExprDef::Throw(ref ex) => Err(self.run(ex)?),
             ExprDef::Assign(ref ref_e, ref val_e) => {
                 let val = self.run(val_e)?;
@@ -410,6 +422,7 @@ impl InterpreterBuilder {
     pub fn build(self) -> Interpreter {
         Interpreter {
             environment: LexicalEnvironment::new(self.global.clone()),
+            is_return: false,
         }
     }
 }
