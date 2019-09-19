@@ -2,8 +2,6 @@
 extern crate criterion;
 
 use boa::exec;
-use boa::syntax::lexer::Lexer;
-use boa::syntax::parser::Parser;
 use criterion::black_box;
 use criterion::Criterion;
 
