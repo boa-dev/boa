@@ -11,7 +11,7 @@ use crate::{
     syntax::ast::{
         constant::Const,
         expr::{Expr, ExprDef},
-        op::{BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
+        op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
     },
 };
 use gc::{Gc, GcCell};
@@ -40,6 +40,21 @@ pub struct Interpreter {
 pub struct InterpreterBuilder {
     /// The global object
     global: Value,
+}
+
+fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
+    Gc::new(match *op {
+        AssignOp::Add => v_a + v_b,
+        AssignOp::Sub => v_a - v_b,
+        AssignOp::Mul => v_a * v_b,
+        AssignOp::Div => v_a / v_b,
+        AssignOp::Mod => v_a % v_b,
+        AssignOp::And => v_a & v_b,
+        AssignOp::Or => v_a | v_b,
+        AssignOp::Xor => v_a ^ v_b,
+        AssignOp::Shl => v_a << v_b,
+        AssignOp::Shr => v_a << v_b,
+    })
 }
 
 impl Executor for Interpreter {
@@ -272,6 +287,25 @@ impl Executor for Interpreter {
                     LogOp::Or => to_value(v_a || v_b),
                 })
             }
+            ExprDef::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.def {
+                ExprDef::Local(ref name) => {
+                    let v_a = (*self.environment.get_binding_value(&name)).clone();
+                    let v_b = (*self.run(b)?).clone();
+                    let value = exec_assign_op(op, v_a, v_b);
+                    self.environment
+                        .set_mutable_binding(&name, value.clone(), true);
+                    Ok(value)
+                }
+                ExprDef::GetConstField(ref obj, ref field) => {
+                    let v_r_a = self.run(obj)?;
+                    let v_a = (*v_r_a.borrow().get_field(field)).clone();
+                    let v_b = (*self.run(b)?).clone();
+                    let value = exec_assign_op(op, v_a, v_b.clone());
+                    v_r_a.borrow().set_field(field.clone(), value.clone());
+                    Ok(value)
+                }
+                _ => Ok(Gc::new(ValueData::Undefined)),
+            },
             ExprDef::Construct(ref callee, ref args) => {
                 let func_object = self.run(callee)?;
                 let mut v_args = Vec::with_capacity(args.len());

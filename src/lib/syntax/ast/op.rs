@@ -183,6 +183,8 @@ pub enum BinOp {
     Comp(CompOp),
     /// Logical operation
     Log(LogOp),
+    /// Assign operation
+    Assign(AssignOp),
 }
 
 impl Operator for BinOp {
@@ -207,6 +209,7 @@ impl Operator for BinOp {
             BinOp::Bit(BitOp::Or) => 12,
             BinOp::Log(LogOp::And) => 13,
             BinOp::Log(LogOp::Or) => 14,
+            BinOp::Assign(_) => 15,
         }
     }
 }
@@ -221,6 +224,53 @@ impl Display for BinOp {
                 BinOp::Bit(ref op) => op.to_string(),
                 BinOp::Comp(ref op) => op.to_string(),
                 BinOp::Log(ref op) => op.to_string(),
+                BinOp::Assign(ref op) => op.to_string(),
+            }
+        )
+    }
+}
+
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+/// A binary operation between 2 values
+pub enum AssignOp {
+    /// `a += b` - Add assign
+    Add,
+    /// `a -= b` - Sub assign
+    Sub,
+    /// `a *= b` - Mul assign
+    Mul,
+    /// `a /= b` - Div assign
+    Div,
+    /// `a %= b` - Modulus assign
+    Mod,
+    /// `a &= b` - Bitwise and assign
+    And,
+    /// `a |= b` - Bitwise or assign
+    Or,
+    /// `a ^= b` - Bitwise xor assign
+    Xor,
+    /// `a <<= b` - Left shift assign
+    Shl,
+    /// `a >>= b` - Right shift assign
+    Shr,
+}
+
+impl Display for AssignOp {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                AssignOp::Add => "+=",
+                AssignOp::Sub => "-=",
+                AssignOp::Mul => "*=",
+                AssignOp::Div => "/=",
+                AssignOp::Mod => "%=",
+                AssignOp::And => "&=",
+                AssignOp::Or => "|=",
+                AssignOp::Xor => "^=",
+                AssignOp::Shl => "<<=",
+                AssignOp::Shr => ">>=",
             }
         )
     }
