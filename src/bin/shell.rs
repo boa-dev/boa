@@ -22,41 +22,26 @@
 )]
 
 use boa::{exec::Executor, forward_val};
-use std::{env, fs::read_to_string, process::exit};
+use std::{fs::read_to_string, path::PathBuf};
+use structopt::StructOpt;
 
-fn print_usage() {
-    println!(
-        "Usage:
-boa [file.js]
-    Interpret and execute file.js
-    (if no file given, defaults to tests/js/test.js"
-    );
+#[derive(StructOpt)]
+struct Opt {
+    #[structopt(parse(from_os_str), help = "the javascript file to be evaluated")]
+    file: PathBuf,
 }
 
 pub fn main() -> Result<(), std::io::Error> {
-    let args: Vec<String> = env::args().collect();
-    let read_file;
+    let args = Opt::from_args();
 
-    if args.len() == 2 {
-        // One argument passed, assumed this is the test file
-        read_file = &args[1];
-    } else {
-        // Some other number of arguments passed: not supported
-        print_usage();
-        exit(1);
-    }
-
-    let buffer = read_to_string(read_file)?;
+    let buffer = read_to_string(args.file)?;
 
     let mut engine = Executor::new();
-    let init = r#"
-        const print = console.log;
-        "#;
 
-    forward_val(&mut engine, init).unwrap();
     match forward_val(&mut engine, &buffer) {
         Ok(v) => print!("{}", v.to_string()),
         Err(v) => eprint!("{}", v.to_string()),
     }
+
     Ok(())
 }
