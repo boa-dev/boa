@@ -5,7 +5,7 @@
 	// Sets the run context to one level up instead of the .devcontainer folder.
 	"context": "..",
 	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-	"dockerFile": "..\\Dockerfile",
+	"dockerFile": "../Dockerfile",
 	// The optional 'runArgs' property can be used to specify additional runtime arguments.
 	"runArgs": [
 		// Uncomment the next line to use Docker from inside the container. See https://aka.ms/vscode-remote/samples/docker-in-docker for details.
@@ -19,11 +19,11 @@
 		// for the needed Dockerfile updates and then uncomment the next line.
 		// "-u", "vscode"
 	],
-	// Use 'settings' to set *default* container specific settings.json values on container create. 
+	// Use 'settings' to set *default* container specific settings.json values on container create.
 	// You can edit these settings after create using File > Preferences > Settings > Remote.
 	"settings": {
-		// This will ignore your local shell user setting for Linux since shells like zsh are typically 
-		// not in base container images. You can also update this to an specific shell to ensure VS Code 
+		// This will ignore your local shell user setting for Linux since shells like zsh are typically
+		// not in base container images. You can also update this to an specific shell to ensure VS Code
 		// uses the right one for terminals and tasks. For example, /bin/bash (or /bin/ash for Alpine).
 		"terminal.integrated.shell.linux": null
 	},

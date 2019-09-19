@@ -18,7 +18,7 @@ RUN apt-get -y update && \
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 RUN apt-add-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-6.0 main"
 RUN apt-get -y update
-RUN sudo apt-get -y lldb
+RUN sudo apt-get install -y lldb
 
 
 CMD ["/bin/bash"]
