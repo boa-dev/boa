@@ -2,7 +2,7 @@ use crate::{
     environment::lexical_environment::{new_function_environment, LexicalEnvironment},
     js::{
         array, boolean, console, function,
-        function::{Function, RegularFunction},
+        function::{create_unmapped_arguments_object, Function, RegularFunction},
         json, math, object,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         regexp, string,
@@ -451,17 +451,15 @@ impl Interpreter {
                         undefined,
                         Some(env.get_current_environment_ref().clone()),
                     ));
-                    let global = self.environment.get_global_object().unwrap();
-                    let arguments_obj: Value = ValueData::new_obj(Some(&global));
                     for i in 0..data.args.len() {
                         let name = data.args.get(i).unwrap();
                         let expr: &Value = arguments_list.get(i).unwrap();
                         self.environment.create_mutable_binding(name.clone(), false);
                         self.environment.initialize_binding(name, expr.clone());
-                        arguments_obj.set_field_slice(&i.to_string(), expr.clone());
                     }
 
                     // Add arguments object
+                    let arguments_obj = create_unmapped_arguments_object(arguments_list);
                     self.environment
                         .create_mutable_binding("arguments".to_string(), false);
                     self.environment

@@ -1,5 +1,4 @@
 function jason(a, b) {
-  console.log(arguments[0]);
+  return arguments[0];
 }
-
-jason("lol", "isojs");
+const val = jason(100, 6);
