@@ -101,3 +101,33 @@ pub fn init(global: &Value) {
     let global_ptr = global;
     global_ptr.set_field_slice("Function", _create());
 }
+
+/// Arguments
+/// https://tc39.es/ecma262/#sec-createunmappedargumentsobject
+pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) {
+    let len = arguments_list.len();
+    let mut obj = Object::default();
+    obj.set_internal_slot("ParameterMap", Gc::new(ValueData::Undefined));
+    // Set length
+    let mut length = Property::default();
+    length = length.writable(true).value(to_value(len));
+    // Define length as a property
+    obj.define_own_property("length".to_string(), length);
+    let index: usize = 0;
+    while index < len {
+        let val = arguments_list.get(index).unwrap();
+        let prop = Property::default();
+        prop.value(val.clone())
+            .enumerable(true)
+            .writable(true)
+            .configurable(true);
+    }
+
+    for val in arguments_list {
+        let prop = Property::default();
+        prop.value(val.clone())
+            .enumerable(true)
+            .writable(true)
+            .configurable(true);
+    }
+}
