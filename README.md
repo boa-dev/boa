@@ -24,6 +24,10 @@ curl https://sh.rustup.rs -sSf | sh
 Then simply clone this project and `cargo build`
 To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`
 
+#### Debugging
+
+See [Debugging](./docs/debugging.md)
+
 #### VSCode and Dockerfile
 
 If you don't want to install everything on your machine, you can use the Dockerfile.
@@ -53,7 +57,7 @@ See Project view
 - You can make changes to tests/js/test.js and build again
 - If any JS doesn't work its a bug! Please raise an issue
 
-#### Communication 
+#### Communication
 
 Feel free to contact us on Discord https://discord.gg/tUFFk9Y
 
