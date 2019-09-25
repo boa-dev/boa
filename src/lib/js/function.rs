@@ -101,3 +101,53 @@ pub fn init(global: &Value) {
     let global_ptr = global;
     global_ptr.set_field_slice("Function", _create());
 }
+
+/// Arguments
+/// https://tc39.es/ecma262/#sec-createunmappedargumentsobject
+pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) -> Value {
+    let len = arguments_list.len();
+    let mut obj = Object::default();
+    obj.set_internal_slot("ParameterMap", Gc::new(ValueData::Undefined));
+    // Set length
+    let mut length = Property::default();
+    length = length.writable(true).value(to_value(len));
+    // Define length as a property
+    obj.define_own_property("length".to_string(), length);
+    let mut index: usize = 0;
+    while index < len {
+        let val = arguments_list.get(index).unwrap();
+        let mut prop = Property::default();
+        prop = prop
+            .value(val.clone())
+            .enumerable(true)
+            .writable(true)
+            .configurable(true);
+
+        obj.properties.insert(index.to_string(), prop);
+        index += 1;
+    }
+
+    to_value(obj)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::exec::Executor;
+    use crate::{forward, forward_val, js::value::from_value};
+
+    #[test]
+    fn check_arguments_object() {
+        let mut engine = Executor::new();
+        let init = r#"
+        function jason(a, b) {
+            return arguments[0];
+        }
+        const val = jason(100, 6);
+        "#;
+
+        forward(&mut engine, init);
+        let return_val = forward_val(&mut engine, "val").expect("value expected");
+        assert_eq!(return_val.is_double(), true);
+        assert_eq!(from_value::<f64>(return_val).unwrap(), 100.0);
+    }
+}
