@@ -15,7 +15,10 @@ use crate::{
     },
 };
 use gc::{Gc, GcCell};
-use std::{borrow::Borrow, ops::Deref};
+use std::{
+    borrow::Borrow,
+    ops::{Deref, DerefMut},
+};
 
 /// An execution engine
 pub trait Executor {
@@ -470,7 +473,17 @@ impl Default for InterpreterBuilder {
 impl Interpreter {
     /// https://tc39.es/ecma262/#sec-call
     fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
+        // All functions should be objects, and eventually will be.
+        // During this transition call will support both native functions and function objects
         match (*f).deref() {
+            ValueData::Object(ref obj) => {
+                let func: Value = obj.borrow_mut().deref_mut().get_internal_slot("call");
+                if !func.is_undefined() {
+                    return self.call(&func, v, arguments_list);
+                }
+                // TODO: error object should be here
+                Err(Gc::new(ValueData::Undefined))
+            }
             ValueData::Function(ref inner_func) => match *inner_func.deref().borrow() {
                 Function::NativeFunc(ref ntv) => {
                     let func = ntv.data;

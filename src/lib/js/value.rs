@@ -139,6 +139,14 @@ impl ValueData {
         }
     }
 
+    /// Returns true if the value is a boolean
+    pub fn is_boolean(&self) -> bool {
+        match *self {
+            ValueData::Boolean(_) => true,
+            _ => false,
+        }
+    }
+
     /// Returns true if the value is true
     /// [toBoolean](https://tc39.github.io/ecma262/#sec-toboolean)
     pub fn is_true(&self) -> bool {
