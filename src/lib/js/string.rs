@@ -7,12 +7,13 @@ use crate::{
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
+use gc::Gc;
 use std::{
     cmp::{max, min},
     f64::NAN,
 };
 
-/// Create new string
+/// Create new string [[Construct]]
 /// <https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19>
 // This gets called when a new String() is created, it's called by exec:346
 pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
@@ -31,6 +32,21 @@ pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
             .clone(),
     );
     Ok(this.clone())
+}
+
+/// Call new string [[Call]]
+/// https://tc39.es/ecma262/#sec-string-constructor-string-value
+pub fn call_string(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let arg = match args.get(0) {
+        Some(v) => v.clone(),
+        None => Gc::new(ValueData::Undefined),
+    };
+
+    if arg.is_undefined() {
+        return Ok(to_value(""));
+    }
+
+    Ok(to_value(arg.to_string()))
 }
 
 /// Get a string's length
@@ -654,7 +670,7 @@ pub fn create_constructor(global: &Value) -> Value {
     string_constructor.set_internal_method("construct", make_string);
     // Todo: add call internal method (should be easy)
     // Currently call points to the constructor function, this is wrong
-    string_constructor.set_internal_method("call", make_string);
+    string_constructor.set_internal_method("call", call_string);
 
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
@@ -697,7 +713,7 @@ pub fn init(global: &Value) {
 mod tests {
     use super::*;
     use crate::exec::Executor;
-    use crate::forward;
+    use crate::{forward, forward_val};
 
     #[test]
     fn check_string_constructor_is_function() {
@@ -745,6 +761,22 @@ mod tests {
         // Todo: fix this
         //assert_eq!(a, String::from("Hello, world! Have a nice day."));
         //assert_eq!(b, String::from("Hello, world! Have a nice day."));
+    }
+
+    #[test]
+    /// Test the correct type is returned from call and construct
+    fn construct_and_call() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const hello = new String('Hello');
+        const world = String('world');
+        "#;
+        forward(&mut engine, init);
+        let hello = forward_val(&mut engine, "hello").unwrap();
+        let world = forward_val(&mut engine, "world").unwrap();
+
+        assert_eq!(hello.is_object(), true);
+        assert_eq!(world.is_string(), true);
     }
 
     #[test]

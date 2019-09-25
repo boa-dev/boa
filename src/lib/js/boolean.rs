@@ -101,6 +101,22 @@ mod tests {
     }
 
     #[test]
+    /// Test the correct type is returned from call and construct
+    fn construct_and_call() {
+        let mut engine = Executor::new();
+        let init = r#"
+        const one = new Boolean(1);
+        const zero = Boolean(0);
+        "#;
+        forward(&mut engine, init);
+        let one = forward_val(&mut engine, "one").unwrap();
+        let zero = forward_val(&mut engine, "zero").unwrap();
+
+        assert_eq!(one.is_object(), true);
+        assert_eq!(zero.is_boolean(), true);
+    }
+
+    #[test]
     fn constructor_gives_true_instance() {
         let mut engine = Executor::new();
         let init = r#"
