@@ -389,7 +389,7 @@ impl Executor for Interpreter {
                     let (name, value) = var.clone();
                     let val = match value {
                         Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Null),
+                        None => Gc::new(ValueData::Undefined),
                     };
                     self.realm
                         .environment
@@ -403,7 +403,7 @@ impl Executor for Interpreter {
                     let (name, value) = var.clone();
                     let val = match value {
                         Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Null),
+                        None => Gc::new(ValueData::Undefined),
                     };
                     self.realm
                         .environment
