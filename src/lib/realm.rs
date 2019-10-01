@@ -37,7 +37,7 @@ impl Realm {
 
         let new_realm = Realm {
             global_obj: global.clone(),
-            global_env: global_env,
+            global_env,
             environment: LexicalEnvironment::new(global),
         };
 
