@@ -36,11 +36,13 @@
 pub mod environment;
 pub mod exec;
 pub mod js;
+pub mod realm;
 pub mod syntax;
 
 use crate::{
     exec::{Executor, Interpreter},
     js::value::ResultValue,
+    realm::Realm,
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
 };
 use wasm_bindgen::prelude::*;
@@ -76,7 +78,10 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
 
 /// Create a clean Interpreter and execute the code
 pub fn exec(src: &str) -> String {
-    let mut engine: Interpreter = Executor::new();
+    // Create new Realm
+    let realm = Realm::create();
+    realm.create_instrinsics();
+    let mut engine: Interpreter = Executor::new(realm);
     forward(&mut engine, src)
 }
 
@@ -111,8 +116,10 @@ pub fn evaluate(src: &str) -> String {
             return String::from("parsing failed");
         }
     }
-
-    let mut engine: Interpreter = Executor::new();
+    // Create new Realm
+    let realm = Realm::create();
+    realm.create_instrinsics();
+    let mut engine: Interpreter = Executor::new(realm);
     let result = engine.run(&expr);
     log("test2");
     match result {

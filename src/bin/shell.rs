@@ -21,6 +21,7 @@
     clippy::module_name_repetitions
 )]
 
+use boa::realm::Realm;
 use boa::{exec::Executor, forward_val};
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::StructOpt;
@@ -35,8 +36,8 @@ pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
     let buffer = read_to_string(args.file)?;
-
-    let mut engine = Executor::new();
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
 
     match forward_val(&mut engine, &buffer) {
         Ok(v) => print!("{}", v.to_string()),
