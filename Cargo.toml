@@ -42,6 +42,10 @@ harness = false
 name = "fib"
 harness = false
 
+[[bench]]
+name = "exec"
+harness = false
+
 [[bin]]
 name = "boa"
 path = "src/bin/bin.rs"
