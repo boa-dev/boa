@@ -713,6 +713,7 @@ pub fn init(global: &Value) {
 mod tests {
     use super::*;
     use crate::exec::Executor;
+    use crate::realm::Realm;
     use crate::{forward, forward_val};
 
     #[test]
@@ -749,7 +750,8 @@ mod tests {
     // }
     #[test]
     fn concat() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         const hello = new String('Hello, ');
         const world = new String('world! ');
@@ -766,7 +768,8 @@ mod tests {
     #[test]
     /// Test the correct type is returned from call and construct
     fn construct_and_call() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         const hello = new String('Hello');
         const world = String('world');
@@ -781,7 +784,8 @@ mod tests {
 
     #[test]
     fn repeat() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         const empty = new String('');
         const en = new String('english');
@@ -808,7 +812,8 @@ mod tests {
 
     #[test]
     fn starts_with() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         const empty = new String('');
         const en = new String('english');
@@ -831,7 +836,8 @@ mod tests {
 
     #[test]
     fn ends_with() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         const empty = new String('');
         const en = new String('english');

@@ -1,13 +1,11 @@
 use crate::{
-    environment::lexical_environment::{new_function_environment, LexicalEnvironment},
+    environment::lexical_environment::new_function_environment,
     js::{
-        array, boolean, console, function,
         function::{create_unmapped_arguments_object, Function, RegularFunction},
-        json, math, object,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
-        regexp, string,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
+    realm::Realm,
     syntax::ast::{
         constant::Const,
         expr::{Expr, ExprDef},
@@ -23,7 +21,7 @@ use std::{
 /// An execution engine
 pub trait Executor {
     /// Make a new execution engine
-    fn new() -> Self;
+    fn new(realm: Realm) -> Self;
     /// Run an expression
     fn run(&mut self, expr: &Expr) -> ResultValue;
 }
@@ -31,18 +29,9 @@ pub trait Executor {
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
-    /// An object representing the global object
-    environment: LexicalEnvironment,
     is_return: bool,
-}
-
-/// Builder for the [`Interpreter`]
-///
-/// [`Interpreter`]: struct.Interpreter.html
-#[derive(Debug)]
-pub struct InterpreterBuilder {
-    /// The global object
-    global: Value,
+    /// realm holds both the global object and the environment
+    realm: Realm,
 }
 
 fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
@@ -61,8 +50,11 @@ fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
 }
 
 impl Executor for Interpreter {
-    fn new() -> Self {
-        InterpreterBuilder::new().build()
+    fn new(realm: Realm) -> Self {
+        Interpreter {
+            realm,
+            is_return: false,
+        }
     }
 
     #[allow(clippy::match_same_arms)]
@@ -94,7 +86,7 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::Local(ref name) => {
-                let val = self.environment.get_binding_value(name);
+                let val = self.realm.environment.get_binding_value(name);
                 Ok(val)
             }
             ExprDef::GetConstField(ref obj, ref field) => {
@@ -123,10 +115,7 @@ impl Executor for Interpreter {
                             obj.borrow().get_field(&field.borrow().to_string()),
                         )
                     }
-                    _ => (
-                        self.environment.get_global_object().unwrap(),
-                        self.run(&callee.clone())?,
-                    ), // 'this' binding should come from the function's self-contained environment
+                    _ => (self.realm.global_obj.clone(), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
@@ -179,7 +168,7 @@ impl Executor for Interpreter {
                 Ok(result)
             }
             ExprDef::ObjectDecl(ref map) => {
-                let global_val = &self.environment.get_global_object().unwrap();
+                let global_val = &self.realm.environment.get_global_object().unwrap();
                 let obj = ValueData::new_obj(Some(global_val));
                 for (key, val) in map.iter() {
                     obj.borrow().set_field(key.clone(), self.run(val)?);
@@ -187,7 +176,7 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::ArrayDecl(ref arr) => {
-                let global_val = &self.environment.get_global_object().unwrap();
+                let global_val = &self.realm.environment.get_global_object().unwrap();
                 let arr_map = ValueData::new_obj(Some(global_val));
                 // Note that this object is an Array
                 arr_map.set_kind(ObjectKind::Array);
@@ -199,7 +188,8 @@ impl Executor for Interpreter {
                 }
                 arr_map.borrow().set_internal_slot(
                     INSTANCE_PROTOTYPE,
-                    self.environment
+                    self.realm
+                        .environment
                         .get_binding_value("Array")
                         .borrow()
                         .get_field_slice(PROTOTYPE),
@@ -212,9 +202,11 @@ impl Executor for Interpreter {
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
                 let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
                 if name.is_some() {
-                    self.environment
+                    self.realm
+                        .environment
                         .create_mutable_binding(name.clone().unwrap(), false);
-                    self.environment
+                    self.realm
+                        .environment
                         .initialize_binding(name.as_ref().unwrap(), val.clone())
                 }
                 Ok(val)
@@ -292,10 +284,11 @@ impl Executor for Interpreter {
             }
             ExprDef::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.def {
                 ExprDef::Local(ref name) => {
-                    let v_a = (*self.environment.get_binding_value(&name)).clone();
+                    let v_a = (*self.realm.environment.get_binding_value(&name)).clone();
                     let v_b = (*self.run(b)?).clone();
                     let value = exec_assign_op(op, v_a, v_b);
-                    self.environment
+                    self.realm
+                        .environment
                         .set_mutable_binding(&name, value.clone(), true);
                     Ok(value)
                 }
@@ -335,7 +328,7 @@ impl Executor for Interpreter {
                         }
                         Function::RegularFunc(ref data) => {
                             // Create new scope
-                            let env = &mut self.environment;
+                            let env = &mut self.realm.environment;
                             env.push(new_function_environment(
                                 construct.clone(),
                                 this.clone(),
@@ -349,7 +342,7 @@ impl Executor for Interpreter {
                                 env.initialize_binding(name, expr.to_owned());
                             }
                             let result = self.run(&data.expr);
-                            self.environment.pop();
+                            self.realm.environment.pop();
                             result
                         }
                     },
@@ -370,13 +363,17 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 match ref_e.def {
                     ExprDef::Local(ref name) => {
-                        if *self.environment.get_binding_value(&name) != ValueData::Undefined {
+                        if *self.realm.environment.get_binding_value(&name) != ValueData::Undefined
+                        {
                             // Binding already exists
-                            self.environment
+                            self.realm
+                                .environment
                                 .set_mutable_binding(&name, val.clone(), true);
                         } else {
-                            self.environment.create_mutable_binding(name.clone(), true);
-                            self.environment.initialize_binding(name, val.clone());
+                            self.realm
+                                .environment
+                                .create_mutable_binding(name.clone(), true);
+                            self.realm.environment.initialize_binding(name, val.clone());
                         }
                     }
                     ExprDef::GetConstField(ref obj, ref field) => {
@@ -394,8 +391,10 @@ impl Executor for Interpreter {
                         Some(v) => self.run(&v)?,
                         None => Gc::new(ValueData::Null),
                     };
-                    self.environment.create_mutable_binding(name.clone(), false);
-                    self.environment.initialize_binding(&name, val);
+                    self.realm
+                        .environment
+                        .create_mutable_binding(name.clone(), false);
+                    self.realm.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
@@ -406,17 +405,20 @@ impl Executor for Interpreter {
                         Some(v) => self.run(&v)?,
                         None => Gc::new(ValueData::Null),
                     };
-                    self.environment.create_mutable_binding(name.clone(), false);
-                    self.environment.initialize_binding(&name, val);
+                    self.realm
+                        .environment
+                        .create_mutable_binding(name.clone(), false);
+                    self.realm.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
             ExprDef::ConstDecl(ref vars) => {
                 for (name, value) in vars.iter() {
-                    self.environment
+                    self.realm
+                        .environment
                         .create_immutable_binding(name.clone(), false);
                     let val = self.run(&value)?;
-                    self.environment.initialize_binding(&name, val);
+                    self.realm.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
@@ -432,41 +434,6 @@ impl Executor for Interpreter {
                 }))
             }
         }
-    }
-}
-
-impl InterpreterBuilder {
-    pub fn new() -> Self {
-        let global = ValueData::new_obj(None);
-        object::init(&global);
-        console::init(&global);
-        math::init(&global);
-        function::init(&global);
-        json::init(&global);
-        global.set_field_slice("String", string::create_constructor(&global));
-        global.set_field_slice("RegExp", regexp::create_constructor(&global));
-        global.set_field_slice("Array", array::create_constructor(&global));
-        global.set_field_slice("Boolean", boolean::create_constructor(&global));
-
-        Self { global }
-    }
-
-    pub fn init_globals<F: FnOnce(&Value)>(self, init_fn: F) -> Self {
-        init_fn(&self.global);
-        self
-    }
-
-    pub fn build(self) -> Interpreter {
-        Interpreter {
-            environment: LexicalEnvironment::new(self.global.clone()),
-            is_return: false,
-        }
-    }
-}
-
-impl Default for InterpreterBuilder {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -490,7 +457,7 @@ impl Interpreter {
                     func(v, &arguments_list, self)
                 }
                 Function::RegularFunc(ref data) => {
-                    let env = &mut self.environment;
+                    let env = &mut self.realm.environment;
                     // New target (second argument) is only needed for constructors, just pass undefined
                     let undefined = Gc::new(ValueData::Undefined);
                     env.push(new_function_environment(
@@ -501,19 +468,25 @@ impl Interpreter {
                     for i in 0..data.args.len() {
                         let name = data.args.get(i).unwrap();
                         let expr: &Value = arguments_list.get(i).unwrap();
-                        self.environment.create_mutable_binding(name.clone(), false);
-                        self.environment.initialize_binding(name, expr.clone());
+                        self.realm
+                            .environment
+                            .create_mutable_binding(name.clone(), false);
+                        self.realm
+                            .environment
+                            .initialize_binding(name, expr.clone());
                     }
 
                     // Add arguments object
                     let arguments_obj = create_unmapped_arguments_object(arguments_list);
-                    self.environment
+                    self.realm
+                        .environment
                         .create_mutable_binding("arguments".to_string(), false);
-                    self.environment
+                    self.realm
+                        .environment
                         .initialize_binding("arguments", arguments_obj);
 
                     let result = self.run(&data.expr);
-                    self.environment.pop();
+                    self.realm.environment.pop();
                     result
                 }
             },
@@ -608,6 +581,7 @@ impl Interpreter {
             | ValueData::Null => Err(Gc::new(ValueData::Undefined)),
             ValueData::Boolean(_) => {
                 let proto = self
+                    .realm
                     .environment
                     .get_binding_value("Boolean")
                     .get_field_slice(PROTOTYPE);
@@ -618,6 +592,7 @@ impl Interpreter {
             }
             ValueData::Number(_) => {
                 let proto = self
+                    .realm
                     .environment
                     .get_binding_value("Number")
                     .get_field_slice(PROTOTYPE);
@@ -627,6 +602,7 @@ impl Interpreter {
             }
             ValueData::String(_) => {
                 let proto = self
+                    .realm
                     .environment
                     .get_binding_value("String")
                     .get_field_slice(PROTOTYPE);

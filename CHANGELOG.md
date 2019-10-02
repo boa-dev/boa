@@ -8,6 +8,13 @@ Features:
   Enables Boa to run within the Test 262 framework.  
   This will help us see what is implemented or not within the spec
 
+# Next
+
+Feature enhancements:
+
+- [FEATURE #119](https://github.com/jasonwilliams/boa/issues/119):
+  Introduce realm struct to hold realm context and global object
+
 # 0.4.0 (2019-09-25)
 
 v0.4.0 brings quite a big release. The biggest feature to land is the support of regular expressions.  
