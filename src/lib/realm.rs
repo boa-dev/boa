@@ -49,7 +49,7 @@ impl Realm {
     }
 
     // Sets up the default global objects within Global
-    pub fn create_instrinsics(&self) {
+    fn create_instrinsics(&self) {
         let global = &self.global_obj;
         // Create intrinsics, add global objects here
         object::init(global);

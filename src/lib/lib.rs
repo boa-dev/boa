@@ -80,7 +80,6 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
 pub fn exec(src: &str) -> String {
     // Create new Realm
     let realm = Realm::create();
-    realm.create_instrinsics();
     let mut engine: Interpreter = Executor::new(realm);
     forward(&mut engine, src)
 }
@@ -118,7 +117,6 @@ pub fn evaluate(src: &str) -> String {
     }
     // Create new Realm
     let realm = Realm::create();
-    realm.create_instrinsics();
     let mut engine: Interpreter = Executor::new(realm);
     let result = engine.run(&expr);
     log("test2");
