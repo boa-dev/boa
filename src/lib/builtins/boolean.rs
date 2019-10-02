@@ -1,6 +1,6 @@
 use crate::{
     exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         value::{to_value, ResultValue, Value, ValueData},
@@ -91,7 +91,7 @@ pub fn this_boolean_value(value: &Value) -> Value {
 mod tests {
     use super::*;
     use crate::exec::Executor;
-    use crate::{forward, forward_val, js::value::same_value};
+    use crate::{forward, forward_val, builtins::value::same_value};
 
     #[test]
     fn check_boolean_constructor_is_function() {

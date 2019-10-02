@@ -1,6 +1,6 @@
 use crate::{
     environment::lexical_environment::{new_function_environment, LexicalEnvironment},
-    js::{
+    builtins::{
         array, boolean, console, function,
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         json, math, object,

@@ -10,7 +10,7 @@ use crate::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
-    js::value::{Value, ValueData},
+    builtins::value::{Value, ValueData},
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};

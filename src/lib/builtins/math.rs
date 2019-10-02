@@ -1,6 +1,6 @@
 use crate::{
     exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },

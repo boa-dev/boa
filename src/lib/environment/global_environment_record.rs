@@ -14,7 +14,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
         object_environment_record::ObjectEnvironmentRecord,
     },
-    js::value::{Value, ValueData},
+    builtins::value::{Value, ValueData},
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};

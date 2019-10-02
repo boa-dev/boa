@@ -1,6 +1,6 @@
 use crate::{
     exec::Interpreter,
-    js::{
+    builtins::{
         object::Object,
         property::Property,
         value::{to_value, ResultValue, Value, ValueData},
@@ -133,7 +133,7 @@ pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) -> Value {
 #[cfg(test)]
 mod tests {
     use crate::exec::Executor;
-    use crate::{forward, forward_val, js::value::from_value};
+    use crate::{forward, forward_val, builtins::value::from_value};
 
     #[test]
     fn check_arguments_object() {

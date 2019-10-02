@@ -1,8 +1,8 @@
 use crate::exec::Interpreter;
-use crate::js::function::NativeFunctionData;
+use crate::builtins::function::NativeFunctionData;
 /// The JSON Object
 /// <https://tc39.github.io/ecma262/#sec-json-object>
-use crate::js::value::{to_value, ResultValue, Value, ValueData};
+use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
 use serde_json::{self, to_string_pretty, Value as JSONValue};
 
 /// Parse a JSON string into a Javascript object

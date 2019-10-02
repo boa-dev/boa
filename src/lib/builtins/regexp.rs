@@ -5,7 +5,7 @@ use regex::Regex;
 
 use crate::{
     exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         object::{InternalState, Object, ObjectKind, PROTOTYPE},
         property::Property,

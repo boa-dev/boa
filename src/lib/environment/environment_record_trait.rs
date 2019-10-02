@@ -10,7 +10,7 @@
 //!
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
-    js::value::Value,
+    builtins::value::Value,
 };
 use gc::{Finalize, Trace};
 use std::fmt::Debug;

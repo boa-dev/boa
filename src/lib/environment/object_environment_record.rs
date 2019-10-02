@@ -11,7 +11,7 @@ use crate::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
-    js::{
+    builtins::{
         property::Property,
         value::{Value, ValueData},
     },
