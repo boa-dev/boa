@@ -2,6 +2,10 @@
 .idea/
 *.iml
 
+# Vim
+.*.swp
+.*.swo
+
 # Build
 target
 dist
