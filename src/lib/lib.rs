@@ -35,7 +35,7 @@
 
 pub mod environment;
 pub mod exec;
-pub mod js;
+pub mod builtins;
 pub mod syntax;
 
 use crate::{
