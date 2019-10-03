@@ -39,6 +39,7 @@ fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
         AssignOp::Add => v_a + v_b,
         AssignOp::Sub => v_a - v_b,
         AssignOp::Mul => v_a * v_b,
+        AssignOp::Pow => v_a.as_num_to_power(v_b),
         AssignOp::Div => v_a / v_b,
         AssignOp::Mod => v_a % v_b,
         AssignOp::And => v_a & v_b,

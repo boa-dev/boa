@@ -671,6 +671,9 @@ impl Parser {
             TokenData::Punctuator(Punctuator::AssignMul) => {
                 result = self.binop(BinOp::Assign(AssignOp::Mul), expr)?
             }
+            TokenData::Punctuator(Punctuator::AssignPow) => {
+                result = self.binop(BinOp::Assign(AssignOp::Pow), expr)?
+            }
             TokenData::Punctuator(Punctuator::AssignDiv) => {
                 result = self.binop(BinOp::Assign(AssignOp::Div), expr)?
             }
@@ -1314,6 +1317,14 @@ mod tests {
             "a *= b",
             &[create_bin_op(
                 BinOp::Assign(AssignOp::Mul),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a **= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Pow),
                 Expr::new(ExprDef::Local(String::from("a"))),
                 Expr::new(ExprDef::Local(String::from("b"))),
             )],

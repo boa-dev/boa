@@ -243,6 +243,8 @@ pub enum AssignOp {
     Sub,
     /// `a *= b` - Mul assign
     Mul,
+    /// `a **= b` - Exponent assign
+    Pow,
     /// `a /= b` - Div assign
     Div,
     /// `a %= b` - Modulus assign
@@ -268,6 +270,7 @@ impl Display for AssignOp {
                 AssignOp::Add => "+=",
                 AssignOp::Sub => "-=",
                 AssignOp::Mul => "*=",
+                AssignOp::Pow => "**=",
                 AssignOp::Div => "/=",
                 AssignOp::Mod => "%=",
                 AssignOp::And => "&=",
