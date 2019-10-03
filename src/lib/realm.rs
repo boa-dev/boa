@@ -56,12 +56,12 @@ impl Realm {
         console::init(global);
         math::init(global);
         function::init(global);
-        json::init(global);
 
         global.set_field_slice("String", string::create_constructor(global));
         global.set_field_slice("RegExp", regexp::create_constructor(global));
         global.set_field_slice("Array", array::create_constructor(global));
         global.set_field_slice("Boolean", boolean::create_constructor(global));
+        global.set_field_slice("JSON", json::create_constructor(global));
     }
 }
 
