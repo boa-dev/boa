@@ -15,6 +15,11 @@ Feature enhancements:
 - [FEATURE #119](https://github.com/jasonwilliams/boa/issues/119):
   Introduce realm struct to hold realm context and global object
 
+Bug fixes:
+
+- [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
+  Unassigned variables have default of undefined (@pop)
+
 # 0.4.0 (2019-09-25)
 
 v0.4.0 brings quite a big release. The biggest feature to land is the support of regular expressions.  

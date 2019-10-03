@@ -389,7 +389,7 @@ impl Executor for Interpreter {
                     let (name, value) = var.clone();
                     let val = match value {
                         Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Null),
+                        None => Gc::new(ValueData::Undefined),
                     };
                     self.realm
                         .environment
@@ -403,7 +403,7 @@ impl Executor for Interpreter {
                     let (name, value) = var.clone();
                     let val = match value {
                         Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Null),
+                        None => Gc::new(ValueData::Undefined),
                     };
                     self.realm
                         .environment
@@ -628,5 +628,34 @@ impl Interpreter {
             }
             _ => String::from("undefined"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::exec;
+
+    #[test]
+    fn empty_let_decl_undefined() {
+        let scenario = r#"
+        let a;
+        a == undefined;
+        "#;
+
+        let pass = String::from("true");
+
+        assert_eq!(exec(scenario), pass);
+    }
+
+    #[test]
+    fn empty_var_decl_undefined() {
+        let scenario = r#"
+        let b;
+        b == undefined;
+        "#;
+
+        let pass = String::from("true");
+
+        assert_eq!(exec(scenario), pass);
     }
 }
