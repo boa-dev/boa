@@ -24,6 +24,8 @@ pub enum NumOp {
     Div,
     /// `a * b` - Multiplication
     Mul,
+    /// `a ** b` - Exponentiation
+    Pow,
     /// `a % b` - Modulus
     Mod,
 }
@@ -38,6 +40,7 @@ impl Display for NumOp {
                 NumOp::Sub => "-",
                 NumOp::Div => "/",
                 NumOp::Mul => "*",
+                NumOp::Pow => "**",
                 NumOp::Mod => "%",
             }
         )
@@ -193,6 +196,7 @@ impl Operator for BinOp {
     }
     fn get_precedence(&self) -> u64 {
         match *self {
+            BinOp::Num(NumOp::Pow) => 4,
             BinOp::Num(NumOp::Mul) | BinOp::Num(NumOp::Div) | BinOp::Num(NumOp::Mod) => 5,
             BinOp::Num(NumOp::Add) | BinOp::Num(NumOp::Sub) => 6,
             BinOp::Bit(BitOp::Shl) | BinOp::Bit(BitOp::Shr) => 7,

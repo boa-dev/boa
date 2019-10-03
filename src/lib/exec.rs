@@ -227,6 +227,7 @@ impl Executor for Interpreter {
                     NumOp::Add => v_a + v_b,
                     NumOp::Sub => v_a - v_b,
                     NumOp::Mul => v_a * v_b,
+                    NumOp::Pow => v_a.as_num_to_power(v_b),
                     NumOp::Div => v_a / v_b,
                     NumOp::Mod => v_a % v_b,
                 }))
