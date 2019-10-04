@@ -30,8 +30,7 @@
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
     clippy::non_ascii_literal,
-    clippy::float_arithmetic,
-    clippy::else_if_without_else
+    clippy::float_arithmetic
 )]
 
 pub mod environment;
