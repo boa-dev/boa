@@ -1,12 +1,15 @@
 on: [pull_request]
-name: benchmark pull requests
+name: Benchmarks
 jobs:
   runBenchmark:
     name: run benchmark
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - name: run benchmark
-        uses: jasonwilliams/criterion-compare-action@comment_pr
-        env:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: jasonwilliams/criterion-compare-action@move_to_actions
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
