@@ -8,5 +8,5 @@ jobs:
       - uses: actions/checkout@master
       - name: run benchmark
         uses: jasonwilliams/criterion-compare-action@move_to_actions
-        with:
-          myToken: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
