@@ -8,6 +8,8 @@ use crate::{
     },
 };
 use gc::Gc;
+use regex::Regex;
+use std::ops::Deref;
 use std::{
     cmp::{max, min},
     f64::NAN,
@@ -413,6 +415,81 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     Ok(to_value(highest_index))
 }
 
+/// Returns an array whose contents is all the results matching the regular expression, if the global (g) flag is present,
+/// in its absence, only the first complete match and its related capturing groups is returned,
+/// otherwise null is returned if no match is found.
+/// <https://tc39.es/ecma262/#sec-string.prototype.match>
+pub fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let primitive_val: String = ctx.value_to_rust_string(this);
+    let mut regex_body = String::new();
+    let mut regex_flags = String::new();
+    match args[0].deref() {
+        ValueData::String(ref body) => {
+            // first argument is a string -> use it as regex pattern
+            regex_body = body.into();
+        }
+        ValueData::Object(ref obj) => {
+            let slots = &*obj.borrow().internal_slots;
+            if slots.get("RegExpMatcher").is_some() {
+                // first argument is another `RegExp` object, so copy its pattern and flags
+                if let Some(body) = slots.get("OriginalSource") {
+                    regex_body = from_value(body.clone()).unwrap();
+                }
+                if let Some(flags) = slots.get("OriginalFlags") {
+                    regex_flags = from_value(flags.clone()).unwrap();
+                }
+            }
+        }
+        _ => return Err(Gc::new(ValueData::Undefined)),
+    }
+    // parse flags
+    let mut pattern = String::new();
+    if regex_flags.contains('i') {
+        pattern.push('i');
+    }
+    if regex_flags.contains('m') {
+        pattern.push('m');
+    }
+    if regex_flags.contains('s') {
+        pattern.push('s');
+    }
+    if !pattern.is_empty() {
+        pattern = format!("(?{})", pattern);
+    }
+    pattern.push_str(regex_body.as_str());
+    let re = Regex::new(pattern.as_str()).expect("failed to create matcher");
+    let mut locations = re.capture_locations();
+    if regex_flags.contains('g') {
+        let mut result = Vec::new();
+        for mat in re.find_iter(&primitive_val) {
+            result.push(to_value(mat.as_str()));
+        }
+        if result.is_empty() {
+            return Ok(Gc::new(ValueData::Null));
+        }
+        Ok(to_value(result))
+    } else {
+        let result = match re.captures_read(&mut locations, primitive_val.as_str()) {
+            Some(m) => {
+                let mut result = Vec::with_capacity(locations.len());
+                for i in 0..locations.len() {
+                    if let Some((start, end)) = locations.get(i) {
+                        result.push(to_value(&primitive_val[start..end]));
+                    } else {
+                        result.push(Gc::new(ValueData::Undefined));
+                    }
+                }
+                let result = to_value(result);
+                result.set_prop_slice("index", Property::default().value(to_value(m.start())));
+                result.set_prop_slice("input", Property::default().value(to_value(primitive_val)));
+                result
+            }
+            None => Gc::new(ValueData::Null),
+        };
+        Ok(result)
+    }
+}
+
 /// Abstract method `StringPad`
 /// Performs the actual string padding for padStart/End.
 /// <https://tc39.es/ecma262/#sec-stringpad/>
@@ -688,6 +765,7 @@ pub fn create_constructor(global: &Value) -> Value {
     proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
     proto.set_field_slice("indexOf", to_value(index_of as NativeFunctionData));
     proto.set_field_slice("lastIndexOf", to_value(last_index_of as NativeFunctionData));
+    proto.set_field_slice("match", to_value(r#match as NativeFunctionData));
     proto.set_field_slice("padEnd", to_value(pad_end as NativeFunctionData));
     proto.set_field_slice("padStart", to_value(pad_start as NativeFunctionData));
     proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
@@ -856,5 +934,43 @@ mod tests {
         assert_eq!(forward(&mut engine, "emptyLiteral.endsWith('')"), pass);
         assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), pass);
         assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), pass);
+    }
+    #[test]
+    fn test_match() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var str = new String('The Quick Brown Fox Jumps Over The Lazy Dog');
+        var result1 = str.match(/quick\s(brown).+?(jumps)/i);
+        var result2 = str.match(/[A-Z]/g);
+        var result3 = str.match("T");
+        "#;
+
+        forward(&mut engine, init);
+        assert_eq!(forward(&mut engine, "result1[0]"), "Quick Brown Fox Jumps");
+        assert_eq!(forward(&mut engine, "result1[1]"), "Brown");
+        assert_eq!(forward(&mut engine, "result1[2]"), "Jumps");
+        assert_eq!(forward(&mut engine, "result1.index"), "4");
+        assert_eq!(
+            forward(&mut engine, "result1.input"),
+            "The Quick Brown Fox Jumps Over The Lazy Dog"
+        );
+
+        assert_eq!(forward(&mut engine, "result2[0]"), "T");
+        assert_eq!(forward(&mut engine, "result2[1]"), "Q");
+        assert_eq!(forward(&mut engine, "result2[2]"), "B");
+        assert_eq!(forward(&mut engine, "result2[3]"), "F");
+        assert_eq!(forward(&mut engine, "result2[4]"), "J");
+        assert_eq!(forward(&mut engine, "result2[5]"), "O");
+        assert_eq!(forward(&mut engine, "result2[6]"), "T");
+        assert_eq!(forward(&mut engine, "result2[7]"), "L");
+        assert_eq!(forward(&mut engine, "result2[8]"), "D");
+
+        assert_eq!(forward(&mut engine, "result3[0]"), "T");
+        assert_eq!(forward(&mut engine, "result3.index"), "0");
+        assert_eq!(
+            forward(&mut engine, "result3.input"),
+            "The Quick Brown Fox Jumps Over The Lazy Dog"
+        );
     }
 }
