@@ -604,6 +604,37 @@ mod tests {
     }
 
     #[test]
+    fn check_single_line_comment(){
+        let s = "var // x \n =";
+        let mut lexer = Lexer::new(s);
+        lexer.lex().expect("failed to lex");
+        assert_eq!(
+            lexer.tokens[0].data,
+            TokenData::Keyword(Keyword::Var)
+        );
+        assert_eq!(
+            lexer.tokens[1].data,
+            TokenData::Punctuator(Punctuator::Assign)
+        );
+    }
+
+    #[test]
+    fn check_multi_line_comment(){
+        let s = "var /* await \n break \n*/ x";
+        let mut lexer = Lexer::new(s);
+        lexer.lex().expect("failed to lex");
+        assert_eq!(
+            lexer.tokens[0].data,
+            TokenData::Keyword(Keyword::Var)
+        );
+        assert_eq!(
+            lexer.tokens[1].data,
+            TokenData::Identifier("x".to_string())
+        );
+
+    }
+
+    #[test]
     fn check_punctuators() {
         // https://tc39.es/ecma262/#sec-punctuators
         let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
