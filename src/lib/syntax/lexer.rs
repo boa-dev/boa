@@ -612,6 +612,7 @@ mod tests {
             lexer.tokens[0].data,
             TokenData::Keyword(Keyword::Var)
         );
+
         assert_eq!(
             lexer.tokens[1].data,
             TokenData::Punctuator(Punctuator::Assign)
@@ -627,11 +628,11 @@ mod tests {
             lexer.tokens[0].data,
             TokenData::Keyword(Keyword::Var)
         );
+        
         assert_eq!(
             lexer.tokens[1].data,
             TokenData::Identifier("x".to_string())
         );
-
     }
 
     #[test]
