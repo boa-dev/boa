@@ -5,8 +5,7 @@ use crate::{
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
         value::{from_value, to_value, ResultValue, Value, ValueData},
-        regexp::{make_regexp, exec as exec_regex},
-        array::{make_array, push as push_to_array},
+        regexp::{make_regexp, match_all as regexp_match_all},
     },
 };
 use gc::Gc;
@@ -663,40 +662,36 @@ pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     to_string(this, args, ctx)
 }
 
-/// Returns an iterator of all results matching a string against a regular expression, including capturing groups
+/// TODO: update this method to return iterator
+/// Returns an array* of all results matching a string against a regular expression, including capturing groups
 /// <https://tc39.es/ecma262/#sec-string.prototype.matchall>
 pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let val: Value = to_value(ctx.value_to_rust_string(this));
-    let regexp: Value = match args.get(0) {
-        Some(arg) => from_value(arg.clone()).map_err(to_value),
+    let re: Value = match args.get(0) {
+        Some(arg) => if arg == &Gc::new(ValueData::Null) {
+            // TODO: should null be converted to string?
+            make_regexp(
+                &to_value(Object::default()),
+                &[to_value(ctx.value_to_rust_string(arg)), to_value(String::from("g"))],
+                ctx
+            )
+        } else if arg == &Gc::new(ValueData::Undefined) {
+            make_regexp(
+                &to_value(Object::default()),
+                &[Gc::new(ValueData::Undefined), to_value(String::from("g"))],
+                ctx
+            )
+        } else {
+            from_value(arg.clone()).map_err(to_value)
+        },
         None => make_regexp(
             &to_value(Object::default()),
-            &[to_value(String::from("(?:)")), to_value(String::from("g"))],
+            &[to_value(String::new()), to_value(String::from("g"))],
             ctx
-        ),
+        )
     }?.clone();
 
-    let mut matches: Vec<Value> = Vec::new();
-    let js_null = Gc::new(ValueData::Null);
 
-    loop {
-        match exec_regex(&regexp, &[val.clone()], ctx) {
-            Ok(result) => {
-                if result != js_null {
-                    matches.push(result.clone());
-                } else {
-                    break;
-                }
-            },
-            Err(e) => return Err(e),
-        };
-    }
-
-
-    let arr = make_array(&to_value(Object::default()), &[], ctx)?;
-    push_to_array(&arr, &matches[..], ctx)?;
-
-    Ok(to_value(arr))
+    regexp_match_all(&re, ctx.value_to_rust_string(this))
 }
 
 /// Create a new `String` object
@@ -901,18 +896,21 @@ mod tests {
     fn match_all() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
+
+        assert_eq!(forward(&mut engine, "'aa'.matchAll(null).length"), String::from("0"));
+        assert_eq!(forward(&mut engine, "'aa'.matchAll(/b/).length"), String::from("0"));
+        assert_eq!(forward(&mut engine, "'aa'.matchAll(/a/).length"), String::from("1"));
+        assert_eq!(forward(&mut engine, "'aa'.matchAll(/a/g).length"), String::from("2"));
+
         let init = r#"
-        const regexp = RegExp('[a-c]','');
-        const str = 'abc';
-        const result = str.matchAll(regexp);
+        const regexp = RegExp('foo[a-z]*','g');
+        const str = 'table football, foosball';
+        const matches = str.matchAll(regexp);
         "#;
         forward(&mut engine, init);
-
-        println!("{:?}", forward(&mut engine, "[['a']]"));
-        println!("{:?}", forward(&mut engine, "result;"));
-        println!("{:?}", forward(&mut engine, "result.length;"));
-
-        assert!(false);
-        // assert_eq!(forward(&mut engine, "result;"), forward(&mut engine, "['a']"));
+        assert_eq!(forward(&mut engine, "matches[0][0]"), String::from("football"));
+        assert_eq!(forward(&mut engine, "matches[0].index"), String::from("6"));
+        assert_eq!(forward(&mut engine, "matches[1][0]"), String::from("foosball"));
+        assert_eq!(forward(&mut engine, "matches[1].index"), String::from("16"));
     }
 }
