@@ -66,7 +66,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     }
 }
 
-/// Execute the code using an existing Interpreter
+/// Execute the code using an existing Interpreter.
 /// The str is consumed and the state of the Interpreter is changed
 /// Similar to `forward`, except the current value is returned instad of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
