@@ -38,5 +38,6 @@ pub fn create_constructor(global: &Value) -> Value {
 
     let json_value = to_value(json);
     json_value.set_field_slice(PROTOTYPE, prototype);
+    
     json_value
 }
