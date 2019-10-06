@@ -668,7 +668,6 @@ pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let re: Value = match args.get(0) {
         Some(arg) => if arg == &Gc::new(ValueData::Null) {
-            // TODO: should null be converted to string?
             make_regexp(
                 &to_value(Object::default()),
                 &[to_value(ctx.value_to_rust_string(arg)), to_value(String::from("g"))],
