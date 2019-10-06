@@ -4,8 +4,8 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{from_value, to_value, ResultValue, Value, ValueData},
         regexp::{make_regexp, match_all as regexp_match_all},
+        value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
 use gc::Gc;
@@ -667,28 +667,33 @@ pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 /// <https://tc39.es/ecma262/#sec-string.prototype.matchall>
 pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let re: Value = match args.get(0) {
-        Some(arg) => if arg == &Gc::new(ValueData::Null) {
-            make_regexp(
-                &to_value(Object::default()),
-                &[to_value(ctx.value_to_rust_string(arg)), to_value(String::from("g"))],
-                ctx
-            )
-        } else if arg == &Gc::new(ValueData::Undefined) {
-            make_regexp(
-                &to_value(Object::default()),
-                &[Gc::new(ValueData::Undefined), to_value(String::from("g"))],
-                ctx
-            )
-        } else {
-            from_value(arg.clone()).map_err(to_value)
-        },
+        Some(arg) => {
+            if arg == &Gc::new(ValueData::Null) {
+                make_regexp(
+                    &to_value(Object::default()),
+                    &[
+                        to_value(ctx.value_to_rust_string(arg)),
+                        to_value(String::from("g")),
+                    ],
+                    ctx,
+                )
+            } else if arg == &Gc::new(ValueData::Undefined) {
+                make_regexp(
+                    &to_value(Object::default()),
+                    &[Gc::new(ValueData::Undefined), to_value(String::from("g"))],
+                    ctx,
+                )
+            } else {
+                from_value(arg.clone()).map_err(to_value)
+            }
+        }
         None => make_regexp(
             &to_value(Object::default()),
             &[to_value(String::new()), to_value(String::from("g"))],
-            ctx
-        )
-    }?.clone();
-
+            ctx,
+        ),
+    }?
+    .clone();
 
     regexp_match_all(&re, ctx.value_to_rust_string(this))
 }
@@ -896,10 +901,22 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
 
-        assert_eq!(forward(&mut engine, "'aa'.matchAll(null).length"), String::from("0"));
-        assert_eq!(forward(&mut engine, "'aa'.matchAll(/b/).length"), String::from("0"));
-        assert_eq!(forward(&mut engine, "'aa'.matchAll(/a/).length"), String::from("1"));
-        assert_eq!(forward(&mut engine, "'aa'.matchAll(/a/g).length"), String::from("2"));
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(null).length"),
+            String::from("0")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/b/).length"),
+            String::from("0")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/a/).length"),
+            String::from("1")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/a/g).length"),
+            String::from("2")
+        );
 
         let init = r#"
         const regexp = RegExp('foo[a-z]*','g');
@@ -907,9 +924,15 @@ mod tests {
         const matches = str.matchAll(regexp);
         "#;
         forward(&mut engine, init);
-        assert_eq!(forward(&mut engine, "matches[0][0]"), String::from("football"));
+        assert_eq!(
+            forward(&mut engine, "matches[0][0]"),
+            String::from("football")
+        );
         assert_eq!(forward(&mut engine, "matches[0].index"), String::from("6"));
-        assert_eq!(forward(&mut engine, "matches[1][0]"), String::from("foosball"));
+        assert_eq!(
+            forward(&mut engine, "matches[1][0]"),
+            String::from("foosball")
+        );
         assert_eq!(forward(&mut engine, "matches[1].index"), String::from("16"));
     }
 }

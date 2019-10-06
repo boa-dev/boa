@@ -268,7 +268,10 @@ pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
             for m in regex.matcher.find_iter(&arg_str) {
                 let value = to_value(vec![m.as_str()]);
                 value.set_prop_slice("index", Property::default().value(to_value(m.start())));
-                value.set_prop_slice("input", Property::default().value(to_value(arg_str.clone())));
+                value.set_prop_slice(
+                    "input",
+                    Property::default().value(to_value(arg_str.clone())),
+                );
                 matches.push(value);
             }
         } else {
@@ -280,7 +283,10 @@ pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
                 if let Some((start, end)) = locations.get(0) {
                     let value = to_value(vec![&arg_str[start..end]]);
                     value.set_prop_slice("index", Property::default().value(to_value(m.start())));
-                    value.set_prop_slice("input", Property::default().value(to_value(arg_str.clone())));
+                    value.set_prop_slice(
+                        "input",
+                        Property::default().value(to_value(arg_str.clone())),
+                    );
                     matches.push(value);
                 } else {
                     matches.push(Gc::new(ValueData::Undefined));
