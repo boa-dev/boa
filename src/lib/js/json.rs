@@ -1,10 +1,10 @@
 use crate::exec::Interpreter;
 use crate::js::function::NativeFunctionData;
+use crate::js::object::{Object, ObjectKind, PROTOTYPE};
 /// The JSON Object
 /// <https://tc39.github.io/ecma262/#sec-json-object>
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
 use serde_json::{self, to_string_pretty, Value as JSONValue};
-use crate::js::object::{Object, ObjectKind, PROTOTYPE};
 
 /// Parse a JSON string into a Javascript object
 /// <https://tc39.github.io/ecma262/#sec-json.parse>
@@ -38,6 +38,6 @@ pub fn create_constructor(global: &Value) -> Value {
 
     let json_value = to_value(json);
     json_value.set_field_slice(PROTOTYPE, prototype);
-    
+
     json_value
 }
