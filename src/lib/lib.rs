@@ -48,7 +48,7 @@ use crate::{
 <<<<<<< HEAD
     builtins::value::ResultValue,
 =======
-    js::value::ResultValue,
+    buitins::value::ResultValue,
     realm::Realm,
 >>>>>>> upstream/master
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},

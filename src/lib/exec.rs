@@ -5,7 +5,7 @@ use crate::{
         array, boolean, console, function,
 =======
     environment::lexical_environment::new_function_environment,
-    js::{
+    buitins::{
 >>>>>>> upstream/master
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},

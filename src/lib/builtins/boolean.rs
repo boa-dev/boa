@@ -95,7 +95,7 @@ mod tests {
     use crate::{forward, forward_val, builtins::value::same_value};
 =======
     use crate::realm::Realm;
-    use crate::{forward, forward_val, js::value::same_value};
+    use crate::{forward, forward_val, buitins::value::same_value};
 >>>>>>> upstream/master:src/lib/js/boolean.rs
 
     #[test]

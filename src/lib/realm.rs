@@ -10,7 +10,7 @@ use crate::{
         lexical_environment::LexicalEnvironment,
         object_environment_record::ObjectEnvironmentRecord,
     },
-    js::{
+    buitins::{
         array, boolean, console, function, json, math, object, regexp, string,
         value::{Value, ValueData},
     },

@@ -137,7 +137,7 @@ mod tests {
     use crate::{forward, forward_val, builtins::value::from_value};
 =======
     use crate::realm::Realm;
-    use crate::{forward, forward_val, js::value::from_value};
+    use crate::{forward, forward_val, buitins::value::from_value};
 >>>>>>> upstream/master:src/lib/js/function.rs
 
     #[test]
