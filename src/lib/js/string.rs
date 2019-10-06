@@ -669,16 +669,20 @@ pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let val: Value = to_value(ctx.value_to_rust_string(this));
     let regexp: Value = match args.get(0) {
         Some(arg) => from_value(arg.clone()).map_err(to_value),
-        None => make_regexp(&to_value(Object::default()), &[to_value(String::from(""))], ctx),
+        None => make_regexp(
+            &to_value(Object::default()),
+            &[to_value(String::from("(?:)")), to_value(String::from("g"))],
+            ctx
+        ),
     }?.clone();
 
     let mut matches: Vec<Value> = Vec::new();
-    let null = Gc::new(ValueData::Null);
+    let js_null = Gc::new(ValueData::Null);
 
     loop {
         match exec_regex(&regexp, &[val.clone()], ctx) {
             Ok(result) => {
-                if result != null {
+                if result != js_null {
                     matches.push(result.clone());
                 } else {
                     break;
