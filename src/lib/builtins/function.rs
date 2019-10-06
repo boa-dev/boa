@@ -133,11 +133,17 @@ pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) -> Value {
 #[cfg(test)]
 mod tests {
     use crate::exec::Executor;
+<<<<<<< HEAD:src/lib/builtins/function.rs
     use crate::{forward, forward_val, builtins::value::from_value};
+=======
+    use crate::realm::Realm;
+    use crate::{forward, forward_val, js::value::from_value};
+>>>>>>> upstream/master:src/lib/js/function.rs
 
     #[test]
     fn check_arguments_object() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         function jason(a, b) {
             return arguments[0];

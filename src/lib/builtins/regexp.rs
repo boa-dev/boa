@@ -292,10 +292,12 @@ mod tests {
     use super::*;
     use crate::exec::Executor;
     use crate::forward;
+    use crate::realm::Realm;
 
     #[test]
     fn test_constructors() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         let constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
         let literal = /[0-9]+(\.[0-9]+)?/;
@@ -345,7 +347,8 @@ mod tests {
 
     #[test]
     fn test_last_index() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         let regex = /[0-9]+(\.[0-9]+)?/g;
         "#;
@@ -360,7 +363,8 @@ mod tests {
 
     #[test]
     fn test_exec() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         var re = /quick\s(brown).+?(jumps)/ig;
         var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
@@ -379,7 +383,8 @@ mod tests {
 
     #[test]
     fn test_to_string() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
 
         assert_eq!(
             forward(&mut engine, "(new RegExp('a+b+c')).toString()"),
