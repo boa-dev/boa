@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use crate::{
     exec::Interpreter,
     js::{
@@ -7,6 +8,7 @@ use crate::{
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
+use regex::Regex;
 use gc::Gc;
 use std::{
     cmp::{max, min},
@@ -602,6 +604,41 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     Ok(to_value(extracted_string))
 }
 
+fn get_regex_string(value: &Value) -> String {
+    let mut regex_body = String::new();
+    match value.deref() {
+        ValueData::String(ref body) => {
+            // first argument is a string -> use it as regex pattern
+            regex_body = body.into();
+        }
+        ValueData::Object(ref obj) => {
+            let slots = &*obj.borrow().internal_slots;
+            if slots.get("RegExpMatcher").is_some() {
+                // first argument is another `RegExp` object, so copy its pattern and flags
+                if let Some(body) = slots.get("OriginalSource") {
+                    regex_body = from_value(r#body.clone()).unwrap();
+                }
+            }
+        }
+        _ => return "undefined".to_string(),
+    }
+    regex_body
+}
+
+pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let primitive_val: String = ctx.value_to_rust_string(this);
+    if args.is_empty() {
+        return Ok(to_value(primitive_val));
+    }
+    let regex_body = get_regex_string(&args[0]);
+    let re = Regex::new(&regex_body).unwrap();
+    let replace_value: String = if args.len() > 1 { from_value(args[1].clone()).unwrap() } else { "undefined".to_string() };
+    
+    let mat = re.find(&primitive_val).unwrap();
+    
+    Ok(to_value(primitive_val.replacen(&mat.as_str(), &replace_value, 1)))
+}
+
 /// Return a String which is a subset of the String value resulting from converting this object to a String.
 /// The subset of the string starts at the start index and is at most length code units long, depending if the string is shorter.
 /// When only the start index is specified, the length become the length of the string.
@@ -697,6 +734,7 @@ pub fn create_constructor(global: &Value) -> Value {
     proto.set_field_slice("substring", to_value(substring as NativeFunctionData));
     proto.set_field_slice("substr", to_value(substr as NativeFunctionData));
     proto.set_field_slice("valueOf", to_value(value_of as NativeFunctionData));
+    proto.set_field_slice("replace", to_value(replace as NativeFunctionData));
 
     let string = to_value(string_constructor);
     proto.set_field_slice("constructor", string.clone());
