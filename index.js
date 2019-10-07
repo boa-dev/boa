@@ -6,12 +6,12 @@ const rust = import("./pkg");
 
 rust.then(m => {
   window.evaluate = m.evaluate;
-  let button = document.querySelector("button");
-  button.addEventListener("click", clickHandler);
+  let textarea = document.querySelector("textarea");
+  textarea.addEventListener("input", inputHandler);
 });
 
-function clickHandler(evt) {
-  let text = document.querySelector("textarea").value;
+function inputHandler(evt) {
+  let text = evt.target.value;
   let p = document.querySelector("p.output");
   let t0 = performance.now();
   let result = window.evaluate(text);
