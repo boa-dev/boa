@@ -551,6 +551,10 @@ impl ValueData {
             }
         }
     }
+
+    pub fn as_num_to_power(&self, other: ValueData) -> ValueData {
+        ValueData::Number(self.to_num().powf(other.to_num()))
+    }
 }
 
 impl Default for ValueData {

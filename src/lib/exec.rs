@@ -39,6 +39,7 @@ fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
         AssignOp::Add => v_a + v_b,
         AssignOp::Sub => v_a - v_b,
         AssignOp::Mul => v_a * v_b,
+        AssignOp::Pow => v_a.as_num_to_power(v_b),
         AssignOp::Div => v_a / v_b,
         AssignOp::Mod => v_a % v_b,
         AssignOp::And => v_a & v_b,
@@ -227,6 +228,7 @@ impl Executor for Interpreter {
                     NumOp::Add => v_a + v_b,
                     NumOp::Sub => v_a - v_b,
                     NumOp::Mul => v_a * v_b,
+                    NumOp::Pow => v_a.as_num_to_power(v_b),
                     NumOp::Div => v_a / v_b,
                     NumOp::Mod => v_a % v_b,
                 }))
