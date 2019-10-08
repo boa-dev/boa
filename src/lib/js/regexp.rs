@@ -62,10 +62,10 @@ pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {
-                    regex_body = from_value(body.clone()).unwrap();
+                    regex_body = from_value(body.clone()).expect("Could not convert value to String");
                 }
                 if let Some(flags) = slots.get("OriginalFlags") {
-                    regex_flags = from_value(flags.clone()).unwrap();
+                    regex_flags = from_value(flags.clone()).expect("Could not convert value to String");
                 }
             }
         }

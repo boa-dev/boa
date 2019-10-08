@@ -122,7 +122,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     fn get_binding_value(&self, name: &str, _strict: bool) -> Value {
         if self.env_rec.get(name).is_some() && self.env_rec.get(name).unwrap().value.is_some() {
             let record: &DeclarativeEnvironmentRecordBinding = self.env_rec.get(name).unwrap();
-            record.value.as_ref().unwrap().clone()
+            record.value.as_ref().expect("Could not get record as reference").clone()
         } else {
             // TODO: change this when error handling comes into play
             panic!("ReferenceError: Cannot get binding value for {}", name);

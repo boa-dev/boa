@@ -55,8 +55,8 @@ pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultVa
     match args.len() {
         0 => construct_array(this, &[]),
         1 => {
-            let array = construct_array(this, &[]).unwrap();
-            let size: i32 = from_value(args[0].clone()).unwrap();
+            let array = construct_array(this, &[]).expect("Could not construct array");
+            let size: i32 = from_value(args[0].clone()).expect("Could not convert argument to i32");
             array.set_field_slice("length", to_value(size));
             Ok(array)
         }
@@ -87,13 +87,13 @@ pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     // one)
     let mut new_values: Vec<Value> = Vec::new();
 
-    let this_length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let this_length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..this_length {
         new_values.push(this.get_field(&n.to_string()));
     }
 
     for concat_array in args {
-        let concat_length: i32 = from_value(concat_array.get_field_slice("length")).unwrap();
+        let concat_length: i32 = from_value(concat_array.get_field_slice("length")).expect("Could not convert argument to i32");
         for n in 0..concat_length {
             new_values.push(concat_array.get_field(&n.to_string()));
         }
@@ -118,7 +118,7 @@ pub fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The last element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.pop>
 pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let curr_length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let curr_length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     if curr_length < 1 {
         return Err(to_value(
             "Cannot pop() on an array with zero length".to_string(),
@@ -145,7 +145,7 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     };
 
     let mut elem_strs: Vec<String> = Vec::new();
-    let length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..length {
         let elem_str: String = this.get_field(&n.to_string()).to_string();
         elem_strs.push(elem_str);
@@ -160,7 +160,7 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The object is returned as the result of the call.
 /// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
 pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     let middle: i32 = len / 2;
 
     for lower in 0..middle {
@@ -192,7 +192,7 @@ pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The first element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.shift/>
 pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
 
     if len == 0 {
         this.set_field_slice("length", to_value(0_i32));
@@ -227,7 +227,7 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// argument list.
 /// <https://tc39.es/ecma262/#sec-array.prototype.unshift/>
 pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     let arg_c: i32 = args.len() as i32;
 
     if arg_c > 0 {

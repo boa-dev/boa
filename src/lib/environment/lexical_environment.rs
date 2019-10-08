@@ -129,7 +129,7 @@ impl LexicalEnvironment {
     /// When neededing to clone an environment (linking it with another environnment)
     /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
     pub fn get_current_environment(&mut self) -> &mut Environment {
-        self.environment_stack.back_mut().unwrap()
+        self.environment_stack.back_mut().expect("Could not get mutable reference to back object")
     }
 
     pub fn get_binding_value(&mut self, name: &str) -> Value {
@@ -144,10 +144,10 @@ impl LexicalEnvironment {
         if borrowed_env.get_outer_environment().is_some() {
             let mut outer: Option<Environment> = borrowed_env.get_outer_environment();
             while outer.is_some() {
-                if outer.as_ref().unwrap().borrow().has_binding(&name) {
-                    return outer.unwrap().borrow().get_binding_value(name, false);
+                if outer.as_ref().expect("Could not get outer as reference").borrow().has_binding(&name) {
+                    return outer.expect("Outer was None").borrow().get_binding_value(name, false);
                 }
-                outer = outer.unwrap().borrow().get_outer_environment();
+                outer = outer.expect("Outer was None").borrow().get_outer_environment();
             }
         }
 

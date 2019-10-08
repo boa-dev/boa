@@ -14,7 +14,7 @@ pub fn abs(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .abs()
     }))
 }
@@ -24,7 +24,7 @@ pub fn acos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .acos()
     }))
 }
@@ -34,7 +34,7 @@ pub fn asin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .asin()
     }))
 }
@@ -44,7 +44,7 @@ pub fn atan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .atan()
     }))
 }
@@ -54,7 +54,7 @@ pub fn atan2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .atan2(args.get(1).unwrap().to_num())
     }))
 }
@@ -64,7 +64,7 @@ pub fn cbrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .cbrt()
     }))
 }
@@ -74,7 +74,7 @@ pub fn ceil(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .ceil()
     }))
 }
@@ -84,7 +84,7 @@ pub fn cos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .cos()
     }))
 }
@@ -94,7 +94,7 @@ pub fn exp(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .exp()
     }))
 }
@@ -104,7 +104,7 @@ pub fn floor(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .floor()
     }))
 }
@@ -114,7 +114,7 @@ pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .log(f64::consts::E)
     }))
 }
@@ -139,8 +139,8 @@ pub fn min(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Raise a number to a power
 pub fn pow(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.len() >= 2 {
-        let num: f64 = from_value(args.get(0).unwrap().clone()).unwrap();
-        let power: f64 = from_value(args.get(1).unwrap().clone()).unwrap();
+        let num: f64 = from_value(args.get(0).unwrap().clone()).expect("Could not convert argument to f64");
+        let power: f64 = from_value(args.get(1).unwrap().clone()).expect("Could not convert argument to f64");
         num.powf(power)
     } else {
         f64::NAN
@@ -156,7 +156,7 @@ pub fn round(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .round()
     }))
 }
@@ -166,7 +166,7 @@ pub fn sin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .sin()
     }))
 }
@@ -176,7 +176,7 @@ pub fn sqrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .sqrt()
     }))
 }
@@ -186,7 +186,7 @@ pub fn tan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         f64::NAN
     } else {
         from_value::<f64>(args.get(0).unwrap().clone())
-            .unwrap()
+            .expect("Could not convert argument to f64")
             .tan()
     }))
 }

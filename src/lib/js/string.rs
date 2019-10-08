@@ -203,7 +203,7 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
 
     let mut new_str = String::new();
     for i in from..from + span {
-        new_str.push(primitive_val.chars().nth(i as usize).unwrap());
+        new_str.push(primitive_val.chars().nth(i as usize).expect("Could not get nth char"));
     }
     Ok(to_value(new_str))
 }
@@ -272,7 +272,7 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let end_position: i32 = if args.len() < 2 {
         length
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args[1].clone()).expect("Could not convert value to i32")
     };
 
     let end = min(max(end_position, 0), length);
@@ -311,7 +311,7 @@ pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args[1].clone()).expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -347,7 +347,7 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args[1].clone()).expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -392,7 +392,7 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args[1].clone()).expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -471,7 +471,7 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap()),
+        _ => Some(from_value(args[1].clone()).expect("Could not convert value to Option<String>")),
     };
 
     string_pad(primitive_val, max_length, fill_string, false)
@@ -495,7 +495,7 @@ pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap()),
+        _ => Some(from_value(args[1].clone()).expect("Could not convert value to Option<String>")),
     };
 
     string_pad(primitive_val, max_length, fill_string, true)

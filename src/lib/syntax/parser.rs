@@ -201,7 +201,7 @@ impl Parser {
                     ExprDef::If(
                         Box::new(cond),
                         Box::new(expr),
-                        if next.is_ok() && next.unwrap().data == TokenData::Keyword(Keyword::Else) {
+                        if next.is_ok() && next.expect("Could not get next value").data == TokenData::Keyword(Keyword::Else) {
                             self.pos += 1;
                             Some(Box::new(self.parse()?))
                         } else {
@@ -243,7 +243,7 @@ impl Parser {
                                     _ => block.push(self.parse()?),
                                 }
                             }
-                            cases.push((cond.unwrap(), block));
+                            cases.push((cond.expect("No condition supplied"), block));
                         }
                         TokenData::Keyword(Keyword::Default) => {
                             let mut block = Vec::new();
@@ -276,7 +276,7 @@ impl Parser {
                 Ok(mk!(
                     self,
                     ExprDef::Switch(
-                        Box::new(value.unwrap()),
+                        Box::new(value.expect("Could not get value")),
                         cases,
                         match default {
                             Some(v) => Some(Box::new(v)),

@@ -180,7 +180,7 @@ impl<'a> Lexer<'a> {
         F: FnMut(char) -> bool,
     {
         let mut s = String::new();
-        while self.buffer.peek().is_some() && f(self.preview_next().unwrap()) {
+        while self.buffer.peek().is_some() && f(self.preview_next().expect("Could not preview next value")) {
             s.push(self.next()?);
         }
 
@@ -253,7 +253,7 @@ impl<'a> Lexer<'a> {
                                             if self.next_is('{') {
                                                 let s = self
                                                     .take_char_while(char::is_alphanumeric)
-                                                    .unwrap();
+                                                    .expect("Could not read chars");
 
                                                 // We know this is a single unicode codepoint, convert to u32
                                                 let as_num = match u32::from_str_radix(&s, 16) {
@@ -272,7 +272,7 @@ impl<'a> Lexer<'a> {
                                                     // Collect each character after \u e.g \uD83D will give "D83D"
                                                     let s = self
                                                         .take_char_while(char::is_alphanumeric)
-                                                        .unwrap();
+                                                        .expect("Could not read chars");
 
                                                     // Convert to u16
                                                     let as_num = match u16::from_str_radix(&s, 16) {
@@ -294,8 +294,8 @@ impl<'a> Lexer<'a> {
                                                 // Rust's decode_utf16 will deal with it regardless
                                                 decode_utf16(codepoints.iter().cloned())
                                                     .next()
-                                                    .unwrap()
-                                                    .unwrap()
+                                                    .expect("Could not get next codepoint")
+                                                    .expect("Could not get next codepoint")
                                             }
                                         }
                                         '\'' | '"' | '\\' => escape,
@@ -327,7 +327,7 @@ impl<'a> Lexer<'a> {
                                 break;
                             }
                         }
-                        u64::from_str_radix(&buf, 16).unwrap()
+                        u64::from_str_radix(&buf, 16).expect("Could not convert value to u64")
                     } else if self.next_is('b') {
                         while let Some(ch) = self.preview_next() {
                             if ch.is_digit(2) {
@@ -336,7 +336,7 @@ impl<'a> Lexer<'a> {
                                 break;
                             }
                         }
-                        u64::from_str_radix(&buf, 2).unwrap()
+                        u64::from_str_radix(&buf, 2).expect("Could not convert value to u64")
                     } else {
                         let mut gone_decimal = false;
                         loop {
@@ -358,11 +358,11 @@ impl<'a> Lexer<'a> {
                             }
                         }
                         if gone_decimal {
-                            u64::from_str(&buf).unwrap()
+                            u64::from_str(&buf).expect("Could not convert value to u64r")
                         } else if buf.is_empty() {
                             0
                         } else {
-                            u64::from_str_radix(&buf, 8).unwrap()
+                            u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
                         }
                     };
                     self.push_token(TokenData::NumericLiteral(num as f64))
@@ -393,7 +393,7 @@ impl<'a> Lexer<'a> {
                         }
                     }
                     // TODO make this a bit more safe -------------------------------VVVV
-                    self.push_token(TokenData::NumericLiteral(f64::from_str(&buf).unwrap()))
+                    self.push_token(TokenData::NumericLiteral(f64::from_str(&buf).expect("Could not convert value to f64")))
                 }
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();
