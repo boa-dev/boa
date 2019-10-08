@@ -763,6 +763,7 @@ mod tests {
         //assert_eq!(b, String::from("Hello, world! Have a nice day."));
     }
 
+    #[allow(clippy::result_unwrap_used)]
     #[test]
     /// Test the correct type is returned from call and construct
     fn construct_and_call() {

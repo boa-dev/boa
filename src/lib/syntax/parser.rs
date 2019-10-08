@@ -839,6 +839,7 @@ mod tests {
         lexer::Lexer,
     };
 
+    #[allow(clippy::result_unwrap_used)]
     fn check_parser(js: &str, expr: &[Expr]) {
         let mut lexer = Lexer::new(js);
         lexer.lex().expect("failed to lex");

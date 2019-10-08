@@ -582,6 +582,7 @@ impl<'a> Lexer<'a> {
     }
 }
 
+#[allow(clippy::indexing_slicing)]
 #[cfg(test)]
 mod tests {
     use super::*;
