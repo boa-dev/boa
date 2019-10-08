@@ -374,12 +374,12 @@ impl<'a> Lexer<'a> {
                             '.' => loop {
                                 buf.push(self.next()?);
 
-                                let ch = match self.preview_next() {
+                                let c = match self.preview_next() {
                                     Some(ch) => ch,
                                     None => break,
                                 };
 
-                                if !ch.is_digit(10) {
+                                if !c.is_digit(10) {
                                     break 'digitloop;
                                 }
                             },
@@ -573,7 +573,7 @@ impl<'a> Lexer<'a> {
                     self.column_number = 0;
                 }
                 ' ' => (),
-                ch => panic!(
+                _ => panic!(
                     "{}:{}: Unexpected '{}'",
                     self.line_number, self.column_number, ch
                 ),
