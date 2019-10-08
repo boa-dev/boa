@@ -13,7 +13,15 @@ Features:
 Feature enhancements:
 
 - [FEATURE #119](https://github.com/jasonwilliams/boa/issues/119):
-  Introduce realm struct to hold realm context and global object
+  Introduce realm struct to hold realm context and global object.
+- [FEATURE #89](https://github.com/jasonwilliams/boa/issues/89):
+  Implement exponentiation operator. Thanks @arbroween
+- Demo page has been improved, new font plus change on input. Thanks @WofWca
+
+Bug fixes:
+
+- [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
+  Unassigned variables have default of undefined (@pop)
 
 Bug fixes:
 
