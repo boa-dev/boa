@@ -588,6 +588,26 @@ mod tests {
     use crate::syntax::ast::keyword::Keyword;
 
     #[test]
+    fn check_single_line_comment() {
+        let s1 = "var \n//=\nx";
+        let mut lexer = Lexer::new(s1);
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
+
+        assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
+    }
+
+    #[test]
+    fn check_multi_line_comment() {
+        let s = "var /* await \n break \n*/ x";
+        let mut lexer = Lexer::new(s);
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
+
+        assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
+    }
+
+    #[test]
     fn check_string() {
         let s = "'aaa' \"bbb\"";
         let mut lexer = Lexer::new(s);

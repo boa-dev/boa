@@ -118,15 +118,12 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     println!("{}", args.join(" "));
     Ok(Gc::new(ValueData::Undefined))
 }
+
 /// Create a new `console` object
-pub fn _create(global: &Value) -> Value {
+pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
     console.set_field_slice("log", to_value(log as NativeFunctionData));
     console.set_field_slice("error", to_value(error as NativeFunctionData));
     console.set_field_slice("exception", to_value(error as NativeFunctionData));
     console
-}
-/// Initialise the global object with the `console` object
-pub fn init(global: &Value) {
-    global.set_field_slice("console", _create(global));
 }
