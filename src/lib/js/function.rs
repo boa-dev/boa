@@ -115,22 +115,16 @@ pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) -> Value {
     obj.define_own_property("length".to_string(), length);
     let mut index: usize = 0;
     while index < len {
-        match arguments_list.get(index) {
-            Some(val) => {
-                let mut prop = Property::default();
-                prop = prop
-                    .value(val.clone())
-                    .enumerable(true)
-                    .writable(true)
-                    .configurable(true);
+        let val = arguments_list.get(index).expect("Could not get argument");
+        let mut prop = Property::default();
+        prop = prop
+            .value(val.clone())
+            .enumerable(true)
+            .writable(true)
+            .configurable(true);
 
-                obj.properties.insert(index.to_string(), prop);
-                index += 1;
-            },
-            None => {
-                panic!("Could not get argument");
-            }
-        }
+        obj.properties.insert(index.to_string(), prop);
+        index += 1;
     }
 
     to_value(obj)

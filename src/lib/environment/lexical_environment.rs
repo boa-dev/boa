@@ -91,14 +91,8 @@ impl LexicalEnvironment {
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
-        match &self.environment_stack.get(0) {
-            Some(global) => {
-                global.borrow().get_global_object()
-            },
-            None => {
-                panic!("Could not get environment");
-            }
-        }
+        self.environment_stack.get(0).expect("").borrow().get_global_object()
+        
     }
 
     pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
@@ -127,14 +121,7 @@ impl LexicalEnvironment {
     /// (you only need to add a new variable binding, or you want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
         let index = self.environment_stack.len().wrapping_sub(1);
-        match &self.environment_stack.get(index) {
-            Some(environment) => {
-                environment
-            },
-            None => {
-                panic!("Could not get current environment");
-            }
-        }
+        &self.environment_stack.get(index).expect("Could not get current environment")
     }
 
     /// When neededing to clone an environment (linking it with another environnment)
