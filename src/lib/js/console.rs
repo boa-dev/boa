@@ -59,7 +59,7 @@ fn log_string_from(x: Value) -> String {
                                 .clone(),
                         );
                         write!(s, "{}", arr_str).unwrap();
-                        if i != len - 1 {
+                        if i != len.wrapping_sub(1) {
                             write!(s, ", ").unwrap();
                         }
                     }

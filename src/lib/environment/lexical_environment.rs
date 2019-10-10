@@ -122,7 +122,7 @@ impl LexicalEnvironment {
     pub fn get_current_environment_ref(&self) -> &Environment {
         &self
             .environment_stack
-            .get(self.environment_stack.len() - 1)
+            .get(self.environment_stack.len().wrapping_sub(1))
             .unwrap()
     }
 

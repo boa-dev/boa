@@ -35,11 +35,11 @@ fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
         from_value(array_ptr.get_field_slice("length")).expect("failed to conveert lenth to i32");
 
     for (n, value) in add_values.iter().enumerate() {
-        let new_index = orig_length + (n as i32);
+        let new_index = orig_length.wrapping_add(n as i32);
         array_ptr.set_field(new_index.to_string(), value.clone());
     }
 
-    array_ptr.set_field_slice("length", to_value(orig_length + add_values.len() as i32));
+    array_ptr.set_field_slice("length", to_value(orig_length.wrapping_add(add_values.len() as i32)));
 
     Ok(array_ptr.clone())
 }
@@ -124,7 +124,7 @@ pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
             "Cannot pop() on an array with zero length".to_string(),
         ));
     }
-    let pop_index = curr_length - 1;
+    let pop_index = curr_length.wrapping_sub(1);
     let pop_value: Value = this.get_field(&pop_index.to_string());
     this.remove_prop(&pop_index.to_string());
     this.set_field_slice("length", to_value(pop_index));
@@ -162,10 +162,10 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 #[allow(clippy::else_if_without_else)]
 pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
-    let middle: i32 = len / 2;
+    let middle: i32 = len.wrapping_div(2);
 
     for lower in 0..middle {
-        let upper = len - lower - 1;
+        let upper = len.wrapping_sub(lower).wrapping_sub(1);
 
         let upper_exists = this.has_field(&upper.to_string());
         let lower_exists = this.has_field(&lower.to_string());
@@ -205,7 +205,7 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 
     for k in 1..len {
         let from = k.to_string();
-        let to = (k - 1).to_string();
+        let to = (k.wrapping_sub(1)).to_string();
 
         let from_value = this.get_field(&from);
         if from_value == Gc::new(ValueData::Undefined) {
@@ -215,8 +215,9 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         }
     }
 
-    this.remove_prop(&(len - 1).to_string());
-    this.set_field_slice("length", to_value(len - 1));
+    let final_index = len.wrapping_sub(1);
+    this.remove_prop(&(final_index).to_string());
+    this.set_field_slice("length", to_value(final_index));
 
     Ok(first)
 }
@@ -233,8 +234,8 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
 
     if arg_c > 0 {
         for k in (1..=len).rev() {
-            let from = (k - 1).to_string();
-            let to = (k + arg_c - 1).to_string();
+            let from = (k.wrapping_sub(1)).to_string();
+            let to = (k.wrapping_add(arg_c).wrapping_sub(1)).to_string();
 
             let from_value = this.get_field(&from);
             if from_value == Gc::new(ValueData::Undefined) {
@@ -248,8 +249,9 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
         }
     }
 
-    this.set_field_slice("length", to_value(len + arg_c));
-    Ok(to_value(len + arg_c))
+    let temp = len.wrapping_add(arg_c);
+    this.set_field_slice("length", to_value(temp));
+    Ok(to_value(temp))
 }
 
 /// Create a new `Array` object

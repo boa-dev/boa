@@ -264,7 +264,7 @@ impl<'a> Lexer<'a> {
                                                     .expect("Invalid Unicode escape sequence");
 
                                                 self.next()?; // '}'
-                                                self.column_number += s.len() as u64 + 3;
+                                                self.column_number += (s.len() as u64).wrapping_add(3);
                                                 c
                                             } else {
                                                 let mut codepoints: Vec<u16> = vec![];
@@ -281,7 +281,7 @@ impl<'a> Lexer<'a> {
                                                     };
 
                                                     codepoints.push(as_num);
-                                                    self.column_number += s.len() as u64 + 2;
+                                                    self.column_number += (s.len() as u64).wrapping_add(2);
 
                                                     // Check for another UTF-16 codepoint
                                                     if self.next_is('\\') && self.next_is('u') {
@@ -315,7 +315,7 @@ impl<'a> Lexer<'a> {
                     // Why +1? Quotation marks are not included,
                     // So technically it would be +2, (for both " ") but we want to be 1 less
                     // to compensate for the incrementing at the top
-                    self.column_number += str_length + 1;
+                    self.column_number += str_length.wrapping_add(1);
                 }
                 '0' => {
                     let mut buf = String::new();
@@ -419,7 +419,7 @@ impl<'a> Lexer<'a> {
                         }
                     });
                     // Move position forward the length of keyword
-                    self.column_number += (buf_compare.len() - 1) as u64;
+                    self.column_number += (buf_compare.len().wrapping_sub(1)) as u64;
                 }
                 ';' => self.push_punc(Punctuator::Semicolon),
                 ':' => self.push_punc(Punctuator::Colon),
