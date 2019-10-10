@@ -343,8 +343,8 @@ impl Executor for Interpreter {
                             ));
 
                             for i in 0..data.args.len() {
-                                let name = data.args.get(i).unwrap();
-                                let expr = v_args.get(i).unwrap();
+                                let name = data.args.get(i).expect("Could not get data argument");
+                                let expr = v_args.get(i).expect("Could not get argument");
                                 env.create_mutable_binding(name.clone(), false);
                                 env.initialize_binding(name, expr.to_owned());
                             }
@@ -499,8 +499,8 @@ impl Interpreter {
                         Some(env.get_current_environment_ref().clone()),
                     ));
                     for i in 0..data.args.len() {
-                        let name = data.args.get(i).unwrap();
-                        let expr: &Value = arguments_list.get(i).unwrap();
+                        let name = data.args.get(i).expect("Could not get data argument");
+                        let expr: &Value = arguments_list.get(i).expect("Could not get argument");
                         self.environment.create_mutable_binding(name.clone(), false);
                         self.environment.initialize_binding(name, expr.clone());
                     }

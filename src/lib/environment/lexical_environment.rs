@@ -120,10 +120,15 @@ impl LexicalEnvironment {
     /// get_current_environment_ref is used when you only need to borrow the environment
     /// (you only need to add a new variable binding, or you want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
-        &self
-            .environment_stack
-            .get(self.environment_stack.len().wrapping_sub(1))
-            .unwrap()
+        let index = self.environment_stack.len().wrapping_sub(1);
+        match &self.environment_stack.get(index) {
+            Some(environment) => {
+                environment
+            },
+            None => {
+                panic!("Could not get current environment");
+            }
+        }
     }
 
     /// When neededing to clone an environment (linking it with another environnment)
