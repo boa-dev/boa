@@ -56,7 +56,7 @@ pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultVa
         0 => construct_array(this, &[]),
         1 => {
             let array = construct_array(this, &[]).expect("Could not construct array");
-            let size: i32 = from_value(args[0].clone()).expect("Could not convert argument to i32");
+            let size: i32 = from_value(args.get(0).expect("Could not get argument").clone()).expect("Could not convert argument to i32");
             array.set_field_slice("length", to_value(size));
             Ok(array)
         }
@@ -141,7 +141,7 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let separator = if args.is_empty() {
         String::from(",")
     } else {
-        args[0].to_string()
+        args.get(0).expect("Could not get argument").to_string()
     };
 
     let mut elem_strs: Vec<String> = Vec::new();
@@ -245,7 +245,7 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
             }
         }
         for j in 0..arg_c {
-            this.set_field_slice(&j.to_string(), args[j as usize].clone());
+            this.set_field_slice(&j.to_string(), args.get(j as usize).expect("Could not get argument").clone());
         }
     }
 

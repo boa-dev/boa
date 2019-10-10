@@ -91,8 +91,14 @@ impl LexicalEnvironment {
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
-        let global = &self.environment_stack[0];
-        global.borrow().get_global_object()
+        match &self.environment_stack.get(0) {
+            Some(global) => {
+                global.borrow().get_global_object()
+            },
+            None => {
+                panic!("Could not get environment");
+            }
+        }
     }
 
     pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
