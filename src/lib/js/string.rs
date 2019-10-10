@@ -447,9 +447,9 @@ fn string_pad(
     let concat_fill_str: String = fill_str.chars().take(fill_len as usize).collect();
 
     if at_start {
-        Ok(to_value(concat_fill_str + &primitive))
+        Ok(to_value(format!("{}{}", concat_fill_str, &primitive)))
     } else {
-        Ok(to_value(primitive + &concat_fill_str))
+        Ok(to_value(format!("{}{}", primitive, &concat_fill_str)))
     }
 }
 

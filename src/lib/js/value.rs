@@ -615,8 +615,8 @@ impl Add for ValueData {
     type Output = Self;
     fn add(self, other: Self) -> Self {
         match (self, other) {
-            (ValueData::String(ref s), ref o) => ValueData::String(s.clone() + &o.to_string()),
-            (ref s, ValueData::String(ref o)) => ValueData::String(s.to_string() + o),
+            (ValueData::String(ref s), ref o) => ValueData::String(format!("{}{}", s.clone(), &o.to_string())),
+            (ref s, ValueData::String(ref o)) => ValueData::String(format!("{}{}", s.to_string(), o)),
             (ref s, ref o) => ValueData::Number(s.to_num() + o.to_num()),
         }
     }
