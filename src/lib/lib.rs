@@ -35,22 +35,16 @@
 
 pub mod environment;
 pub mod exec;
-<<<<<<< HEAD
 pub mod builtins;
-=======
 pub mod js;
 pub mod realm;
->>>>>>> upstream/master
 pub mod syntax;
 
 use crate::{
     exec::{Executor, Interpreter},
-<<<<<<< HEAD
     builtins::value::ResultValue,
-=======
     buitins::value::ResultValue,
     realm::Realm,
->>>>>>> upstream/master
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
 };
 use wasm_bindgen::prelude::*;

@@ -1,12 +1,9 @@
 use crate::{
-<<<<<<< HEAD
     environment::lexical_environment::{new_function_environment, LexicalEnvironment},
     builtins::{
         array, boolean, console, function,
-=======
     environment::lexical_environment::new_function_environment,
     buitins::{
->>>>>>> upstream/master
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         value::{from_value, to_value, ResultValue, Value, ValueData},

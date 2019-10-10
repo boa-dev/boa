@@ -91,12 +91,9 @@ pub fn this_boolean_value(value: &Value) -> Value {
 mod tests {
     use super::*;
     use crate::exec::Executor;
-<<<<<<< HEAD:src/lib/builtins/boolean.rs
     use crate::{forward, forward_val, builtins::value::same_value};
-=======
     use crate::realm::Realm;
     use crate::{forward, forward_val, buitins::value::same_value};
->>>>>>> upstream/master:src/lib/js/boolean.rs
 
     #[test]
     fn check_boolean_constructor_is_function() {
