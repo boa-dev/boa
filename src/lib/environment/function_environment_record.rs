@@ -147,6 +147,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
+    #[allow(clippy::else_if_without_else)]
     fn set_mutable_binding(&mut self, name: &str, value: Value, mut strict: bool) {
         if self.env_rec.get(name).is_none() {
             if strict {

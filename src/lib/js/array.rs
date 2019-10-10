@@ -159,6 +159,7 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
 /// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
+#[allow(clippy::else_if_without_else)]
 pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     let middle: i32 = len / 2;
