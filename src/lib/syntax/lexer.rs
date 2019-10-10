@@ -342,8 +342,8 @@ impl<'a> Lexer<'a> {
                         loop {
                             let next_ch = self.preview_next().unwrap_or('_');
                             match next_ch {
-                                next_ch if next_ch.is_digit(8) => {
-                                    buf.push(next_ch);
+                                c if next_ch.is_digit(8) => {
+                                    buf.push(c);
                                     self.next()?;
                                 }
                                 'O' | 'o' => {
