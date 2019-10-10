@@ -227,7 +227,7 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
                     let mut result = Vec::with_capacity(locations.len());
                     for i in 0..locations.len() {
                         if let Some((start, end)) = locations.get(i) {
-                            result.push(to_value(&arg_str[start..end]));
+                            result.push(to_value(arg_str.get(start..end).expect("Could not get slice")));
                         } else {
                             result.push(Gc::new(ValueData::Undefined));
                         }
