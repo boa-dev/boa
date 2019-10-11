@@ -53,7 +53,6 @@ impl Realm {
         let global = &self.global_obj;
         // Create intrinsics, add global objects here
         object::init(global);
-        math::init(global);
         function::init(global);
 
         global.set_field_slice("String", string::create_constructor(global));
@@ -61,6 +60,7 @@ impl Realm {
         global.set_field_slice("Array", array::create_constructor(global));
         global.set_field_slice("Boolean", boolean::create_constructor(global));
         global.set_field_slice("JSON", json::create_constructor(global));
+        global.set_field_slice("Math", math::create_constructor(global));
         global.set_field_slice("console", console::create_constructor(global));
     }
 }
