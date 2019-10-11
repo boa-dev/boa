@@ -36,14 +36,12 @@
 pub mod environment;
 pub mod exec;
 pub mod builtins;
-pub mod js;
 pub mod realm;
 pub mod syntax;
 
 use crate::{
     exec::{Executor, Interpreter},
     builtins::value::ResultValue,
-    buitins::value::ResultValue,
     realm::Realm,
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
 };

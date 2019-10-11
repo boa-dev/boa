@@ -93,7 +93,6 @@ mod tests {
     use crate::exec::Executor;
     use crate::{forward, forward_val, builtins::value::same_value};
     use crate::realm::Realm;
-    use crate::{forward, forward_val, buitins::value::same_value};
 
     #[test]
     fn check_boolean_constructor_is_function() {

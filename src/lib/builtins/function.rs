@@ -135,7 +135,6 @@ mod tests {
     use crate::exec::Executor;
     use crate::{forward, forward_val, builtins::value::from_value};
     use crate::realm::Realm;
-    use crate::{forward, forward_val, buitins::value::from_value};
 
     #[test]
     fn check_arguments_object() {
