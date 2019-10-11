@@ -8,6 +8,7 @@ use crate::{
     },
 };
 use gc::Gc;
+use std::cmp;
 
 /// Utility function for creating array objects: `array_obj` can be any array with
 /// prototype already set (it will be wiped and recreated from `array_contents`)
@@ -301,6 +302,55 @@ pub fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     Ok(to_value(-1))
 }
 
+/// Array.prototype.lastIndexOf ( searchElement[, fromIndex ] )
+///
+///
+/// lastIndexOf compares searchElement to the elements of the array in descending order
+/// using the Strict Equality Comparison algorithm, and if found at one or more indices,
+/// returns the largest such index; otherwise, -1 is returned.
+///
+/// The optional second argument fromIndex defaults to the array's length minus one
+/// (i.e. the whole array is searched). If it is greater than or equal to the length of the array,
+/// the whole array will be searched. If it is negative, it is used as the offset from the end
+/// of the array to compute fromIndex. If the computed index is less than 0, -1 is returned.
+/// <https://tc39.es/ecma262/#sec-array.prototype.lastindexof>
+pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    // If no arguments, return -1. Not described in spec, but is what chrome does.
+    if args.is_empty() {
+        return Ok(to_value(-1));
+    }
+
+    let search_element = args[0].clone();
+    let len: i32 = from_value(this.get_field_slice("length"))
+        .expect("Expected array property \"length\" is not set.");
+
+    let mut idx = match args.get(1) {
+        Some(from_idx_ptr) => {
+            let from_idx = from_value(from_idx_ptr.clone())
+                .expect("Error parsing \"Array.prototype.indexOf - fromIndex\" argument");
+
+            if from_idx >= 0 {
+                cmp::min(from_idx, len - 1)
+            } else {
+                len + from_idx
+            }
+        }
+        None => len - 1,
+    };
+
+    while idx >= 0 {
+        let check_element = this.get_field(&idx.to_string()).clone();
+
+        if check_element == search_element {
+            return Ok(to_value(idx));
+        }
+
+        idx -= 1;
+    }
+
+    Ok(to_value(-1))
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -323,6 +373,8 @@ pub fn create_constructor(global: &Value) -> Value {
     push_func.set_field_slice("length", to_value(1_i32));
     let index_of_func = to_value(index_of as NativeFunctionData);
     index_of_func.set_field_slice("length", to_value(1_i32));
+    let last_index_of_func = to_value(last_index_of as NativeFunctionData);
+    last_index_of_func.set_field_slice("length", to_value(1_i32));
 
     array_prototype.set_field_slice("push", push_func);
     array_prototype.set_field_slice("pop", to_value(pop as NativeFunctionData));
@@ -331,6 +383,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("shift", to_value(shift as NativeFunctionData));
     array_prototype.set_field_slice("unshift", to_value(unshift as NativeFunctionData));
     array_prototype.set_field_slice("indexOf", index_of_func);
+    array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
@@ -452,5 +505,69 @@ mod tests {
         // Negative fromIndex with duplicates
         let second_in_many = forward(&mut engine, "duplicates.indexOf('b', -2)");
         assert_eq!(second_in_many, String::from("4"));
+    }
+
+    #[test]
+    fn last_index_of() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        let empty = [ ];
+        let one = ["a"];
+        let many = ["a", "b", "c"];
+        let duplicates = ["a", "b", "c", "a", "b"];
+        "#;
+        forward(&mut engine, init);
+
+        // Empty
+        let empty = forward(&mut engine, "empty.lastIndexOf('a')");
+        assert_eq!(empty, String::from("-1"));
+
+        // One
+        let one = forward(&mut engine, "one.lastIndexOf('a')");
+        assert_eq!(one, String::from("0"));
+        // Missing from one
+        let missing_from_one = forward(&mut engine, "one.lastIndexOf('b')");
+        assert_eq!(missing_from_one, String::from("-1"));
+
+        // First in many
+        let first_in_many = forward(&mut engine, "many.lastIndexOf('a')");
+        assert_eq!(first_in_many, String::from("0"));
+        // Second in many
+        let second_in_many = forward(&mut engine, "many.lastIndexOf('b')");
+        assert_eq!(second_in_many, String::from("1"));
+
+        // 4th in duplicates
+        let first_in_many = forward(&mut engine, "duplicates.lastIndexOf('a')");
+        assert_eq!(first_in_many, String::from("3"));
+        // 5th in duplicates
+        let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b')");
+        assert_eq!(second_in_many, String::from("4"));
+
+        // Positive fromIndex greater than array length
+        let fromindex_greater_than_length = forward(&mut engine, "one.lastIndexOf('a', 2)");
+        assert_eq!(fromindex_greater_than_length, String::from("0"));
+        // Positive fromIndex missed match
+        let fromindex_misses_match = forward(&mut engine, "many.lastIndexOf('c', 1)");
+        assert_eq!(fromindex_misses_match, String::from("-1"));
+        // Positive fromIndex matched
+        let fromindex_matches = forward(&mut engine, "many.lastIndexOf('b', 1)");
+        assert_eq!(fromindex_matches, String::from("1"));
+        // Positive fromIndex with duplicates
+        let first_in_many = forward(&mut engine, "duplicates.lastIndexOf('a', 1)");
+        assert_eq!(first_in_many, String::from("0"));
+
+        // Negative fromIndex greater than array length
+        let fromindex_greater_than_length = forward(&mut engine, "one.lastIndexOf('a', -2)");
+        assert_eq!(fromindex_greater_than_length, String::from("-1"));
+        // Negative fromIndex missed match
+        let fromindex_misses_match = forward(&mut engine, "many.lastIndexOf('c', -2)");
+        assert_eq!(fromindex_misses_match, String::from("-1"));
+        // Negative fromIndex matched
+        let fromindex_matches = forward(&mut engine, "many.lastIndexOf('c', -1)");
+        assert_eq!(fromindex_matches, String::from("2"));
+        // Negative fromIndex with duplicates
+        let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b', -2)");
+        assert_eq!(second_in_many, String::from("1"));
     }
 }
