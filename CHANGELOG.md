@@ -26,6 +26,11 @@ Bug fixes:
   Unassigned variables have default of undefined (@pop)
 - Tidy up Globals being added to Global Object. Thanks @DomParfitt
 
+Bug fixes:
+
+- [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
+  Unassigned variables have default of undefined (@pop)
+
 # 0.4.0 (2019-09-25)
 
 v0.4.0 brings quite a big release. The biggest feature to land is the support of regular expressions.  
