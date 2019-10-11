@@ -2,7 +2,10 @@ use crate::{
     environment::lexical_environment::new_function_environment,
     js::{
         function::{create_unmapped_arguments_object, Function, RegularFunction},
-        object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{
+            internal_methods_trait::ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE,
+            PROTOTYPE,
+        },
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     realm::Realm,
@@ -448,6 +451,7 @@ impl Executor for Interpreter {
                     ValueData::Number(_) | ValueData::Integer(_) => "number",
                     ValueData::String(_) => "string",
                     ValueData::Function(_) => "function",
+                    ValueData::FunctionObj(_) => "function",
                 }))
             }
         }
@@ -594,6 +598,7 @@ impl Interpreter {
         match *value.deref().borrow() {
             ValueData::Undefined
             | ValueData::Function(_)
+            | ValueData::FunctionObj(_)
             | ValueData::Integer(_)
             | ValueData::Null => Err(Gc::new(ValueData::Undefined)),
             ValueData::Boolean(_) => {

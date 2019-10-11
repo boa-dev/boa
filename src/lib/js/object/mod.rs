@@ -117,7 +117,7 @@ impl Object {
             ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
             ValueData::Number(_) => Ok(Self::from_number(value)),
             ValueData::String(_) => Ok(Self::from_string(value)),
-            ValueData::Object(ref obj) => Ok(std::clone::Clone::clone(&obj.into_inner())),
+            ValueData::Object(ref obj) => Ok(obj.borrow().clone()),
             _ => Err(()),
         }
     }
@@ -150,33 +150,13 @@ impl ObjectInternalMethods for Object {
         true
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    fn has_property(&self, val: &Value) -> bool {
-        debug_assert!(Property::is_property_key(val));
-        let prop = self.get_own_property(val);
-        if prop.value.is_none() {
-            let parent: Value = self.get_prototype_of();
-            if !parent.is_null() {
-                // the parent value variant should be an object
-                // In the unlikely event it isn't return false
-                return match *parent {
-                    ValueData::Object(ref obj) => obj.borrow().has_property(val),
-                    _ => false,
-                };
-            }
-            return false;
-        }
-
-        true
-    }
-
     /// Insert property into properties hashmap
-    fn insert_property(&self, name: String, p: Property) {
+    fn insert_property(&mut self, name: String, p: Property) {
         self.properties.insert(name, p);
     }
 
     /// Remove property from properties hashmap
-    fn remove_property(&self, name: String) {
+    fn remove_property(&mut self, name: String) {
         self.properties.remove(&name.to_string());
     }
 
@@ -216,10 +196,6 @@ impl ObjectInternalMethods for Object {
                 d
             }
         }
-    }
-
-    fn clone(&self) -> Self {
-        std::clone::Clone::clone(&self)
     }
 }
 

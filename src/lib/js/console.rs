@@ -1,5 +1,6 @@
 use crate::exec::Interpreter;
 use crate::js::function::NativeFunctionData;
+use crate::js::object::internal_methods_trait::ObjectInternalMethods;
 use crate::js::object::{ObjectKind, INSTANCE_PROTOTYPE};
 use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;

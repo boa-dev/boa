@@ -12,6 +12,26 @@ use std::ops::Deref;
 /// So thats why this is in a trait
 /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots>
 pub trait ObjectInternalMethods {
+    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+    fn has_property(&self, val: &Value) -> bool {
+        debug_assert!(Property::is_property_key(val));
+        let prop = self.get_own_property(val);
+        if prop.value.is_none() {
+            let parent: Value = self.get_prototype_of();
+            if !parent.is_null() {
+                // the parent value variant should be an object
+                // In the unlikely event it isn't return false
+                return match *parent {
+                    ValueData::Object(ref obj) => obj.borrow().has_property(val),
+                    _ => false,
+                };
+            }
+            return false;
+        }
+
+        true
+    }
+
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
     fn set_prototype_of(&mut self, val: Value) -> bool;
 
@@ -20,7 +40,7 @@ pub trait ObjectInternalMethods {
     fn get_prototype_of(&self) -> Value {
         let val = self.get_internal_slot(PROTOTYPE);
         match *val.deref().borrow() {
-            ValueData::Object(v) => val.clone(),
+            ValueData::Object(_) => val.clone(),
             _ => Gc::new(ValueData::Null),
         }
     }
@@ -42,9 +62,6 @@ pub trait ObjectInternalMethods {
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p>
     /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
     fn get_own_property(&self, prop: &Value) -> Property;
-
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    fn has_property(&self, val: &Value) -> bool;
 
     #[allow(clippy::option_unwrap_used)]
     fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
@@ -219,14 +236,11 @@ pub trait ObjectInternalMethods {
         Gc::new(ValueData::Undefined)
     }
 
-    // Boa Extensions
-    fn clone(&self) -> Self;
-
     fn get_internal_slot(&self, name: &str) -> Value;
 
     fn set_internal_slot(&mut self, name: &str, val: Value);
 
-    fn insert_property(&self, name: String, p: Property);
+    fn insert_property(&mut self, name: String, p: Property);
 
-    fn remove_property(&self, name: String);
+    fn remove_property(&mut self, name: String);
 }

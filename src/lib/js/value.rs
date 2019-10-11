@@ -1,6 +1,10 @@
 use crate::js::{
     function::{Function, NativeFunction, NativeFunctionData},
-    object::{InternalState, InternalStateCell, Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+    function_object::Function as FunctionObj,
+    object::{
+        internal_methods_trait::ObjectInternalMethods, InternalState, InternalStateCell, Object,
+        ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE,
+    },
     property::Property,
 };
 use gc::{Gc, GcCell};
@@ -43,6 +47,8 @@ pub enum ValueData {
     Object(GcCell<Object>),
     /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
     Function(Box<GcCell<Function>>),
+    // `Function` - - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
+    FunctionObj(Box<FunctionObj>),
 }
 
 impl ValueData {
@@ -163,7 +169,10 @@ impl ValueData {
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
         match *self {
-            ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => NAN,
+            ValueData::Object(_)
+            | ValueData::Undefined
+            | ValueData::Function(_)
+            | ValueData::FunctionObj(_) => NAN,
             ValueData::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => NAN,
@@ -182,6 +191,7 @@ impl ValueData {
             | ValueData::Undefined
             | ValueData::Null
             | ValueData::Boolean(false)
+            | ValueData::FunctionObj(_)
             | ValueData::Function(_) => 0,
             ValueData::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
@@ -520,7 +530,10 @@ impl ValueData {
 
     pub fn to_json(&self) -> JSONValue {
         match *self {
-            ValueData::Null | ValueData::Undefined | ValueData::Function(_) => JSONValue::Null,
+            ValueData::Null
+            | ValueData::Undefined
+            | ValueData::Function(_)
+            | ValueData::FunctionObj(_) => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
                 let mut new_obj = Map::new();
@@ -549,6 +562,7 @@ impl ValueData {
             ValueData::Null => "null",
             ValueData::Undefined => "undefined",
             ValueData::Function(_) => "function",
+            ValueData::FunctionObj(_) => "function",
             ValueData::Object(ref o) => {
                 if o.deref().borrow().get_internal_slot("call").is_null() {
                     "object"
@@ -595,6 +609,7 @@ impl Display for ValueData {
                     write!(f, "function({}){}", rf.args.join(", "), rf.expr)
                 }
             },
+            ValueData::FunctionObj(_) => write!(f, "function() {{ [TODO] }}"),
         }
     }
 }
@@ -846,6 +861,21 @@ impl FromValue for Object {
                 Function::NativeFunc(ref data) => data.object.clone(),
                 Function::RegularFunc(ref data) => data.object.clone(),
             }),
+            _ => Err("Value is not a valid object"),
+        }
+    }
+}
+
+impl ToValue for FunctionObj {
+    fn to_value(&self) -> Value {
+        Gc::new(ValueData::FunctionObj(Box::new(self.clone())))
+    }
+}
+
+impl FromValue for FunctionObj {
+    fn from_value(v: Value) -> Result<Self, &'static str> {
+        match *v {
+            ValueData::FunctionObj(ref func) => Ok(*func.clone()),
             _ => Err("Value is not a valid object"),
         }
     }

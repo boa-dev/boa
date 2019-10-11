@@ -1,3 +1,4 @@
+use crate::js::object::internal_methods_trait::ObjectInternalMethods;
 use crate::{
     exec::Interpreter,
     js::{
