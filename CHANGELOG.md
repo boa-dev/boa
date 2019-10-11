@@ -18,6 +18,8 @@ Feature enhancements:
   Implement exponentiation operator. Thanks @arbroween
 - [FEATURE #47](https://github.com/jasonwilliams/boa/issues/47):
   Add tests for comments in source code. Thanks @Emanon42
+- [FEATURE #137](https://github.com/jasonwilliams/boa/issues/137):
+  Use Monaco theme for the demo page
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
 Bug fixes:
@@ -25,11 +27,6 @@ Bug fixes:
 - [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
   Unassigned variables have default of undefined (@pop)
 - Tidy up Globals being added to Global Object. Thanks @DomParfitt
-
-Bug fixes:
-
-- [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
-  Unassigned variables have default of undefined (@pop)
 
 # 0.4.0 (2019-09-25)
 
