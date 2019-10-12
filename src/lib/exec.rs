@@ -1,5 +1,5 @@
 use crate::{
-    environment::lexical_environment::new_function_environment,
+    environment::lexical_environment::{new_function_environment, new_function_environment_record},
     js::{
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
@@ -88,6 +88,11 @@ impl Executor for Interpreter {
             }
             ExprDef::Local(ref name) => {
                 let val = self.realm.environment.get_binding_value(name);
+                Ok(val)
+            }
+            ExprDef::This => {
+                let env = self.realm.environment.get_current_environment_ref();
+                let val = env.deref().borrow().get_this_binding();
                 Ok(val)
             }
             ExprDef::GetConstField(ref obj, ref field) => {
@@ -462,11 +467,14 @@ impl Interpreter {
                     let env = &mut self.realm.environment;
                     // New target (second argument) is only needed for constructors, just pass undefined
                     let undefined = Gc::new(ValueData::Undefined);
-                    env.push(new_function_environment(
+                    let mut func_rec = new_function_environment_record(
                         f.clone(),
                         undefined,
                         Some(env.get_current_environment_ref().clone()),
-                    ));
+                    );
+                    func_rec.bind_this_value(v.clone());
+                    env.push(Gc::new(GcCell::new(Box::new(func_rec))));
+
                     for i in 0..data.args.len() {
                         let name = data.args.get(i).unwrap();
                         let expr: &Value = arguments_list.get(i).unwrap();
@@ -659,5 +667,21 @@ mod tests {
         let pass = String::from("true");
 
         assert_eq!(exec(scenario), pass);
+    }
+
+    #[test]
+    fn example_this() {
+        let scenario = r#"
+        let vector = {
+          x: 3,
+          y: 4,
+          length: function() {
+            return Math.sqrt(this.x * this.x + this.y * this.y);
+          }
+        };
+        vector.length();
+        "#;
+
+        assert_eq!(exec(scenario), "5");
     }
 }
