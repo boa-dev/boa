@@ -10,7 +10,7 @@
 //!
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
-    js::value::Value,
+    js::value::{self, Value},
 };
 use gc::{Finalize, Trace};
 use std::fmt::Debug;
@@ -59,6 +59,11 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Determine if an Environment Record establishes a this binding.
     /// Return true if it does and false if it does not.
     fn has_this_binding(&self) -> bool;
+
+    fn get_this_binding(&self) -> Value {
+        debug_assert!(self.has_this_binding());
+        value::undefined()
+    }
 
     /// Determine if an Environment Record establishes a super method binding.
     /// Return true if it does and false if it does not.
