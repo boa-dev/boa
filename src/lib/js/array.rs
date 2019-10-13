@@ -293,11 +293,13 @@ pub fn create_constructor(global: &Value) -> Value {
 mod tests {
     use crate::exec::Executor;
     use crate::forward;
+    use crate::realm::Realm;
 
     #[test]
     fn concat() {
         //TODO: array display formatter
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         let empty = new Array();
         let one = new Array(1);
@@ -319,7 +321,8 @@ mod tests {
 
     #[test]
     fn join() {
-        let mut engine = Executor::new();
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
         let init = r#"
         let empty = [ ];
         let one = ["a"];

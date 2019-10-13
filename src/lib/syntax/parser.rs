@@ -671,6 +671,9 @@ impl Parser {
             TokenData::Punctuator(Punctuator::AssignMul) => {
                 result = self.binop(BinOp::Assign(AssignOp::Mul), expr)?
             }
+            TokenData::Punctuator(Punctuator::AssignPow) => {
+                result = self.binop(BinOp::Assign(AssignOp::Pow), expr)?
+            }
             TokenData::Punctuator(Punctuator::AssignDiv) => {
                 result = self.binop(BinOp::Assign(AssignOp::Div), expr)?
             }
@@ -710,6 +713,9 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::Mul) => {
                 result = self.binop(BinOp::Num(NumOp::Mul), expr)?
+            }
+            TokenData::Punctuator(Punctuator::Pow) => {
+                result = self.binop(BinOp::Num(NumOp::Pow), expr)?
             }
             TokenData::Punctuator(Punctuator::Div) => {
                 result = self.binop(BinOp::Num(NumOp::Div), expr)?
@@ -1150,6 +1156,22 @@ mod tests {
             )],
         );
         check_parser(
+            "a ** b",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Pow),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a**2",
+            &[create_bin_op(
+                BinOp::Num(NumOp::Pow),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Const(Const::Num(2.0))),
+            )],
+        );
+        check_parser(
             "a % b",
             &[create_bin_op(
                 BinOp::Num(NumOp::Mod),
@@ -1296,6 +1318,14 @@ mod tests {
             "a *= b",
             &[create_bin_op(
                 BinOp::Assign(AssignOp::Mul),
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            )],
+        );
+        check_parser(
+            "a **= b",
+            &[create_bin_op(
+                BinOp::Assign(AssignOp::Pow),
                 Expr::new(ExprDef::Local(String::from("a"))),
                 Expr::new(ExprDef::Local(String::from("b"))),
             )],

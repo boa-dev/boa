@@ -191,7 +191,7 @@ pub fn tan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     }))
 }
 /// Create a new `Math` object
-pub fn _create(global: &Value) -> Value {
+pub fn create_constructor(global: &Value) -> Value {
     let math = ValueData::new_obj(Some(global));
     math.set_field_slice("E", to_value(f64::consts::E));
     math.set_field_slice("LN2", to_value(f64::consts::LN_2));
@@ -221,8 +221,4 @@ pub fn _create(global: &Value) -> Value {
     math.set_field_slice("sqrt", to_value(sqrt as NativeFunctionData));
     math.set_field_slice("tan", to_value(tan as NativeFunctionData));
     math
-}
-/// Initialise the `Math` object on the global object
-pub fn init(global: &Value) {
-    global.set_field_slice("Math", _create(global));
 }

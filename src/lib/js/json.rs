@@ -1,5 +1,6 @@
 use crate::exec::Interpreter;
 use crate::js::function::NativeFunctionData;
+use crate::js::object::{Object, ObjectKind, PROTOTYPE};
 /// The JSON Object
 /// <https://tc39.github.io/ecma262/#sec-json-object>
 use crate::js::value::{to_value, ResultValue, Value, ValueData};
@@ -27,14 +28,15 @@ pub fn stringify(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 }
 
 /// Create a new `JSON` object
-pub fn _create(global: &Value) -> Value {
-    let object = ValueData::new_obj(Some(global));
-    object.set_field_slice("stringify", to_value(stringify as NativeFunctionData));
-    object.set_field_slice("parse", to_value(parse as NativeFunctionData));
-    object
-}
+pub fn create_constructor(global: &Value) -> Value {
+    let mut json = Object::default();
+    json.kind = ObjectKind::Ordinary;
 
-/// Initialise the global object with the `JSON` object
-pub fn init(global: &Value) {
-    global.set_field_slice("JSON", _create(global));
+    let prototype = ValueData::new_obj(Some(global));
+    prototype.set_field_slice("parse", to_value(parse as NativeFunctionData));
+    prototype.set_field_slice("stringify", to_value(stringify as NativeFunctionData));
+
+    let json_value = to_value(json);
+    json_value.set_field_slice(PROTOTYPE, prototype);
+    json_value
 }
