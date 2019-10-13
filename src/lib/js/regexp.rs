@@ -250,6 +250,26 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     result
 }
 
+/// RegExp.prototype[Symbol.match]
+/// Returns matches of the regular expression against a string
+pub fn r#match(this: &Value, arg: String, ctx: &mut Interpreter) -> ResultValue {
+    let (matcher, flags) =
+        this.with_internal_state_ref(|regex: &RegExp| (regex.matcher.clone(), regex.flags.clone()));
+    let result = if flags.contains('g') {
+        let mut matches = Vec::new();
+        for mat in matcher.find_iter(&arg) {
+            matches.push(to_value(mat.as_str()));
+        }
+        if matches.is_empty() {
+            return Ok(Gc::new(ValueData::Null));
+        }
+        Ok(to_value(matches))
+    } else {
+        exec(this, &[to_value(arg)], ctx)
+    };
+    result
+}
+
 /// Return a string representing the regular expression
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let body = from_value::<String>(this.get_internal_slot("OriginalSource")).map_err(to_value)?;
