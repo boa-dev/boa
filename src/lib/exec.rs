@@ -441,7 +441,7 @@ impl Executor for Interpreter {
 
 impl Interpreter {
     /// https://tc39.es/ecma262/#sec-call
-    fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
+    pub(crate) fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
         // All functions should be objects, and eventually will be.
         // During this transition call will support both native functions and function objects
         match (*f).deref() {
