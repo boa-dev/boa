@@ -26,6 +26,8 @@ Bug fixes:
 
 - [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
   Unassigned variables have default of undefined (@pop)
+- [BUG #61](https://github.com/jasonwilliams/boa/issues/61):
+  Clippy warnings/errors fixed (@korpen)
 - Tidy up Globals being added to Global Object. Thanks @DomParfitt
 
 # 0.4.0 (2019-09-25)
