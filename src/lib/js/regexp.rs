@@ -264,8 +264,8 @@ pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
     let matches: Vec<Value> = this.with_internal_state_ref(|regex: &RegExp| {
         let mut matches = Vec::new();
 
-        'find_loop: for m in regex.matcher.find_iter(&arg_str) {
-            for caps in regex.matcher.captures_iter(&m.as_str()) {
+        for m in regex.matcher.find_iter(&arg_str) {
+            if let Some(caps) = regex.matcher.captures(&m.as_str()) {
                 let match_vec = caps
                     .iter()
                     .map(|group| match group {
@@ -284,7 +284,7 @@ pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
                 matches.push(match_val);
 
                 if !regex.flags.contains('g') {
-                    break 'find_loop;
+                    break;
                 }
             }
         }
