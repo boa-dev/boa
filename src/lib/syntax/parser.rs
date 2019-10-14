@@ -201,7 +201,7 @@ impl Parser {
                     ExprDef::If(
                         Box::new(cond),
                         Box::new(expr),
-                        if next.is_ok() && next.unwrap().data == TokenData::Keyword(Keyword::Else) {
+                        if next.is_ok() && next.expect("Could not get next value").data == TokenData::Keyword(Keyword::Else) {
                             self.pos += 1;
                             Some(Box::new(self.parse()?))
                         } else {
@@ -227,7 +227,7 @@ impl Parser {
                 self.expect_punc(Punctuator::OpenBlock, "switch block")?;
                 let mut cases = Vec::new();
                 let mut default = None;
-                while self.pos + 1 < self.tokens.len() {
+                while self.pos.wrapping_add(1) < self.tokens.len() {
                     let tok = self.get_token(self.pos)?;
                     self.pos += 1;
                     match tok.data {
@@ -243,7 +243,7 @@ impl Parser {
                                     _ => block.push(self.parse()?),
                                 }
                             }
-                            cases.push((cond.unwrap(), block));
+                            cases.push((cond.expect("No condition supplied"), block));
                         }
                         TokenData::Keyword(Keyword::Default) => {
                             let mut block = Vec::new();
@@ -276,7 +276,7 @@ impl Parser {
                 Ok(mk!(
                     self,
                     ExprDef::Switch(
-                        Box::new(value.unwrap()),
+                        Box::new(value.expect("Could not get value")),
                         cases,
                         match default {
                             Some(v) => Some(Box::new(v)),
@@ -369,7 +369,7 @@ impl Parser {
             TokenData::Punctuator(Punctuator::OpenParen) => {
                 match self.get_token(self.pos)?.data {
                     TokenData::Punctuator(Punctuator::CloseParen)
-                        if self.get_token(self.pos + 1)?.data
+                        if self.get_token(self.pos.wrapping_add(1))?.data
                             == TokenData::Punctuator(Punctuator::Arrow) =>
                     {
                         self.pos += 2;
@@ -503,11 +503,11 @@ impl Parser {
                 mk!(self, ExprDef::ObjectDecl(Box::new(BTreeMap::new())), token)
             }
             TokenData::Punctuator(Punctuator::OpenBlock)
-                if self.get_token(self.pos + 1)?.data
+                if self.get_token(self.pos.wrapping_add(1))?.data
                     == TokenData::Punctuator(Punctuator::Colon) =>
             {
                 let mut map = Box::new(BTreeMap::new());
-                while self.get_token(self.pos - 1)?.data == TokenData::Punctuator(Punctuator::Comma)
+                while self.get_token(self.pos.wrapping_sub(1))?.data == TokenData::Punctuator(Punctuator::Comma)
                     || map.len() == 0
                 {
                     let tk = self.get_token(self.pos)?;
@@ -603,7 +603,7 @@ impl Parser {
             }
             TokenData::Punctuator(Punctuator::OpenParen) => {
                 let mut args = Vec::new();
-                let mut expect_comma_or_end = self.get_token(self.pos + 1)?.data
+                let mut expect_comma_or_end = self.get_token(self.pos.wrapping_add(1))?.data
                     == TokenData::Punctuator(Punctuator::CloseParen);
                 loop {
                     self.pos += 1;
@@ -822,7 +822,7 @@ impl Parser {
     /// Returns an error if the next symbol is not `tk`
     fn expect(&mut self, tk: TokenData, routine: &'static str) -> Result<(), ParseError> {
         self.pos += 1;
-        let curr_tk = self.get_token(self.pos - 1)?;
+        let curr_tk = self.get_token(self.pos.wrapping_sub(1))?;
         if curr_tk.data == tk {
             Ok(())
         } else {
@@ -845,6 +845,7 @@ mod tests {
         lexer::Lexer,
     };
 
+    #[allow(clippy::result_unwrap_used)]
     fn check_parser(js: &str, expr: &[Expr]) {
         let mut lexer = Lexer::new(js);
         lexer.lex().expect("failed to lex");

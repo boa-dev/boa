@@ -199,11 +199,11 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
         min(end, length)
     };
 
-    let span = max(to - from, 0);
+    let span = max(to.wrapping_sub(from), 0);
 
     let mut new_str = String::new();
-    for i in from..from + span {
-        new_str.push(primitive_val.chars().nth(i as usize).unwrap());
+    for i in from..from.wrapping_add(span) {
+        new_str.push(primitive_val.chars().nth(i as usize).expect("Could not get nth char"));
     }
     Ok(to_value(new_str))
 }
@@ -272,11 +272,11 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let end_position: i32 = if args.len() < 2 {
         length
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argumetn").clone()).expect("Could not convert value to i32")
     };
 
     let end = min(max(end_position, 0), length);
-    let start = end - search_length;
+    let start = end.wrapping_sub(search_length);
 
     if start < 0 {
         Ok(to_value(false))
@@ -311,7 +311,7 @@ pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argument").clone()).expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -347,7 +347,7 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argument").clone()).expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -392,7 +392,7 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argument").clone()).expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -437,7 +437,7 @@ fn string_pad(
         return Ok(to_value(primitive));
     }
 
-    let fill_len = max_length - primitive_length;
+    let fill_len = max_length.wrapping_sub(primitive_length);
     let mut fill_str = String::new();
 
     while fill_str.len() < fill_len as usize {
@@ -447,9 +447,9 @@ fn string_pad(
     let concat_fill_str: String = fill_str.chars().take(fill_len as usize).collect();
 
     if at_start {
-        Ok(to_value(concat_fill_str + &primitive))
+        Ok(to_value(format!("{}{}", concat_fill_str, &primitive)))
     } else {
-        Ok(to_value(primitive + &concat_fill_str))
+        Ok(to_value(format!("{}{}", primitive, &concat_fill_str)))
     }
 }
 
@@ -471,7 +471,7 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap()),
+        _ => Some(from_value(args.get(1).expect("Could not get argument").clone()).expect("Could not convert value to Option<String>")),
     };
 
     string_pad(primitive_val, max_length, fill_string, false)
@@ -495,7 +495,7 @@ pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap()),
+        _ => Some(from_value(args.get(1).expect("Could not get argument").clone()).expect("Could not convert value to Option<String>")),
     };
 
     string_pad(primitive_val, max_length, fill_string, true)
@@ -587,7 +587,7 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let end = if args.len() < 2 {
         length
     } else {
-        from_value(args[1].clone()).expect("failed to parse argument for String method")
+        from_value(args.get(1).expect("Could not get argument").clone()).expect("failed to parse argument for String method")
     };
     // Both start and end args replaced by 0 if they were negative
     // or by the length of the String if they were greater
@@ -598,7 +598,7 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let to = max(final_start, final_end) as usize;
     // Extract the part of the string contained between the start index and the end index
     // where start is guaranteed to be smaller or equals to end
-    let extracted_string: String = primitive_val.chars().skip(from).take(to - from).collect();
+    let extracted_string: String = primitive_val.chars().skip(from).take(to.wrapping_sub(from)).collect();
     Ok(to_value(extracted_string))
 }
 
@@ -631,15 +631,15 @@ pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     let end = if args.len() < 2 {
         i32::max_value()
     } else {
-        from_value(args[1].clone()).expect("failed to parse argument for String method")
+        from_value(args.get(1).expect("Could not get argument").clone()).expect("failed to parse argument for String method")
     };
     // If start is negative it become the number of code units from the end of the string
     if start < 0 {
-        start = max(length + start, 0);
+        start = max(length.wrapping_add(start), 0);
     }
     // length replaced by 0 if it was negative
     // or by the number of code units from start to the end of the string if it was greater
-    let result_length = min(max(end, 0), length - start);
+    let result_length = min(max(end, 0), length.wrapping_sub(start));
     // If length is negative we return an empty string
     // otherwise we extract the part of the string from start and is length code units long
     if result_length <= 0 {
@@ -765,6 +765,7 @@ mod tests {
         //assert_eq!(b, String::from("Hello, world! Have a nice day."));
     }
 
+    #[allow(clippy::result_unwrap_used)]
     #[test]
     /// Test the correct type is returned from call and construct
     fn construct_and_call() {

@@ -91,8 +91,8 @@ impl LexicalEnvironment {
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
-        let global = &self.environment_stack[0];
-        global.borrow().get_global_object()
+        self.environment_stack.get(0).expect("").borrow().get_global_object()
+        
     }
 
     pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
@@ -120,16 +120,14 @@ impl LexicalEnvironment {
     /// get_current_environment_ref is used when you only need to borrow the environment
     /// (you only need to add a new variable binding, or you want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
-        &self
-            .environment_stack
-            .get(self.environment_stack.len() - 1)
-            .unwrap()
+        let index = self.environment_stack.len().wrapping_sub(1);
+        &self.environment_stack.get(index).expect("Could not get current environment")
     }
 
     /// When neededing to clone an environment (linking it with another environnment)
     /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
     pub fn get_current_environment(&mut self) -> &mut Environment {
-        self.environment_stack.back_mut().unwrap()
+        self.environment_stack.back_mut().expect("Could not get mutable reference to back object")
     }
 
     pub fn get_binding_value(&mut self, name: &str) -> Value {
@@ -144,10 +142,10 @@ impl LexicalEnvironment {
         if borrowed_env.get_outer_environment().is_some() {
             let mut outer: Option<Environment> = borrowed_env.get_outer_environment();
             while outer.is_some() {
-                if outer.as_ref().unwrap().borrow().has_binding(&name) {
-                    return outer.unwrap().borrow().get_binding_value(name, false);
+                if outer.as_ref().expect("Could not get outer as reference").borrow().has_binding(&name) {
+                    return outer.expect("Outer was None").borrow().get_binding_value(name, false);
                 }
-                outer = outer.unwrap().borrow().get_outer_environment();
+                outer = outer.expect("Outer was None").borrow().get_outer_environment();
             }
         }
 

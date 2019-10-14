@@ -62,10 +62,10 @@ pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {
-                    regex_body = from_value(body.clone()).unwrap();
+                    regex_body = from_value(body.clone()).expect("Could not convert value to String");
                 }
                 if let Some(flags) = slots.get("OriginalFlags") {
-                    regex_flags = from_value(flags.clone()).unwrap();
+                    regex_flags = from_value(flags.clone()).expect("Could not convert value to String");
                 }
             }
         }
@@ -227,7 +227,7 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
                     let mut result = Vec::with_capacity(locations.len());
                     for i in 0..locations.len() {
                         if let Some((start, end)) = locations.get(i) {
-                            result.push(to_value(&arg_str[start..end]));
+                            result.push(to_value(arg_str.get(start..end).expect("Could not get slice")));
                         } else {
                             result.push(Gc::new(ValueData::Undefined));
                         }

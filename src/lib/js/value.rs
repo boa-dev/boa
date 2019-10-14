@@ -307,7 +307,7 @@ impl ValueData {
                 match prop_getter {
                     Some(val) => val,
                     None => {
-                        let val = prop.value.as_ref().unwrap();
+                        let val = prop.value.as_ref().expect("Could not get property as reference");
                         val.clone()
                     }
                 }
@@ -481,7 +481,7 @@ impl ValueData {
     /// Convert from a JSON value to a JS value
     pub fn from_json(json: JSONValue) -> Self {
         match json {
-            JSONValue::Number(v) => ValueData::Number(v.as_f64().unwrap()),
+            JSONValue::Number(v) => ValueData::Number(v.as_f64().expect("Could not convert value to f64")),
             JSONValue::String(v) => ValueData::String(v),
             JSONValue::Bool(v) => ValueData::Boolean(v),
             JSONValue::Array(vs) => {
@@ -527,7 +527,7 @@ impl ValueData {
                 JSONValue::Object(new_obj)
             }
             ValueData::String(ref str) => JSONValue::String(str.clone()),
-            ValueData::Number(num) => JSONValue::Number(JSONNumber::from_f64(num).unwrap()),
+            ValueData::Number(num) => JSONValue::Number(JSONNumber::from_f64(num).expect("Could not convert to JSONNumber")),
             ValueData::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
         }
     }
@@ -619,8 +619,8 @@ impl Add for ValueData {
     type Output = Self;
     fn add(self, other: Self) -> Self {
         match (self, other) {
-            (ValueData::String(ref s), ref o) => ValueData::String(s.clone() + &o.to_string()),
-            (ref s, ValueData::String(ref o)) => ValueData::String(s.to_string() + o),
+            (ValueData::String(ref s), ref o) => ValueData::String(format!("{}{}", s.clone(), &o.to_string())),
+            (ref s, ValueData::String(ref o)) => ValueData::String(format!("{}{}", s.to_string(), o)),
             (ref s, ref o) => ValueData::Number(s.to_num() + o.to_num()),
         }
     }
@@ -725,7 +725,7 @@ impl FromValue for String {
 
 impl<'s> ToValue for &'s str {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(String::from_str(*self).unwrap()))
+        Gc::new(ValueData::String(String::from_str(*self).expect("Could not convert string to self to String")))
     }
 }
 
@@ -736,7 +736,7 @@ impl ToValue for char {
 }
 impl FromValue for char {
     fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_string().chars().next().unwrap())
+        Ok(v.to_string().chars().next().expect("Could not get next char"))
     }
 }
 

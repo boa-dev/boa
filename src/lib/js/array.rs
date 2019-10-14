@@ -35,11 +35,11 @@ fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
         from_value(array_ptr.get_field_slice("length")).expect("failed to conveert lenth to i32");
 
     for (n, value) in add_values.iter().enumerate() {
-        let new_index = orig_length + (n as i32);
+        let new_index = orig_length.wrapping_add(n as i32);
         array_ptr.set_field(new_index.to_string(), value.clone());
     }
 
-    array_ptr.set_field_slice("length", to_value(orig_length + add_values.len() as i32));
+    array_ptr.set_field_slice("length", to_value(orig_length.wrapping_add(add_values.len() as i32)));
 
     Ok(array_ptr.clone())
 }
@@ -55,8 +55,8 @@ pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultVa
     match args.len() {
         0 => construct_array(this, &[]),
         1 => {
-            let array = construct_array(this, &[]).unwrap();
-            let size: i32 = from_value(args[0].clone()).unwrap();
+            let array = construct_array(this, &[]).expect("Could not construct array");
+            let size: i32 = from_value(args.get(0).expect("Could not get argument").clone()).expect("Could not convert argument to i32");
             array.set_field_slice("length", to_value(size));
             Ok(array)
         }
@@ -87,13 +87,13 @@ pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     // one)
     let mut new_values: Vec<Value> = Vec::new();
 
-    let this_length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let this_length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..this_length {
         new_values.push(this.get_field(&n.to_string()));
     }
 
     for concat_array in args {
-        let concat_length: i32 = from_value(concat_array.get_field_slice("length")).unwrap();
+        let concat_length: i32 = from_value(concat_array.get_field_slice("length")).expect("Could not convert argument to i32");
         for n in 0..concat_length {
             new_values.push(concat_array.get_field(&n.to_string()));
         }
@@ -118,13 +118,13 @@ pub fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The last element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.pop>
 pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let curr_length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let curr_length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     if curr_length < 1 {
         return Err(to_value(
             "Cannot pop() on an array with zero length".to_string(),
         ));
     }
-    let pop_index = curr_length - 1;
+    let pop_index = curr_length.wrapping_sub(1);
     let pop_value: Value = this.get_field(&pop_index.to_string());
     this.remove_prop(&pop_index.to_string());
     this.set_field_slice("length", to_value(pop_index));
@@ -141,11 +141,11 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let separator = if args.is_empty() {
         String::from(",")
     } else {
-        args[0].to_string()
+        args.get(0).expect("Could not get argument").to_string()
     };
 
     let mut elem_strs: Vec<String> = Vec::new();
-    let length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..length {
         let elem_str: String = this.get_field(&n.to_string()).to_string();
         elem_strs.push(elem_str);
@@ -159,12 +159,13 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
 /// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
+#[allow(clippy::else_if_without_else)]
 pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
-    let middle: i32 = len / 2;
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let middle: i32 = len.wrapping_div(2);
 
     for lower in 0..middle {
-        let upper = len - lower - 1;
+        let upper = len.wrapping_sub(lower).wrapping_sub(1);
 
         let upper_exists = this.has_field(&upper.to_string());
         let lower_exists = this.has_field(&lower.to_string());
@@ -192,7 +193,7 @@ pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The first element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.shift/>
 pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
 
     if len == 0 {
         this.set_field_slice("length", to_value(0_i32));
@@ -204,7 +205,7 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 
     for k in 1..len {
         let from = k.to_string();
-        let to = (k - 1).to_string();
+        let to = (k.wrapping_sub(1)).to_string();
 
         let from_value = this.get_field(&from);
         if from_value == Gc::new(ValueData::Undefined) {
@@ -214,8 +215,9 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         }
     }
 
-    this.remove_prop(&(len - 1).to_string());
-    this.set_field_slice("length", to_value(len - 1));
+    let final_index = len.wrapping_sub(1);
+    this.remove_prop(&(final_index).to_string());
+    this.set_field_slice("length", to_value(final_index));
 
     Ok(first)
 }
@@ -227,13 +229,13 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// argument list.
 /// <https://tc39.es/ecma262/#sec-array.prototype.unshift/>
 pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     let arg_c: i32 = args.len() as i32;
 
     if arg_c > 0 {
         for k in (1..=len).rev() {
-            let from = (k - 1).to_string();
-            let to = (k + arg_c - 1).to_string();
+            let from = (k.wrapping_sub(1)).to_string();
+            let to = (k.wrapping_add(arg_c).wrapping_sub(1)).to_string();
 
             let from_value = this.get_field(&from);
             if from_value == Gc::new(ValueData::Undefined) {
@@ -243,12 +245,13 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
             }
         }
         for j in 0..arg_c {
-            this.set_field_slice(&j.to_string(), args[j as usize].clone());
+            this.set_field_slice(&j.to_string(), args.get(j as usize).expect("Could not get argument").clone());
         }
     }
 
-    this.set_field_slice("length", to_value(len + arg_c));
-    Ok(to_value(len + arg_c))
+    let temp = len.wrapping_add(arg_c);
+    this.set_field_slice("length", to_value(temp));
+    Ok(to_value(temp))
 }
 
 /// Create a new `Array` object
