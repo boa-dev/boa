@@ -164,12 +164,20 @@ impl Executor for Interpreter {
                     }
                 }
                 if !matched && default.is_some() {
-                    result = self.run(default.as_ref().expect("Could not get default as reference"))?;
+                    result = self.run(
+                        default
+                            .as_ref()
+                            .expect("Could not get default as reference"),
+                    )?;
                 }
                 Ok(result)
             }
             ExprDef::ObjectDecl(ref map) => {
-                let global_val = &self.realm.environment.get_global_object().expect("Could not get the global object");
+                let global_val = &self
+                    .realm
+                    .environment
+                    .get_global_object()
+                    .expect("Could not get the global object");
                 let obj = ValueData::new_obj(Some(global_val));
                 for (key, val) in map.iter() {
                     obj.borrow().set_field(key.clone(), self.run(val)?);
@@ -177,7 +185,11 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::ArrayDecl(ref arr) => {
-                let global_val = &self.realm.environment.get_global_object().expect("Could not get the global object");
+                let global_val = &self
+                    .realm
+                    .environment
+                    .get_global_object()
+                    .expect("Could not get the global object");
                 let arr_map = ValueData::new_obj(Some(global_val));
                 // Note that this object is an Array
                 arr_map.set_kind(ObjectKind::Array);
@@ -206,9 +218,10 @@ impl Executor for Interpreter {
                     self.realm
                         .environment
                         .create_mutable_binding(name.clone().expect("No name was supplied"), false);
-                    self.realm
-                        .environment
-                        .initialize_binding(name.as_ref().expect("Could not get name as reference"), val.clone())
+                    self.realm.environment.initialize_binding(
+                        name.as_ref().expect("Could not get name as reference"),
+                        val.clone(),
+                    )
                 }
                 Ok(val)
             }
@@ -277,8 +290,10 @@ impl Executor for Interpreter {
                 }))
             }
             ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
-                let v_a = from_value::<bool>(self.run(a)?).expect("Could not convert JS value to bool");
-                let v_b = from_value::<bool>(self.run(b)?).expect("Could not convert JS value to bool");
+                let v_a =
+                    from_value::<bool>(self.run(a)?).expect("Could not convert JS value to bool");
+                let v_b =
+                    from_value::<bool>(self.run(b)?).expect("Could not convert JS value to bool");
                 Ok(match *op {
                     LogOp::And => to_value(v_a && v_b),
                     LogOp::Or => to_value(v_a || v_b),

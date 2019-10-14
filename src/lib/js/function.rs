@@ -152,6 +152,9 @@ mod tests {
         let expected_return_val: f64 = 100.0;
         let return_val = forward_val(&mut engine, "val").expect("value expected");
         assert_eq!(return_val.is_double(), true);
-        assert_eq!(from_value::<f64>(return_val).expect("Could not convert value to f64"), expected_return_val);
+        assert_eq!(
+            from_value::<f64>(return_val).expect("Could not convert value to f64"),
+            expected_return_val
+        );
     }
 }

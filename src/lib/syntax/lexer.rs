@@ -180,7 +180,9 @@ impl<'a> Lexer<'a> {
         F: FnMut(char) -> bool,
     {
         let mut s = String::new();
-        while self.buffer.peek().is_some() && f(self.preview_next().expect("Could not preview next value")) {
+        while self.buffer.peek().is_some()
+            && f(self.preview_next().expect("Could not preview next value"))
+        {
             s.push(self.next()?);
         }
 
@@ -264,7 +266,8 @@ impl<'a> Lexer<'a> {
                                                     .expect("Invalid Unicode escape sequence");
 
                                                 self.next()?; // '}'
-                                                self.column_number += (s.len() as u64).wrapping_add(3);
+                                                self.column_number +=
+                                                    (s.len() as u64).wrapping_add(3);
                                                 c
                                             } else {
                                                 let mut codepoints: Vec<u16> = vec![];
@@ -281,7 +284,8 @@ impl<'a> Lexer<'a> {
                                                     };
 
                                                     codepoints.push(as_num);
-                                                    self.column_number += (s.len() as u64).wrapping_add(2);
+                                                    self.column_number +=
+                                                        (s.len() as u64).wrapping_add(2);
 
                                                     // Check for another UTF-16 codepoint
                                                     if self.next_is('\\') && self.next_is('u') {
@@ -393,7 +397,9 @@ impl<'a> Lexer<'a> {
                         }
                     }
                     // TODO make this a bit more safe -------------------------------VVVV
-                    self.push_token(TokenData::NumericLiteral(f64::from_str(&buf).expect("Could not convert value to f64")))
+                    self.push_token(TokenData::NumericLiteral(
+                        f64::from_str(&buf).expect("Could not convert value to f64"),
+                    ))
                 }
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();

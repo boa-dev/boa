@@ -201,7 +201,10 @@ impl Parser {
                     ExprDef::If(
                         Box::new(cond),
                         Box::new(expr),
-                        if next.is_ok() && next.expect("Could not get next value").data == TokenData::Keyword(Keyword::Else) {
+                        if next.is_ok()
+                            && next.expect("Could not get next value").data
+                                == TokenData::Keyword(Keyword::Else)
+                        {
                             self.pos += 1;
                             Some(Box::new(self.parse()?))
                         } else {
@@ -507,7 +510,8 @@ impl Parser {
                     == TokenData::Punctuator(Punctuator::Colon) =>
             {
                 let mut map = Box::new(BTreeMap::new());
-                while self.get_token(self.pos.wrapping_sub(1))?.data == TokenData::Punctuator(Punctuator::Comma)
+                while self.get_token(self.pos.wrapping_sub(1))?.data
+                    == TokenData::Punctuator(Punctuator::Comma)
                     || map.len() == 0
                 {
                     let tk = self.get_token(self.pos)?;

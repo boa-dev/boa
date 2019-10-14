@@ -39,7 +39,10 @@ fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
         array_ptr.set_field(new_index.to_string(), value.clone());
     }
 
-    array_ptr.set_field_slice("length", to_value(orig_length.wrapping_add(add_values.len() as i32)));
+    array_ptr.set_field_slice(
+        "length",
+        to_value(orig_length.wrapping_add(add_values.len() as i32)),
+    );
 
     Ok(array_ptr.clone())
 }
@@ -56,7 +59,8 @@ pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultVa
         0 => construct_array(this, &[]),
         1 => {
             let array = construct_array(this, &[]).expect("Could not construct array");
-            let size: i32 = from_value(args.get(0).expect("Could not get argument").clone()).expect("Could not convert argument to i32");
+            let size: i32 = from_value(args.get(0).expect("Could not get argument").clone())
+                .expect("Could not convert argument to i32");
             array.set_field_slice("length", to_value(size));
             Ok(array)
         }
@@ -87,13 +91,15 @@ pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     // one)
     let mut new_values: Vec<Value> = Vec::new();
 
-    let this_length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let this_length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..this_length {
         new_values.push(this.get_field(&n.to_string()));
     }
 
     for concat_array in args {
-        let concat_length: i32 = from_value(concat_array.get_field_slice("length")).expect("Could not convert argument to i32");
+        let concat_length: i32 = from_value(concat_array.get_field_slice("length"))
+            .expect("Could not convert argument to i32");
         for n in 0..concat_length {
             new_values.push(concat_array.get_field(&n.to_string()));
         }
@@ -118,7 +124,8 @@ pub fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The last element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.pop>
 pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let curr_length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let curr_length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     if curr_length < 1 {
         return Err(to_value(
             "Cannot pop() on an array with zero length".to_string(),
@@ -145,7 +152,8 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     };
 
     let mut elem_strs: Vec<String> = Vec::new();
-    let length: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..length {
         let elem_str: String = this.get_field(&n.to_string()).to_string();
         elem_strs.push(elem_str);
@@ -161,7 +169,8 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
 #[allow(clippy::else_if_without_else)]
 pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let len: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     let middle: i32 = len.wrapping_div(2);
 
     for lower in 0..middle {
@@ -193,7 +202,8 @@ pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The first element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.shift/>
 pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let len: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
 
     if len == 0 {
         this.set_field_slice("length", to_value(0_i32));
@@ -229,7 +239,8 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// argument list.
 /// <https://tc39.es/ecma262/#sec-array.prototype.unshift/>
 pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let len: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     let arg_c: i32 = args.len() as i32;
 
     if arg_c > 0 {
@@ -245,7 +256,12 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
             }
         }
         for j in 0..arg_c {
-            this.set_field_slice(&j.to_string(), args.get(j as usize).expect("Could not get argument").clone());
+            this.set_field_slice(
+                &j.to_string(),
+                args.get(j as usize)
+                    .expect("Could not get argument")
+                    .clone(),
+            );
         }
     }
 

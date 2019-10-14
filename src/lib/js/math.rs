@@ -139,8 +139,10 @@ pub fn min(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Raise a number to a power
 pub fn pow(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.len() >= 2 {
-        let num: f64 = from_value(args.get(0).expect("Could not get argument").clone()).expect("Could not convert argument to f64");
-        let power: f64 = from_value(args.get(1).expect("Could not get argument").clone()).expect("Could not convert argument to f64");
+        let num: f64 = from_value(args.get(0).expect("Could not get argument").clone())
+            .expect("Could not convert argument to f64");
+        let power: f64 = from_value(args.get(1).expect("Could not get argument").clone())
+            .expect("Could not convert argument to f64");
         num.powf(power)
     } else {
         f64::NAN

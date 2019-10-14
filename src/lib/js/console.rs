@@ -79,7 +79,9 @@ fn log_string_from(x: Value) -> String {
                                 s,
                                 "{}: {}",
                                 key,
-                                log_string_from(val.value.clone().expect("Could not read value").clone())
+                                log_string_from(
+                                    val.value.clone().expect("Could not read value").clone()
+                                )
                             )
                             .unwrap();
                             if key != last_key {
