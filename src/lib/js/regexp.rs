@@ -264,32 +264,27 @@ pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
     let matches: Vec<Value> = this.with_internal_state_ref(|regex: &RegExp| {
         let mut matches = Vec::new();
 
-        if regex.flags.contains('g') {
-            for m in regex.matcher.find_iter(&arg_str) {
-                let value = to_value(vec![m.as_str()]);
-                value.set_prop_slice("index", Property::default().value(to_value(m.start())));
-                value.set_prop_slice(
+        'find_loop: for m in regex.matcher.find_iter(&arg_str) {
+            for caps in regex.matcher.captures_iter(&m.as_str()) {
+                let match_vec = caps
+                    .iter()
+                    .map(|group| match group {
+                        Some(g) => to_value(g.as_str()),
+                        None => Gc::new(ValueData::Undefined),
+                    })
+                    .collect::<Vec<Value>>();
+
+                let match_val = to_value(match_vec);
+
+                match_val.set_prop_slice("index", Property::default().value(to_value(m.start())));
+                match_val.set_prop_slice(
                     "input",
                     Property::default().value(to_value(arg_str.clone())),
                 );
-                matches.push(value);
-            }
-        } else {
-            let mut locations = regex.matcher.capture_locations();
-            if let Some(m) = regex
-                .matcher
-                .captures_read_at(&mut locations, arg_str.as_str(), 0)
-            {
-                if let Some((start, end)) = locations.get(0) {
-                    let value = to_value(vec![&arg_str[start..end]]);
-                    value.set_prop_slice("index", Property::default().value(to_value(m.start())));
-                    value.set_prop_slice(
-                        "input",
-                        Property::default().value(to_value(arg_str.clone())),
-                    );
-                    matches.push(value);
-                } else {
-                    matches.push(Gc::new(ValueData::Undefined));
+                matches.push(match_val);
+
+                if !regex.flags.contains('g') {
+                    break 'find_loop;
                 }
             }
         }

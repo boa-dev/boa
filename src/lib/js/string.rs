@@ -918,6 +918,39 @@ mod tests {
             String::from("2")
         );
 
+        forward(
+            &mut engine,
+            "const groupMatches = 'test1test2'.matchAll(/t(e)(st(\\d?))/g)",
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches.length"),
+            String::from("2")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][1]"),
+            String::from("e")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][2]"),
+            String::from("st1")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][3]"),
+            String::from("1")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[1][3]"),
+            String::from("2")
+        );
+
+        assert_eq!(
+            forward(
+                &mut engine,
+                "'test1test2'.matchAll(/t(e)(st(\\d?))/).length"
+            ),
+            String::from("1")
+        );
+
         let init = r#"
         const regexp = RegExp('foo[a-z]*','g');
         const str = 'table football, foosball';
