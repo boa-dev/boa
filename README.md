@@ -13,7 +13,7 @@ You can get more verbose errors when running from the command line
 yo  
 ## Contributing
 
-If you don't already have Rust installed rustup is the recommended tool to use. It will install Rust and allow you to switch between nightly, stable and beta. You can also install additional components.
+If you don't already have Rust installed rustup is the recommended tool to   frgf use. It will install Rust and allow you to switch between nightly, stable and beta. You can also install additional components.
 
 ```
 curl https://sh.rustup.rs -sSf | sh
