@@ -4,6 +4,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
+        regexp::{make_regexp, r#match as regexp_match},
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
@@ -422,6 +423,15 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     Ok(to_value(highest_index))
 }
 
+/// Returns an array whose contents is all the results matching the regular expression, if the global (g) flag is present,
+/// in its absence, only the first complete match and its related capturing groups is returned,
+/// otherwise null is returned if no match is found.
+/// <https://tc39.es/ecma262/#sec-string.prototype.match>
+pub fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let re = make_regexp(&to_value(Object::default()), &[args[0].clone()], ctx)?.clone();
+    regexp_match(&re, ctx.value_to_rust_string(this), ctx)
+}
+
 /// Abstract method `StringPad`
 /// Performs the actual string padding for padStart/End.
 /// <https://tc39.es/ecma262/#sec-stringpad/>
@@ -709,6 +719,7 @@ pub fn create_constructor(global: &Value) -> Value {
     proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
     proto.set_field_slice("indexOf", to_value(index_of as NativeFunctionData));
     proto.set_field_slice("lastIndexOf", to_value(last_index_of as NativeFunctionData));
+    proto.set_field_slice("match", to_value(r#match as NativeFunctionData));
     proto.set_field_slice("padEnd", to_value(pad_end as NativeFunctionData));
     proto.set_field_slice("padStart", to_value(pad_start as NativeFunctionData));
     proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
@@ -878,5 +889,45 @@ mod tests {
         assert_eq!(forward(&mut engine, "emptyLiteral.endsWith('')"), pass);
         assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), pass);
         assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), pass);
+    }
+    #[test]
+    fn test_match() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var str = new String('The Quick Brown Fox Jumps Over The Lazy Dog');
+        var result1 = str.match(/quick\s(brown).+?(jumps)/i);
+        var result2 = str.match(/[A-Z]/g);
+        var result3 = str.match("T");
+        var result4 = str.match(RegExp("B", 'g'));
+        "#;
+
+        forward(&mut engine, init);
+        assert_eq!(forward(&mut engine, "result1[0]"), "Quick Brown Fox Jumps");
+        assert_eq!(forward(&mut engine, "result1[1]"), "Brown");
+        assert_eq!(forward(&mut engine, "result1[2]"), "Jumps");
+        assert_eq!(forward(&mut engine, "result1.index"), "4");
+        assert_eq!(
+            forward(&mut engine, "result1.input"),
+            "The Quick Brown Fox Jumps Over The Lazy Dog"
+        );
+
+        assert_eq!(forward(&mut engine, "result2[0]"), "T");
+        assert_eq!(forward(&mut engine, "result2[1]"), "Q");
+        assert_eq!(forward(&mut engine, "result2[2]"), "B");
+        assert_eq!(forward(&mut engine, "result2[3]"), "F");
+        assert_eq!(forward(&mut engine, "result2[4]"), "J");
+        assert_eq!(forward(&mut engine, "result2[5]"), "O");
+        assert_eq!(forward(&mut engine, "result2[6]"), "T");
+        assert_eq!(forward(&mut engine, "result2[7]"), "L");
+        assert_eq!(forward(&mut engine, "result2[8]"), "D");
+
+        assert_eq!(forward(&mut engine, "result3[0]"), "T");
+        assert_eq!(forward(&mut engine, "result3.index"), "0");
+        assert_eq!(
+            forward(&mut engine, "result3.input"),
+            "The Quick Brown Fox Jumps Over The Lazy Dog"
+        );
+        assert_eq!(forward(&mut engine, "result4[0]"), "B");
     }
 }
