@@ -20,6 +20,8 @@ Feature enhancements:
   Add tests for comments in source code. Thanks @Emanon42
 - [FEATURE #137](https://github.com/jasonwilliams/boa/issues/137):
   Use Monaco theme for the demo page
+- [FEATURE #114](https://github.com/jasonwilliams/boa/issues/114):
+  String.match(regExp) is implemented (@muskuloes)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
 Bug fixes:
