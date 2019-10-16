@@ -400,10 +400,11 @@ impl Executor for Interpreter {
                     ExprDef::GetField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
                         let val_field = self.run(field)?;
-                        // TODO: handle array case
-                        val_obj.borrow().set_field(val_field.to_string(), val.clone());
+                        val_obj
+                            .borrow()
+                            .set_field(val_field.to_string(), val.clone());
                     }
-                    _ => ()
+                    _ => (),
                 }
                 Ok(val)
             }
@@ -690,5 +691,36 @@ mod tests {
         m['key']
         "#;
         assert_eq!(exec(scenario), String::from("22"));
+    }
+
+    #[test]
+    fn array_field_set() {
+        let element_changes = r#"
+        let m = [1, 2, 3];
+        m[1] = 5;
+        m[1]
+        "#;
+        assert_eq!(exec(element_changes), String::from("5"));
+
+        let length_changes = r#"
+        let m = [1, 2, 3];
+        m[10] = 52;
+        m.length
+        "#;
+        assert_eq!(exec(length_changes), String::from("11"));
+
+        let negative_index_wont_affect_length = r#"
+        let m = [1, 2, 3];
+        m[-11] = 5;
+        m.length
+        "#;
+        assert_eq!(exec(negative_index_wont_affect_length), String::from("3"));
+
+        let non_num_key_wont_affect_length = r#"
+        let m = [1, 2, 3];
+        m["magic"] = 5;
+        m.length
+        "#;
+        assert_eq!(exec(non_num_key_wont_affect_length), String::from("3"));
     }
 }

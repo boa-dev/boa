@@ -402,7 +402,7 @@ impl Object {
     }
 }
 
-#[derive(Trace, Finalize, Clone, Debug)]
+#[derive(Trace, Finalize, Clone, Debug, Eq, PartialEq)]
 pub enum ObjectKind {
     Function,
     Array,

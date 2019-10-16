@@ -402,6 +402,17 @@ impl ValueData {
     pub fn set_field(&self, field: String, val: Value) -> Value {
         match *self {
             ValueData::Object(ref obj) => {
+                if obj.borrow().kind == ObjectKind::Array {
+                    if let Ok(num) = field.parse::<usize>() {
+                        if num > 0 {
+                            let len: i32 = from_value(self.get_field_slice("length"))
+                                .expect("Could not convert argument to i32");
+                            if len < (num + 1) as i32 {
+                                self.set_field_slice("length", to_value(num + 1));
+                            }
+                        }
+                    }
+                }
                 obj.borrow_mut()
                     .properties
                     .insert(field, Property::default().value(val.clone()));
