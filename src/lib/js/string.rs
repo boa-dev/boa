@@ -4,7 +4,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
-        regexp::{make_regexp, r#match as regexp_match, match_all as regexp_match_all},
+        regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
