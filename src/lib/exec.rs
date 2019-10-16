@@ -397,7 +397,13 @@ impl Executor for Interpreter {
                         let val_obj = self.run(obj)?;
                         val_obj.borrow().set_field(field.clone(), val.clone());
                     }
-                    _ => (),
+                    ExprDef::GetField(ref obj, ref field) => {
+                        let val_obj = self.run(obj)?;
+                        let val_field = self.run(field)?;
+                        // TODO: handle array case
+                        val_obj.borrow().set_field(val_field.to_string(), val.clone());
+                    }
+                    _ => ()
                 }
                 Ok(val)
             }
@@ -674,5 +680,15 @@ mod tests {
         let pass = String::from("true");
 
         assert_eq!(exec(scenario), pass);
+    }
+
+    #[test]
+    fn object_field_set() {
+        let scenario = r#"
+        let m = {};
+        m['key'] = 22;
+        m['key']
+        "#;
+        assert_eq!(exec(scenario), String::from("22"));
     }
 }
