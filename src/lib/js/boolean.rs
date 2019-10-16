@@ -101,6 +101,7 @@ mod tests {
         assert_eq!(boolean_constructor.is_function(), true);
     }
 
+    #[allow(clippy::result_unwrap_used)]
     #[test]
     /// Test the correct type is returned from call and construct
     fn construct_and_call() {

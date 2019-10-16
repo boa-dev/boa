@@ -13,12 +13,24 @@ Features:
 Feature enhancements:
 
 - [FEATURE #119](https://github.com/jasonwilliams/boa/issues/119):
-  Introduce realm struct to hold realm context and global object
+  Introduce realm struct to hold realm context and global object.
+- [FEATURE #89](https://github.com/jasonwilliams/boa/issues/89):
+  Implement exponentiation operator. Thanks @arbroween
+- [FEATURE #47](https://github.com/jasonwilliams/boa/issues/47):
+  Add tests for comments in source code. Thanks @Emanon42
+- [FEATURE #137](https://github.com/jasonwilliams/boa/issues/137):
+  Use Monaco theme for the demo page
+- [FEATURE #114](https://github.com/jasonwilliams/boa/issues/114):
+  String.match(regExp) is implemented (@muskuloes)
+- Demo page has been improved, new font plus change on input. Thanks @WofWca
 
 Bug fixes:
 
 - [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
   Unassigned variables have default of undefined (@pop)
+- [BUG #61](https://github.com/jasonwilliams/boa/issues/61):
+  Clippy warnings/errors fixed (@korpen)
+- Tidy up Globals being added to Global Object. Thanks @DomParfitt
 
 # 0.4.0 (2019-09-25)
 

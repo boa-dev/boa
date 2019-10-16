@@ -90,6 +90,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         }
     }
 
+    #[allow(clippy::else_if_without_else)]
     fn set_mutable_binding(&mut self, name: &str, value: Value, mut strict: bool) {
         if self.env_rec.get(name).is_none() {
             if strict {
@@ -120,25 +121,30 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn get_binding_value(&self, name: &str, _strict: bool) -> Value {
-        if self.env_rec.get(name).is_some() && self.env_rec.get(name).unwrap().value.is_some() {
-            let record: &DeclarativeEnvironmentRecordBinding = self.env_rec.get(name).unwrap();
-            record.value.as_ref().unwrap().clone()
-        } else {
-            // TODO: change this when error handling comes into play
-            panic!("ReferenceError: Cannot get binding value for {}", name);
+        match self.env_rec.get(name) {
+            Some(binding) => binding
+                .value
+                .as_ref()
+                .expect("Could not get record as reference")
+                .clone(),
+            None => {
+                // TODO: change this when error handling comes into play
+                panic!("ReferenceError: Cannot get binding value for {}", name);
+            }
         }
     }
 
     fn delete_binding(&mut self, name: &str) -> bool {
-        if self.env_rec.get(name).is_some() {
-            if self.env_rec.get(name).unwrap().can_delete {
-                self.env_rec.remove(name);
-                true
-            } else {
-                false
+        match self.env_rec.get(name) {
+            Some(binding) => {
+                if binding.can_delete {
+                    self.env_rec.remove(name);
+                    true
+                } else {
+                    false
+                }
             }
-        } else {
-            false
+            None => false,
         }
     }
 

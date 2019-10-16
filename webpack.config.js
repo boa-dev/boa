@@ -4,6 +4,7 @@ const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 module.exports = {
   entry: "./index.js",
@@ -31,7 +32,14 @@ module.exports = {
     new webpack.ProvidePlugin({
       TextDecoder: ["text-encoding", "TextDecoder"],
       TextEncoder: ["text-encoding", "TextEncoder"]
-    })
+    }),
+    new MonacoWebpackPlugin()
   ],
+  module: {
+    rules: [{
+      test: /\.css$/,
+      use: ["style-loader", "css-loader"]
+    }]
+  },
   mode: "development"
 };

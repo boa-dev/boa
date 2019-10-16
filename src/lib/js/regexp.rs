@@ -62,10 +62,12 @@ pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {
-                    regex_body = from_value(body.clone()).unwrap();
+                    regex_body =
+                        from_value(body.clone()).expect("Could not convert value to String");
                 }
                 if let Some(flags) = slots.get("OriginalFlags") {
-                    regex_flags = from_value(flags.clone()).unwrap();
+                    regex_flags =
+                        from_value(flags.clone()).expect("Could not convert value to String");
                 }
             }
         }
@@ -227,7 +229,9 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
                     let mut result = Vec::with_capacity(locations.len());
                     for i in 0..locations.len() {
                         if let Some((start, end)) = locations.get(i) {
-                            result.push(to_value(&arg_str[start..end]));
+                            result.push(to_value(
+                                arg_str.get(start..end).expect("Could not get slice"),
+                            ));
                         } else {
                             result.push(Gc::new(ValueData::Undefined));
                         }
@@ -248,6 +252,25 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     });
     this.set_field_slice("lastIndex", to_value(last_index));
     result
+}
+
+/// RegExp.prototype[Symbol.match]
+/// Returns matches of the regular expression against a string
+pub fn r#match(this: &Value, arg: String, ctx: &mut Interpreter) -> ResultValue {
+    let (matcher, flags) =
+        this.with_internal_state_ref(|regex: &RegExp| (regex.matcher.clone(), regex.flags.clone()));
+    if flags.contains('g') {
+        let mut matches = Vec::new();
+        for mat in matcher.find_iter(&arg) {
+            matches.push(to_value(mat.as_str()));
+        }
+        if matches.is_empty() {
+            return Ok(Gc::new(ValueData::Null));
+        }
+        Ok(to_value(matches))
+    } else {
+        exec(this, &[to_value(arg)], ctx)
+    }
 }
 
 /// Return a string representing the regular expression

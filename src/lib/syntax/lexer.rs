@@ -180,7 +180,9 @@ impl<'a> Lexer<'a> {
         F: FnMut(char) -> bool,
     {
         let mut s = String::new();
-        while self.buffer.peek().is_some() && f(self.preview_next().unwrap()) {
+        while self.buffer.peek().is_some()
+            && f(self.preview_next().expect("Could not preview next value"))
+        {
             s.push(self.next()?);
         }
 
@@ -253,7 +255,7 @@ impl<'a> Lexer<'a> {
                                             if self.next_is('{') {
                                                 let s = self
                                                     .take_char_while(char::is_alphanumeric)
-                                                    .unwrap();
+                                                    .expect("Could not read chars");
 
                                                 // We know this is a single unicode codepoint, convert to u32
                                                 let as_num = match u32::from_str_radix(&s, 16) {
@@ -264,7 +266,8 @@ impl<'a> Lexer<'a> {
                                                     .expect("Invalid Unicode escape sequence");
 
                                                 self.next()?; // '}'
-                                                self.column_number += s.len() as u64 + 3;
+                                                self.column_number +=
+                                                    (s.len() as u64).wrapping_add(3);
                                                 c
                                             } else {
                                                 let mut codepoints: Vec<u16> = vec![];
@@ -272,7 +275,7 @@ impl<'a> Lexer<'a> {
                                                     // Collect each character after \u e.g \uD83D will give "D83D"
                                                     let s = self
                                                         .take_char_while(char::is_alphanumeric)
-                                                        .unwrap();
+                                                        .expect("Could not read chars");
 
                                                     // Convert to u16
                                                     let as_num = match u16::from_str_radix(&s, 16) {
@@ -281,7 +284,8 @@ impl<'a> Lexer<'a> {
                                                     };
 
                                                     codepoints.push(as_num);
-                                                    self.column_number += s.len() as u64 + 2;
+                                                    self.column_number +=
+                                                        (s.len() as u64).wrapping_add(2);
 
                                                     // Check for another UTF-16 codepoint
                                                     if self.next_is('\\') && self.next_is('u') {
@@ -294,8 +298,8 @@ impl<'a> Lexer<'a> {
                                                 // Rust's decode_utf16 will deal with it regardless
                                                 decode_utf16(codepoints.iter().cloned())
                                                     .next()
-                                                    .unwrap()
-                                                    .unwrap()
+                                                    .expect("Could not get next codepoint")
+                                                    .expect("Could not get next codepoint")
                                             }
                                         }
                                         '\'' | '"' | '\\' => escape,
@@ -315,7 +319,7 @@ impl<'a> Lexer<'a> {
                     // Why +1? Quotation marks are not included,
                     // So technically it would be +2, (for both " ") but we want to be 1 less
                     // to compensate for the incrementing at the top
-                    self.column_number += str_length + 1;
+                    self.column_number += str_length.wrapping_add(1);
                 }
                 '0' => {
                     let mut buf = String::new();
@@ -327,7 +331,7 @@ impl<'a> Lexer<'a> {
                                 break;
                             }
                         }
-                        u64::from_str_radix(&buf, 16).unwrap()
+                        u64::from_str_radix(&buf, 16).expect("Could not convert value to u64")
                     } else if self.next_is('b') {
                         while let Some(ch) = self.preview_next() {
                             if ch.is_digit(2) {
@@ -336,14 +340,14 @@ impl<'a> Lexer<'a> {
                                 break;
                             }
                         }
-                        u64::from_str_radix(&buf, 2).unwrap()
+                        u64::from_str_radix(&buf, 2).expect("Could not convert value to u64")
                     } else {
                         let mut gone_decimal = false;
                         loop {
                             let next_ch = self.preview_next().unwrap_or('_');
                             match next_ch {
-                                next_ch if next_ch.is_digit(8) => {
-                                    buf.push(next_ch);
+                                c if next_ch.is_digit(8) => {
+                                    buf.push(c);
                                     self.next()?;
                                 }
                                 'O' | 'o' => {
@@ -358,11 +362,11 @@ impl<'a> Lexer<'a> {
                             }
                         }
                         if gone_decimal {
-                            u64::from_str(&buf).unwrap()
+                            u64::from_str(&buf).expect("Could not convert value to u64r")
                         } else if buf.is_empty() {
                             0
                         } else {
-                            u64::from_str_radix(&buf, 8).unwrap()
+                            u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
                         }
                     };
                     self.push_token(TokenData::NumericLiteral(num as f64))
@@ -374,12 +378,12 @@ impl<'a> Lexer<'a> {
                             '.' => loop {
                                 buf.push(self.next()?);
 
-                                let ch = match self.preview_next() {
+                                let c = match self.preview_next() {
                                     Some(ch) => ch,
                                     None => break,
                                 };
 
-                                if !ch.is_digit(10) {
+                                if !c.is_digit(10) {
                                     break 'digitloop;
                                 }
                             },
@@ -393,7 +397,9 @@ impl<'a> Lexer<'a> {
                         }
                     }
                     // TODO make this a bit more safe -------------------------------VVVV
-                    self.push_token(TokenData::NumericLiteral(f64::from_str(&buf).unwrap()))
+                    self.push_token(TokenData::NumericLiteral(
+                        f64::from_str(&buf).expect("Could not convert value to f64"),
+                    ))
                 }
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();
@@ -419,7 +425,7 @@ impl<'a> Lexer<'a> {
                         }
                     });
                     // Move position forward the length of keyword
-                    self.column_number += (buf_compare.len() - 1) as u64;
+                    self.column_number += (buf_compare.len().wrapping_sub(1)) as u64;
                 }
                 ';' => self.push_punc(Punctuator::Semicolon),
                 ':' => self.push_punc(Punctuator::Colon),
@@ -573,7 +579,7 @@ impl<'a> Lexer<'a> {
                     self.column_number = 0;
                 }
                 ' ' => (),
-                ch => panic!(
+                _ => panic!(
                     "{}:{}: Unexpected '{}'",
                     self.line_number, self.column_number, ch
                 ),
@@ -582,10 +588,31 @@ impl<'a> Lexer<'a> {
     }
 }
 
+#[allow(clippy::indexing_slicing)]
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::syntax::ast::keyword::Keyword;
+
+    #[test]
+    fn check_single_line_comment() {
+        let s1 = "var \n//=\nx";
+        let mut lexer = Lexer::new(s1);
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
+
+        assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
+    }
+
+    #[test]
+    fn check_multi_line_comment() {
+        let s = "var /* await \n break \n*/ x";
+        let mut lexer = Lexer::new(s);
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
+
+        assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
+    }
 
     #[test]
     fn check_string() {

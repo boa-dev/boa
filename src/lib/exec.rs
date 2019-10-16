@@ -39,6 +39,7 @@ fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
         AssignOp::Add => v_a + v_b,
         AssignOp::Sub => v_a - v_b,
         AssignOp::Mul => v_a * v_b,
+        AssignOp::Pow => v_a.as_num_to_power(v_b),
         AssignOp::Div => v_a / v_b,
         AssignOp::Mod => v_a % v_b,
         AssignOp::And => v_a & v_b,
@@ -153,7 +154,7 @@ impl Executor for Interpreter {
                     let block = &tup.1;
                     if val == self.run(cond)? {
                         matched = true;
-                        let last_expr = block.last().unwrap();
+                        let last_expr = block.last().expect("Block has no expressions");
                         for expr in block.iter() {
                             let e_result = self.run(expr)?;
                             if expr == last_expr {
@@ -163,12 +164,20 @@ impl Executor for Interpreter {
                     }
                 }
                 if !matched && default.is_some() {
-                    result = self.run(default.as_ref().unwrap())?;
+                    result = self.run(
+                        default
+                            .as_ref()
+                            .expect("Could not get default as reference"),
+                    )?;
                 }
                 Ok(result)
             }
             ExprDef::ObjectDecl(ref map) => {
-                let global_val = &self.realm.environment.get_global_object().unwrap();
+                let global_val = &self
+                    .realm
+                    .environment
+                    .get_global_object()
+                    .expect("Could not get the global object");
                 let obj = ValueData::new_obj(Some(global_val));
                 for (key, val) in map.iter() {
                     obj.borrow().set_field(key.clone(), self.run(val)?);
@@ -176,7 +185,11 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::ArrayDecl(ref arr) => {
-                let global_val = &self.realm.environment.get_global_object().unwrap();
+                let global_val = &self
+                    .realm
+                    .environment
+                    .get_global_object()
+                    .expect("Could not get the global object");
                 let arr_map = ValueData::new_obj(Some(global_val));
                 // Note that this object is an Array
                 arr_map.set_kind(ObjectKind::Array);
@@ -204,10 +217,11 @@ impl Executor for Interpreter {
                 if name.is_some() {
                     self.realm
                         .environment
-                        .create_mutable_binding(name.clone().unwrap(), false);
-                    self.realm
-                        .environment
-                        .initialize_binding(name.as_ref().unwrap(), val.clone())
+                        .create_mutable_binding(name.clone().expect("No name was supplied"), false);
+                    self.realm.environment.initialize_binding(
+                        name.as_ref().expect("Could not get name as reference"),
+                        val.clone(),
+                    )
                 }
                 Ok(val)
             }
@@ -227,6 +241,7 @@ impl Executor for Interpreter {
                     NumOp::Add => v_a + v_b,
                     NumOp::Sub => v_a - v_b,
                     NumOp::Mul => v_a * v_b,
+                    NumOp::Pow => v_a.as_num_to_power(v_b),
                     NumOp::Div => v_a / v_b,
                     NumOp::Mod => v_a % v_b,
                 }))
@@ -275,8 +290,10 @@ impl Executor for Interpreter {
                 }))
             }
             ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
-                let v_a = from_value::<bool>(self.run(a)?).unwrap();
-                let v_b = from_value::<bool>(self.run(b)?).unwrap();
+                let v_a =
+                    from_value::<bool>(self.run(a)?).expect("Could not convert JS value to bool");
+                let v_b =
+                    from_value::<bool>(self.run(b)?).expect("Could not convert JS value to bool");
                 Ok(match *op {
                     LogOp::And => to_value(v_a && v_b),
                     LogOp::Or => to_value(v_a || v_b),
@@ -336,8 +353,8 @@ impl Executor for Interpreter {
                             ));
 
                             for i in 0..data.args.len() {
-                                let name = data.args.get(i).unwrap();
-                                let expr = v_args.get(i).unwrap();
+                                let name = data.args.get(i).expect("Could not get data argument");
+                                let expr = v_args.get(i).expect("Could not get argument");
                                 env.create_mutable_binding(name.clone(), false);
                                 env.initialize_binding(name, expr.to_owned());
                             }
@@ -466,8 +483,8 @@ impl Interpreter {
                         Some(env.get_current_environment_ref().clone()),
                     ));
                     for i in 0..data.args.len() {
-                        let name = data.args.get(i).unwrap();
-                        let expr: &Value = arguments_list.get(i).unwrap();
+                        let name = data.args.get(i).expect("Could not get data argument");
+                        let expr: &Value = arguments_list.get(i).expect("Could not get argument");
                         self.realm
                             .environment
                             .create_mutable_binding(name.clone(), false);
