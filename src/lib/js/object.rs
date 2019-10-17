@@ -462,7 +462,7 @@ pub fn has_own_prop(this: &Value, args: &[Value], _: &mut Interpreter) -> Result
 }
 
 /// Create a new `Object` object
-pub fn _create(global: &Value) -> Value {
+pub fn create_constructor(global: &Value) -> Value {
     let object = to_value(make_object as NativeFunctionData);
     let prototype = ValueData::new_obj(Some(global));
     prototype.set_field_slice(
@@ -485,9 +485,4 @@ pub fn _create(global: &Value) -> Value {
         to_value(define_prop as NativeFunctionData),
     );
     object
-}
-
-/// Initialise the `Object` object on the global object
-pub fn init(global: &Value) {
-    global.set_field_slice("Object", _create(global));
 }
