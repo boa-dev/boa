@@ -4,7 +4,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
-        regexp::{make_regexp, r#match as regexp_match},
+        regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
@@ -692,6 +692,42 @@ pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     to_string(this, args, ctx)
 }
 
+/// TODO: update this method to return iterator
+/// Returns an array* of all results matching a string against a regular expression, including capturing groups
+/// <https://tc39.es/ecma262/#sec-string.prototype.matchall>
+pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let re: Value = match args.get(0) {
+        Some(arg) => {
+            if arg == &Gc::new(ValueData::Null) {
+                make_regexp(
+                    &to_value(Object::default()),
+                    &[
+                        to_value(ctx.value_to_rust_string(arg)),
+                        to_value(String::from("g")),
+                    ],
+                    ctx,
+                )
+            } else if arg == &Gc::new(ValueData::Undefined) {
+                make_regexp(
+                    &to_value(Object::default()),
+                    &[Gc::new(ValueData::Undefined), to_value(String::from("g"))],
+                    ctx,
+                )
+            } else {
+                from_value(arg.clone()).map_err(to_value)
+            }
+        }
+        None => make_regexp(
+            &to_value(Object::default()),
+            &[to_value(String::new()), to_value(String::from("g"))],
+            ctx,
+        ),
+    }?
+    .clone();
+
+    regexp_match_all(&re, ctx.value_to_rust_string(this))
+}
+
 /// Create a new `String` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create constructor function object
@@ -729,6 +765,7 @@ pub fn create_constructor(global: &Value) -> Value {
     proto.set_field_slice("substring", to_value(substring as NativeFunctionData));
     proto.set_field_slice("substr", to_value(substr as NativeFunctionData));
     proto.set_field_slice("valueOf", to_value(value_of as NativeFunctionData));
+    proto.set_field_slice("matchAll", to_value(match_all as NativeFunctionData));
 
     let string = to_value(string_constructor);
     proto.set_field_slice("constructor", string.clone());
@@ -890,6 +927,80 @@ mod tests {
         assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), pass);
         assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), pass);
     }
+
+    #[test]
+    fn match_all() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(null).length"),
+            String::from("0")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/b/).length"),
+            String::from("0")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/a/).length"),
+            String::from("1")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/a/g).length"),
+            String::from("2")
+        );
+
+        forward(
+            &mut engine,
+            "const groupMatches = 'test1test2'.matchAll(/t(e)(st(\\d?))/g)",
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches.length"),
+            String::from("2")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][1]"),
+            String::from("e")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][2]"),
+            String::from("st1")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][3]"),
+            String::from("1")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[1][3]"),
+            String::from("2")
+        );
+
+        assert_eq!(
+            forward(
+                &mut engine,
+                "'test1test2'.matchAll(/t(e)(st(\\d?))/).length"
+            ),
+            String::from("1")
+        );
+
+        let init = r#"
+        const regexp = RegExp('foo[a-z]*','g');
+        const str = 'table football, foosball';
+        const matches = str.matchAll(regexp);
+        "#;
+        forward(&mut engine, init);
+        assert_eq!(
+            forward(&mut engine, "matches[0][0]"),
+            String::from("football")
+        );
+        assert_eq!(forward(&mut engine, "matches[0].index"), String::from("6"));
+        assert_eq!(
+            forward(&mut engine, "matches[1][0]"),
+            String::from("foosball")
+        );
+        assert_eq!(forward(&mut engine, "matches[1].index"), String::from("16"));
+    }
+
     #[test]
     fn test_match() {
         let realm = Realm::create();

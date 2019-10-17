@@ -280,6 +280,49 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
     Ok(to_value(format!("/{}/{}", body, flags)))
 }
 
+/// RegExp.prototype[Symbol.matchAll]
+/// Returns all matches of the regular expression against a string
+/// TODO: it's returning an array, it should return an iterator
+pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
+    let matches: Vec<Value> = this.with_internal_state_ref(|regex: &RegExp| {
+        let mut matches = Vec::new();
+
+        for m in regex.matcher.find_iter(&arg_str) {
+            if let Some(caps) = regex.matcher.captures(&m.as_str()) {
+                let match_vec = caps
+                    .iter()
+                    .map(|group| match group {
+                        Some(g) => to_value(g.as_str()),
+                        None => Gc::new(ValueData::Undefined),
+                    })
+                    .collect::<Vec<Value>>();
+
+                let match_val = to_value(match_vec);
+
+                match_val.set_prop_slice("index", Property::default().value(to_value(m.start())));
+                match_val.set_prop_slice(
+                    "input",
+                    Property::default().value(to_value(arg_str.clone())),
+                );
+                matches.push(match_val);
+
+                if !regex.flags.contains('g') {
+                    break;
+                }
+            }
+        }
+
+        matches
+    });
+
+    let length = matches.len();
+    let result = to_value(matches);
+    result.set_field_slice("length", to_value(length));
+    result.set_kind(ObjectKind::Array);
+
+    Ok(result)
+}
+
 /// Create a new `RegExp` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create constructor function
