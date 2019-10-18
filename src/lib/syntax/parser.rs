@@ -67,13 +67,13 @@ impl Parser {
         }
     }
 
-    fn parse_function_parameters(&mut self) -> Result<Vec<String>, ParseError> {
+    fn parse_function_parameters(&mut self) -> Result<Vec<Expr>, ParseError> {
         self.expect_punc(Punctuator::OpenParen, "function parameters ( expected")?;
         let mut args = Vec::new();
         let mut tk = self.get_token(self.pos)?;
         while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
             match tk.data {
-                TokenData::Identifier(ref id) => args.push(id.clone()),
+                TokenData::Identifier(ref id) => args.push(mk!(self, ExprDef::ArgDecl(id.clone()))),
                 _ => {
                     return Err(ParseError::Expected(
                         vec![TokenData::Identifier("identifier".to_string())],
@@ -399,12 +399,12 @@ impl Parser {
                                 // at this point it's probably gonna be an arrow function
                                 let mut args = vec![
                                     match next.def {
-                                        ExprDef::Local(ref name) => (*name).clone(),
-                                        _ => "".to_string(),
+                                        ExprDef::Local(ref name) => mk!(self, ExprDef::ArgDecl((*name).clone())),
+                                        _ => mk!(self, ExprDef::ArgDecl("".to_string())),
                                     },
                                     match self.get_token(self.pos)?.data {
-                                        TokenData::Identifier(ref id) => id.clone(),
-                                        _ => "".to_string(),
+                                        TokenData::Identifier(ref id) => mk!(self, ExprDef::ArgDecl(id.clone())),
+                                        _ => mk!(self, ExprDef::ArgDecl("".to_string())),
                                     },
                                 ];
                                 let mut expect_ident = true;
@@ -413,7 +413,7 @@ impl Parser {
                                     let curr_tk = self.get_token(self.pos)?;
                                     match curr_tk.data {
                                         TokenData::Identifier(ref id) if expect_ident => {
-                                            args.push(id.clone());
+                                            args.push(mk!(self, ExprDef::ArgDecl(id.clone())));
                                             expect_ident = false;
                                         }
                                         TokenData::Punctuator(Punctuator::Comma) => {
@@ -742,7 +742,7 @@ impl Parser {
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
                 match result.def {
-                    ExprDef::Local(ref name) => args.push((*name).clone()),
+                    ExprDef::Local(ref name) => args.push(mk!(self, ExprDef::ArgDecl((*name).clone()))),
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
                 let next = self.parse()?;
@@ -963,7 +963,7 @@ mod tests {
             String::from("b"),
             Expr::new(ExprDef::FunctionDecl(
                 None,
-                vec![String::from("test")],
+                vec![Expr::new(ExprDef::ArgDecl(String::from("test")))],
                 Box::new(Expr::new(ExprDef::Block(vec![]))),
             )),
         );
@@ -1493,5 +1493,29 @@ mod tests {
                 ),
             )],
         );
+    }
+
+    #[test]
+    fn check_function_declarations() {
+        check_parser(
+            "function foo(a) { return a; }",
+            &[Expr::new(
+                ExprDef::FunctionDecl(
+                    Some(String::from("foo")),
+                    vec![
+                        Expr::new(ExprDef::ArgDecl(String::from("a")))
+                    ],
+                    Box::new(Expr::new(ExprDef::Block(
+                        vec![
+                            Expr::new(ExprDef::Return(
+                                Some(Box::new(
+                                    Expr::new(ExprDef::Local(String::from("a")))
+                                ))
+                            ))
+                        ]
+                    )))
+                )
+            )]
+        )
     }
 }

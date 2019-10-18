@@ -60,10 +60,12 @@ pub enum ExprDef {
     ObjectDecl(Box<BTreeMap<String, Expr>>),
     /// Create an array with items inside
     ArrayDecl(Vec<Expr>),
+    /// Declare an argument for a function
+    ArgDecl(String),
     /// Create a function with the given name, arguments, and expression
-    FunctionDecl(Option<String>, Vec<String>, Box<Expr>),
+    FunctionDecl(Option<String>, Vec<Expr>, Box<Expr>),
     /// Create an arrow function with the given arguments and expression
-    ArrowFunctionDecl(Vec<String>, Box<Expr>),
+    ArrowFunctionDecl(Vec<Expr>, Box<Expr>),
     /// Return the expression from a function
     Return(Option<Box<Expr>>),
     /// Throw a value
@@ -181,13 +183,21 @@ impl Display for ExprDef {
                 join_expr(f, arr)?;
                 f.write_str("]")
             }
-            ExprDef::FunctionDecl(ref name, ref args, ref expr) => match name {
-                Some(val) => write!(f, "function {}({}){}", val, args.join(", "), expr),
-                None => write!(f, "function ({}){}", args.join(", "), expr),
+            ExprDef::ArgDecl(ref s) => write!(f, "{}", s),
+            ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
+                write!(f, "function ")?;
+                if let Some(func_name) = name {
+                    f.write_fmt(format_args!("{}", func_name))?;
+                }
+                write!(f, "{{")?;
+                join_expr(f, args)?;
+                write!(f, "}} {}", expr)
             },
             ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
-                write!(f, "({}) => {}", args.join(", "), expr)
-            }
+                write!(f, "(")?;
+                join_expr(f, args)?;
+                write!(f, ") => {}", expr)
+            },
             ExprDef::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
             ExprDef::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
             ExprDef::Return(Some(ref ex)) => write!(f, "return {}", ex),

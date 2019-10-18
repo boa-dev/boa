@@ -35,14 +35,14 @@ pub struct RegularFunction {
     pub object: Object,
     /// This function's expression
     pub expr: Expr,
-    /// The argument names of the function
-    pub args: Vec<String>,
+    /// The argument declarations of the function
+    pub args: Vec<Expr>,
 }
 
 impl RegularFunction {
     /// Make a new regular function
     #[allow(clippy::cast_possible_wrap)]
-    pub fn new(expr: Expr, args: Vec<String>) -> Self {
+    pub fn new(expr: Expr, args: Vec<Expr>) -> Self {
         let mut object = Object::default();
         object.properties.insert(
             "arguments".to_string(),
