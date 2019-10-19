@@ -74,6 +74,7 @@ impl Parser {
         while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
             match tk.data {
                 TokenData::Identifier(ref id) => args.push(mk!(self, ExprDef::ArgDecl(id.clone()))),
+                TokenData::Punctuator(Punctuator::Spread) => args.push(self.parse()?),
                 _ => {
                     return Err(ParseError::Expected(
                         vec![TokenData::Identifier("identifier".to_string())],
@@ -612,6 +613,10 @@ impl Parser {
             TokenData::Punctuator(Punctuator::Dec) => mk!(
                 self,
                 ExprDef::UnaryOp(UnaryOp::DecrementPre, Box::new(self.parse()?))
+            ),
+            TokenData::Punctuator(Punctuator::Spread) => mk!(
+                self,
+                ExprDef::UnaryOp(UnaryOp::Spread, Box::new(self.parse()?))
             ),
             _ => return Err(ParseError::Expected(Vec::new(), token.clone(), "script")),
         };
