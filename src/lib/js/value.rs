@@ -591,19 +591,19 @@ impl Display for ValueData {
                 write!(f, "{}", "{ ")?;
 
                 // TODO: Find a more optimised way to do this
-                let properties = v.borrow()
-                    .properties.iter()
-                    .map(|(key, val)| 
-                        (key.clone(), val.value.clone().unwrap().to_string())
-                    )
+                let properties = v
+                    .borrow()
+                    .properties
+                    .iter()
+                    .map(|(key, val)| (key.clone(), val.value.clone().unwrap().to_string()))
                     .collect::<Vec<(String, String)>>();
 
-                let internal_slots = v.borrow()
-                    .internal_slots.iter()
+                let internal_slots = v
+                    .borrow()
+                    .internal_slots
+                    .iter()
                     .filter(|(key, _)| *key != INSTANCE_PROTOTYPE)
-                    .map(|(key, val)| 
-                        (key.clone(), val.to_string())
-                    )
+                    .map(|(key, val)| (key.clone(), val.to_string()))
                     .collect::<Vec<(String, String)>>();
 
                 let result = [&properties[..], &internal_slots[..]]
@@ -616,7 +616,7 @@ impl Display for ValueData {
                 write!(f, "{}", result)?;
 
                 write!(f, "{}", " }")
-            },
+            }
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
