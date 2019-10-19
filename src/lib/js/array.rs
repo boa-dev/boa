@@ -572,9 +572,9 @@ mod tests {
 
         let result = forward(&mut engine, "delArray.every(deletingCallback);");
         assert_eq!(result, "true");
-  }
-  
-   #[test]
+    }
+
+    #[test]
     fn find() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
