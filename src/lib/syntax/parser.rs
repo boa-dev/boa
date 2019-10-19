@@ -74,7 +74,12 @@ impl Parser {
         while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
             match tk.data {
                 TokenData::Identifier(ref id) => args.push(mk!(self, ExprDef::ArgDecl(id.clone()))),
-                TokenData::Punctuator(Punctuator::Spread) => args.push(self.parse()?),
+                TokenData::Punctuator(Punctuator::Spread) => {
+                    args.push(self.parse()?);
+                    self.expect_punc(Punctuator::CloseParen, "function")?;
+                    // Counteract expect_punc so the next token is CloseParen
+                    self.pos -= 1;
+                }
                 _ => {
                     return Err(ParseError::Expected(
                         vec![TokenData::Identifier("identifier".to_string())],
