@@ -576,7 +576,7 @@ impl Display for ValueData {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
-            ValueData::String(ref v) => write!(f, "{}", v),
+            ValueData::String(ref v) => write!(f, "'{}'", v),
             ValueData::Number(v) => write!(
                 f,
                 "{}",
@@ -590,17 +590,31 @@ impl Display for ValueData {
             ValueData::Object(ref v) => {
                 write!(f, "{}", "{ ")?;
 
+                // TODO: Find a better way to do this
+
                 let properties = v.borrow()
-                    .deref()
                     .properties.iter()
-                    .map(|(key, val)| {
-                        let v = val.value.as_ref().unwrap();
-                        format!("{}: {}", key, v)
-                    })
+                    .map(|(key, val)| 
+                        (key.clone(), val.value.clone().unwrap().to_string())
+                    )
+                    .collect::<Vec<(String, String)>>();
+
+                let internal_slots = v.borrow()
+                    .internal_slots.iter()
+                    .filter(|(key, _)| *key != "__proto__")
+                    .map(|(key, val)| 
+                        (key.clone(), val.to_string())
+                    )
+                    .collect::<Vec<(String, String)>>();
+
+                let result = [&properties[..], &internal_slots[..]]
+                    .concat()
+                    .iter()
+                    .map(|(key, val)| format!("{}: {}", key, val))
                     .collect::<Vec<String>>()
                     .join(", ");
 
-                write!(f, "{}", properties)?;
+                write!(f, "{}", result)?;
 
                 write!(f, "{}", " }")
             },
