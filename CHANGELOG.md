@@ -34,6 +34,8 @@ Bug fixes:
   Clippy warnings/errors fixed (@korpen)
 - [BUG #147](https://github.com/jasonwilliams/boa/pull/147):
   Updated object global
+- [BUG #154](https://github.com/jasonwilliams/boa/issues/154):
+  Correctly handle all whitespaces within the lexer
 - Tidy up Globals being added to Global Object. Thanks @DomParfitt
 
 # 0.4.0 (2019-09-25)
