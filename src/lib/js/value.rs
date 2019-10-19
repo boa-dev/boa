@@ -576,7 +576,7 @@ impl Display for ValueData {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
-            ValueData::String(ref v) => write!(f, "'{}'", v),
+            ValueData::String(ref v) => write!(f, "{}", v),
             ValueData::Number(v) => write!(
                 f,
                 "{}",
@@ -588,7 +588,7 @@ impl Display for ValueData {
                 }
             ),
             ValueData::Object(ref v) => {
-                write!(f, "{}", "{ ")?;
+                write!(f, "{{ ")?;
 
                 // TODO: Find a more optimised way to do this
                 let properties = v
@@ -615,7 +615,7 @@ impl Display for ValueData {
 
                 write!(f, "{}", result)?;
 
-                write!(f, "{}", " }")
+                write!(f, " }}")
             }
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
