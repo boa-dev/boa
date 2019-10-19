@@ -578,7 +578,15 @@ impl<'a> Lexer<'a> {
                 '\r' => {
                     self.column_number = 0;
                 }
-                ' ' => (),
+                // The rust char::is_whitespace function and the ecma standard use different sets
+                // of characters as whitespaces:
+                //  * Rust uses \p{White_Space},
+                //  * ecma standard uses \{Space_Separator} + \u{0009}, \u{000B}, \u{000C}, \u{FEFF}
+                // 
+                // Explicit whitespace: see https://tc39.es/ecma262/#table-32
+                '\u{0020}' | '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{00A0}' | '\u{FEFF}' |
+                // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
+                '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' => (),
                 _ => panic!(
                     "{}:{}: Unexpected '{}'",
                     self.line_number, self.column_number, ch
