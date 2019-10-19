@@ -8,7 +8,7 @@ Features:
   Enables Boa to run within the Test 262 framework.  
   This will help us see what is implemented or not within the spec
 
-# Next
+# [Unreleased](https://github.com/jasonwilliams/boa/compare/v0.4.0...HEAD)
 
 Feature enhancements:
 
@@ -20,6 +20,10 @@ Feature enhancements:
   Add tests for comments in source code. Thanks @Emanon42
 - [FEATURE #137](https://github.com/jasonwilliams/boa/issues/137):
   Use Monaco theme for the demo page
+- [FEATURE #114](https://github.com/jasonwilliams/boa/issues/114):
+  String.match(regExp) is implemented (@muskuloes)
+- [FEATURE #115](https://github.com/jasonwilliams/boa/issues/115):
+  String.matchAll(regExp) is implemented (@bojan88)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
 Bug fixes:
@@ -28,6 +32,10 @@ Bug fixes:
   Unassigned variables have default of undefined (@pop)
 - [BUG #61](https://github.com/jasonwilliams/boa/issues/61):
   Clippy warnings/errors fixed (@korpen)
+- [BUG #147](https://github.com/jasonwilliams/boa/pull/147):
+  Updated object global
+- [BUG #154](https://github.com/jasonwilliams/boa/issues/154):
+  Correctly handle all whitespaces within the lexer
 - Tidy up Globals being added to Global Object. Thanks @DomParfitt
 
 # 0.4.0 (2019-09-25)
