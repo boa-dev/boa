@@ -25,9 +25,9 @@ Feature enhancements:
 - [FEATURE #115](https://github.com/jasonwilliams/boa/issues/115):
   String.matchAll(regExp) is implemented (@bojan88)
 - [FEATURE #163](https://github.com/jasonwilliams/boa/issues/163):
-  Implement Array.prototype.every()
+  Implement Array.prototype.every() (@letmutx)
 - [FEATURE #165](https://github.com/jasonwilliams/boa/issues/165):
-  Implement Array.prototype.find()
+  Implement Array.prototype.find() (@letmutx)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
 Bug fixes:
