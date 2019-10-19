@@ -405,6 +405,36 @@ pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> Resul
     Ok(to_value(-1))
 }
 
+/// Array.prototype.find ( callback, [thisArg] )
+///
+/// The find method executes the callback function once for each index of the array
+/// until the callback returns a truthy value. If so, find immediately returns the value
+/// of that element. Otherwise, find returns undefined.
+/// <https://tc39.es/ecma262/#sec-array.prototype.find>
+pub fn find(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    if args.is_empty() {
+        return Err(to_value(
+            "missing callback when calling function Array.prototype.find".to_string(),
+        ));
+    }
+    let callback = &args[0];
+    let this_arg = if args.len() > 1 {
+        args[1].clone()
+    } else {
+        Gc::new(ValueData::Undefined)
+    };
+    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    for i in 0..len {
+        let element = this.get_field(&i.to_string());
+        let arguments = vec![element.clone(), to_value(i), this.clone()];
+        let result = interpreter.call(callback, &this_arg, arguments)?;
+        if result.is_true() {
+            return Ok(element);
+        }
+    }
+    Ok(Gc::new(ValueData::Undefined))
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -437,6 +467,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("shift", to_value(shift as NativeFunctionData));
     array_prototype.set_field_slice("unshift", to_value(unshift as NativeFunctionData));
     array_prototype.set_field_slice("every", to_value(every as NativeFunctionData));
+    array_prototype.set_field_slice("find", to_value(find as NativeFunctionData));
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
 
@@ -541,6 +572,21 @@ mod tests {
 
         let result = forward(&mut engine, "delArray.every(deletingCallback);");
         assert_eq!(result, "true");
+  }
+  
+   #[test]
+    fn find() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        function comp(a) {
+            return a == "a";
+        }
+        let many = ["a", "b", "c"];
+        "#;
+        forward(&mut engine, init);
+        let found = forward(&mut engine, "many.find(comp)");
+        assert_eq!(found, String::from("a"));
     }
 
     #[test]
