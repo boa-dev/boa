@@ -601,7 +601,7 @@ impl Display for ValueData {
 
                 let internal_slots = v.borrow()
                     .internal_slots.iter()
-                    .filter(|(key, _)| *key != "__proto__")
+                    .filter(|(key, _)| *key != INSTANCE_PROTOTYPE)
                     .map(|(key, val)| 
                         (key.clone(), val.to_string())
                     )
