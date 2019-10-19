@@ -33,7 +33,7 @@ Both of these plugins will help you with your Rust Development
 There are some pre-defined tasks in [tasks.json](.vscode/tasks.json)
 
 - Build - shift+cmd/ctrl+b should build and run cargo. You should be able to make changes and run this task.
-- Test - (there is no shortcut, youll need to make one) - Runs `Cargo Test`.  
+- Test - (there is no shortcut, you'll need to make one) - Runs `Cargo Test`.  
   I personally set a shortcut of shift+cmd+option+T (or shift+ctrl+alt+T)
 
 If you don't want to install everything on your machine, you can use the Dockerfile.
@@ -66,11 +66,11 @@ see [CHANGELOG](./CHANGELOG.md)
 
 ### Usage
 
-- Checkout this project
+- Check out this project
 - Build `cargo build`
 - `cargo run`
 - You can make changes to tests/js/test.js and build again
-- If any JS doesn't work its a bug! Please raise an issue
+- If any JS doesn't work then it's a bug! Please raise an issue
 
 #### Communication
 
