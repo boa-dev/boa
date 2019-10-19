@@ -587,7 +587,23 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            ValueData::Object(_) => write!(f, "{{}}"),
+            ValueData::Object(ref v) => {
+                write!(f, "{}", "{ ")?;
+
+                let properties = v.borrow()
+                    .deref()
+                    .properties.iter()
+                    .map(|(key, val)| {
+                        let v = val.value.as_ref().unwrap();
+                        format!("{}: {}", key, v)
+                    })
+                    .collect::<Vec<String>>()
+                    .join(", ");
+
+                write!(f, "{}", properties)?;
+
+                write!(f, "{}", " }")
+            },
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
