@@ -590,8 +590,7 @@ impl Display for ValueData {
             ValueData::Object(ref v) => {
                 write!(f, "{}", "{ ")?;
 
-                // TODO: Find a better way to do this
-
+                // TODO: Find a more optimised way to do this
                 let properties = v.borrow()
                     .properties.iter()
                     .map(|(key, val)| 
