@@ -115,7 +115,7 @@ pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) -> Value {
     obj.define_own_property("length".to_string(), length);
     let mut index: usize = 0;
     while index < len {
-        let val = arguments_list.get(index).unwrap();
+        let val = arguments_list.get(index).expect("Could not get argument");
         let mut prop = Property::default();
         prop = prop
             .value(val.clone())
@@ -136,6 +136,7 @@ mod tests {
     use crate::realm::Realm;
     use crate::{forward, forward_val, js::value::from_value};
 
+    #[allow(clippy::float_cmp)]
     #[test]
     fn check_arguments_object() {
         let realm = Realm::create();
@@ -148,8 +149,12 @@ mod tests {
         "#;
 
         forward(&mut engine, init);
+        let expected_return_val: f64 = 100.0;
         let return_val = forward_val(&mut engine, "val").expect("value expected");
         assert_eq!(return_val.is_double(), true);
-        assert_eq!(from_value::<f64>(return_val).unwrap(), 100.0);
+        assert_eq!(
+            from_value::<f64>(return_val).expect("Could not convert value to f64"),
+            expected_return_val
+        );
     }
 }

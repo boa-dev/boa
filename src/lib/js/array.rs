@@ -8,6 +8,7 @@ use crate::{
     },
 };
 use gc::Gc;
+use std::cmp;
 
 /// Utility function for creating array objects: `array_obj` can be any array with
 /// prototype already set (it will be wiped and recreated from `array_contents`)
@@ -35,11 +36,14 @@ fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
         from_value(array_ptr.get_field_slice("length")).expect("failed to conveert lenth to i32");
 
     for (n, value) in add_values.iter().enumerate() {
-        let new_index = orig_length + (n as i32);
+        let new_index = orig_length.wrapping_add(n as i32);
         array_ptr.set_field(new_index.to_string(), value.clone());
     }
 
-    array_ptr.set_field_slice("length", to_value(orig_length + add_values.len() as i32));
+    array_ptr.set_field_slice(
+        "length",
+        to_value(orig_length.wrapping_add(add_values.len() as i32)),
+    );
 
     Ok(array_ptr.clone())
 }
@@ -55,8 +59,9 @@ pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultVa
     match args.len() {
         0 => construct_array(this, &[]),
         1 => {
-            let array = construct_array(this, &[]).unwrap();
-            let size: i32 = from_value(args[0].clone()).unwrap();
+            let array = construct_array(this, &[]).expect("Could not construct array");
+            let size: i32 = from_value(args.get(0).expect("Could not get argument").clone())
+                .expect("Could not convert argument to i32");
             array.set_field_slice("length", to_value(size));
             Ok(array)
         }
@@ -87,13 +92,15 @@ pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     // one)
     let mut new_values: Vec<Value> = Vec::new();
 
-    let this_length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let this_length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..this_length {
         new_values.push(this.get_field(&n.to_string()));
     }
 
     for concat_array in args {
-        let concat_length: i32 = from_value(concat_array.get_field_slice("length")).unwrap();
+        let concat_length: i32 = from_value(concat_array.get_field_slice("length"))
+            .expect("Could not convert argument to i32");
         for n in 0..concat_length {
             new_values.push(concat_array.get_field(&n.to_string()));
         }
@@ -118,13 +125,14 @@ pub fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The last element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.pop>
 pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let curr_length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let curr_length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     if curr_length < 1 {
         return Err(to_value(
             "Cannot pop() on an array with zero length".to_string(),
         ));
     }
-    let pop_index = curr_length - 1;
+    let pop_index = curr_length.wrapping_sub(1);
     let pop_value: Value = this.get_field(&pop_index.to_string());
     this.remove_prop(&pop_index.to_string());
     this.set_field_slice("length", to_value(pop_index));
@@ -141,11 +149,12 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let separator = if args.is_empty() {
         String::from(",")
     } else {
-        args[0].to_string()
+        args.get(0).expect("Could not get argument").to_string()
     };
 
     let mut elem_strs: Vec<String> = Vec::new();
-    let length: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..length {
         let elem_str: String = this.get_field(&n.to_string()).to_string();
         elem_strs.push(elem_str);
@@ -159,12 +168,14 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
 /// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
+#[allow(clippy::else_if_without_else)]
 pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
-    let middle: i32 = len / 2;
+    let len: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+    let middle: i32 = len.wrapping_div(2);
 
     for lower in 0..middle {
-        let upper = len - lower - 1;
+        let upper = len.wrapping_sub(lower).wrapping_sub(1);
 
         let upper_exists = this.has_field(&upper.to_string());
         let lower_exists = this.has_field(&lower.to_string());
@@ -192,7 +203,8 @@ pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// The first element of the array is removed from the array and returned.
 /// <https://tc39.es/ecma262/#sec-array.prototype.shift/>
 pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let len: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
 
     if len == 0 {
         this.set_field_slice("length", to_value(0_i32));
@@ -204,7 +216,7 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 
     for k in 1..len {
         let from = k.to_string();
-        let to = (k - 1).to_string();
+        let to = (k.wrapping_sub(1)).to_string();
 
         let from_value = this.get_field(&from);
         if from_value == Gc::new(ValueData::Undefined) {
@@ -214,8 +226,9 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         }
     }
 
-    this.remove_prop(&(len - 1).to_string());
-    this.set_field_slice("length", to_value(len - 1));
+    let final_index = len.wrapping_sub(1);
+    this.remove_prop(&(final_index).to_string());
+    this.set_field_slice("length", to_value(final_index));
 
     Ok(first)
 }
@@ -227,13 +240,14 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// argument list.
 /// <https://tc39.es/ecma262/#sec-array.prototype.unshift/>
 pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let len: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     let arg_c: i32 = args.len() as i32;
 
     if arg_c > 0 {
         for k in (1..=len).rev() {
-            let from = (k - 1).to_string();
-            let to = (k + arg_c - 1).to_string();
+            let from = (k.wrapping_sub(1)).to_string();
+            let to = (k.wrapping_add(arg_c).wrapping_sub(1)).to_string();
 
             let from_value = this.get_field(&from);
             if from_value == Gc::new(ValueData::Undefined) {
@@ -243,12 +257,117 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
             }
         }
         for j in 0..arg_c {
-            this.set_field_slice(&j.to_string(), args[j as usize].clone());
+            this.set_field_slice(
+                &j.to_string(),
+                args.get(j as usize)
+                    .expect("Could not get argument")
+                    .clone(),
+            );
         }
     }
 
-    this.set_field_slice("length", to_value(len + arg_c));
-    Ok(to_value(len + arg_c))
+    let temp = len.wrapping_add(arg_c);
+    this.set_field_slice("length", to_value(temp));
+    Ok(to_value(temp))
+}
+
+/// Array.prototype.indexOf ( searchElement[, fromIndex ] )
+///
+///
+/// indexOf compares searchElement to the elements of the array, in ascending order,
+/// using the Strict Equality Comparison algorithm, and if found at one or more indices,
+/// returns the smallest such index; otherwise, -1 is returned.
+///
+/// The optional second argument fromIndex defaults to 0 (i.e. the whole array is searched).
+/// If it is greater than or equal to the length of the array, -1 is returned,
+/// i.e. the array will not be searched. If it is negative, it is used as the offset
+/// from the end of the array to compute fromIndex. If the computed index is less than 0,
+/// the whole array will be searched.
+/// <https://tc39.es/ecma262/#sec-array.prototype.indexof>
+pub fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    // If no arguments, return -1. Not described in spec, but is what chrome does.
+    if args.is_empty() {
+        return Ok(to_value(-1));
+    }
+
+    let search_element = args[0].clone();
+    let len: i32 = from_value(this.get_field_slice("length"))
+        .expect("Expected array property \"length\" is not set.");
+
+    let mut idx = match args.get(1) {
+        Some(from_idx_ptr) => {
+            let from_idx = from_value(from_idx_ptr.clone())
+                .expect("Error parsing \"Array.prototype.indexOf - fromIndex\" argument");
+
+            if from_idx < 0 {
+                len + from_idx
+            } else {
+                from_idx
+            }
+        }
+        None => 0,
+    };
+
+    while idx < len {
+        let check_element = this.get_field(&idx.to_string()).clone();
+
+        if check_element == search_element {
+            return Ok(to_value(idx));
+        }
+
+        idx += 1;
+    }
+
+    Ok(to_value(-1))
+}
+
+/// Array.prototype.lastIndexOf ( searchElement[, fromIndex ] )
+///
+///
+/// lastIndexOf compares searchElement to the elements of the array in descending order
+/// using the Strict Equality Comparison algorithm, and if found at one or more indices,
+/// returns the largest such index; otherwise, -1 is returned.
+///
+/// The optional second argument fromIndex defaults to the array's length minus one
+/// (i.e. the whole array is searched). If it is greater than or equal to the length of the array,
+/// the whole array will be searched. If it is negative, it is used as the offset from the end
+/// of the array to compute fromIndex. If the computed index is less than 0, -1 is returned.
+/// <https://tc39.es/ecma262/#sec-array.prototype.lastindexof>
+pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    // If no arguments, return -1. Not described in spec, but is what chrome does.
+    if args.is_empty() {
+        return Ok(to_value(-1));
+    }
+
+    let search_element = args[0].clone();
+    let len: i32 = from_value(this.get_field_slice("length"))
+        .expect("Expected array property \"length\" is not set.");
+
+    let mut idx = match args.get(1) {
+        Some(from_idx_ptr) => {
+            let from_idx = from_value(from_idx_ptr.clone())
+                .expect("Error parsing \"Array.prototype.indexOf - fromIndex\" argument");
+
+            if from_idx >= 0 {
+                cmp::min(from_idx, len - 1)
+            } else {
+                len + from_idx
+            }
+        }
+        None => len - 1,
+    };
+
+    while idx >= 0 {
+        let check_element = this.get_field(&idx.to_string()).clone();
+
+        if check_element == search_element {
+            return Ok(to_value(idx));
+        }
+
+        idx -= 1;
+    }
+
+    Ok(to_value(-1))
 }
 
 /// Array.prototype.find ( callback, [thisArg] )
@@ -301,6 +420,10 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("concat", concat_func);
     let push_func = to_value(push as NativeFunctionData);
     push_func.set_field_slice("length", to_value(1_i32));
+    let index_of_func = to_value(index_of as NativeFunctionData);
+    index_of_func.set_field_slice("length", to_value(1_i32));
+    let last_index_of_func = to_value(last_index_of as NativeFunctionData);
+    last_index_of_func.set_field_slice("length", to_value(1_i32));
 
     array_prototype.set_field_slice("push", push_func);
     array_prototype.set_field_slice("pop", to_value(pop as NativeFunctionData));
@@ -309,6 +432,8 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("shift", to_value(shift as NativeFunctionData));
     array_prototype.set_field_slice("unshift", to_value(unshift as NativeFunctionData));
     array_prototype.set_field_slice("find", to_value(find as NativeFunctionData));
+    array_prototype.set_field_slice("indexOf", index_of_func);
+    array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
@@ -381,5 +506,133 @@ mod tests {
         forward(&mut engine, init);
         let found = forward(&mut engine, "many.find(comp)");
         assert_eq!(found, String::from("a"));
+    }
+
+    #[test]
+    fn index_of() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        let empty = [ ];
+        let one = ["a"];
+        let many = ["a", "b", "c"];
+        let duplicates = ["a", "b", "c", "a", "b"];
+        "#;
+        forward(&mut engine, init);
+
+        // Empty
+        let empty = forward(&mut engine, "empty.indexOf('a')");
+        assert_eq!(empty, String::from("-1"));
+
+        // One
+        let one = forward(&mut engine, "one.indexOf('a')");
+        assert_eq!(one, String::from("0"));
+        // Missing from one
+        let missing_from_one = forward(&mut engine, "one.indexOf('b')");
+        assert_eq!(missing_from_one, String::from("-1"));
+
+        // First in many
+        let first_in_many = forward(&mut engine, "many.indexOf('a')");
+        assert_eq!(first_in_many, String::from("0"));
+        // Second in many
+        let second_in_many = forward(&mut engine, "many.indexOf('b')");
+        assert_eq!(second_in_many, String::from("1"));
+
+        // First in duplicates
+        let first_in_many = forward(&mut engine, "duplicates.indexOf('a')");
+        assert_eq!(first_in_many, String::from("0"));
+        // Second in duplicates
+        let second_in_many = forward(&mut engine, "duplicates.indexOf('b')");
+        assert_eq!(second_in_many, String::from("1"));
+
+        // Positive fromIndex greater than array length
+        let fromindex_greater_than_length = forward(&mut engine, "one.indexOf('a', 2)");
+        assert_eq!(fromindex_greater_than_length, String::from("-1"));
+        // Positive fromIndex missed match
+        let fromindex_misses_match = forward(&mut engine, "many.indexOf('a', 1)");
+        assert_eq!(fromindex_misses_match, String::from("-1"));
+        // Positive fromIndex matched
+        let fromindex_matches = forward(&mut engine, "many.indexOf('b', 1)");
+        assert_eq!(fromindex_matches, String::from("1"));
+        // Positive fromIndex with duplicates
+        let first_in_many = forward(&mut engine, "duplicates.indexOf('a', 1)");
+        assert_eq!(first_in_many, String::from("3"));
+
+        // Negative fromIndex greater than array length
+        let fromindex_greater_than_length = forward(&mut engine, "one.indexOf('a', -2)");
+        assert_eq!(fromindex_greater_than_length, String::from("0"));
+        // Negative fromIndex missed match
+        let fromindex_misses_match = forward(&mut engine, "many.indexOf('b', -1)");
+        assert_eq!(fromindex_misses_match, String::from("-1"));
+        // Negative fromIndex matched
+        let fromindex_matches = forward(&mut engine, "many.indexOf('c', -1)");
+        assert_eq!(fromindex_matches, String::from("2"));
+        // Negative fromIndex with duplicates
+        let second_in_many = forward(&mut engine, "duplicates.indexOf('b', -2)");
+        assert_eq!(second_in_many, String::from("4"));
+    }
+
+    #[test]
+    fn last_index_of() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        let empty = [ ];
+        let one = ["a"];
+        let many = ["a", "b", "c"];
+        let duplicates = ["a", "b", "c", "a", "b"];
+        "#;
+        forward(&mut engine, init);
+
+        // Empty
+        let empty = forward(&mut engine, "empty.lastIndexOf('a')");
+        assert_eq!(empty, String::from("-1"));
+
+        // One
+        let one = forward(&mut engine, "one.lastIndexOf('a')");
+        assert_eq!(one, String::from("0"));
+        // Missing from one
+        let missing_from_one = forward(&mut engine, "one.lastIndexOf('b')");
+        assert_eq!(missing_from_one, String::from("-1"));
+
+        // First in many
+        let first_in_many = forward(&mut engine, "many.lastIndexOf('a')");
+        assert_eq!(first_in_many, String::from("0"));
+        // Second in many
+        let second_in_many = forward(&mut engine, "many.lastIndexOf('b')");
+        assert_eq!(second_in_many, String::from("1"));
+
+        // 4th in duplicates
+        let first_in_many = forward(&mut engine, "duplicates.lastIndexOf('a')");
+        assert_eq!(first_in_many, String::from("3"));
+        // 5th in duplicates
+        let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b')");
+        assert_eq!(second_in_many, String::from("4"));
+
+        // Positive fromIndex greater than array length
+        let fromindex_greater_than_length = forward(&mut engine, "one.lastIndexOf('a', 2)");
+        assert_eq!(fromindex_greater_than_length, String::from("0"));
+        // Positive fromIndex missed match
+        let fromindex_misses_match = forward(&mut engine, "many.lastIndexOf('c', 1)");
+        assert_eq!(fromindex_misses_match, String::from("-1"));
+        // Positive fromIndex matched
+        let fromindex_matches = forward(&mut engine, "many.lastIndexOf('b', 1)");
+        assert_eq!(fromindex_matches, String::from("1"));
+        // Positive fromIndex with duplicates
+        let first_in_many = forward(&mut engine, "duplicates.lastIndexOf('a', 1)");
+        assert_eq!(first_in_many, String::from("0"));
+
+        // Negative fromIndex greater than array length
+        let fromindex_greater_than_length = forward(&mut engine, "one.lastIndexOf('a', -2)");
+        assert_eq!(fromindex_greater_than_length, String::from("-1"));
+        // Negative fromIndex missed match
+        let fromindex_misses_match = forward(&mut engine, "many.lastIndexOf('c', -2)");
+        assert_eq!(fromindex_misses_match, String::from("-1"));
+        // Negative fromIndex matched
+        let fromindex_matches = forward(&mut engine, "many.lastIndexOf('c', -1)");
+        assert_eq!(fromindex_matches, String::from("2"));
+        // Negative fromIndex with duplicates
+        let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b', -2)");
+        assert_eq!(second_in_many, String::from("1"));
     }
 }

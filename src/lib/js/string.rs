@@ -4,6 +4,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
+        regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
 };
@@ -199,11 +200,16 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
         min(end, length)
     };
 
-    let span = max(to - from, 0);
+    let span = max(to.wrapping_sub(from), 0);
 
     let mut new_str = String::new();
-    for i in from..from + span {
-        new_str.push(primitive_val.chars().nth(i as usize).unwrap());
+    for i in from..from.wrapping_add(span) {
+        new_str.push(
+            primitive_val
+                .chars()
+                .nth(i as usize)
+                .expect("Could not get nth char"),
+        );
     }
     Ok(to_value(new_str))
 }
@@ -272,11 +278,12 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let end_position: i32 = if args.len() < 2 {
         length
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argumetn").clone())
+            .expect("Could not convert value to i32")
     };
 
     let end = min(max(end_position, 0), length);
-    let start = end - search_length;
+    let start = end.wrapping_sub(search_length);
 
     if start < 0 {
         Ok(to_value(false))
@@ -311,7 +318,8 @@ pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argument").clone())
+            .expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -347,7 +355,8 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argument").clone())
+            .expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -392,7 +401,8 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args[1].clone()).unwrap()
+        from_value(args.get(1).expect("Could not get argument").clone())
+            .expect("Could not convert value to i32")
     };
 
     let start = min(max(position, 0), length);
@@ -411,6 +421,15 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
 
     // This will still be -1 if no matches were found, else with be >= 0
     Ok(to_value(highest_index))
+}
+
+/// Returns an array whose contents is all the results matching the regular expression, if the global (g) flag is present,
+/// in its absence, only the first complete match and its related capturing groups is returned,
+/// otherwise null is returned if no match is found.
+/// <https://tc39.es/ecma262/#sec-string.prototype.match>
+pub fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let re = make_regexp(&to_value(Object::default()), &[args[0].clone()], ctx)?.clone();
+    regexp_match(&re, ctx.value_to_rust_string(this), ctx)
 }
 
 /// Abstract method `StringPad`
@@ -437,7 +456,7 @@ fn string_pad(
         return Ok(to_value(primitive));
     }
 
-    let fill_len = max_length - primitive_length;
+    let fill_len = max_length.wrapping_sub(primitive_length);
     let mut fill_str = String::new();
 
     while fill_str.len() < fill_len as usize {
@@ -447,9 +466,9 @@ fn string_pad(
     let concat_fill_str: String = fill_str.chars().take(fill_len as usize).collect();
 
     if at_start {
-        Ok(to_value(concat_fill_str + &primitive))
+        Ok(to_value(format!("{}{}", concat_fill_str, &primitive)))
     } else {
-        Ok(to_value(primitive + &concat_fill_str))
+        Ok(to_value(format!("{}{}", primitive, &concat_fill_str)))
     }
 }
 
@@ -471,7 +490,10 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap()),
+        _ => Some(
+            from_value(args.get(1).expect("Could not get argument").clone())
+                .expect("Could not convert value to Option<String>"),
+        ),
     };
 
     string_pad(primitive_val, max_length, fill_string, false)
@@ -495,7 +517,10 @@ pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     .expect("failed to parse argument for String method");
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(from_value(args[1].clone()).unwrap()),
+        _ => Some(
+            from_value(args.get(1).expect("Could not get argument").clone())
+                .expect("Could not convert value to Option<String>"),
+        ),
     };
 
     string_pad(primitive_val, max_length, fill_string, true)
@@ -587,7 +612,8 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let end = if args.len() < 2 {
         length
     } else {
-        from_value(args[1].clone()).expect("failed to parse argument for String method")
+        from_value(args.get(1).expect("Could not get argument").clone())
+            .expect("failed to parse argument for String method")
     };
     // Both start and end args replaced by 0 if they were negative
     // or by the length of the String if they were greater
@@ -598,7 +624,11 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     let to = max(final_start, final_end) as usize;
     // Extract the part of the string contained between the start index and the end index
     // where start is guaranteed to be smaller or equals to end
-    let extracted_string: String = primitive_val.chars().skip(from).take(to - from).collect();
+    let extracted_string: String = primitive_val
+        .chars()
+        .skip(from)
+        .take(to.wrapping_sub(from))
+        .collect();
     Ok(to_value(extracted_string))
 }
 
@@ -631,15 +661,16 @@ pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     let end = if args.len() < 2 {
         i32::max_value()
     } else {
-        from_value(args[1].clone()).expect("failed to parse argument for String method")
+        from_value(args.get(1).expect("Could not get argument").clone())
+            .expect("failed to parse argument for String method")
     };
     // If start is negative it become the number of code units from the end of the string
     if start < 0 {
-        start = max(length + start, 0);
+        start = max(length.wrapping_add(start), 0);
     }
     // length replaced by 0 if it was negative
     // or by the number of code units from start to the end of the string if it was greater
-    let result_length = min(max(end, 0), length - start);
+    let result_length = min(max(end, 0), length.wrapping_sub(start));
     // If length is negative we return an empty string
     // otherwise we extract the part of the string from start and is length code units long
     if result_length <= 0 {
@@ -659,6 +690,42 @@ pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // Use the to_string method because it is specified to do the same thing in this case
     to_string(this, args, ctx)
+}
+
+/// TODO: update this method to return iterator
+/// Returns an array* of all results matching a string against a regular expression, including capturing groups
+/// <https://tc39.es/ecma262/#sec-string.prototype.matchall>
+pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let re: Value = match args.get(0) {
+        Some(arg) => {
+            if arg == &Gc::new(ValueData::Null) {
+                make_regexp(
+                    &to_value(Object::default()),
+                    &[
+                        to_value(ctx.value_to_rust_string(arg)),
+                        to_value(String::from("g")),
+                    ],
+                    ctx,
+                )
+            } else if arg == &Gc::new(ValueData::Undefined) {
+                make_regexp(
+                    &to_value(Object::default()),
+                    &[Gc::new(ValueData::Undefined), to_value(String::from("g"))],
+                    ctx,
+                )
+            } else {
+                from_value(arg.clone()).map_err(to_value)
+            }
+        }
+        None => make_regexp(
+            &to_value(Object::default()),
+            &[to_value(String::new()), to_value(String::from("g"))],
+            ctx,
+        ),
+    }?
+    .clone();
+
+    regexp_match_all(&re, ctx.value_to_rust_string(this))
 }
 
 /// Create a new `String` object
@@ -688,6 +755,7 @@ pub fn create_constructor(global: &Value) -> Value {
     proto.set_field_slice("includes", to_value(includes as NativeFunctionData));
     proto.set_field_slice("indexOf", to_value(index_of as NativeFunctionData));
     proto.set_field_slice("lastIndexOf", to_value(last_index_of as NativeFunctionData));
+    proto.set_field_slice("match", to_value(r#match as NativeFunctionData));
     proto.set_field_slice("padEnd", to_value(pad_end as NativeFunctionData));
     proto.set_field_slice("padStart", to_value(pad_start as NativeFunctionData));
     proto.set_field_slice("trim", to_value(trim as NativeFunctionData));
@@ -697,6 +765,7 @@ pub fn create_constructor(global: &Value) -> Value {
     proto.set_field_slice("substring", to_value(substring as NativeFunctionData));
     proto.set_field_slice("substr", to_value(substr as NativeFunctionData));
     proto.set_field_slice("valueOf", to_value(value_of as NativeFunctionData));
+    proto.set_field_slice("matchAll", to_value(match_all as NativeFunctionData));
 
     let string = to_value(string_constructor);
     proto.set_field_slice("constructor", string.clone());
@@ -765,6 +834,7 @@ mod tests {
         //assert_eq!(b, String::from("Hello, world! Have a nice day."));
     }
 
+    #[allow(clippy::result_unwrap_used)]
     #[test]
     /// Test the correct type is returned from call and construct
     fn construct_and_call() {
@@ -856,5 +926,119 @@ mod tests {
         assert_eq!(forward(&mut engine, "emptyLiteral.endsWith('')"), pass);
         assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), pass);
         assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), pass);
+    }
+
+    #[test]
+    fn match_all() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(null).length"),
+            String::from("0")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/b/).length"),
+            String::from("0")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/a/).length"),
+            String::from("1")
+        );
+        assert_eq!(
+            forward(&mut engine, "'aa'.matchAll(/a/g).length"),
+            String::from("2")
+        );
+
+        forward(
+            &mut engine,
+            "const groupMatches = 'test1test2'.matchAll(/t(e)(st(\\d?))/g)",
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches.length"),
+            String::from("2")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][1]"),
+            String::from("e")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][2]"),
+            String::from("st1")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[0][3]"),
+            String::from("1")
+        );
+        assert_eq!(
+            forward(&mut engine, "groupMatches[1][3]"),
+            String::from("2")
+        );
+
+        assert_eq!(
+            forward(
+                &mut engine,
+                "'test1test2'.matchAll(/t(e)(st(\\d?))/).length"
+            ),
+            String::from("1")
+        );
+
+        let init = r#"
+        const regexp = RegExp('foo[a-z]*','g');
+        const str = 'table football, foosball';
+        const matches = str.matchAll(regexp);
+        "#;
+        forward(&mut engine, init);
+        assert_eq!(
+            forward(&mut engine, "matches[0][0]"),
+            String::from("football")
+        );
+        assert_eq!(forward(&mut engine, "matches[0].index"), String::from("6"));
+        assert_eq!(
+            forward(&mut engine, "matches[1][0]"),
+            String::from("foosball")
+        );
+        assert_eq!(forward(&mut engine, "matches[1].index"), String::from("16"));
+    }
+
+    #[test]
+    fn test_match() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var str = new String('The Quick Brown Fox Jumps Over The Lazy Dog');
+        var result1 = str.match(/quick\s(brown).+?(jumps)/i);
+        var result2 = str.match(/[A-Z]/g);
+        var result3 = str.match("T");
+        var result4 = str.match(RegExp("B", 'g'));
+        "#;
+
+        forward(&mut engine, init);
+        assert_eq!(forward(&mut engine, "result1[0]"), "Quick Brown Fox Jumps");
+        assert_eq!(forward(&mut engine, "result1[1]"), "Brown");
+        assert_eq!(forward(&mut engine, "result1[2]"), "Jumps");
+        assert_eq!(forward(&mut engine, "result1.index"), "4");
+        assert_eq!(
+            forward(&mut engine, "result1.input"),
+            "The Quick Brown Fox Jumps Over The Lazy Dog"
+        );
+
+        assert_eq!(forward(&mut engine, "result2[0]"), "T");
+        assert_eq!(forward(&mut engine, "result2[1]"), "Q");
+        assert_eq!(forward(&mut engine, "result2[2]"), "B");
+        assert_eq!(forward(&mut engine, "result2[3]"), "F");
+        assert_eq!(forward(&mut engine, "result2[4]"), "J");
+        assert_eq!(forward(&mut engine, "result2[5]"), "O");
+        assert_eq!(forward(&mut engine, "result2[6]"), "T");
+        assert_eq!(forward(&mut engine, "result2[7]"), "L");
+        assert_eq!(forward(&mut engine, "result2[8]"), "D");
+
+        assert_eq!(forward(&mut engine, "result3[0]"), "T");
+        assert_eq!(forward(&mut engine, "result3.index"), "0");
+        assert_eq!(
+            forward(&mut engine, "result3.input"),
+            "The Quick Brown Fox Jumps Over The Lazy Dog"
+        );
+        assert_eq!(forward(&mut engine, "result4[0]"), "B");
     }
 }

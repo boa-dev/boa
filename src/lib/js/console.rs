@@ -41,10 +41,10 @@ fn log_string_from(x: Value) -> String {
                             .unwrap()
                             .value
                             .clone()
-                            .unwrap()
+                            .expect("Could not borrow value")
                             .clone(),
                     )
-                    .unwrap();
+                    .expect("Could not convert JS value to i32");
                     for i in 0..len {
                         // Introduce recursive call to stringify any objects
                         // which are part of the Array
@@ -55,11 +55,11 @@ fn log_string_from(x: Value) -> String {
                                 .unwrap()
                                 .value
                                 .clone()
-                                .unwrap()
+                                .expect("Could not borrow value")
                                 .clone(),
                         );
                         write!(s, "{}", arr_str).unwrap();
-                        if i != len - 1 {
+                        if i != len.wrapping_sub(1) {
                             write!(s, ", ").unwrap();
                         }
                     }
@@ -79,7 +79,9 @@ fn log_string_from(x: Value) -> String {
                                 s,
                                 "{}: {}",
                                 key,
-                                log_string_from(val.value.clone().unwrap().clone())
+                                log_string_from(
+                                    val.value.clone().expect("Could not read value").clone()
+                                )
                             )
                             .unwrap();
                             if key != last_key {
@@ -93,7 +95,7 @@ fn log_string_from(x: Value) -> String {
             s
         }
 
-        _ => from_value::<String>(x.clone()).unwrap(),
+        _ => from_value::<String>(x.clone()).expect("Could not convert value to String"),
     }
 }
 
@@ -113,7 +115,7 @@ pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let args: Vec<String> = FromIterator::from_iter(
         args.iter()
-            .map(|x| from_value::<String>(x.clone()).unwrap()),
+            .map(|x| from_value::<String>(x.clone()).expect("Could not convert value to String")),
     );
     println!("{}", args.join(" "));
     Ok(Gc::new(ValueData::Undefined))

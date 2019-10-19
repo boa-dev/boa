@@ -179,7 +179,8 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn set_outer_environment(&mut self, _env: Environment) {
-        unimplemented!();
+        // TODO: Implement
+        panic!("Not implemented yet")
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
