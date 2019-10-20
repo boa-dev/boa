@@ -128,9 +128,7 @@ pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let curr_length: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     if curr_length < 1 {
-        return Err(to_value(
-            "Cannot pop() on an array with zero length".to_string(),
-        ));
+        return Ok(Gc::new(ValueData::Undefined));
     }
     let pop_index = curr_length.wrapping_sub(1);
     let pop_value: Value = this.get_field(&pop_index.to_string());
@@ -654,6 +652,43 @@ mod tests {
     }
 
     #[test]
+    fn push() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        let arr = [1, 2];
+        "#;
+        forward(&mut engine, init);
+
+        assert_eq!(forward(&mut engine, "arr.push()"), String::from("2"));
+        assert_eq!(forward(&mut engine, "arr.push(3, 4)"), String::from("4"));
+        assert_eq!(forward(&mut engine, "arr[2]"), String::from("3"));
+        assert_eq!(forward(&mut engine, "arr[3]"), String::from("4"));
+    }
+
+    #[test]
+    fn pop() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        let empty = [ ];
+        let one = [1];
+        let many = [1, 2, 3, 4];
+        "#;
+        forward(&mut engine, init);
+
+        assert_eq!(
+            forward(&mut engine, "empty.pop()"),
+            String::from("undefined")
+        );
+        assert_eq!(forward(&mut engine, "one.pop()"), String::from("1"));
+        assert_eq!(forward(&mut engine, "one.length"), "0");
+        assert_eq!(forward(&mut engine, "many.pop()"), String::from("4"));
+        assert_eq!(forward(&mut engine, "many[0]"), "1");
+        assert_eq!(forward(&mut engine, "many.length"), "3");
+    }
+
+    #[test]
     fn shift() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
@@ -686,6 +721,8 @@ mod tests {
 
         assert_eq!(forward(&mut engine, "arr.unshift()"), String::from("2"));
         assert_eq!(forward(&mut engine, "arr.unshift(1, 2)"), String::from("4"));
+        assert_eq!(forward(&mut engine, "arr[0]"), String::from("1"));
+        assert_eq!(forward(&mut engine, "arr[1]"), String::from("2"));
     }
 
     #[test]
