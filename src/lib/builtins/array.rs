@@ -830,10 +830,7 @@ mod tests {
             String::from("4,4,4")
         );
         // make sure the array is modified
-        assert_eq!(
-            forward(&mut engine, "a.join()"),
-            String::from("4,4,4")
-        );
+        assert_eq!(forward(&mut engine, "a.join()"), String::from("4,4,4"));
 
         forward(&mut engine, "a = [1, 2, 3];");
         assert_eq!(
@@ -886,9 +883,6 @@ mod tests {
         // test object reference
         forward(&mut engine, "a = (new Array(3)).fill({});");
         forward(&mut engine, "a[0].hi = 'hi';");
-        assert_eq!(
-            forward(&mut engine, "a[1].hi"),
-            String::from("hi")
-        );
+        assert_eq!(forward(&mut engine, "a[1].hi"), String::from("hi"));
     }
 }
