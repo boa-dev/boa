@@ -1,6 +1,7 @@
-///
-// Use this file to test your changes to boa.
-///
+const o1 = {};
 
-let a = Boolean(0);
-typeof a;
+const o2 = { ref: o1 };
+
+o1.ref = o2;
+
+o1;

@@ -8,6 +8,7 @@ use gc_derive::{Finalize, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
+    collections::HashSet,
     f64::NAN,
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Not, Rem, Shl, Shr, Sub},
@@ -572,7 +573,7 @@ impl Default for ValueData {
 
 impl Display for ValueData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
@@ -587,35 +588,70 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            ValueData::Object(ref v) => {
-                write!(f, "{{ ")?;
+            v @ ValueData::Object(_) => {
+                fn address_of<T>(t: &T) -> usize {
+                    let my_ptr: *const T = t;
+                    my_ptr as usize
+                }
 
-                // TODO: Find a more optimised way to do this
-                let properties = v
-                    .borrow()
-                    .properties
-                    .iter()
-                    .map(|(key, val)| (key.clone(), val.value.clone().unwrap().to_string()))
-                    .collect::<Vec<(String, String)>>();
+                let mut hs = HashSet::new();
+                // let mut indent: usize = 0;
 
-                let internal_slots = v
-                    .borrow()
-                    .internal_slots
-                    .iter()
-                    .filter(|(key, _)| *key != INSTANCE_PROTOTYPE)
-                    .map(|(key, val)| (key.clone(), val.to_string()))
-                    .collect::<Vec<(String, String)>>();
+                // let mut pd = |data: &Value| {
+                //     match *data.deref() {
+                //         ValueData::Object(ref d) => { //String::from("{{ ... }}"),
+                //             let addr = address_of(d);
 
-                let result = [&properties[..], &internal_slots[..]]
-                    .concat()
-                    .iter()
-                    .map(|(key, val)| format!("{}: {}", key, val))
-                    .collect::<Vec<String>>()
-                    .join(", ");
+                //             if hs.contains(&addr) {
+                //                 "[Cycle]"
+                //             } else {
+                //                 hs.insert(addr);
+                //                 "obj"
+                //             }
+                //         }
+                //         _ => "asd"
+                //     }
+                // };
 
-                write!(f, "{}", result)?;
+                fn display(data: &ValueData, f: &mut fmt::Formatter, hs: &mut HashSet<usize>, indent: usize) -> Result<(), std::fmt::Error> {
+                // let display= |data: &ValueData| {
+                    match *data {
+                        ValueData::Object(ref v) => {
+                            let addr = address_of(v.borrow().deref());
 
-                write!(f, " }}")
+                            if hs.contains(&addr) {
+                                write!(f, "[Cycle]")
+                            } else {
+                                writeln!(f, "{{")?;
+
+                                hs.insert(addr);
+                                let indentation = String::from_utf8(vec![b' '; indent]).expect("asd");
+
+                                for (key, val) in v.borrow().properties.iter() {
+                                // v
+                                //     .borrow()
+                                //     .properties
+                                //     .iter()
+                                //     .map(|(key, val)| {
+                                        write!(f, "{}{}: ", indentation, key)?;
+
+                                        let v = &val.value.as_ref().expect("eee");
+
+                                        display(v, f, hs, indent.wrapping_add(2))?;
+                                        // (key.clone(), String::from(pd()))
+                                        writeln!(f, ",")?;
+                                    // });
+                                }
+
+                                hs.remove(&addr);
+                                writeln!(f, "}}")
+                            }
+                        }
+                        _ => { writeln!(f, "{}", data) }
+                    }
+                }
+
+                display(&v, f, &mut hs, 0)
             }
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
