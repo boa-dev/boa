@@ -99,6 +99,12 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back();
     }
 
+    pub fn environments(&self) -> impl Iterator<Item = Environment> {
+        std::iter::successors(Some(self.get_current_environment_ref().clone()), |env| {
+            env.borrow().get_outer_environment()
+        })
+    }
+
     pub fn get_global_object(&self) -> Option<Value> {
         self.environment_stack
             .get(0)
@@ -116,16 +122,14 @@ impl LexicalEnvironment {
             VariableScope::Function => {
                 // Find the first function or global environment (from the top of the stack)
                 let env = self
-                    .environment_stack
-                    .iter_mut()
-                    .rev()
+                    .environments()
                     .find(|env| match env.borrow().get_environment_type() {
                         EnvironmentType::Function | EnvironmentType::Global => true,
                         _ => false,
                     })
                     .expect("No function or global environment");
 
-                env.borrow_mut().create_mutable_binding(name, deletion)
+                env.borrow_mut().create_mutable_binding(name, deletion);
             }
         }
     }
@@ -144,16 +148,18 @@ impl LexicalEnvironment {
             VariableScope::Function => {
                 // Find the first function or global environment (from the top of the stack)
                 let env = self
-                    .environment_stack
-                    .iter_mut()
-                    .rev()
+                    .environments()
                     .find(|env| match env.borrow().get_environment_type() {
                         EnvironmentType::Function | EnvironmentType::Global => true,
                         _ => false,
                     })
                     .expect("No function or global environment");
 
-                env.borrow_mut().create_immutable_binding(name, deletion)
+                #[allow(clippy::let_and_return)]
+                // FIXME need to assign result to a variable to avoid borrow checker error
+                // (borrowed value `env` does not live long enough)
+                let b = env.borrow_mut().create_immutable_binding(name, deletion);
+                b
             }
         }
     }
@@ -161,9 +167,7 @@ impl LexicalEnvironment {
     pub fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
         // Find the first environment which has the given binding
         let env = self
-            .environment_stack
-            .iter_mut()
-            .rev()
+            .environments()
             .find(|env| env.borrow().has_binding(name))
             .expect("Binding does not exists"); // TODO graceful error handling
 
@@ -173,9 +177,7 @@ impl LexicalEnvironment {
     pub fn initialize_binding(&mut self, name: &str, value: Value) {
         // Find the first environment which has the given binding
         let env = self
-            .environment_stack
-            .iter_mut()
-            .rev()
+            .environments()
             .find(|env| env.borrow().has_binding(name))
             .expect("Binding does not exists"); // TODO graceful error handling
 
@@ -201,9 +203,7 @@ impl LexicalEnvironment {
     }
 
     pub fn get_binding_value(&mut self, name: &str) -> Value {
-        self.environment_stack
-            .iter()
-            .rev()
+        self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
             .unwrap_or_else(|| Gc::new(ValueData::Undefined))
