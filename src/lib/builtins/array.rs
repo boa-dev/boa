@@ -472,6 +472,43 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
     Ok(Gc::new(ValueData::Number(f64::from(-1))))
 }
 
+/// Array.prototype.fill ( value[, start[, end]] )
+///
+/// The method fills (modifies) all the elements of an array from start index (default 0)
+/// to an end index (default array length) with a static value. It returns the modified array
+/// <https://tc39.es/ecma262/#sec-array.prototype.fill>
+pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let len = from_value(this.get_field_slice("length")).expect("Could not get argument");
+    let default_value = Gc::new(ValueData::Undefined);
+    let value = args.get(0).unwrap_or(&default_value);
+    let relateive_start = match args.get(1) {
+        Some(val) => from_value(val.clone()).expect("Could not get argument"),
+        None => 0,
+    };
+    let relative_end = match args.get(2) {
+        Some(val) => from_value(val.clone()).expect("Could not get argument"),
+        None => len,
+    };
+    let mut k = if relateive_start < 0 {
+        cmp::max(len + relateive_start, 0)
+    } else {
+        cmp::min(relateive_start, len)
+    };
+    let fin = if relative_end < 0 {
+        cmp::max(len + relative_end, 0)
+    } else {
+        cmp::min(relative_end, len)
+    };
+
+    while k < fin {
+        let pk = k.to_string();
+        this.set_field_slice(&pk, value.clone());
+        k += 1;
+    }
+
+    Ok(this.clone())
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -508,6 +545,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("findIndex", to_value(find_index as NativeFunctionData));
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
+    array_prototype.set_field_slice("fill", to_value(fill as NativeFunctionData));
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
@@ -779,5 +817,78 @@ mod tests {
         // Negative fromIndex with duplicates
         let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b', -2)");
         assert_eq!(second_in_many, String::from("1"));
+    }
+
+    #[test]
+    fn fill() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        forward(&mut engine, "let a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4).join()"),
+            String::from("4,4,4")
+        );
+        // make sure the array is modified
+        assert_eq!(
+            forward(&mut engine, "a.join()"),
+            String::from("4,4,4")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, '1').join()"),
+            String::from("1,4,4")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, '1').join()"),
+            String::from("1,4,4")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 1, 2).join()"),
+            String::from("1,4,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 1, 1).join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 3, 3).join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, -3, -2).join()"),
+            String::from("4,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, NaN, NaN).join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 3, 5).join()"),
+            String::from("1,2,3")
+        );
+
+        // test object reference
+        forward(&mut engine, "a = (new Array(3)).fill({});");
+        forward(&mut engine, "a[0].hi = 'hi';");
+        assert_eq!(
+            forward(&mut engine, "a[1].hi"),
+            String::from("hi")
+        );
     }
 }
