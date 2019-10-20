@@ -589,69 +589,74 @@ impl Display for ValueData {
                 }
             ),
             v @ ValueData::Object(_) => {
+                // A simple helper for getting the address of a value
+                // TODO: Find a more general place for this, as it can be used in other situations as well
                 fn address_of<T>(t: &T) -> usize {
                     let my_ptr: *const T = t;
                     my_ptr as usize
                 }
 
-                let mut hs = HashSet::new();
-                // let mut indent: usize = 0;
+                // We keep track of which objects we have encountered by keeping their
+                // in-memory address in this set
+                let mut encounters = HashSet::new();
 
-                // let mut pd = |data: &Value| {
-                //     match *data.deref() {
-                //         ValueData::Object(ref d) => { //String::from("{{ ... }}"),
-                //             let addr = address_of(d);
-
-                //             if hs.contains(&addr) {
-                //                 "[Cycle]"
-                //             } else {
-                //                 hs.insert(addr);
-                //                 "obj"
-                //             }
-                //         }
-                //         _ => "asd"
-                //     }
-                // };
-
-                fn display(data: &ValueData, f: &mut fmt::Formatter, hs: &mut HashSet<usize>, indent: usize) -> Result<(), std::fmt::Error> {
-                // let display= |data: &ValueData| {
+                fn display_obj(
+                    data: &ValueData,
+                    encounters: &mut HashSet<usize>,
+                    indent: usize,
+                ) -> String {
                     match *data {
                         ValueData::Object(ref v) => {
+                            // The in-memory address of the current object
                             let addr = address_of(v.borrow().deref());
 
-                            if hs.contains(&addr) {
-                                write!(f, "[Cycle]")
-                            } else {
-                                writeln!(f, "{{")?;
-
-                                hs.insert(addr);
-                                let indentation = String::from_utf8(vec![b' '; indent]).expect("asd");
-
-                                for (key, val) in v.borrow().properties.iter() {
-                                // v
-                                //     .borrow()
-                                //     .properties
-                                //     .iter()
-                                //     .map(|(key, val)| {
-                                        write!(f, "{}{}: ", indentation, key)?;
-
-                                        let v = &val.value.as_ref().expect("eee");
-
-                                        display(v, f, hs, indent.wrapping_add(2))?;
-                                        // (key.clone(), String::from(pd()))
-                                        writeln!(f, ",")?;
-                                    // });
-                                }
-
-                                hs.remove(&addr);
-                                writeln!(f, "}}")
+                            // We need not continue if this object has already been
+                            // printed up the current chain
+                            if encounters.contains(&addr) {
+                                return String::from("'[Cycle]'");
                             }
+
+                            // Mark the current object as encountered
+                            encounters.insert(addr);
+
+                            // Each time we print a nested object we need to increment the
+                            // indentation size in order to pretty print
+                            let indentation = String::from_utf8(vec![b' '; indent])
+                                .expect("Could not create indentation string");
+
+                            let result = v
+                                .borrow()
+                                .properties
+                                .iter()
+                                .map(|(key, val)| {
+                                    let v = &val
+                                        .value
+                                        .as_ref()
+                                        .expect("Could not get the property's value");
+
+                                    format!(
+                                        "{}{}: {}",
+                                        indentation,
+                                        key,
+                                        display_obj(v, encounters, indent.wrapping_add(4))
+                                    )
+                                })
+                                .collect::<Vec<String>>()
+                                .join(",\n");
+
+                            // If the current object is referenced in a different branch,
+                            // it will not cause an infinte printing loop, so it is safe to be printed again
+                            encounters.remove(&addr);
+
+                            format!("{{\n{}\n}}", result)
                         }
-                        _ => { writeln!(f, "{}", data) }
+
+                        // Every other type of data is printed as is
+                        _ => format!("{}", data),
                     }
                 }
 
-                display(&v, f, &mut hs, 0)
+                write!(f, "{}", display_obj(&v, &mut encounters, 0))
             }
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
