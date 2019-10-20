@@ -202,6 +202,11 @@ impl LexicalEnvironment {
             .expect("Could not get mutable reference to back object")
     }
 
+    pub fn has_binding(&self, name: &str) -> bool {
+        self.environments()
+            .any(|env| env.borrow().has_binding(name))
+    }
+
     pub fn get_binding_value(&mut self, name: &str) -> Value {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
@@ -310,6 +315,32 @@ mod tests {
             var bar = "bar";
           }
           bar == "bar";
+        "#;
+
+        assert_eq!(&exec(scenario), "true");
+    }
+
+    #[test]
+    fn set_outer_var_in_blockscope() {
+        let scenario = r#"
+          var bar;
+          {
+            bar = "foo";
+          }
+          bar == "foo";
+        "#;
+
+        assert_eq!(&exec(scenario), "true");
+    }
+
+    #[test]
+    fn set_outer_let_in_blockscope() {
+        let scenario = r#"
+          let bar;
+          {
+            bar = "foo";
+          }
+          bar == "foo";
         "#;
 
         assert_eq!(&exec(scenario), "true");

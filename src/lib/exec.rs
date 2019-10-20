@@ -397,8 +397,7 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 match ref_e.def {
                     ExprDef::Local(ref name) => {
-                        if *self.realm.environment.get_binding_value(&name) != ValueData::Undefined
-                        {
+                        if self.realm.environment.has_binding(name) {
                             // Binding already exists
                             self.realm
                                 .environment
