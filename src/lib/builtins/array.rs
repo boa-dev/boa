@@ -478,14 +478,14 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
 /// to an end index (default array length) with a static value. It returns the modified array
 /// <https://tc39.es/ecma262/#sec-array.prototype.fill>
 pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let len = from_value(this.get_field_slice("length")).expect("Could not get argument");
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not get argument");
     let default_value = Gc::new(ValueData::Undefined);
     let value = args.get(0).unwrap_or(&default_value);
-    let relateive_start = match args.get(1) {
+    let relateive_start: i32 = match args.get(1) {
         Some(val) => from_value(val.clone()).expect("Could not get argument"),
         None => 0,
     };
-    let relative_end = match args.get(2) {
+    let relative_end: i32 = match args.get(2) {
         Some(val) => from_value(val.clone()).expect("Could not get argument"),
         None => len,
     };
