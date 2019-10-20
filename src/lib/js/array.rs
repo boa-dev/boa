@@ -490,8 +490,8 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let empty = new Array();
-        let one = new Array(1);
+        var empty = new Array();
+        var one = new Array(1);
         "#;
         forward(&mut engine, init);
         // Empty ++ Empty
@@ -513,9 +513,9 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let empty = [ ];
-        let one = ["a"];
-        let many = ["a", "b", "c"];
+        var empty = [ ];
+        var one = ["a"];
+        var many = ["a", "b", "c"];
         "#;
         forward(&mut engine, init);
         // Empty
@@ -535,9 +535,9 @@ mod tests {
         let mut engine = Executor::new(realm);
         // taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
         let init = r#"
-        let empty = [];
+        var empty = [];
 
-        let array = [11, 23, 45];
+        var array = [11, 23, 45];
         function callback(element) {
             return element > 10;
         }
@@ -545,13 +545,13 @@ mod tests {
             return element < 10;
         }
 
-        let appendArray = [1,2,3,4];
+        var appendArray = [1,2,3,4];
         function appendingCallback(elem,index,arr) {
           arr.push('new');
           return elem !== "new";
         }
 
-        let delArray = [1,2,3,4];
+        var delArray = [1,2,3,4];
         function deletingCallback(elem,index,arr) {
           arr.pop()
           return elem < 3;
@@ -582,7 +582,7 @@ mod tests {
         function comp(a) {
             return a == "a";
         }
-        let many = ["a", "b", "c"];
+        var many = ["a", "b", "c"];
         "#;
         forward(&mut engine, init);
         let found = forward(&mut engine, "many.find(comp)");
@@ -594,10 +594,10 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let empty = [ ];
-        let one = ["a"];
-        let many = ["a", "b", "c"];
-        let duplicates = ["a", "b", "c", "a", "b"];
+        var empty = [ ];
+        var one = ["a"];
+        var many = ["a", "b", "c"];
+        var duplicates = ["a", "b", "c", "a", "b"];
         "#;
         forward(&mut engine, init);
 
@@ -658,10 +658,10 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let empty = [ ];
-        let one = ["a"];
-        let many = ["a", "b", "c"];
-        let duplicates = ["a", "b", "c", "a", "b"];
+        var empty = [ ];
+        var one = ["a"];
+        var many = ["a", "b", "c"];
+        var duplicates = ["a", "b", "c", "a", "b"];
         "#;
         forward(&mut engine, init);
 

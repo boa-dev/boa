@@ -108,8 +108,8 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const one = new Boolean(1);
-        const zero = Boolean(0);
+        var one = new Boolean(1);
+        var zero = Boolean(0);
         "#;
         forward(&mut engine, init);
         let one = forward_val(&mut engine, "one").unwrap();
@@ -124,10 +124,10 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const trueVal = new Boolean(true);
-        const trueNum = new Boolean(1);
-        const trueString = new Boolean("true");
-        const trueBool = new Boolean(trueVal);
+        var trueVal = new Boolean(true);
+        var trueNum = new Boolean(1);
+        var trueString = new Boolean("true");
+        var trueBool = new Boolean(trueVal);
         "#;
 
         forward(&mut engine, init);
@@ -154,8 +154,8 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const boolInstance = new Boolean(true);
-        const boolProto = Boolean.prototype;
+        var boolInstance = new Boolean(true);
+        var boolProto = Boolean.prototype;
         "#;
 
         forward(&mut engine, init);
