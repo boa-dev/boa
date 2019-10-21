@@ -624,7 +624,7 @@ impl Display for ValueData {
                             let indentation = String::from_utf8(vec![b' '; indent])
                                 .expect("Could not create indentation string");
 
-                            let result = v
+                            let properties = v
                                 .borrow()
                                 .properties
                                 .iter()
@@ -644,6 +644,21 @@ impl Display for ValueData {
                                 .collect::<Vec<String>>()
                                 .join(",\n");
 
+                            let internal_slots = v
+                                .borrow()
+                                .internal_slots
+                                .iter()
+                                .map(|(key, val)| {
+                                    format!(
+                                        "{}{}: {}",
+                                        indentation,
+                                        key,
+                                        display_obj(&val, encounters, indent.wrapping_add(4))
+                                    )
+                                })
+                                .collect::<Vec<String>>()
+                                .join(",\n");
+
                             // If the current object is referenced in a different branch,
                             // it will not cause an infinte printing loop, so it is safe to be printed again
                             encounters.remove(&addr);
@@ -653,7 +668,10 @@ impl Display for ValueData {
                                     "Could not create the closing brace's indentation string",
                                 );
 
-                            format!("{{\n{}\n{}}}", result, closing_indent)
+                            format!(
+                                "{{\n{}\n{}\n{}}}",
+                                properties, internal_slots, closing_indent
+                            )
                         }
 
                         // Every other type of data is printed as is
