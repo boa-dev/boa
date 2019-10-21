@@ -648,8 +648,10 @@ impl Display for ValueData {
                             // it will not cause an infinte printing loop, so it is safe to be printed again
                             encounters.remove(&addr);
 
-                            let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
-                                .expect("Could not create the closing brace's indentation string");
+                            let closing_indent =
+                                String::from_utf8(vec![b' '; indent.wrapping_sub(4)]).expect(
+                                    "Could not create the closing brace's indentation string",
+                                );
 
                             format!("{{\n{}\n{}}}", result, closing_indent)
                         }
