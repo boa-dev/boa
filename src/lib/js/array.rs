@@ -636,9 +636,9 @@ mod tests {
         function comp(item) {
             return item == 2;
         }
-        let many = [1, 2, 3];
-        let empty = [];
-        let missing = [4, 5, 6];
+        var many = [1, 2, 3];
+        var empty = [];
+        var missing = [4, 5, 6];
         "#;
 
         forward(&mut engine, code);
