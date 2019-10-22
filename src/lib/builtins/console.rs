@@ -1,5 +1,7 @@
 use crate::builtins::function::NativeFunctionData;
-use crate::builtins::object::{ObjectKind, INSTANCE_PROTOTYPE};
+use crate::builtins::object::{
+    internal_methods_trait::ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE,
+};
 use crate::builtins::value::{from_value, to_value, ResultValue, Value, ValueData};
 use crate::exec::Interpreter;
 use gc::Gc;

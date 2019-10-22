@@ -1,6 +1,9 @@
 use crate::builtins::{
     function::{Function, NativeFunction, NativeFunctionData},
-    object::{InternalState, InternalStateCell, Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+    object::{
+        internal_methods_trait::ObjectInternalMethods, InternalState, InternalStateCell, Object,
+        ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE,
+    },
     property::Property,
 };
 use gc::{Gc, GcCell};

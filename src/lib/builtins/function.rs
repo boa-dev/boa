@@ -1,6 +1,6 @@
 use crate::{
     builtins::{
-        object::Object,
+        object::{internal_methods_trait::ObjectInternalMethods, Object},
         property::Property,
         value::{to_value, ResultValue, Value, ValueData},
     },

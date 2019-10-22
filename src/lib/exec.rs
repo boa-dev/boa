@@ -1,7 +1,10 @@
 use crate::{
     builtins::{
         function::{create_unmapped_arguments_object, Function, RegularFunction},
-        object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{
+            internal_methods_trait::ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE,
+            PROTOTYPE,
+        },
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     environment::lexical_environment::{
