@@ -32,6 +32,15 @@ pub enum EnvironmentType {
     Object,
 }
 
+/// The scope of a given variable
+#[derive(Debug, Clone, Copy)]
+pub enum VariableScope {
+    /// The variable declaration is scoped to the current block (`let` and `const`)
+    Block,
+    /// The variable declaration is scoped to the current function (`var`)
+    Function,
+}
+
 #[derive(Debug)]
 pub struct LexicalEnvironment {
     environment_stack: VecDeque<Environment>,
@@ -90,6 +99,12 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back();
     }
 
+    pub fn environments(&self) -> impl Iterator<Item = Environment> {
+        std::iter::successors(Some(self.get_current_environment_ref().clone()), |env| {
+            env.borrow().get_outer_environment()
+        })
+    }
+
     pub fn get_global_object(&self) -> Option<Value> {
         self.environment_stack
             .get(0)
@@ -98,25 +113,74 @@ impl LexicalEnvironment {
             .get_global_object()
     }
 
-    pub fn create_mutable_binding(&mut self, name: String, deletion: bool) {
-        self.get_current_environment()
-            .borrow_mut()
-            .create_mutable_binding(name, deletion)
+    pub fn create_mutable_binding(&mut self, name: String, deletion: bool, scope: VariableScope) {
+        match scope {
+            VariableScope::Block => self
+                .get_current_environment()
+                .borrow_mut()
+                .create_mutable_binding(name, deletion),
+            VariableScope::Function => {
+                // Find the first function or global environment (from the top of the stack)
+                let env = self
+                    .environments()
+                    .find(|env| match env.borrow().get_environment_type() {
+                        EnvironmentType::Function | EnvironmentType::Global => true,
+                        _ => false,
+                    })
+                    .expect("No function or global environment");
+
+                env.borrow_mut().create_mutable_binding(name, deletion);
+            }
+        }
     }
 
-    pub fn create_immutable_binding(&mut self, name: String, deletion: bool) -> bool {
-        self.get_current_environment()
-            .borrow_mut()
-            .create_immutable_binding(name, deletion)
+    pub fn create_immutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        scope: VariableScope,
+    ) -> bool {
+        match scope {
+            VariableScope::Block => self
+                .get_current_environment()
+                .borrow_mut()
+                .create_immutable_binding(name, deletion),
+            VariableScope::Function => {
+                // Find the first function or global environment (from the top of the stack)
+                let env = self
+                    .environments()
+                    .find(|env| match env.borrow().get_environment_type() {
+                        EnvironmentType::Function | EnvironmentType::Global => true,
+                        _ => false,
+                    })
+                    .expect("No function or global environment");
+
+                #[allow(clippy::let_and_return)]
+                // FIXME need to assign result to a variable to avoid borrow checker error
+                // (borrowed value `env` does not live long enough)
+                let b = env.borrow_mut().create_immutable_binding(name, deletion);
+                b
+            }
+        }
     }
 
     pub fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
-        let env = self.get_current_environment();
+        // Find the first environment which has the given binding
+        let env = self
+            .environments()
+            .find(|env| env.borrow().has_binding(name))
+            .expect("Binding does not exists"); // TODO graceful error handling
+
         env.borrow_mut().set_mutable_binding(name, value, strict);
     }
 
     pub fn initialize_binding(&mut self, name: &str, value: Value) {
-        let env = self.get_current_environment();
+        // Find the first environment which has the given binding
+        let env = self
+            .environments()
+            .find(|env| env.borrow().has_binding(name))
+            .expect("Binding does not exists"); // TODO graceful error handling
+
         env.borrow_mut().initialize_binding(name, value);
     }
 
@@ -138,37 +202,16 @@ impl LexicalEnvironment {
             .expect("Could not get mutable reference to back object")
     }
 
+    pub fn has_binding(&self, name: &str) -> bool {
+        self.environments()
+            .any(|env| env.borrow().has_binding(name))
+    }
+
     pub fn get_binding_value(&mut self, name: &str) -> Value {
-        let env: Environment = self.get_current_environment().clone();
-        let borrowed_env = env.borrow();
-        let result = borrowed_env.has_binding(name);
-        if result {
-            return borrowed_env.get_binding_value(name, false);
-        }
-
-        // Check outer scope
-        if borrowed_env.get_outer_environment().is_some() {
-            let mut outer: Option<Environment> = borrowed_env.get_outer_environment();
-            while outer.is_some() {
-                if outer
-                    .as_ref()
-                    .expect("Could not get outer as reference")
-                    .borrow()
-                    .has_binding(&name)
-                {
-                    return outer
-                        .expect("Outer was None")
-                        .borrow()
-                        .get_binding_value(name, false);
-                }
-                outer = outer
-                    .expect("Outer was None")
-                    .borrow()
-                    .get_outer_environment();
-            }
-        }
-
-        Gc::new(ValueData::Undefined)
+        self.environments()
+            .find(|env| env.borrow().has_binding(name))
+            .map(|env| env.borrow().get_binding_value(name, false))
+            .unwrap_or_else(|| Gc::new(ValueData::Undefined))
     }
 }
 
@@ -235,4 +278,71 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         declarative_record: dcl_rec,
         var_names: HashSet::new(),
     })))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::exec;
+
+    #[test]
+    fn let_is_blockscoped() {
+        let scenario = r#"
+          {
+            let bar = "bar";
+          }
+          bar == undefined;
+        "#;
+
+        assert_eq!(&exec(scenario), "true");
+    }
+
+    #[test]
+    fn const_is_blockscoped() {
+        let scenario = r#"
+          {
+            const bar = "bar";
+          }
+          bar == undefined;
+        "#;
+
+        assert_eq!(&exec(scenario), "true");
+    }
+
+    #[test]
+    fn var_not_blockscoped() {
+        let scenario = r#"
+          {
+            var bar = "bar";
+          }
+          bar == "bar";
+        "#;
+
+        assert_eq!(&exec(scenario), "true");
+    }
+
+    #[test]
+    fn set_outer_var_in_blockscope() {
+        let scenario = r#"
+          var bar;
+          {
+            bar = "foo";
+          }
+          bar == "foo";
+        "#;
+
+        assert_eq!(&exec(scenario), "true");
+    }
+
+    #[test]
+    fn set_outer_let_in_blockscope() {
+        let scenario = r#"
+          let bar;
+          {
+            bar = "foo";
+          }
+          bar == "foo";
+        "#;
+
+        assert_eq!(&exec(scenario), "true");
+    }
 }

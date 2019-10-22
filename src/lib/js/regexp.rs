@@ -365,9 +365,9 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
-        let literal = /[0-9]+(\.[0-9]+)?/;
-        let ctor_literal = new RegExp(/[0-9]+(\.[0-9]+)?/);
+        var constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
+        var literal = /[0-9]+(\.[0-9]+)?/;
+        var ctor_literal = new RegExp(/[0-9]+(\.[0-9]+)?/);
         "#;
 
         forward(&mut engine, init);
@@ -416,7 +416,7 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let regex = /[0-9]+(\.[0-9]+)?/g;
+        var regex = /[0-9]+(\.[0-9]+)?/g;
         "#;
 
         forward(&mut engine, init);

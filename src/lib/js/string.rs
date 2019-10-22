@@ -822,9 +822,9 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const hello = new String('Hello, ');
-        const world = new String('world! ');
-        const nice = new String('Have a nice day.');
+        var hello = new String('Hello, ');
+        var world = new String('world! ');
+        var nice = new String('Have a nice day.');
         "#;
         forward(&mut engine, init);
         let _a = forward(&mut engine, "hello.concat(world, nice)");
@@ -841,8 +841,8 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const hello = new String('Hello');
-        const world = String('world');
+        var hello = new String('Hello');
+        var world = String('world');
         "#;
         forward(&mut engine, init);
         let hello = forward_val(&mut engine, "hello").unwrap();
@@ -857,9 +857,9 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const empty = new String('');
-        const en = new String('english');
-        const zh = new String('中文');
+        var empty = new String('');
+        var en = new String('english');
+        var zh = new String('中文');
         "#;
         forward(&mut engine, init);
 
@@ -885,13 +885,13 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const empty = new String('');
-        const en = new String('english');
-        const zh = new String('中文');
+        var empty = new String('');
+        var en = new String('english');
+        var zh = new String('中文');
 
-        const emptyLiteral = '';
-        const enLiteral = 'english';
-        const zhLiteral = '中文';
+        var emptyLiteral = '';
+        var enLiteral = 'english';
+        var zhLiteral = '中文';
         "#;
         forward(&mut engine, init);
         let pass = String::from("true");
@@ -909,13 +909,13 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const empty = new String('');
-        const en = new String('english');
-        const zh = new String('中文');
+        var empty = new String('');
+        var en = new String('english');
+        var zh = new String('中文');
 
-        const emptyLiteral = '';
-        const enLiteral = 'english';
-        const zhLiteral = '中文';
+        var emptyLiteral = '';
+        var enLiteral = 'english';
+        var zhLiteral = '中文';
         "#;
         forward(&mut engine, init);
         let pass = String::from("true");
@@ -952,7 +952,7 @@ mod tests {
 
         forward(
             &mut engine,
-            "const groupMatches = 'test1test2'.matchAll(/t(e)(st(\\d?))/g)",
+            "var groupMatches = 'test1test2'.matchAll(/t(e)(st(\\d?))/g)",
         );
         assert_eq!(
             forward(&mut engine, "groupMatches.length"),
@@ -984,9 +984,9 @@ mod tests {
         );
 
         let init = r#"
-        const regexp = RegExp('foo[a-z]*','g');
-        const str = 'table football, foosball';
-        const matches = str.matchAll(regexp);
+        var regexp = RegExp('foo[a-z]*','g');
+        var str = 'table football, foosball';
+        var matches = str.matchAll(regexp);
         "#;
         forward(&mut engine, init);
         assert_eq!(

@@ -1,5 +1,7 @@
 use crate::{
-    environment::lexical_environment::new_function_environment,
+    environment::lexical_environment::{
+        new_declarative_environment, new_function_environment, VariableScope,
+    },
     js::{
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
@@ -71,6 +73,13 @@ impl Executor for Interpreter {
             ExprDef::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
             ExprDef::Const(Const::Bool(val)) => Ok(to_value(val)),
             ExprDef::Block(ref es) => {
+                {
+                    let env = &mut self.realm.environment;
+                    env.push(new_declarative_environment(Some(
+                        env.get_current_environment_ref().clone(),
+                    )));
+                }
+
                 let mut obj = to_value(None::<()>);
                 for e in es.iter() {
                     let val = self.run(e)?;
@@ -84,6 +93,8 @@ impl Executor for Interpreter {
                         obj = val;
                     }
                 }
+
+                self.realm.environment.pop();
                 Ok(obj)
             }
             ExprDef::Local(ref name) => {
@@ -215,9 +226,11 @@ impl Executor for Interpreter {
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
                 let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
                 if name.is_some() {
-                    self.realm
-                        .environment
-                        .create_mutable_binding(name.clone().expect("No name was supplied"), false);
+                    self.realm.environment.create_mutable_binding(
+                        name.clone().expect("No name was supplied"),
+                        false,
+                        VariableScope::Function,
+                    );
                     self.realm.environment.initialize_binding(
                         name.as_ref().expect("Could not get name as reference"),
                         val.clone(),
@@ -355,7 +368,11 @@ impl Executor for Interpreter {
                             for i in 0..data.args.len() {
                                 let name = data.args.get(i).expect("Could not get data argument");
                                 let expr = v_args.get(i).expect("Could not get argument");
-                                env.create_mutable_binding(name.clone(), false);
+                                env.create_mutable_binding(
+                                    name.clone(),
+                                    false,
+                                    VariableScope::Function,
+                                );
                                 env.initialize_binding(name, expr.to_owned());
                             }
                             let result = self.run(&data.expr);
@@ -380,16 +397,17 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 match ref_e.def {
                     ExprDef::Local(ref name) => {
-                        if *self.realm.environment.get_binding_value(&name) != ValueData::Undefined
-                        {
+                        if self.realm.environment.has_binding(name) {
                             // Binding already exists
                             self.realm
                                 .environment
                                 .set_mutable_binding(&name, val.clone(), true);
                         } else {
-                            self.realm
-                                .environment
-                                .create_mutable_binding(name.clone(), true);
+                            self.realm.environment.create_mutable_binding(
+                                name.clone(),
+                                true,
+                                VariableScope::Function,
+                            );
                             self.realm.environment.initialize_binding(name, val.clone());
                         }
                     }
@@ -408,9 +426,11 @@ impl Executor for Interpreter {
                         Some(v) => self.run(&v)?,
                         None => Gc::new(ValueData::Undefined),
                     };
-                    self.realm
-                        .environment
-                        .create_mutable_binding(name.clone(), false);
+                    self.realm.environment.create_mutable_binding(
+                        name.clone(),
+                        false,
+                        VariableScope::Function,
+                    );
                     self.realm.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
@@ -422,18 +442,22 @@ impl Executor for Interpreter {
                         Some(v) => self.run(&v)?,
                         None => Gc::new(ValueData::Undefined),
                     };
-                    self.realm
-                        .environment
-                        .create_mutable_binding(name.clone(), false);
+                    self.realm.environment.create_mutable_binding(
+                        name.clone(),
+                        false,
+                        VariableScope::Block,
+                    );
                     self.realm.environment.initialize_binding(&name, val);
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
             ExprDef::ConstDecl(ref vars) => {
                 for (name, value) in vars.iter() {
-                    self.realm
-                        .environment
-                        .create_immutable_binding(name.clone(), false);
+                    self.realm.environment.create_immutable_binding(
+                        name.clone(),
+                        false,
+                        VariableScope::Block,
+                    );
                     let val = self.run(&value)?;
                     self.realm.environment.initialize_binding(&name, val);
                 }
@@ -485,9 +509,11 @@ impl Interpreter {
                     for i in 0..data.args.len() {
                         let name = data.args.get(i).expect("Could not get data argument");
                         let expr: &Value = arguments_list.get(i).expect("Could not get argument");
-                        self.realm
-                            .environment
-                            .create_mutable_binding(name.clone(), false);
+                        self.realm.environment.create_mutable_binding(
+                            name.clone(),
+                            false,
+                            VariableScope::Function,
+                        );
                         self.realm
                             .environment
                             .initialize_binding(name, expr.clone());
@@ -495,9 +521,11 @@ impl Interpreter {
 
                     // Add arguments object
                     let arguments_obj = create_unmapped_arguments_object(arguments_list);
-                    self.realm
-                        .environment
-                        .create_mutable_binding("arguments".to_string(), false);
+                    self.realm.environment.create_mutable_binding(
+                        "arguments".to_string(),
+                        false,
+                        VariableScope::Function,
+                    );
                     self.realm
                         .environment
                         .initialize_binding("arguments", arguments_obj);
