@@ -824,7 +824,7 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
 
-        forward(&mut engine, "let a = [1, 2, 3];");
+        forward(&mut engine, "var a = [1, 2, 3];");
         assert_eq!(
             forward(&mut engine, "a.fill(4).join()"),
             String::from("4,4,4")
