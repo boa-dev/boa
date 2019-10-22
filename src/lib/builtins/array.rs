@@ -518,15 +518,13 @@ pub fn create_constructor(global: &Value) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use crate::exec::Executor;
     use crate::forward;
-    use crate::realm::Realm;
+    use crate::new_engine;
 
     #[test]
     fn concat() {
         //TODO: array display formatter
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var empty = new Array();
         var one = new Array(1);
@@ -548,8 +546,7 @@ mod tests {
 
     #[test]
     fn join() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -569,8 +566,7 @@ mod tests {
 
     #[test]
     fn every() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         // taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
         let init = r#"
         var empty = [];
@@ -614,8 +610,7 @@ mod tests {
 
     #[test]
     fn find() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         function comp(a) {
             return a == "a";
@@ -629,8 +624,7 @@ mod tests {
 
     #[test]
     fn find_index() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
 
         let code = r#"
         function comp(item) {
@@ -655,8 +649,7 @@ mod tests {
 
     #[test]
     fn index_of() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -719,8 +712,7 @@ mod tests {
 
     #[test]
     fn last_index_of() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var empty = [ ];
         var one = ["a"];

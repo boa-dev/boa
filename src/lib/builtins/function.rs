@@ -132,15 +132,13 @@ pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use crate::exec::Executor;
-    use crate::realm::Realm;
+    use crate::new_engine;
     use crate::{builtins::value::from_value, forward, forward_val};
 
     #[allow(clippy::float_cmp)]
     #[test]
     fn check_arguments_object() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         function jason(a, b) {
             return arguments[0];

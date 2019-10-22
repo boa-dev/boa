@@ -90,8 +90,7 @@ pub fn this_boolean_value(value: &Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::exec::Executor;
-    use crate::realm::Realm;
+    use crate::new_engine;
     use crate::{builtins::value::same_value, forward, forward_val};
 
     #[test]
@@ -105,8 +104,7 @@ mod tests {
     #[test]
     /// Test the correct type is returned from call and construct
     fn construct_and_call() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var one = new Boolean(1);
         var zero = Boolean(0);
@@ -121,8 +119,7 @@ mod tests {
 
     #[test]
     fn constructor_gives_true_instance() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var trueVal = new Boolean(true);
         var trueNum = new Boolean(1);
@@ -151,8 +148,7 @@ mod tests {
 
     #[test]
     fn instances_have_correct_proto_set() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var boolInstance = new Boolean(true);
         var boolProto = Boolean.prototype;

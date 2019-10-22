@@ -781,9 +781,7 @@ pub fn init(global: &Value) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::exec::Executor;
-    use crate::realm::Realm;
-    use crate::{forward, forward_val};
+    use crate::{forward, forward_val, new_engine};
 
     #[test]
     fn check_string_constructor_is_function() {
@@ -819,8 +817,7 @@ mod tests {
     // }
     #[test]
     fn concat() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var hello = new String('Hello, ');
         var world = new String('world! ');
@@ -838,8 +835,7 @@ mod tests {
     #[test]
     /// Test the correct type is returned from call and construct
     fn construct_and_call() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var hello = new String('Hello');
         var world = String('world');
@@ -854,8 +850,7 @@ mod tests {
 
     #[test]
     fn repeat() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -882,8 +877,7 @@ mod tests {
 
     #[test]
     fn starts_with() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -906,8 +900,7 @@ mod tests {
 
     #[test]
     fn ends_with() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -930,8 +923,7 @@ mod tests {
 
     #[test]
     fn match_all() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
 
         assert_eq!(
             forward(&mut engine, "'aa'.matchAll(null).length"),
@@ -1003,8 +995,7 @@ mod tests {
 
     #[test]
     fn test_match() {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+        let mut engine = new_engine();
         let init = r#"
         var str = new String('The Quick Brown Fox Jumps Over The Lazy Dog');
         var result1 = str.match(/quick\s(brown).+?(jumps)/i);

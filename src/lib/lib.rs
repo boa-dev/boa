@@ -84,6 +84,14 @@ pub fn exec(src: &str) -> String {
     forward(&mut engine, src)
 }
 
+// Create a new engine ready to parse
+pub fn new_engine() -> Interpreter {
+    // Create new Realm
+    let realm = Realm::create();
+    let engine: Interpreter = Executor::new(realm);
+    engine
+}
+
 // WASM
 #[wasm_bindgen]
 extern "C" {
