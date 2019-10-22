@@ -1,7 +1,7 @@
+use crate::builtins::function::NativeFunctionData;
+use crate::builtins::object::{ObjectKind, INSTANCE_PROTOTYPE};
+use crate::builtins::value::{from_value, to_value, ResultValue, Value, ValueData};
 use crate::exec::Interpreter;
-use crate::js::function::NativeFunctionData;
-use crate::js::object::{ObjectKind, INSTANCE_PROTOTYPE};
-use crate::js::value::{from_value, to_value, ResultValue, Value, ValueData};
 use gc::Gc;
 use std::fmt::Write;
 use std::iter::FromIterator;

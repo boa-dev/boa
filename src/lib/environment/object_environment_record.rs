@@ -7,13 +7,13 @@
 //! More info:  [Object Records](https://tc39.github.io/ecma262/#sec-object-environment-records)
 
 use crate::{
+    builtins::{
+        property::Property,
+        value::{Value, ValueData},
+    },
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
-    },
-    js::{
-        property::Property,
-        value::{Value, ValueData},
     },
 };
 use gc::Gc;

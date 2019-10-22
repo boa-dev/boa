@@ -1,10 +1,10 @@
 use crate::{
-    exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         value::{to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 use std::{borrow::Borrow, ops::Deref};
 
@@ -92,7 +92,7 @@ mod tests {
     use super::*;
     use crate::exec::Executor;
     use crate::realm::Realm;
-    use crate::{forward, forward_val, js::value::same_value};
+    use crate::{builtins::value::same_value, forward, forward_val};
 
     #[test]
     fn check_boolean_constructor_is_function() {

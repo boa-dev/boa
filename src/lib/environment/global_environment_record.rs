@@ -8,13 +8,13 @@
 //! More info:  <https://tc39.github.io/ecma262/#sec-global-environment-records>
 
 use crate::{
+    builtins::value::{Value, ValueData},
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
         object_environment_record::ObjectEnvironmentRecord,
     },
-    js::value::{Value, ValueData},
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};

@@ -9,8 +9,8 @@
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
 use crate::{
+    builtins::value::Value,
     environment::lexical_environment::{Environment, EnvironmentType},
-    js::value::Value,
 };
 use gc::{Finalize, Trace};
 use std::fmt::Debug;

@@ -1,4 +1,4 @@
-use crate::js::{
+use crate::builtins::{
     function::{Function, NativeFunction, NativeFunctionData},
     object::{InternalState, InternalStateCell, Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
     property::Property,
