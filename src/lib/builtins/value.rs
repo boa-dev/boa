@@ -671,7 +671,7 @@ impl Display for ValueData {
                             let result = [&properties[..], &internal_slots[..]]
                                 .concat()
                                 .iter()
-                                .map(|v| String::from(v))
+                                .map(String::from)
                                 .collect::<Vec<String>>()
                                 .join(",\n");
 
