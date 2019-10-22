@@ -613,7 +613,7 @@ impl Display for ValueData {
                             // We need not continue if this object has already been
                             // printed up the current chain
                             if encounters.contains(&addr) {
-                                return String::from("'[Cycle]'");
+                                return String::from("[Cycle]");
                             }
 
                             // Mark the current object as encountered
@@ -641,8 +641,7 @@ impl Display for ValueData {
                                         display_obj(v, encounters, indent.wrapping_add(4))
                                     )
                                 })
-                                .collect::<Vec<String>>()
-                                .join(",\n");
+                                .collect::<Vec<String>>();
 
                             let internal_slots = v
                                 .borrow()
@@ -656,6 +655,12 @@ impl Display for ValueData {
                                         display_obj(&val, encounters, indent.wrapping_add(4))
                                     )
                                 })
+                                .collect::<Vec<String>>();
+
+                            let result = [&properties[..], &internal_slots[..]]
+                                .concat()
+                                .iter()
+                                .map(|v| String::from(v))
                                 .collect::<Vec<String>>()
                                 .join(",\n");
 
@@ -668,10 +673,7 @@ impl Display for ValueData {
                                     "Could not create the closing brace's indentation string",
                                 );
 
-                            format!(
-                                "{{\n{}\n{}\n{}}}",
-                                properties, internal_slots, closing_indent
-                            )
+                            format!("{{\n{}\n{}}}", result, closing_indent)
                         }
 
                         // Every other type of data is printed as is
