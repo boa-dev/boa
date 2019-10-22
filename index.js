@@ -36,6 +36,7 @@ rust.then(m => {
   window.evaluate = m.evaluate;
 
   editor.getModel().onDidChangeContent(inputHandler);
+  inputHandler(); // Evaluate initial code
 });
 
 function inputHandler(evt) {
