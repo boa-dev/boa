@@ -656,14 +656,14 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let arr = [1, 2];
+        var arr = [1, 2];
         "#;
         forward(&mut engine, init);
 
-        assert_eq!(forward(&mut engine, "arr.push()"), String::from("2"));
-        assert_eq!(forward(&mut engine, "arr.push(3, 4)"), String::from("4"));
-        assert_eq!(forward(&mut engine, "arr[2]"), String::from("3"));
-        assert_eq!(forward(&mut engine, "arr[3]"), String::from("4"));
+        assert_eq!(forward(&mut engine, "arr.push()"), "2");
+        assert_eq!(forward(&mut engine, "arr.push(3, 4)"), "4");
+        assert_eq!(forward(&mut engine, "arr[2]"), "3");
+        assert_eq!(forward(&mut engine, "arr[3]"), "4");
     }
 
     #[test]
@@ -671,9 +671,9 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let empty = [ ];
-        let one = [1];
-        let many = [1, 2, 3, 4];
+        var empty = [ ];
+        var one = [1];
+        var many = [1, 2, 3, 4];
         "#;
         forward(&mut engine, init);
 
@@ -681,9 +681,9 @@ mod tests {
             forward(&mut engine, "empty.pop()"),
             String::from("undefined")
         );
-        assert_eq!(forward(&mut engine, "one.pop()"), String::from("1"));
+        assert_eq!(forward(&mut engine, "one.pop()"), "1");
         assert_eq!(forward(&mut engine, "one.length"), "0");
-        assert_eq!(forward(&mut engine, "many.pop()"), String::from("4"));
+        assert_eq!(forward(&mut engine, "many.pop()"), "4");
         assert_eq!(forward(&mut engine, "many[0]"), "1");
         assert_eq!(forward(&mut engine, "many.length"), "3");
     }
@@ -693,9 +693,9 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let empty = [ ];
-        let one = [1];
-        let many = [1, 2, 3, 4];
+        var empty = [ ];
+        var one = [1];
+        var many = [1, 2, 3, 4];
         "#;
         forward(&mut engine, init);
 
@@ -703,9 +703,9 @@ mod tests {
             forward(&mut engine, "empty.shift()"),
             String::from("undefined")
         );
-        assert_eq!(forward(&mut engine, "one.shift()"), String::from("1"));
+        assert_eq!(forward(&mut engine, "one.shift()"), "1");
         assert_eq!(forward(&mut engine, "one.length"), "0");
-        assert_eq!(forward(&mut engine, "many.shift()"), String::from("1"));
+        assert_eq!(forward(&mut engine, "many.shift()"), "1");
         assert_eq!(forward(&mut engine, "many[0]"), "2");
         assert_eq!(forward(&mut engine, "many.length"), "3");
     }
@@ -715,14 +715,14 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let arr = [3, 4];
+        var arr = [3, 4];
         "#;
         forward(&mut engine, init);
 
-        assert_eq!(forward(&mut engine, "arr.unshift()"), String::from("2"));
-        assert_eq!(forward(&mut engine, "arr.unshift(1, 2)"), String::from("4"));
-        assert_eq!(forward(&mut engine, "arr[0]"), String::from("1"));
-        assert_eq!(forward(&mut engine, "arr[1]"), String::from("2"));
+        assert_eq!(forward(&mut engine, "arr.unshift()"), "2");
+        assert_eq!(forward(&mut engine, "arr.unshift(1, 2)"), "4");
+        assert_eq!(forward(&mut engine, "arr[0]"), "1");
+        assert_eq!(forward(&mut engine, "arr[1]"), "2");
     }
 
     #[test]
@@ -730,8 +730,8 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let arr = [1, 2];
-        let reversed = arr.reverse();
+        var arr = [1, 2];
+        var reversed = arr.reverse();
         "#;
         forward(&mut engine, init);
         assert_eq!(forward(&mut engine, "reversed[0]"), "2");
