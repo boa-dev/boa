@@ -4,15 +4,15 @@
 //!
 //!A realm is represented in this implementation as a Realm struct with the fields specified from the spec
 use crate::{
+    builtins::{
+        array, boolean, console, function, json, math, object, regexp, string,
+        value::{Value, ValueData},
+    },
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         global_environment_record::GlobalEnvironmentRecord,
         lexical_environment::LexicalEnvironment,
         object_environment_record::ObjectEnvironmentRecord,
-    },
-    js::{
-        array, boolean, console, function, json, math, object, regexp, string,
-        value::{Value, ValueData},
     },
 };
 use gc::{Gc, GcCell};

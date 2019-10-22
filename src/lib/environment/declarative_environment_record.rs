@@ -6,11 +6,11 @@
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.github.io/ecma262/#sec-declarative-environment-records)
 
 use crate::{
+    builtins::value::{Value, ValueData},
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
-    js::value::{Value, ValueData},
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};
@@ -161,7 +161,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {
-        None
+        self.outer_env.as_ref().cloned()
     }
 
     fn set_outer_environment(&mut self, env: Environment) {

@@ -33,15 +33,15 @@
     clippy::float_arithmetic
 )]
 
+pub mod builtins;
 pub mod environment;
 pub mod exec;
-pub mod js;
 pub mod realm;
 pub mod syntax;
 
 use crate::{
+    builtins::value::ResultValue,
     exec::{Executor, Interpreter},
-    js::value::ResultValue,
     realm::Realm,
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
 };

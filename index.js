@@ -5,12 +5,23 @@ const rust = import("./pkg");
 import * as monaco from "monaco-editor";
 // const image = import("./assets/01_rust_loves_js.png");
 
+const initialCode = `\
+function greet(targetName) {
+  return 'Hello, ' + targetName + '!';
+}
+
+greet('World')
+`;
+
 const editor = monaco.editor.create(
   document.getElementsByClassName("textbox")[0], 
   {
-    value: "",
+    value: initialCode,
     language: "javascript",
-    theme: "vs-dark"
+    theme: "vs",
+    minimap: {
+      enabled: false
+    }
   }
 );
 
@@ -25,6 +36,7 @@ rust.then(m => {
   window.evaluate = m.evaluate;
 
   editor.getModel().onDidChangeContent(inputHandler);
+  inputHandler(); // Evaluate initial code
 });
 
 function inputHandler(evt) {

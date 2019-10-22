@@ -1,10 +1,10 @@
 use crate::{
-    exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         property::Property,
         value::{from_value, same_value, to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};
@@ -402,7 +402,7 @@ impl Object {
     }
 }
 
-#[derive(Trace, Finalize, Clone, Debug)]
+#[derive(Trace, Finalize, Clone, Debug, Eq, PartialEq)]
 pub enum ObjectKind {
     Function,
     Array,

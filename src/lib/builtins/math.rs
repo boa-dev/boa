@@ -1,9 +1,9 @@
 use crate::{
-    exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 use rand::random;
 use std::f64;

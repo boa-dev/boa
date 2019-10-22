@@ -1,10 +1,10 @@
 use crate::{
-    exec::Interpreter,
-    js::{
+    builtins::{
         object::Object,
         property::Property,
         value::{to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
     syntax::ast::expr::Expr,
 };
 use gc::{custom_trace, Gc};
@@ -134,7 +134,7 @@ pub fn create_unmapped_arguments_object(arguments_list: Vec<Value>) -> Value {
 mod tests {
     use crate::exec::Executor;
     use crate::realm::Realm;
-    use crate::{forward, forward_val, js::value::from_value};
+    use crate::{builtins::value::from_value, forward, forward_val};
 
     #[allow(clippy::float_cmp)]
     #[test]
@@ -145,7 +145,7 @@ mod tests {
         function jason(a, b) {
             return arguments[0];
         }
-        const val = jason(100, 6);
+        var val = jason(100, 6);
         "#;
 
         forward(&mut engine, init);
