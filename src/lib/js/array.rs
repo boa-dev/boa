@@ -435,6 +435,43 @@ pub fn find(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resu
     Ok(Gc::new(ValueData::Undefined))
 }
 
+/// Array.prototype.findIndex ( predicate [ , thisArg ] )
+///
+/// This method executes the provided predicate function for each element of the array.
+/// If the predicate function returns `true` for an element, this method returns the index of the element.
+/// If all elements return `false`, the value `-1` is returned.
+/// <https://tc39.es/ecma262/#sec-array.prototype.findindex/>
+pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    if args.is_empty() {
+        return Err(to_value(
+            "Missing argument for Array.prototype.findIndex".to_string(),
+        ));
+    }
+
+    let predicate_arg = args.get(0).expect("Could not get `predicate` argument.");
+
+    let this_arg = args
+        .get(1)
+        .cloned()
+        .unwrap_or_else(|| Gc::new(ValueData::Undefined));
+
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
+
+    for i in 0..length {
+        let element = this.get_field(&i.to_string());
+        let arguments = vec![element.clone(), to_value(i), this.clone()];
+
+        let result = interpreter.call(predicate_arg, &this_arg, arguments)?;
+
+        if result.is_true() {
+            return Ok(Gc::new(ValueData::Number(f64::from(i))));
+        }
+    }
+
+    Ok(Gc::new(ValueData::Number(f64::from(-1))))
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -468,6 +505,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("unshift", to_value(unshift as NativeFunctionData));
     array_prototype.set_field_slice("every", to_value(every as NativeFunctionData));
     array_prototype.set_field_slice("find", to_value(find as NativeFunctionData));
+    array_prototype.set_field_slice("findIndex", to_value(find_index as NativeFunctionData));
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
 
@@ -587,6 +625,32 @@ mod tests {
         forward(&mut engine, init);
         let found = forward(&mut engine, "many.find(comp)");
         assert_eq!(found, String::from("a"));
+    }
+
+    #[test]
+    fn find_index() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let code = r#"
+        function comp(item) {
+            return item == 2;
+        }
+        let many = [1, 2, 3];
+        let empty = [];
+        let missing = [4, 5, 6];
+        "#;
+
+        forward(&mut engine, code);
+
+        let many = forward(&mut engine, "many.findIndex(comp)");
+        assert_eq!(many, String::from("1"));
+
+        let empty = forward(&mut engine, "empty.findIndex(comp)");
+        assert_eq!(empty, String::from("-1"));
+
+        let missing = forward(&mut engine, "missing.findIndex(comp)");
+        assert_eq!(missing, String::from("-1"));
     }
 
     #[test]
