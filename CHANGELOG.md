@@ -28,6 +28,8 @@ Feature enhancements:
   Implement Array.prototype.every() (@letmutx)
 - [FEATURE #165](https://github.com/jasonwilliams/boa/issues/165):
   Implement Array.prototype.find() (@letmutx)
+- [FEATURE #166](https://github.com/jasonwilliams/boa/issues/166):
+  Implement Array.prototype.findIndex() (@felipe-fg)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
 Bug fixes:
