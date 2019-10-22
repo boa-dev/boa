@@ -1,10 +1,10 @@
 use crate::{
-    exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         object::{ObjectKind, PROTOTYPE},
         value::{to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 use gc::Gc;
 

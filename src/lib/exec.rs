@@ -1,11 +1,11 @@
 use crate::{
-    environment::lexical_environment::{
-        new_declarative_environment, new_function_environment, VariableScope,
-    },
-    js::{
+    builtins::{
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         value::{from_value, to_value, ResultValue, Value, ValueData},
+    },
+    environment::lexical_environment::{
+        new_declarative_environment, new_function_environment, VariableScope,
     },
     realm::Realm,
     syntax::ast::{

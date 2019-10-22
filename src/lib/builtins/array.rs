@@ -1,11 +1,11 @@
 use crate::{
-    exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 use gc::Gc;
 use std::cmp;
