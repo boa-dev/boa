@@ -4,13 +4,13 @@ use gc::Gc;
 use regex::Regex;
 
 use crate::{
-    exec::Interpreter,
     builtins::{
         function::NativeFunctionData,
         object::{InternalState, Object, ObjectKind, PROTOTYPE},
         property::Property,
         value::{from_value, to_value, FromValue, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 
 #[derive(Debug)]

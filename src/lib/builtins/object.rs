@@ -1,10 +1,10 @@
 use crate::{
-    exec::Interpreter,
     builtins::{
         function::NativeFunctionData,
         property::Property,
         value::{from_value, same_value, to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};

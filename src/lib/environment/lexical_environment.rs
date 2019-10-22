@@ -6,12 +6,12 @@
 //! This is the entrypoint to lexical environments.
 //!
 
+use crate::builtins::value::{Value, ValueData};
 use crate::environment::declarative_environment_record::DeclarativeEnvironmentRecord;
 use crate::environment::environment_record_trait::EnvironmentRecordTrait;
 use crate::environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord};
 use crate::environment::global_environment_record::GlobalEnvironmentRecord;
 use crate::environment::object_environment_record::ObjectEnvironmentRecord;
-use crate::builtins::value::{Value, ValueData};
 use gc::{Gc, GcCell};
 use std::collections::hash_map::HashMap;
 use std::collections::{HashSet, VecDeque};
