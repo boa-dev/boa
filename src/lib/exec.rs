@@ -5,7 +5,7 @@ use crate::{
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     environment::lexical_environment::{
-        new_declarative_environment, new_function_environment, VariableScope,
+        new_declarative_environment, new_function_environment_record, VariableScope,
     },
     realm::Realm,
     syntax::ast::{
@@ -368,11 +368,12 @@ impl Executor for Interpreter {
                         Function::RegularFunc(ref data) => {
                             // Create new scope
                             let env = &mut self.realm.environment;
-                            env.push(new_function_environment(
+                            let func_rec = new_function_environment_record(
                                 construct.clone(),
                                 this.clone(),
                                 Some(env.get_current_environment_ref().clone()),
-                            ));
+                            );
+                            env.push(Gc::new(GcCell::new(Box::new(func_rec))));
 
                             for i in 0..data.args.len() {
                                 let name = data.args.get(i).expect("Could not get data argument");
@@ -517,11 +518,12 @@ impl Interpreter {
                     let env = &mut self.realm.environment;
                     // New target (second argument) is only needed for constructors, just pass undefined
                     let undefined = Gc::new(ValueData::Undefined);
-                    env.push(new_function_environment(
+                    let func_rec = new_function_environment_record(
                         f.clone(),
                         undefined,
                         Some(env.get_current_environment_ref().clone()),
-                    ));
+                    );
+                    env.push(Gc::new(GcCell::new(Box::new(func_rec))));
                     for i in 0..data.args.len() {
                         let name = data.args.get(i).expect("Could not get data argument");
                         let expr: &Value = arguments_list.get(i).expect("Could not get argument");

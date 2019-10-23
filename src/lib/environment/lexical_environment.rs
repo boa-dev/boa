@@ -224,14 +224,14 @@ pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
     Gc::new(GcCell::new(boxed_env))
 }
 
-pub fn new_function_environment(
+pub fn new_function_environment_record(
     f: Value,
     new_target: Value,
     outer: Option<Environment>,
-) -> Environment {
+) -> FunctionEnvironmentRecord {
     debug_assert!(f.is_function());
     debug_assert!(new_target.is_object() || new_target.is_undefined());
-    Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
+    FunctionEnvironmentRecord {
         env_rec: HashMap::new(),
         function_object: f,
         this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
@@ -239,7 +239,7 @@ pub fn new_function_environment(
         new_target,
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.github.io/ecma262/#sec-ecmascript-function-objects
         this_value: Gc::new(ValueData::Undefined), // TODO: this_value should start as an Option as its not always there to begin with
-    })))
+    }
 }
 
 pub fn new_object_environment(object: Value, environment: Option<Environment>) -> Environment {
