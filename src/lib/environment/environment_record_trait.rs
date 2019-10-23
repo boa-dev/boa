@@ -9,7 +9,7 @@
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
 use crate::{
-    builtins::value::Value,
+    builtins::value::{self, Value},
     environment::lexical_environment::{Environment, EnvironmentType},
 };
 use gc::{Finalize, Trace};
@@ -59,6 +59,11 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Determine if an Environment Record establishes a this binding.
     /// Return true if it does and false if it does not.
     fn has_this_binding(&self) -> bool;
+
+    fn get_this_binding(&self) -> Value {
+        debug_assert!(self.has_this_binding());
+        value::undefined()
+    }
 
     /// Determine if an Environment Record establishes a super method binding.
     /// Return true if it does and false if it does not.
