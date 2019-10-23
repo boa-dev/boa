@@ -73,7 +73,7 @@ impl Parser {
         let mut tk = self.get_token(self.pos)?;
         while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
             match tk.data {
-                TokenData::Identifier(ref id) => args.push(mk!(self, ExprDef::ArgDecl(id.clone()))),
+                TokenData::Identifier(ref id) => args.push(mk!(self, ExprDef::Local(id.clone()))),
                 TokenData::Punctuator(Punctuator::Spread) => {
                     args.push(self.parse()?);
                     self.expect_punc(Punctuator::CloseParen, "function")?;
@@ -405,12 +405,12 @@ impl Parser {
                                 // at this point it's probably gonna be an arrow function
                                 let mut args = vec![
                                     match next.def {
-                                        ExprDef::Local(ref name) => mk!(self, ExprDef::ArgDecl((*name).clone())),
-                                        _ => mk!(self, ExprDef::ArgDecl("".to_string())),
+                                        ExprDef::Local(ref name) => mk!(self, ExprDef::Local((*name).clone())),
+                                        _ => mk!(self, ExprDef::Local("".to_string())),
                                     },
                                     match self.get_token(self.pos)?.data {
-                                        TokenData::Identifier(ref id) => mk!(self, ExprDef::ArgDecl(id.clone())),
-                                        _ => mk!(self, ExprDef::ArgDecl("".to_string())),
+                                        TokenData::Identifier(ref id) => mk!(self, ExprDef::Local(id.clone())),
+                                        _ => mk!(self, ExprDef::Local("".to_string())),
                                     },
                                 ];
                                 let mut expect_ident = true;
@@ -419,7 +419,7 @@ impl Parser {
                                     let curr_tk = self.get_token(self.pos)?;
                                     match curr_tk.data {
                                         TokenData::Identifier(ref id) if expect_ident => {
-                                            args.push(mk!(self, ExprDef::ArgDecl(id.clone())));
+                                            args.push(mk!(self, ExprDef::Local(id.clone())));
                                             expect_ident = false;
                                         }
                                         TokenData::Punctuator(Punctuator::Comma) => {
@@ -752,7 +752,7 @@ impl Parser {
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
                 match result.def {
-                    ExprDef::Local(ref name) => args.push(mk!(self, ExprDef::ArgDecl((*name).clone()))),
+                    ExprDef::Local(ref name) => args.push(mk!(self, ExprDef::Local((*name).clone()))),
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
                 let next = self.parse()?;
@@ -973,7 +973,7 @@ mod tests {
             String::from("b"),
             Expr::new(ExprDef::FunctionDecl(
                 None,
-                vec![Expr::new(ExprDef::ArgDecl(String::from("test")))],
+                vec![Expr::new(ExprDef::Local(String::from("test")))],
                 Box::new(Expr::new(ExprDef::Block(vec![]))),
             )),
         );
@@ -1513,7 +1513,7 @@ mod tests {
                 ExprDef::FunctionDecl(
                     Some(String::from("foo")),
                     vec![
-                        Expr::new(ExprDef::ArgDecl(String::from("a")))
+                        Expr::new(ExprDef::Local(String::from("a")))
                     ],
                     Box::new(Expr::new(ExprDef::Block(
                         vec![

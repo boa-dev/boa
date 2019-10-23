@@ -211,11 +211,6 @@ impl Executor for Interpreter {
                 array::add_to_array_object(&array, &elements?)?;
                 Ok(array)
             }
-            ExprDef::ArgDecl(ref _name) => {
-                // This should not be reachable, since ArgDecls are handled within
-                // function invocations
-                Err(Gc::new(ValueData::Undefined))
-            }
             ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
@@ -373,7 +368,7 @@ impl Executor for Interpreter {
                             for i in 0..data.args.len() {
                                 let arg_expr = data.args.get(i).expect("Could not get data argument");
                                 let name = match arg_expr.def {
-                                    ExprDef::ArgDecl(ref n) => Some(n),
+                                    ExprDef::Local(ref n) => Some(n),
                                     _ => None,
                                 }.expect("Could not get argument");
                                 let expr = v_args.get(i).expect("Could not get argument");
@@ -530,20 +525,41 @@ impl Interpreter {
                     ));
                     for i in 0..data.args.len() {
                         let arg_expr = data.args.get(i).expect("Could not get data argument");
-                        let name = match arg_expr.def {
-                            ExprDef::ArgDecl(ref n) => Some(n),
-                            _ => None,
-                        }.expect("Could not get argument");
+                        match arg_expr.def {
+                            ExprDef::Local(ref name) => {
+                                let expr: &Value = arguments_list.get(i).expect("Could not get argument");
+                                self.realm
+                                    .environment
+                                    .create_mutable_binding(
+                                        name.clone(),
+                                        false,
+                                        VariableScope::Function,
+                                    );
+                                self.realm
+                                    .environment
+                                    .initialize_binding(name, expr.clone());
+                            },
+                            ExprDef::UnaryOp(UnaryOp::Spread, ref expr) =>  {
+                                if let ExprDef::Local(ref name) = expr.def {
+                                    let array = array::new_array(self)?;
+                                    array::add_to_array_object(&array, &arguments_list[i..])?;
 
-                        let expr: &Value = arguments_list.get(i).expect("Could not get argument");
-                        self.realm.environment.create_mutable_binding(
-                            name.clone(),
-                            false,
-                            VariableScope::Function,
-                        );
-                        self.realm
-                            .environment
-                            .initialize_binding(name, expr.clone());
+                                    self.realm
+                                        .environment
+                                        .create_mutable_binding(
+                                            name.clone(),
+                                            false,
+                                            VariableScope::Function,
+                                        );
+                                    self.realm
+                                        .environment
+                                        .initialize_binding(name, array);
+                                } else {
+                                    panic!("Unsupported function argument declaration")
+                                }
+                            }
+                            _ => panic!("Unsupported function argument declaration")
+                        }
                     }
 
                     // Add arguments object

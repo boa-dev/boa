@@ -42,7 +42,7 @@ pub enum ExprDef {
     Construct(Box<Expr>, Vec<Expr>),
     /// Run several expressions from top-to-bottom
     Block(Vec<Expr>),
-    /// Load a reference to a value
+    /// Load a reference to a value, or a function argument
     Local(String),
     /// Gets the constant field of a value
     GetConstField(Box<Expr>, String),
@@ -60,8 +60,6 @@ pub enum ExprDef {
     ObjectDecl(Box<BTreeMap<String, Expr>>),
     /// Create an array with items inside
     ArrayDecl(Vec<Expr>),
-    /// Declare an argument for a function
-    ArgDecl(String),
     /// Create a function with the given name, arguments, and expression
     FunctionDecl(Option<String>, Vec<Expr>, Box<Expr>),
     /// Create an arrow function with the given arguments and expression
@@ -183,7 +181,6 @@ impl Display for ExprDef {
                 join_expr(f, arr)?;
                 f.write_str("]")
             }
-            ExprDef::ArgDecl(ref s) => write!(f, "{}", s),
             ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
                 write!(f, "function ")?;
                 if let Some(func_name) = name {
