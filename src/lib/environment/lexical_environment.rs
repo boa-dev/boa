@@ -213,6 +213,12 @@ impl LexicalEnvironment {
             .map(|env| env.borrow().get_binding_value(name, false))
             .unwrap_or_else(|| Gc::new(ValueData::Undefined))
     }
+
+    pub fn get_this_environment(&self) -> Environment {
+        self.environments()
+            .find(|env| env.borrow().has_this_binding())
+            .expect("Could not get environment for this")
+    }
 }
 
 pub fn new_declarative_environment(env: Option<Environment>) -> Environment {

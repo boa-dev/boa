@@ -101,6 +101,11 @@ impl Executor for Interpreter {
                 let val = self.realm.environment.get_binding_value(name);
                 Ok(val)
             }
+            ExprDef::This => {
+                let env = self.realm.environment.get_this_environment();
+                let val = env.deref().borrow().get_this_binding();
+                Ok(val)
+            }
             ExprDef::GetConstField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 Ok(val_obj.borrow().get_field(field))
@@ -354,7 +359,10 @@ impl Executor for Interpreter {
                     func_object.borrow().get_field_slice(PROTOTYPE),
                 );
 
-                let construct = func_object.get_internal_slot("construct");
+                let construct = match *func_object {
+                    ValueData::Object(ref obj) => obj.borrow().get_internal_slot("construct"),
+                    _ => func_object,
+                };
 
                 match *construct {
                     ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
@@ -368,11 +376,12 @@ impl Executor for Interpreter {
                         Function::RegularFunc(ref data) => {
                             // Create new scope
                             let env = &mut self.realm.environment;
-                            let func_rec = new_function_environment_record(
+                            let mut func_rec = new_function_environment_record(
                                 construct.clone(),
                                 this.clone(),
                                 Some(env.get_current_environment_ref().clone()),
                             );
+                            func_rec.bind_this_value(this.clone());
                             env.push(Gc::new(GcCell::new(Box::new(func_rec))));
 
                             for i in 0..data.args.len() {
@@ -385,9 +394,9 @@ impl Executor for Interpreter {
                                 );
                                 env.initialize_binding(name, expr.to_owned());
                             }
-                            let result = self.run(&data.expr);
+                            self.run(&data.expr)?;
                             self.realm.environment.pop();
-                            result
+                            Ok(this)
                         }
                     },
                     _ => Ok(Gc::new(ValueData::Undefined)),
@@ -518,11 +527,12 @@ impl Interpreter {
                     let env = &mut self.realm.environment;
                     // New target (second argument) is only needed for constructors, just pass undefined
                     let undefined = Gc::new(ValueData::Undefined);
-                    let func_rec = new_function_environment_record(
+                    let mut func_rec = new_function_environment_record(
                         f.clone(),
                         undefined,
                         Some(env.get_current_environment_ref().clone()),
                     );
+                    func_rec.bind_this_value(v.clone());
                     env.push(Gc::new(GcCell::new(Box::new(func_rec))));
                     for i in 0..data.args.len() {
                         let name = data.args.get(i).expect("Could not get data argument");
@@ -799,5 +809,21 @@ mod tests {
         ~false
         "#;
         assert_eq!(exec(boolean_false), String::from("-1"));
+    }
+
+    #[test]
+    fn this() {
+        let scenario = r#"
+        function Vector(x, y) {
+          this.x = x;
+          this.y = y;
+        }
+        let vector = new Vector(3, 4);
+        vector.length = function() {
+          return Math.sqrt(this.x * this.x + this.y * this.y);
+        };
+        vector.length();
+        "#;
+        assert_eq!(exec(scenario), String::from("5"));
     }
 }

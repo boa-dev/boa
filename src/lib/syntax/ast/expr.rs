@@ -44,6 +44,7 @@ pub enum ExprDef {
     Block(Vec<Expr>),
     /// Load a reference to a value
     Local(String),
+    This,
     /// Gets the constant field of a value
     GetConstField(Box<Expr>, String),
     /// Gets the field of a value
@@ -124,6 +125,7 @@ impl Display for ExprDef {
                 write!(f, "}}")
             }
             ExprDef::Local(ref s) => write!(f, "{}", s),
+            ExprDef::This => write!(f, "this"),
             ExprDef::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
             ExprDef::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
             ExprDef::Call(ref ex, ref args) => {
