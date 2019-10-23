@@ -14,7 +14,7 @@ use crate::{
 };
 
 #[derive(Debug)]
-struct RegExp {
+pub struct RegExp {
     /// Regex matcher.
     matcher: Regex,
     /// Update last_index, set if global or sticky flags are set.
@@ -36,6 +36,12 @@ struct RegExp {
 }
 
 impl InternalState for RegExp {}
+
+impl RegExp {
+    pub fn get_matcher(&self) -> &Regex {
+        &self.matcher
+    }
+}
 
 fn get_argument<T: FromValue>(args: &[Value], idx: usize) -> Result<T, Value> {
     match args.get(idx) {

@@ -3,12 +3,13 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
-        regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
-        value::{from_value, to_value, ResultValue, Value, ValueData},
+        regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match, RegExp},
+        value::{from_value, to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
 use gc::Gc;
+use regex::Captures;
 use std::{
     cmp::{max, min},
     f64::NAN,
@@ -722,6 +723,60 @@ pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     regexp_match_all(&re, ctx.value_to_rust_string(this))
 }
 
+/// Return a String where the matches of a pattern in the original string is replaced with a given
+/// replacement.
+/// <https://tc39.es/ecma262/#sec-string.prototype.replace>
+pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    // First we get it the actual string a private field stored on the object only the engine has access to.
+    // Then we convert it into a Rust String
+    let this_str: &str = &ctx.value_to_rust_string(this);
+
+    // Make a Rust Regex from the first argument
+    let pattern = get_argument(args, 0);
+    if pattern.is_undefined() {
+        return Ok(to_value(this_str));
+    }
+
+    let pattern_re = if let Some(re_internal_state) = pattern.get_internal_state() {
+        if let Some(pattern_jsre) = re_internal_state.downcast_ref::<RegExp>() {
+            pattern_jsre.get_matcher().clone()
+        } else {
+            let pattern_str = &ctx.value_to_rust_string(&pattern);
+            regex::Regex::new(&regex::escape(pattern_str)).unwrap()
+        }
+    } else {
+        let pattern_str = &ctx.value_to_rust_string(&pattern);
+        regex::Regex::new(&regex::escape(pattern_str)).unwrap()
+    };
+
+    // Make a replacement closure from the second argument
+    let replacement = get_argument(args, 1);
+
+    let replacement_cls = if replacement.is_function() {
+        Box::new(|caps: &Captures| {
+            let m = caps.get(0).unwrap().as_str();
+            let args = vec![to_value(m)];
+            let rs_value = ctx
+                .call(&replacement, &undefined(), args)
+                .unwrap_or_else(|_| undefined());
+            ctx.value_to_rust_string(&rs_value)
+        }) as Box<dyn FnMut((&Captures)) -> (String)>
+    } else {
+        Box::new(|_: &Captures| ctx.value_to_rust_string(&replacement))
+    };
+
+    // Replace the pattern by the replacement closure
+    let result_str = pattern_re.replace_all(this_str, replacement_cls);
+    Ok(to_value(result_str.into_owned()))
+}
+
+fn get_argument(args: &[Value], idx: usize) -> Value {
+    match args.get(idx) {
+        Some(arg) => arg.clone(),
+        None => undefined(),
+    }
+}
+
 /// Create a new `String` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create constructor function object
@@ -760,6 +815,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(substr, named "substr", with length 2, of proto);
     make_builtin_fn!(value_of, named "valueOf", of proto);
     make_builtin_fn!(match_all, named "matchAll", with length 1, of proto);
+    make_builtin_fn!(replace, named "replace", with length 2, of proto);
 
     let string = to_value(string_constructor);
     proto.set_field_slice("constructor", string.clone());
@@ -1035,5 +1091,42 @@ mod tests {
             "The Quick Brown Fox Jumps Over The Lazy Dog"
         );
         assert_eq!(forward(&mut engine, "result4[0]"), "B");
+    }
+
+    #[test]
+    fn replace() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var str = 'The quick brown fox jumps over the lazy dog. If the dog reacted, was it really lazy?';
+        var result1 = str.replace('dog', 'monkey');
+        var result2 = str.replace('dog.', 'monkey.');
+        var regexResult = str.replace(/dog./, 'monkey.');
+        var funResult1 = str.replace(/dog/, function(word) { return word.toUpperCase(); })
+        var funResult2 = str.replace('dog', function(word) { return word.toUpperCase(); })
+        var intResult = 'abc4e'.replace(4, 'd')
+        var exceptional1 = str.replace();
+        var exceptional2 = str.replace('dog');
+        "#;
+
+        forward(&mut engine, init);
+        assert_eq!(forward(&mut engine, "result1"), "The quick brown fox jumps over the lazy monkey. If the monkey reacted, was it really lazy?");
+        assert_eq!(forward(&mut engine, "result2"), "The quick brown fox jumps over the lazy monkey. If the dog reacted, was it really lazy?");
+        assert_eq!(forward(&mut engine, "regexResult"), "The quick brown fox jumps over the lazy monkey. If the monkey.reacted, was it really lazy?");
+        assert_eq!(
+            forward(&mut engine, "funResult1"),
+            "The quick brown fox jumps over the lazy DOG. If the DOG reacted, was it really lazy?"
+        );
+        assert_eq!(
+            forward(&mut engine, "funResult2"),
+            "The quick brown fox jumps over the lazy DOG. If the DOG reacted, was it really lazy?"
+        );
+        assert_eq!(forward(&mut engine, "intResult"), "abcde");
+        assert_eq!(
+            forward(&mut engine, "exceptional1"),
+            "The quick brown fox jumps over the lazy dog. If the dog reacted, was it really lazy?"
+        );
+        assert_eq!(forward(&mut engine, "exceptional2"), "The quick brown fox jumps over the lazy undefined. If the undefined reacted, was it really lazy?");
+        assert_eq!(forward(&mut engine, "exceptional2"), "The quick brown fox jumps over the lazy undefined. If the undefined reacted, was it really lazy?");
     }
 }
