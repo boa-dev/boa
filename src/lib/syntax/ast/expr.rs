@@ -100,6 +100,7 @@ impl Operator for ExprDef {
             | ExprDef::UnaryOp(UnaryOp::DecrementPost, _)
             | ExprDef::UnaryOp(UnaryOp::DecrementPre, _) => 3,
             ExprDef::UnaryOp(UnaryOp::Not, _)
+            | ExprDef::UnaryOp(UnaryOp::Tilde, _)
             | ExprDef::UnaryOp(UnaryOp::Minus, _)
             | ExprDef::TypeOf(_) => 4,
             ExprDef::BinOp(op, _, _) => op.get_precedence(),

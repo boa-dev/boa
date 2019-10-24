@@ -64,6 +64,8 @@ pub enum UnaryOp {
     Plus,
     /// `!a` - get the opposite of the boolean value
     Not,
+    /// `~a` - bitwise-not of the value
+    Tilde,
 }
 
 impl Display for UnaryOp {
@@ -77,6 +79,7 @@ impl Display for UnaryOp {
                 UnaryOp::Plus => "+",
                 UnaryOp::Minus => "-",
                 UnaryOp::Not => "!",
+                UnaryOp::Tilde => "~",
             }
         )
     }

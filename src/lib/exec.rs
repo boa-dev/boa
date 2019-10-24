@@ -266,6 +266,15 @@ impl Executor for Interpreter {
                     UnaryOp::Minus => to_value(-v_a.to_num()),
                     UnaryOp::Plus => to_value(v_a.to_num()),
                     UnaryOp::Not => Gc::new(!v_a),
+                    UnaryOp::Tilde => {
+                        let num_v_a = v_a.to_num();
+                        // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
+                        to_value(if num_v_a.is_nan() {
+                            -1
+                        } else {
+                            !(num_v_a as i32)
+                        })
+                    }
                     _ => unreachable!(),
                 })
             }
