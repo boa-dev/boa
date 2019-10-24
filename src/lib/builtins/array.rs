@@ -482,14 +482,22 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let default_value = Gc::new(ValueData::Undefined);
     let value = args.get(0).unwrap_or(&default_value);
     let relateive_start: i32 = match args.get(1) {
-        Some(val) => from_value(val.clone()).expect("Could not get argument"),
+        Some(val) => if val.is_string() {
+            val.to_num() as i32
+        } else {
+            val.to_int()
+        },
         None => 0,
     };
     let relative_end: i32 = match args.get(2) {
-        Some(val) => from_value(val.clone()).expect("Could not get argument"),
+        Some(val) => if val.is_string() {
+            val.to_num() as i32
+        } else {
+            val.to_int()
+        },
         None => len,
     };
-    let mut k = if relateive_start < 0 {
+    let k = if relateive_start < 0 {
         cmp::max(len + relateive_start, 0)
     } else {
         cmp::min(relateive_start, len)
@@ -500,10 +508,9 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         cmp::min(relative_end, len)
     };
 
-    while k < fin {
-        let pk = k.to_string();
+    for i in k..fin {
+        let pk = i.to_string();
         this.set_field_slice(&pk, value.clone());
-        k += 1;
     }
 
     Ok(this.clone())
@@ -878,6 +885,17 @@ mod tests {
         assert_eq!(
             forward(&mut engine, "a.fill(4, 3, 5).join()"),
             String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, '1.2', '2.5').join()"),
+            String::from("1,4,3")
+        );
+
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 'str').join()"),
+            String::from("4,4,4")
         );
 
         // test object reference
