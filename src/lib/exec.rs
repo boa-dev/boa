@@ -760,4 +760,42 @@ mod tests {
         "#;
         assert_eq!(exec(non_num_key_wont_affect_length), String::from("3"));
     }
+
+    #[test]
+    fn test_tilde_operator() {
+        let float = r#"
+        let f = -1.2;
+        ~f
+        "#;
+        assert_eq!(exec(float), String::from("0"));
+
+        let numeric = r#"
+        let f = 1789;
+        ~f
+        "#;
+        assert_eq!(exec(numeric), String::from("-1790"));
+
+        // TODO: enable test after we have NaN
+        // let nan = r#"
+        // var m = NaN;
+        // ~m
+        // "#;
+        // assert_eq!(exec(nan), String::from("-1"));
+
+        let object = r#"
+        let m = {};
+        ~m
+        "#;
+        assert_eq!(exec(object), String::from("-1"));
+
+        let boolean_true = r#"
+        ~true
+        "#;
+        assert_eq!(exec(boolean_true), String::from("-2"));
+
+        let boolean_false = r#"
+        ~false
+        "#;
+        assert_eq!(exec(boolean_false), String::from("-1"));
+    }
 }
