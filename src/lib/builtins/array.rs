@@ -470,6 +470,26 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
     Ok(Gc::new(ValueData::Number(f64::from(-1))))
 }
 
+pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let search_element = args
+        .get(0)
+        .cloned()
+        .unwrap_or_else(|| Gc::new(ValueData::Undefined));
+
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
+
+    for idx in 0..length {
+        let check_element = this.get_field(&idx.to_string()).clone();
+
+        if check_element == search_element {
+            return Ok(to_value(true));
+        }
+    }
+
+    Ok(to_value(false))
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -494,6 +514,8 @@ pub fn create_constructor(global: &Value) -> Value {
     index_of_func.set_field_slice("length", to_value(1_i32));
     let last_index_of_func = to_value(last_index_of as NativeFunctionData);
     last_index_of_func.set_field_slice("length", to_value(1_i32));
+    let includes_func = to_value(includes_value as NativeFunctionData);
+    includes_func.set_field_slice("length", to_value(1_i32));
 
     array_prototype.set_field_slice("push", push_func);
     array_prototype.set_field_slice("pop", to_value(pop as NativeFunctionData));
@@ -504,6 +526,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("every", to_value(every as NativeFunctionData));
     array_prototype.set_field_slice("find", to_value(find as NativeFunctionData));
     array_prototype.set_field_slice("findIndex", to_value(find_index as NativeFunctionData));
+    array_prototype.set_field_slice("includes", includes_func);
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
 
@@ -866,5 +889,44 @@ mod tests {
         // Negative fromIndex with duplicates
         let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b', -2)");
         assert_eq!(second_in_many, String::from("1"));
+    }
+
+    #[test]
+    fn inclues_value() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var empty = [ ];
+        var one = ["a"];
+        var many = ["a", "b", "c"];
+        var duplicates = ["a", "b", "c", "a", "b"];
+        var undefined = [undefined];
+        "#;
+        forward(&mut engine, init);
+
+        // Empty
+        let empty = forward(&mut engine, "empty.includes('a')");
+        assert_eq!(empty, String::from("false"));
+
+        // One
+        let one = forward(&mut engine, "one.includes('a')");
+        assert_eq!(one, String::from("true"));
+        // Missing from one
+        let missing_from_one = forward(&mut engine, "one.includes('b')");
+        assert_eq!(missing_from_one, String::from("false"));
+
+        // In many
+        let first_in_many = forward(&mut engine, "many.includes('c')");
+        assert_eq!(first_in_many, String::from("true"));
+        // Missing from many
+        let second_in_many = forward(&mut engine, "many.includes('d')");
+        assert_eq!(second_in_many, String::from("false"));
+
+        // In duplicates
+        let first_in_many = forward(&mut engine, "duplicates.includes('a')");
+        assert_eq!(first_in_many, String::from("true"));
+        // Missing from duplicates
+        let second_in_many = forward(&mut engine, "duplicates.includes('d')");
+        assert_eq!(second_in_many, String::from("false"));
     }
 }
