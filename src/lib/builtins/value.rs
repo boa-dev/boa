@@ -43,6 +43,8 @@ pub enum ValueData {
     Object(GcCell<Object>),
     /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
     Function(Box<GcCell<Function>>),
+    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots
+    Symbol(GcCell<Object>),
 }
 
 impl ValueData {
@@ -168,7 +170,10 @@ impl ValueData {
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
         match *self {
-            ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => NAN,
+            ValueData::Object(_)
+            | ValueData::Symbol(_)
+            | ValueData::Undefined
+            | ValueData::Function(_) => NAN,
             ValueData::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => NAN,
@@ -185,6 +190,7 @@ impl ValueData {
         match *self {
             ValueData::Object(_)
             | ValueData::Undefined
+            | ValueData::Symbol(_)
             | ValueData::Null
             | ValueData::Boolean(false)
             | ValueData::Function(_) => 0,
@@ -536,7 +542,10 @@ impl ValueData {
 
     pub fn to_json(&self) -> JSONValue {
         match *self {
-            ValueData::Null | ValueData::Undefined | ValueData::Function(_) => JSONValue::Null,
+            ValueData::Null
+            | ValueData::Symbol(_)
+            | ValueData::Undefined
+            | ValueData::Function(_) => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
                 let mut new_obj = Map::new();
@@ -562,6 +571,7 @@ impl ValueData {
             ValueData::Number(_) | ValueData::Integer(_) => "number",
             ValueData::String(_) => "string",
             ValueData::Boolean(_) => "boolean",
+            ValueData::Symbol(_) => "symbol",
             ValueData::Null => "null",
             ValueData::Undefined => "undefined",
             ValueData::Function(_) => "function",
@@ -592,6 +602,7 @@ impl Display for ValueData {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
+            ValueData::Symbol(_) => write!(f, "Symbol()"),
             ValueData::String(ref v) => write!(f, "{}", v),
             ValueData::Number(v) => write!(
                 f,

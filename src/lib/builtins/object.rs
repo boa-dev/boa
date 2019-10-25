@@ -50,6 +50,7 @@ impl Object {
     /// ObjectCreate is used to specify the runtime creation of new ordinary objects
     ///
     /// https://tc39.es/ecma262/#sec-objectcreate
+    // TODO: proto should be a &Value here
     pub fn create(proto: Value) -> Object {
         let mut obj = Object::default();
         obj.internal_slots

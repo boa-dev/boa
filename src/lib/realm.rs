@@ -5,7 +5,7 @@
 //!A realm is represented in this implementation as a Realm struct with the fields specified from the spec
 use crate::{
     builtins::{
-        array, boolean, console, function, json, math, number, object, regexp, string,
+        array, boolean, console, function, json, math, number, object, regexp, string, symbol,
         value::{Value, ValueData},
     },
     environment::{
@@ -62,6 +62,7 @@ impl Realm {
         global.set_field_slice("Object", object::create_constructor(global));
         global.set_field_slice("RegExp", regexp::create_constructor(global));
         global.set_field_slice("String", string::create_constructor(global));
+        global.set_field_slice("Symbol", symbol::create_constructor(global));
         global.set_field_slice("console", console::create_constructor(global));
     }
 }

@@ -470,6 +470,7 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
+                    ValueData::Symbol(_) => "symbol",
                     ValueData::Null | ValueData::Object(_) => "object",
                     ValueData::Boolean(_) => "boolean",
                     ValueData::Number(_) | ValueData::Integer(_) => "number",
@@ -663,7 +664,7 @@ impl Interpreter {
                 string_obj.set_internal_slot("StringData", value.clone());
                 Ok(string_obj)
             }
-            ValueData::Object(_) => Ok(value.clone()),
+            ValueData::Object(_) | ValueData::Symbol(_) => Ok(value.clone()),
         }
     }
 
