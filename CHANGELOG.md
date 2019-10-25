@@ -32,8 +32,13 @@ Feature enhancements:
   Implement Array.prototype.findIndex() (@felipe-fg)
 - [FEATURE #39](https://github.com/jasonwilliams/boa/issues/39):
   Implement block scoped variable declarations (@barskern)
-- [FEATURE](https://github.com/jasonwilliams/boa/pull/161):
-  Enable obj[key] = value syntax. 
+- [FEATURE #161](https://github.com/jasonwilliams/boa/pull/161):
+  Enable obj[key] = value syntax.
+- [FEATURE #179](https://github.com/jasonwilliams/boa/issues/179):
+  Implement the Tilde operator (@letmutx)
+- [FEATURE #189](https://github.com/jasonwilliams/boa/pull/189):
+  Implement Array.prototype.includes (incl tests) (@simonbrahan)
+- Array tests: Tests implemented for shift, unshift and reverse, pop and push (@muskuloes)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
 Bug fixes:
