@@ -500,33 +500,37 @@ pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> Resu
 /// <https://tc39.es/ecma262/#sec-array.prototype.slice>
 pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     let new_array = make_array(&to_value(Object::default()), &[], interpreter)?;
+    new_array.set_kind(ObjectKind::Array);
     let len: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
 
     let start = match args.get(0) {
         Some(v) => from_value(v.clone()).expect("failed to parse argument for Array method"),
-        None => return Ok(this.clone()),
+        None => 0,
     };
     let end = match args.get(1) {
         Some(v) => from_value(v.clone()).expect("failed to parse argument for Array method"),
         None => len,
     };
 
-    let from: i32 = if start < 0 {
+    let from = if start < 0 {
         max(len.wrapping_add(start), 0)
     } else {
         min(start, len)
     };
-    let to: i32 = if end < 0 {
+    let to = if end < 0 {
         max(len.wrapping_add(end), 0)
     } else {
         min(end, len)
     };
 
     let span = max(to.wrapping_sub(from), 0);
+    let mut new_array_len: i32 = 0;
     for i in from..from.wrapping_add(span) {
-        add_to_array_object(&new_array, &[this.get_field(&i.to_string())])?;
+        new_array.set_field(new_array_len.to_string(), this.get_field(&i.to_string()));
+        new_array_len = new_array_len.wrapping_add(1);
     }
+    new_array.set_field_slice("length", to_value(new_array_len));
     Ok(new_array)
 }
 
@@ -976,11 +980,11 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        let empty = [ ].slice();
-        let one = ["a"].slice();
-        let many1 = ["a", "b", "c", "d"].slice(1);
-        let many2 = ["a", "b", "c", "d"].slice(2, 3);
-        let many3 = ["a", "b", "c", "d"].slice(7);
+        var empty = [ ].slice();
+        var one = ["a"].slice();
+        var many1 = ["a", "b", "c", "d"].slice(1);
+        var many2 = ["a", "b", "c", "d"].slice(2, 3);
+        var many3 = ["a", "b", "c", "d"].slice(7);
         "#;
         forward(&mut engine, init);
 
