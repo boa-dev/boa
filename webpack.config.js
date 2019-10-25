@@ -33,7 +33,9 @@ module.exports = {
       TextDecoder: ["text-encoding", "TextDecoder"],
       TextEncoder: ["text-encoding", "TextEncoder"]
     }),
-    new MonacoWebpackPlugin()
+    new MonacoWebpackPlugin({
+      languages: ['javascript']
+    })
   ],
   module: {
     rules: [{
