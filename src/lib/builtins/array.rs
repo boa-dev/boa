@@ -483,8 +483,6 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let relative_end_val = args.get(2).unwrap_or(&default_value);
     let relative_end = if relative_end_val.is_undefined() {
         len
-    } else if relative_end_val.is_null() {
-        0
     } else {
         relative_end_val.to_num() as i32
     };
