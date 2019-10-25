@@ -36,6 +36,8 @@ Feature enhancements:
   Enable obj[key] = value syntax.
 - [FEATURE #179](https://github.com/jasonwilliams/boa/issues/179):
   Implement the Tilde operator (@letmutx)
+- [FEATURE #189](https://github.com/jasonwilliams/boa/pull/189):
+  Implement Array.prototype.includes (incl tests) (@simonbrahan)
 - Array tests: Tests implemented for shift, unshift and reverse, pop and push (@muskuloes)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
