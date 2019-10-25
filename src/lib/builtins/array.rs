@@ -513,8 +513,7 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     };
 
     for i in k..fin {
-        let pk = i.to_string();
-        this.set_field_slice(&pk, value.clone());
+        this.set_field(i.to_string(), value.clone());
     }
 
     Ok(this.clone())
