@@ -482,23 +482,11 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let default_value = Gc::new(ValueData::Undefined);
     let value = args.get(0).unwrap_or(&default_value);
     let relateive_start: i32 = match args.get(1) {
-        Some(val) => {
-            if val.is_string() {
-                val.to_num() as i32
-            } else {
-                val.to_int()
-            }
-        }
+        Some(val) => val.to_num() as i32,
         None => 0,
     };
     let relative_end: i32 = match args.get(2) {
-        Some(val) => {
-            if val.is_string() {
-                val.to_num() as i32
-            } else {
-                val.to_int()
-            }
-        }
+        Some(val) => val.to_num() as i32,
         None => len,
     };
     let k = if relateive_start < 0 {
