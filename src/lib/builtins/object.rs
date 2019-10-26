@@ -62,10 +62,11 @@ impl Object {
 
     /// Utility function to get an immutable internal slot or Null
     pub fn get_internal_slot(&self, name: &str) -> Value {
-        match self.internal_slots.get(name) {
+        let result = match self.internal_slots.get(name) {
             Some(v) => v.clone(),
             None => Gc::new(ValueData::Null),
-        }
+        };
+        result
     }
 
     /// Utility function to set an internal slot
@@ -76,6 +77,13 @@ impl Object {
     /// Utility function to set an internal slot which is a function
     pub fn set_internal_method(&mut self, name: &str, val: NativeFunctionData) {
         self.internal_slots.insert(name.to_string(), to_value(val));
+    }
+
+    /// Utility function to set a method on this object
+    /// The native function will live in the `properties` field of the Object
+    pub fn set_method(&mut self, name: &str, val: NativeFunctionData) {
+        self.properties
+            .insert(name.to_string(), Property::default().value(to_value(val)));
     }
 
     /// Return a new Boolean object whose [[BooleanData]] internal slot is set to argument.
@@ -463,16 +471,15 @@ pub fn has_own_prop(this: &Value, args: &[Value], _: &mut Interpreter) -> Result
 }
 
 /// Create a new `Object` object
-pub fn create_constructor(global: &Value) -> Value {
+pub fn create_constructor(_: &Value) -> Value {
     let object = to_value(make_object as NativeFunctionData);
-    let prototype = ValueData::new_obj(Some(global));
-    prototype.set_field_slice(
-        "hasOwnProperty",
-        to_value(has_own_prop as NativeFunctionData),
-    );
-    prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
+    // Prototype chain ends here VV
+    let mut prototype = Object::default();
+    prototype.set_method("hasOwnProperty", has_own_prop);
+    prototype.set_method("toString", to_string);
+
     object.set_field_slice("length", to_value(1_i32));
-    object.set_field_slice(PROTOTYPE, prototype);
+    object.set_field_slice(PROTOTYPE, to_value(prototype));
     object.set_field_slice(
         "setPrototypeOf",
         to_value(set_proto_of as NativeFunctionData),

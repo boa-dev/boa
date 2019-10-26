@@ -34,7 +34,7 @@ pub trait Executor {
 pub struct Interpreter {
     is_return: bool,
     /// realm holds both the global object and the environment
-    realm: Realm,
+    pub realm: Realm,
 }
 
 fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
@@ -116,7 +116,7 @@ impl Executor for Interpreter {
                 let (this, func) = match callee.def {
                     ExprDef::GetConstField(ref obj, ref field) => {
                         let mut obj = self.run(obj)?;
-                        if obj.get_type() != "object" {
+                        if obj.get_type() != "object" || obj.get_type() != "symbol" {
                             obj = self.to_object(&obj).expect("failed to convert to object");
                         }
                         (obj.clone(), obj.borrow().get_field(field))

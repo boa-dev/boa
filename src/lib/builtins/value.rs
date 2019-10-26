@@ -92,6 +92,14 @@ impl ValueData {
         }
     }
 
+    /// Returns true if the value is a symbol
+    pub fn is_symbol(&self) -> bool {
+        match *self {
+            ValueData::Symbol(_) => true,
+            _ => false,
+        }
+    }
+
     /// Returns true if the value is a function
     pub fn is_function(&self) -> bool {
         match *self {
@@ -241,6 +249,10 @@ impl ValueData {
                 Function::NativeFunc(ref func) => func.object.clone(),
                 Function::RegularFunc(ref func) => func.object.clone(),
             },
+            ValueData::Symbol(ref obj) => {
+                let hash = obj.clone();
+                hash.into_inner()
+            }
             _ => return None,
         };
 
@@ -290,6 +302,10 @@ impl ValueData {
     pub fn get_internal_slot(&self, field: &str) -> Value {
         let obj: Object = match *self {
             ValueData::Object(ref obj) => {
+                let hash = obj.clone();
+                hash.into_inner()
+            }
+            ValueData::Symbol(ref obj) => {
                 let hash = obj.clone();
                 hash.into_inner()
             }

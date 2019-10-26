@@ -3,4 +3,4 @@
 ///
 
 let a = Symbol("jdindifbd");
-a;
+a.toString()
