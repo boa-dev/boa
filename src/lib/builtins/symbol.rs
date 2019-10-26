@@ -99,7 +99,7 @@ mod tests {
         assert_eq!(sym.is_symbol(), true);
     }
 
-    // #[test]
+    #[test]
     fn print_symbol_expect_description() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
@@ -109,6 +109,6 @@ mod tests {
         forward(&mut engine, init);
         let sym = forward_val(&mut engine, "sym.toString()").unwrap();
         dbg!(&sym);
-        assert_eq!(sym.is_symbol(), true);
+        assert_eq!(sym.to_string(), "Symbol(Hello)");
     }
 }
