@@ -470,6 +470,37 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
     Ok(Gc::new(ValueData::Number(f64::from(-1))))
 }
 
+/// Array.prototype.forEach ( callbackFn [ , thisArg ] )
+///
+/// This method executes the provided callback function for each element in the array.
+/// <https://tc39.es/ecma262/#sec-array.prototype.foreach>
+pub fn for_each(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    if args.is_empty() {
+        return Err(to_value(
+            "Missing argument for Array.prototype.forEach".to_string(),
+        ));
+    }
+
+    let callback_arg = args.get(0).expect("Could not get `callbackFn` argument.");
+
+    let this_arg = args
+        .get(1)
+        .cloned()
+        .unwrap_or_else(|| Gc::new(ValueData::Undefined));
+
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
+
+    for i in 0..length {
+        let element = this.get_field(&i.to_string());
+        let arguments = vec![element.clone(), to_value(i), this.clone()];
+
+        interpreter.call(callback_arg, &this_arg, arguments)?;
+    }
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
 pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let search_element = args
         .get(0)
@@ -526,6 +557,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("every", to_value(every as NativeFunctionData));
     array_prototype.set_field_slice("find", to_value(find as NativeFunctionData));
     array_prototype.set_field_slice("findIndex", to_value(find_index as NativeFunctionData));
+    array_prototype.set_field_slice("forEach", to_value(for_each as NativeFunctionData));
     array_prototype.set_field_slice("includes", includes_func);
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
@@ -928,5 +960,28 @@ mod tests {
         // Missing from duplicates
         let second_in_many = forward(&mut engine, "duplicates.includes('d')");
         assert_eq!(second_in_many, String::from("false"));
+    }
+
+    #[test]
+    fn for_each() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var a = [2, 3, 4, 5];
+        var sum = 0;
+        var indexSum = 0;
+        var listLengthSum = 0;
+        function callingCallback(item, index, list) {
+            sum += item;
+            indexSum += index;
+            listLengthSum += list.length;
+        }
+        a.forEach(callingCallback);
+        "#;
+        forward(&mut engine, init);
+
+        assert_eq!(forward(&mut engine, "sum"), "14");
+        assert_eq!(forward(&mut engine, "indexSum"), "6");
+        assert_eq!(forward(&mut engine, "listLengthSum"), "16");
     }
 }
