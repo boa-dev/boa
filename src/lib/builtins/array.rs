@@ -3,7 +3,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{from_value, to_value, ResultValue, Value, ValueData},
+        value::{from_value, to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -304,6 +304,39 @@ pub fn every(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     Ok(to_value(true))
 }
 
+/// Array.prototype.map ( callback, [ thisArg ] )
+///
+/// For each element in the array the callback function is called, and a new
+/// array is constructed from the return values of these calls.
+/// <https://tc39.es/ecma262/#sec-array.prototype.map>
+pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    if args.is_empty() {
+        return Err(to_value(
+            "missing argument 0 when calling function Array.prototype.map".to_string(),
+        ));
+    }
+
+    let callback = &args[0];
+    let this_val = args.get(1).cloned().unwrap_or(undefined());
+
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
+
+    let mapped = (0..length)
+        .map(|idx| {
+            let element = this.get_field(&idx.to_string());
+
+            let args = vec![element.clone(), to_value(idx), this.clone()];
+
+            interpreter
+                .call(callback, &this_val, args)
+                .unwrap_or(undefined())
+        })
+        .collect::<Vec<Value>>();
+
+    construct_array(this, &mapped)
+}
+
 /// Array.prototype.indexOf ( searchElement[, fromIndex ] )
 ///
 ///
@@ -490,6 +523,14 @@ pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> Resu
     Ok(to_value(false))
 }
 
+macro_rules! make_fn {
+    ($fn:expr, named $fn_name:expr, of $proto:expr) => {
+        let fn_as_val = to_value($fn as NativeFunctionData);
+        fn_as_val.set_field_slice("length", to_value(1_i32));
+        $proto.set_field_slice($fn_name, fn_as_val);
+    };
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -529,6 +570,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("includes", includes_func);
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
+    make_fn!(map, named "map", of array_prototype);
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
@@ -928,5 +970,59 @@ mod tests {
         // Missing from duplicates
         let second_in_many = forward(&mut engine, "duplicates.includes('d')");
         assert_eq!(second_in_many, String::from("false"));
+    }
+
+    #[test]
+    fn map() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let js = r#"
+        var empty = [];
+        var one = ["x"];
+        var many = ["x", "y", "z"];
+
+        // TODO: uncomment when `this` has been implemented
+        // var _this = { answer: 42 };
+
+        // function callbackThatUsesThis() {
+        //      return 'The answer to life is: ' + this.answer;
+        // }
+
+        var empty_mapped = empty.map(v => v + '_');
+        var one_mapped = one.map(v => '_' + v);
+        var many_mapped = many.map(v => '_' + v + '_');
+        "#;
+
+        forward(&mut engine, js);
+
+        // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
+        // Empty
+        assert_eq!(
+            forward(&mut engine, "empty_mapped.length"),
+            String::from("0")
+        );
+
+        // One
+        assert_eq!(forward(&mut engine, "one_mapped.length"), String::from("1"));
+        assert_eq!(forward(&mut engine, "one_mapped[0]"), String::from("_x"));
+
+        // Many
+        assert_eq!(
+            forward(&mut engine, "many_mapped.length"),
+            String::from("3")
+        );
+        assert_eq!(
+            forward(
+                &mut engine,
+                "many_mapped[0] + many_mapped[1] + many_mapped[2]"
+            ),
+            String::from("_x__y__z_")
+        );
+
+        // TODO: uncomment when `this` has been implemented
+        // One but it uses `this` inside the callback
+        // let one_with_this = forward(&mut engine, "one.map(callbackThatUsesThis, _this)[0];");
+        // assert_eq!(one_with_this, String::from("The answer to life is: 42"))
     }
 }
