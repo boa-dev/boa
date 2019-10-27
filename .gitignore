@@ -3,8 +3,8 @@
 *.iml
 
 # Vim
-.*.swp
-.*.swo
+*.*.swp
+*.*.swo
 
 # Build
 target

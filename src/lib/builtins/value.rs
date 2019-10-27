@@ -131,6 +131,11 @@ impl ValueData {
         }
     }
 
+    /// Returns true if the value is a number
+    pub fn is_num(&self) -> bool {
+        self.is_double()
+    }
+
     /// Returns true if the value is a string
     pub fn is_string(&self) -> bool {
         match *self {
