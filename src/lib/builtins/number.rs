@@ -13,17 +13,20 @@ use std::{borrow::Borrow, f64, ops::Deref};
 /// Converts a Value to a Number.
 fn to_number(value: &Value) -> Value {
     match *value.deref().borrow() {
-        ValueData::Boolean(b) => match b {
-            true => to_value(1),
-            false => to_value(0),
-        },
+        ValueData::Boolean(b) => {
+            if b {
+                to_value(1)
+            } else {
+                to_value(0)
+            }
+        }
         ValueData::Function(_) | ValueData::Undefined => to_value(f64::NAN),
         ValueData::Integer(i) => to_value(f64::from(i)),
         ValueData::Object(ref o) => (o).deref().borrow().get_internal_slot("NumberData"),
         ValueData::Null => to_value(0),
-        ValueData::Number(n) => to_value(f64::from(n)),
+        ValueData::Number(n) => to_value(n),
         ValueData::String(ref s) => match s.parse::<f64>() {
-            Ok(n) => to_value(f64::from(n)),
+            Ok(n) => to_value(n),
             Err(_) => to_value(f64::NAN),
         },
     }
@@ -191,7 +194,6 @@ mod tests {
 
         forward(&mut engine, init);
         let default_zero = forward_val(&mut engine, "default_zero").unwrap();
-        println!("{:?}", default_zero);
         let int_one = forward_val(&mut engine, "int_one").unwrap();
         let float_two = forward_val(&mut engine, "float_two").unwrap();
         let str_three = forward_val(&mut engine, "str_three").unwrap();

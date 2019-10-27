@@ -46,6 +46,8 @@ Feature enhancements:
   Implement Array.prototype.fill() (@bojan88)
 - Array tests: Tests implemented for shift, unshift and reverse, pop and push (@muskuloes)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
+- [FEATURE #182](https://github.com/jasonwilliams/boa/pull/182):
+  Implement some Number prototype methods (incl tests) (@pop)
 
 Bug fixes:
 
