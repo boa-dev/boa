@@ -1,10 +1,10 @@
 use crate::{
-    exec::Interpreter,
-    js::{
+    builtins::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         value::{to_value, ResultValue, Value, ValueData},
     },
+    exec::Interpreter,
 };
 use std::{borrow::Borrow, f64, ops::Deref};
 
@@ -45,8 +45,8 @@ fn num_to_exponential(n: f64) -> String {
 /// Create a new number [[Construct]]
 pub fn make_number(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
-        Some(n) => n.clone(),
-        None => to_value(0),
+        Some(ref value) => to_number(value),
+        None => to_number(&to_value(0)),
     };
     this.set_internal_slot("NumberData", data);
     Ok(this.clone())
@@ -56,10 +56,11 @@ pub fn make_number(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Resu
 ///
 /// https://tc39.es/ecma262/#sec-number-constructor-number-value
 pub fn call_number(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    match args.get(0) {
-        Some(ref value) => Ok(to_number(value)),
-        None => Ok(to_number(&to_value(0))),
-    }
+    let data = match args.get(0) {
+        Some(ref value) => to_number(value),
+        None => to_number(&to_value(0)),
+    };
+    Ok(data)
 }
 
 /// Number().toExponential()
@@ -160,15 +161,10 @@ pub fn create_constructor(global: &Value) -> Value {
     number
 }
 
-/// Initalize the `Number` object on the global object
-pub fn init(global: &Value) {
-    global.set_field_slice("Number", create_constructor(global));
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{exec::Executor, forward, forward_val, js::value::ValueData, realm::Realm};
+    use crate::{builtins::value::ValueData, exec::Executor, forward, forward_val, realm::Realm};
     use std::f64;
 
     #[test]
@@ -183,18 +179,19 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const default_zero = Number();
-        const int_one = Number(1);
-        const float_two = Number(2.1);
-        const str_three = Number('3.2');
-        const bool_one = Number(true);
-        const bool_zero = Number(false);
-        const invalid_nan = Number("I am not a number");
-        const from_exp = Number("2.34e+2");
+        var default_zero = Number();
+        var int_one = Number(1);
+        var float_two = Number(2.1);
+        var str_three = Number('3.2');
+        var bool_one = Number(true);
+        var bool_zero = Number(false);
+        var invalid_nan = Number("I am not a number");
+        var from_exp = Number("2.34e+2");
         "#;
 
         forward(&mut engine, init);
         let default_zero = forward_val(&mut engine, "default_zero").unwrap();
+        println!("{:?}", default_zero);
         let int_one = forward_val(&mut engine, "int_one").unwrap();
         let float_two = forward_val(&mut engine, "float_two").unwrap();
         let str_three = forward_val(&mut engine, "str_three").unwrap();
@@ -208,8 +205,8 @@ mod tests {
         assert_eq!(float_two.to_num(), f64::from(2.1));
         assert_eq!(str_three.to_num(), f64::from(3.2));
         assert_eq!(bool_one.to_num(), f64::from(1));
-        assert_eq!(bool_zero.to_num(), f64::from(0));
         assert!(invalid_nan.to_num().is_nan());
+        assert_eq!(bool_zero.to_num(), f64::from(0));
         assert_eq!(from_exp.to_num(), f64::from(234));
     }
 
@@ -218,12 +215,12 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const default_exp = Number().toExponential();
-        const int_exp = Number(5).toExponential();
-        const float_exp = Number(1.234).toExponential();
-        cont big_exp = Number(1234).toExponential();
-        cont nan_exp = Number("I am also not a number").toExponential();
-        cont noop_exp = Number("1.23e+2").toExponential();
+        var default_exp = Number().toExponential();
+        var int_exp = Number(5).toExponential();
+        var float_exp = Number(1.234).toExponential();
+        var big_exp = Number(1234).toExponential();
+        var nan_exp = Number("I am also not a number").toExponential();
+        var noop_exp = Number("1.23e+2").toExponential();
         "#;
 
         forward(&mut engine, init);
@@ -247,11 +244,11 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const default_fixed = Number().toFixed();
-        const pos_fixed = Number("3.456e+4").toFixed();
-        const neg_fixed = Number("3.456e-4").toFixed();
-        const noop_fixed = Number(5).toFixed();
-        const nan_fixed = Number("I am not a number").toFixed();
+        var default_fixed = Number().toFixed();
+        var pos_fixed = Number("3.456e+4").toFixed();
+        var neg_fixed = Number("3.456e-4").toFixed();
+        var noop_fixed = Number(5).toFixed();
+        var nan_fixed = Number("I am not a number").toFixed();
         "#;
 
         forward(&mut engine, init);
@@ -273,10 +270,10 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const default_locale = Number().toLocaleString();
-        const small_locale = Number(5).toLocaleString();
-        const big_locale = Number("345600").toLocaleString();
-        const neg_locale = Number(-25).toLocaleString();
+        var default_locale = Number().toLocaleString();
+        var small_locale = Number(5).toLocaleString();
+        var big_locale = Number("345600").toLocaleString();
+        var neg_locale = Number(-25).toLocaleString();
         "#;
 
         // TODO: We don't actually do any locale checking here
@@ -295,16 +292,17 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn to_precision() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const default_precision = Number().toPrecision();
-        const low_precision = Number(123456789).toPrecision(1);
-        const more_precision = Number(123456789).toPrecision(4);
-        const exact_precision = Number(123456789).toPrecision(9);
-        const over_precision = Number(123456789).toPrecision(50);
-        const neg_precision = Number(-123456789).toPrecision(4);
+        var default_precision = Number().toPrecision();
+        var low_precision = Number(123456789).toPrecision(1);
+        var more_precision = Number(123456789).toPrecision(4);
+        var exact_precision = Number(123456789).toPrecision(9);
+        var over_precision = Number(123456789).toPrecision(50);
+        var neg_precision = Number(-123456789).toPrecision(4);
         "#;
 
         forward(&mut engine, init);
@@ -331,11 +329,11 @@ mod tests {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const default_string = Number().toString();
-        const int_string = Number(123).toString();
-        const float_string = Number(1.234).toString();
-        const exp_string = Number("1.2e+4").toString();
-        const neg_string = Number(-1.2).toString();
+        var default_string = Number().toString();
+        var int_string = Number(123).toString();
+        var float_string = Number(1.234).toString();
+        var exp_string = Number("1.2e+4").toString();
+        var neg_string = Number(-1.2).toString();
         "#;
 
         forward(&mut engine, init);
@@ -359,11 +357,11 @@ mod tests {
         // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019
         // the parser does not understand scientific e.g., Xe+Y or -Xe-Y notation.
         let init = r#"
-        const default_val = Number().valueOf();
-        const int_val = Number("123").valueOf();
-        const float_val = Number(1.234).valueOf();
-        const exp_val = Number("1.2e+4").valueOf()
-        const neg_val = Number("-1.2e+4").valueOf()
+        var default_val = Number().valueOf();
+        var int_val = Number("123").valueOf();
+        var float_val = Number(1.234).valueOf();
+        var exp_val = Number("1.2e+4").valueOf()
+        var neg_val = Number("-1.2e+4").valueOf()
         "#;
 
         forward(&mut engine, init);
