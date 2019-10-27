@@ -12,6 +12,8 @@ pub mod function;
 pub mod json;
 /// The global `Math` object
 pub mod math;
+/// The global `Number` object
+pub mod number;
 /// The global `Object` object
 pub mod object;
 /// The global 'RegExp' object
