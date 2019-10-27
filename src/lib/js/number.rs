@@ -1,63 +1,175 @@
 use crate::{
     exec::Interpreter,
-    js::value::{ResultValue, Value},
+    js::{
+        function::NativeFunctionData,
+        object::{Object, ObjectKind, PROTOTYPE},
+        value::{to_value, ResultValue, Value, ValueData},
+    },
 };
+use std::{borrow::Borrow, f64, ops::Deref};
 
+/// Helper function: to_number(value: &Value) -> Value
+///
+/// Converts a Value to a Number.
+fn to_number(value: &Value) -> Value {
+    match *value.deref().borrow() {
+        ValueData::Boolean(b) => match b {
+            true => to_value(1),
+            false => to_value(0),
+        },
+        ValueData::Function(_) | ValueData::Undefined => to_value(f64::NAN),
+        ValueData::Integer(i) => to_value(f64::from(i)),
+        ValueData::Object(ref o) => (o).deref().borrow().get_internal_slot("NumberData"),
+        ValueData::Null => to_value(0),
+        ValueData::Number(n) => to_value(f64::from(n)),
+        ValueData::String(ref s) => match s.parse::<f64>() {
+            Ok(n) => to_value(f64::from(n)),
+            Err(_) => to_value(f64::NAN),
+        },
+    }
+}
+
+/// Helper function: num_to_exponential(n: f64) -> String
+///
+/// Formats a float as a ES6-style exponential number string.
+fn num_to_exponential(n: f64) -> String {
+    match n.abs() {
+        x if x > 1.0 => format!("{:e}", n).replace("e", "e+"),
+        x if x == 0.0 => format!("{:e}", n).replace("e", "e+"),
+        _ => format!("{:e}", n),
+    }
+}
+
+/// Number(arg)
+///
 /// Create a new number [[Construct]]
-pub fn make_number(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+pub fn make_number(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    let data = match args.get(0) {
+        Some(n) => n.clone(),
+        None => to_value(0),
+    };
+    this.set_internal_slot("NumberData", data);
+    Ok(this.clone())
 }
 
+/// Number()
+///
 /// https://tc39.es/ecma262/#sec-number-constructor-number-value
-pub fn call_number(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+pub fn call_number(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    match args.get(0) {
+        Some(ref value) => Ok(to_number(value)),
+        None => Ok(to_number(&to_value(0))),
+    }
 }
 
+/// Number().toExponential()
+///
 /// https://tc39.es/ecma262/#sec-number.prototype.toexponential
-pub fn to_expotential(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+pub fn to_exponential(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    let this_num = to_number(this).to_num();
+    let this_str_num = num_to_exponential(this_num);
+    Ok(to_value(this_str_num))
 }
 
 /// https://tc39.es/ecma262/#sec-number.prototype.tofixed
-pub fn to_fixed(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+pub fn to_fixed(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    let this_num = to_number(this).to_num();
+    let precision = match args.get(0) {
+        Some(n) => match n.to_int() {
+            x if x > 0 => n.to_int() as usize,
+            _ => 0,
+        },
+        None => 0,
+    };
+    let this_fixed_num = format!("{:.*}", precision, this_num);
+    Ok(to_value(this_fixed_num))
 }
 
+/// Number().toLocaleString()
+///
 /// https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
-pub fn to_locale_string(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+///
+/// Note that while this technically conforms to the Ecma standard, it does no actual
+/// internationalization logic.
+pub fn to_locale_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    let this_num = to_number(this).to_num();
+    let this_str_num = format!("{}", this_num);
+    Ok(to_value(this_str_num))
 }
 
+/// Number().toPrecision(p)
+///
 /// https://tc39.es/ecma262/#sec-number.prototype.toprecision
-pub fn to_precision(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+pub fn to_precision(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    println!("Number::to_precision()");
+    let this_num = to_number(this);
+    let _num_str_len = format!("{}", this_num.to_num()).len();
+    let _precision = match args.get(0) {
+        Some(n) => match n.to_int() {
+            x if x > 0 => n.to_int() as usize,
+            _ => 0,
+        },
+        None => 0,
+    };
+    // TODO: Implement toPrecision
+    unimplemented!();
 }
 
+/// Number().toString()
+///
 /// https://tc39.es/ecma262/#sec-number.prototype.tostring
-pub fn to_string(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    Ok(to_value(format!("{}", to_number(this).to_num())))
 }
 
+/// Number().valueOf()
+///
 /// https://tc39.es/ecma262/#sec-number.prototype.valueof
-pub fn value_of(_this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    unimplemented!()
+pub fn value_of(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    Ok(to_number(this))
 }
 
 /// Create a new `Number` object
-pub fn create_constructor(_global: &Value) -> Value {
-    unimplemented!()
+pub fn create_constructor(global: &Value) -> Value {
+    let mut number_constructor = Object::default();
+    number_constructor.kind = ObjectKind::Function;
+
+    number_constructor.set_internal_method("construct", make_number);
+    number_constructor.set_internal_method("call", call_number);
+
+    let number_prototype = ValueData::new_obj(Some(global));
+
+    number_prototype.set_internal_slot("NumberData", to_value(0));
+
+    number_prototype.set_field_slice(
+        "toExponential",
+        to_value(to_exponential as NativeFunctionData),
+    );
+    number_prototype.set_field_slice("toFixed", to_value(to_fixed as NativeFunctionData));
+    number_prototype.set_field_slice(
+        "toLocaleString",
+        to_value(to_locale_string as NativeFunctionData),
+    );
+    number_prototype.set_field_slice("toPrecision", to_value(to_precision as NativeFunctionData));
+    number_prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
+    number_prototype.set_field_slice("valueOf", to_value(value_of as NativeFunctionData));
+
+    let number = to_value(number_constructor);
+    number_prototype.set_field_slice("constructor", number.clone());
+    number.set_field_slice(PROTOTYPE, number_prototype);
+    number
 }
 
-/// Iniitalize the `Number` object on the global object
-pub fn init(_global: &Value) {
-    unimplemented!()
+/// Initalize the `Number` object on the global object
+pub fn init(global: &Value) {
+    global.set_field_slice("Number", create_constructor(global));
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{exec::Executor, forward, forward_val, js::value::ValueData, realm::Realm};
-    use std::f64::NAN;
+    use std::f64;
 
     #[test]
     fn check_number_constructor_is_function() {
@@ -67,23 +179,18 @@ mod tests {
     }
 
     #[test]
-    fn make_number() {
-        unimplemented!()
-    }
-
-    #[test]
-    pub fn call_number() {
+    fn call_number() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
-        const default_zero = new Number();
-        const int_one = new Number(1);
-        const float_two = new Number(2.1);
-        const str_three = new Number('3.2');
-        const bool_one = new Number(true);
-        const bool_zero = new Number(true);
-        const invalid_nan = new Number("I am not a number");
-        const from_exp = new Number("2.34e+2");
+        const default_zero = Number();
+        const int_one = Number(1);
+        const float_two = Number(2.1);
+        const str_three = Number('3.2');
+        const bool_one = Number(true);
+        const bool_zero = Number(false);
+        const invalid_nan = Number("I am not a number");
+        const from_exp = Number("2.34e+2");
         "#;
 
         forward(&mut engine, init);
@@ -102,27 +209,12 @@ mod tests {
         assert_eq!(str_three.to_num(), f64::from(3.2));
         assert_eq!(bool_one.to_num(), f64::from(1));
         assert_eq!(bool_zero.to_num(), f64::from(0));
-        assert_eq!(invalid_nan.to_num(), NAN);
+        assert!(invalid_nan.to_num().is_nan());
         assert_eq!(from_exp.to_num(), f64::from(234));
-
-        for v in vec![
-            &default_zero,
-            &int_one,
-            &float_two,
-            &str_three,
-            &bool_one,
-            &invalid_nan,
-            &from_exp,
-        ]
-        .iter()
-        {
-            assert_eq!(v.is_object(), true);
-            assert_eq!(v.is_num(), true);
-        }
     }
 
     #[test]
-    pub fn to_expotential() {
+    fn to_exponential() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
@@ -143,16 +235,15 @@ mod tests {
         let noop_exp = forward(&mut engine, "noop_exp");
 
         assert_eq!(default_exp, String::from("0e+0"));
-        assert_eq!(int_exp, String::from("5"));
+        assert_eq!(int_exp, String::from("5e+0"));
         assert_eq!(float_exp, String::from("1.234e+0"));
-        assert_eq!(big_exp, String::from("5e+0"));
-        assert_eq!(nan_exp, String::from("1.234e+3"));
-        assert_eq!(default_exp, String::from("Nan"));
+        assert_eq!(big_exp, String::from("1.234e+3"));
+        assert_eq!(nan_exp, String::from("NaN"));
         assert_eq!(noop_exp, String::from("1.23e+2"));
     }
 
     #[test]
-    pub fn to_fixed() {
+    fn to_fixed() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
@@ -178,7 +269,7 @@ mod tests {
     }
 
     #[test]
-    pub fn to_locale_string() {
+    fn to_locale_string() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
@@ -200,11 +291,11 @@ mod tests {
         assert_eq!(default_locale, String::from("0"));
         assert_eq!(small_locale, String::from("5"));
         assert_eq!(big_locale, String::from("345600"));
-        assert_eq!(neg_locale, String::from("345600"));
+        assert_eq!(neg_locale, String::from("-25"));
     }
 
     #[test]
-    pub fn to_precision() {
+    fn to_precision() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
@@ -236,14 +327,14 @@ mod tests {
     }
 
     #[test]
-    pub fn to_string() {
+    fn to_string() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
         let init = r#"
         const default_string = Number().toString();
         const int_string = Number(123).toString();
         const float_string = Number(1.234).toString();
-        const exp_string = Number(1.2e+4).toString();
+        const exp_string = Number("1.2e+4").toString();
         const neg_string = Number(-1.2).toString();
         "#;
 
@@ -257,20 +348,22 @@ mod tests {
         assert_eq!(default_string, String::from("0"));
         assert_eq!(int_string, String::from("123"));
         assert_eq!(float_string, String::from("1.234"));
-        assert_eq!(exp_string, String::from("1200"));
+        assert_eq!(exp_string, String::from("12000"));
         assert_eq!(neg_string, String::from("-1.2"));
     }
 
     #[test]
-    pub fn value_of() {
+    fn value_of() {
         let realm = Realm::create();
         let mut engine = Executor::new(realm);
+        // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019
+        // the parser does not understand scientific e.g., Xe+Y or -Xe-Y notation.
         let init = r#"
         const default_val = Number().valueOf();
         const int_val = Number("123").valueOf();
         const float_val = Number(1.234).valueOf();
-        const exp_val = Number(1.2e+4).valueOf()
-        const neg_val = Number(-1.2e+4).valueOf()
+        const exp_val = Number("1.2e+4").valueOf()
+        const neg_val = Number("-1.2e+4").valueOf()
         "#;
 
         forward(&mut engine, init);
@@ -280,15 +373,10 @@ mod tests {
         let exp_val = forward_val(&mut engine, "exp_val").unwrap();
         let neg_val = forward_val(&mut engine, "neg_val").unwrap();
 
-        for v in vec![&default_val, &int_val, &float_val, &exp_val, &neg_val].iter() {
-            assert_eq!(v.is_object(), true);
-            assert_eq!(v.is_num(), true);
-        }
-
         assert_eq!(default_val.to_num(), f64::from(0));
         assert_eq!(int_val.to_num(), f64::from(123));
         assert_eq!(float_val.to_num(), f64::from(1.234));
-        assert_eq!(exp_val.to_num(), f64::from(1200));
-        assert_eq!(neg_val.to_num(), f64::from(-1200));
+        assert_eq!(exp_val.to_num(), f64::from(12000));
+        assert_eq!(neg_val.to_num(), f64::from(-12000));
     }
 }

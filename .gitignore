@@ -16,4 +16,4 @@ yarn-error.log
 .vscode/settings.json
 
 # tests/js/test.js is used for testing changes locally
-test/js/test.js
+tests/js/test.js

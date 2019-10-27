@@ -546,6 +546,7 @@ fn is_trimmable_whitespace(c: char) -> bool {
 
 pub fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
+    println!("{:?}", this_str);
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 

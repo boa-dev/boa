@@ -549,13 +549,16 @@ impl Interpreter {
 
     /// https://tc39.es/ecma262/#sec-ordinarytoprimitive
     fn ordinary_to_primitive(&mut self, o: &Value, hint: &str) -> Value {
+        println!("{:?}", o.get_type());
         debug_assert!(o.get_type() == "object");
+        println!("{:?}", hint);
         debug_assert!(hint == "string" || hint == "number");
         let method_names: Vec<&str> = if hint == "string" {
             vec!["toString", "valueOf"]
         } else {
             vec!["valueOf", "toString"]
         };
+        println!("{:?}", method_names);
         for name in method_names.iter() {
             let method: Value = o.get_field_slice(name);
             if method.is_function() {
@@ -680,6 +683,32 @@ impl Interpreter {
                 self.to_string(&prim_value).to_string()
             }
             _ => String::from("undefined"),
+        }
+    }
+
+    pub fn value_to_rust_number(&mut self, value: &Value) -> f64 {
+        match *value.deref().borrow() {
+            ValueData::Null => f64::from(0),
+            ValueData::Boolean(boolean) => match boolean {
+                false => f64::from(0),
+                _ => f64::from(1),
+            },
+            ValueData::Number(num) => num,
+            ValueData::Integer(num) => f64::from(num),
+            ValueData::String(ref string) => string.parse::<f64>().unwrap(),
+            ValueData::Object(_) => {
+                println!("It's a object!");
+                let prim_value = self.to_primitive(value, Some("number"));
+                println!("{:?}", prim_value);
+                self.to_string(&prim_value)
+                    .to_string()
+                    .parse::<f64>()
+                    .unwrap()
+            }
+            _ => {
+                // TODO: Make undefined?
+                f64::from(0)
+            }
         }
     }
 }
