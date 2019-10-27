@@ -312,7 +312,7 @@ pub fn every(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
 pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
-            "missing argument 0 when calling function Array.prototype.map".to_string(),
+            "missing argument 0 when calling function Array.prototype.map",
         ));
     }
 
