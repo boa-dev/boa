@@ -316,8 +316,8 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
         ));
     }
 
-    let callback = &args[0];
-    let this_val = args.get(1).cloned().unwrap_or(undefined());
+    let callback = args.get(0).cloned().unwrap_or_else(undefined);
+    let this_val = args.get(1).cloned().unwrap_or_else(undefined);
 
     let length: i32 =
         from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
@@ -326,11 +326,11 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
         .map(|idx| {
             let element = this.get_field(&idx.to_string());
 
-            let args = vec![element.clone(), to_value(idx), this.clone()];
+            let args = vec![element, to_value(idx), this.clone()];
 
             interpreter
-                .call(callback, &this_val, args)
-                .unwrap_or(undefined())
+                .call(&callback, &this_val, args)
+                .unwrap_or_else(|_| undefined())
         })
         .collect::<Vec<Value>>();
 
