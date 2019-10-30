@@ -96,16 +96,11 @@ fn log_string_from(x: Value) -> String {
         }
         ValueData::Symbol(ref sym) => {
             // Create empty formatted string to start writing to
-            let mut s = String::new();
             let desc: Value = sym.borrow().get_internal_slot("Description");
             match *desc {
-                ValueData::String(ref st) => {
-                    write!(s, "{}", format!("Symbol(\"{}\")", st.to_string())).unwrap()
-                }
-                _ => write!(s, "Symbol()").unwrap(),
+                ValueData::String(ref st) => format!("Symbol(\"{}\")", st.to_string()),
+                _ => format!("Symbol()"),
             }
-
-            s
         }
 
         _ => from_value::<String>(x.clone()).expect("Could not convert value to String"),
