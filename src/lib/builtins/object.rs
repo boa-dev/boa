@@ -62,11 +62,10 @@ impl Object {
 
     /// Utility function to get an immutable internal slot or Null
     pub fn get_internal_slot(&self, name: &str) -> Value {
-        let result = match self.internal_slots.get(name) {
+        match self.internal_slots.get(name) {
             Some(v) => v.clone(),
             None => Gc::new(ValueData::Null),
-        };
-        result
+        }
     }
 
     /// Utility function to set an internal slot
