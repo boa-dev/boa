@@ -311,7 +311,7 @@ impl Object {
             }
 
             if desc.enumerable.is_some()
-                && (desc.enumerable.as_ref().unwrap() == current.enumerable.as_ref().unwrap())
+                && (desc.enumerable.as_ref().unwrap() != current.enumerable.as_ref().unwrap())
             {
                 return false;
             }
@@ -319,7 +319,6 @@ impl Object {
 
         // 5
         if desc.is_generic_descriptor() {
-
             // 6
         } else if current.is_data_descriptor() != desc.is_data_descriptor() {
             // a
@@ -348,7 +347,8 @@ impl Object {
                     .expect("parsing failed");
                 self.sym_properties.insert(sym_id, current.clone());
             } else {
-                self.properties.insert(property_key, current.clone());
+                self.properties
+                    .insert(property_key.clone(), current.clone());
             }
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
@@ -397,7 +397,7 @@ impl Object {
             return true;
         }
         // 9
-        Property::assign(&mut current, &desc);
+        self.properties.insert(property_key, desc);
         true
     }
 

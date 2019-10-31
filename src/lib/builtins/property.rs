@@ -108,29 +108,6 @@ impl Property {
     pub fn is_generic_descriptor(&self) -> bool {
         !self.is_accessor_descriptor() && !self.is_data_descriptor()
     }
-
-    /// This copies only present property fields from B to A
-    pub fn assign(a: &mut Property, b: &Property) {
-        if b.get.is_some() {
-            a.get = b.get.clone();
-        }
-
-        if b.set.is_some() {
-            a.set = b.set.clone();
-        }
-
-        if b.configurable.is_some() {
-            a.configurable = b.configurable;
-        }
-
-        if b.writable.is_some() {
-            a.writable = b.writable;
-        }
-
-        if b.enumerable.is_some() {
-            a.enumerable = b.enumerable;
-        }
-    }
 }
 
 impl Default for Property {

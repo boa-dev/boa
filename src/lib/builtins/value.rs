@@ -451,21 +451,14 @@ impl ValueData {
                         }
                     }
                 }
-                obj.borrow_mut().set(field.clone(), val.clone());
+
                 // Symbols get saved into a different bucket to general properties
-                // if field.is_symbol() {
-                //     let symbol_id = field.get_internal_slot("SymbolData").to_string();
-                //     obj.borrow_mut().sym_properties.insert(
-                //         symbol_id
-                //             .parse::<i32>()
-                //             .expect("Unable to convert Symbol ID to i32"),
-                //         Property::default().value(val.clone()),
-                //     );
-                // } else {
-                //     obj.borrow_mut()
-                //         .properties
-                //         .insert(field.to_string(), Property::default().value(val.clone()));
-                // }
+                if field.is_symbol() {
+                    obj.borrow_mut().set(field.clone(), val.clone());
+                } else {
+                    obj.borrow_mut()
+                        .set(to_value(field.to_string()), val.clone());
+                }
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
