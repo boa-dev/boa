@@ -5,7 +5,7 @@ use crate::{
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     environment::lexical_environment::{
-        new_declarative_environment, new_function_environment, VariableScope,
+        new_declarative_environment, new_function_environment, EnvironmentType, VariableScope,
     },
     realm::Realm,
     syntax::ast::{
@@ -86,7 +86,6 @@ impl Executor for Interpreter {
                     // early return
                     if self.is_return {
                         obj = val;
-                        self.is_return = false;
                         break;
                     }
                     if e == es.last().expect("unable to get last value") {
@@ -94,7 +93,16 @@ impl Executor for Interpreter {
                     }
                 }
 
-                self.realm.environment.pop();
+                // pop the block env
+                let block_env = self.realm.environment.pop();
+                // clear the early return flag `self.is_return`
+                // only when we leave the associated function
+                if let Some(env) = block_env {
+                    match env.deref().borrow().get_environment_type() {
+                        EnvironmentType::Function => self.is_return = false,
+                        _ => {}
+                    }
+                }
                 Ok(obj)
             }
             ExprDef::Local(ref name) => {
@@ -797,5 +805,19 @@ mod tests {
         ~false
         "#;
         assert_eq!(exec(boolean_false), String::from("-1"));
+    }
+
+    #[test]
+    fn test_early_return() {
+        let early_return = r#"
+        function early_return() {
+            if (true) {
+                return true;
+            }
+            return false;
+        }
+        early_return()
+        "#;
+        assert_eq!(exec(early_return), String::from("true"));
     }
 }
