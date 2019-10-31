@@ -639,7 +639,7 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     let span = max(to.wrapping_sub(from), 0);
     let mut new_array_len: i32 = 0;
     for i in from..from.wrapping_add(span) {
-        new_array.set_field(new_array_len.to_string(), this.get_field(&i.to_string()));
+        new_array.set_field_slice(&new_array_len.to_string(), this.get_field(to_value(i)));
         new_array_len = new_array_len.wrapping_add(1);
     }
     new_array.set_field_slice("length", to_value(new_array_len));
