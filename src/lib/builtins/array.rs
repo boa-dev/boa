@@ -3,7 +3,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{from_value, to_value, ResultValue, Value, ValueData},
+        value::{from_value, to_value, ResultValue, Value, ValueData, undefined},
     },
     exec::Interpreter,
 };
@@ -477,7 +477,7 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
 /// <https://tc39.es/ecma262/#sec-array.prototype.fill>
 pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).expect("Could not get argument");
-    let default_value = Gc::new(ValueData::Undefined);
+    let default_value = undefined();
     let value = args.get(0).unwrap_or(&default_value);
     let relative_start = args.get(1).unwrap_or(&default_value).to_num() as i32;
     let relative_end_val = args.get(2).unwrap_or(&default_value);
