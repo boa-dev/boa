@@ -740,7 +740,7 @@ pub fn create_constructor(global: &Value) -> Value {
     string_constructor.set_internal_method("call", call_string);
 
     // Create prototype
-    let proto = ValueData::new_obj(Some(global));
+    let mut proto = ValueData::new_obj(Some(global));
     let prop = Property::default().get(to_value(get_string_length as NativeFunctionData));
 
     proto.set_prop_slice("length", prop);

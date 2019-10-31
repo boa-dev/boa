@@ -105,12 +105,14 @@ impl Executor for Interpreter {
             }
             ExprDef::GetConstField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
-                Ok(val_obj.borrow().get_field(field))
+                Ok(val_obj.borrow().get_field_slice(field))
             }
             ExprDef::GetField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 let val_field = self.run(field)?;
-                Ok(val_obj.borrow().get_field(&val_field.borrow().to_string()))
+                Ok(val_obj
+                    .borrow()
+                    .get_field_slice(&val_field.borrow().to_string()))
             }
             ExprDef::Call(ref callee, ref args) => {
                 let (this, func) = match callee.def {
@@ -119,14 +121,14 @@ impl Executor for Interpreter {
                         if obj.get_type() != "object" || obj.get_type() != "symbol" {
                             obj = self.to_object(&obj).expect("failed to convert to object");
                         }
-                        (obj.clone(), obj.borrow().get_field(field))
+                        (obj.clone(), obj.borrow().get_field_slice(field))
                     }
                     ExprDef::GetField(ref obj, ref field) => {
                         let obj = self.run(obj)?;
                         let field = self.run(field)?;
                         (
                             obj.clone(),
-                            obj.borrow().get_field(&field.borrow().to_string()),
+                            obj.borrow().get_field_slice(&field.borrow().to_string()),
                         )
                     }
                     _ => (self.realm.global_obj.clone(), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
@@ -199,7 +201,7 @@ impl Executor for Interpreter {
                     .expect("Could not get the global object");
                 let obj = ValueData::new_obj(Some(global_val));
                 for (key, val) in map.iter() {
-                    obj.borrow().set_field(key.clone(), self.run(val)?);
+                    obj.borrow().set_field_slice(&key.clone(), self.run(val)?);
                 }
                 Ok(obj)
             }
@@ -320,10 +322,12 @@ impl Executor for Interpreter {
                 }
                 ExprDef::GetConstField(ref obj, ref field) => {
                     let v_r_a = self.run(obj)?;
-                    let v_a = (*v_r_a.borrow().get_field(field)).clone();
+                    let v_a = (*v_r_a.borrow().get_field_slice(field)).clone();
                     let v_b = (*self.run(b)?).clone();
                     let value = exec_assign_op(op, v_a, v_b.clone());
-                    v_r_a.borrow().set_field(field.clone(), value.clone());
+                    v_r_a
+                        .borrow()
+                        .set_field_slice(&field.clone(), value.clone());
                     Ok(value)
                 }
                 _ => Ok(Gc::new(ValueData::Undefined)),
@@ -409,14 +413,14 @@ impl Executor for Interpreter {
                     }
                     ExprDef::GetConstField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
-                        val_obj.borrow().set_field(field.clone(), val.clone());
+                        val_obj
+                            .borrow()
+                            .set_field_slice(&field.clone(), val.clone());
                     }
                     ExprDef::GetField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
                         let val_field = self.run(field)?;
-                        val_obj
-                            .borrow()
-                            .set_field(val_field.to_string(), val.clone());
+                        val_obj.borrow().set_field(val_field, val.clone());
                     }
                     _ => (),
                 }

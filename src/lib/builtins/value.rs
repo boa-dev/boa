@@ -321,28 +321,35 @@ impl ValueData {
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field(&self, field: &str) -> Value {
-        match self.get_prop(field) {
-            Some(prop) => {
-                // If the Property has [[Get]] set to a function, we should run that and return the Value
-                let prop_getter = match prop.get {
-                    Some(_) => None,
-                    None => None,
-                };
+    pub fn get_field(&self, field: Value) -> Value {
+        match *field {
+            // Our field will either be a String or a Symbol
+            ValueData::String(ref s) => {
+                match self.get_prop(s) {
+                    Some(prop) => {
+                        // If the Property has [[Get]] set to a function, we should run that and return the Value
+                        let prop_getter = match prop.get {
+                            Some(_) => None,
+                            None => None,
+                        };
 
-                // If the getter is populated, use that. If not use [[Value]] instead
-                match prop_getter {
-                    Some(val) => val,
-                    None => {
-                        let val = prop
-                            .value
-                            .as_ref()
-                            .expect("Could not get property as reference");
-                        val.clone()
+                        // If the getter is populated, use that. If not use [[Value]] instead
+                        match prop_getter {
+                            Some(val) => val,
+                            None => {
+                                let val = prop
+                                    .value
+                                    .as_ref()
+                                    .expect("Could not get property as reference");
+                                val.clone()
+                            }
+                        }
                     }
+                    None => Gc::new(ValueData::Undefined),
                 }
             }
-            None => Gc::new(ValueData::Undefined),
+            ValueData::Symbol(ref sym) => unimplemented!(),
+            _ => Gc::new(ValueData::Undefined),
         }
     }
 
@@ -422,15 +429,19 @@ impl ValueData {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     pub fn get_field_slice(&self, field: &str) -> Value {
-        self.get_field(field)
+        // get_field used to accept strings, but now Symbols accept it needs to accept a value
+        // So this function will now need to Box strings back into values (at least for now)
+        let f = Gc::new(ValueData::String(field.to_string()));
+        self.get_field(f)
     }
 
     /// Set the field in the value
-    pub fn set_field(&self, field: String, val: Value) -> Value {
+    /// Field could be a Symbol, so we need to accept a Value (not a string)
+    pub fn set_field(&self, field: Value, val: Value) -> Value {
         match *self {
             ValueData::Object(ref obj) => {
                 if obj.borrow().kind == ObjectKind::Array {
-                    if let Ok(num) = field.parse::<usize>() {
+                    if let Ok(num) = field.to_string().parse::<usize>() {
                         if num > 0 {
                             let len: i32 = from_value(self.get_field_slice("length"))
                                 .expect("Could not convert argument to i32");
@@ -440,20 +451,32 @@ impl ValueData {
                         }
                     }
                 }
-                obj.borrow_mut()
-                    .properties
-                    .insert(field, Property::default().value(val.clone()));
+                obj.borrow_mut().set(field.clone(), val.clone());
+                // Symbols get saved into a different bucket to general properties
+                // if field.is_symbol() {
+                //     let symbol_id = field.get_internal_slot("SymbolData").to_string();
+                //     obj.borrow_mut().sym_properties.insert(
+                //         symbol_id
+                //             .parse::<i32>()
+                //             .expect("Unable to convert Symbol ID to i32"),
+                //         Property::default().value(val.clone()),
+                //     );
+                // } else {
+                //     obj.borrow_mut()
+                //         .properties
+                //         .insert(field.to_string(), Property::default().value(val.clone()));
+                // }
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::default().value(val.clone())),
+                        .insert(field.to_string(), Property::default().value(val.clone())),
                     Function::RegularFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::default().value(val.clone())),
+                        .insert(field.to_string(), Property::default().value(val.clone())),
                 };
             }
             _ => (),
@@ -463,7 +486,10 @@ impl ValueData {
 
     /// Set the field in the value
     pub fn set_field_slice<'a>(&self, field: &'a str, val: Value) -> Value {
-        self.set_field(field.to_string(), val)
+        // set_field used to accept strings, but now Symbols accept it needs to accept a value
+        // So this function will now need to Box strings back into values (at least for now)
+        let f = Gc::new(ValueData::String(field.to_string()));
+        self.set_field(f, val)
     }
 
     /// Set the private field in the value
@@ -869,7 +895,7 @@ impl<T: FromValue> FromValue for Vec<T> {
         let len = v.get_field_slice("length").to_int();
         let mut vec = Self::with_capacity(len as usize);
         for i in 0..len {
-            vec.push(from_value(v.get_field(&i.to_string()))?)
+            vec.push(from_value(v.get_field_slice(&i.to_string()))?)
         }
         Ok(vec)
     }

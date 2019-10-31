@@ -189,7 +189,8 @@ fn _make_prop(getter: NativeFunctionData) -> Property {
 /// Search for a match between this regex and a specified string
 pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
-    let mut last_index = from_value::<usize>(this.get_field("lastIndex")).map_err(to_value)?;
+    let mut last_index =
+        from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
     let result = this.with_internal_state_ref(|regex: &RegExp| {
         let result = match regex.matcher.find_at(arg_str.as_str(), last_index) {
             Some(m) => {
@@ -214,7 +215,8 @@ pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Search for a match between this regex and a specified string
 pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
-    let mut last_index = from_value::<usize>(this.get_field("lastIndex")).map_err(to_value)?;
+    let mut last_index =
+        from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
     let result = this.with_internal_state_ref(|regex: &RegExp| {
         let mut locations = regex.matcher.capture_locations();
         let result =

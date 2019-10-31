@@ -35,8 +35,8 @@ pub fn call_symbol(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let proto = ctx
         .realm
         .global_obj
-        .get_field("Symbol")
-        .get_field(PROTOTYPE);
+        .get_field_slice("Symbol")
+        .get_field_slice(PROTOTYPE);
     sym_instance.set_internal_slot(INSTANCE_PROTOTYPE, proto);
 
     Ok(Gc::new(ValueData::Symbol(GcCell::new(sym_instance))))

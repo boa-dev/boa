@@ -30,7 +30,7 @@ pub struct Object {
     /// Properties
     pub properties: Box<HashMap<String, Property>>,
     /// Symbol Properties
-    pub sym_properties: Box<HashMap<usize, Property>>,
+    pub sym_properties: Box<HashMap<i32, Property>>,
     /// Some rust object that stores internal state
     pub state: Option<Box<InternalStateCell>>,
 }
@@ -38,13 +38,16 @@ pub struct Object {
 impl Object {
     /// Return a new ObjectData struct, with `kind` set to Ordinary
     pub fn default() -> Self {
-        Object {
+        let mut object = Object {
             kind: ObjectKind::Ordinary,
             internal_slots: Box::new(HashMap::new()),
             properties: Box::new(HashMap::new()),
             sym_properties: Box::new(HashMap::new()),
             state: None,
-        }
+        };
+
+        object.set_internal_slot("extensible", to_value(true));
+        object
     }
 
     /// ObjectCreate is used to specify the runtime creation of new ordinary objects
@@ -192,28 +195,62 @@ impl Object {
         self.set_internal_slot("extensible", to_value(false));
         true
     }
+
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
     pub fn get_own_property(&self, prop: &Value) -> Property {
         debug_assert!(Property::is_property_key(prop));
-        match self.properties.get(&prop.to_string()) {
-            // If O does not have an own property with key P, return undefined.
-            // In this case we return a new empty Property
-            None => Property::default(),
-            Some(ref v) => {
-                let mut d = Property::default();
-                if v.is_data_descriptor() {
-                    d.value = v.value.clone();
-                    d.writable = v.writable;
-                } else {
-                    debug_assert!(v.is_accessor_descriptor());
-                    d.get = v.get.clone();
-                    d.set = v.set.clone();
+        // Prop could either be a String or Symbol
+        match *(*prop) {
+            ValueData::String(ref st) => {
+                match self.properties.get(st) {
+                    // If O does not have an own property with key P, return undefined.
+                    // In this case we return a new empty Property
+                    None => Property::default(),
+                    Some(ref v) => {
+                        let mut d = Property::default();
+                        if v.is_data_descriptor() {
+                            d.value = v.value.clone();
+                            d.writable = v.writable;
+                        } else {
+                            debug_assert!(v.is_accessor_descriptor());
+                            d.get = v.get.clone();
+                            d.set = v.set.clone();
+                        }
+                        d.enumerable = v.enumerable;
+                        d.configurable = v.configurable;
+                        d
+                    }
                 }
-                d.enumerable = v.enumerable;
-                d.configurable = v.configurable;
-                d
             }
+            ValueData::Symbol(ref sym) => {
+                let sym_id = sym
+                    .borrow()
+                    .get_internal_slot("SymbolData")
+                    .to_string()
+                    .parse::<i32>()
+                    .expect("Could not get Symbol ID");
+                match self.sym_properties.get(&sym_id) {
+                    // If O does not have an own property with key P, return undefined.
+                    // In this case we return a new empty Property
+                    None => Property::default(),
+                    Some(ref v) => {
+                        let mut d = Property::default();
+                        if v.is_data_descriptor() {
+                            d.value = v.value.clone();
+                            d.writable = v.writable;
+                        } else {
+                            debug_assert!(v.is_accessor_descriptor());
+                            d.get = v.get.clone();
+                            d.set = v.set.clone();
+                        }
+                        d.enumerable = v.enumerable;
+                        d.configurable = v.configurable;
+                        d
+                    }
+                }
+            }
+            _ => Property::default(),
         }
     }
 
@@ -248,20 +285,18 @@ impl Object {
             if !extensible {
                 return false;
             }
-
-            let mut p = Property::new();
-            if desc.is_generic_descriptor() || desc.is_data_descriptor() {
-                p.value = Some(desc.value.clone().unwrap_or_default());
-                p.writable = Some(desc.writable.unwrap_or_default());
-                p.configurable = Some(desc.configurable.unwrap_or_default());
-                p.enumerable = Some(desc.enumerable.unwrap_or_default());
+            if desc.value.is_some() && desc.value.clone().unwrap().is_symbol() {
+                let sym_id = desc
+                    .value
+                    .clone()
+                    .unwrap()
+                    .to_string()
+                    .parse::<i32>()
+                    .expect("parsing failed");
+                self.sym_properties.insert(sym_id, desc);
             } else {
-                p.get = Some(desc.get.clone().unwrap_or_default());
-                p.set = Some(desc.set.clone().unwrap_or_default());
-                p.configurable = Some(desc.configurable.unwrap_or_default());
-                p.enumerable = Some(desc.enumerable.unwrap_or_default());
-            };
-            self.properties.insert(property_key, p);
+                self.properties.insert(property_key, desc);
+            }
             return true;
         }
         // If every field is absent we don't need to set anything
@@ -302,7 +337,19 @@ impl Object {
                 current.get = None;
                 current.set = None;
             }
-            self.properties.insert(property_key, current.clone());
+
+            if current.value.is_some() && current.value.clone().unwrap().is_symbol() {
+                let sym_id = current
+                    .value
+                    .clone()
+                    .unwrap()
+                    .to_string()
+                    .parse::<i32>()
+                    .expect("parsing failed");
+                self.sym_properties.insert(sym_id, current.clone());
+            } else {
+                self.properties.insert(property_key, current.clone());
+            }
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
             // a
@@ -407,6 +454,43 @@ impl Object {
 
         // TODO!!!!! Call getter from here
         Gc::new(ValueData::Undefined)
+    }
+
+    /// [[Set]]   
+    /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
+    pub fn set(&mut self, field: Value, val: Value) -> bool {
+        // [1]
+        debug_assert!(Property::is_property_key(&field));
+
+        // Fetch property key
+        let mut own_desc = self.get_own_property(&field);
+        // [2]
+        if own_desc.is_none() {
+            let parent = self.get_prototype_of();
+            if !parent.is_null() {
+                // TODO: come back to this
+            }
+            own_desc = Property::new()
+                .writable(true)
+                .enumerable(true)
+                .configurable(true);
+        }
+        // [3]
+        if own_desc.is_data_descriptor() {
+            if !own_desc.writable.unwrap() {
+                return false;
+            }
+            own_desc = own_desc.value(val);
+            return self.define_own_property(field.to_string(), own_desc);
+        }
+        // [4]
+        debug_assert!(own_desc.is_accessor_descriptor());
+        return match own_desc.set {
+            None => false,
+            Some(_) => {
+                unimplemented!();
+            }
+        };
     }
 }
 
