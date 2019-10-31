@@ -3,7 +3,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{from_value, to_value, ResultValue, Value, ValueData},
+        value::{from_value, to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -534,6 +534,38 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     Ok(new_array)
 }
 
+/// Array.prototype.reduce ( callback, [initialValue] );
+///
+/// The reduce() method executes the callback once for each assigned value
+/// present in the array
+/// <https://tc39.es/ecma262/#sec-array.prototype.reduce>
+pub fn reduce(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    let mut len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    // TODO: Should throw TypeError if args.len() == 1 and length(arr) == 0
+    let (callback, mut accumulator, mut i) = if args.len() == 1 {
+        (&args[0], this.get_field("0"), 1)
+    } else if args.len() > 1 {
+        (&args[0], args[1].clone(), 0)
+    } else {
+        return Err(to_value(
+            "missing callback when calling function Array.prototype.reduce".to_string(),
+        ));
+    };
+
+    let max_len = len;
+    let this_arg = undefined();
+    while i < len {
+        let element = this.get_field(&i.to_string());
+        if !element.is_undefined() {
+            let arguments = vec![accumulator, element.clone(), to_value(i), this.clone()];
+            accumulator = interpreter.call(callback, &this_arg, arguments)?;
+            len = min(max_len, from_value(this.get_field_slice("length")).unwrap());
+        }
+        i += 1;
+    }
+    Ok(accumulator)
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -560,6 +592,8 @@ pub fn create_constructor(global: &Value) -> Value {
     last_index_of_func.set_field_slice("length", to_value(1_i32));
     let includes_func = to_value(includes_value as NativeFunctionData);
     includes_func.set_field_slice("length", to_value(1_i32));
+    let reduce_func = to_value(reduce as NativeFunctionData);
+    reduce_func.set_field_slice("length", to_value(1_i32));
 
     array_prototype.set_field_slice("push", push_func);
     array_prototype.set_field_slice("pop", to_value(pop as NativeFunctionData));
@@ -574,6 +608,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
     array_prototype.set_field_slice("slice", to_value(slice as NativeFunctionData));
+    array_prototype.set_field_slice("reduce", reduce_func);
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
@@ -997,5 +1032,35 @@ mod tests {
         assert_eq!(forward(&mut engine, "many2[0]"), "c");
         assert_eq!(forward(&mut engine, "many2.length"), "1");
         assert_eq!(forward(&mut engine, "many3.length"), "0");
+    }
+
+    #[test]
+    fn reduce() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        function callback(acc, val) {
+            return 5;
+        }
+
+        var empty = [];
+        var modArray = [1, 2, 3];
+        function modifyingCallback(acc, val, index, array) {
+            if (index === 1) {
+               array[index+1] = 1000;
+            }
+            return acc + val;
+        }
+        "#;
+        forward(&mut engine, init);
+
+        let result = forward(&mut engine, "empty.reduce(callback, 22);");
+        assert_eq!(result, String::from("22"));
+
+        let result = forward(&mut engine, "empty.reduce(callback);");
+        assert_eq!(result, String::from("undefined"));
+
+        let result = forward(&mut engine, "modArray.reduce(modifyingCallback, 0);");
+        assert_eq!(result, String::from("1003"));
     }
 }
