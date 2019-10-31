@@ -98,9 +98,8 @@ impl Executor for Interpreter {
                 // clear the early return flag `self.is_return`
                 // only when we leave the associated function
                 if let Some(env) = block_env {
-                    match env.deref().borrow().get_environment_type() {
-                        EnvironmentType::Function => self.is_return = false,
-                        _ => {}
+                    if let EnvironmentType::Function = env.deref().borrow().get_environment_type() {
+                        self.is_return = false;
                     }
                 }
                 Ok(obj)
