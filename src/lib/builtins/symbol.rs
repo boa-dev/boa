@@ -78,7 +78,7 @@ mod tests {
     use super::*;
     use crate::exec::Executor;
     use crate::realm::Realm;
-    use crate::{builtins::value::same_value, forward, forward_val};
+    use crate::{forward, forward_val};
 
     #[test]
     fn check_symbol_constructor_is_function() {

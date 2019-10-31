@@ -348,7 +348,7 @@ impl ValueData {
                     None => Gc::new(ValueData::Undefined),
                 }
             }
-            ValueData::Symbol(ref sym) => unimplemented!(),
+            ValueData::Symbol(_) => unimplemented!(),
             _ => Gc::new(ValueData::Undefined),
         }
     }

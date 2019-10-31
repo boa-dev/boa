@@ -1,5 +1,4 @@
 use crate::builtins::value::{from_value, to_value, FromValue, ToValue, Value, ValueData};
-use gc::Gc;
 use gc_derive::{Finalize, Trace};
 
 /// A Javascript Property AKA The Property Descriptor   
