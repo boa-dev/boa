@@ -207,7 +207,7 @@ impl LexicalEnvironment {
             .any(|env| env.borrow().has_binding(name))
     }
 
-    pub fn get_binding_value(&mut self, name: &str) -> Value {
+    pub fn get_binding_value(&self, name: &str) -> Value {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
