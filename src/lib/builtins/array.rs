@@ -1,14 +1,37 @@
 use crate::{
     builtins::{
         function::NativeFunctionData,
-        object::{Object, ObjectKind, PROTOTYPE},
+        object::{Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
 use gc::Gc;
+use std::borrow::Borrow;
 use std::cmp::{max, min};
+
+pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
+    let array = ValueData::new_obj(Some(
+        &interpreter
+            .get_realm()
+            .environment
+            .get_global_object()
+            .expect("Could not get global object"),
+    ));
+    array.set_kind(ObjectKind::Array);
+    array.borrow().set_internal_slot(
+        INSTANCE_PROTOTYPE,
+        interpreter
+            .get_realm()
+            .environment
+            .get_binding_value("Array")
+            .borrow()
+            .get_field_slice(PROTOTYPE),
+    );
+    array.borrow().set_field_slice("length", to_value(0));
+    Ok(array)
+}
 
 /// Utility function for creating array objects: `array_obj` can be any array with
 /// prototype already set (it will be wiped and recreated from `array_contents`)
@@ -31,7 +54,7 @@ fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
 
 /// Utility function which takes an existing array object and puts additional
 /// values on the end, correctly rewriting the length
-fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
+pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
     let orig_length: i32 =
         from_value(array_ptr.get_field_slice("length")).expect("failed to conveert lenth to i32");
 
@@ -499,8 +522,7 @@ pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> Resu
 /// length is the length of the array.
 /// <https://tc39.es/ecma262/#sec-array.prototype.slice>
 pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
-    let new_array = make_array(&to_value(Object::default()), &[], interpreter)?;
-    new_array.set_kind(ObjectKind::Array);
+    let new_array = new_array(interpreter)?;
     let len: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
 

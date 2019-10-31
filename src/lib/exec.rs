@@ -1,5 +1,6 @@
 use crate::{
     builtins::{
+        array,
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         value::{from_value, to_value, ResultValue, Value, ValueData},
@@ -196,30 +197,10 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::ArrayDecl(ref arr) => {
-                let global_val = &self
-                    .realm
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let arr_map = ValueData::new_obj(Some(global_val));
-                // Note that this object is an Array
-                arr_map.set_kind(ObjectKind::Array);
-                let mut index: i32 = 0;
-                for val in arr.iter() {
-                    let val = self.run(val)?;
-                    arr_map.borrow().set_field(index.to_string(), val);
-                    index += 1;
-                }
-                arr_map.borrow().set_internal_slot(
-                    INSTANCE_PROTOTYPE,
-                    self.realm
-                        .environment
-                        .get_binding_value("Array")
-                        .borrow()
-                        .get_field_slice(PROTOTYPE),
-                );
-                arr_map.borrow().set_field_slice("length", to_value(index));
-                Ok(arr_map)
+                let array = array::new_array(self)?;
+                let elements: Result<Vec<_>, _> = arr.iter().map(|val| self.run(val)).collect();
+                array::add_to_array_object(&array, &elements?)?;
+                Ok(array)
             }
             ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
                 let function =
@@ -495,6 +476,11 @@ impl Executor for Interpreter {
 }
 
 impl Interpreter {
+    /// Get the Interpreter's realm
+    pub(crate) fn get_realm(&self) -> &Realm {
+        &self.realm
+    }
+
     /// https://tc39.es/ecma262/#sec-call
     pub(crate) fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
         // All functions should be objects, and eventually will be.
