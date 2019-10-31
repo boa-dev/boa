@@ -95,6 +95,7 @@ impl Executor for Interpreter {
 
                 // pop the block env
                 let block_env = self.realm.environment.pop();
+
                 // clear the early return flag `self.is_return`
                 // only when we leave the associated function
                 if let Some(env) = block_env {
