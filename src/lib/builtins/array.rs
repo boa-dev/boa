@@ -35,7 +35,7 @@ pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
 
 /// Utility function for creating array objects: `array_obj` can be any array with
 /// prototype already set (it will be wiped and recreated from `array_contents`)
-fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
+pub fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
     let array_obj_ptr = array_obj.clone();
 
     // Wipe existing contents of the array object
@@ -45,7 +45,15 @@ fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
         array_obj_ptr.remove_prop(&n.to_string());
     }
 
-    array_obj_ptr.set_field_slice("length", to_value(array_contents.len() as i32));
+    // Create length
+    let length = Property::new()
+        .value(to_value(array_contents.len() as i32))
+        .writable(true)
+        .configurable(false)
+        .enumerable(false);
+
+    array_obj_ptr.set_prop("length".to_string(), length);
+
     for (n, value) in array_contents.iter().enumerate() {
         array_obj_ptr.set_field_slice(&n.to_string(), value.clone());
     }
@@ -72,24 +80,37 @@ pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> Re
 }
 
 /// Create a new array
-pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
-    this.set_field_slice("length", to_value(0_i32));
+
+    // Create length
+    let length = Property::new()
+        .value(to_value(args.len() as i32))
+        .writable(true)
+        .configurable(false)
+        .enumerable(false);
+
+    this.set_prop("length".to_string(), length);
+
+    // Set Prototype
+    let array_prototype = ctx
+        .realm
+        .global_obj
+        .get_field_slice("Array")
+        .get_field_slice(PROTOTYPE);
+
+    this.set_internal_slot(INSTANCE_PROTOTYPE, array_prototype);
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::Array);
-    match args.len() {
-        0 => construct_array(this, &[]),
-        1 => {
-            let array = construct_array(this, &[]).expect("Could not construct array");
-            let size: i32 = from_value(args.get(0).expect("Could not get argument").clone())
-                .expect("Could not convert argument to i32");
-            array.set_field_slice("length", to_value(size));
-            Ok(array)
-        }
-        _ => construct_array(this, args),
+
+    // And finally add our arguments in
+    for (n, value) in args.iter().enumerate() {
+        this.set_field_slice(&n.to_string(), value.clone());
     }
+
+    Ok(this.clone())
 }
 
 /// Get an array's length
@@ -628,14 +649,15 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
-    let mut array_constructor = Object::default();
+    let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
+    let mut array_constructor = Object::create(object_prototype);
     array_constructor.kind = ObjectKind::Function;
     array_constructor.set_internal_method("construct", make_array);
     // Todo: add call function
     array_constructor.set_internal_method("call", make_array);
 
     // Create prototype
-    let array_prototype = ValueData::new_obj(Some(global));
+    let array_prototype = ValueData::new_obj(None);
 
     let length = Property::default().get(to_value(get_array_length as NativeFunctionData));
 

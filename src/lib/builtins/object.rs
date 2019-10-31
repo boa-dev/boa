@@ -305,7 +305,7 @@ impl Object {
         }
 
         // 4
-        if current.configurable.unwrap_or(false) {
+        if !current.configurable.unwrap_or(false) {
             if desc.configurable.is_some() && desc.configurable.unwrap() {
                 return false;
             }
@@ -480,6 +480,8 @@ impl Object {
             if !own_desc.writable.unwrap() {
                 return false;
             }
+
+            // Change value on the current descriptor
             own_desc = own_desc.value(val);
             return self.define_own_property(field.to_string(), own_desc);
         }
