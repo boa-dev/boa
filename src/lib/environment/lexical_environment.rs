@@ -95,8 +95,8 @@ impl LexicalEnvironment {
         self.environment_stack.push_back(env);
     }
 
-    pub fn pop(&mut self) {
-        self.environment_stack.pop_back();
+    pub fn pop(&mut self) -> Option<Environment> {
+        self.environment_stack.pop_back()
     }
 
     pub fn environments(&self) -> impl Iterator<Item = Environment> {
