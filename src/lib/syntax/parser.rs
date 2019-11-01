@@ -566,6 +566,10 @@ impl Parser {
                 self,
                 ExprDef::UnaryOp(UnaryOp::Not, Box::new(self.parse()?))
             ),
+            TokenData::Punctuator(Punctuator::Neg) => mk!(
+                self,
+                ExprDef::UnaryOp(UnaryOp::Tilde, Box::new(self.parse()?))
+            ),
             TokenData::Punctuator(Punctuator::Inc) => mk!(
                 self,
                 ExprDef::UnaryOp(UnaryOp::IncrementPre, Box::new(self.parse()?))
