@@ -486,7 +486,7 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     } else {
         relative_end_val.to_num() as i32
     };
-    let k = if relative_start < 0 {
+    let start = if relative_start < 0 {
         max(len + relative_start, 0)
     } else {
         min(relative_start, len)
@@ -497,7 +497,7 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         min(relative_end, len)
     };
 
-    for i in k..fin {
+    for i in start..fin {
         this.set_field(i.to_string(), value.clone());
     }
 
@@ -594,6 +594,8 @@ pub fn create_constructor(global: &Value) -> Value {
     last_index_of_func.set_field_slice("length", to_value(1_i32));
     let includes_func = to_value(includes_value as NativeFunctionData);
     includes_func.set_field_slice("length", to_value(1_i32));
+    let fill_func = to_value(fill as NativeFunctionData);
+    fill_func.set_field_slice("length", to_value(1_i32));
 
     array_prototype.set_field_slice("push", push_func);
     array_prototype.set_field_slice("pop", to_value(pop as NativeFunctionData));
@@ -607,7 +609,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("includes", includes_func);
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
-    array_prototype.set_field_slice("fill", to_value(fill as NativeFunctionData));
+    array_prototype.set_field_slice("fill", fill_func);
     array_prototype.set_field_slice("slice", to_value(slice as NativeFunctionData));
 
     let array = to_value(array_constructor);
@@ -1061,6 +1063,11 @@ mod tests {
         assert_eq!(
             forward(&mut engine, "a.fill(4, undefined, undefined).join()"),
             String::from("4,4,4")
+        );
+
+        assert_eq!(
+            forward(&mut engine, "a.fill().join()"),
+            String::from("undefined,undefined,undefined")
         );
 
         // test object reference
