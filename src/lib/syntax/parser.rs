@@ -530,11 +530,37 @@ impl Parser {
                         }
                     };
                     self.pos += 1;
-                    self.expect(
-                        TokenData::Punctuator(Punctuator::Colon),
-                        "object declaration",
-                    )?;
-                    let value = self.parse()?;
+                    let value = match self.get_token(self.pos)?.data {
+                        TokenData::Punctuator(Punctuator::Colon) => {
+                            self.pos += 1;
+                            self.parse()?
+                        }
+                        TokenData::Punctuator(Punctuator::OpenParen) => {
+                            self.pos += 1;
+                            self.expect(
+                                TokenData::Punctuator(Punctuator::CloseParen),
+                                "Method Block",
+                            )?;
+                            self.pos += 1;
+                            let expr = self.parse()?;
+                            self.pos += 1;
+                            mk!(
+                                self,
+                                ExprDef::ArrowFunctionDecl(Vec::new(), Box::new(expr)),
+                                token
+                            )
+                        }
+                        _ => {
+                            return Err(ParseError::Expected(
+                                vec![
+                                    TokenData::Punctuator(Punctuator::Colon),
+                                    TokenData::Punctuator(Punctuator::OpenParen),
+                                ],
+                                tk,
+                                "object declaration",
+                            ))
+                        }
+                    };
                     map.insert(name, value);
                     self.pos += 1;
                 }
