@@ -994,12 +994,6 @@ mod tests {
 
         forward(&mut engine, "a = [1, 2, 3];");
         assert_eq!(
-            forward(&mut engine, "a.fill(4, '1').join()"),
-            String::from("1,4,4")
-        );
-
-        forward(&mut engine, "a = [1, 2, 3];");
-        assert_eq!(
             forward(&mut engine, "a.fill(4, 1, 2).join()"),
             String::from("1,4,3")
         );
