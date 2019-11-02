@@ -5,7 +5,7 @@ use crate::{
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     environment::lexical_environment::{
-        new_declarative_environment, new_function_environment, EnvironmentType, VariableScope,
+        new_declarative_environment, new_function_environment, VariableScope,
     },
     realm::Realm,
     syntax::ast::{
@@ -94,15 +94,8 @@ impl Executor for Interpreter {
                 }
 
                 // pop the block env
-                let block_env = self.realm.environment.pop();
+                let _ = self.realm.environment.pop();
 
-                // clear the early return flag `self.is_return`
-                // only when we leave the associated function
-                if let Some(env) = block_env {
-                    if let EnvironmentType::Function = env.deref().borrow().get_environment_type() {
-                        self.is_return = false;
-                    }
-                }
                 Ok(obj)
             }
             ExprDef::Local(ref name) => {
@@ -142,7 +135,13 @@ impl Executor for Interpreter {
                     v_args.push(self.run(arg)?);
                 }
 
-                self.call(&func, &this, v_args)
+                // execute the function call itself
+                let fnct_result = self.call(&func, &this, v_args);
+
+                // unset the early return flag
+                self.is_return = false;
+
+                fnct_result
             }
             ExprDef::WhileLoop(ref cond, ref expr) => {
                 let mut result = Gc::new(ValueData::Undefined);
@@ -819,5 +818,16 @@ mod tests {
         early_return()
         "#;
         assert_eq!(exec(early_return), String::from("true"));
+        let early_return = r#"
+        function nested_fnct() {
+            return "nested";
+        }
+        function outer_fnct() {
+            nested_fnct();
+            return "outer";
+        }
+        outer_fnct()
+        "#;
+        assert_eq!(exec(early_return), String::from("outer"));
     }
 }
