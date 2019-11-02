@@ -8,7 +8,7 @@ use crate::{
     exec::Interpreter,
 };
 use gc::Gc;
-use std::cmp;
+use std::cmp::{max, min};
 
 /// Utility function for creating array objects: `array_obj` can be any array with
 /// prototype already set (it will be wiped and recreated from `array_contents`)
@@ -298,7 +298,7 @@ pub fn every(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
         if !result {
             return Ok(to_value(false));
         }
-        len = std::cmp::min(max_len, from_value(this.get_field_slice("length")).unwrap());
+        len = min(max_len, from_value(this.get_field_slice("length")).unwrap());
         i += 1;
     }
     Ok(to_value(true))
@@ -382,7 +382,7 @@ pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> Resul
                 .expect("Error parsing \"Array.prototype.indexOf - fromIndex\" argument");
 
             if from_idx >= 0 {
-                cmp::min(from_idx, len - 1)
+                min(from_idx, len - 1)
             } else {
                 len + from_idx
             }
@@ -490,6 +490,50 @@ pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> Resu
     Ok(to_value(false))
 }
 
+/// Array.prototype.slice ( [begin[, end]] )
+///
+/// The slice method takes two arguments, start and end, and returns an array containing the
+/// elements of the array from element start up to, but not including, element end (or through the
+/// end of the array if end is undefined). If start is negative, it is treated as length + start
+/// where length is the length of the array. If end is negative, it is treated as length + end where
+/// length is the length of the array.
+/// <https://tc39.es/ecma262/#sec-array.prototype.slice>
+pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    let new_array = make_array(&to_value(Object::default()), &[], interpreter)?;
+    new_array.set_kind(ObjectKind::Array);
+    let len: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
+
+    let start = match args.get(0) {
+        Some(v) => from_value(v.clone()).expect("failed to parse argument for Array method"),
+        None => 0,
+    };
+    let end = match args.get(1) {
+        Some(v) => from_value(v.clone()).expect("failed to parse argument for Array method"),
+        None => len,
+    };
+
+    let from = if start < 0 {
+        max(len.wrapping_add(start), 0)
+    } else {
+        min(start, len)
+    };
+    let to = if end < 0 {
+        max(len.wrapping_add(end), 0)
+    } else {
+        min(end, len)
+    };
+
+    let span = max(to.wrapping_sub(from), 0);
+    let mut new_array_len: i32 = 0;
+    for i in from..from.wrapping_add(span) {
+        new_array.set_field(new_array_len.to_string(), this.get_field(&i.to_string()));
+        new_array_len = new_array_len.wrapping_add(1);
+    }
+    new_array.set_field_slice("length", to_value(new_array_len));
+    Ok(new_array)
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -529,6 +573,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("includes", includes_func);
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
+    array_prototype.set_field_slice("slice", to_value(slice as NativeFunctionData));
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
@@ -928,5 +973,29 @@ mod tests {
         // Missing from duplicates
         let second_in_many = forward(&mut engine, "duplicates.includes('d')");
         assert_eq!(second_in_many, String::from("false"));
+    }
+
+    #[test]
+    fn slice() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var empty = [ ].slice();
+        var one = ["a"].slice();
+        var many1 = ["a", "b", "c", "d"].slice(1);
+        var many2 = ["a", "b", "c", "d"].slice(2, 3);
+        var many3 = ["a", "b", "c", "d"].slice(7);
+        "#;
+        forward(&mut engine, init);
+
+        assert_eq!(forward(&mut engine, "empty.length"), "0");
+        assert_eq!(forward(&mut engine, "one[0]"), "a");
+        assert_eq!(forward(&mut engine, "many1[0]"), "b");
+        assert_eq!(forward(&mut engine, "many1[1]"), "c");
+        assert_eq!(forward(&mut engine, "many1[2]"), "d");
+        assert_eq!(forward(&mut engine, "many1.length"), "3");
+        assert_eq!(forward(&mut engine, "many2[0]"), "c");
+        assert_eq!(forward(&mut engine, "many2.length"), "1");
+        assert_eq!(forward(&mut engine, "many3.length"), "0");
     }
 }

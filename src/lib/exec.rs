@@ -86,7 +86,6 @@ impl Executor for Interpreter {
                     // early return
                     if self.is_return {
                         obj = val;
-                        self.is_return = false;
                         break;
                     }
                     if e == es.last().expect("unable to get last value") {
@@ -94,7 +93,9 @@ impl Executor for Interpreter {
                     }
                 }
 
-                self.realm.environment.pop();
+                // pop the block env
+                let _ = self.realm.environment.pop();
+
                 Ok(obj)
             }
             ExprDef::Local(ref name) => {
@@ -134,7 +135,13 @@ impl Executor for Interpreter {
                     v_args.push(self.run(arg)?);
                 }
 
-                self.call(&func, &this, v_args)
+                // execute the function call itself
+                let fnct_result = self.call(&func, &this, v_args);
+
+                // unset the early return flag
+                self.is_return = false;
+
+                fnct_result
             }
             ExprDef::WhileLoop(ref cond, ref expr) => {
                 let mut result = Gc::new(ValueData::Undefined);
@@ -797,5 +804,30 @@ mod tests {
         ~false
         "#;
         assert_eq!(exec(boolean_false), String::from("-1"));
+    }
+
+    #[test]
+    fn test_early_return() {
+        let early_return = r#"
+        function early_return() {
+            if (true) {
+                return true;
+            }
+            return false;
+        }
+        early_return()
+        "#;
+        assert_eq!(exec(early_return), String::from("true"));
+        let early_return = r#"
+        function nested_fnct() {
+            return "nested";
+        }
+        function outer_fnct() {
+            nested_fnct();
+            return "outer";
+        }
+        outer_fnct()
+        "#;
+        assert_eq!(exec(early_return), String::from("outer"));
     }
 }
