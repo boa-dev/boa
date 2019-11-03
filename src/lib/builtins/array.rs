@@ -3,7 +3,7 @@ use crate::{
         function::NativeFunctionData,
         object::{Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
-        value::{from_value, to_value, ResultValue, Value, ValueData},
+        value::{from_value, to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -493,6 +493,40 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
     Ok(Gc::new(ValueData::Number(f64::from(-1))))
 }
 
+/// Array.prototype.fill ( value[, start[, end]] )
+///
+/// The method fills (modifies) all the elements of an array from start index (default 0)
+/// to an end index (default array length) with a static value. It returns the modified array
+/// <https://tc39.es/ecma262/#sec-array.prototype.fill>
+pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let len: i32 = from_value(this.get_field_slice("length")).expect("Could not get argument");
+    let default_value = undefined();
+    let value = args.get(0).unwrap_or(&default_value);
+    let relative_start = args.get(1).unwrap_or(&default_value).to_num() as i32;
+    let relative_end_val = args.get(2).unwrap_or(&default_value);
+    let relative_end = if relative_end_val.is_undefined() {
+        len
+    } else {
+        relative_end_val.to_num() as i32
+    };
+    let start = if relative_start < 0 {
+        max(len + relative_start, 0)
+    } else {
+        min(relative_start, len)
+    };
+    let fin = if relative_end < 0 {
+        max(len + relative_end, 0)
+    } else {
+        min(relative_end, len)
+    };
+
+    for i in start..fin {
+        this.set_field(i.to_string(), value.clone());
+    }
+
+    Ok(this.clone())
+}
+
 pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let search_element = args
         .get(0)
@@ -582,6 +616,8 @@ pub fn create_constructor(global: &Value) -> Value {
     last_index_of_func.set_field_slice("length", to_value(1_i32));
     let includes_func = to_value(includes_value as NativeFunctionData);
     includes_func.set_field_slice("length", to_value(1_i32));
+    let fill_func = to_value(fill as NativeFunctionData);
+    fill_func.set_field_slice("length", to_value(1_i32));
 
     array_prototype.set_field_slice("push", push_func);
     array_prototype.set_field_slice("pop", to_value(pop as NativeFunctionData));
@@ -595,6 +631,7 @@ pub fn create_constructor(global: &Value) -> Value {
     array_prototype.set_field_slice("includes", includes_func);
     array_prototype.set_field_slice("indexOf", index_of_func);
     array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
+    array_prototype.set_field_slice("fill", fill_func);
     array_prototype.set_field_slice("slice", to_value(slice as NativeFunctionData));
 
     let array = to_value(array_constructor);
@@ -956,6 +993,103 @@ mod tests {
         // Negative fromIndex with duplicates
         let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b', -2)");
         assert_eq!(second_in_many, String::from("1"));
+    }
+
+    #[test]
+    fn fill() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        forward(&mut engine, "var a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4).join()"),
+            String::from("4,4,4")
+        );
+        // make sure the array is modified
+        assert_eq!(forward(&mut engine, "a.join()"), String::from("4,4,4"));
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, '1').join()"),
+            String::from("1,4,4")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 1, 2).join()"),
+            String::from("1,4,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 1, 1).join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 3, 3).join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, -3, -2).join()"),
+            String::from("4,2,3")
+        );
+
+        // TODO: uncomment when NaN support is added
+        // forward(&mut engine, "a = [1, 2, 3];");
+        // assert_eq!(
+        //     forward(&mut engine, "a.fill(4, NaN, NaN).join()"),
+        //     String::from("1,2,3")
+        // );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 3, 5).join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, '1.2', '2.5').join()"),
+            String::from("1,4,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 'str').join()"),
+            String::from("4,4,4")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, 'str', 'str').join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, undefined, null).join()"),
+            String::from("1,2,3")
+        );
+
+        forward(&mut engine, "a = [1, 2, 3];");
+        assert_eq!(
+            forward(&mut engine, "a.fill(4, undefined, undefined).join()"),
+            String::from("4,4,4")
+        );
+
+        assert_eq!(
+            forward(&mut engine, "a.fill().join()"),
+            String::from("undefined,undefined,undefined")
+        );
+
+        // test object reference
+        forward(&mut engine, "a = (new Array(3)).fill({});");
+        forward(&mut engine, "a[0].hi = 'hi';");
+        assert_eq!(forward(&mut engine, "a[1].hi"), String::from("hi"));
     }
 
     #[test]
