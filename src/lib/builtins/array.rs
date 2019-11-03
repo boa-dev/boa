@@ -322,19 +322,24 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
     let length: i32 =
         from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
 
-    let mapped = (0..length)
-        .map(|idx| {
-            let element = this.get_field(&idx.to_string());
+    let new = make_array(&to_value(Object::default()), &[], interpreter)?;
+    new.set_kind(ObjectKind::Array);
 
-            let args = vec![element, to_value(idx), this.clone()];
+    for idx in 0..length {
+        let element = this.get_field(&idx.to_string());
 
-            interpreter
-                .call(&callback, &this_val, args)
-                .unwrap_or_else(|_| undefined())
-        })
-        .collect::<Vec<Value>>();
+        let args = vec![element, to_value(idx), new.clone()];
 
-    construct_array(this, &mapped)
+        let val = interpreter
+            .call(&callback, &this_val, args)
+            .unwrap_or_else(|_| undefined());
+
+        new.set_field(idx.to_string(), val);
+    }
+
+    new.set_field_slice("length", to_value(length));
+
+    Ok(new)
 }
 
 /// Array.prototype.indexOf ( searchElement[, fromIndex ] )
@@ -1034,6 +1039,10 @@ mod tests {
         "#;
 
         forward(&mut engine, js);
+
+        // assert the old arrays have not been modified
+        assert_eq!(forward(&mut engine, "one[0]"), String::from("x"));
+        assert_eq!(forward(&mut engine, "many[2] + many[1]"), String::from("zy"));
 
         // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
         // Empty
