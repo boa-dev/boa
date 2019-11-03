@@ -67,6 +67,32 @@ impl Parser {
         }
     }
 
+    fn parse_function_parameters(&mut self) -> Result<Vec<String>, ParseError> {
+        self.expect_punc(Punctuator::OpenParen, "function parameters ( expected")?;
+        let mut args: Vec<String> = Vec::new();
+        let mut tk = self.get_token(self.pos)?;
+        while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
+            match tk.data {
+                TokenData::Identifier(ref id) => args.push(id.clone()),
+                _ => {
+                    return Err(ParseError::Expected(
+                        vec![TokenData::Identifier("identifier".to_string())],
+                        tk.clone(),
+                        "function arguments",
+                    ))
+                }
+            }
+            self.pos += 1;
+            if self.get_token(self.pos)?.data == TokenData::Punctuator(Punctuator::Comma) {
+                self.pos += 1;
+            }
+            tk = self.get_token(self.pos)?;
+        }
+
+        self.expect_punc(Punctuator::CloseParen, "function parameters ) expected")?;
+        Ok(args)
+    }
+
     fn parse_struct(&mut self, keyword: Keyword) -> ParseResult {
         match keyword {
             Keyword::Throw => {
@@ -306,27 +332,7 @@ impl Parser {
                     }
                 };
                 // Now we have the function identifier we should have an open paren for arguments ( )
-                self.expect_punc(Punctuator::OpenParen, "function")?;
-                let mut args: Vec<String> = Vec::new();
-                let mut tk = self.get_token(self.pos)?;
-                while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
-                    match tk.data {
-                        TokenData::Identifier(ref id) => args.push(id.clone()),
-                        _ => {
-                            return Err(ParseError::Expected(
-                                vec![TokenData::Identifier("identifier".to_string())],
-                                tk.clone(),
-                                "function arguments",
-                            ))
-                        }
-                    }
-                    self.pos += 1;
-                    if self.get_token(self.pos)?.data == TokenData::Punctuator(Punctuator::Comma) {
-                        self.pos += 1;
-                    }
-                    tk = self.get_token(self.pos)?;
-                }
-                self.pos += 1;
+                let args = self.parse_function_parameters()?;
                 let block = self.parse()?;
                 Ok(mk!(
                     self,
@@ -536,17 +542,13 @@ impl Parser {
                             self.parse()?
                         }
                         TokenData::Punctuator(Punctuator::OpenParen) => {
-                            self.pos += 1;
-                            self.expect(
-                                TokenData::Punctuator(Punctuator::CloseParen),
-                                "Method Block",
-                            )?;
+                            let args = self.parse_function_parameters()?;
                             self.pos += 1; // {
                             let expr = self.parse()?;
                             self.pos += 1;
                             mk!(
                                 self,
-                                ExprDef::FunctionDecl(None, vec!(), Box::new(expr)),
+                                ExprDef::FunctionDecl(None, args, Box::new(expr)),
                                 token
                             )
                         }
