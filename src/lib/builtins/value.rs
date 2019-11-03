@@ -582,9 +582,128 @@ impl Default for ValueData {
     }
 }
 
+/// A helper macro for printing objects
+/// Can be used to print both properties and internal slots
+/// All of the overloads take:
+/// - The object to be printed
+/// - The function with which to print
+/// - The indentation for the current level (for nested objects)
+/// - A HashSet with the addresses of the already printed objects for the current branch
+///      (used to avoid infinite loops when there are cyclic deps)
+macro_rules! print_obj_value {
+    (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
+        {
+            let mut internals = print_obj_value!(internals of $obj, $display_fn, $indent, $encounters);
+            let mut props = print_obj_value!(props of $obj, $display_fn, $indent, $encounters, true);
+
+            props.reserve(internals.len());
+
+            props.append(&mut internals);
+
+            props
+        }
+    };
+    (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
+        print_obj_value!(impl internal_slots, $obj, |(key, val)| {
+            format!(
+                "{}{}: {}",
+                String::from_utf8(vec![b' '; $indent])
+                                .expect("Could not create indentation string"),
+                key,
+                $display_fn(&val, $encounters, $indent.wrapping_add(4), true)
+            )
+        })
+    };
+    (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
+        print_obj_value!(impl properties, $obj, |(key, val)| {
+            let v = &val
+                .value
+                .as_ref()
+                .expect("Could not get the property's value");
+
+            format!(
+                "{}{}: {}",
+                String::from_utf8(vec![b' '; $indent])
+                                .expect("Could not create indentation string"),
+                key,
+                $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals)
+            )
+        })
+    };
+
+    // A private overload of the macro
+    // DO NOT use directly
+    (impl $field:ident, $v:expr, $f:expr) => {
+        $v
+            .borrow()
+            .$field
+            .iter()
+            .map($f)
+            .collect::<Vec<String>>()
+    };
+}
+
+/// A helper function for specifically printing object values
+fn display_obj(v: &ValueData, print_internals: bool) -> String {
+    // A simple helper for getting the address of a value
+    // TODO: Find a more general place for this, as it can be used in other situations as well
+    fn address_of<T>(t: &T) -> usize {
+        let my_ptr: *const T = t;
+        my_ptr as usize
+    }
+
+    // We keep track of which objects we have encountered by keeping their
+    // in-memory address in this set
+    let mut encounters = HashSet::new();
+
+    fn display_obj_internal(
+        data: &ValueData,
+        encounters: &mut HashSet<usize>,
+        indent: usize,
+        print_internals: bool,
+    ) -> String {
+        match *data {
+            ValueData::Object(ref v) => {
+                // The in-memory address of the current object
+                let addr = address_of(v.borrow().deref());
+
+                // We need not continue if this object has already been
+                // printed up the current chain
+                if encounters.contains(&addr) {
+                    return String::from("[Cycle]");
+                }
+
+                // Mark the current object as encountered
+                encounters.insert(addr);
+
+                let result = if print_internals {
+                    print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
+                } else {
+                    print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
+                        .join(",\n")
+                };
+
+                // If the current object is referenced in a different branch,
+                // it will not cause an infinte printing loop, so it is safe to be printed again
+                encounters.remove(&addr);
+
+                let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
+                    .expect("Could not create the closing brace's indentation string");
+
+                format!("{{\n{}\n{}}}", result, closing_indent)
+            }
+
+            // Every other type of data is printed as is
+            _ => format!("{}", data),
+        }
+    }
+
+    display_obj_internal(v, &mut encounters, 4, print_internals)
+}
+
 impl Display for ValueData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
+        match *self {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
@@ -599,101 +718,7 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            v @ ValueData::Object(_) => {
-                // A simple helper for getting the address of a value
-                // TODO: Find a more general place for this, as it can be used in other situations as well
-                fn address_of<T>(t: &T) -> usize {
-                    let my_ptr: *const T = t;
-                    my_ptr as usize
-                }
-
-                // We keep track of which objects we have encountered by keeping their
-                // in-memory address in this set
-                let mut encounters = HashSet::new();
-
-                fn display_obj(
-                    data: &ValueData,
-                    encounters: &mut HashSet<usize>,
-                    indent: usize,
-                ) -> String {
-                    match *data {
-                        ValueData::Object(ref v) => {
-                            // The in-memory address of the current object
-                            let addr = address_of(v.borrow().deref());
-
-                            // We need not continue if this object has already been
-                            // printed up the current chain
-                            if encounters.contains(&addr) {
-                                return String::from("[Cycle]");
-                            }
-
-                            // Mark the current object as encountered
-                            encounters.insert(addr);
-
-                            // Each time we print a nested object we need to increment the
-                            // indentation size in order to pretty print
-                            let indentation = String::from_utf8(vec![b' '; indent])
-                                .expect("Could not create indentation string");
-
-                            let properties = v
-                                .borrow()
-                                .properties
-                                .iter()
-                                .map(|(key, val)| {
-                                    let v = &val
-                                        .value
-                                        .as_ref()
-                                        .expect("Could not get the property's value");
-
-                                    format!(
-                                        "{}{}: {}",
-                                        indentation,
-                                        key,
-                                        display_obj(v, encounters, indent.wrapping_add(4))
-                                    )
-                                })
-                                .collect::<Vec<String>>();
-
-                            let internal_slots = v
-                                .borrow()
-                                .internal_slots
-                                .iter()
-                                .map(|(key, val)| {
-                                    format!(
-                                        "{}{}: {}",
-                                        indentation,
-                                        key,
-                                        display_obj(&val, encounters, indent.wrapping_add(4))
-                                    )
-                                })
-                                .collect::<Vec<String>>();
-
-                            let result = [&properties[..], &internal_slots[..]]
-                                .concat()
-                                .iter()
-                                .map(String::from)
-                                .collect::<Vec<String>>()
-                                .join(",\n");
-
-                            // If the current object is referenced in a different branch,
-                            // it will not cause an infinte printing loop, so it is safe to be printed again
-                            encounters.remove(&addr);
-
-                            let closing_indent =
-                                String::from_utf8(vec![b' '; indent.wrapping_sub(4)]).expect(
-                                    "Could not create the closing brace's indentation string",
-                                );
-
-                            format!("{{\n{}\n{}}}", result, closing_indent)
-                        }
-
-                        // Every other type of data is printed as is
-                        _ => format!("{}", data),
-                    }
-                }
-
-                write!(f, "{}", display_obj(&v, &mut encounters, 4))
-            }
+            ValueData::Object(_) => write!(f, "{}", display_obj(&self, true)),
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
