@@ -1,6 +1,8 @@
-///
-// Use this file to test your changes to boa.
-///
+let a = {
+  a: true,
+  b() {
+    return 2;
+  }
+};
 
-let a = Boolean(0);
-typeof a;
+console.log(a["b"]());
