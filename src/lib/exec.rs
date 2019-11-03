@@ -319,13 +319,12 @@ impl Executor for Interpreter {
                 }))
             }
             ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
-                let v_a =
-                    from_value::<bool>(self.run(a)?).expect("Could not convert JS value to bool");
-                let v_b =
-                    from_value::<bool>(self.run(b)?).expect("Could not convert JS value to bool");
+                // turn a `Value` into a `bool`
+                let to_bool =
+                    |val| from_value::<bool>(val).expect("Could not convert JS value to bool");
                 Ok(match *op {
-                    LogOp::And => to_value(v_a && v_b),
-                    LogOp::Or => to_value(v_a || v_b),
+                    LogOp::And => to_value(to_bool(self.run(a)?) && to_bool(self.run(b)?)),
+                    LogOp::Or => to_value(to_bool(self.run(a)?) || to_bool(self.run(b)?)),
                 })
             }
             ExprDef::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.def {
@@ -829,5 +828,68 @@ mod tests {
         outer_fnct()
         "#;
         assert_eq!(exec(early_return), String::from("outer"));
+    }
+
+    #[test]
+    fn test_short_circuit_evaluation() {
+        // OR operation
+        assert_eq!(exec("true || true"), String::from("true"));
+        assert_eq!(exec("true || false"), String::from("true"));
+        assert_eq!(exec("false || true"), String::from("true"));
+        assert_eq!(exec("false || false"), String::from("false"));
+
+        // the second operand must NOT be evaluated if the first one resolve to `true`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return true;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) || add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("1"));
+
+        // the second operand must be evaluated if the first one resolve to `false`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return false;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) || add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("2"));
+
+        // AND operation
+        assert_eq!(exec("true && true"), String::from("true"));
+        assert_eq!(exec("true && false"), String::from("false"));
+        assert_eq!(exec("false && true"), String::from("false"));
+        assert_eq!(exec("false && false"), String::from("false"));
+
+        // the second operand must be evaluated if the first one resolve to `true`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return true;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) && add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("2"));
+
+        // the second operand must NOT be evaluated if the first one resolve to `false`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return false;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) && add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("1"));
     }
 }
