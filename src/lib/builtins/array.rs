@@ -1042,7 +1042,10 @@ mod tests {
 
         // assert the old arrays have not been modified
         assert_eq!(forward(&mut engine, "one[0]"), String::from("x"));
-        assert_eq!(forward(&mut engine, "many[2] + many[1]"), String::from("zy"));
+        assert_eq!(
+            forward(&mut engine, "many[2] + many[1]"),
+            String::from("zy")
+        );
 
         // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
         // Empty
