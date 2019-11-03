@@ -42,6 +42,8 @@ Feature enhancements:
   Implement Array.prototype.slice (@muskuloes @letmutx)
 - [FEATURE #152](https://github.com/jasonwilliams/boa/issues/152):
   Short Function syntax (no arguments)
+- [FEATURE #164](https://github.com/jasonwilliams/boa/issues/164):
+  Implement Array.prototype.fill() (@bojan88)
 - Array tests: Tests implemented for shift, unshift and reverse, pop and push (@muskuloes)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 
