@@ -530,11 +530,37 @@ impl Parser {
                         }
                     };
                     self.pos += 1;
-                    self.expect(
-                        TokenData::Punctuator(Punctuator::Colon),
-                        "object declaration",
-                    )?;
-                    let value = self.parse()?;
+                    let value = match self.get_token(self.pos)?.data {
+                        TokenData::Punctuator(Punctuator::Colon) => {
+                            self.pos += 1;
+                            self.parse()?
+                        }
+                        TokenData::Punctuator(Punctuator::OpenParen) => {
+                            self.pos += 1;
+                            self.expect(
+                                TokenData::Punctuator(Punctuator::CloseParen),
+                                "Method Block",
+                            )?;
+                            self.pos += 1; // {
+                            let expr = self.parse()?;
+                            self.pos += 1;
+                            mk!(
+                                self,
+                                ExprDef::FunctionDecl(None, vec!(), Box::new(expr)),
+                                token
+                            )
+                        }
+                        _ => {
+                            return Err(ParseError::Expected(
+                                vec![
+                                    TokenData::Punctuator(Punctuator::Colon),
+                                    TokenData::Punctuator(Punctuator::OpenParen),
+                                ],
+                                tk,
+                                "object declaration",
+                            ))
+                        }
+                    };
                     map.insert(name, value);
                     self.pos += 1;
                 }
@@ -553,6 +579,13 @@ impl Parser {
                 }
                 self.pos += 1;
                 mk!(self, ExprDef::Block(exprs), token)
+            }
+            // Empty Block
+            TokenData::Punctuator(Punctuator::CloseBlock)
+                if self.get_token(self.pos.wrapping_sub(2))?.data
+                    == TokenData::Punctuator(Punctuator::OpenBlock) =>
+            {
+                mk!(self, ExprDef::Block(vec!()), token)
             }
             TokenData::Punctuator(Punctuator::Sub) => mk!(
                 self,
@@ -887,6 +920,32 @@ mod tests {
             &[Expr::new(ExprDef::Const(Const::String(String::from(
                 "hello",
             ))))],
+        );
+    }
+    #[test]
+    fn check_object() {
+        // Testing short function syntax
+        let mut object_properties: BTreeMap<String, Expr> = BTreeMap::new();
+        object_properties.insert(
+            String::from("a"),
+            Expr::new(ExprDef::Const(Const::Bool(true))),
+        );
+        object_properties.insert(
+            String::from("b"),
+            Expr::new(ExprDef::FunctionDecl(
+                None,
+                vec![],
+                Box::new(Expr::new(ExprDef::Block(vec![]))),
+            )),
+        );
+
+        check_parser(
+            "{
+              a: true,
+              b() {}
+            };
+            ",
+            &[Expr::new(ExprDef::ObjectDecl(Box::new(object_properties)))],
         );
     }
 

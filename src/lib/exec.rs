@@ -1,5 +1,6 @@
 use crate::{
     builtins::{
+        array,
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         value::{from_value, to_value, ResultValue, Value, ValueData},
@@ -86,7 +87,6 @@ impl Executor for Interpreter {
                     // early return
                     if self.is_return {
                         obj = val;
-                        self.is_return = false;
                         break;
                     }
                     if e == es.last().expect("unable to get last value") {
@@ -94,7 +94,9 @@ impl Executor for Interpreter {
                     }
                 }
 
-                self.realm.environment.pop();
+                // pop the block env
+                let _ = self.realm.environment.pop();
+
                 Ok(obj)
             }
             ExprDef::Local(ref name) => {
@@ -134,7 +136,13 @@ impl Executor for Interpreter {
                     v_args.push(self.run(arg)?);
                 }
 
-                self.call(&func, &this, v_args)
+                // execute the function call itself
+                let fnct_result = self.call(&func, &this, v_args);
+
+                // unset the early return flag
+                self.is_return = false;
+
+                fnct_result
             }
             ExprDef::WhileLoop(ref cond, ref expr) => {
                 let mut result = Gc::new(ValueData::Undefined);
@@ -196,30 +204,10 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             ExprDef::ArrayDecl(ref arr) => {
-                let global_val = &self
-                    .realm
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let arr_map = ValueData::new_obj(Some(global_val));
-                // Note that this object is an Array
-                arr_map.set_kind(ObjectKind::Array);
-                let mut index: i32 = 0;
-                for val in arr.iter() {
-                    let val = self.run(val)?;
-                    arr_map.borrow().set_field(index.to_string(), val);
-                    index += 1;
-                }
-                arr_map.borrow().set_internal_slot(
-                    INSTANCE_PROTOTYPE,
-                    self.realm
-                        .environment
-                        .get_binding_value("Array")
-                        .borrow()
-                        .get_field_slice(PROTOTYPE),
-                );
-                arr_map.borrow().set_field_slice("length", to_value(index));
-                Ok(arr_map)
+                let array = array::new_array(self)?;
+                let elements: Result<Vec<_>, _> = arr.iter().map(|val| self.run(val)).collect();
+                array::add_to_array_object(&array, &elements?)?;
+                Ok(array)
             }
             ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
                 let function =
@@ -495,6 +483,11 @@ impl Executor for Interpreter {
 }
 
 impl Interpreter {
+    /// Get the Interpreter's realm
+    pub(crate) fn get_realm(&self) -> &Realm {
+        &self.realm
+    }
+
     /// https://tc39.es/ecma262/#sec-call
     pub(crate) fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
         // All functions should be objects, and eventually will be.
@@ -797,5 +790,30 @@ mod tests {
         ~false
         "#;
         assert_eq!(exec(boolean_false), String::from("-1"));
+    }
+
+    #[test]
+    fn test_early_return() {
+        let early_return = r#"
+        function early_return() {
+            if (true) {
+                return true;
+            }
+            return false;
+        }
+        early_return()
+        "#;
+        assert_eq!(exec(early_return), String::from("true"));
+        let early_return = r#"
+        function nested_fnct() {
+            return "nested";
+        }
+        function outer_fnct() {
+            nested_fnct();
+            return "outer";
+        }
+        outer_fnct()
+        "#;
+        assert_eq!(exec(early_return), String::from("outer"));
     }
 }
