@@ -345,7 +345,7 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
     let length: i32 =
         from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
 
-    let new = make_array(&to_value(Object::default()), &[], interpreter)?;
+    let new = new_array(&interpreter)?;
 
     let values = (0..length)
         .map(|idx| {
