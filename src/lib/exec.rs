@@ -682,6 +682,33 @@ impl Interpreter {
             _ => String::from("undefined"),
         }
     }
+
+    pub fn value_to_rust_number(&mut self, value: &Value) -> f64 {
+        match *value.deref().borrow() {
+            ValueData::Null => f64::from(0),
+            ValueData::Boolean(boolean) => {
+                if boolean {
+                    f64::from(1)
+                } else {
+                    f64::from(0)
+                }
+            }
+            ValueData::Number(num) => num,
+            ValueData::Integer(num) => f64::from(num),
+            ValueData::String(ref string) => string.parse::<f64>().unwrap(),
+            ValueData::Object(_) => {
+                let prim_value = self.to_primitive(value, Some("number"));
+                self.to_string(&prim_value)
+                    .to_string()
+                    .parse::<f64>()
+                    .unwrap()
+            }
+            _ => {
+                // TODO: Make undefined?
+                f64::from(0)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
