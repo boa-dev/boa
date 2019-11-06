@@ -403,6 +403,19 @@ impl Parser {
                             TokenData::Punctuator(Punctuator::CloseParen) => next,
                             TokenData::Punctuator(Punctuator::Comma) => {
                                 // at this point it's probably gonna be an arrow function
+                                // if first param captured all arguments, we should expect a close paren
+                                match next.def {
+                                    ExprDef::UnaryOp(UnaryOp::Spread, _) =>
+                                        return Err(ParseError::Expected(
+                                            vec![TokenData::Punctuator(
+                                                Punctuator::CloseParen,
+                                            )],
+                                            next_tok.clone(),
+                                            "arrow function",
+                                        )),
+                                    _ => {}
+                                }
+
                                 let mut args = vec![
                                     match next.def {
                                         ExprDef::Local(ref name) => mk!(self, ExprDef::Local((*name).clone())),
@@ -425,6 +438,22 @@ impl Parser {
                                         TokenData::Punctuator(Punctuator::Comma) => {
                                             expect_ident = true;
                                         }
+                                        TokenData::Punctuator(Punctuator::Spread) => {
+                                            let ident_token = self.get_token(self.pos + 1)?;
+                                            if let TokenData::Identifier(ref _id) = ident_token.data {
+                                                args.push(self.parse()?);
+                                                self.pos -= 1;
+                                                expect_ident = false;
+                                            } else {
+                                                return Err(ParseError::Expected(
+                                                    vec![TokenData::Identifier(
+                                                        "identifier".to_string(),
+                                                    )],
+                                                    ident_token.clone(),
+                                                    "arrow function",
+                                                ))
+                                            }
+                                        }
                                         TokenData::Punctuator(Punctuator::CloseParen) => {
                                             self.pos += 1;
                                             break;
@@ -443,6 +472,7 @@ impl Parser {
                                                 vec![
                                                     TokenData::Punctuator(Punctuator::Comma),
                                                     TokenData::Punctuator(Punctuator::CloseParen),
+                                                    TokenData::Punctuator(Punctuator::Spread),
                                                 ],
                                                 curr_tk,
                                                 "arrow function",
@@ -753,6 +783,7 @@ impl Parser {
                 let mut args = Vec::with_capacity(1);
                 match result.def {
                     ExprDef::Local(ref name) => args.push(mk!(self, ExprDef::Local((*name).clone()))),
+                    ExprDef::UnaryOp(UnaryOp::Spread, _) => args.push(result),
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
                 let next = self.parse()?;
