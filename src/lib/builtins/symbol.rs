@@ -108,7 +108,6 @@ mod tests {
         "#;
         forward(&mut engine, init);
         let sym = forward_val(&mut engine, "sym.toString()").unwrap();
-        dbg!(&sym);
         assert_eq!(sym.to_string(), "Symbol(Hello)");
     }
 }

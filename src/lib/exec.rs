@@ -706,7 +706,7 @@ impl Interpreter {
                 self.to_string(&prim_value)
                     .to_string()
                     .parse::<f64>()
-                    .unwrap()
+                    .expect("cannot parse valur to x64")
             }
             _ => {
                 // TODO: Make undefined?

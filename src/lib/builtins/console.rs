@@ -98,7 +98,7 @@ fn log_string_from(x: Value) -> String {
             let desc: Value = sym.borrow().get_internal_slot("Description");
             match *desc {
                 ValueData::String(ref st) => format!("Symbol(\"{}\")", st.to_string()),
-                _ => format!("Symbol()"),
+                _ => String::from("Symbol()"),
             }
         }
 
