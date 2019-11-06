@@ -69,7 +69,7 @@ impl Parser {
 
     fn parse_function_parameters(&mut self) -> Result<Vec<String>, ParseError> {
         self.expect_punc(Punctuator::OpenParen, "function parameters ( expected")?;
-        let mut args: Vec<String> = Vec::new();
+        let mut args = Vec::new();
         let mut tk = self.get_token(self.pos)?;
         while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
             match tk.data {
