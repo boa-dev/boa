@@ -637,7 +637,11 @@ impl Display for ValueData {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
-            ValueData::Symbol(_) => write!(f, "Symbol()"),
+            ValueData::Symbol(ref v) => match *v.borrow().get_internal_slot("Description") {
+                // If a description exists use it
+                ValueData::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
+                _ => write!(f, "Symbol()"),
+            },
             ValueData::String(ref v) => write!(f, "{}", v),
             ValueData::Number(v) => write!(
                 f,
