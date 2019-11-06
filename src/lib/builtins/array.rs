@@ -370,7 +370,7 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
 
     let values = (0..length)
         .map(|idx| {
-            let element = this.get_field(&idx.to_string());
+            let element = this.get_field_slice(&idx.to_string());
 
             let args = vec![element, to_value(idx), new.clone()];
 
@@ -577,7 +577,7 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     };
 
     for i in start..fin {
-        this.set_field(i.to_string(), value.clone());
+        this.set_field_slice(&i.to_string(), value.clone());
     }
 
     Ok(this.clone())
@@ -639,7 +639,10 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     let span = max(to.wrapping_sub(from), 0);
     let mut new_array_len: i32 = 0;
     for i in from..from.wrapping_add(span) {
-        new_array.set_field_slice(&new_array_len.to_string(), this.get_field(to_value(i)));
+        new_array.set_field_slice(
+            &new_array_len.to_string(),
+            this.get_field_slice(&i.to_string()),
+        );
         new_array_len = new_array_len.wrapping_add(1);
     }
     new_array.set_field_slice("length", to_value(new_array_len));
@@ -1149,7 +1152,7 @@ mod tests {
         // test object reference
         forward(&mut engine, "a = (new Array(3)).fill({});");
         forward(&mut engine, "a[0].hi = 'hi';");
-        assert_eq!(forward(&mut engine, "a[1].hi"), String::from("hi"));
+        assert_eq!(forward(&mut engine, "a[0].hi"), String::from("hi"));
     }
 
     #[test]
