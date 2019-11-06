@@ -487,12 +487,12 @@ impl Object {
         }
         // [4]
         debug_assert!(own_desc.is_accessor_descriptor());
-        return match own_desc.set {
+        match own_desc.set {
             None => false,
             Some(_) => {
                 unimplemented!();
             }
-        };
+        }
     }
 }
 
