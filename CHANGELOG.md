@@ -50,6 +50,8 @@ Feature enhancements:
   Implement some Number prototype methods (incl tests) (@pop)
 - [FEATURE #34](https://github.com/jasonwilliams/boa/issues/34):
   Number object and Constructore are implemented (including methods) (@pop)
+- [FEATURE #194](https://github.com/jasonwilliams/boa/pull/194):
+  Array.prototype.map (@IovoslavIovchev)
 
 Bug fixes:
 
