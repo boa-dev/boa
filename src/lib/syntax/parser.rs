@@ -925,7 +925,7 @@ mod tests {
         );
     }
     #[test]
-    fn check_object() {
+    fn check_object_short_function() {
         // Testing short function syntax
         let mut object_properties: BTreeMap<String, Expr> = BTreeMap::new();
         object_properties.insert(
@@ -951,6 +951,32 @@ mod tests {
         );
     }
 
+    #[test]
+    fn check_object_short_function_arguments() {
+        // Testing short function syntax
+        let mut object_properties: BTreeMap<String, Expr> = BTreeMap::new();
+        object_properties.insert(
+            String::from("a"),
+            Expr::new(ExprDef::Const(Const::Bool(true))),
+        );
+        object_properties.insert(
+            String::from("b"),
+            Expr::new(ExprDef::FunctionDecl(
+                None,
+                vec![String::from("test")],
+                Box::new(Expr::new(ExprDef::Block(vec![]))),
+            )),
+        );
+
+        check_parser(
+            "{
+              a: true,
+              b(test) {}
+            };
+            ",
+            &[Expr::new(ExprDef::ObjectDecl(Box::new(object_properties)))],
+        );
+    }
     #[test]
     fn check_array() {
         use crate::syntax::ast::constant::Const;
