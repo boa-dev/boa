@@ -35,7 +35,7 @@ pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
 
 /// Utility function for creating array objects: `array_obj` can be any array with
 /// prototype already set (it will be wiped and recreated from `array_contents`)
-fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
+pub fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
     let array_obj_ptr = array_obj.clone();
 
     // Wipe existing contents of the array object
@@ -45,9 +45,17 @@ fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
         array_obj_ptr.remove_prop(&n.to_string());
     }
 
-    array_obj_ptr.set_field_slice("length", to_value(array_contents.len() as i32));
+    // Create length
+    let length = Property::new()
+        .value(to_value(array_contents.len() as i32))
+        .writable(true)
+        .configurable(false)
+        .enumerable(false);
+
+    array_obj_ptr.set_prop("length".to_string(), length);
+
     for (n, value) in array_contents.iter().enumerate() {
-        array_obj_ptr.set_field(n.to_string(), value.clone());
+        array_obj_ptr.set_field_slice(&n.to_string(), value.clone());
     }
     Ok(array_obj_ptr)
 }
@@ -60,7 +68,7 @@ pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> Re
 
     for (n, value) in add_values.iter().enumerate() {
         let new_index = orig_length.wrapping_add(n as i32);
-        array_ptr.set_field(new_index.to_string(), value.clone());
+        array_ptr.set_field_slice(&new_index.to_string(), value.clone());
     }
 
     array_ptr.set_field_slice(
@@ -72,24 +80,37 @@ pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> Re
 }
 
 /// Create a new array
-pub fn make_array(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
-    this.set_field_slice("length", to_value(0_i32));
+
+    // Create length
+    let length = Property::new()
+        .value(to_value(args.len() as i32))
+        .writable(true)
+        .configurable(false)
+        .enumerable(false);
+
+    this.set_prop("length".to_string(), length);
+
+    // Set Prototype
+    let array_prototype = ctx
+        .realm
+        .global_obj
+        .get_field_slice("Array")
+        .get_field_slice(PROTOTYPE);
+
+    this.set_internal_slot(INSTANCE_PROTOTYPE, array_prototype);
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::Array);
-    match args.len() {
-        0 => construct_array(this, &[]),
-        1 => {
-            let array = construct_array(this, &[]).expect("Could not construct array");
-            let size: i32 = from_value(args.get(0).expect("Could not get argument").clone())
-                .expect("Could not convert argument to i32");
-            array.set_field_slice("length", to_value(size));
-            Ok(array)
-        }
-        _ => construct_array(this, args),
+
+    // And finally add our arguments in
+    for (n, value) in args.iter().enumerate() {
+        this.set_field_slice(&n.to_string(), value.clone());
     }
+
+    Ok(this.clone())
 }
 
 /// Get an array's length
@@ -118,14 +139,14 @@ pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     let this_length: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..this_length {
-        new_values.push(this.get_field(&n.to_string()));
+        new_values.push(this.get_field_slice(&n.to_string()));
     }
 
     for concat_array in args {
         let concat_length: i32 = from_value(concat_array.get_field_slice("length"))
             .expect("Could not convert argument to i32");
         for n in 0..concat_length {
-            new_values.push(concat_array.get_field(&n.to_string()));
+            new_values.push(concat_array.get_field_slice(&n.to_string()));
         }
     }
 
@@ -154,7 +175,7 @@ pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         return Ok(Gc::new(ValueData::Undefined));
     }
     let pop_index = curr_length.wrapping_sub(1);
-    let pop_value: Value = this.get_field(&pop_index.to_string());
+    let pop_value: Value = this.get_field_slice(&pop_index.to_string());
     this.remove_prop(&pop_index.to_string());
     this.set_field_slice("length", to_value(pop_index));
     Ok(pop_value)
@@ -177,7 +198,7 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let length: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
     for n in 0..length {
-        let elem_str: String = this.get_field(&n.to_string()).to_string();
+        let elem_str: String = this.get_field_slice(&n.to_string()).to_string();
         elem_strs.push(elem_str);
     }
 
@@ -201,17 +222,17 @@ pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let upper_exists = this.has_field(&upper.to_string());
         let lower_exists = this.has_field(&lower.to_string());
 
-        let upper_value = this.get_field(&upper.to_string());
-        let lower_value = this.get_field(&lower.to_string());
+        let upper_value = this.get_field_slice(&upper.to_string());
+        let lower_value = this.get_field_slice(&lower.to_string());
 
         if upper_exists && lower_exists {
-            this.set_field(upper.to_string(), lower_value);
-            this.set_field(lower.to_string(), upper_value);
+            this.set_field_slice(&upper.to_string(), lower_value);
+            this.set_field_slice(&lower.to_string(), upper_value);
         } else if upper_exists {
-            this.set_field(lower.to_string(), upper_value);
+            this.set_field_slice(&lower.to_string(), upper_value);
             this.remove_prop(&upper.to_string());
         } else if lower_exists {
-            this.set_field(upper.to_string(), lower_value);
+            this.set_field_slice(&upper.to_string(), lower_value);
             this.remove_prop(&lower.to_string());
         }
     }
@@ -230,20 +251,20 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     if len == 0 {
         this.set_field_slice("length", to_value(0_i32));
         // Since length is 0, this will be an Undefined value
-        return Ok(this.get_field(&0.to_string()));
+        return Ok(this.get_field_slice(&0.to_string()));
     }
 
-    let first: Value = this.get_field(&0.to_string());
+    let first: Value = this.get_field_slice(&0.to_string());
 
     for k in 1..len {
         let from = k.to_string();
         let to = (k.wrapping_sub(1)).to_string();
 
-        let from_value = this.get_field(&from);
+        let from_value = this.get_field_slice(&from);
         if from_value == Gc::new(ValueData::Undefined) {
             this.remove_prop(&to);
         } else {
-            this.set_field(to, from_value);
+            this.set_field_slice(&to, from_value);
         }
     }
 
@@ -270,11 +291,11 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
             let from = (k.wrapping_sub(1)).to_string();
             let to = (k.wrapping_add(arg_c).wrapping_sub(1)).to_string();
 
-            let from_value = this.get_field(&from);
+            let from_value = this.get_field_slice(&from);
             if from_value == Gc::new(ValueData::Undefined) {
                 this.remove_prop(&to);
             } else {
-                this.set_field(to, from_value);
+                this.set_field_slice(&to, from_value);
             }
         }
         for j in 0..arg_c {
@@ -315,7 +336,7 @@ pub fn every(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     let max_len: i32 = from_value(this.get_field_slice("length")).unwrap();
     let mut len = max_len;
     while i < len {
-        let element = this.get_field(&i.to_string());
+        let element = this.get_field_slice(&i.to_string());
         let arguments = vec![element.clone(), to_value(i), this.clone()];
         let result = interpreter.call(callback, &this_arg, arguments)?.is_true();
         if !result {
@@ -349,7 +370,7 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
 
     let values = (0..length)
         .map(|idx| {
-            let element = this.get_field(&idx.to_string());
+            let element = this.get_field_slice(&idx.to_string());
 
             let args = vec![element, to_value(idx), new.clone()];
 
@@ -400,7 +421,7 @@ pub fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     };
 
     while idx < len {
-        let check_element = this.get_field(&idx.to_string()).clone();
+        let check_element = this.get_field_slice(&idx.to_string()).clone();
 
         if check_element == search_element {
             return Ok(to_value(idx));
@@ -449,7 +470,7 @@ pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> Resul
     };
 
     while idx >= 0 {
-        let check_element = this.get_field(&idx.to_string()).clone();
+        let check_element = this.get_field_slice(&idx.to_string()).clone();
 
         if check_element == search_element {
             return Ok(to_value(idx));
@@ -481,7 +502,7 @@ pub fn find(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resu
     };
     let len: i32 = from_value(this.get_field_slice("length")).unwrap();
     for i in 0..len {
-        let element = this.get_field(&i.to_string());
+        let element = this.get_field_slice(&i.to_string());
         let arguments = vec![element.clone(), to_value(i), this.clone()];
         let result = interpreter.call(callback, &this_arg, arguments)?;
         if result.is_true() {
@@ -515,7 +536,7 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
         from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
 
     for i in 0..length {
-        let element = this.get_field(&i.to_string());
+        let element = this.get_field_slice(&i.to_string());
         let arguments = vec![element.clone(), to_value(i), this.clone()];
 
         let result = interpreter.call(predicate_arg, &this_arg, arguments)?;
@@ -556,7 +577,7 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     };
 
     for i in start..fin {
-        this.set_field(i.to_string(), value.clone());
+        this.set_field_slice(&i.to_string(), value.clone());
     }
 
     Ok(this.clone())
@@ -572,7 +593,7 @@ pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> Resu
         from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
 
     for idx in 0..length {
-        let check_element = this.get_field(&idx.to_string()).clone();
+        let check_element = this.get_field_slice(&idx.to_string()).clone();
 
         if check_element == search_element {
             return Ok(to_value(true));
@@ -618,7 +639,10 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     let span = max(to.wrapping_sub(from), 0);
     let mut new_array_len: i32 = 0;
     for i in from..from.wrapping_add(span) {
-        new_array.set_field(new_array_len.to_string(), this.get_field(&i.to_string()));
+        new_array.set_field_slice(
+            &new_array_len.to_string(),
+            this.get_field_slice(&i.to_string()),
+        );
         new_array_len = new_array_len.wrapping_add(1);
     }
     new_array.set_field_slice("length", to_value(new_array_len));
@@ -628,14 +652,15 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
-    let mut array_constructor = Object::default();
+    let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
+    let mut array_constructor = Object::create(object_prototype);
     array_constructor.kind = ObjectKind::Function;
     array_constructor.set_internal_method("construct", make_array);
     // Todo: add call function
     array_constructor.set_internal_method("call", make_array);
 
     // Create prototype
-    let array_prototype = ValueData::new_obj(Some(global));
+    let array_prototype = ValueData::new_obj(None);
 
     let length = Property::default().get(to_value(get_array_length as NativeFunctionData));
 
@@ -1127,7 +1152,7 @@ mod tests {
         // test object reference
         forward(&mut engine, "a = (new Array(3)).fill({});");
         forward(&mut engine, "a[0].hi = 'hi';");
-        assert_eq!(forward(&mut engine, "a[1].hi"), String::from("hi"));
+        assert_eq!(forward(&mut engine, "a[0].hi"), String::from("hi"));
     }
 
     #[test]

@@ -1,5 +1,4 @@
 use crate::builtins::value::{from_value, to_value, FromValue, ToValue, Value, ValueData};
-use gc::Gc;
 use gc_derive::{Finalize, Trace};
 
 /// A Javascript Property AKA The Property Descriptor   
@@ -26,7 +25,7 @@ pub struct Property {
 impl Property {
     /// Checks if the provided Value can be used as a property key.
     pub fn is_property_key(value: &Value) -> bool {
-        value.is_string() // || value.is_symbol() // Uncomment this when we are handeling symbols.
+        value.is_string() || value.is_symbol() // Uncomment this when we are handeling symbols.
     }
 
     /// Make a new property with the given value
@@ -92,42 +91,21 @@ impl Property {
             && self.enumerable.is_none()
     }
 
-    // https://tc39.es/ecma262/#sec-isaccessordescriptor
+    /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].   
+    /// <https://tc39.es/ecma262/#sec-isaccessordescriptor>
     pub fn is_accessor_descriptor(&self) -> bool {
-        self.get.is_some() && self.set.is_some()
+        self.get.is_some() || self.set.is_some()
     }
 
-    // https://tc39.es/ecma262/#sec-isdatadescriptor
+    /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].   
+    /// https://tc39.es/ecma262/#sec-isdatadescriptor
     pub fn is_data_descriptor(&self) -> bool {
-        self.value.is_some() && self.writable.is_some()
+        self.value.is_some() || self.writable.is_some()
     }
 
-    // https://tc39.es/ecma262/#sec-isgenericdescriptor
+    /// https://tc39.es/ecma262/#sec-isgenericdescriptor
     pub fn is_generic_descriptor(&self) -> bool {
         !self.is_accessor_descriptor() && !self.is_data_descriptor()
-    }
-
-    /// This copies only present property fields from B to A
-    pub fn assign(a: &mut Property, b: &Property) {
-        if b.get.is_some() {
-            a.get = b.get.clone();
-        }
-
-        if b.set.is_some() {
-            a.set = b.set.clone();
-        }
-
-        if b.configurable.is_some() {
-            a.configurable = b.configurable;
-        }
-
-        if b.writable.is_some() {
-            a.writable = b.writable;
-        }
-
-        if b.enumerable.is_some() {
-            a.enumerable = b.enumerable;
-        }
     }
 }
 
@@ -136,12 +114,12 @@ impl Default for Property {
     /// https://tc39.es/ecma262/#table-default-attribute-values
     fn default() -> Self {
         Self {
-            configurable: Some(false),
-            enumerable: Some(false),
-            writable: Some(false),
-            value: Some(Gc::new(ValueData::Undefined)),
-            get: Some(Gc::new(ValueData::Undefined)),
-            set: Some(Gc::new(ValueData::Undefined)),
+            configurable: None,
+            enumerable: None,
+            writable: None,
+            value: None,
+            get: None,
+            set: None,
         }
     }
 }
