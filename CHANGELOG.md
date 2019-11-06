@@ -48,6 +48,8 @@ Feature enhancements:
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
 - [FEATURE #182](https://github.com/jasonwilliams/boa/pull/182):
   Implement some Number prototype methods (incl tests) (@pop)
+- [FEATURE #34](https://github.com/jasonwilliams/boa/issues/34):
+  Number object and Constructore are implemented (including methods) (@pop)
 
 Bug fixes:
 
