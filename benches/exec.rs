@@ -12,9 +12,7 @@ let c = Symbol();
 "#;
 
 fn symbol_creation(c: &mut Criterion) {
-    c.bench_function("fibonacci (Execution)", move |b| {
-        b.iter(|| exec(black_box(SRC)))
-    });
+    c.bench_function("Symbol Creation", move |b| b.iter(|| exec(black_box(SRC))));
 }
 
 fn create_realm(c: &mut Criterion) {
