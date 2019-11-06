@@ -8,7 +8,7 @@ Features:
   Enables Boa to run within the Test 262 framework.  
   This will help us see what is implemented or not within the spec
 
-# [# 0.5.0 (2019-11-06)](https://github.com/jasonwilliams/boa/compare/v0.4.0...HEAD)
+# [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/jasonwilliams/boa/compare/v0.4.0...HEAD)
 
 Feature enhancements:
 
