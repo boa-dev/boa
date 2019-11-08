@@ -928,6 +928,11 @@ mod tests {
         ast::expr::{Expr, ExprDef},
         lexer::Lexer,
     };
+    use crate::syntax::ast::{constant::Const, op::BinOp};
+
+    fn create_bin_op(op: BinOp, exp1: Expr, exp2: Expr) -> Expr {
+        Expr::new(ExprDef::BinOp(op, Box::new(exp1), Box::new(exp2)))
+    }
 
     #[allow(clippy::result_unwrap_used)]
     fn check_parser(js: &str, expr: &[Expr]) {
@@ -1220,12 +1225,6 @@ mod tests {
 
     #[test]
     fn check_operations() {
-        use crate::syntax::ast::{constant::Const, op::BinOp};
-
-        fn create_bin_op(op: BinOp, exp1: Expr, exp2: Expr) -> Expr {
-            Expr::new(ExprDef::BinOp(op, Box::new(exp1), Box::new(exp2)))
-        }
-
         // Check numeric operations
         check_parser(
             "a + b",
@@ -1557,6 +1556,80 @@ mod tests {
                     )))
                 )
             )]
-        )
+        );
+
+        check_parser(
+            "function (a, ...b) {}",
+            &[Expr::new(
+                ExprDef::FunctionDecl(
+                    None,
+                    vec![
+                        Expr::new(ExprDef::Local(String::from("a"))),
+                        Expr::new(ExprDef::UnaryOp(
+                            UnaryOp::Spread,
+                            Box::new(Expr::new(ExprDef::Local(String::from("b"))))
+                        ))
+                    ],
+                    Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new()))))
+                )
+            )]
+        );
+
+        check_parser(
+            "(...a) => {}",
+            &[Expr::new(
+                ExprDef::ArrowFunctionDecl(
+                    vec![
+                        Expr::new(ExprDef::UnaryOp(
+                            UnaryOp::Spread,
+                            Box::new(Expr::new(ExprDef::Local(String::from("a"))))
+                        ))
+                    ],
+                    Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new()))))
+                )
+            )]
+        );
+
+        check_parser(
+            "(a, b, ...c) => {}",
+            &[Expr::new(
+                ExprDef::ArrowFunctionDecl(
+                    vec![
+                        Expr::new(ExprDef::Local(String::from("a"))),
+                        Expr::new(ExprDef::Local(String::from("b"))),
+                        Expr::new(ExprDef::UnaryOp(
+                            UnaryOp::Spread,
+                            Box::new(Expr::new(ExprDef::Local(String::from("c"))))
+                        ))
+                    ],
+                    Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new()))))
+                )
+            )]
+        );
+
+        check_parser(
+            "(a, b) => { return a + b; }",
+            &[Expr::new(
+                ExprDef::ArrowFunctionDecl(
+                    vec![
+                        Expr::new( ExprDef::Local(String::from("a"))),
+                        Expr::new( ExprDef::Local(String::from("b")))
+                    ],
+                    Box::new(Expr::new(ExprDef::Block(
+                        vec![
+                            Expr::new(ExprDef::Return(
+                                Some(Box::new(
+                                    create_bin_op(
+                                        BinOp::Num(NumOp::Add),
+                                        Expr::new(ExprDef::Local(String::from("a"))),
+                                        Expr::new(ExprDef::Local(String::from("b"))),
+                                    )
+                                ))
+                            ))
+                        ]
+                    )))
+                )
+            )]
+        );
     }
 }
