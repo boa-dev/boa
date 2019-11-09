@@ -1,3 +1,12 @@
+/// Macro to create a new member function of a prototype
+macro_rules! make_fn {
+    ($fn:ident, named $name:expr, with length $l:tt, of $p:ident) => {
+        let $fn = to_value($fn as NativeFunctionData);
+        $fn.set_field_slice("length", to_value($l));
+        $p.set_field_slice($name, $fn);
+    };
+}
+
 /// The global `Array` object
 pub mod array;
 /// the global `Symbol` Object
