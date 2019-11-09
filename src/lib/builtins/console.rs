@@ -1,6 +1,6 @@
 use crate::builtins::function::NativeFunctionData;
 use crate::builtins::object::{ObjectKind, INSTANCE_PROTOTYPE};
-use crate::builtins::value::{from_value, to_value, ResultValue, Value, ValueData, display_obj};
+use crate::builtins::value::{display_obj, from_value, to_value, ResultValue, Value, ValueData};
 use crate::exec::Interpreter;
 use gc::Gc;
 use std::fmt::Write;
@@ -65,7 +65,9 @@ fn log_string_from(x: Value) -> String {
                     }
                     write!(s, "]").unwrap();
                 }
-                _ => { write!(s, "{}", display_obj(&x, false)).unwrap(); }
+                _ => {
+                    write!(s, "{}", display_obj(&x, false)).unwrap();
+                }
             }
 
             s
