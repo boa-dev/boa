@@ -5,6 +5,9 @@ macro_rules! make_fn {
         $fn.set_field_slice("length", to_value($l));
         $p.set_field_slice($name, $fn);
     };
+    ($fn:ident, named $name:expr, of $p:ident) => {
+        $p.set_field_slice($name, to_value($fn as NativeFunctionData));
+    };
 }
 
 /// The global `Array` object
