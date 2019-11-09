@@ -1,4 +1,4 @@
-# TBD
+# CHANGELOG
 
 TODO
 
@@ -8,7 +8,7 @@ Features:
   Enables Boa to run within the Test 262 framework.  
   This will help us see what is implemented or not within the spec
 
-# [Unreleased](https://github.com/jasonwilliams/boa/compare/v0.4.0...HEAD)
+# [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/jasonwilliams/boa/compare/v0.4.0...HEAD)
 
 Feature enhancements:
 
@@ -38,8 +38,22 @@ Feature enhancements:
   Implement the Tilde operator (@letmutx)
 - [FEATURE #189](https://github.com/jasonwilliams/boa/pull/189):
   Implement Array.prototype.includes (incl tests) (@simonbrahan)
+- [FEATURE #180](https://github.com/jasonwilliams/boa/pull/180):
+  Implement Array.prototype.slice (@muskuloes @letmutx)
+- [FEATURE #152](https://github.com/jasonwilliams/boa/issues/152):
+  Short Function syntax (no arguments)
+- [FEATURE #164](https://github.com/jasonwilliams/boa/issues/164):
+  Implement Array.prototype.fill() (@bojan88)
 - Array tests: Tests implemented for shift, unshift and reverse, pop and push (@muskuloes)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
+- [FEATURE #182](https://github.com/jasonwilliams/boa/pull/182):
+  Implement some Number prototype methods (incl tests) (@pop)
+- [FEATURE #34](https://github.com/jasonwilliams/boa/issues/34):
+  Number object and Constructore are implemented (including methods) (@pop)
+- [FEATURE #194](https://github.com/jasonwilliams/boa/pull/194):
+  Array.prototype.map (@IovoslavIovchev)
+- [FEATURE #90](https://github.com/jasonwilliams/boa/issues/90):
+  Symbol Implementation (@jasonwilliams)
 
 Bug fixes:
 

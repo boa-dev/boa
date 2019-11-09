@@ -1,5 +1,6 @@
 use crate::{
     builtins::{
+        array,
         function::{create_unmapped_arguments_object, Function, RegularFunction},
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         value::{from_value, to_value, ResultValue, Value, ValueData},
@@ -33,7 +34,7 @@ pub trait Executor {
 pub struct Interpreter {
     is_return: bool,
     /// realm holds both the global object and the environment
-    realm: Realm,
+    pub realm: Realm,
 }
 
 fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
@@ -104,28 +105,30 @@ impl Executor for Interpreter {
             }
             ExprDef::GetConstField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
-                Ok(val_obj.borrow().get_field(field))
+                Ok(val_obj.borrow().get_field_slice(field))
             }
             ExprDef::GetField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 let val_field = self.run(field)?;
-                Ok(val_obj.borrow().get_field(&val_field.borrow().to_string()))
+                Ok(val_obj
+                    .borrow()
+                    .get_field_slice(&val_field.borrow().to_string()))
             }
             ExprDef::Call(ref callee, ref args) => {
                 let (this, func) = match callee.def {
                     ExprDef::GetConstField(ref obj, ref field) => {
                         let mut obj = self.run(obj)?;
-                        if obj.get_type() != "object" {
+                        if obj.get_type() != "object" || obj.get_type() != "symbol" {
                             obj = self.to_object(&obj).expect("failed to convert to object");
                         }
-                        (obj.clone(), obj.borrow().get_field(field))
+                        (obj.clone(), obj.borrow().get_field_slice(field))
                     }
                     ExprDef::GetField(ref obj, ref field) => {
                         let obj = self.run(obj)?;
                         let field = self.run(field)?;
                         (
                             obj.clone(),
-                            obj.borrow().get_field(&field.borrow().to_string()),
+                            obj.borrow().get_field_slice(&field.borrow().to_string()),
                         )
                     }
                     _ => (self.realm.global_obj.clone(), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
@@ -198,35 +201,15 @@ impl Executor for Interpreter {
                     .expect("Could not get the global object");
                 let obj = ValueData::new_obj(Some(global_val));
                 for (key, val) in map.iter() {
-                    obj.borrow().set_field(key.clone(), self.run(val)?);
+                    obj.borrow().set_field_slice(&key.clone(), self.run(val)?);
                 }
                 Ok(obj)
             }
             ExprDef::ArrayDecl(ref arr) => {
-                let global_val = &self
-                    .realm
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let arr_map = ValueData::new_obj(Some(global_val));
-                // Note that this object is an Array
-                arr_map.set_kind(ObjectKind::Array);
-                let mut index: i32 = 0;
-                for val in arr.iter() {
-                    let val = self.run(val)?;
-                    arr_map.borrow().set_field(index.to_string(), val);
-                    index += 1;
-                }
-                arr_map.borrow().set_internal_slot(
-                    INSTANCE_PROTOTYPE,
-                    self.realm
-                        .environment
-                        .get_binding_value("Array")
-                        .borrow()
-                        .get_field_slice(PROTOTYPE),
-                );
-                arr_map.borrow().set_field_slice("length", to_value(index));
-                Ok(arr_map)
+                let array = array::new_array(self)?;
+                let elements: Result<Vec<_>, _> = arr.iter().map(|val| self.run(val)).collect();
+                array::add_to_array_object(&array, &elements?)?;
+                Ok(array)
             }
             ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
                 let function =
@@ -319,13 +302,12 @@ impl Executor for Interpreter {
                 }))
             }
             ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
-                let v_a =
-                    from_value::<bool>(self.run(a)?).expect("Could not convert JS value to bool");
-                let v_b =
-                    from_value::<bool>(self.run(b)?).expect("Could not convert JS value to bool");
+                // turn a `Value` into a `bool`
+                let to_bool =
+                    |val| from_value::<bool>(val).expect("Could not convert JS value to bool");
                 Ok(match *op {
-                    LogOp::And => to_value(v_a && v_b),
-                    LogOp::Or => to_value(v_a || v_b),
+                    LogOp::And => to_value(to_bool(self.run(a)?) && to_bool(self.run(b)?)),
+                    LogOp::Or => to_value(to_bool(self.run(a)?) || to_bool(self.run(b)?)),
                 })
             }
             ExprDef::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.def {
@@ -340,10 +322,12 @@ impl Executor for Interpreter {
                 }
                 ExprDef::GetConstField(ref obj, ref field) => {
                     let v_r_a = self.run(obj)?;
-                    let v_a = (*v_r_a.borrow().get_field(field)).clone();
+                    let v_a = (*v_r_a.borrow().get_field_slice(field)).clone();
                     let v_b = (*self.run(b)?).clone();
                     let value = exec_assign_op(op, v_a, v_b.clone());
-                    v_r_a.borrow().set_field(field.clone(), value.clone());
+                    v_r_a
+                        .borrow()
+                        .set_field_slice(&field.clone(), value.clone());
                     Ok(value)
                 }
                 _ => Ok(Gc::new(ValueData::Undefined)),
@@ -429,14 +413,14 @@ impl Executor for Interpreter {
                     }
                     ExprDef::GetConstField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
-                        val_obj.borrow().set_field(field.clone(), val.clone());
+                        val_obj
+                            .borrow()
+                            .set_field_slice(&field.clone(), val.clone());
                     }
                     ExprDef::GetField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
                         let val_field = self.run(field)?;
-                        val_obj
-                            .borrow()
-                            .set_field(val_field.to_string(), val.clone());
+                        val_obj.borrow().set_field(val_field, val.clone());
                     }
                     _ => (),
                 }
@@ -490,6 +474,7 @@ impl Executor for Interpreter {
                 let val = self.run(val_e)?;
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
+                    ValueData::Symbol(_) => "symbol",
                     ValueData::Null | ValueData::Object(_) => "object",
                     ValueData::Boolean(_) => "boolean",
                     ValueData::Number(_) | ValueData::Integer(_) => "number",
@@ -502,6 +487,11 @@ impl Executor for Interpreter {
 }
 
 impl Interpreter {
+    /// Get the Interpreter's realm
+    pub(crate) fn get_realm(&self) -> &Realm {
+        &self.realm
+    }
+
     /// https://tc39.es/ecma262/#sec-call
     pub(crate) fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
         // All functions should be objects, and eventually will be.
@@ -678,7 +668,7 @@ impl Interpreter {
                 string_obj.set_internal_slot("StringData", value.clone());
                 Ok(string_obj)
             }
-            ValueData::Object(_) => Ok(value.clone()),
+            ValueData::Object(_) | ValueData::Symbol(_) => Ok(value.clone()),
         }
     }
 
@@ -695,6 +685,33 @@ impl Interpreter {
                 self.to_string(&prim_value).to_string()
             }
             _ => String::from("undefined"),
+        }
+    }
+
+    pub fn value_to_rust_number(&mut self, value: &Value) -> f64 {
+        match *value.deref().borrow() {
+            ValueData::Null => f64::from(0),
+            ValueData::Boolean(boolean) => {
+                if boolean {
+                    f64::from(1)
+                } else {
+                    f64::from(0)
+                }
+            }
+            ValueData::Number(num) => num,
+            ValueData::Integer(num) => f64::from(num),
+            ValueData::String(ref string) => string.parse::<f64>().unwrap(),
+            ValueData::Object(_) => {
+                let prim_value = self.to_primitive(value, Some("number"));
+                self.to_string(&prim_value)
+                    .to_string()
+                    .parse::<f64>()
+                    .expect("cannot parse valur to x64")
+            }
+            _ => {
+                // TODO: Make undefined?
+                f64::from(0)
+            }
         }
     }
 }
@@ -829,5 +846,68 @@ mod tests {
         outer_fnct()
         "#;
         assert_eq!(exec(early_return), String::from("outer"));
+    }
+
+    #[test]
+    fn test_short_circuit_evaluation() {
+        // OR operation
+        assert_eq!(exec("true || true"), String::from("true"));
+        assert_eq!(exec("true || false"), String::from("true"));
+        assert_eq!(exec("false || true"), String::from("true"));
+        assert_eq!(exec("false || false"), String::from("false"));
+
+        // the second operand must NOT be evaluated if the first one resolve to `true`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return true;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) || add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("1"));
+
+        // the second operand must be evaluated if the first one resolve to `false`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return false;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) || add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("2"));
+
+        // AND operation
+        assert_eq!(exec("true && true"), String::from("true"));
+        assert_eq!(exec("true && false"), String::from("false"));
+        assert_eq!(exec("false && true"), String::from("false"));
+        assert_eq!(exec("false && false"), String::from("false"));
+
+        // the second operand must be evaluated if the first one resolve to `true`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return true;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) && add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("2"));
+
+        // the second operand must NOT be evaluated if the first one resolve to `false`.
+        let short_circuit_eval = r#"
+        function add_one(counter) {
+            counter.value += 1;
+            return false;
+        }
+        let counter = { value: 0 };
+        let _ = add_one(counter) && add_one(counter);
+        counter.value
+        "#;
+        assert_eq!(exec(short_circuit_eval), String::from("1"));
     }
 }
