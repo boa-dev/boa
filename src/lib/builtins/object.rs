@@ -565,8 +565,8 @@ pub fn create_constructor(_: &Value) -> Value {
 
     object.set_field_slice("length", to_value(1_i32));
     object.set_field_slice(PROTOTYPE, to_value(prototype));
-    make_fn!(set_proto_of, named "setPrototypeOf", of object);
-    make_fn!(get_proto_of, named "getPrototypeOf", of object);
-    make_fn!(define_prop, named "defineProperty", of object);
+    make_builtin_fn!(set_proto_of, named "setPrototypeOf", of object);
+    make_builtin_fn!(get_proto_of, named "getPrototypeOf", of object);
+    make_builtin_fn!(define_prop, named "defineProperty", of object);
     object
 }

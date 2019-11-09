@@ -664,23 +664,23 @@ pub fn create_constructor(global: &Value) -> Value {
     let length = Property::default().get(to_value(get_array_length as NativeFunctionData));
     array_prototype.set_prop_slice("length", length);
 
-    make_fn!(concat, named "concat", with length 1, of array_prototype);
-    make_fn!(push, named "push", with length 1, of array_prototype);
-    make_fn!(index_of, named "indexOf", with length 1, of array_prototype);
-    make_fn!(last_index_of, named "lastIndexOf", with length 1, of array_prototype);
-    make_fn!(includes_value, named "includes", with length 1, of array_prototype);
-    make_fn!(map, named "map", with length 1, of array_prototype);
-    make_fn!(fill, named "fill", with length 1, of array_prototype);
+    make_builtin_fn!(concat, named "concat", with length 1, of array_prototype);
+    make_builtin_fn!(push, named "push", with length 1, of array_prototype);
+    make_builtin_fn!(index_of, named "indexOf", with length 1, of array_prototype);
+    make_builtin_fn!(last_index_of, named "lastIndexOf", with length 1, of array_prototype);
+    make_builtin_fn!(includes_value, named "includes", with length 1, of array_prototype);
+    make_builtin_fn!(map, named "map", with length 1, of array_prototype);
+    make_builtin_fn!(fill, named "fill", with length 1, of array_prototype);
 
-    make_fn!(pop, named "pop", of array_prototype);
-    make_fn!(join, named "join", of array_prototype);
-    make_fn!(reverse, named "reverse", of array_prototype);
-    make_fn!(shift, named "shift", of array_prototype);
-    make_fn!(unshift, named "unshift", of array_prototype);
-    make_fn!(every, named "every", of array_prototype);
-    make_fn!(find, named "find", of array_prototype);
-    make_fn!(find_index, named "findIndex", of array_prototype);
-    make_fn!(slice, named "slice", of array_prototype);
+    make_builtin_fn!(pop, named "pop", of array_prototype);
+    make_builtin_fn!(join, named "join", of array_prototype);
+    make_builtin_fn!(reverse, named "reverse", of array_prototype);
+    make_builtin_fn!(shift, named "shift", of array_prototype);
+    make_builtin_fn!(unshift, named "unshift", of array_prototype);
+    make_builtin_fn!(every, named "every", of array_prototype);
+    make_builtin_fn!(find, named "find", of array_prototype);
+    make_builtin_fn!(find_index, named "findIndex", of array_prototype);
+    make_builtin_fn!(slice, named "slice", of array_prototype);
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
