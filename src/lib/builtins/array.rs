@@ -673,14 +673,14 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(fill, named "fill", with length 1, of array_prototype);
 
     make_builtin_fn!(pop, named "pop", of array_prototype);
-    make_builtin_fn!(join, named "join", of array_prototype);
+    make_builtin_fn!(join, named "join", with length 1, of array_prototype);
     make_builtin_fn!(reverse, named "reverse", of array_prototype);
     make_builtin_fn!(shift, named "shift", of array_prototype);
-    make_builtin_fn!(unshift, named "unshift", of array_prototype);
-    make_builtin_fn!(every, named "every", of array_prototype);
-    make_builtin_fn!(find, named "find", of array_prototype);
-    make_builtin_fn!(find_index, named "findIndex", of array_prototype);
-    make_builtin_fn!(slice, named "slice", of array_prototype);
+    make_builtin_fn!(unshift, named "unshift", with length 1, of array_prototype);
+    make_builtin_fn!(every, named "every", with length 1, of array_prototype);
+    make_builtin_fn!(find, named "find", with length 1, of array_prototype);
+    make_builtin_fn!(find_index, named "findIndex", with length 1, of array_prototype);
+    make_builtin_fn!(slice, named "slice", with length 2, of array_prototype);
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));

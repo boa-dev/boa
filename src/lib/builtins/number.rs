@@ -146,9 +146,9 @@ pub fn create_constructor(global: &Value) -> Value {
     number_prototype.set_internal_slot("NumberData", to_value(0));
 
     make_builtin_fn!(to_exponential, named "toExponential", of number_prototype);
-    make_builtin_fn!(to_fixed, named "toFixed", of number_prototype);
+    make_builtin_fn!(to_fixed, named "toFixed", with length 1, of number_prototype);
     make_builtin_fn!(to_locale_string, named "toLocaleString", of number_prototype);
-    make_builtin_fn!(to_precision, named "toPrecision", of number_prototype);
+    make_builtin_fn!(to_precision, named "toPrecision", with length 1, of number_prototype);
     make_builtin_fn!(to_string, named "toString", of number_prototype);
     make_builtin_fn!(value_of, named "valueOf", of number_prototype);
 
