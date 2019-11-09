@@ -1,4 +1,5 @@
 /// Macro to create a new member function of a prototype
+/// If no length is provided, the length will be set to 0.
 macro_rules! make_builtin_fn {
     ($fn:ident, named $name:expr, with length $l:tt, of $p:ident) => {
         let $fn = to_value($fn as NativeFunctionData);
@@ -6,7 +7,7 @@ macro_rules! make_builtin_fn {
         $p.set_field_slice($name, $fn);
     };
     ($fn:ident, named $name:expr, of $p:ident) => {
-        $p.set_field_slice($name, to_value($fn as NativeFunctionData));
+        make_builtin_fn!($fn, named $name, with length 0, of $p);
     };
 }
 
