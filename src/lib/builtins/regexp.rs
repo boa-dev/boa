@@ -339,7 +339,6 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(test, named "test", with length 1, of proto);
     make_builtin_fn!(exec, named "exec", with length 1, of proto);
     make_builtin_fn!(to_string, named "toString", of proto);
-    proto.set_field_slice("toString", to_value(to_string as NativeFunctionData));
     proto.set_field_slice("lastIndex", to_value(0));
     proto.set_prop_slice("dotAll", _make_prop(get_dot_all));
     proto.set_prop_slice("flags", _make_prop(get_flags));
