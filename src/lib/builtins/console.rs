@@ -1,6 +1,6 @@
 use crate::builtins::function::NativeFunctionData;
 use crate::builtins::object::{ObjectKind, INSTANCE_PROTOTYPE};
-use crate::builtins::value::{from_value, to_value, ResultValue, Value, ValueData};
+use crate::builtins::value::{from_value, to_value, ResultValue, Value, ValueData, display_obj};
 use crate::exec::Interpreter;
 use gc::Gc;
 use std::fmt::Write;
@@ -65,33 +65,9 @@ fn log_string_from(x: Value) -> String {
                     }
                     write!(s, "]").unwrap();
                 }
-                _ => {
-                    write!(s, "{{").unwrap();
-                    if let Some((last_key, _)) = v.borrow().properties.iter().last() {
-                        for (key, val) in v.borrow().properties.iter() {
-                            // Don't print prototype properties
-                            if key == INSTANCE_PROTOTYPE {
-                                continue;
-                            }
-                            // Introduce recursive call to stringify any objects
-                            // which are keys of the object
-                            write!(
-                                s,
-                                "{}: {}",
-                                key,
-                                log_string_from(
-                                    val.value.clone().expect("Could not read value").clone()
-                                )
-                            )
-                            .unwrap();
-                            if key != last_key {
-                                write!(s, ", ").unwrap();
-                            }
-                        }
-                    }
-                    write!(s, "}}").unwrap();
-                }
+                _ => { write!(s, "{}", display_obj(&x, false)).unwrap(); }
             }
+
             s
         }
         ValueData::Symbol(ref sym) => {
