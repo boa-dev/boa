@@ -336,8 +336,9 @@ pub fn create_constructor(global: &Value) -> Value {
 
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
-    proto.set_field_slice("test", to_value(test as NativeFunctionData));
-    proto.set_field_slice("exec", to_value(exec as NativeFunctionData));
+    make_fn!(test, named "test", of proto);
+    make_fn!(exec, named "exec", of proto);
+    make_fn!(to_string, named "toString", of proto);
     proto.set_field_slice("toString", to_value(to_string as NativeFunctionData));
     proto.set_field_slice("lastIndex", to_value(0));
     proto.set_prop_slice("dotAll", _make_prop(get_dot_all));

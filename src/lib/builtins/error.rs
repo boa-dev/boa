@@ -36,7 +36,7 @@ pub fn _create(global: &Value) -> Value {
     let prototype = ValueData::new_obj(Some(global));
     prototype.set_field_slice("message", to_value(""));
     prototype.set_field_slice("name", to_value("Error"));
-    prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
+    make_fn!(to_string, named "toString", of prototype);
     let error = to_value(make_error as NativeFunctionData);
     error.set_field_slice(PROTOTYPE, prototype);
     error

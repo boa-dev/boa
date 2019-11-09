@@ -131,8 +131,8 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
-    console.set_field_slice("log", to_value(log as NativeFunctionData));
-    console.set_field_slice("error", to_value(error as NativeFunctionData));
-    console.set_field_slice("exception", to_value(error as NativeFunctionData));
+    make_fn!(log, named "log", of console);
+    make_fn!(error, named "error", of console);
+    make_fn!(error, named "exception", of console);
     console
 }
