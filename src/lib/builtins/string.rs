@@ -756,8 +756,8 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(index_of, named "indexOf", with length 1, of proto);
     make_builtin_fn!(last_index_of, named "lastIndexOf", with length 1, of proto);
     make_builtin_fn!(r#match, named "match", with length 1, of proto);
-    make_builtin_fn!(pad_end, named "padEnd", with length 2, of proto);
-    make_builtin_fn!(pad_start, named "padStart", with length 2, of proto);
+    make_builtin_fn!(pad_end, named "padEnd", with length 1, of proto);
+    make_builtin_fn!(pad_start, named "padStart", with length 1, of proto);
     make_builtin_fn!(trim, named "trim", of proto);
     make_builtin_fn!(trim_start, named "trimStart", of proto);
     make_builtin_fn!(to_lowercase, named "toLowerCase", of proto);

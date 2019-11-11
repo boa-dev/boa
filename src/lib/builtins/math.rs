@@ -207,7 +207,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(acos, named "acos", with length 1, of math);
     make_builtin_fn!(asin, named "asin", with length 1, of math);
     make_builtin_fn!(atan, named "atan", with length 1, of math);
-    make_builtin_fn!(atan2, named "atan2", with length 1, of math);
+    make_builtin_fn!(atan2, named "atan2", with length 2, of math);
     make_builtin_fn!(cbrt, named "cbrt", with length 1, of math);
     make_builtin_fn!(ceil, named "ceil", with length 1, of math);
     make_builtin_fn!(cos,  named "cos", with length 1, of math);
