@@ -67,6 +67,32 @@ impl Parser {
         }
     }
 
+    fn parse_function_parameters(&mut self) -> Result<Vec<String>, ParseError> {
+        self.expect_punc(Punctuator::OpenParen, "function parameters ( expected")?;
+        let mut args = Vec::new();
+        let mut tk = self.get_token(self.pos)?;
+        while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
+            match tk.data {
+                TokenData::Identifier(ref id) => args.push(id.clone()),
+                _ => {
+                    return Err(ParseError::Expected(
+                        vec![TokenData::Identifier("identifier".to_string())],
+                        tk.clone(),
+                        "function arguments",
+                    ))
+                }
+            }
+            self.pos += 1;
+            if self.get_token(self.pos)?.data == TokenData::Punctuator(Punctuator::Comma) {
+                self.pos += 1;
+            }
+            tk = self.get_token(self.pos)?;
+        }
+
+        self.expect_punc(Punctuator::CloseParen, "function parameters ) expected")?;
+        Ok(args)
+    }
+
     fn parse_struct(&mut self, keyword: Keyword) -> ParseResult {
         match keyword {
             Keyword::Throw => {
@@ -306,27 +332,7 @@ impl Parser {
                     }
                 };
                 // Now we have the function identifier we should have an open paren for arguments ( )
-                self.expect_punc(Punctuator::OpenParen, "function")?;
-                let mut args: Vec<String> = Vec::new();
-                let mut tk = self.get_token(self.pos)?;
-                while tk.data != TokenData::Punctuator(Punctuator::CloseParen) {
-                    match tk.data {
-                        TokenData::Identifier(ref id) => args.push(id.clone()),
-                        _ => {
-                            return Err(ParseError::Expected(
-                                vec![TokenData::Identifier("identifier".to_string())],
-                                tk.clone(),
-                                "function arguments",
-                            ))
-                        }
-                    }
-                    self.pos += 1;
-                    if self.get_token(self.pos)?.data == TokenData::Punctuator(Punctuator::Comma) {
-                        self.pos += 1;
-                    }
-                    tk = self.get_token(self.pos)?;
-                }
-                self.pos += 1;
+                let args = self.parse_function_parameters()?;
                 let block = self.parse()?;
                 Ok(mk!(
                     self,
@@ -530,11 +536,33 @@ impl Parser {
                         }
                     };
                     self.pos += 1;
-                    self.expect(
-                        TokenData::Punctuator(Punctuator::Colon),
-                        "object declaration",
-                    )?;
-                    let value = self.parse()?;
+                    let value = match self.get_token(self.pos)?.data {
+                        TokenData::Punctuator(Punctuator::Colon) => {
+                            self.pos += 1;
+                            self.parse()?
+                        }
+                        TokenData::Punctuator(Punctuator::OpenParen) => {
+                            let args = self.parse_function_parameters()?;
+                            self.pos += 1; // {
+                            let expr = self.parse()?;
+                            self.pos += 1;
+                            mk!(
+                                self,
+                                ExprDef::FunctionDecl(None, args, Box::new(expr)),
+                                token
+                            )
+                        }
+                        _ => {
+                            return Err(ParseError::Expected(
+                                vec![
+                                    TokenData::Punctuator(Punctuator::Colon),
+                                    TokenData::Punctuator(Punctuator::OpenParen),
+                                ],
+                                tk,
+                                "object declaration",
+                            ))
+                        }
+                    };
                     map.insert(name, value);
                     self.pos += 1;
                 }
@@ -553,6 +581,13 @@ impl Parser {
                 }
                 self.pos += 1;
                 mk!(self, ExprDef::Block(exprs), token)
+            }
+            // Empty Block
+            TokenData::Punctuator(Punctuator::CloseBlock)
+                if self.get_token(self.pos.wrapping_sub(2))?.data
+                    == TokenData::Punctuator(Punctuator::OpenBlock) =>
+            {
+                mk!(self, ExprDef::Block(vec!()), token)
             }
             TokenData::Punctuator(Punctuator::Sub) => mk!(
                 self,
@@ -889,7 +924,59 @@ mod tests {
             ))))],
         );
     }
+    #[test]
+    fn check_object_short_function() {
+        // Testing short function syntax
+        let mut object_properties: BTreeMap<String, Expr> = BTreeMap::new();
+        object_properties.insert(
+            String::from("a"),
+            Expr::new(ExprDef::Const(Const::Bool(true))),
+        );
+        object_properties.insert(
+            String::from("b"),
+            Expr::new(ExprDef::FunctionDecl(
+                None,
+                vec![],
+                Box::new(Expr::new(ExprDef::Block(vec![]))),
+            )),
+        );
 
+        check_parser(
+            "{
+              a: true,
+              b() {}
+            };
+            ",
+            &[Expr::new(ExprDef::ObjectDecl(Box::new(object_properties)))],
+        );
+    }
+
+    #[test]
+    fn check_object_short_function_arguments() {
+        // Testing short function syntax
+        let mut object_properties: BTreeMap<String, Expr> = BTreeMap::new();
+        object_properties.insert(
+            String::from("a"),
+            Expr::new(ExprDef::Const(Const::Bool(true))),
+        );
+        object_properties.insert(
+            String::from("b"),
+            Expr::new(ExprDef::FunctionDecl(
+                None,
+                vec![String::from("test")],
+                Box::new(Expr::new(ExprDef::Block(vec![]))),
+            )),
+        );
+
+        check_parser(
+            "{
+              a: true,
+              b(test) {}
+            };
+            ",
+            &[Expr::new(ExprDef::ObjectDecl(Box::new(object_properties)))],
+        );
+    }
     #[test]
     fn check_array() {
         use crate::syntax::ast::constant::Const;

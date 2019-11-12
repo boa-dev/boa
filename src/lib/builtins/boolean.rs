@@ -56,8 +56,8 @@ pub fn create_constructor(global: &Value) -> Value {
     // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
     let boolean_prototype = ValueData::new_obj(Some(global));
     boolean_prototype.set_internal_slot("BooleanData", to_boolean(&to_value(false)));
-    boolean_prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
-    boolean_prototype.set_field_slice("valueOf", to_value(value_of as NativeFunctionData));
+    make_builtin_fn!(to_string, named "toString", of boolean_prototype);
+    make_builtin_fn!(value_of, named "valueOf", of boolean_prototype);
 
     let boolean_value = to_value(boolean);
     boolean_prototype.set_field_slice("constructor", to_value(boolean_value.clone()));

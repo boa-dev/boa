@@ -94,6 +94,13 @@ fn log_string_from(x: Value) -> String {
             }
             s
         }
+        ValueData::Symbol(ref sym) => {
+            let desc: Value = sym.borrow().get_internal_slot("Description");
+            match *desc {
+                ValueData::String(ref st) => format!("Symbol(\"{}\")", st.to_string()),
+                _ => String::from("Symbol()"),
+            }
+        }
 
         _ => from_value::<String>(x.clone()).expect("Could not convert value to String"),
     }

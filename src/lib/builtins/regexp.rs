@@ -189,7 +189,8 @@ fn _make_prop(getter: NativeFunctionData) -> Property {
 /// Search for a match between this regex and a specified string
 pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
-    let mut last_index = from_value::<usize>(this.get_field("lastIndex")).map_err(to_value)?;
+    let mut last_index =
+        from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
     let result = this.with_internal_state_ref(|regex: &RegExp| {
         let result = match regex.matcher.find_at(arg_str.as_str(), last_index) {
             Some(m) => {
@@ -214,7 +215,8 @@ pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Search for a match between this regex and a specified string
 pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
-    let mut last_index = from_value::<usize>(this.get_field("lastIndex")).map_err(to_value)?;
+    let mut last_index =
+        from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
     let result = this.with_internal_state_ref(|regex: &RegExp| {
         let mut locations = regex.matcher.capture_locations();
         let result =
@@ -334,9 +336,9 @@ pub fn create_constructor(global: &Value) -> Value {
 
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
-    proto.set_field_slice("test", to_value(test as NativeFunctionData));
-    proto.set_field_slice("exec", to_value(exec as NativeFunctionData));
-    proto.set_field_slice("toString", to_value(to_string as NativeFunctionData));
+    make_builtin_fn!(test, named "test", with length 1, of proto);
+    make_builtin_fn!(exec, named "exec", with length 1, of proto);
+    make_builtin_fn!(to_string, named "toString", of proto);
     proto.set_field_slice("lastIndex", to_value(0));
     proto.set_prop_slice("dotAll", _make_prop(get_dot_all));
     proto.set_prop_slice("flags", _make_prop(get_flags));

@@ -33,8 +33,8 @@ pub fn create_constructor(global: &Value) -> Value {
     json.kind = ObjectKind::Ordinary;
 
     let prototype = ValueData::new_obj(Some(global));
-    prototype.set_field_slice("parse", to_value(parse as NativeFunctionData));
-    prototype.set_field_slice("stringify", to_value(stringify as NativeFunctionData));
+    make_builtin_fn!(parse, named "parse", with length 2, of prototype);
+    make_builtin_fn!(stringify, named "stringify", with length 3, of prototype);
 
     let json_value = to_value(json);
     json_value.set_field_slice(PROTOTYPE, prototype);

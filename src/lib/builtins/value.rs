@@ -44,6 +44,8 @@ pub enum ValueData {
     Object(GcCell<Object>),
     /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
     Function(Box<GcCell<Function>>),
+    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots
+    Symbol(GcCell<Object>),
 }
 
 impl ValueData {
@@ -91,6 +93,14 @@ impl ValueData {
         }
     }
 
+    /// Returns true if the value is a symbol
+    pub fn is_symbol(&self) -> bool {
+        match *self {
+            ValueData::Symbol(_) => true,
+            _ => false,
+        }
+    }
+
     /// Returns true if the value is a function
     pub fn is_function(&self) -> bool {
         match *self {
@@ -132,6 +142,11 @@ impl ValueData {
         }
     }
 
+    /// Returns true if the value is a number
+    pub fn is_num(&self) -> bool {
+        self.is_double()
+    }
+
     /// Returns true if the value is a string
     pub fn is_string(&self) -> bool {
         match *self {
@@ -164,7 +179,10 @@ impl ValueData {
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
         match *self {
-            ValueData::Object(_) | ValueData::Undefined | ValueData::Function(_) => NAN,
+            ValueData::Object(_)
+            | ValueData::Symbol(_)
+            | ValueData::Undefined
+            | ValueData::Function(_) => NAN,
             ValueData::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => NAN,
@@ -181,6 +199,7 @@ impl ValueData {
         match *self {
             ValueData::Object(_)
             | ValueData::Undefined
+            | ValueData::Symbol(_)
             | ValueData::Null
             | ValueData::Boolean(false)
             | ValueData::Function(_) => 0,
@@ -231,6 +250,10 @@ impl ValueData {
                 Function::NativeFunc(ref func) => func.object.clone(),
                 Function::RegularFunc(ref func) => func.object.clone(),
             },
+            ValueData::Symbol(ref obj) => {
+                let hash = obj.clone();
+                hash.into_inner()
+            }
             _ => return None,
         };
 
@@ -283,6 +306,10 @@ impl ValueData {
                 let hash = obj.clone();
                 hash.into_inner()
             }
+            ValueData::Symbol(ref obj) => {
+                let hash = obj.clone();
+                hash.into_inner()
+            }
             _ => return Gc::new(ValueData::Undefined),
         };
 
@@ -295,28 +322,35 @@ impl ValueData {
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field(&self, field: &str) -> Value {
-        match self.get_prop(field) {
-            Some(prop) => {
-                // If the Property has [[Get]] set to a function, we should run that and return the Value
-                let prop_getter = match prop.get {
-                    Some(_) => None,
-                    None => None,
-                };
+    pub fn get_field(&self, field: Value) -> Value {
+        match *field {
+            // Our field will either be a String or a Symbol
+            ValueData::String(ref s) => {
+                match self.get_prop(s) {
+                    Some(prop) => {
+                        // If the Property has [[Get]] set to a function, we should run that and return the Value
+                        let prop_getter = match prop.get {
+                            Some(_) => None,
+                            None => None,
+                        };
 
-                // If the getter is populated, use that. If not use [[Value]] instead
-                match prop_getter {
-                    Some(val) => val,
-                    None => {
-                        let val = prop
-                            .value
-                            .as_ref()
-                            .expect("Could not get property as reference");
-                        val.clone()
+                        // If the getter is populated, use that. If not use [[Value]] instead
+                        match prop_getter {
+                            Some(val) => val,
+                            None => {
+                                let val = prop
+                                    .value
+                                    .as_ref()
+                                    .expect("Could not get property as reference");
+                                val.clone()
+                            }
+                        }
                     }
+                    None => Gc::new(ValueData::Undefined),
                 }
             }
-            None => Gc::new(ValueData::Undefined),
+            ValueData::Symbol(_) => unimplemented!(),
+            _ => Gc::new(ValueData::Undefined),
         }
     }
 
@@ -396,15 +430,19 @@ impl ValueData {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     pub fn get_field_slice(&self, field: &str) -> Value {
-        self.get_field(field)
+        // get_field used to accept strings, but now Symbols accept it needs to accept a value
+        // So this function will now need to Box strings back into values (at least for now)
+        let f = Gc::new(ValueData::String(field.to_string()));
+        self.get_field(f)
     }
 
     /// Set the field in the value
-    pub fn set_field(&self, field: String, val: Value) -> Value {
+    /// Field could be a Symbol, so we need to accept a Value (not a string)
+    pub fn set_field(&self, field: Value, val: Value) -> Value {
         match *self {
             ValueData::Object(ref obj) => {
                 if obj.borrow().kind == ObjectKind::Array {
-                    if let Ok(num) = field.parse::<usize>() {
+                    if let Ok(num) = field.to_string().parse::<usize>() {
                         if num > 0 {
                             let len: i32 = from_value(self.get_field_slice("length"))
                                 .expect("Could not convert argument to i32");
@@ -414,20 +452,25 @@ impl ValueData {
                         }
                     }
                 }
-                obj.borrow_mut()
-                    .properties
-                    .insert(field, Property::default().value(val.clone()));
+
+                // Symbols get saved into a different bucket to general properties
+                if field.is_symbol() {
+                    obj.borrow_mut().set(field.clone(), val.clone());
+                } else {
+                    obj.borrow_mut()
+                        .set(to_value(field.to_string()), val.clone());
+                }
             }
             ValueData::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::default().value(val.clone())),
+                        .insert(field.to_string(), Property::default().value(val.clone())),
                     Function::RegularFunc(ref mut f) => f
                         .object
                         .properties
-                        .insert(field, Property::default().value(val.clone())),
+                        .insert(field.to_string(), Property::default().value(val.clone())),
                 };
             }
             _ => (),
@@ -437,7 +480,10 @@ impl ValueData {
 
     /// Set the field in the value
     pub fn set_field_slice<'a>(&self, field: &'a str, val: Value) -> Value {
-        self.set_field(field.to_string(), val)
+        // set_field used to accept strings, but now Symbols accept it needs to accept a value
+        // So this function will now need to Box strings back into values (at least for now)
+        let f = Gc::new(ValueData::String(field.to_string()));
+        self.set_field(f, val)
     }
 
     /// Set the private field in the value
@@ -532,7 +578,10 @@ impl ValueData {
 
     pub fn to_json(&self) -> JSONValue {
         match *self {
-            ValueData::Null | ValueData::Undefined | ValueData::Function(_) => JSONValue::Null,
+            ValueData::Null
+            | ValueData::Symbol(_)
+            | ValueData::Undefined
+            | ValueData::Function(_) => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
                 let mut new_obj = Map::new();
@@ -558,6 +607,7 @@ impl ValueData {
             ValueData::Number(_) | ValueData::Integer(_) => "number",
             ValueData::String(_) => "string",
             ValueData::Boolean(_) => "boolean",
+            ValueData::Symbol(_) => "symbol",
             ValueData::Null => "null",
             ValueData::Undefined => "undefined",
             ValueData::Function(_) => "function",
@@ -707,6 +757,11 @@ impl Display for ValueData {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
+            ValueData::Symbol(ref v) => match *v.borrow().get_internal_slot("Description") {
+                // If a description exists use it
+                ValueData::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
+                _ => write!(f, "Symbol()"),
+            },
             ValueData::String(ref v) => write!(f, "{}", v),
             ValueData::Number(v) => write!(
                 f,
@@ -957,7 +1012,7 @@ impl<T: FromValue> FromValue for Vec<T> {
         let len = v.get_field_slice("length").to_int();
         let mut vec = Self::with_capacity(len as usize);
         for i in 0..len {
-            vec.push(from_value(v.get_field(&i.to_string()))?)
+            vec.push(from_value(v.get_field_slice(&i.to_string()))?)
         }
         Ok(vec)
     }
