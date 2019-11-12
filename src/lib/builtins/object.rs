@@ -565,17 +565,8 @@ pub fn create_constructor(_: &Value) -> Value {
 
     object.set_field_slice("length", to_value(1_i32));
     object.set_field_slice(PROTOTYPE, to_value(prototype));
-    object.set_field_slice(
-        "setPrototypeOf",
-        to_value(set_proto_of as NativeFunctionData),
-    );
-    object.set_field_slice(
-        "getPrototypeOf",
-        to_value(get_proto_of as NativeFunctionData),
-    );
-    object.set_field_slice(
-        "defineProperty",
-        to_value(define_prop as NativeFunctionData),
-    );
+    make_builtin_fn!(set_proto_of, named "setPrototypeOf", with length 2, of object);
+    make_builtin_fn!(get_proto_of, named "getPrototypeOf", with length 1, of object);
+    make_builtin_fn!(define_prop, named "defineProperty", with length 3, of object);
     object
 }

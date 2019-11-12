@@ -661,41 +661,26 @@ pub fn create_constructor(global: &Value) -> Value {
 
     // Create prototype
     let array_prototype = ValueData::new_obj(None);
-
     let length = Property::default().get(to_value(get_array_length as NativeFunctionData));
-
     array_prototype.set_prop_slice("length", length);
-    let concat_func = to_value(concat as NativeFunctionData);
-    concat_func.set_field_slice("length", to_value(1_i32));
-    array_prototype.set_field_slice("concat", concat_func);
-    let push_func = to_value(push as NativeFunctionData);
-    push_func.set_field_slice("length", to_value(1_i32));
-    let index_of_func = to_value(index_of as NativeFunctionData);
-    index_of_func.set_field_slice("length", to_value(1_i32));
-    let last_index_of_func = to_value(last_index_of as NativeFunctionData);
-    last_index_of_func.set_field_slice("length", to_value(1_i32));
-    let includes_func = to_value(includes_value as NativeFunctionData);
-    includes_func.set_field_slice("length", to_value(1_i32));
-    let map_func = to_value(map as NativeFunctionData);
-    map_func.set_field_slice("length", to_value(1_i32));
-    let fill_func = to_value(fill as NativeFunctionData);
-    fill_func.set_field_slice("length", to_value(1_i32));
 
-    array_prototype.set_field_slice("push", push_func);
-    array_prototype.set_field_slice("pop", to_value(pop as NativeFunctionData));
-    array_prototype.set_field_slice("join", to_value(join as NativeFunctionData));
-    array_prototype.set_field_slice("reverse", to_value(reverse as NativeFunctionData));
-    array_prototype.set_field_slice("shift", to_value(shift as NativeFunctionData));
-    array_prototype.set_field_slice("unshift", to_value(unshift as NativeFunctionData));
-    array_prototype.set_field_slice("every", to_value(every as NativeFunctionData));
-    array_prototype.set_field_slice("find", to_value(find as NativeFunctionData));
-    array_prototype.set_field_slice("findIndex", to_value(find_index as NativeFunctionData));
-    array_prototype.set_field_slice("includes", includes_func);
-    array_prototype.set_field_slice("indexOf", index_of_func);
-    array_prototype.set_field_slice("lastIndexOf", last_index_of_func);
-    array_prototype.set_field_slice("fill", fill_func);
-    array_prototype.set_field_slice("slice", to_value(slice as NativeFunctionData));
-    array_prototype.set_field_slice("map", map_func);
+    make_builtin_fn!(concat, named "concat", with length 1, of array_prototype);
+    make_builtin_fn!(push, named "push", with length 1, of array_prototype);
+    make_builtin_fn!(index_of, named "indexOf", with length 1, of array_prototype);
+    make_builtin_fn!(last_index_of, named "lastIndexOf", with length 1, of array_prototype);
+    make_builtin_fn!(includes_value, named "includes", with length 1, of array_prototype);
+    make_builtin_fn!(map, named "map", with length 1, of array_prototype);
+    make_builtin_fn!(fill, named "fill", with length 1, of array_prototype);
+
+    make_builtin_fn!(pop, named "pop", of array_prototype);
+    make_builtin_fn!(join, named "join", with length 1, of array_prototype);
+    make_builtin_fn!(reverse, named "reverse", of array_prototype);
+    make_builtin_fn!(shift, named "shift", of array_prototype);
+    make_builtin_fn!(unshift, named "unshift", with length 1, of array_prototype);
+    make_builtin_fn!(every, named "every", with length 1, of array_prototype);
+    make_builtin_fn!(find, named "find", with length 1, of array_prototype);
+    make_builtin_fn!(find_index, named "findIndex", with length 1, of array_prototype);
+    make_builtin_fn!(slice, named "slice", with length 2, of array_prototype);
 
     let array = to_value(array_constructor);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));

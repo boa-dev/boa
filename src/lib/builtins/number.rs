@@ -145,18 +145,12 @@ pub fn create_constructor(global: &Value) -> Value {
 
     number_prototype.set_internal_slot("NumberData", to_value(0));
 
-    number_prototype.set_field_slice(
-        "toExponential",
-        to_value(to_exponential as NativeFunctionData),
-    );
-    number_prototype.set_field_slice("toFixed", to_value(to_fixed as NativeFunctionData));
-    number_prototype.set_field_slice(
-        "toLocaleString",
-        to_value(to_locale_string as NativeFunctionData),
-    );
-    number_prototype.set_field_slice("toPrecision", to_value(to_precision as NativeFunctionData));
-    number_prototype.set_field_slice("toString", to_value(to_string as NativeFunctionData));
-    number_prototype.set_field_slice("valueOf", to_value(value_of as NativeFunctionData));
+    make_builtin_fn!(to_exponential, named "toExponential", with length 1, of number_prototype);
+    make_builtin_fn!(to_fixed, named "toFixed", with length 1, of number_prototype);
+    make_builtin_fn!(to_locale_string, named "toLocaleString", of number_prototype);
+    make_builtin_fn!(to_precision, named "toPrecision", with length 1, of number_prototype);
+    make_builtin_fn!(to_string, named "toString", with length 1, of number_prototype);
+    make_builtin_fn!(value_of, named "valueOf", of number_prototype);
 
     let number = to_value(number_constructor);
     number_prototype.set_field_slice("constructor", number.clone());
