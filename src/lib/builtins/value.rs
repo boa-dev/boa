@@ -693,6 +693,76 @@ macro_rules! print_obj_value {
     };
 }
 
+pub(crate) fn log_string_from(x: &ValueData) -> String {
+    match x {
+        // We don't want to print private (compiler) or prototype properties
+        ValueData::Object(ref v) => {
+            // Can use the private "type" field of an Object to match on
+            // which type of Object it represents for special printing
+            match v.borrow().kind {
+                ObjectKind::String => from_value(
+                    v.borrow()
+                        .internal_slots
+                        .get("PrimitiveValue")
+                        .expect("Cannot get primitive value from String")
+                        .clone(),
+                )
+                .expect("Cannot clone primitive value from String"),
+                ObjectKind::Boolean => {
+                    let bool_data = v.borrow().get_internal_slot("BooleanData").to_string();
+
+                    format!("Boolean {{ {} }}", bool_data)
+                }
+                ObjectKind::Array => {
+                    let len: i32 = from_value(
+                        v.borrow()
+                            .properties
+                            .get("length")
+                            .unwrap()
+                            .value
+                            .clone()
+                            .expect("Could not borrow value"),
+                    )
+                    .expect("Could not convert JS value to i32");
+
+                    if len == 0 {
+                        return String::from("[]");
+                    }
+
+                    let arr = (0..len)
+                        .map(|i| {
+                            // Introduce recursive call to stringify any objects
+                            // which are part of the Array
+                            log_string_from(
+                                &v.borrow()
+                                    .properties
+                                    .get(&i.to_string())
+                                    .unwrap()
+                                    .value
+                                    .clone()
+                                    .expect("Could not borrow value"),
+                            )
+                        })
+                        .collect::<Vec<String>>()
+                        .join(", ");
+
+                    format!("[ {} ]", arr)
+                }
+                _ => display_obj(&x, false)
+            }
+        }
+        ValueData::Symbol(ref sym) => {
+            let desc: Value = sym.borrow().get_internal_slot("Description");
+            match *desc {
+                ValueData::String(ref st) => format!("Symbol(\"{}\")", st.to_string()),
+                _ => String::from("Symbol()"),
+            }
+        }
+
+        _ => format!("{}", x)
+    }
+}
+
 /// A helper function for specifically printing object values
 pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
     // A simple helper for getting the address of a value
@@ -753,7 +823,7 @@ pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
 
 impl Display for ValueData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
             ValueData::Boolean(v) => write!(f, "{}", v),
@@ -773,7 +843,7 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            ValueData::Object(_) => write!(f, "{}", display_obj(&self, true)),
+            ValueData::Object(_) => write!(f, "{}", log_string_from(self)),
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
