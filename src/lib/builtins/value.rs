@@ -703,7 +703,7 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
                 ObjectKind::String => from_value(
                     v.borrow()
                         .internal_slots
-                        .get("PrimitiveValue")
+                        .get("StringData")
                         .expect("Cannot get primitive value from String")
                         .clone(),
                 )
