@@ -748,7 +748,7 @@ pub(crate) fn log_string_from(x: &ValueData) -> String {
 
                     format!("[ {} ]", arr)
                 }
-                _ => display_obj(&x, false)
+                _ => display_obj(&x, false),
             }
         }
         ValueData::Symbol(ref sym) => {
@@ -759,7 +759,7 @@ pub(crate) fn log_string_from(x: &ValueData) -> String {
             }
         }
 
-        _ => format!("{}", x)
+        _ => format!("{}", x),
     }
 }
 

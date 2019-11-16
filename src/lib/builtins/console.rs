@@ -1,7 +1,9 @@
 use crate::builtins::function::NativeFunctionData;
 use std::ops::Deref;
 // use crate::builtins::object::ObjectKind;
-use crate::builtins::value::{from_value, to_value, ResultValue, Value, ValueData,log_string_from};
+use crate::builtins::value::{
+    from_value, log_string_from, to_value, ResultValue, Value, ValueData,
+};
 use crate::exec::Interpreter;
 use gc::Gc;
 // use std::fmt::Write;
