@@ -693,7 +693,7 @@ macro_rules! print_obj_value {
     };
 }
 
-pub(crate) fn log_string_from(x: &ValueData) -> String {
+pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
     match x {
         // We don't want to print private (compiler) or prototype properties
         ValueData::Object(ref v) => {
@@ -741,6 +741,7 @@ pub(crate) fn log_string_from(x: &ValueData) -> String {
                                     .value
                                     .clone()
                                     .expect("Could not borrow value"),
+                                print_internals,
                             )
                         })
                         .collect::<Vec<String>>()
@@ -748,7 +749,7 @@ pub(crate) fn log_string_from(x: &ValueData) -> String {
 
                     format!("[ {} ]", arr)
                 }
-                _ => display_obj(&x, false),
+                _ => display_obj(&x, print_internals),
             }
         }
         ValueData::Symbol(ref sym) => {
@@ -764,7 +765,7 @@ pub(crate) fn log_string_from(x: &ValueData) -> String {
 }
 
 /// A helper function for specifically printing object values
-pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
+fn display_obj(v: &ValueData, print_internals: bool) -> String {
     // A simple helper for getting the address of a value
     // TODO: Find a more general place for this, as it can be used in other situations as well
     fn address_of<T>(t: &T) -> usize {
@@ -843,7 +844,7 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            ValueData::Object(_) => write!(f, "{}", log_string_from(self)),
+            ValueData::Object(_) => write!(f, "{}", log_string_from(self, true)),
             ValueData::Integer(v) => write!(f, "{}", v),
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
