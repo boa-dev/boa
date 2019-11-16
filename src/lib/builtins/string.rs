@@ -831,10 +831,10 @@ mod tests {
         forward(&mut engine, init);
 
         // Todo: fix this
-        // let a = forward(&mut engine, "hello.concat(world, nice)");
-        // let b = forward(&mut engine, "hello + world + nice");
-        //assert_eq!(a, String::from("Hello, world! Have a nice day."));
-        //assert_eq!(b, String::from("Hello, world! Have a nice day."));
+        let _a = forward(&mut engine, "hello.concat(world, nice)");
+        let _b = forward(&mut engine, "hello + world + nice");
+        // assert_eq!(a, String::from("Hello, world! Have a nice day."));
+        // assert_eq!(b, String::from("Hello, world! Have a nice day."));
     }
 
     #[allow(clippy::result_unwrap_used)]
