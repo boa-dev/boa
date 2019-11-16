@@ -661,7 +661,9 @@ pub fn create_constructor(global: &Value) -> Value {
 
     // Create prototype
     let array_prototype = ValueData::new_obj(None);
-    let length = Property::default().get(to_value(get_array_length as NativeFunctionData));
+    let length = Property::default()
+        .get(to_value(get_array_length as NativeFunctionData))
+        .value(to_value(0_i32));
     array_prototype.set_prop_slice("length", length);
 
     make_builtin_fn!(concat, named "concat", with length 1, of array_prototype);
@@ -696,6 +698,30 @@ mod tests {
     use crate::realm::Realm;
 
     #[test]
+    fn prototype() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let js = r#"
+        var arr = new Array(5);
+        "#;
+
+        // assert that `Array.prototype` is not affected by newly created arrays
+        assert_eq!(
+            forward(&mut engine, "Array.prototype.length"),
+            String::from("0")
+        );
+        assert_eq!(forward(&mut engine, "arr.length"), String::from("5"));
+        assert_eq!(
+            forward(
+                &mut engine,
+                "Object.getPrototypeOf(arr) === Array.prototype"
+            ),
+            String::from("true")
+        );
+    }
+
+    #[test]
     fn concat() {
         //TODO: array display formatter
         let realm = Realm::create();
@@ -706,17 +732,17 @@ mod tests {
         "#;
         forward(&mut engine, init);
         // Empty ++ Empty
-        let _ee = forward(&mut engine, "empty.concat(empty)");
-        //assert_eq!(ee, String::from(""));
+        let ee = forward(&mut engine, "empty.concat(empty)");
+        assert_eq!(ee, String::from("[]"));
         // Empty ++ NonEmpty
-        let _en = forward(&mut engine, "empty.concat(one)");
-        //assert_eq!(en, String::from("a"));
+        let en = forward(&mut engine, "empty.concat(one)");
+        assert_eq!(en, String::from("[a]"));
         // NonEmpty ++ Empty
-        let _ne = forward(&mut engine, "one.concat(empty)");
-        //assert_eq!(ne, String::from("a.b.c"));
+        let ne = forward(&mut engine, "one.concat(empty)");
+        assert_eq!(ne, String::from("a.b.c"));
         // NonEmpty ++ NonEmpty
-        let _nn = forward(&mut engine, "one.concat(one)");
-        //assert_eq!(nn, String::from("a.b.c"));
+        let nn = forward(&mut engine, "one.concat(one)");
+        assert_eq!(nn, String::from("a.b.c"));
     }
 
     #[test]
