@@ -50,12 +50,6 @@ pub fn call_string(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     Ok(to_value(arg.to_string()))
 }
 
-/// Get a string's length
-pub fn get_string_length(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let this_str = ctx.value_to_rust_string(this);
-    Ok(to_value::<i32>(this_str.chars().count() as i32))
-}
-
 /// Get the string value to a primitive string
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     // Get String from String Object and send it back as a new value

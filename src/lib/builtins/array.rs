@@ -113,13 +113,6 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     Ok(this.clone())
 }
 
-/// Get an array's length
-pub fn get_array_length(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    // Access the inner hash map which represents the actual Array contents
-    // (mapping between indices and values)
-    Ok(this.get_field_slice("length"))
-}
-
 /// Array.prototype.concat(...arguments)
 ///
 /// When the concat method is called with zero or more arguments, it returns an
