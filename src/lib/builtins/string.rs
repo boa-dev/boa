@@ -742,7 +742,6 @@ pub fn create_constructor(global: &Value) -> Value {
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
     let prop = Property::default()
-        .get(to_value(get_string_length as NativeFunctionData))
         .value(to_value(0_i32));
 
     proto.set_prop_slice("length", prop);

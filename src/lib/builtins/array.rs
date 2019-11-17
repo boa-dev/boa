@@ -662,7 +662,6 @@ pub fn create_constructor(global: &Value) -> Value {
     // Create prototype
     let array_prototype = ValueData::new_obj(None);
     let length = Property::default()
-        .get(to_value(get_array_length as NativeFunctionData))
         .value(to_value(0_i32));
     array_prototype.set_prop_slice("length", length);
 
