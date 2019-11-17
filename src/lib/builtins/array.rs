@@ -654,8 +654,7 @@ pub fn create_constructor(global: &Value) -> Value {
 
     // Create prototype
     let array_prototype = ValueData::new_obj(None);
-    let length = Property::default()
-        .value(to_value(0_i32));
+    let length = Property::default().value(to_value(0_i32));
     array_prototype.set_prop_slice("length", length);
 
     make_builtin_fn!(concat, named "concat", with length 1, of array_prototype);

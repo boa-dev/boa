@@ -735,8 +735,7 @@ pub fn create_constructor(global: &Value) -> Value {
 
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
-    let prop = Property::default()
-        .value(to_value(0_i32));
+    let prop = Property::default().value(to_value(0_i32));
 
     proto.set_prop_slice("length", prop);
     make_builtin_fn!(char_at, named "charAt", with length 1, of proto);
