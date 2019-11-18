@@ -404,15 +404,12 @@ impl Parser {
                             TokenData::Punctuator(Punctuator::Comma) => {
                                 // at this point it's probably gonna be an arrow function
                                 // if first param captured all arguments, we should expect a close paren
-                                match next.def {
-                                    ExprDef::UnaryOp(UnaryOp::Spread, _) => {
-                                        return Err(ParseError::Expected(
-                                            vec![TokenData::Punctuator(Punctuator::CloseParen)],
-                                            next_tok.clone(),
-                                            "arrow function",
-                                        ))
-                                    }
-                                    _ => {}
+                                if let ExprDef::UnaryOp(UnaryOp::Spread, _) = next.def {
+                                    return Err(ParseError::Expected(
+                                        vec![TokenData::Punctuator(Punctuator::CloseParen)],
+                                        next_tok.clone(),
+                                        "arrow function",
+                                    ));
                                 }
 
                                 let mut args = vec![
