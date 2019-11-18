@@ -76,9 +76,7 @@ impl Parser {
                 TokenData::Identifier(ref id) => args.push(mk!(self, ExprDef::Local(id.clone()))),
                 TokenData::Punctuator(Punctuator::Spread) => {
                     args.push(self.parse()?);
-                    self.expect_punc(Punctuator::CloseParen, "function")?;
-                    // Counteract expect_punc so the next token is CloseParen
-                    self.pos -= 1;
+                    self.pos -= 1; // roll back so we're sitting on the closeParen ')'
                 }
                 _ => {
                     return Err(ParseError::Expected(
