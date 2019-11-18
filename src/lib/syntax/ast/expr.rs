@@ -189,12 +189,12 @@ impl Display for ExprDef {
                 write!(f, "{{")?;
                 join_expr(f, args)?;
                 write!(f, "}} {}", expr)
-            },
+            }
             ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
                 write!(f, "(")?;
                 join_expr(f, args)?;
                 write!(f, ") => {}", expr)
-            },
+            }
             ExprDef::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
             ExprDef::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
             ExprDef::Return(Some(ref ex)) => write!(f, "return {}", ex),

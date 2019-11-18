@@ -405,24 +405,27 @@ impl Parser {
                                 // at this point it's probably gonna be an arrow function
                                 // if first param captured all arguments, we should expect a close paren
                                 match next.def {
-                                    ExprDef::UnaryOp(UnaryOp::Spread, _) =>
+                                    ExprDef::UnaryOp(UnaryOp::Spread, _) => {
                                         return Err(ParseError::Expected(
-                                            vec![TokenData::Punctuator(
-                                                Punctuator::CloseParen,
-                                            )],
+                                            vec![TokenData::Punctuator(Punctuator::CloseParen)],
                                             next_tok.clone(),
                                             "arrow function",
-                                        )),
+                                        ))
+                                    }
                                     _ => {}
                                 }
 
                                 let mut args = vec![
                                     match next.def {
-                                        ExprDef::Local(ref name) => mk!(self, ExprDef::Local((*name).clone())),
+                                        ExprDef::Local(ref name) => {
+                                            mk!(self, ExprDef::Local((*name).clone()))
+                                        }
                                         _ => mk!(self, ExprDef::Local("".to_string())),
                                     },
                                     match self.get_token(self.pos)?.data {
-                                        TokenData::Identifier(ref id) => mk!(self, ExprDef::Local(id.clone())),
+                                        TokenData::Identifier(ref id) => {
+                                            mk!(self, ExprDef::Local(id.clone()))
+                                        }
                                         _ => mk!(self, ExprDef::Local("".to_string())),
                                     },
                                 ];
@@ -440,7 +443,8 @@ impl Parser {
                                         }
                                         TokenData::Punctuator(Punctuator::Spread) => {
                                             let ident_token = self.get_token(self.pos + 1)?;
-                                            if let TokenData::Identifier(ref _id) = ident_token.data {
+                                            if let TokenData::Identifier(ref _id) = ident_token.data
+                                            {
                                                 args.push(self.parse()?);
                                                 self.pos -= 1;
                                                 expect_ident = false;
@@ -451,7 +455,7 @@ impl Parser {
                                                     )],
                                                     ident_token.clone(),
                                                     "arrow function",
-                                                ))
+                                                ));
                                             }
                                         }
                                         TokenData::Punctuator(Punctuator::CloseParen) => {
@@ -782,7 +786,9 @@ impl Parser {
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
                 match result.def {
-                    ExprDef::Local(ref name) => args.push(mk!(self, ExprDef::Local((*name).clone()))),
+                    ExprDef::Local(ref name) => {
+                        args.push(mk!(self, ExprDef::Local((*name).clone())))
+                    }
                     ExprDef::UnaryOp(UnaryOp::Spread, _) => args.push(result),
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
@@ -924,11 +930,11 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::syntax::ast::{constant::Const, op::BinOp};
     use crate::syntax::{
         ast::expr::{Expr, ExprDef},
         lexer::Lexer,
     };
-    use crate::syntax::ast::{constant::Const, op::BinOp};
 
     fn create_bin_op(op: BinOp, exp1: Expr, exp2: Expr) -> Expr {
         Expr::new(ExprDef::BinOp(op, Box::new(exp1), Box::new(exp2)))
@@ -1539,97 +1545,71 @@ mod tests {
     fn check_function_declarations() {
         check_parser(
             "function foo(a) { return a; }",
-            &[Expr::new(
-                ExprDef::FunctionDecl(
-                    Some(String::from("foo")),
-                    vec![
-                        Expr::new(ExprDef::Local(String::from("a")))
-                    ],
-                    Box::new(Expr::new(ExprDef::Block(
-                        vec![
-                            Expr::new(ExprDef::Return(
-                                Some(Box::new(
-                                    Expr::new(ExprDef::Local(String::from("a")))
-                                ))
-                            ))
-                        ]
-                    )))
-                )
-            )]
+            &[Expr::new(ExprDef::FunctionDecl(
+                Some(String::from("foo")),
+                vec![Expr::new(ExprDef::Local(String::from("a")))],
+                Box::new(Expr::new(ExprDef::Block(vec![Expr::new(ExprDef::Return(
+                    Some(Box::new(Expr::new(ExprDef::Local(String::from("a"))))),
+                ))]))),
+            ))],
         );
 
         check_parser(
             "function (a, ...b) {}",
-            &[Expr::new(
-                ExprDef::FunctionDecl(
-                    None,
-                    vec![
-                        Expr::new(ExprDef::Local(String::from("a"))),
-                        Expr::new(ExprDef::UnaryOp(
-                            UnaryOp::Spread,
-                            Box::new(Expr::new(ExprDef::Local(String::from("b"))))
-                        ))
-                    ],
-                    Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new()))))
-                )
-            )]
+            &[Expr::new(ExprDef::FunctionDecl(
+                None,
+                vec![
+                    Expr::new(ExprDef::Local(String::from("a"))),
+                    Expr::new(ExprDef::UnaryOp(
+                        UnaryOp::Spread,
+                        Box::new(Expr::new(ExprDef::Local(String::from("b")))),
+                    )),
+                ],
+                Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new())))),
+            ))],
         );
 
         check_parser(
             "(...a) => {}",
-            &[Expr::new(
-                ExprDef::ArrowFunctionDecl(
-                    vec![
-                        Expr::new(ExprDef::UnaryOp(
-                            UnaryOp::Spread,
-                            Box::new(Expr::new(ExprDef::Local(String::from("a"))))
-                        ))
-                    ],
-                    Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new()))))
-                )
-            )]
+            &[Expr::new(ExprDef::ArrowFunctionDecl(
+                vec![Expr::new(ExprDef::UnaryOp(
+                    UnaryOp::Spread,
+                    Box::new(Expr::new(ExprDef::Local(String::from("a")))),
+                ))],
+                Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new())))),
+            ))],
         );
 
         check_parser(
             "(a, b, ...c) => {}",
-            &[Expr::new(
-                ExprDef::ArrowFunctionDecl(
-                    vec![
-                        Expr::new(ExprDef::Local(String::from("a"))),
-                        Expr::new(ExprDef::Local(String::from("b"))),
-                        Expr::new(ExprDef::UnaryOp(
-                            UnaryOp::Spread,
-                            Box::new(Expr::new(ExprDef::Local(String::from("c"))))
-                        ))
-                    ],
-                    Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new()))))
-                )
-            )]
+            &[Expr::new(ExprDef::ArrowFunctionDecl(
+                vec![
+                    Expr::new(ExprDef::Local(String::from("a"))),
+                    Expr::new(ExprDef::Local(String::from("b"))),
+                    Expr::new(ExprDef::UnaryOp(
+                        UnaryOp::Spread,
+                        Box::new(Expr::new(ExprDef::Local(String::from("c")))),
+                    )),
+                ],
+                Box::new(Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new())))),
+            ))],
         );
 
         check_parser(
             "(a, b) => { return a + b; }",
-            &[Expr::new(
-                ExprDef::ArrowFunctionDecl(
-                    vec![
-                        Expr::new( ExprDef::Local(String::from("a"))),
-                        Expr::new( ExprDef::Local(String::from("b")))
-                    ],
-                    Box::new(Expr::new(ExprDef::Block(
-                        vec![
-                            Expr::new(ExprDef::Return(
-                                Some(Box::new(
-                                    create_bin_op(
-                                        BinOp::Num(NumOp::Add),
-                                        Expr::new(ExprDef::Local(String::from("a"))),
-                                        Expr::new(ExprDef::Local(String::from("b"))),
-                                    )
-                                ))
-                            ))
-                        ]
-                    )))
-                )
-            )]
+            &[Expr::new(ExprDef::ArrowFunctionDecl(
+                vec![
+                    Expr::new(ExprDef::Local(String::from("a"))),
+                    Expr::new(ExprDef::Local(String::from("b"))),
+                ],
+                Box::new(Expr::new(ExprDef::Block(vec![Expr::new(ExprDef::Return(
+                    Some(Box::new(create_bin_op(
+                        BinOp::Num(NumOp::Add),
+                        Expr::new(ExprDef::Local(String::from("a"))),
+                        Expr::new(ExprDef::Local(String::from("b"))),
+                    ))),
+                ))]))),
+            ))],
         );
     }
 }
