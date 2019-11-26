@@ -6,17 +6,6 @@ use crate::syntax::ast::punc::Punctuator;
 use crate::syntax::ast::token::{Token, TokenData};
 use std::collections::btree_map::BTreeMap;
 
-macro_rules! mk (
-    ($this:expr, $def:expr) => {
-        {
-            Expr::new($def)
-        }
-    };
-    ($this:expr, $def:expr, $first:expr) => {
-        Expr::new($def)
-    };
-);
-
 /// `ParseError` is an enum which represents errors encounted during parsing an expression
 #[derive(Debug, Clone)]
 pub enum ParseError {
@@ -54,8 +43,6 @@ impl Parser {
             exprs.push(result);
         }
 
-        // In the case of `Block` the Positions seem unnecessary
-        // TODO: refactor this or the `mk!` perhaps?
         Ok(Expr::new(ExprDef::Block(exprs)))
     }
 
@@ -97,7 +84,7 @@ impl Parser {
         match keyword {
             Keyword::Throw => {
                 let thrown = self.parse()?;
-                Ok(mk!(self, ExprDef::Throw(Box::new(thrown))))
+                Ok(Expr::new(ExprDef::Throw(Box::new(thrown))))
             }
             // vars, lets and consts are similar in parsing structure, we can group them together
             Keyword::Var | Keyword::Let => {
@@ -202,52 +189,48 @@ impl Parser {
 
                 Ok(Expr::new(ExprDef::ConstDecl(vars)))
             }
-            Keyword::Return => Ok(mk!(
-                self,
-                ExprDef::Return(Some(Box::new(self.parse()?.clone())))
-            )),
+            Keyword::Return => Ok(Expr::new(ExprDef::Return(Some(Box::new(
+                self.parse()?.clone(),
+            ))))),
             Keyword::New => {
                 let call = self.parse()?;
                 match call.def {
                     ExprDef::Call(ref func, ref args) => {
-                        Ok(mk!(self, ExprDef::Construct(func.clone(), args.clone())))
+                        Ok(Expr::new(ExprDef::Construct(func.clone(), args.clone())))
                     }
                     _ => Err(ParseError::ExpectedExpr("constructor", call)),
                 }
             }
-            Keyword::TypeOf => Ok(mk!(self, ExprDef::TypeOf(Box::new(self.parse()?)))),
+            Keyword::TypeOf => Ok(Expr::new(ExprDef::TypeOf(Box::new(self.parse()?)))),
             Keyword::If => {
                 self.expect_punc(Punctuator::OpenParen, "if block")?;
                 let cond = self.parse()?;
                 self.expect_punc(Punctuator::CloseParen, "if block")?;
                 let expr = self.parse()?;
                 let next = self.get_token(self.pos);
-                Ok(mk!(
-                    self,
-                    ExprDef::If(
-                        Box::new(cond),
-                        Box::new(expr),
-                        if next.is_ok()
-                            && next.expect("Could not get next value").data
-                                == TokenData::Keyword(Keyword::Else)
-                        {
-                            self.pos += 1;
-                            Some(Box::new(self.parse()?))
-                        } else {
-                            None
-                        }
-                    )
-                ))
+                Ok(Expr::new(ExprDef::If(
+                    Box::new(cond),
+                    Box::new(expr),
+                    if next.is_ok()
+                        && next.expect("Could not get next value").data
+                            == TokenData::Keyword(Keyword::Else)
+                    {
+                        self.pos += 1;
+                        Some(Box::new(self.parse()?))
+                    } else {
+                        None
+                    },
+                )))
             }
             Keyword::While => {
                 self.expect_punc(Punctuator::OpenParen, "while condition")?;
                 let cond = self.parse()?;
                 self.expect_punc(Punctuator::CloseParen, "while condition")?;
                 let expr = self.parse()?;
-                Ok(mk!(
-                    self,
-                    ExprDef::WhileLoop(Box::new(cond), Box::new(expr))
-                ))
+                Ok(Expr::new(ExprDef::WhileLoop(
+                    Box::new(cond),
+                    Box::new(expr),
+                )))
             }
             Keyword::Switch => {
                 self.expect_punc(Punctuator::OpenParen, "switch value")?;
@@ -285,7 +268,7 @@ impl Parser {
                                     _ => block.push(self.parse()?),
                                 }
                             }
-                            default = Some(mk!(self, ExprDef::Block(block)));
+                            default = Some(Expr::new(ExprDef::Block(block)));
                         }
                         TokenData::Punctuator(Punctuator::CloseBlock) => break,
                         _ => {
@@ -302,17 +285,14 @@ impl Parser {
                     }
                 }
                 self.expect_punc(Punctuator::CloseBlock, "switch block")?;
-                Ok(mk!(
-                    self,
-                    ExprDef::Switch(
-                        Box::new(value.expect("Could not get value")),
-                        cases,
-                        match default {
-                            Some(v) => Some(Box::new(v)),
-                            None => None,
-                        }
-                    )
-                ))
+                Ok(Expr::new(ExprDef::Switch(
+                    Box::new(value.expect("Could not get value")),
+                    cases,
+                    match default {
+                        Some(v) => Some(Box::new(v)),
+                        None => None,
+                    },
+                )))
             }
             Keyword::Function => {
                 // function [identifier] () { etc }
@@ -334,10 +314,11 @@ impl Parser {
                 // Now we have the function identifier we should have an open paren for arguments ( )
                 let args = self.parse_function_parameters()?;
                 let block = self.parse()?;
-                Ok(mk!(
-                    self,
-                    ExprDef::FunctionDecl(name, args, Box::new(block))
-                ))
+                Ok(Expr::new(ExprDef::FunctionDecl(
+                    name,
+                    args,
+                    Box::new(block),
+                )))
             }
             _ => Err(ParseError::UnexpectedKeyword(keyword)),
         }
@@ -357,16 +338,16 @@ impl Parser {
                 self.parse()?
             }
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_) => {
-                mk!(self, ExprDef::Const(Const::Undefined))
+                Expr::new(ExprDef::Const(Const::Undefined))
             }
-            TokenData::NumericLiteral(num) => mk!(self, ExprDef::Const(Const::Num(num))),
-            TokenData::NullLiteral => mk!(self, ExprDef::Const(Const::Null)),
-            TokenData::StringLiteral(text) => mk!(self, ExprDef::Const(Const::String(text))),
-            TokenData::BooleanLiteral(val) => mk!(self, ExprDef::Const(Const::Bool(val))),
+            TokenData::NumericLiteral(num) => Expr::new(ExprDef::Const(Const::Num(num))),
+            TokenData::NullLiteral => Expr::new(ExprDef::Const(Const::Null)),
+            TokenData::StringLiteral(text) => Expr::new(ExprDef::Const(Const::String(text))),
+            TokenData::BooleanLiteral(val) => Expr::new(ExprDef::Const(Const::Bool(val))),
             TokenData::Identifier(ref s) if s == "undefined" => {
-                mk!(self, ExprDef::Const(Const::Undefined))
+                Expr::new(ExprDef::Const(Const::Undefined))
             }
-            TokenData::Identifier(s) => mk!(self, ExprDef::Local(s)),
+            TokenData::Identifier(s) => Expr::new(ExprDef::Local(s)),
             TokenData::Keyword(keyword) => self.parse_struct(keyword)?,
             TokenData::RegularExpressionLiteral(body, flags) => Expr::new(ExprDef::Construct(
                 Box::new(Expr::new(ExprDef::Local("RegExp".to_string()))),
@@ -383,11 +364,7 @@ impl Parser {
                     {
                         self.pos += 2;
                         let expr = self.parse()?;
-                        mk!(
-                            self,
-                            ExprDef::ArrowFunctionDecl(Vec::new(), Box::new(expr)),
-                            token
-                        )
+                        Expr::new(ExprDef::ArrowFunctionDecl(Vec::new(), Box::new(expr)))
                     }
                     _ => {
                         let next = self.parse()?;
@@ -449,11 +426,7 @@ impl Parser {
                                     "arrow function",
                                 )?;
                                 let expr = self.parse()?;
-                                mk!(
-                                    self,
-                                    ExprDef::ArrowFunctionDecl(args, Box::new(expr)),
-                                    token
-                                )
+                                Expr::new(ExprDef::ArrowFunctionDecl(args, Box::new(expr)))
                             }
                             _ => {
                                 return Err(ParseError::Expected(
@@ -479,7 +452,7 @@ impl Parser {
                         TokenData::Punctuator(Punctuator::Comma) => {
                             if !saw_expr_last {
                                 // An elision indicates that a space is saved in the array
-                                array.push(mk!(self, ExprDef::Const(Const::Undefined)))
+                                array.push(Expr::new(ExprDef::Const(Const::Undefined)))
                             }
                             saw_expr_last = false;
                             self.pos += 1;
@@ -502,14 +475,14 @@ impl Parser {
                         }
                     }
                 }
-                mk!(self, ExprDef::ArrayDecl(array), token)
+                Expr::new(ExprDef::ArrayDecl(array))
             }
             TokenData::Punctuator(Punctuator::OpenBlock)
                 if self.get_token(self.pos)?.data
                     == TokenData::Punctuator(Punctuator::CloseBlock) =>
             {
                 self.pos += 1;
-                mk!(self, ExprDef::ObjectDecl(Box::new(BTreeMap::new())), token)
+                Expr::new(ExprDef::ObjectDecl(Box::new(BTreeMap::new())))
             }
             TokenData::Punctuator(Punctuator::OpenBlock)
                 if self.get_token(self.pos.wrapping_add(1))?.data
@@ -546,11 +519,7 @@ impl Parser {
                             self.pos += 1; // {
                             let expr = self.parse()?;
                             self.pos += 1;
-                            mk!(
-                                self,
-                                ExprDef::FunctionDecl(None, args, Box::new(expr)),
-                                token
-                            )
+                            Expr::new(ExprDef::FunctionDecl(None, args, Box::new(expr)))
                         }
                         _ => {
                             return Err(ParseError::Expected(
@@ -566,7 +535,7 @@ impl Parser {
                     map.insert(name, value);
                     self.pos += 1;
                 }
-                mk!(self, ExprDef::ObjectDecl(map), token)
+                Expr::new(ExprDef::ObjectDecl(map))
             }
             TokenData::Punctuator(Punctuator::OpenBlock) => {
                 let mut exprs = Vec::new();
@@ -580,39 +549,35 @@ impl Parser {
                     }
                 }
                 self.pos += 1;
-                mk!(self, ExprDef::Block(exprs), token)
+                Expr::new(ExprDef::Block(exprs))
             }
             // Empty Block
             TokenData::Punctuator(Punctuator::CloseBlock)
                 if self.get_token(self.pos.wrapping_sub(2))?.data
                     == TokenData::Punctuator(Punctuator::OpenBlock) =>
             {
-                mk!(self, ExprDef::Block(vec!()), token)
+                Expr::new(ExprDef::Block(vec![]))
             }
-            TokenData::Punctuator(Punctuator::Sub) => mk!(
-                self,
-                ExprDef::UnaryOp(UnaryOp::Minus, Box::new(self.parse()?))
-            ),
-            TokenData::Punctuator(Punctuator::Add) => mk!(
-                self,
-                ExprDef::UnaryOp(UnaryOp::Plus, Box::new(self.parse()?))
-            ),
-            TokenData::Punctuator(Punctuator::Not) => mk!(
-                self,
-                ExprDef::UnaryOp(UnaryOp::Not, Box::new(self.parse()?))
-            ),
-            TokenData::Punctuator(Punctuator::Neg) => mk!(
-                self,
-                ExprDef::UnaryOp(UnaryOp::Tilde, Box::new(self.parse()?))
-            ),
-            TokenData::Punctuator(Punctuator::Inc) => mk!(
-                self,
-                ExprDef::UnaryOp(UnaryOp::IncrementPre, Box::new(self.parse()?))
-            ),
-            TokenData::Punctuator(Punctuator::Dec) => mk!(
-                self,
-                ExprDef::UnaryOp(UnaryOp::DecrementPre, Box::new(self.parse()?))
-            ),
+            TokenData::Punctuator(Punctuator::Sub) => {
+                Expr::new(ExprDef::UnaryOp(UnaryOp::Minus, Box::new(self.parse()?)))
+            }
+            TokenData::Punctuator(Punctuator::Add) => {
+                Expr::new(ExprDef::UnaryOp(UnaryOp::Plus, Box::new(self.parse()?)))
+            }
+            TokenData::Punctuator(Punctuator::Not) => {
+                Expr::new(ExprDef::UnaryOp(UnaryOp::Not, Box::new(self.parse()?)))
+            }
+            TokenData::Punctuator(Punctuator::Neg) => {
+                Expr::new(ExprDef::UnaryOp(UnaryOp::Tilde, Box::new(self.parse()?)))
+            }
+            TokenData::Punctuator(Punctuator::Inc) => Expr::new(ExprDef::UnaryOp(
+                UnaryOp::IncrementPre,
+                Box::new(self.parse()?),
+            )),
+            TokenData::Punctuator(Punctuator::Dec) => Expr::new(ExprDef::UnaryOp(
+                UnaryOp::DecrementPre,
+                Box::new(self.parse()?),
+            )),
             _ => return Err(ParseError::Expected(Vec::new(), token.clone(), "script")),
         };
         if self.pos >= self.tokens.len() {
@@ -632,7 +597,7 @@ impl Parser {
                 let tk = self.get_token(self.pos)?;
                 match tk.data {
                     TokenData::Identifier(ref s) => {
-                        result = mk!(self, ExprDef::GetConstField(Box::new(expr), s.to_string()))
+                        result = Expr::new(ExprDef::GetConstField(Box::new(expr), s.to_string()))
                     }
                     _ => {
                         return Err(ParseError::Expected(
@@ -676,17 +641,18 @@ impl Parser {
                         expect_comma_or_end = true;
                     }
                 }
-                result = mk!(self, ExprDef::Call(Box::new(expr), args));
+                result = Expr::new(ExprDef::Call(Box::new(expr), args));
             }
             TokenData::Punctuator(Punctuator::Question) => {
                 self.pos += 1;
                 let if_e = self.parse()?;
                 self.expect(TokenData::Punctuator(Punctuator::Colon), "if expression")?;
                 let else_e = self.parse()?;
-                result = mk!(
-                    self,
-                    ExprDef::If(Box::new(expr), Box::new(if_e), Some(Box::new(else_e)))
-                );
+                result = Expr::new(ExprDef::If(
+                    Box::new(expr),
+                    Box::new(if_e),
+                    Some(Box::new(else_e)),
+                ));
             }
             TokenData::Punctuator(Punctuator::OpenBracket) => {
                 self.pos += 1;
@@ -695,7 +661,7 @@ impl Parser {
                     TokenData::Punctuator(Punctuator::CloseBracket),
                     "array index",
                 )?;
-                result = mk!(self, ExprDef::GetField(Box::new(expr), Box::new(index)));
+                result = Expr::new(ExprDef::GetField(Box::new(expr), Box::new(index)));
             }
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_) => {
                 self.pos += 1;
@@ -703,7 +669,7 @@ impl Parser {
             TokenData::Punctuator(Punctuator::Assign) => {
                 self.pos += 1;
                 let next = self.parse()?;
-                result = mk!(self, ExprDef::Assign(Box::new(expr), Box::new(next)));
+                result = Expr::new(ExprDef::Assign(Box::new(expr), Box::new(next)));
             }
             TokenData::Punctuator(Punctuator::AssignAdd) => {
                 result = self.binop(BinOp::Assign(AssignOp::Add), expr)?
@@ -746,7 +712,7 @@ impl Parser {
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
                 let next = self.parse()?;
-                result = mk!(self, ExprDef::ArrowFunctionDecl(args, Box::new(next)));
+                result = Expr::new(ExprDef::ArrowFunctionDecl(args, Box::new(next)));
             }
             TokenData::Punctuator(Punctuator::Add) => {
                 result = self.binop(BinOp::Num(NumOp::Add), expr)?
@@ -812,16 +778,16 @@ impl Parser {
                 result = self.binop(BinOp::Comp(CompOp::GreaterThanOrEqual), expr)?
             }
             TokenData::Punctuator(Punctuator::Inc) => {
-                result = mk!(
-                    self,
-                    ExprDef::UnaryOp(UnaryOp::IncrementPost, Box::new(self.parse()?))
-                )
+                result = Expr::new(ExprDef::UnaryOp(
+                    UnaryOp::IncrementPost,
+                    Box::new(self.parse()?),
+                ))
             }
             TokenData::Punctuator(Punctuator::Dec) => {
-                result = mk!(
-                    self,
-                    ExprDef::UnaryOp(UnaryOp::DecrementPost, Box::new(self.parse()?))
-                )
+                result = Expr::new(ExprDef::UnaryOp(
+                    UnaryOp::DecrementPost,
+                    Box::new(self.parse()?),
+                ))
             }
             _ => carry_on = false,
         };
@@ -840,25 +806,20 @@ impl Parser {
             ExprDef::BinOp(ref op2, ref a, ref b) => {
                 let other_precedence = op2.get_precedence();
                 if precedence < other_precedence || (precedence == other_precedence && !assoc) {
-                    mk!(
-                        self,
-                        ExprDef::BinOp(
-                            op2.clone(),
-                            b.clone(),
-                            Box::new(mk!(
-                                self,
-                                ExprDef::BinOp(op.clone(), Box::new(orig), a.clone())
-                            ))
-                        )
-                    )
+                    Expr::new(ExprDef::BinOp(
+                        op2.clone(),
+                        b.clone(),
+                        Box::new(Expr::new(ExprDef::BinOp(
+                            op.clone(),
+                            Box::new(orig),
+                            a.clone(),
+                        ))),
+                    ))
                 } else {
-                    mk!(
-                        self,
-                        ExprDef::BinOp(op, Box::new(orig), Box::new(next.clone()))
-                    )
+                    Expr::new(ExprDef::BinOp(op, Box::new(orig), Box::new(next.clone())))
                 }
             }
-            _ => mk!(self, ExprDef::BinOp(op, Box::new(orig), Box::new(next))),
+            _ => Expr::new(ExprDef::BinOp(op, Box::new(orig), Box::new(next))),
         })
     }
 
