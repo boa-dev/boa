@@ -50,12 +50,6 @@ pub fn call_string(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     Ok(to_value(arg.to_string()))
 }
 
-/// Get a string's length
-pub fn get_string_length(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let this_str = ctx.value_to_rust_string(this);
-    Ok(to_value::<i32>(this_str.chars().count() as i32))
-}
-
 /// Get the string value to a primitive string
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     // Get String from String Object and send it back as a new value
@@ -741,7 +735,7 @@ pub fn create_constructor(global: &Value) -> Value {
 
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
-    let prop = Property::default().get(to_value(get_string_length as NativeFunctionData));
+    let prop = Property::default().value(to_value(0_i32));
 
     proto.set_prop_slice("length", prop);
     make_builtin_fn!(char_at, named "charAt", with length 1, of proto);
@@ -827,11 +821,12 @@ mod tests {
         var nice = new String('Have a nice day.');
         "#;
         forward(&mut engine, init);
+
+        // Todo: fix this
         let _a = forward(&mut engine, "hello.concat(world, nice)");
         let _b = forward(&mut engine, "hello + world + nice");
-        // Todo: fix this
-        //assert_eq!(a, String::from("Hello, world! Have a nice day."));
-        //assert_eq!(b, String::from("Hello, world! Have a nice day."));
+        // assert_eq!(a, String::from("Hello, world! Have a nice day."));
+        // assert_eq!(b, String::from("Hello, world! Have a nice day."));
     }
 
     #[allow(clippy::result_unwrap_used)]
