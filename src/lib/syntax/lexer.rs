@@ -434,6 +434,7 @@ impl<'a> Lexer<'a> {
                     if self.next_is('.') {
                         if self.next_is('.') {
                             self.push_punc(Punctuator::Spread);
+                            self.column_number += 2;
                         } else {
                             return Err(LexerError::new("Expecting Token ."));
                         }

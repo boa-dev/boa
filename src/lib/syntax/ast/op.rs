@@ -66,6 +66,8 @@ pub enum UnaryOp {
     Not,
     /// `~a` - bitwise-not of the value
     Tilde,
+    /// `...a` - spread an iterable value
+    Spread,
 }
 
 impl Display for UnaryOp {
@@ -80,6 +82,7 @@ impl Display for UnaryOp {
                 UnaryOp::Minus => "-",
                 UnaryOp::Not => "!",
                 UnaryOp::Tilde => "~",
+                UnaryOp::Spread => "...",
             }
         )
     }

@@ -849,7 +849,15 @@ impl Display for ValueData {
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
                 Function::RegularFunc(ref rf) => {
-                    write!(f, "function({}){}", rf.args.join(", "), rf.expr)
+                    write!(f, "function(")?;
+                    let last_index = rf.args.len() - 1;
+                    for (index, arg) in rf.args.iter().enumerate() {
+                        write!(f, "{}", arg)?;
+                        if index != last_index {
+                            write!(f, ", ")?;
+                        }
+                    }
+                    write!(f, "){}", rf.expr)
                 }
             },
         }
