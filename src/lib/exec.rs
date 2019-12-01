@@ -135,6 +135,9 @@ impl Executor for Interpreter {
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
+                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = arg.def {
+                        let val = self.run(x)?;
+                    }
                     v_args.push(self.run(arg)?);
                 }
 
@@ -265,6 +268,7 @@ impl Executor for Interpreter {
                             !(num_v_a as i32)
                         })
                     }
+                    UnaryOp::Spread => Gc::new(v_a), // for now we can do nothing but return the value as-is
                     _ => unreachable!(),
                 })
             }
