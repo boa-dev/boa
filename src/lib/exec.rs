@@ -773,7 +773,7 @@ impl Interpreter {
             }
         }
 
-        return Err(());
+        Err(());
     }
 }
 
