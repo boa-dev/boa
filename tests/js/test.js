@@ -1,7 +1,5 @@
 // Test your JS here
-const a = [1, "test", 3, 4];
-function foo(...a) {
-  return arguments;
-}
+var b = [4, 5, 6]
+var a = [1, 2, 3, ...b];
 
-foo(...a);
+console.log(a);

@@ -213,8 +213,17 @@ impl Executor for Interpreter {
             }
             ExprDef::ArrayDecl(ref arr) => {
                 let array = array::new_array(self)?;
-                let elements: Result<Vec<_>, _> = arr.iter().map(|val| self.run(val)).collect();
-                array::add_to_array_object(&array, &elements?)?;
+                let mut elements: Vec<Value> = vec![];
+                for elem in arr.iter() {
+                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = elem.def {
+                        let val = self.run(x)?;
+                        let mut vals = self.extract_array_properties(&val).unwrap();
+                        elements.append(&mut vals);
+                        break; // after spread we don't accept any new arguments
+                    }
+                    elements.push(self.run(elem)?);
+                }
+                array::add_to_array_object(&array, &elements)?;
                 Ok(array)
             }
             ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
@@ -834,6 +843,20 @@ mod tests {
 
         let four = forward(&mut engine, "result[3]");
         assert_eq!(four, String::from("4"));
+    }
+
+    #[test]
+    fn array_rest_with_arguments() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+            var b = [4, 5, 6]
+            var a = [1, 2, 3, ...b];
+        "#;
+        forward(&mut engine, scenario);
+        let one = forward(&mut engine, "a");
+        assert_eq!(one, String::from("[ 1, 2, 3, 4, 5, 6 ]"));
     }
 
     #[test]
