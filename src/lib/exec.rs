@@ -135,6 +135,12 @@ impl Executor for Interpreter {
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
+                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = arg.def {
+                        let val = self.run(x)?;
+                        let mut vals = self.extract_array_properties(&val).unwrap();
+                        v_args.append(&mut vals);
+                        break; // after spread we don't accept any new arguments
+                    }
                     v_args.push(self.run(arg)?);
                 }
 
@@ -207,8 +213,17 @@ impl Executor for Interpreter {
             }
             ExprDef::ArrayDecl(ref arr) => {
                 let array = array::new_array(self)?;
-                let elements: Result<Vec<_>, _> = arr.iter().map(|val| self.run(val)).collect();
-                array::add_to_array_object(&array, &elements?)?;
+                let mut elements: Vec<Value> = vec![];
+                for elem in arr.iter() {
+                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = elem.def {
+                        let val = self.run(x)?;
+                        let mut vals = self.extract_array_properties(&val).unwrap();
+                        elements.append(&mut vals);
+                        break; // after spread we don't accept any new arguments
+                    }
+                    elements.push(self.run(elem)?);
+                }
+                array::add_to_array_object(&array, &elements)?;
                 Ok(array)
             }
             ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
@@ -265,6 +280,7 @@ impl Executor for Interpreter {
                             !(num_v_a as i32)
                         })
                     }
+                    UnaryOp::Spread => Gc::new(v_a), // for now we can do nothing but return the value as-is
                     _ => unreachable!(),
                 })
             }
@@ -366,7 +382,13 @@ impl Executor for Interpreter {
                             ));
 
                             for i in 0..data.args.len() {
-                                let name = data.args.get(i).expect("Could not get data argument");
+                                let arg_expr =
+                                    data.args.get(i).expect("Could not get data argument");
+                                let name = match arg_expr.def {
+                                    ExprDef::Local(ref n) => Some(n),
+                                    _ => None,
+                                }
+                                .expect("Could not get argument");
                                 let expr = v_args.get(i).expect("Could not get argument");
                                 env.create_mutable_binding(
                                     name.clone(),
@@ -520,16 +542,37 @@ impl Interpreter {
                         Some(env.get_current_environment_ref().clone()),
                     ));
                     for i in 0..data.args.len() {
-                        let name = data.args.get(i).expect("Could not get data argument");
-                        let expr: &Value = arguments_list.get(i).expect("Could not get argument");
-                        self.realm.environment.create_mutable_binding(
-                            name.clone(),
-                            false,
-                            VariableScope::Function,
-                        );
-                        self.realm
-                            .environment
-                            .initialize_binding(name, expr.clone());
+                        let arg_expr = data.args.get(i).expect("Could not get data argument");
+                        match arg_expr.def {
+                            ExprDef::Local(ref name) => {
+                                let expr: &Value =
+                                    arguments_list.get(i).expect("Could not get argument");
+                                self.realm.environment.create_mutable_binding(
+                                    name.clone(),
+                                    false,
+                                    VariableScope::Function,
+                                );
+                                self.realm
+                                    .environment
+                                    .initialize_binding(name, expr.clone());
+                            }
+                            ExprDef::UnaryOp(UnaryOp::Spread, ref expr) => {
+                                if let ExprDef::Local(ref name) = expr.def {
+                                    let array = array::new_array(self)?;
+                                    array::add_to_array_object(&array, &arguments_list[i..])?;
+
+                                    self.realm.environment.create_mutable_binding(
+                                        name.clone(),
+                                        false,
+                                        VariableScope::Function,
+                                    );
+                                    self.realm.environment.initialize_binding(name, array);
+                                } else {
+                                    panic!("Unsupported function argument declaration")
+                                }
+                            }
+                            _ => panic!("Unsupported function argument declaration"),
+                        }
                     }
 
                     // Add arguments object
@@ -714,11 +757,34 @@ impl Interpreter {
             }
         }
     }
+
+    /// `extract_array_properties` converts an array object into a rust vector of Values.   
+    /// This is useful for the spread operator, for any other object an `Err` is returned
+    fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Gc<ValueData>>, ()> {
+        if let ValueData::Object(ref x) = *value.deref().borrow() {
+            // Check if object is array
+            if x.deref().borrow().kind == ObjectKind::Array {
+                let length: i32 =
+                    self.value_to_rust_number(&value.get_field_slice("length")) as i32;
+                let values: Vec<Gc<ValueData>> = (0..length)
+                    .map(|idx| value.get_field_slice(&idx.to_string()))
+                    .collect::<Vec<Value>>();
+                return Ok(values);
+            }
+
+            return Err(());
+        }
+
+        Err(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::exec;
+    use crate::exec::Executor;
+    use crate::forward;
+    use crate::realm::Realm;
 
     #[test]
     fn empty_let_decl_undefined() {
@@ -752,6 +818,47 @@ mod tests {
         m['key']
         "#;
         assert_eq!(exec(scenario), String::from("22"));
+    }
+
+    #[test]
+    fn spread_with_arguments() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+            const a = [1, "test", 3, 4];
+            function foo(...a) {
+                return arguments;
+            }
+            
+            var result = foo(...a);
+        "#;
+        forward(&mut engine, scenario);
+        let one = forward(&mut engine, "result[0]");
+        assert_eq!(one, String::from("1"));
+
+        let two = forward(&mut engine, "result[1]");
+        assert_eq!(two, String::from("test"));
+
+        let three = forward(&mut engine, "result[2]");
+        assert_eq!(three, String::from("3"));
+
+        let four = forward(&mut engine, "result[3]");
+        assert_eq!(four, String::from("4"));
+    }
+
+    #[test]
+    fn array_rest_with_arguments() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+            var b = [4, 5, 6]
+            var a = [1, 2, 3, ...b];
+        "#;
+        forward(&mut engine, scenario);
+        let one = forward(&mut engine, "a");
+        assert_eq!(one, String::from("[ 1, 2, 3, 4, 5, 6 ]"));
     }
 
     #[test]
