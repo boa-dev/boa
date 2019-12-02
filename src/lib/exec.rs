@@ -137,6 +137,9 @@ impl Executor for Interpreter {
                 for arg in args.iter() {
                     if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = arg.def {
                         let val = self.run(x)?;
+                        let mut vals = self.extract_array_properties(&val).unwrap();
+                        v_args.append(&mut vals);
+                        break; // after spread we don't accept any new arguments
                     }
                     v_args.push(self.run(arg)?);
                 }
@@ -745,11 +748,32 @@ impl Interpreter {
             }
         }
     }
+
+    /// `extract_array_properties` converts an array object into a rust vector of Values.   
+    /// This is useful for the spread operator, for any other object an `Err` is returned
+    fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Gc<ValueData>>, ()> {
+        if let ValueData::Object(ref x) = *value.deref().borrow() {
+            // Check if object is array
+            if x.deref().borrow().kind == ObjectKind::Array {
+                let length: i32 =
+                    self.value_to_rust_number(&value.get_field_slice("length")) as i32;
+                let values: Vec<Gc<ValueData>> = (0..length)
+                    .map(|idx| value.get_field_slice(&idx.to_string()))
+                    .collect::<Vec<Value>>();
+                return Ok(values);
+            }
+        }
+
+        return Err(());
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::exec;
+    use crate::exec::Executor;
+    use crate::forward;
+    use crate::realm::Realm;
 
     #[test]
     fn empty_let_decl_undefined() {
@@ -783,6 +807,33 @@ mod tests {
         m['key']
         "#;
         assert_eq!(exec(scenario), String::from("22"));
+    }
+
+    #[test]
+    fn spread_with_arguments() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+            const a = [1, "test", 3, 4];
+            function foo(...a) {
+                return arguments;
+            }
+            
+            var result = foo(...a);
+        "#;
+        forward(&mut engine, scenario);
+        let one = forward(&mut engine, "result[0]");
+        assert_eq!(one, String::from("1"));
+
+        let two = forward(&mut engine, "result[1]");
+        assert_eq!(two, String::from("test"));
+
+        let three = forward(&mut engine, "result[2]");
+        assert_eq!(three, String::from("3"));
+
+        let four = forward(&mut engine, "result[3]");
+        assert_eq!(four, String::from("4"));
     }
 
     #[test]

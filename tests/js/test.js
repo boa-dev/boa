@@ -1,7 +1,7 @@
 // Test your JS here
-let a = [1, 2, 3, 4]
-function jason(...a) {
-    console.log(arguments);
+const a = [1, "test", 3, 4];
+function foo(...a) {
+  return arguments;
 }
 
-jason(...a)
+foo(...a);
