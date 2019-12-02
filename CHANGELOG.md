@@ -7,8 +7,19 @@ Features:
 - [FEATURE #74](https://github.com/jasonwilliams/boa/issues/74):
   Enables Boa to run within the Test 262 framework.  
   This will help us see what is implemented or not within the spec
+  
+# [# 0.5.1 (2019-12-02) - Rest / Spread (almost)](https://github.com/jasonwilliams/boa/compare/v0.5.1...HEAD)
 
-# [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/jasonwilliams/boa/compare/v0.4.0...HEAD)
+Feature enhancements:
+
+- [FEATURE #151](https://github.com/jasonwilliams/boa/issues/151):
+  Implement the Rest/Spread operator (functions and arrays).
+- [FEATURE #193](https://github.com/jasonwilliams/boa/issues/193):
+  Implement macro for setting builtin functions
+- [FEATURE #211](https://github.com/jasonwilliams/boa/pull/211):
+   Better Display support for all Objects (pretty printing)
+  
+# [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/jasonwilliams/boa/compare/v0.4.0...v0.5.1)
 
 Feature enhancements:
 
