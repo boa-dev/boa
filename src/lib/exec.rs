@@ -771,9 +771,11 @@ impl Interpreter {
                     .collect::<Vec<Value>>();
                 return Ok(values);
             }
+
+            return Err(());
         }
 
-        Err(());
+        Err(())
     }
 }
 
