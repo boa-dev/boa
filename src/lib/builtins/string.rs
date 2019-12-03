@@ -9,7 +9,10 @@ use crate::{
     exec::Interpreter,
 };
 use gc::Gc;
-use regex::Captures;
+use regex::{
+    Captures,
+    Regex,
+};
 use std::{
     cmp::{max, min},
     f64::NAN,
@@ -731,22 +734,23 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     // Then we convert it into a Rust String
     let this_str: &str = &ctx.value_to_rust_string(this);
 
-    // Make a Rust Regex from the first argument
+    // Simple guard for undefined pattern
     let pattern = get_argument(args, 0);
     if pattern.is_undefined() {
-        return Ok(to_value(this_str));
+        return Ok(this.clone());
     }
 
+    // Make a Rust Regex from the first argument
     let pattern_re = if let Some(re_internal_state) = pattern.get_internal_state() {
         if let Some(pattern_jsre) = re_internal_state.downcast_ref::<RegExp>() {
             pattern_jsre.get_matcher().clone()
         } else {
             let pattern_str = &ctx.value_to_rust_string(&pattern);
-            regex::Regex::new(&regex::escape(pattern_str)).unwrap()
+            Regex::new(&regex::escape(pattern_str)).unwrap()
         }
     } else {
         let pattern_str = &ctx.value_to_rust_string(&pattern);
-        regex::Regex::new(&regex::escape(pattern_str)).unwrap()
+        Regex::new(&regex::escape(pattern_str)).unwrap()
     };
 
     // Make a replacement closure from the second argument
@@ -760,7 +764,7 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
                 .call(&replacement, &undefined(), args)
                 .unwrap_or_else(|_| undefined());
             ctx.value_to_rust_string(&rs_value)
-        }) as Box<dyn FnMut((&Captures)) -> (String)>
+        }) as Box<dyn FnMut(&Captures) -> String>
     } else {
         Box::new(|_: &Captures| ctx.value_to_rust_string(&replacement))
     };
@@ -1126,7 +1130,6 @@ mod tests {
             forward(&mut engine, "exceptional1"),
             "The quick brown fox jumps over the lazy dog. If the dog reacted, was it really lazy?"
         );
-        assert_eq!(forward(&mut engine, "exceptional2"), "The quick brown fox jumps over the lazy undefined. If the undefined reacted, was it really lazy?");
         assert_eq!(forward(&mut engine, "exceptional2"), "The quick brown fox jumps over the lazy undefined. If the undefined reacted, was it really lazy?");
     }
 }
