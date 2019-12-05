@@ -9,10 +9,7 @@ use crate::{
     exec::Interpreter,
 };
 use gc::Gc;
-use regex::{
-    Captures,
-    Regex,
-};
+use regex::{Captures, Regex};
 use std::{
     cmp::{max, min},
     f64::NAN,
