@@ -66,13 +66,44 @@ impl Executor for Interpreter {
         match expr.def {
             ExprDef::Const(Const::Null) => Ok(to_value(None::<()>)),
             ExprDef::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
-            ExprDef::Const(Const::Num(num)) => Ok(to_value(num)),
+            ExprDef::Const(Const::Num(num)) => {
+                let value = to_value(num);
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .get_field_slice(PROTOTYPE);
+                let number_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::Number);
+                number_obj.set_internal_slot("NumberData", value.clone());
+                Ok(number_obj)
+            }
             ExprDef::Const(Const::Int(num)) => Ok(to_value(num)),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            ExprDef::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
-            ExprDef::Const(Const::Bool(val)) => Ok(to_value(val)),
+            ExprDef::Const(Const::String(ref str)) => {
+                let value = to_value(str.to_string());
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("String")
+                    .get_field_slice(PROTOTYPE);
+                let string_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::String);
+                string_obj.set_internal_slot("StringData", value.clone());
+                Ok(string_obj)
+            }
+            ExprDef::Const(Const::Bool(val)) => {
+                let value = to_value(val);
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("Boolean")
+                    .get_field_slice(PROTOTYPE);
+
+                let bool_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::Boolean);
+                bool_obj.set_internal_slot("BooleanData", value.clone());
+                Ok(bool_obj)
+            }
             ExprDef::Block(ref es) => {
                 {
                     let env = &mut self.realm.environment;
