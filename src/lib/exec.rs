@@ -63,448 +63,481 @@ impl Executor for Interpreter {
 
     #[allow(clippy::match_same_arms)]
     fn run(&mut self, expr: &Expr) -> ResultValue {
-        match expr.def {
-            ExprDef::Const(Const::Null) => Ok(to_value(None::<()>)),
-            ExprDef::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
-            ExprDef::Const(Const::Num(num)) => Ok(to_value(num)),
-            ExprDef::Const(Const::Int(num)) => Ok(to_value(num)),
-            // we can't move String from Const into value, because const is a garbage collected value
-            // Which means Drop() get's called on Const, but str will be gone at that point.
-            // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            ExprDef::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
-            ExprDef::Const(Const::Bool(val)) => Ok(to_value(val)),
-            ExprDef::Block(ref es) => {
-                {
-                    let env = &mut self.realm.environment;
-                    env.push(new_declarative_environment(Some(
-                        env.get_current_environment_ref().clone(),
-                    )));
-                }
+        let mut expr_s = Vec::new();
+        let mut val_s: Vec<ResultValue> = Vec::new();
 
-                let mut obj = to_value(None::<()>);
-                for e in es.iter() {
-                    let val = self.run(e)?;
-                    // early return
-                    if self.is_return {
-                        obj = val;
-                        break;
+        expr_s.push((expr, false));
+
+        while let Some((expr, can_eval)) = expr_s.pop() {
+            dbg!(&expr);
+
+            let val = match expr.def {
+                ExprDef::Const(Const::Null) => Ok(to_value(None::<()>)),
+                ExprDef::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
+                ExprDef::Const(Const::Num(num)) => Ok(to_value(num)),
+                ExprDef::Const(Const::Int(num)) => Ok(to_value(num)),
+                // we can't move String from Const into value, because const is a garbage collected value
+                // Which means Drop() get's called on Const, but str will be gone at that point.
+                // Do Const values need to be garbage collected? We no longer need them once we've generated Values
+                ExprDef::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
+                ExprDef::Const(Const::Bool(val)) => Ok(to_value(val)),
+                ExprDef::Block(ref es) => {
+                    {
+                        let env = &mut self.realm.environment;
+                        env.push(new_declarative_environment(Some(
+                            env.get_current_environment_ref().clone(),
+                        )));
                     }
-                    if e == es.last().expect("unable to get last value") {
-                        obj = val;
-                    }
-                }
 
-                // pop the block env
-                let _ = self.realm.environment.pop();
-
-                Ok(obj)
-            }
-            ExprDef::Local(ref name) => {
-                let val = self.realm.environment.get_binding_value(name);
-                Ok(val)
-            }
-            ExprDef::GetConstField(ref obj, ref field) => {
-                let val_obj = self.run(obj)?;
-                Ok(val_obj.borrow().get_field_slice(field))
-            }
-            ExprDef::GetField(ref obj, ref field) => {
-                let val_obj = self.run(obj)?;
-                let val_field = self.run(field)?;
-                Ok(val_obj
-                    .borrow()
-                    .get_field_slice(&val_field.borrow().to_string()))
-            }
-            ExprDef::Call(ref callee, ref args) => {
-                let (this, func) = match callee.def {
-                    ExprDef::GetConstField(ref obj, ref field) => {
-                        let mut obj = self.run(obj)?;
-                        if obj.get_type() != "object" || obj.get_type() != "symbol" {
-                            obj = self.to_object(&obj).expect("failed to convert to object");
+                    let mut obj = to_value(None::<()>);
+                    for e in es.iter() {
+                        let val = self.run(e)?;
+                        // early return
+                        if self.is_return {
+                            obj = val;
+                            break;
                         }
-                        (obj.clone(), obj.borrow().get_field_slice(field))
-                    }
-                    ExprDef::GetField(ref obj, ref field) => {
-                        let obj = self.run(obj)?;
-                        let field = self.run(field)?;
-                        (
-                            obj.clone(),
-                            obj.borrow().get_field_slice(&field.borrow().to_string()),
-                        )
-                    }
-                    _ => (self.realm.global_obj.clone(), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
-                };
-                let mut v_args = Vec::with_capacity(args.len());
-                for arg in args.iter() {
-                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = arg.def {
-                        let val = self.run(x)?;
-                        let mut vals = self.extract_array_properties(&val).unwrap();
-                        v_args.append(&mut vals);
-                        break; // after spread we don't accept any new arguments
-                    }
-                    v_args.push(self.run(arg)?);
-                }
-
-                // execute the function call itself
-                let fnct_result = self.call(&func, &this, v_args);
-
-                // unset the early return flag
-                self.is_return = false;
-
-                fnct_result
-            }
-            ExprDef::WhileLoop(ref cond, ref expr) => {
-                let mut result = Gc::new(ValueData::Undefined);
-                while self.run(cond)?.borrow().is_true() {
-                    result = self.run(expr)?;
-                }
-                Ok(result)
-            }
-            ExprDef::If(ref cond, ref expr, None) => Ok(if self.run(cond)?.borrow().is_true() {
-                self.run(expr)?
-            } else {
-                Gc::new(ValueData::Undefined)
-            }),
-            ExprDef::If(ref cond, ref expr, Some(ref else_e)) => {
-                Ok(if self.run(cond)?.borrow().is_true() {
-                    self.run(expr)?
-                } else {
-                    self.run(else_e)?
-                })
-            }
-            ExprDef::Switch(ref val_e, ref vals, ref default) => {
-                let val = self.run(val_e)?.clone();
-                let mut result = Gc::new(ValueData::Null);
-                let mut matched = false;
-                for tup in vals.iter() {
-                    let tup: &(Expr, Vec<Expr>) = tup;
-                    let cond = &tup.0;
-                    let block = &tup.1;
-                    if val == self.run(cond)? {
-                        matched = true;
-                        let last_expr = block.last().expect("Block has no expressions");
-                        for expr in block.iter() {
-                            let e_result = self.run(expr)?;
-                            if expr == last_expr {
-                                result = e_result;
-                            }
+                        if e == es.last().expect("unable to get last value") {
+                            obj = val;
                         }
                     }
+
+                    // pop the block env
+                    let _ = self.realm.environment.pop();
+
+                    Ok(obj)
                 }
-                if !matched && default.is_some() {
-                    result = self.run(
-                        default
-                            .as_ref()
-                            .expect("Could not get default as reference"),
-                    )?;
-                }
-                Ok(result)
-            }
-            ExprDef::ObjectDecl(ref map) => {
-                let global_val = &self
-                    .realm
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let obj = ValueData::new_obj(Some(global_val));
-                for (key, val) in map.iter() {
-                    obj.borrow().set_field_slice(&key.clone(), self.run(val)?);
-                }
-                Ok(obj)
-            }
-            ExprDef::ArrayDecl(ref arr) => {
-                let array = array::new_array(self)?;
-                let mut elements: Vec<Value> = vec![];
-                for elem in arr.iter() {
-                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = elem.def {
-                        let val = self.run(x)?;
-                        let mut vals = self.extract_array_properties(&val).unwrap();
-                        elements.append(&mut vals);
-                        break; // after spread we don't accept any new arguments
-                    }
-                    elements.push(self.run(elem)?);
-                }
-                array::add_to_array_object(&array, &elements)?;
-                Ok(array)
-            }
-            ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
-                let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
-                if name.is_some() {
-                    self.realm.environment.create_mutable_binding(
-                        name.clone().expect("No name was supplied"),
-                        false,
-                        VariableScope::Function,
-                    );
-                    self.realm.environment.initialize_binding(
-                        name.as_ref().expect("Could not get name as reference"),
-                        val.clone(),
-                    )
-                }
-                Ok(val)
-            }
-            ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
-                Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
-                    function,
-                )))))
-            }
-            ExprDef::BinOp(BinOp::Num(ref op), ref a, ref b) => {
-                let v_r_a = self.run(a)?;
-                let v_r_b = self.run(b)?;
-                let v_a = (*v_r_a).clone();
-                let v_b = (*v_r_b).clone();
-                Ok(Gc::new(match *op {
-                    NumOp::Add => v_a + v_b,
-                    NumOp::Sub => v_a - v_b,
-                    NumOp::Mul => v_a * v_b,
-                    NumOp::Pow => v_a.as_num_to_power(v_b),
-                    NumOp::Div => v_a / v_b,
-                    NumOp::Mod => v_a % v_b,
-                }))
-            }
-            ExprDef::UnaryOp(ref op, ref a) => {
-                let v_r_a = self.run(a)?;
-                let v_a = (*v_r_a).clone();
-                Ok(match *op {
-                    UnaryOp::Minus => to_value(-v_a.to_num()),
-                    UnaryOp::Plus => to_value(v_a.to_num()),
-                    UnaryOp::Not => Gc::new(!v_a),
-                    UnaryOp::Tilde => {
-                        let num_v_a = v_a.to_num();
-                        // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
-                        to_value(if num_v_a.is_nan() {
-                            -1
-                        } else {
-                            !(num_v_a as i32)
-                        })
-                    }
-                    UnaryOp::Spread => Gc::new(v_a), // for now we can do nothing but return the value as-is
-                    _ => unreachable!(),
-                })
-            }
-            ExprDef::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
-                let v_r_a = self.run(a)?;
-                let v_r_b = self.run(b)?;
-                let v_a = (*v_r_a).clone();
-                let v_b = (*v_r_b).clone();
-                Ok(Gc::new(match *op {
-                    BitOp::And => v_a & v_b,
-                    BitOp::Or => v_a | v_b,
-                    BitOp::Xor => v_a ^ v_b,
-                    BitOp::Shl => v_a << v_b,
-                    BitOp::Shr => v_a >> v_b,
-                }))
-            }
-            ExprDef::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
-                let v_r_a = self.run(a)?;
-                let v_r_b = self.run(b)?;
-                let v_a = v_r_a.borrow();
-                let v_b = v_r_b.borrow();
-                Ok(to_value(match *op {
-                    CompOp::Equal if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::Equal => v_a == v_b,
-                    CompOp::NotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::NotEqual => v_a != v_b,
-                    CompOp::StrictEqual if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::StrictEqual => v_a == v_b,
-                    CompOp::StrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::StrictNotEqual => v_a != v_b,
-                    CompOp::GreaterThan => v_a.to_num() > v_b.to_num(),
-                    CompOp::GreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
-                    CompOp::LessThan => v_a.to_num() < v_b.to_num(),
-                    CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
-                }))
-            }
-            ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
-                // turn a `Value` into a `bool`
-                let to_bool =
-                    |val| from_value::<bool>(val).expect("Could not convert JS value to bool");
-                Ok(match *op {
-                    LogOp::And => to_value(to_bool(self.run(a)?) && to_bool(self.run(b)?)),
-                    LogOp::Or => to_value(to_bool(self.run(a)?) || to_bool(self.run(b)?)),
-                })
-            }
-            ExprDef::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.def {
                 ExprDef::Local(ref name) => {
-                    let v_a = (*self.realm.environment.get_binding_value(&name)).clone();
-                    let v_b = (*self.run(b)?).clone();
-                    let value = exec_assign_op(op, v_a, v_b);
-                    self.realm
-                        .environment
-                        .set_mutable_binding(&name, value.clone(), true);
-                    Ok(value)
+                    let val = self.realm.environment.get_binding_value(name);
+                    Ok(val)
                 }
                 ExprDef::GetConstField(ref obj, ref field) => {
-                    let v_r_a = self.run(obj)?;
-                    let v_a = (*v_r_a.borrow().get_field_slice(field)).clone();
-                    let v_b = (*self.run(b)?).clone();
-                    let value = exec_assign_op(op, v_a, v_b.clone());
-                    v_r_a
+                    let val_obj = self.run(obj)?;
+                    Ok(val_obj.borrow().get_field_slice(field))
+                }
+                ExprDef::GetField(ref obj, ref field) => {
+                    let val_obj = self.run(obj)?;
+                    let val_field = self.run(field)?;
+                    Ok(val_obj
                         .borrow()
-                        .set_field_slice(&field.clone(), value.clone());
-                    Ok(value)
+                        .get_field_slice(&val_field.borrow().to_string()))
                 }
-                _ => Ok(Gc::new(ValueData::Undefined)),
-            },
-            ExprDef::Construct(ref callee, ref args) => {
-                let func_object = self.run(callee)?;
-                let mut v_args = Vec::with_capacity(args.len());
-                for arg in args.iter() {
-                    v_args.push(self.run(arg)?);
-                }
-                let this = ValueData::new_obj(None);
-                // Create a blank object, then set its __proto__ property to the [Constructor].prototype
-                this.borrow().set_internal_slot(
-                    INSTANCE_PROTOTYPE,
-                    func_object.borrow().get_field_slice(PROTOTYPE),
-                );
-
-                let construct = func_object.get_internal_slot("construct");
-
-                match *construct {
-                    ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
-                        Function::NativeFunc(ref ntv) => {
-                            let func = ntv.data;
-                            match func(&this, &v_args, self) {
-                                Ok(_) => Ok(this),
-                                Err(ref v) => Err(v.clone()),
+                ExprDef::Call(ref callee, ref args) => {
+                    let (this, func) = match callee.def {
+                        ExprDef::GetConstField(ref obj, ref field) => {
+                            let mut obj = self.run(obj)?;
+                            if obj.get_type() != "object" || obj.get_type() != "symbol" {
+                                obj = self.to_object(&obj).expect("failed to convert to object");
                             }
+                            (obj.clone(), obj.borrow().get_field_slice(field))
                         }
-                        Function::RegularFunc(ref data) => {
-                            // Create new scope
-                            let env = &mut self.realm.environment;
-                            env.push(new_function_environment(
-                                construct.clone(),
-                                this.clone(),
-                                Some(env.get_current_environment_ref().clone()),
-                            ));
+                        ExprDef::GetField(ref obj, ref field) => {
+                            let obj = self.run(obj)?;
+                            let field = self.run(field)?;
+                            (
+                                obj.clone(),
+                                obj.borrow().get_field_slice(&field.borrow().to_string()),
+                            )
+                        }
+                        _ => (self.realm.global_obj.clone(), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
+                    };
+                    let mut v_args = Vec::with_capacity(args.len());
+                    for arg in args.iter() {
+                        if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = arg.def {
+                            let val = self.run(x)?;
+                            let mut vals = self.extract_array_properties(&val).unwrap();
+                            v_args.append(&mut vals);
+                            break; // after spread we don't accept any new arguments
+                        }
+                        v_args.push(self.run(arg)?);
+                    }
 
-                            for i in 0..data.args.len() {
-                                let arg_expr =
-                                    data.args.get(i).expect("Could not get data argument");
-                                let name = match arg_expr.def {
-                                    ExprDef::Local(ref n) => Some(n),
-                                    _ => None,
+                    // execute the function call itself
+                    let fnct_result = self.call(&func, &this, v_args);
+
+                    // unset the early return flag
+                    self.is_return = false;
+
+                    fnct_result
+                }
+                ExprDef::WhileLoop(ref cond, ref expr) => {
+                    let mut result = Gc::new(ValueData::Undefined);
+                    while self.run(cond)?.borrow().is_true() {
+                        result = self.run(expr)?;
+                    }
+                    Ok(result)
+                }
+                ExprDef::If(ref cond, ref expr, None) => {
+                    Ok(if self.run(cond)?.borrow().is_true() {
+                        self.run(expr)?
+                    } else {
+                        Gc::new(ValueData::Undefined)
+                    })
+                }
+                ExprDef::If(ref cond, ref expr, Some(ref else_e)) => {
+                    Ok(if self.run(cond)?.borrow().is_true() {
+                        self.run(expr)?
+                    } else {
+                        self.run(else_e)?
+                    })
+                }
+                ExprDef::Switch(ref val_e, ref vals, ref default) => {
+                    let val = self.run(val_e)?.clone();
+                    let mut result = Gc::new(ValueData::Null);
+                    let mut matched = false;
+                    for tup in vals.iter() {
+                        let tup: &(Expr, Vec<Expr>) = tup;
+                        let cond = &tup.0;
+                        let block = &tup.1;
+                        if val == self.run(cond)? {
+                            matched = true;
+                            let last_expr = block.last().expect("Block has no expressions");
+                            for expr in block.iter() {
+                                let e_result = self.run(expr)?;
+                                if expr == last_expr {
+                                    result = e_result;
                                 }
-                                .expect("Could not get argument");
-                                let expr = v_args.get(i).expect("Could not get argument");
-                                env.create_mutable_binding(
-                                    name.clone(),
-                                    false,
-                                    VariableScope::Function,
-                                );
-                                env.initialize_binding(name, expr.to_owned());
                             }
-                            let result = self.run(&data.expr);
-                            self.realm.environment.pop();
-                            result
                         }
-                    },
-                    _ => Ok(Gc::new(ValueData::Undefined)),
+                    }
+                    if !matched && default.is_some() {
+                        result = self.run(
+                            default
+                                .as_ref()
+                                .expect("Could not get default as reference"),
+                        )?;
+                    }
+                    Ok(result)
                 }
-            }
-            ExprDef::Return(ref ret) => {
-                let result = match *ret {
-                    Some(ref v) => self.run(v),
-                    None => Ok(Gc::new(ValueData::Undefined)),
-                };
-                // Set flag for return
-                self.is_return = true;
-                result
-            }
-            ExprDef::Throw(ref ex) => Err(self.run(ex)?),
-            ExprDef::Assign(ref ref_e, ref val_e) => {
-                let val = self.run(val_e)?;
-                match ref_e.def {
-                    ExprDef::Local(ref name) => {
-                        if self.realm.environment.has_binding(name) {
-                            // Binding already exists
-                            self.realm
-                                .environment
-                                .set_mutable_binding(&name, val.clone(), true);
-                        } else {
-                            self.realm.environment.create_mutable_binding(
-                                name.clone(),
-                                true,
-                                VariableScope::Function,
-                            );
-                            self.realm.environment.initialize_binding(name, val.clone());
+                ExprDef::ObjectDecl(ref map) => {
+                    let global_val = &self
+                        .realm
+                        .environment
+                        .get_global_object()
+                        .expect("Could not get the global object");
+                    let obj = ValueData::new_obj(Some(global_val));
+                    for (key, val) in map.iter() {
+                        obj.borrow().set_field_slice(&key.clone(), self.run(val)?);
+                    }
+                    Ok(obj)
+                }
+                ExprDef::ArrayDecl(ref arr) => {
+                    let array = array::new_array(self)?;
+                    let mut elements: Vec<Value> = vec![];
+                    for elem in arr.iter() {
+                        if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = elem.def {
+                            let val = self.run(x)?;
+                            let mut vals = self.extract_array_properties(&val).unwrap();
+                            elements.append(&mut vals);
+                            break; // after spread we don't accept any new arguments
                         }
+                        elements.push(self.run(elem)?);
+                    }
+                    array::add_to_array_object(&array, &elements)?;
+                    Ok(array)
+                }
+                ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
+                    let function =
+                        Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
+                    let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
+                    if name.is_some() {
+                        self.realm.environment.create_mutable_binding(
+                            name.clone().expect("No name was supplied"),
+                            false,
+                            VariableScope::Function,
+                        );
+                        self.realm.environment.initialize_binding(
+                            name.as_ref().expect("Could not get name as reference"),
+                            val.clone(),
+                        )
+                    }
+                    Ok(val)
+                }
+                ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
+                    let function =
+                        Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
+                    Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
+                        function,
+                    )))))
+                }
+                ExprDef::BinOp(BinOp::Num(ref op), ref a, ref b) => {
+
+                    if !can_eval {
+                        expr_s.push((expr, true));
+                        expr_s.push((a, false));
+                        expr_s.push((b, false));
+                        continue;
+                    }
+
+                    /*
+                    let v_r_a = self.run(a)?;
+                    let v_r_b = self.run(b)?;
+                    let v_a = (*v_r_a).clone();
+                    let v_b = (*v_r_b).clone();
+                    */
+                    let v_r_a = val_s.pop().unwrap()?;
+                    let v_r_b = val_s.pop().unwrap()?;
+                    let v_a = (*v_r_a).clone();
+                    let v_b = (*v_r_b).clone();
+                    Ok(Gc::new(match *op {
+                        NumOp::Add => v_a + v_b,
+                        NumOp::Sub => v_a - v_b,
+                        NumOp::Mul => v_a * v_b,
+                        NumOp::Pow => v_a.as_num_to_power(v_b),
+                        NumOp::Div => v_a / v_b,
+                        NumOp::Mod => v_a % v_b,
+                    }))
+                }
+                ExprDef::UnaryOp(ref op, ref a) => {
+                    let v_r_a = self.run(a)?;
+                    let v_a = (*v_r_a).clone();
+                    Ok(match *op {
+                        UnaryOp::Minus => to_value(-v_a.to_num()),
+                        UnaryOp::Plus => to_value(v_a.to_num()),
+                        UnaryOp::Not => Gc::new(!v_a),
+                        UnaryOp::Tilde => {
+                            let num_v_a = v_a.to_num();
+                            // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
+                            to_value(if num_v_a.is_nan() {
+                                -1
+                            } else {
+                                !(num_v_a as i32)
+                            })
+                        }
+                        UnaryOp::Spread => Gc::new(v_a), // for now we can do nothing but return the value as-is
+                        _ => unreachable!(),
+                    })
+                }
+                ExprDef::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
+                    let v_r_a = self.run(a)?;
+                    let v_r_b = self.run(b)?;
+                    let v_a = (*v_r_a).clone();
+                    let v_b = (*v_r_b).clone();
+                    Ok(Gc::new(match *op {
+                        BitOp::And => v_a & v_b,
+                        BitOp::Or => v_a | v_b,
+                        BitOp::Xor => v_a ^ v_b,
+                        BitOp::Shl => v_a << v_b,
+                        BitOp::Shr => v_a >> v_b,
+                    }))
+                }
+                ExprDef::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
+                    let v_r_a = self.run(a)?;
+                    let v_r_b = self.run(b)?;
+                    let v_a = v_r_a.borrow();
+                    let v_b = v_r_b.borrow();
+                    Ok(to_value(match *op {
+                        CompOp::Equal if v_a.is_object() => v_r_a == v_r_b,
+                        CompOp::Equal => v_a == v_b,
+                        CompOp::NotEqual if v_a.is_object() => v_r_a != v_r_b,
+                        CompOp::NotEqual => v_a != v_b,
+                        CompOp::StrictEqual if v_a.is_object() => v_r_a == v_r_b,
+                        CompOp::StrictEqual => v_a == v_b,
+                        CompOp::StrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
+                        CompOp::StrictNotEqual => v_a != v_b,
+                        CompOp::GreaterThan => v_a.to_num() > v_b.to_num(),
+                        CompOp::GreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
+                        CompOp::LessThan => v_a.to_num() < v_b.to_num(),
+                        CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
+                    }))
+                }
+                ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
+                    // turn a `Value` into a `bool`
+                    let to_bool =
+                        |val| from_value::<bool>(val).expect("Could not convert JS value to bool");
+                    Ok(match *op {
+                        LogOp::And => to_value(to_bool(self.run(a)?) && to_bool(self.run(b)?)),
+                        LogOp::Or => to_value(to_bool(self.run(a)?) || to_bool(self.run(b)?)),
+                    })
+                }
+                ExprDef::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.def {
+                    ExprDef::Local(ref name) => {
+                        let v_a = (*self.realm.environment.get_binding_value(&name)).clone();
+                        let v_b = (*self.run(b)?).clone();
+                        let value = exec_assign_op(op, v_a, v_b);
+                        self.realm
+                            .environment
+                            .set_mutable_binding(&name, value.clone(), true);
+                        Ok(value)
                     }
                     ExprDef::GetConstField(ref obj, ref field) => {
-                        let val_obj = self.run(obj)?;
-                        val_obj
+                        let v_r_a = self.run(obj)?;
+                        let v_a = (*v_r_a.borrow().get_field_slice(field)).clone();
+                        let v_b = (*self.run(b)?).clone();
+                        let value = exec_assign_op(op, v_a, v_b.clone());
+                        v_r_a
                             .borrow()
-                            .set_field_slice(&field.clone(), val.clone());
+                            .set_field_slice(&field.clone(), value.clone());
+                        Ok(value)
                     }
-                    ExprDef::GetField(ref obj, ref field) => {
-                        let val_obj = self.run(obj)?;
-                        let val_field = self.run(field)?;
-                        val_obj.borrow().set_field(val_field, val.clone());
+                    _ => Ok(Gc::new(ValueData::Undefined)),
+                },
+                ExprDef::Construct(ref callee, ref args) => {
+                    let func_object = self.run(callee)?;
+                    let mut v_args = Vec::with_capacity(args.len());
+                    for arg in args.iter() {
+                        v_args.push(self.run(arg)?);
                     }
-                    _ => (),
+                    let this = ValueData::new_obj(None);
+                    // Create a blank object, then set its __proto__ property to the [Constructor].prototype
+                    this.borrow().set_internal_slot(
+                        INSTANCE_PROTOTYPE,
+                        func_object.borrow().get_field_slice(PROTOTYPE),
+                    );
+
+                    let construct = func_object.get_internal_slot("construct");
+
+                    match *construct {
+                        ValueData::Function(ref inner_func) => {
+                            match inner_func.clone().into_inner() {
+                                Function::NativeFunc(ref ntv) => {
+                                    let func = ntv.data;
+                                    match func(&this, &v_args, self) {
+                                        Ok(_) => Ok(this),
+                                        Err(ref v) => Err(v.clone()),
+                                    }
+                                }
+                                Function::RegularFunc(ref data) => {
+                                    // Create new scope
+                                    let env = &mut self.realm.environment;
+                                    env.push(new_function_environment(
+                                        construct.clone(),
+                                        this.clone(),
+                                        Some(env.get_current_environment_ref().clone()),
+                                    ));
+
+                                    for i in 0..data.args.len() {
+                                        let arg_expr =
+                                            data.args.get(i).expect("Could not get data argument");
+                                        let name = match arg_expr.def {
+                                            ExprDef::Local(ref n) => Some(n),
+                                            _ => None,
+                                        }
+                                        .expect("Could not get argument");
+                                        let expr = v_args.get(i).expect("Could not get argument");
+                                        env.create_mutable_binding(
+                                            name.clone(),
+                                            false,
+                                            VariableScope::Function,
+                                        );
+                                        env.initialize_binding(name, expr.to_owned());
+                                    }
+                                    let result = self.run(&data.expr);
+                                    self.realm.environment.pop();
+                                    result
+                                }
+                            }
+                        }
+                        _ => Ok(Gc::new(ValueData::Undefined)),
+                    }
                 }
-                Ok(val)
-            }
-            ExprDef::VarDecl(ref vars) => {
-                for var in vars.iter() {
-                    let (name, value) = var.clone();
-                    let val = match value {
-                        Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Undefined),
+                ExprDef::Return(ref ret) => {
+                    let result = match *ret {
+                        Some(ref v) => self.run(v),
+                        None => Ok(Gc::new(ValueData::Undefined)),
                     };
-                    self.realm.environment.create_mutable_binding(
-                        name.clone(),
-                        false,
-                        VariableScope::Function,
-                    );
-                    self.realm.environment.initialize_binding(&name, val);
+                    // Set flag for return
+                    self.is_return = true;
+                    result
                 }
-                Ok(Gc::new(ValueData::Undefined))
-            }
-            ExprDef::LetDecl(ref vars) => {
-                for var in vars.iter() {
-                    let (name, value) = var.clone();
-                    let val = match value {
-                        Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Undefined),
-                    };
-                    self.realm.environment.create_mutable_binding(
-                        name.clone(),
-                        false,
-                        VariableScope::Block,
-                    );
-                    self.realm.environment.initialize_binding(&name, val);
+                ExprDef::Throw(ref ex) => Err(self.run(ex)?),
+                ExprDef::Assign(ref ref_e, ref val_e) => {
+                    let val = self.run(val_e)?;
+                    match ref_e.def {
+                        ExprDef::Local(ref name) => {
+                            if self.realm.environment.has_binding(name) {
+                                // Binding already exists
+                                self.realm.environment.set_mutable_binding(
+                                    &name,
+                                    val.clone(),
+                                    true,
+                                );
+                            } else {
+                                self.realm.environment.create_mutable_binding(
+                                    name.clone(),
+                                    true,
+                                    VariableScope::Function,
+                                );
+                                self.realm.environment.initialize_binding(name, val.clone());
+                            }
+                        }
+                        ExprDef::GetConstField(ref obj, ref field) => {
+                            let val_obj = self.run(obj)?;
+                            val_obj
+                                .borrow()
+                                .set_field_slice(&field.clone(), val.clone());
+                        }
+                        ExprDef::GetField(ref obj, ref field) => {
+                            let val_obj = self.run(obj)?;
+                            let val_field = self.run(field)?;
+                            val_obj.borrow().set_field(val_field, val.clone());
+                        }
+                        _ => (),
+                    }
+                    Ok(val)
                 }
-                Ok(Gc::new(ValueData::Undefined))
-            }
-            ExprDef::ConstDecl(ref vars) => {
-                for (name, value) in vars.iter() {
-                    self.realm.environment.create_immutable_binding(
-                        name.clone(),
-                        false,
-                        VariableScope::Block,
-                    );
-                    let val = self.run(&value)?;
-                    self.realm.environment.initialize_binding(&name, val);
+                ExprDef::VarDecl(ref vars) => {
+                    for var in vars.iter() {
+                        let (name, value) = var.clone();
+                        let val = match value {
+                            Some(v) => self.run(&v)?,
+                            None => Gc::new(ValueData::Undefined),
+                        };
+                        self.realm.environment.create_mutable_binding(
+                            name.clone(),
+                            false,
+                            VariableScope::Function,
+                        );
+                        self.realm.environment.initialize_binding(&name, val);
+                    }
+                    Ok(Gc::new(ValueData::Undefined))
                 }
-                Ok(Gc::new(ValueData::Undefined))
-            }
-            ExprDef::TypeOf(ref val_e) => {
-                let val = self.run(val_e)?;
-                Ok(to_value(match *val {
-                    ValueData::Undefined => "undefined",
-                    ValueData::Symbol(_) => "symbol",
-                    ValueData::Null | ValueData::Object(_) => "object",
-                    ValueData::Boolean(_) => "boolean",
-                    ValueData::Number(_) | ValueData::Integer(_) => "number",
-                    ValueData::String(_) => "string",
-                    ValueData::Function(_) => "function",
-                }))
-            }
+                ExprDef::LetDecl(ref vars) => {
+                    for var in vars.iter() {
+                        let (name, value) = var.clone();
+                        let val = match value {
+                            Some(v) => self.run(&v)?,
+                            None => Gc::new(ValueData::Undefined),
+                        };
+                        self.realm.environment.create_mutable_binding(
+                            name.clone(),
+                            false,
+                            VariableScope::Block,
+                        );
+                        self.realm.environment.initialize_binding(&name, val);
+                    }
+                    Ok(Gc::new(ValueData::Undefined))
+                }
+                ExprDef::ConstDecl(ref vars) => {
+                    for (name, value) in vars.iter() {
+                        self.realm.environment.create_immutable_binding(
+                            name.clone(),
+                            false,
+                            VariableScope::Block,
+                        );
+                        let val = self.run(&value)?;
+                        self.realm.environment.initialize_binding(&name, val);
+                    }
+                    Ok(Gc::new(ValueData::Undefined))
+                }
+                ExprDef::TypeOf(ref val_e) => {
+                    let val = self.run(val_e)?;
+                    Ok(to_value(match *val {
+                        ValueData::Undefined => "undefined",
+                        ValueData::Symbol(_) => "symbol",
+                        ValueData::Null | ValueData::Object(_) => "object",
+                        ValueData::Boolean(_) => "boolean",
+                        ValueData::Number(_) | ValueData::Integer(_) => "number",
+                        ValueData::String(_) => "string",
+                        ValueData::Function(_) => "function",
+                    }))
+                }
+            };
+
+            val_s.push(val);
         }
+
+        val_s.pop().unwrap()
     }
 }
 
