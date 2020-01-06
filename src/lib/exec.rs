@@ -219,7 +219,7 @@ impl Executor for Interpreter {
                         let val = self.run(x)?;
                         let mut vals = self.extract_array_properties(&val).unwrap();
                         elements.append(&mut vals);
-                        break; // after spread we don't accept any new arguments
+                        continue; // Don't push array after spread
                     }
                     elements.push(self.run(elem)?);
                 }
