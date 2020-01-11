@@ -9,9 +9,11 @@ use crate::{
     exec::Interpreter,
 };
 use gc::Gc;
+use regex::Regex;
 use std::{
     cmp::{max, min},
     f64::NAN,
+    ops::Deref,
 };
 
 /// Create new string [[Construct]]
@@ -320,6 +322,79 @@ pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     let this_string: String = primitive_val.chars().skip(start as usize).collect();
 
     Ok(to_value(this_string.contains(&search_string)))
+}
+
+/// Return either the string itself or the string of the regex equivalent
+fn get_regex_string(value: &Value) -> String {
+    let mut regex_body = String::new();
+    match value.deref() {
+        ValueData::String(ref body) => regex_body = body.into(),
+        ValueData::Object(ref obj) => {
+            let slots = &*obj.borrow().internal_slots;
+            if slots.get("RegExpMatcher").is_some() {
+                // first argument is another `RegExp` object, so copy its pattern and flags
+                if let Some(body) = slots.get("OriginalSource") {
+                    regex_body =
+                        from_value(r#body.clone()).expect("unable to get body from regex value")
+                }
+            }
+        }
+        _ => return "undefined".to_string(),
+    };
+    regex_body
+}
+
+/// <https://tc39.es/ecma262/#sec-string.prototype.replace>
+pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    // TODO: Support Symbol replacer
+    let primitive_val: String = ctx.value_to_rust_string(this);
+    if args.is_empty() {
+        return Ok(to_value(primitive_val));
+    }
+
+    let regex_body = get_regex_string(args.get(0).expect("Value needed"));
+    let re = Regex::new(&regex_body).expect("unable to convert regex to regex object");
+    let mat = re.find(&primitive_val).expect("unable to find value");
+    let caps = re
+        .captures(&primitive_val)
+        .expect("unable to get capture groups from text");
+
+    let capture1 = caps.get(1).map_or("1", |m| m.as_str());
+    let capture2 = caps.get(2).map_or("2", |m| m.as_str());
+    let capture3 = caps.get(3).map_or("3", |m| m.as_str());
+
+    let replace_value = if args.len() > 1 {
+        // replace_object could be a string or function or not exist at all
+        let replace_object: &Value = args.get(1).expect("second argument expected");
+        match replace_object.deref() {
+            ValueData::String(val) => val.to_string(),
+            ValueData::Function(_) => {
+                let result = ctx
+                    .call(
+                        &replace_object,
+                        &this,
+                        vec![
+                            to_value(regex_body),
+                            to_value(capture1),
+                            to_value(capture2),
+                            to_value(capture3),
+                        ],
+                    )
+                    .unwrap();
+
+                ctx.value_to_rust_string(&result)
+            }
+            _ => "undefined".to_string(),
+        }
+    } else {
+        "undefined".to_string()
+    };
+
+    Ok(to_value(primitive_val.replacen(
+        &mat.as_str(),
+        &replace_value,
+        1,
+    )))
 }
 
 /// If searchString appears as a substring of the result of converting this
@@ -757,6 +832,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(substr, named "substr", with length 2, of proto);
     make_builtin_fn!(value_of, named "valueOf", of proto);
     make_builtin_fn!(match_all, named "matchAll", with length 1, of proto);
+    make_builtin_fn!(replace, named "replace", with length 2, of proto);
 
     let string = to_value(string_constructor);
     proto.set_field_slice("constructor", string.clone());
@@ -870,6 +946,49 @@ mod tests {
             forward(&mut engine, "zh.repeat(2)"),
             String::from("中文中文")
         );
+    }
+
+    #[test]
+    fn replace() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var a = "abc";
+        a = a.replace("a", "2");
+        a
+        "#;
+        forward(&mut engine, init);
+
+        let empty = String::from("2bc");
+        assert_eq!(forward(&mut engine, "a"), empty);
+    }
+
+    #[test]
+    fn replace_with_function() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var a = "ecmascript is cool";
+        var p1, p2, p3;
+        var replacer = (match, cap1, cap2, cap3) => {
+            p1 = cap1;
+            p2 = cap2;
+            p3 = cap3;
+            return "awesome!";
+        };
+
+        a = a.replace(/c(o)(o)(l)/, replacer);
+        a;
+        "#;
+        forward(&mut engine, init);
+        assert_eq!(
+            forward(&mut engine, "a"),
+            String::from("ecmascript is awesome!")
+        );
+
+        assert_eq!(forward(&mut engine, "p1"), String::from("o"));
+        assert_eq!(forward(&mut engine, "p2"), String::from("o"));
+        assert_eq!(forward(&mut engine, "p3"), String::from("l"));
     }
 
     #[test]
