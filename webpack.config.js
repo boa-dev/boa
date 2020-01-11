@@ -1,6 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const {CleanWebpackPlugin} = require("clean-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
@@ -34,14 +34,20 @@ module.exports = {
       TextEncoder: ["text-encoding", "TextEncoder"]
     }),
     new MonacoWebpackPlugin({
-      languages: ['javascript']
+      languages: ["javascript"]
     })
   ],
   module: {
-    rules: [{
-      test: /\.css$/,
-      use: ["style-loader", "css-loader"]
-    }]
+    rules: [
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
+      },
+      {
+        test: /\.ttf$/,
+        use: ["file-loader"]
+      }
+    ]
   },
   mode: "development"
 };

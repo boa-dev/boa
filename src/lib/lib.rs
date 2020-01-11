@@ -119,7 +119,6 @@ pub fn evaluate(src: &str) -> String {
     let realm = Realm::create();
     let mut engine: Interpreter = Executor::new(realm);
     let result = engine.run(&expr);
-    log("test2");
     match result {
         Ok(v) => v.to_string(),
         Err(v) => format!("{}: {}", "error", v.to_string()),
