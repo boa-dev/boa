@@ -37,6 +37,7 @@ impl Parser {
 
     /// Parse all expressions in the token array
     pub fn parse_all(&mut self) -> ParseResult {
+        dbg!(&self.tokens);
         let mut exprs = Vec::new();
         while self.pos < self.tokens.len() {
             let result = self.parse()?;
@@ -328,13 +329,94 @@ impl Parser {
         }
     }
 
+    // TODO: not here
+    fn get_op_precedence(&self, t: &Token) -> u8 {
+        use Punctuator::*;
+
+        if let TokenData::Punctuator(op) = t.data {
+            match op {
+                Mul | Div => 2,
+                Add | Sub => 1,
+                _ => 0,
+            }
+        } else {
+            0
+        }
+    }
+
+    fn parse_numeric(&mut self) -> ParseResult {
+        self.pos -= 1;
+
+        let mut tok_s = Vec::new();
+
+        let mut op_s = Vec::new();
+
+        use crate::syntax::ast::punc::Punctuator::*;
+        use TokenData::*;
+        'outer: loop {
+            let top = self.get_token(self.pos).expect("asd");
+            dbg!(self.pos, &top);
+            self.pos += 1;
+
+            // dbg!(&top);
+
+            match top.data {
+                NumericLiteral(_) => tok_s.push(top),
+                Punctuator(OpenParen) => op_s.push(top),
+                Punctuator(CloseParen) => {
+                    while let Some(op) = op_s.pop() {
+                        match op.data {
+                            Punctuator(OpenParen) => break,
+                            _ => tok_s.push(op),
+                        };
+                    }
+                }
+
+                Punctuator(Semicolon) => break,
+
+                // TODO: filter puncts
+                Punctuator(_) => {
+                    while op_s.last().map_or(false, |op| {
+                        self.get_op_precedence(&op) > self.get_op_precedence(&top)
+                    }) {
+                        tok_s.push(op_s.pop().unwrap());
+                    }
+
+                    op_s.push(top);
+                }
+
+                _ => break 'outer,
+            }
+        }
+
+        while let Some(op) = op_s.pop() {
+            tok_s.push(op);
+        }
+
+        let res = tok_s.iter().map(|tok| {
+            match tok.data {
+                NumericLiteral(num) => Expr::new(ExprDef::Const(Const::Num(num))),
+                Punctuator(Add) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Add))),
+                Punctuator(Sub) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Sub))),
+                Punctuator(Mul) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Mul))),
+                Punctuator(Div) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Div))),
+                _ => Expr::new(ExprDef::Const(Const::Num(0_f64))),
+            }
+        })
+        .collect();
+
+        Ok(Expr::new(ExprDef::OpEval(res)))
+    }
+
     /// Parse a single expression
     pub fn parse(&mut self) -> ParseResult {
         if self.pos > self.tokens.len() {
             return Err(ParseError::AbruptEnd);
         }
+
         let token = self.get_token(self.pos)?;
         self.pos += 1;
+
         let expr: Expr = match token.data {
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_)
                 if self.pos < self.tokens.len() =>
@@ -344,7 +426,7 @@ impl Parser {
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_) => {
                 Expr::new(ExprDef::Const(Const::Undefined))
             }
-            TokenData::NumericLiteral(num) => Expr::new(ExprDef::Const(Const::Num(num))),
+            TokenData::NumericLiteral(_) => self.parse_numeric()?,
             TokenData::NullLiteral => Expr::new(ExprDef::Const(Const::Null)),
             TokenData::StringLiteral(text) => Expr::new(ExprDef::Const(Const::String(text))),
             TokenData::BooleanLiteral(val) => Expr::new(ExprDef::Const(Const::Bool(val))),
@@ -618,6 +700,7 @@ impl Parser {
             }
             _ => return Err(ParseError::Expected(Vec::new(), token.clone(), "script")),
         };
+
         if self.pos >= self.tokens.len() {
             Ok(expr)
         } else {
