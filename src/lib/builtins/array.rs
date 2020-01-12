@@ -198,6 +198,28 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(elem_strs.join(&separator)))
 }
 
+/// Array.prototype.toString ( separator )
+///
+/// The toString function is intentionally generic; it does not require that
+/// its this value be an Array object. Therefore it can be transferred to
+/// other kinds of objects for use as a method.
+/// <https://tc39.es/ecma262/#sec-array.prototype.tostring>
+pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    let join_result = join(this, &[to_value("")], _ctx);
+    let match_string = match join_result {
+        Ok(v) => {
+            match *v {
+                ValueData::String(ref s) => {
+                    (*s).clone()
+                },
+                _ => "".to_string()
+            }
+        },
+        Err(v) => format!("{}: {}", "error", v.to_string()),
+    };
+    Ok(to_value(match_string))
+}
+
 /// Array.prototype.reverse ( )
 ///
 /// The elements of the array are rearranged so as to reverse their order.
@@ -667,6 +689,7 @@ pub fn create_constructor(global: &Value) -> Value {
 
     make_builtin_fn!(pop, named "pop", of array_prototype);
     make_builtin_fn!(join, named "join", with length 1, of array_prototype);
+    make_builtin_fn!(to_string, named "toString", of array_prototype);
     make_builtin_fn!(reverse, named "reverse", of array_prototype);
     make_builtin_fn!(shift, named "shift", of array_prototype);
     make_builtin_fn!(unshift, named "unshift", with length 1, of array_prototype);
@@ -731,6 +754,27 @@ mod tests {
         // Many
         let many = forward(&mut engine, "many.join('.')");
         assert_eq!(many, String::from("a.b.c"));
+    }
+
+    #[test]
+    fn to_string() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var empty = [ ];
+        var one = ["a"];
+        var many = ["a", "b", "c"];
+        "#;
+        forward(&mut engine, init);
+        // Empty
+        let empty = forward(&mut engine, "empty.toString()");
+        assert_eq!(empty, String::from(""));
+        // One
+        let one = forward(&mut engine, "one.toString()");
+        assert_eq!(one, String::from("a"));
+        // Many
+        let many = forward(&mut engine, "many.toString()");
+        assert_eq!(many, String::from("a,b,c"));
     }
 
     #[test]
