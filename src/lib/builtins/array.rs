@@ -207,13 +207,9 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let join_result = join(this, &[to_value(",")], _ctx);
     let match_string = match join_result {
-        Ok(v) => {
-            match *v {
-                ValueData::String(ref s) => {
-                    (*s).clone()
-                },
-                _ => "".to_string()
-            }
+        Ok(v) => match *v {
+            ValueData::String(ref s) => (*s).clone(),
+            _ => "".to_string(),
         },
         Err(v) => format!("{}: {}", "error", v.to_string()),
     };
