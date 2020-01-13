@@ -1,11 +1,11 @@
-## Boa
+# Boa
 
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.  
 [![Build Status](https://travis-ci.com/jasonwilliams/boa.svg?branch=master)](https://travis-ci.com/jasonwilliams/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
 
-### Live Demo (WASM)
+## Live Demo (WASM)
 
 https://jasonwilliams.github.io/boa/
 
@@ -80,6 +80,6 @@ Feel free to contact us on Discord https://discord.gg/tUFFk9Y
 
 ![Example](docs/img/latestDemo.gif)
 
-### License
+## License
 
 This project is licensed under the Unlicense or MIT licenses, at your option.
