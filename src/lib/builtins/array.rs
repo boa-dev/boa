@@ -211,7 +211,7 @@ pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> Resul
             ValueData::String(ref s) => (*s).clone(),
             _ => "".to_string(),
         },
-        Err(v) => format!("{}: {}", "error", v.to_string()),
+        Err(v) => format!("error: {}", v),
     };
     Ok(to_value(match_string))
 }
