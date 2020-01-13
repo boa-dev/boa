@@ -64,7 +64,7 @@ See Milestones
 
 see [CHANGELOG](./CHANGELOG.md)
 
-### Usage
+## Usage
 
 - Check out this project
 - Build `cargo build`
@@ -72,11 +72,11 @@ see [CHANGELOG](./CHANGELOG.md)
 - You can make changes to tests/js/test.js and build again
 - If any JS doesn't work then it's a bug! Please raise an issue
 
-#### Communication
+## Communication
 
 Feel free to contact us on Discord https://discord.gg/tUFFk9Y
 
-#### Example
+## Example
 
 ![Example](docs/img/latestDemo.gif)
 
