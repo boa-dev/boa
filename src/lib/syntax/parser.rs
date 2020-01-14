@@ -193,9 +193,7 @@ impl Parser {
 
                 Ok(Expr::new(ExprDef::ConstDecl(vars)))
             }
-            Keyword::Return => Ok(Expr::new(ExprDef::Return(Some(Box::new(
-                self.parse()?,
-            ))))),
+            Keyword::Return => Ok(Expr::new(ExprDef::Return(Some(Box::new(self.parse()?))))),
             Keyword::New => {
                 let call = self.parse()?;
                 match call.def {
@@ -850,11 +848,7 @@ impl Parser {
                     Expr::new(ExprDef::BinOp(
                         op2.clone(),
                         b.clone(),
-                        Box::new(Expr::new(ExprDef::BinOp(
-                            op,
-                            Box::new(orig),
-                            a.clone(),
-                        ))),
+                        Box::new(Expr::new(ExprDef::BinOp(op, Box::new(orig), a.clone()))),
                     ))
                 } else {
                     Expr::new(ExprDef::BinOp(op, Box::new(orig), Box::new(next.clone())))

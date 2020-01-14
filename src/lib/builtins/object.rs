@@ -347,8 +347,7 @@ impl Object {
                     .expect("parsing failed");
                 self.sym_properties.insert(sym_id, current);
             } else {
-                self.properties
-                    .insert(property_key.clone(), current);
+                self.properties.insert(property_key.clone(), current);
             }
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
