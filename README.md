@@ -66,11 +66,10 @@ see [CHANGELOG](./CHANGELOG.md)
 
 ## Usage
 
-- Check out this project
-- Build `cargo build`
-- `cargo run`
-- You can make changes to tests/js/test.js and build again
-- If any JS doesn't work then it's a bug! Please raise an issue
+- Clone this repo and position yourself in its folder root
+- Create a JS file that will be executed, for example `test.js`, and fill it with some JS code
+- Build and run with `cargo run -- test.js`
+- If any JS doesn't work then it's a bug. Please raise an issue!
 
 ## Communication
 
