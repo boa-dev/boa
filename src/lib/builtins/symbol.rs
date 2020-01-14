@@ -61,14 +61,14 @@ pub fn create_constructor(global: &Value) -> Value {
     // Symbol.prototype[[Prototype]] points to Object.prototype
     // Symbol Constructor -> Symbol Prototype -> Object Prototype
     let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
-    symbol_prototype.set_internal_slot(INSTANCE_PROTOTYPE, object_prototype.clone());
+    symbol_prototype.set_internal_slot(INSTANCE_PROTOTYPE, object_prototype);
     symbol_prototype.set_method("toString", to_string);
 
     let symbol_prototype_val = to_value(symbol_prototype);
 
     let symbol_constructor_value = to_value(symbol_constructor);
     symbol_prototype_val.set_field_slice("construcotor", symbol_constructor_value.clone());
-    symbol_constructor_value.set_field_slice(PROTOTYPE, symbol_prototype_val.clone());
+    symbol_constructor_value.set_field_slice(PROTOTYPE, symbol_prototype_val);
 
     symbol_constructor_value
 }

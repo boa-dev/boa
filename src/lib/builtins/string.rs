@@ -54,7 +54,7 @@ pub fn call_string(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     // Get String from String Object and send it back as a new value
     let primitive_val = this.get_internal_slot("StringData");
-    Ok(to_value(format!("{}", primitive_val).to_string()))
+    Ok(to_value(format!("{}", primitive_val)))
 }
 
 /// Returns a single element String containing the code unit at index pos within the String value
@@ -129,9 +129,7 @@ pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
-    let primitive_val: String = ctx.value_to_rust_string(this);
-
-    let mut new_str = primitive_val.clone();
+    let mut new_str = ctx.value_to_rust_string(this);
 
     for arg in args {
         let concat_str: String = from_value(arg.clone()).expect("failed to get argument value");
@@ -422,7 +420,7 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
 /// otherwise null is returned if no match is found.
 /// <https://tc39.es/ecma262/#sec-string.prototype.match>
 pub fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let re = make_regexp(&to_value(Object::default()), &[args[0].clone()], ctx)?.clone();
+    let re = make_regexp(&to_value(Object::default()), &[args[0].clone()], ctx)?;
     regexp_match(&re, ctx.value_to_rust_string(this), ctx)
 }
 
@@ -716,8 +714,7 @@ pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
             &[to_value(String::new()), to_value(String::from("g"))],
             ctx,
         ),
-    }?
-    .clone();
+    }?;
 
     regexp_match_all(&re, ctx.value_to_rust_string(this))
 }

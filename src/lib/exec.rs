@@ -172,7 +172,7 @@ impl Executor for Interpreter {
                 })
             }
             ExprDef::Switch(ref val_e, ref vals, ref default) => {
-                let val = self.run(val_e)?.clone();
+                let val = self.run(val_e)?;
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
                 for tup in vals.iter() {
@@ -340,7 +340,7 @@ impl Executor for Interpreter {
                     let v_r_a = self.run(obj)?;
                     let v_a = (*v_r_a.borrow().get_field_slice(field)).clone();
                     let v_b = (*self.run(b)?).clone();
-                    let value = exec_assign_op(op, v_a, v_b.clone());
+                    let value = exec_assign_op(op, v_a, v_b);
                     v_r_a
                         .borrow()
                         .set_field_slice(&field.clone(), value.clone());
@@ -377,7 +377,7 @@ impl Executor for Interpreter {
                             let env = &mut self.realm.environment;
                             env.push(new_function_environment(
                                 construct.clone(),
-                                this.clone(),
+                                this,
                                 Some(env.get_current_environment_ref().clone()),
                             ));
 

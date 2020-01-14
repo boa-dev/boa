@@ -68,7 +68,7 @@ impl Parser {
                 _ => {
                     return Err(ParseError::Expected(
                         vec![TokenData::Identifier("identifier".to_string())],
-                        tk.clone(),
+                        tk,
                         "function arguments",
                     ))
                 }
@@ -194,7 +194,7 @@ impl Parser {
                 Ok(Expr::new(ExprDef::ConstDecl(vars)))
             }
             Keyword::Return => Ok(Expr::new(ExprDef::Return(Some(Box::new(
-                self.parse()?.clone(),
+                self.parse()?,
             ))))),
             Keyword::New => {
                 let call = self.parse()?;
@@ -310,7 +310,7 @@ impl Parser {
                     _ => {
                         return Err(ParseError::Expected(
                             vec![TokenData::Identifier("identifier".to_string())],
-                            tk.clone(),
+                            tk,
                             "function name",
                         ))
                     }
@@ -382,7 +382,7 @@ impl Parser {
                                 if let ExprDef::UnaryOp(UnaryOp::Spread, _) = next.def {
                                     return Err(ParseError::Expected(
                                         vec![TokenData::Punctuator(Punctuator::CloseParen)],
-                                        next_tok.clone(),
+                                        next_tok,
                                         "arrow function",
                                     ));
                                 }
@@ -425,7 +425,7 @@ impl Parser {
                                                     vec![TokenData::Identifier(
                                                         "identifier".to_string(),
                                                     )],
-                                                    ident_token.clone(),
+                                                    ident_token,
                                                     "arrow function",
                                                 ));
                                             }
@@ -439,7 +439,7 @@ impl Parser {
                                                 vec![TokenData::Identifier(
                                                     "identifier".to_string(),
                                                 )],
-                                                curr_tk.clone(),
+                                                curr_tk,
                                                 "arrow function",
                                             ))
                                         }
@@ -499,7 +499,7 @@ impl Parser {
                                     TokenData::Punctuator(Punctuator::Comma),
                                     TokenData::Punctuator(Punctuator::CloseBracket),
                                 ],
-                                token.clone(),
+                                token,
                                 "array declaration",
                             ));
                         }
@@ -851,7 +851,7 @@ impl Parser {
                         op2.clone(),
                         b.clone(),
                         Box::new(Expr::new(ExprDef::BinOp(
-                            op.clone(),
+                            op,
                             Box::new(orig),
                             a.clone(),
                         ))),
