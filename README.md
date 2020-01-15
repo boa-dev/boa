@@ -66,9 +66,8 @@ see [CHANGELOG](./CHANGELOG.md)
 
 ## Usage
 
-- Clone this repo and position yourself in its folder root
-- Create a JS file that will be executed, for example `test.js`, and fill it with some JS code
-- Build and run with `cargo run -- test.js`
+- Clone this repo
+- Run with `cargo run -- test.js` where `test.js` is an existing JS file
 - If any JS doesn't work then it's a bug. Please raise an issue!
 
 ## Communication
