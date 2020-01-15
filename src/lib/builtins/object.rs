@@ -57,7 +57,7 @@ impl Object {
     pub fn create(proto: Value) -> Object {
         let mut obj = Object::default();
         obj.internal_slots
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto.clone());
+            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
         obj.internal_slots
             .insert("extensible".to_string(), to_value(true));
         obj
@@ -345,10 +345,9 @@ impl Object {
                     .to_string()
                     .parse::<i32>()
                     .expect("parsing failed");
-                self.sym_properties.insert(sym_id, current.clone());
+                self.sym_properties.insert(sym_id, current);
             } else {
-                self.properties
-                    .insert(property_key.clone(), current.clone());
+                self.properties.insert(property_key.clone(), current);
             }
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {

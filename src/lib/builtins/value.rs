@@ -455,7 +455,7 @@ impl ValueData {
 
                 // Symbols get saved into a different bucket to general properties
                 if field.is_symbol() {
-                    obj.borrow_mut().set(field.clone(), val.clone());
+                    obj.borrow_mut().set(field, val.clone());
                 } else {
                     obj.borrow_mut()
                         .set(to_value(field.to_string()), val.clone());

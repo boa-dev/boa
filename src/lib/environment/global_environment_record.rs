@@ -105,7 +105,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         }
 
         self.declarative_record
-            .create_mutable_binding(name.clone(), deletion)
+            .create_mutable_binding(name, deletion)
     }
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) -> bool {
@@ -115,7 +115,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         }
 
         self.declarative_record
-            .create_immutable_binding(name.clone(), strict)
+            .create_immutable_binding(name, strict)
     }
 
     fn initialize_binding(&mut self, name: &str, value: Value) {

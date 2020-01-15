@@ -21,6 +21,10 @@
       "program": "${workspaceFolder}/target/debug/boa.exe",
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
+      "sourceFileMap": {
+        "/rustc/73528e339aae0f17a15ffa49a8ac608f50c6cf14": "${env:USERPROFILE}\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\src\\rust"
+      },
+      "symbolSearchPath": "https://msdl.microsoft.com/download/symbols",
       "environment": []
     }
   ]
