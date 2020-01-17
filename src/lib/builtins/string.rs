@@ -359,28 +359,28 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
         .captures(&primitive_val)
         .expect("unable to get capture groups from text");
 
-    let capture1 = caps.get(1).map_or("1", |m| m.as_str());
-    let capture2 = caps.get(2).map_or("2", |m| m.as_str());
-    let capture3 = caps.get(3).map_or("3", |m| m.as_str());
-
     let replace_value = if args.len() > 1 {
         // replace_object could be a string or function or not exist at all
         let replace_object: &Value = args.get(1).expect("second argument expected");
         match replace_object.deref() {
             ValueData::String(val) => val.to_string(),
             ValueData::Function(_) => {
-                let result = ctx
-                    .call(
-                        &replace_object,
-                        &this,
-                        vec![
-                            to_value(regex_body),
-                            to_value(capture1),
-                            to_value(capture2),
-                            to_value(capture3),
-                        ],
-                    )
-                    .unwrap();
+                // This will return the matched substring first, then captured parenthesized groups later
+                let mut results: Vec<Value> = caps
+                    .iter()
+                    .map(|capture| to_value(capture.unwrap().as_str()))
+                    .collect();
+
+                // Returns the starting byte offset of the match
+                let start = caps
+                    .get(0)
+                    .expect("Unable to get Byte offset from string for match")
+                    .start();
+                results.push(to_value(start));
+                // Push the whole string being examined
+                results.push(to_value(primitive_val.to_string()));
+
+                let result = ctx.call(&replace_object, &this, results).unwrap();
 
                 ctx.value_to_rust_string(&result)
             }
