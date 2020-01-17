@@ -328,7 +328,7 @@ impl Parser {
 
     /// WIP: BinOps linear parsing
 
-    // TODO: not here
+    // TODO: take a look at `expr.rs` for impl Operator for ExprDef
     fn _get_op_precedence(&self, t: &Token) -> u8 {
         use Punctuator::*;
 
