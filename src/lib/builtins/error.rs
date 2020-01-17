@@ -29,7 +29,7 @@ pub fn make_error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultVa
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let name = this.get_field_slice("name");
     let message = this.get_field_slice("message");
-    Ok(to_value(format!("{}: {}", name, message).to_string()))
+    Ok(to_value(format!("{}: {}", name, message)))
 }
 /// Create a new `Error` object
 pub fn _create(global: &Value) -> Value {

@@ -14,7 +14,7 @@ greet('World')
 `;
 
 const editor = monaco.editor.create(
-  document.getElementsByClassName("textbox")[0], 
+  document.getElementsByClassName("textbox")[0],
   {
     value: initialCode,
     language: "javascript",
@@ -25,12 +25,10 @@ const editor = monaco.editor.create(
   }
 );
 
-
 // Fix size of Monaco Editor when window resize
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
   editor.layout();
 });
-
 
 rust.then(m => {
   window.evaluate = m.evaluate;
@@ -42,9 +40,6 @@ rust.then(m => {
 function inputHandler(evt) {
   const text = editor.getValue();
   let p = document.querySelector("p.output");
-  let t0 = performance.now();
   let result = window.evaluate(text);
-  let t1 = performance.now();
   p.textContent = `> ${result}`;
-  console.log(result);
 }

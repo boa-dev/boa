@@ -120,7 +120,7 @@ impl Operator for ExprDef {
 impl Display for ExprDef {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
-            ExprDef::BOp(_)|ExprDef::OpEval(_) => write!(f, "OPPP"),
+            ExprDef::BOp(_) | ExprDef::OpEval(_) => write!(f, "OPPP"),
             ExprDef::Const(ref c) => write!(f, "{}", c),
             ExprDef::Block(ref block) => {
                 write!(f, "{{")?;

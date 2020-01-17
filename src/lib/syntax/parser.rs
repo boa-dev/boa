@@ -37,7 +37,6 @@ impl Parser {
 
     /// Parse all expressions in the token array
     pub fn parse_all(&mut self) -> ParseResult {
-        dbg!(&self.tokens);
         let mut exprs = Vec::new();
         while self.pos < self.tokens.len() {
             let result = self.parse()?;
@@ -69,7 +68,7 @@ impl Parser {
                 _ => {
                     return Err(ParseError::Expected(
                         vec![TokenData::Identifier("identifier".to_string())],
-                        tk.clone(),
+                        tk,
                         "function arguments",
                     ))
                 }
@@ -194,9 +193,7 @@ impl Parser {
 
                 Ok(Expr::new(ExprDef::ConstDecl(vars)))
             }
-            Keyword::Return => Ok(Expr::new(ExprDef::Return(Some(Box::new(
-                self.parse()?.clone(),
-            ))))),
+            Keyword::Return => Ok(Expr::new(ExprDef::Return(Some(Box::new(self.parse()?))))),
             Keyword::New => {
                 let call = self.parse()?;
                 match call.def {
@@ -311,7 +308,7 @@ impl Parser {
                     _ => {
                         return Err(ParseError::Expected(
                             vec![TokenData::Identifier("identifier".to_string())],
-                            tk.clone(),
+                            tk,
                             "function name",
                         ))
                     }
@@ -329,8 +326,10 @@ impl Parser {
         }
     }
 
+    /// WIP: BinOps linear parsing
+
     // TODO: not here
-    fn get_op_precedence(&self, t: &Token) -> u8 {
+    fn _get_op_precedence(&self, t: &Token) -> u8 {
         use Punctuator::*;
 
         if let TokenData::Punctuator(op) = t.data {
@@ -344,7 +343,7 @@ impl Parser {
         }
     }
 
-    fn parse_numeric(&mut self) -> ParseResult {
+    fn _parse_numeric(&mut self) -> ParseResult {
         self.pos -= 1;
 
         let mut tok_s = Vec::new();
@@ -377,7 +376,7 @@ impl Parser {
                 // TODO: filter puncts
                 Punctuator(_) => {
                     while op_s.last().map_or(false, |op| {
-                        self.get_op_precedence(&op) > self.get_op_precedence(&top)
+                        self._get_op_precedence(&op) > self._get_op_precedence(&top)
                     }) {
                         tok_s.push(op_s.pop().unwrap());
                     }
@@ -393,20 +392,22 @@ impl Parser {
             tok_s.push(op);
         }
 
-        let res = tok_s.iter().map(|tok| {
-            match tok.data {
+        let res = tok_s
+            .iter()
+            .map(|tok| match tok.data {
                 NumericLiteral(num) => Expr::new(ExprDef::Const(Const::Num(num))),
                 Punctuator(Add) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Add))),
                 Punctuator(Sub) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Sub))),
                 Punctuator(Mul) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Mul))),
                 Punctuator(Div) => Expr::new(ExprDef::BOp(BinOp::Num(NumOp::Div))),
                 _ => Expr::new(ExprDef::Const(Const::Num(0_f64))),
-            }
-        })
-        .collect();
+            })
+            .collect();
 
         Ok(Expr::new(ExprDef::OpEval(res)))
     }
+
+    /// WIP End
 
     /// Parse a single expression
     pub fn parse(&mut self) -> ParseResult {
@@ -426,7 +427,7 @@ impl Parser {
             TokenData::Punctuator(Punctuator::Semicolon) | TokenData::Comment(_) => {
                 Expr::new(ExprDef::Const(Const::Undefined))
             }
-            TokenData::NumericLiteral(_) => self.parse_numeric()?,
+            TokenData::NumericLiteral(num) => Expr::new(ExprDef::Const(Const::Num(num))),
             TokenData::NullLiteral => Expr::new(ExprDef::Const(Const::Null)),
             TokenData::StringLiteral(text) => Expr::new(ExprDef::Const(Const::String(text))),
             TokenData::BooleanLiteral(val) => Expr::new(ExprDef::Const(Const::Bool(val))),
@@ -464,7 +465,7 @@ impl Parser {
                                 if let ExprDef::UnaryOp(UnaryOp::Spread, _) = next.def {
                                     return Err(ParseError::Expected(
                                         vec![TokenData::Punctuator(Punctuator::CloseParen)],
-                                        next_tok.clone(),
+                                        next_tok,
                                         "arrow function",
                                     ));
                                 }
@@ -507,7 +508,7 @@ impl Parser {
                                                     vec![TokenData::Identifier(
                                                         "identifier".to_string(),
                                                     )],
-                                                    ident_token.clone(),
+                                                    ident_token,
                                                     "arrow function",
                                                 ));
                                             }
@@ -521,7 +522,7 @@ impl Parser {
                                                 vec![TokenData::Identifier(
                                                     "identifier".to_string(),
                                                 )],
-                                                curr_tk.clone(),
+                                                curr_tk,
                                                 "arrow function",
                                             ))
                                         }
@@ -581,7 +582,7 @@ impl Parser {
                                     TokenData::Punctuator(Punctuator::Comma),
                                     TokenData::Punctuator(Punctuator::CloseBracket),
                                 ],
-                                token.clone(),
+                                token,
                                 "array declaration",
                             ));
                         }
@@ -933,11 +934,7 @@ impl Parser {
                     Expr::new(ExprDef::BinOp(
                         op2.clone(),
                         b.clone(),
-                        Box::new(Expr::new(ExprDef::BinOp(
-                            op.clone(),
-                            Box::new(orig),
-                            a.clone(),
-                        ))),
+                        Box::new(Expr::new(ExprDef::BinOp(op, Box::new(orig), a.clone()))),
                     ))
                 } else {
                     Expr::new(ExprDef::BinOp(op, Box::new(orig), Box::new(next.clone())))

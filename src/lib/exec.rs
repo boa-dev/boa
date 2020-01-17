@@ -69,8 +69,6 @@ impl Executor for Interpreter {
         expr_s.push((expr, false));
 
         while let Some((expr, can_eval)) = expr_s.pop() {
-            dbg!(&expr);
-
             let val = match expr.def {
                 ExprDef::OpEval(ref v) => {
                     let mut s = Vec::new();
@@ -86,18 +84,17 @@ impl Executor for Interpreter {
                                     BinOp::Num(NumOp::Sub) => s.push(x - y),
                                     BinOp::Num(NumOp::Mul) => s.push(x * y),
                                     BinOp::Num(NumOp::Div) => s.push(x / y),
-                                    _ => ()
+                                    _ => (),
                                 }
                             }
                             ExprDef::Const(Const::Num(x)) => s.push(x),
-                            _ => ()
+                            _ => (),
                         }
                     }
 
                     Ok(to_value(s.pop().unwrap()))
                 }
-                ExprDef::BOp(_) |
-                ExprDef::Const(Const::Null) => Ok(to_value(None::<()>)),
+                ExprDef::BOp(_) | ExprDef::Const(Const::Null) => Ok(to_value(None::<()>)),
                 ExprDef::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
                 ExprDef::Const(Const::Num(num)) => Ok(to_value(num)),
                 ExprDef::Const(Const::Int(num)) => Ok(to_value(num)),
@@ -286,7 +283,6 @@ impl Executor for Interpreter {
                     )))))
                 }
                 ExprDef::BinOp(BinOp::Num(ref op), ref a, ref b) => {
-
                     if !can_eval {
                         expr_s.push((expr, true));
                         expr_s.push((a, false));
