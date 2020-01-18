@@ -363,7 +363,25 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
         // replace_object could be a string or function or not exist at all
         let replace_object: &Value = args.get(1).expect("second argument expected");
         match replace_object.deref() {
-            ValueData::String(val) => val.to_string(),
+            ValueData::String(val) => {
+                // https://tc39.es/ecma262/#table-45
+                let mut result: String = val.to_string();
+                let re = Regex::new(r"\$(\d)").unwrap();
+
+                if let Some(_) = val.find("$$") {
+                    result = val.replace("$$", "$")
+                }
+
+                if let Some(_) = val.find("$&") {
+                    // get matched value
+                    let matched = caps.get(0).expect("cannot get matched value");
+                    result = val.replace("$&", matched.as_str());
+                }
+
+                if re.is_match(&result) {}
+
+                result
+            }
             ValueData::Function(_) => {
                 // This will return the matched substring first, then captured parenthesized groups later
                 let mut results: Vec<Value> = caps
