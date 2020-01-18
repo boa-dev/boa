@@ -46,6 +46,10 @@ harness = false
 name = "exec"
 harness = false
 
+[[bench]]
+name = "parser"
+harness = false
+
 [[bin]]
 name = "boa"
 path = "src/bin/bin.rs"
