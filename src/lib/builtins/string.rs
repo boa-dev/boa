@@ -368,23 +368,23 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
                 let mut result: String = val.to_string();
                 let re = Regex::new(r"\$(\d)").unwrap();
 
-                if let Some(_) = val.find("$$") {
+                if val.find("$$").is_some() {
                     result = val.replace("$$", "$")
                 }
 
-                if let Some(_) = val.find("$`") {
+                if val.find("$`").is_some() {
                     let start_of_match = mat.start();
                     let slice = &primitive_val[..start_of_match];
                     result = val.replace("$`", slice);
                 }
 
-                if let Some(_) = val.find("$'") {
+                if val.find("$'").is_some() {
                     let end_of_match = mat.end();
                     let slice = &primitive_val[end_of_match..];
                     result = val.replace("$'", slice);
                 }
 
-                if let Some(_) = val.find("$&") {
+                if val.find("$&").is_some() {
                     // get matched value
                     let matched = caps.get(0).expect("cannot get matched value");
                     result = val.replace("$&", matched.as_str());
