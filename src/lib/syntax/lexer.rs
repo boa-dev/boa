@@ -154,6 +154,7 @@ impl<'a> Lexer<'a> {
     fn read_line(&mut self) -> Result<String, LexerError> {
         let mut buf = String::new();
         loop {
+            if self.preview_next().is_none() {break;}
             let ch = self.next()?;
             match ch {
                 _ if ch.is_ascii_control() => {
