@@ -146,7 +146,7 @@ impl<'a> Lexer<'a> {
     fn next(&mut self) -> char {
         match self.buffer.next() {
             Some(ch) => ch,
-            None => panic!(),
+            None => panic!("No more more characters to consume from input stream, use preview_next() first to check before calling next()"),
         }
     }
 
