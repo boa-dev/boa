@@ -209,7 +209,7 @@ pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> Resul
     let arguments = vec![to_value(",")];
     // 2.
     let method: Value =
-        from_value(this.get_field_slice(method_name)).expect("failed to get Object.prototype.join");
+        from_value(this.get_field_slice(method_name)).expect("failed to get Array.prototype.join");
     // 3.
     if !method.is_function() {
         let mut object_to_string = _ctx
@@ -231,6 +231,7 @@ pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> Resul
         };
         return Ok(to_value(match_string));
     }
+    // 4.
     let join_result = _ctx.call(&method, this, arguments);
     let match_string = match join_result {
         Ok(v) => match *v {
