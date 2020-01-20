@@ -14,7 +14,7 @@ jobs:
       - name: Run benchmark
         run: cargo bench | tee output.txt
       - name: Store benchmark result
-        uses: jasonwilliams/github-action-benchmark@local-add-criterion-support
+        uses: jasonwilliams/github-action-benchmark@v1
         with:
           name: Rust Benchmark
           tool: "criterion"
