@@ -153,7 +153,7 @@ impl<'a> Lexer<'a> {
     /// read_line attempts to read until the end of the line and returns the String object or a LexerError
     fn read_line(&mut self) -> Result<String, LexerError> {
         let mut buf = String::new();
-        loop {
+        while self.preview_next().is_some() {
             let ch = self.next()?;
             match ch {
                 _ if ch.is_ascii_control() => {
