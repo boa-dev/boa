@@ -337,9 +337,9 @@ fn get_regex_string(value: &Value) -> String {
                         .expect("unable to get body from regex value");
                 }
             }
-            return "undefined".to_string();
+            "undefined".to_string()
         }
-        _ => return "undefined".to_string(),
+        _ => "undefined".to_string(),
     }
 }
 
