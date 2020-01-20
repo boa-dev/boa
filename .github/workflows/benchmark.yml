@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: rustup toolchain update
+      - run: rustup toolchain update stable && rustup default stable
       - name: Run benchmark
         run: cargo bench | tee output.txt
       - name: Store benchmark result
