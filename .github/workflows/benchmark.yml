@@ -19,4 +19,5 @@ jobs:
           name: Rust Benchmark
           tool: "criterion"
           output-file-path: output.txt
+          auto-push: true
           github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
