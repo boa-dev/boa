@@ -16,7 +16,7 @@ jobs:
       - name: Store benchmark result
         uses: jasonwilliams/github-action-benchmark@v1
         with:
-          name: Rust Benchmark
+          name: Boa Benchmarks
           tool: "criterion"
           output-file-path: output.txt
           auto-push: true
