@@ -326,22 +326,21 @@ pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 
 /// Return either the string itself or the string of the regex equivalent
 fn get_regex_string(value: &Value) -> String {
-    let mut regex_body = String::new();
     match value.deref() {
-        ValueData::String(ref body) => regex_body = body.into(),
+        ValueData::String(ref body) => body.into(),
         ValueData::Object(ref obj) => {
             let slots = &*obj.borrow().internal_slots;
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {
-                    regex_body =
-                        from_value(r#body.clone()).expect("unable to get body from regex value")
+                    return from_value(r#body.clone())
+                        .expect("unable to get body from regex value");
                 }
             }
+            return "undefined".to_string();
         }
         _ => return "undefined".to_string(),
-    };
-    regex_body
+    }
 }
 
 /// <https://tc39.es/ecma262/#sec-string.prototype.replace>
