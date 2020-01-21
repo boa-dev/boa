@@ -197,6 +197,19 @@ impl<'a> Lexer<'a> {
         result
     }
 
+    fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
+        let ch = self.preview_next();
+        match ch {
+            Some(ch)
+                if ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit() =>
+            {
+                Err(LexerError::new("NumericLiteral token must not be followed by IdentifierStart nor DecimalDigit characters"))
+            }
+            Some(_) => Ok(()),
+            None => Ok(())
+        }
+    }
+
     pub fn lex(&mut self) -> Result<(), LexerError> {
         loop {
             // Check if we've reached the end
@@ -322,10 +335,14 @@ impl<'a> Lexer<'a> {
                 }
                 '0' => {
                     let mut buf = String::new();
-                    let ch = self.preview_next();
-                    if ch.is_none() {self.push_token(TokenData::NumericLiteral(0 as f64));}
-                    let num = match self.next() {
-                        'x' | 'X' => {
+
+                    let num = match self.preview_next() {
+                        None => {
+                            self.push_token(TokenData::NumericLiteral(0 as f64));
+                            return Ok(());
+                        }
+                        Some('x') | Some('X') => {
+                            self.next();
                             while let Some(ch) = self.preview_next() {
                                 if ch.is_digit(16) {
                                     buf.push(self.next());
@@ -335,7 +352,8 @@ impl<'a> Lexer<'a> {
                             }
                             u64::from_str_radix(&buf, 16).expect("Could not convert value to u64")
                         }
-                        'o' | 'O' => {
+                        Some('o') | Some('O') => {
+                            self.next();
                             while let Some(ch) = self.preview_next() {
                                 if ch.is_digit(8) {
                                     buf.push(self.next());
@@ -345,7 +363,8 @@ impl<'a> Lexer<'a> {
                             }
                             u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
                         }
-                        'b' | 'B' => {
+                        Some('b') | Some('B') => {
+                            self.next();
                             while let Some(ch) = self.preview_next() {
                                 if ch.is_digit(2) {
                                     buf.push(self.next());
@@ -355,11 +374,8 @@ impl<'a> Lexer<'a> {
                             }
                             u64::from_str_radix(&buf, 2).expect("Could not convert value to u64")
                         }
-                        _ => {
-                            0
-                        }
-                        /* _ => {
-                            // ONLY FOR NON-STRICT MODE
+                        Some(ch) if ch.is_ascii_digit() => {
+                            // LEGACY OCTAL (ONLY FOR NON-STRICT MODE)
                             let mut gone_decimal = false;
                             while let Some(next_ch) = self.preview_next() {
                                 match next_ch {
@@ -367,37 +383,36 @@ impl<'a> Lexer<'a> {
                                         buf.push(c);
                                         self.next();
                                     }
-                                    'O' | 'o' => {
-                                        self.next();
-                                    }
                                     '8' | '9' | '.' => {
                                         gone_decimal = true;
                                         buf.push(next_ch);
                                         self.next();
                                     }
+                                    _ => {
+                                        break;
+                                    }
                                 }
                             }
                             if gone_decimal {
-                                u64::from_str(&buf).expect("Could not convert value to u64r")
+                                u64::from_str(&buf).expect("Could not convert value to u64")
                             } else if buf.is_empty() {
                                 0
                             } else {
                                 u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
                             }
-                        } */
+                        }
+                        Some(_) => {
+                            0
+                        }
                     };
 
-                    //11.8.3
-                    let ch = self.preview_next();
-                    match ch {
-                        Some(ch) if ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit() => {
-                            return Err(LexerError::new("NumericLiteral token must not be followed by IdentifierStart nor DecimalDigit characters"));
-                        }
-                        Some(_) => {}
-                        None => {}
-                    }
+                    self.push_token(TokenData::NumericLiteral(num as f64));
 
-                    self.push_token(TokenData::NumericLiteral(num as f64))
+                    //11.8.3
+                    match self.check_after_numeric_literal() {
+                        Ok(_) => (),
+                        Err(e) => return Err(e),
+                    };
                 }
                 _ if ch.is_digit(10) => {
                     let mut buf = ch.to_string();
