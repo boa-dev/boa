@@ -323,7 +323,6 @@ impl<'a> Lexer<'a> {
                 '0' => {
                     let mut buf = String::new();
                     let ch = self.preview_next();
-                    
                     if ch.is_none() {self.push_token(TokenData::NumericLiteral(0 as f64));}
                     let ch = self.next();
                     let num = match ch {
