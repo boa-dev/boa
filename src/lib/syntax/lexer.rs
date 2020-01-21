@@ -198,8 +198,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
-        let ch = self.preview_next();
-        match ch {
+        match self.preview_next() {
             Some(ch)
                 if ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit() =>
             {
