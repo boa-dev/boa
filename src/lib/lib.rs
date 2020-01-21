@@ -1,37 +1,7 @@
-#![forbid(
-    //missing_docs,
-    //warnings,
-    anonymous_parameters,
-    unused_extern_crates,
-    unused_import_braces,
-    missing_copy_implementations,
-    //trivial_casts,
-    variant_size_differences,
-    missing_debug_implementations,
-    trivial_numeric_casts
-)]
 // Debug trait derivation will show an error if forbidden.
-#![deny(unused_qualifications)]
-#![deny(clippy::all)]
-#![warn(
-    // clippy::pedantic,
-    clippy::restriction,
-    clippy::cognitive_complexity,
-    //missing_docs
-)]
-#![allow(
-    clippy::missing_docs_in_private_items,
-    clippy::missing_inline_in_public_items,
-    clippy::implicit_return,
-    clippy::wildcard_enum_match_arm,
-    clippy::cognitive_complexity,
-    clippy::module_name_repetitions,
-    clippy::print_stdout,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap,
-    clippy::non_ascii_literal,
-    clippy::float_arithmetic
-)]
+#![deny(unused_qualifications, clippy::correctness, clippy::style)]
+#![warn(clippy::perf)]
+#![allow(clippy::cognitive_complexity)]
 
 pub mod builtins;
 pub mod environment;
