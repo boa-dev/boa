@@ -197,6 +197,18 @@ impl<'a> Lexer<'a> {
         result
     }
 
+    fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> u64 {
+        self.next();
+        while let Some(ch) = self.preview_next() {
+            if ch.is_digit(base) {
+                buf.push(self.next());
+            } else {
+                break;
+            }
+        }
+        u64::from_str_radix(&buf, base).expect("Could not convert value to u64")
+    }
+
     fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
         match self.preview_next() {
             Some(ch)
@@ -341,37 +353,13 @@ impl<'a> Lexer<'a> {
                             return Ok(());
                         }
                         Some('x') | Some('X') => {
-                            self.next();
-                            while let Some(ch) = self.preview_next() {
-                                if ch.is_digit(16) {
-                                    buf.push(self.next());
-                                } else {
-                                    break;
-                                }
-                            }
-                            u64::from_str_radix(&buf, 16).expect("Could not convert value to u64")
+                            self.read_integer_in_base(16, buf)
                         }
                         Some('o') | Some('O') => {
-                            self.next();
-                            while let Some(ch) = self.preview_next() {
-                                if ch.is_digit(8) {
-                                    buf.push(self.next());
-                                } else {
-                                    break;
-                                }
-                            }
-                            u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
+                            self.read_integer_in_base(8, buf)
                         }
                         Some('b') | Some('B') => {
-                            self.next();
-                            while let Some(ch) = self.preview_next() {
-                                if ch.is_digit(2) {
-                                    buf.push(self.next());
-                                } else {
-                                    break;
-                                }
-                            }
-                            u64::from_str_radix(&buf, 2).expect("Could not convert value to u64")
+                            self.read_integer_in_base(2, buf)
                         }
                         Some(ch) if ch.is_ascii_digit() => {
                             // LEGACY OCTAL (ONLY FOR NON-STRICT MODE)
