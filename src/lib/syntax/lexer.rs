@@ -408,9 +408,8 @@ impl<'a> Lexer<'a> {
                     self.push_token(TokenData::NumericLiteral(num as f64));
 
                     //11.8.3
-                    match self.check_after_numeric_literal() {
-                        Ok(_) => (),
-                        Err(e) => return Err(e),
+                    if let Err(e) = self.check_after_numeric_literal() {
+                        return Err(e)
                     };
                 }
                 _ if ch.is_digit(10) => {
