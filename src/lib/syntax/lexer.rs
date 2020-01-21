@@ -324,8 +324,7 @@ impl<'a> Lexer<'a> {
                     let mut buf = String::new();
                     let ch = self.preview_next();
                     if ch.is_none() {self.push_token(TokenData::NumericLiteral(0 as f64));}
-                    let ch = self.next();
-                    let num = match ch {
+                    let num = match self.next() {
                         'x' | 'X' => {
                             while let Some(ch) = self.preview_next() {
                                 if ch.is_digit(16) {
@@ -392,7 +391,7 @@ impl<'a> Lexer<'a> {
                     let ch = self.preview_next();
                     match ch {
                         Some(ch) if ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit() => {
-                            return Err(LexerError::new("After NumericLiteral must not occur IdentifierStart nor DecimalDigit"));
+                            return Err(LexerError::new("NumericLiteral token must not be followed by IdentifierStart nor DecimalDigit characters"));
                         }
                         Some(_) => {}
                         None => {}
