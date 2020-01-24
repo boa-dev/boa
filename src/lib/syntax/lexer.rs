@@ -171,6 +171,20 @@ impl<'a> Lexer<'a> {
     fn preview_next(&mut self) -> Option<char> {
         self.buffer.peek().copied()
     }
+    /// Preview a char x indexes further in buf, without incrementing
+    fn preview_multiple_next(&mut self, nb_next: usize) -> Option<char> {
+        let mut next_peek = None;
+
+        for (i, x) in self.buffer.clone().enumerate() {
+            if i >= nb_next {
+                break;
+            }
+
+            next_peek = Some(x);
+        }
+
+        next_peek
+    }
 
     /// Utility Function, while ``f(char)`` is true, read chars and move curser.
     /// All chars are returned as a string
@@ -416,8 +430,19 @@ impl<'a> Lexer<'a> {
                                     break 'digitloop;
                                 }
                             },
-                            'e' | '+' | '-' => {
-                                buf.push(self.next());
+                            'e' => {
+                              match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
+                                  Some(0..=9) | None => {
+                                    buf.push(self.next());
+                                  }
+                                  _ => {
+                                    break;
+                                  }
+                                }
+                            buf.push(self.next());
+                            }
+                            '+' | '-' => {
+                              break;
                             }
                             _ if ch.is_digit(10) => {
                                 buf.push(self.next());
@@ -1024,6 +1049,63 @@ mod tests {
         assert_eq!(
             lexer.tokens[0].data,
             TokenData::RegularExpressionLiteral("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
+        );
+    }
+
+    #[test]
+    fn test_addition_no_spaces() {
+        let mut lexer = Lexer::new("1+1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_left_side() {
+        let mut lexer = Lexer::new("1+ 1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_right_side() {
+        let mut lexer = Lexer::new("1 +1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_e_number_left_side() {
+        let mut lexer = Lexer::new("1e2+ 1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(100.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_e_number_right_side() {
+        let mut lexer = Lexer::new("1 +1e3");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1000.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_e_number() {
+        let mut lexer = Lexer::new("1e3+1e11");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1000.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(
+            lexer.tokens[2].data,
+            TokenData::NumericLiteral(100000000000.0)
         );
     }
 }
