@@ -85,19 +85,15 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     // between indices and values): this creates an Object with no prototype
 
     // Create length
-    let length = if args.len() > 1 {
-        Property::new()
-            .value(to_value(args.len() as i32))
-            .writable(true)
-            .configurable(false)
-            .enumerable(false)
-    } else {
-        Property::new()
-            .value(to_value(args[0].clone()))
-            .writable(true)
-            .configurable(false)
-            .enumerable(false)
+    let len_prop_value = match args.len() {
+        1 => to_value(args.len() as i32),
+        _ => to_value(args[0].clone()),
     };
+    let length = Property::new()
+        .value(len_prop_value)
+        .writable(true)
+        .configurable(false)
+        .enumerable(false);
 
     this.set_prop("length".to_string(), length);
 
@@ -114,17 +110,20 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     this.set_kind(ObjectKind::Array);
 
     // And finally add our arguments in
-    // ECMA-262 v5, 15.4.2.2
-    if args.len() == 1 {
-        let array_length: i32 =
-            from_value(args[0].clone()).expect("Could not convert argument length to i32");
-        for n in 0..array_length {
-            this.set_field_slice(&n.to_string(), Gc::new(ValueData::Undefined));
+    match args.len() {
+        // ECMA-262 v5, 15.4.2.2
+        1 => {
+            let array_length: i32 =
+                from_value(args[0].clone()).expect("Could not convert argument length to i32");
+            for n in 0..array_length {
+                this.set_field_slice(&n.to_string(), Gc::new(ValueData::Undefined));
+            }
         }
-    } else {
         // ECMA-262 v5, 15.4.2.1
-        for (n, value) in args.iter().enumerate() {
-            this.set_field_slice(&n.to_string(), value.clone());
+        _ => {
+            for (n, value) in args.iter().enumerate() {
+                this.set_field_slice(&n.to_string(), value.clone());
+            }
         }
     }
 
