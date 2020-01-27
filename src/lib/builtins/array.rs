@@ -206,30 +206,21 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// <https://tc39.es/ecma262/#sec-array.prototype.tostring>
 pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let method_name = "join";
-    let arguments = vec![to_value(",")];
+    let mut arguments = vec![to_value(",")];
     // 2.
-    let method: Value =
+    let mut method: Value =
         from_value(this.get_field_slice(method_name)).expect("failed to get Array.prototype.join");
     // 3.
     if !method.is_function() {
-        let mut object_to_string = _ctx
+        method = _ctx
             .realm
             .global_obj
             .get_field_slice("Object")
             .get_field_slice(PROTOTYPE)
             .get_field_slice("toString");
 
-        object_to_string =
-            from_value(object_to_string).expect("failed to get Object.prototype.toString");
-        let fun_result = _ctx.call(&object_to_string, this, vec![]);
-        let match_string = match fun_result {
-            Ok(v) => match *v {
-                ValueData::String(ref s) => (*s).clone(),
-                _ => "".to_string(),
-            },
-            Err(v) => format!("error: {}", v),
-        };
-        return Ok(to_value(match_string));
+        method = from_value(method).expect("failed to get Object.prototype.toString");
+        arguments = vec![];
     }
     // 4.
     let join_result = _ctx.call(&method, this, arguments);
