@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1579647260175,
+  "lastUpdate": 1580446941648,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -263,6 +263,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.0932,
             "range": "+/- 0.008",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "csacxc@gmail.com",
+            "name": "cisen",
+            "username": "cisen"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d8f33abe06e49ad937c0b4cc203eefee7803cb63",
+          "message": "fix: Array.prototype.toString should be called by ES value (#227)\n\n* feat: Implement Array.prototype.toString\r\n\r\n* fix: fix the missing arguments for Array.prototype.toString's inner join\r\n\r\n* refactor: use fmt to beautify the code\r\n\r\n* refactor: Array.prototype.toString——smplify error formating\r\n\r\n* fix: Array.prototype.toString should be called by ES value\r\n\r\n* fix: fix the error message\r\n\r\n* refactor: Array.prototype.toString remove the duplicated logic",
+          "timestamp": "2020-01-31T06:55:52+02:00",
+          "tree_id": "0605bbc174c46603f8a2ef846bb4e3a987d6d133",
+          "url": "https://github.com/jasonwilliams/boa/commit/d8f33abe06e49ad937c0b4cc203eefee7803cb63"
+        },
+        "date": 1580446939985,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 380.07,
+            "range": "+/- 9.110",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 451.89,
+            "range": "+/- 8.360",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.4964,
+            "range": "+/- 0.050",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 8.998,
+            "range": "+/- 0.213",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 408.4,
+            "range": "+/- 9.150",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 989.45,
+            "range": "+/- 15.630",
+            "unit": "ns"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.0767,
+            "range": "+/- 0.022",
             "unit": "us"
           }
         ]
