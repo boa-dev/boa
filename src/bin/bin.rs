@@ -1,25 +1,7 @@
-#![forbid(
-    warnings,
-    anonymous_parameters,
-    unused_extern_crates,
-    unused_import_braces,
-    missing_copy_implementations,
-    //trivial_casts,
-    variant_size_differences,
-    missing_debug_implementations,
-    trivial_numeric_casts
-)]
 // Debug trait derivation will show an error if forbidden.
-#![deny(unused_qualifications, unsafe_code)]
-#![deny(clippy::all)]
-#![warn(clippy::pedantic)]
-#![allow(
-    missing_docs,
-    clippy::many_single_char_names,
-    clippy::unreadable_literal,
-    clippy::excessive_precision,
-    clippy::module_name_repetitions
-)]
+#![deny(unused_qualifications, clippy::correctness, clippy::style)]
+#![warn(clippy::perf)]
+#![allow(clippy::cognitive_complexity)]
 
 use boa::exec;
 use std::{env, fs::read_to_string, process::exit};
