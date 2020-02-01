@@ -1,4 +1,3 @@
-// Debug trait derivation will show an error if forbidden.
 #![deny(unused_qualifications, clippy::correctness, clippy::style)]
 #![warn(clippy::perf)]
 #![allow(clippy::cognitive_complexity)]
