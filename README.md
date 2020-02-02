@@ -1,15 +1,19 @@
-## Boa
+# Boa
 
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.  
 [![Build Status](https://travis-ci.com/jasonwilliams/boa.svg?branch=master)](https://travis-ci.com/jasonwilliams/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
 
-### Live Demo (WASM)
+## Live Demo (WASM)
 
 https://jasonwilliams.github.io/boa/
 
 You can get more verbose errors when running from the command line
+
+## Benchmarks
+
+https://jasonwilliams.github.io/boa/dev/bench/
 
 ## Contributing
 
@@ -64,22 +68,20 @@ See Milestones
 
 see [CHANGELOG](./CHANGELOG.md)
 
-### Usage
+## Usage
 
-- Check out this project
-- Build `cargo build`
-- `cargo run`
-- You can make changes to tests/js/test.js and build again
-- If any JS doesn't work then it's a bug! Please raise an issue
+- Clone this repo
+- Run with `cargo run -- test.js` where `test.js` is an existing JS file
+- If any JS doesn't work then it's a bug. Please raise an issue!
 
-#### Communication
+## Communication
 
 Feel free to contact us on Discord https://discord.gg/tUFFk9Y
 
-#### Example
+## Example
 
 ![Example](docs/img/latestDemo.gif)
 
-### License
+## License
 
 This project is licensed under the Unlicense or MIT licenses, at your option.

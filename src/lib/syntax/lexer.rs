@@ -18,7 +18,7 @@ macro_rules! vop {
         let preview = $this.preview_next().unwrap();
         match preview {
             '=' => {
-                $this.next()?;
+                $this.next();
                 $assign_op
             }
             _ => $op,
@@ -28,11 +28,11 @@ macro_rules! vop {
         let preview = $this.preview_next().unwrap();
         match preview {
             '=' => {
-                $this.next()?;
+                $this.next();
                 $assign_op
             },
             $($case => {
-                $this.next()?;
+                $this.next();
                 $block
             })+,
             _ => $op
@@ -143,18 +143,18 @@ impl<'a> Lexer<'a> {
     }
 
     /// next fetches the next token and return it, or a LexerError if there are no more.
-    fn next(&mut self) -> Result<char, LexerError> {
+    fn next(&mut self) -> char {
         match self.buffer.next() {
-            Some(ch) => Ok(ch),
-            None => Err(LexerError::new("finished")),
+            Some(ch) => ch,
+            None => panic!("No more more characters to consume from input stream, use preview_next() first to check before calling next()"),
         }
     }
 
     /// read_line attempts to read until the end of the line and returns the String object or a LexerError
     fn read_line(&mut self) -> Result<String, LexerError> {
         let mut buf = String::new();
-        loop {
-            let ch = self.next()?;
+        while self.preview_next().is_some() {
+            let ch = self.next();
             match ch {
                 _ if ch.is_ascii_control() => {
                     break;
@@ -164,7 +164,6 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-
         Ok(buf)
     }
 
@@ -183,7 +182,7 @@ impl<'a> Lexer<'a> {
         while self.buffer.peek().is_some()
             && f(self.preview_next().expect("Could not preview next value"))
         {
-            s.push(self.next()?);
+            s.push(self.next());
         }
 
         Ok(s)
@@ -198,6 +197,30 @@ impl<'a> Lexer<'a> {
         result
     }
 
+    fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> u64 {
+        self.next();
+        while let Some(ch) = self.preview_next() {
+            if ch.is_digit(base) {
+                buf.push(self.next());
+            } else {
+                break;
+            }
+        }
+        u64::from_str_radix(&buf, base).expect("Could not convert value to u64")
+    }
+
+    fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
+        match self.preview_next() {
+            Some(ch)
+                if ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit() =>
+            {
+                Err(LexerError::new("NumericLiteral token must not be followed by IdentifierStart nor DecimalDigit characters"))
+            }
+            Some(_) => Ok(()),
+            None => Ok(())
+        }
+    }
+
     pub fn lex(&mut self) -> Result<(), LexerError> {
         loop {
             // Check if we've reached the end
@@ -205,12 +228,12 @@ impl<'a> Lexer<'a> {
                 return Ok(());
             }
             self.column_number += 1;
-            let ch = self.next()?;
+            let ch = self.next();
             match ch {
                 '"' | '\'' => {
                     let mut buf = String::new();
                     loop {
-                        match self.next()? {
+                        match self.next() {
                             '\'' if ch == '\'' => {
                                 break;
                             }
@@ -218,7 +241,7 @@ impl<'a> Lexer<'a> {
                                 break;
                             }
                             '\\' => {
-                                let escape = self.next()?;
+                                let escape = self.next();
                                 if escape != '\n' {
                                     let escaped_ch = match escape {
                                         'n' => '\n',
@@ -230,7 +253,7 @@ impl<'a> Lexer<'a> {
                                         'x' => {
                                             let mut nums = String::with_capacity(2);
                                             for _ in 0_u8..2 {
-                                                nums.push(self.next()?);
+                                                nums.push(self.next());
                                             }
                                             self.column_number += 2;
                                             let as_num = match u64::from_str_radix(&nums, 16) {
@@ -265,7 +288,7 @@ impl<'a> Lexer<'a> {
                                                 let c = from_u32(as_num)
                                                     .expect("Invalid Unicode escape sequence");
 
-                                                self.next()?; // '}'
+                                                self.next(); // '}'
                                                 self.column_number +=
                                                     (s.len() as u64).wrapping_add(3);
                                                 c
@@ -323,60 +346,66 @@ impl<'a> Lexer<'a> {
                 }
                 '0' => {
                     let mut buf = String::new();
-                    let num = if self.next_is('x') {
-                        while let Some(ch) = self.preview_next() {
-                            if ch.is_digit(16) {
-                                buf.push(self.next()?);
+
+                    let num = match self.preview_next() {
+                        None => {
+                            self.push_token(TokenData::NumericLiteral(0 as f64));
+                            return Ok(());
+                        }
+                        Some('x') | Some('X') => {
+                            self.read_integer_in_base(16, buf)
+                        }
+                        Some('o') | Some('O') => {
+                            self.read_integer_in_base(8, buf)
+                        }
+                        Some('b') | Some('B') => {
+                            self.read_integer_in_base(2, buf)
+                        }
+                        Some(ch) if ch.is_ascii_digit() => {
+                            // LEGACY OCTAL (ONLY FOR NON-STRICT MODE)
+                            let mut gone_decimal = false;
+                            while let Some(next_ch) = self.preview_next() {
+                                match next_ch {
+                                    c if next_ch.is_digit(8) => {
+                                        buf.push(c);
+                                        self.next();
+                                    }
+                                    '8' | '9' | '.' => {
+                                        gone_decimal = true;
+                                        buf.push(next_ch);
+                                        self.next();
+                                    }
+                                    _ => {
+                                        break;
+                                    }
+                                }
+                            }
+                            if gone_decimal {
+                                u64::from_str(&buf).expect("Could not convert value to u64")
+                            } else if buf.is_empty() {
+                                0
                             } else {
-                                break;
+                                u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
                             }
                         }
-                        u64::from_str_radix(&buf, 16).expect("Could not convert value to u64")
-                    } else if self.next_is('b') {
-                        while let Some(ch) = self.preview_next() {
-                            if ch.is_digit(2) {
-                                buf.push(self.next()?);
-                            } else {
-                                break;
-                            }
-                        }
-                        u64::from_str_radix(&buf, 2).expect("Could not convert value to u64")
-                    } else {
-                        let mut gone_decimal = false;
-                        loop {
-                            let next_ch = self.preview_next().unwrap_or('_');
-                            match next_ch {
-                                c if next_ch.is_digit(8) => {
-                                    buf.push(c);
-                                    self.next()?;
-                                }
-                                'O' | 'o' => {
-                                    self.next()?;
-                                }
-                                '8' | '9' | '.' => {
-                                    gone_decimal = true;
-                                    buf.push(next_ch);
-                                    self.next()?;
-                                }
-                                _ => break,
-                            }
-                        }
-                        if gone_decimal {
-                            u64::from_str(&buf).expect("Could not convert value to u64r")
-                        } else if buf.is_empty() {
+                        Some(_) => {
                             0
-                        } else {
-                            u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
                         }
                     };
-                    self.push_token(TokenData::NumericLiteral(num as f64))
+
+                    self.push_token(TokenData::NumericLiteral(num as f64));
+
+                    //11.8.3
+                    if let Err(e) = self.check_after_numeric_literal() {
+                        return Err(e)
+                    };
                 }
                 _ if ch.is_digit(10) => {
                     let mut buf = ch.to_string();
                     'digitloop: while let Some(ch) = self.preview_next() {
                         match ch {
                             '.' => loop {
-                                buf.push(self.next()?);
+                                buf.push(self.next());
 
                                 let c = match self.preview_next() {
                                     Some(ch) => ch,
@@ -388,10 +417,10 @@ impl<'a> Lexer<'a> {
                                 }
                             },
                             'e' | '+' | '-' => {
-                                buf.push(self.next()?);
+                                buf.push(self.next());
                             }
                             _ if ch.is_digit(10) => {
-                                buf.push(self.next()?);
+                                buf.push(self.next());
                             }
                             _ => break,
                         }
@@ -405,7 +434,7 @@ impl<'a> Lexer<'a> {
                     let mut buf = ch.to_string();
                     while let Some(ch) = self.preview_next() {
                         if ch.is_alphabetic() || ch.is_digit(10) || ch == '_' {
-                            buf.push(self.next()?);
+                            buf.push(self.next());
                         } else {
                             break;
                         }
@@ -463,7 +492,7 @@ impl<'a> Lexer<'a> {
                             '*' => {
                                 let mut buf = String::new();
                                 loop {
-                                    match self.next()? {
+                                    match self.next() {
                                         '*' => {
                                             if self.next_is('/') {
                                                 break;
@@ -497,7 +526,7 @@ impl<'a> Lexer<'a> {
                                         // escape sequence
                                         Some('\\') => {
                                             body.push('\\');
-                                            match self.next()? {
+                                            match self.next() {
                                                 // newline not allowed in regex literal
                                                 '\n' | '\r' | '\u{2028}' | '\u{2029}' => break,
                                                 ch => body.push(ch),
