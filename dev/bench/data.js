@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1580603864933,
+  "lastUpdate": 1580651218861,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -395,6 +395,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.1436,
             "range": "+/- 0.007",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nathaniel.daniel23@outlook.com",
+            "name": "Nathaniel",
+            "username": "adumbidiot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6947122815f33b57b51062720380ca9ae68b47ad",
+          "message": "Fixed compilation without \"wasm-bindgen\" feature (#236)\n\n* Fixed compilation without \"wasm-bindgen\" feature\r\n\r\n* updating clippy rules on all files (#238)\r\n\r\n* Fixed compilation without \"wasm-bindgen\" feature\r\n\r\nCo-authored-by: Jason Williams <936006+jasonwilliams@users.noreply.github.com>",
+          "timestamp": "2020-02-02T13:40:08Z",
+          "tree_id": "ea6b2111b9065bbe66f02ec12c28f47f22d99532",
+          "url": "https://github.com/jasonwilliams/boa/commit/6947122815f33b57b51062720380ca9ae68b47ad"
+        },
+        "date": 1580651217138,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 432.61,
+            "range": "+/- 4.950",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 511.42,
+            "range": "+/- 4.910",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 5.037,
+            "range": "+/- 0.026",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 10.015,
+            "range": "+/- 0.120",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 450.17,
+            "range": "+/- 4.160",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0441,
+            "range": "+/- 0.013",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.1718,
+            "range": "+/- 0.020",
             "unit": "us"
           }
         ]
