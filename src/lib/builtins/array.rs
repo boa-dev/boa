@@ -86,8 +86,12 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
 
     // Create length
     let len_prop_value = match args.len() {
-        1 => to_value(args.len() as i32),
-        _ => to_value(args[0].clone()),
+        1 => {
+            let array_length: i32 =
+                from_value(args[0].clone()).expect("Could not convert argument length to i32");
+            to_value(array_length)
+        }
+        _ => to_value(args.len() as i32),
     };
     let length = Property::new()
         .value(len_prop_value)
@@ -723,6 +727,72 @@ mod tests {
     use crate::exec::Executor;
     use crate::forward;
     use crate::realm::Realm;
+
+    #[test]
+    fn make_array() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var arr = ["a", "b", "c"];
+        var new_arr_item = new Array("a", "b", "c");
+        var new_arr_empty = new Array();
+        var new_arr_big = new Array(3000);
+        var arr_undefined = [0,,,'3'];
+        "#;
+        forward(&mut engine, init);
+        assert_eq!(forward(&mut engine, "arr[0]"), "a");
+        assert_eq!(forward(&mut engine, "arr[1]"), "b");
+        assert_eq!(forward(&mut engine, "arr[2]"), "c");
+
+        assert_eq!(forward(&mut engine, "new_arr_item[0]"), "a");
+        assert_eq!(forward(&mut engine, "new_arr_item[1]"), "b");
+        assert_eq!(forward(&mut engine, "new_arr_item[2]"), "c");
+
+        assert_eq!(forward(&mut engine, "typeof(new_arr_empty)"), "object");
+        // // TODO: Array.isArray
+        // assert_eq!(forward(&mut engine, "Array.isArray(new_arr_empty)"), "true");
+
+        assert_eq!(forward(&mut engine, "new_arr_big.length"), "3000");
+        assert_eq!(forward(&mut engine, "new_arr_big[2000]"), "undefined");
+        forward(&mut engine, "new_arr_big[2000] = 1");
+        assert_eq!(forward(&mut engine, "new_arr_big[2000]"), "1");
+        forward(&mut engine, "new_arr_big[2000] = 10");
+        assert_eq!(forward(&mut engine, "new_arr_big[2000]"), "10");
+
+        assert_eq!(forward(&mut engine, "new_arr_big.length"), "3000");
+        assert_eq!(forward(&mut engine, "new_arr_big[5000]"), "undefined");
+        forward(&mut engine, "new_arr_big[5000] = 5");
+        assert_eq!(forward(&mut engine, "new_arr_big[5000]"), "5");
+        assert_eq!(forward(&mut engine, "new_arr_big.length"), "5001");
+        forward(&mut engine, "new_arr_big[5000] = 10");
+        assert_eq!(forward(&mut engine, "new_arr_big[5000]"), "10");
+        assert_eq!(forward(&mut engine, "new_arr_big.length"), "5001");
+
+        forward(&mut engine, "new_arr_big.length = 5");
+        // // TODO:
+        // assert_eq!(forward(&mut engine, "new_arr_big[5000]"), "undefined");
+        assert_eq!(forward(&mut engine, "([1, 2, 3]).length"), "3");
+
+        // // TODO:
+        // assert_eq!(forward(&mut engine, "Array.prototype.constructor === Array"), "true");
+        assert_eq!(forward(&mut engine, "Array.prototype.length"), "0");
+        forward(&mut engine, "Array.prototype[0] = 'string value'");
+        // assert_eq!(forward(&mut engine, "Array.prototype.length"), "1");
+        assert_eq!(
+            forward(&mut engine, "Array.prototype[0]"),
+            String::from("string value")
+        );
+
+        assert_eq!(forward(&mut engine, "arr_undefined[0]"), "0");
+        assert_eq!(forward(&mut engine, "arr_undefined[1]"), "undefined");
+        assert_eq!(forward(&mut engine, "arr_undefined[2]"), "undefined");
+        assert_eq!(forward(&mut engine, "arr_undefined[3]"), "3");
+
+        // forward(&mut engine, "new_arr_big[0] = 1");
+        // assert_eq!(forward(&mut engine, "new_arr_big[0]"), "1");
+        // forward(&mut engine, "arr_undefined[0] += new_arr_big[0]");
+        // assert_eq!(forward(&mut engine, "arr_undefined[0] == 0"), "true");
+    }
 
     #[test]
     fn concat() {
