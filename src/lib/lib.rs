@@ -21,11 +21,11 @@ use crate::{
 
 fn parser_expr(src: &str) -> Result<Expr, String> {
     let mut lexer = Lexer::new(src);
-    lexer.lex().map_err(|e| e.to_string())?;
+    lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
     let tokens = lexer.tokens;
     Parser::new(tokens)
         .parse_all()
-        .map_err(|_e| "parsing failed".to_string())
+        .map_err(|e| format!("ParsingError: {}", e))
 }
 
 /// Execute the code using an existing Interpreter
@@ -34,8 +34,8 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
     let expr = match parser_expr(src) {
         Ok(v) => v,
-        Err(s) => {
-            return format!("{}: {}", "Error", s);
+        Err(error_string) => {
+            return error_string;
         }
     };
     let result = engine.run(&expr);
