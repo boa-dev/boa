@@ -773,11 +773,26 @@ mod tests {
         assert_eq!(forward(&mut engine, "Array.isArray({})"), "false");
         // assert_eq!(forward(&mut engine, "Array.isArray(new Array)"), "true");
         assert_eq!(forward(&mut engine, "Array.isArray()"), "false");
-        assert_eq!(forward(&mut engine, "Array.isArray({ constructor: Array })"), "false");
-        assert_eq!(forward(&mut engine, "Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })"), "false");
+        assert_eq!(
+            forward(&mut engine, "Array.isArray({ constructor: Array })"),
+            "false"
+        );
+        assert_eq!(
+            forward(
+                &mut engine,
+                "Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })"
+            ),
+            "false"
+        );
         assert_eq!(forward(&mut engine, "Array.isArray(17)"), "false");
-        assert_eq!(forward(&mut engine, "Array.isArray({ __proto__: Array.prototype })"), "false");
-        assert_eq!(forward(&mut engine, "Array.isArray({ length: 0 })"), "false");
+        assert_eq!(
+            forward(&mut engine, "Array.isArray({ __proto__: Array.prototype })"),
+            "false"
+        );
+        assert_eq!(
+            forward(&mut engine, "Array.isArray({ length: 0 })"),
+            "false"
+        );
     }
 
     #[test]
