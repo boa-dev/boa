@@ -15,7 +15,7 @@ use std::{
 
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
-        let preview = $this.preview_next().unwrap();
+        let preview = $this.preview_next().expect("Could not preview next value");
         match preview {
             '=' => {
                 $this.next();
@@ -25,7 +25,7 @@ macro_rules! vop {
         }
     });
     ($this:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
-        let preview = $this.preview_next().unwrap();
+        let preview = $this.preview_next().expect("Could not preview next value");
         match preview {
             '=' => {
                 $this.next();
@@ -39,7 +39,7 @@ macro_rules! vop {
         }
     });
     ($this:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
-        let preview = $this.preview_next().unwrap();
+        let preview = $this.preview_next().expect("Could not preview next value");
         match preview {
             $($case => {
                 $this.next()?;
@@ -197,7 +197,7 @@ impl<'a> Lexer<'a> {
         result
     }
 
-    fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> u64 {
+    fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> Result<u64, LexerError> {
         self.next();
         while let Some(ch) = self.preview_next() {
             if ch.is_digit(base) {
@@ -206,7 +206,8 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        u64::from_str_radix(&buf, base).expect("Could not convert value to u64")
+        u64::from_str_radix(&buf, base)
+            .map_err(|_| LexerError::new("Could not convert value to u64"))
     }
 
     fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
@@ -285,8 +286,7 @@ impl<'a> Lexer<'a> {
                                                     Ok(v) => v,
                                                     Err(_) => 0,
                                                 };
-                                                let c = from_u32(as_num)
-                                                    .expect("Invalid Unicode escape sequence");
+                                                let c = from_u32(as_num).ok_or_else(|| LexerError::new("Invalid Unicode escape sequence"))?;
 
                                                 self.next(); // '}'
                                                 self.column_number +=
@@ -326,10 +326,10 @@ impl<'a> Lexer<'a> {
                                             }
                                         }
                                         '\'' | '"' | '\\' => escape,
-                                        ch => panic!(
-                                            "{}:{}: Invalid escape `{}`",
-                                            self.line_number, self.column_number, ch
-                                        ),
+                                        ch => {
+                                            let details = format!("{}:{}: Invalid escape `{}`", self.line_number, self.column_number, ch);
+                                            return Err(LexerError { details });
+                                        }
                                     };
                                     buf.push(escaped_ch);
                                 }
@@ -353,13 +353,13 @@ impl<'a> Lexer<'a> {
                             return Ok(());
                         }
                         Some('x') | Some('X') => {
-                            self.read_integer_in_base(16, buf)
+                            self.read_integer_in_base(16, buf)?
                         }
                         Some('o') | Some('O') => {
-                            self.read_integer_in_base(8, buf)
+                            self.read_integer_in_base(8, buf)?
                         }
                         Some('b') | Some('B') => {
-                            self.read_integer_in_base(2, buf)
+                            self.read_integer_in_base(2, buf)?
                         }
                         Some(ch) if ch.is_ascii_digit() => {
                             // LEGACY OCTAL (ONLY FOR NON-STRICT MODE)
@@ -427,7 +427,7 @@ impl<'a> Lexer<'a> {
                     }
                     // TODO make this a bit more safe -------------------------------VVVV
                     self.push_token(TokenData::NumericLiteral(
-                        f64::from_str(&buf).expect("Could not convert value to f64"),
+                        f64::from_str(&buf).map_err(|_| LexerError::new("Could not convert value to f64"))?,
                     ))
                 }
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
@@ -617,10 +617,10 @@ impl<'a> Lexer<'a> {
                 '\u{0020}' | '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{00A0}' | '\u{FEFF}' |
                 // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
                 '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' => (),
-                _ => panic!(
-                    "{}:{}: Unexpected '{}'",
-                    self.line_number, self.column_number, ch
-                ),
+                _ => {
+                    let details = format!("{}:{}: Unexpected '{}'", self.line_number, self.column_number, ch);
+                    return Err(LexerError { details });
+                },
             }
         }
     }
