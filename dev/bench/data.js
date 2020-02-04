@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1580651218861,
+  "lastUpdate": 1580812757025,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -461,6 +461,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.1718,
             "range": "+/- 0.020",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nathaniel.daniel23@outlook.com",
+            "name": "Nathaniel",
+            "username": "adumbidiot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "18523c57f1d1b0cca2854010fc93f0d11649b49f",
+          "message": "Fixed some panics in the lexer (#242)\n\n* Fixed some panics in the lexer\r\n* Applied Requested Fixes\r\n* Applied Requested Fixes\r\n* Gave `ParseError` a basic `Display` impl",
+          "timestamp": "2020-02-04T10:32:31Z",
+          "tree_id": "f45053aaa1b4376cdd37da79620a4faa020a2b8e",
+          "url": "https://github.com/jasonwilliams/boa/commit/18523c57f1d1b0cca2854010fc93f0d11649b49f"
+        },
+        "date": 1580812755392,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 417.2,
+            "range": "+/- 3.800",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 491.62,
+            "range": "+/- 4.340",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.8759,
+            "range": "+/- 0.019",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 9.4553,
+            "range": "+/- 0.074",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 426.69,
+            "range": "+/- 5.980",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0207,
+            "range": "+/- 0.017",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.1218,
+            "range": "+/- 0.011",
             "unit": "us"
           }
         ]
