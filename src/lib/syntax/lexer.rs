@@ -15,7 +15,7 @@ use std::{
 
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
-        let preview = $this.preview_next().expect("Could not preview next value");
+        let preview = $this.preview_next().ok_or_else(|| LexerError::new("Could not preview next value"))?;
         match preview {
             '=' => {
                 $this.next();
@@ -25,7 +25,7 @@ macro_rules! vop {
         }
     });
     ($this:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
-        let preview = $this.preview_next().expect("Could not preview next value");
+        let preview = $this.preview_next().ok_or_else(|| LexerError::new("Could not preview next value"))?;
         match preview {
             '=' => {
                 $this.next();
@@ -39,7 +39,7 @@ macro_rules! vop {
         }
     });
     ($this:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
-        let preview = $this.preview_next().expect("Could not preview next value");
+        let preview = $this.preview_next().ok_or_else(|| LexerError::new("Could not preview next value"))?;
         match preview {
             $($case => {
                 $this.next()?;
@@ -248,6 +248,9 @@ impl<'a> Lexer<'a> {
                 '"' | '\'' => {
                     let mut buf = String::new();
                     loop {
+                        if self.preview_next().is_none() {
+                            return Err(LexerError::new("Unterminated String"));
+                        }
                         match self.next() {
                             '\'' if ch == '\'' => {
                                 break;
@@ -256,6 +259,9 @@ impl<'a> Lexer<'a> {
                                 break;
                             }
                             '\\' => {
+                                if self.preview_next().is_none() {
+                                    return Err(LexerError::new("Unterminated String"));
+                                }
                                 let escape = self.next();
                                 if escape != '\n' {
                                     let escaped_ch = match escape {
@@ -268,6 +274,9 @@ impl<'a> Lexer<'a> {
                                         'x' => {
                                             let mut nums = String::with_capacity(2);
                                             for _ in 0_u8..2 {
+                                                if self.preview_next().is_none() {
+                                                    return Err(LexerError::new("Unterminated String"));
+                                                }
                                                 nums.push(self.next());
                                             }
                                             self.column_number += 2;
@@ -302,6 +311,9 @@ impl<'a> Lexer<'a> {
                                                 };
                                                 let c = from_u32(as_num).ok_or_else(|| LexerError::new("Invalid Unicode escape sequence"))?;
 
+                                                if self.preview_next().is_none() {
+                                                    return Err(LexerError::new("Unterminated String"));
+                                                }
                                                 self.next(); // '}'
                                                 self.column_number +=
                                                     (s.len() as u64).wrapping_add(3);
@@ -395,11 +407,11 @@ impl<'a> Lexer<'a> {
                                 }
                             }
                             if gone_decimal {
-                                u64::from_str(&buf).expect("Could not convert value to u64")
+                                u64::from_str(&buf).map_err(|_e| LexerError::new("Could not convert value to u64"))?
                             } else if buf.is_empty() {
                                 0
                             } else {
-                                u64::from_str_radix(&buf, 8).expect("Could not convert value to u64")
+                                u64::from_str_radix(&buf, 8).map_err(|_e| LexerError::new("Could not convert value to u64"))?
                             }
                         }
                         Some(_) => {
@@ -517,6 +529,9 @@ impl<'a> Lexer<'a> {
                             '*' => {
                                 let mut buf = String::new();
                                 loop {
+                                    if self.preview_next().is_none() {
+                                        return Err(LexerError::new("Unterminated Multiline Comment"));
+                                    }
                                     match self.next() {
                                         '*' => {
                                             if self.next_is('/') {
@@ -551,6 +566,9 @@ impl<'a> Lexer<'a> {
                                         // escape sequence
                                         Some('\\') => {
                                             body.push('\\');
+                                            if self.preview_next().is_none() {
+                                                break;
+                                            }
                                             match self.next() {
                                                 // newline not allowed in regex literal
                                                 '\n' | '\r' | '\u{2028}' | '\u{2029}' => break,
