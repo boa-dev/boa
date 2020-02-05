@@ -426,11 +426,25 @@ impl<'a> Lexer<'a> {
                                     None => break,
                                 };
 
-                                if !c.is_digit(10) {
-                                    break 'digitloop;
+                                match c {
+                                    'e' | 'E' => {
+                                        match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
+                                            Some(0..=9) | None => {
+                                                buf.push(self.next());
+                                              }
+                                              _ => {
+                                                break 'digitloop;
+                                              }
+                                        }
+                                    }
+                                    _ => {
+                                        if !c.is_digit(10) {
+                                            break 'digitloop;
+                                        }
+                                    }
                                 }
                             },
-                            'e' => {
+                            'e' | 'E' => {
                               match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
                                   Some(0..=9) | None => {
                                     buf.push(self.next());
@@ -1105,7 +1119,37 @@ mod tests {
         assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
         assert_eq!(
             lexer.tokens[2].data,
-            TokenData::NumericLiteral(100000000000.0)
+            TokenData::NumericLiteral(100_000_000_000.0)
         );
+    }
+
+    #[test]
+    fn test_positive_float_positive_scientific_notaion() {
+        let mut lexer = Lexer::new("1.0e1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(10.0));
+    }
+
+    #[test]
+    fn test_negative_float_positive_scientific_notaion() {
+        let mut lexer = Lexer::new("-1.0e1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::Punctuator(Punctuator::Sub));
+        assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(10.0));
+    }
+
+    #[test]
+    fn test_positive_float_negative_scientific_notaion() {
+        let mut lexer = Lexer::new("1.0e-1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(0.1));
+    }
+
+    #[test]
+    fn test_negative_float_negative_scientific_notaion() {
+        let mut lexer = Lexer::new("-1.0e-1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::Punctuator(Punctuator::Sub));
+        assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(0.1));
     }
 }
