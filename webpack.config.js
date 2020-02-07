@@ -1,6 +1,8 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const {
+  CleanWebpackPlugin
+} = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
@@ -18,10 +20,12 @@ module.exports = {
       template: "index.html"
     }),
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, ".")
+      crateDirectory: path.resolve(__dirname, "./boa/")
     }),
-    new CopyWebpackPlugin([
-      { from: "./assets/*", to: "." },
+    new CopyWebpackPlugin([{
+        from: "./assets/*",
+        to: "."
+      },
       {
         from: "./node_modules/bootstrap/dist/css/bootstrap.min.css",
         to: "./assets"
@@ -38,8 +42,7 @@ module.exports = {
     })
   ],
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.css$/,
         use: ["style-loader", "css-loader"]
       },

@@ -1,7 +1,7 @@
 // Note that a dynamic `import` statement here is required due to
 // webpack/webpack#6615, but in theory `import { greet } from './pkg/hello_world';`
 // will work here one day as well!
-const rust = import("./pkg");
+const rust = import("./boa/pkg");
 import * as monaco from "monaco-editor";
 // const image = import("./assets/01_rust_loves_js.png");
 
@@ -14,8 +14,7 @@ greet('World')
 `;
 
 const editor = monaco.editor.create(
-  document.getElementsByClassName("textbox")[0],
-  {
+  document.getElementsByClassName("textbox")[0], {
     value: initialCode,
     language: "javascript",
     theme: "vs",
