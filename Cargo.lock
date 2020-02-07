@@ -71,13 +71,6 @@ name = "boa_cli"
 version = "0.1.0"
 dependencies = [
  "Boa",
-]
-
-[[package]]
-name = "boa_shell"
-version = "0.1.0"
-dependencies = [
- "Boa",
  "structopt",
 ]
 

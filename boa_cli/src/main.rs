@@ -2,39 +2,38 @@
 #![warn(clippy::perf)]
 #![allow(clippy::cognitive_complexity)]
 
-use boa::exec;
-use std::{env, fs::read_to_string, process::exit};
+use boa::{exec, exec::Executor, forward_val, realm::Realm};
+use std::{fs::read_to_string, path::PathBuf};
+use structopt::StructOpt;
 
-fn print_usage() {
-    println!(
-        "Usage:
-boa [file.js]
-    Interpret and execute file.js
-    (if no file given, defaults to tests/js/test.js"
-    );
+/// CLI configuration for Boa.
+#[derive(Debug, StructOpt)]
+#[structopt(author, about)]
+struct Opt {
+    /// The javascript file to be evaluated.
+    #[structopt(name = "FILE", parse(from_os_str), default_value = "tests/js/test.js")]
+    file: PathBuf,
+    /// Open a boa shell (WIP).
+    #[structopt(short, long)]
+    shell: bool,
 }
 
 pub fn main() -> Result<(), std::io::Error> {
-    let args: Vec<String> = env::args().collect();
-    let read_file;
+    let args = Opt::from_args();
 
-    match args.len() {
-        // No arguments passed, default to "test.js"
-        1 => {
-            read_file = "tests/js/test.js";
+    let buffer = read_to_string(args.file)?;
+
+    if args.shell {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        match forward_val(&mut engine, &buffer) {
+            Ok(v) => print!("{}", v.to_string()),
+            Err(v) => eprint!("{}", v.to_string()),
         }
-        // One argument passed, assumed this is the test file
-        2 => {
-            read_file = &args[1];
-        }
-        // Some other number of arguments passed: not supported
-        _ => {
-            print_usage();
-            exit(1);
-        }
+    } else {
+        dbg!(exec(&buffer));
     }
 
-    let buffer = read_to_string(read_file)?;
-    dbg!(exec(&buffer));
     Ok(())
 }
