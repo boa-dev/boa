@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1581375691339,
+  "lastUpdate": 1581377868184,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -659,6 +659,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.0479,
             "range": "+/- 0.017",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nathaniel.daniel23@outlook.com",
+            "name": "Nathaniel",
+            "username": "adumbidiot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "080a3359fd73c8e8eb0bab16a26434b0aa8b93e6",
+          "message": "Fixed parsing of floats with scientific notation (#245)\n\n* Fixed parsing of scientific notation with floats\r\n\r\n* Reorganize tests",
+          "timestamp": "2020-02-10T23:31:29Z",
+          "tree_id": "39e494f20bae8826551725f70111969dd1492b41",
+          "url": "https://github.com/jasonwilliams/boa/commit/080a3359fd73c8e8eb0bab16a26434b0aa8b93e6"
+        },
+        "date": 1581377866687,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 398.63,
+            "range": "+/- 6.210",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 469.89,
+            "range": "+/- 6.150",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.8164,
+            "range": "+/- 0.078",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 9.4264,
+            "range": "+/- 0.145",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 423.9,
+            "range": "+/- 6.670",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 956.83,
+            "range": "+/- 15.510",
+            "unit": "ns"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.2632,
+            "range": "+/- 0.026",
             "unit": "us"
           }
         ]
