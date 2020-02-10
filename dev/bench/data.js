@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1580851933539,
+  "lastUpdate": 1581375691339,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -593,6 +593,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.3025,
             "range": "+/- 0.025",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jase.williams@gmail.com",
+            "name": "Jason Williams",
+            "username": "jasonwilliams"
+          },
+          "committer": {
+            "email": "jase.williams@gmail.com",
+            "name": "Jason Williams",
+            "username": "jasonwilliams"
+          },
+          "distinct": true,
+          "id": "3e48f54ca5cd970c927e2723b40dc998bd8038f6",
+          "message": "rust-lldb is no longer needed, sourcemaps should move into launch.json, rust-analyzer is now in the marketplace",
+          "timestamp": "2020-02-10T22:54:37Z",
+          "tree_id": "3481f7681585ca5b24766efff03115b47ca9b78d",
+          "url": "https://github.com/jasonwilliams/boa/commit/3e48f54ca5cd970c927e2723b40dc998bd8038f6"
+        },
+        "date": 1581375689851,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 402.81,
+            "range": "+/- 8.440",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 496.77,
+            "range": "+/- 12.170",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.8743,
+            "range": "+/- 0.081",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 9.0869,
+            "range": "+/- 0.212",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 423.19,
+            "range": "+/- 11.480",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 954.83,
+            "range": "+/- 34.010",
+            "unit": "ns"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.0479,
+            "range": "+/- 0.017",
             "unit": "us"
           }
         ]
