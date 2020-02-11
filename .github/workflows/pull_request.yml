@@ -10,6 +10,6 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - uses: jasonwilliams/criterion-compare-action@master
+      - uses: jasonwilliams/criterion-compare-action@b88549f
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
