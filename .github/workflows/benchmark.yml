@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: rustup toolchain update stable && rustup default stable
       - name: Run benchmark
-        run: cargo bench | tee output.txt
+        run: cargo bench -p Boa | tee output.txt
       - name: Store benchmark result
         uses: jasonwilliams/github-action-benchmark@v1
         with:

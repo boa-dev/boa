@@ -426,11 +426,25 @@ impl<'a> Lexer<'a> {
                                     None => break,
                                 };
 
-                                if !c.is_digit(10) {
-                                    break 'digitloop;
+                                match c {
+                                    'e' | 'E' => {
+                                        match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
+                                            Some(0..=9) | None => {
+                                                buf.push(self.next());
+                                              }
+                                              _ => {
+                                                break 'digitloop;
+                                              }
+                                        }
+                                    }
+                                    _ => {
+                                        if !c.is_digit(10) {
+                                            break 'digitloop;
+                                        }
+                                    }
                                 }
                             },
-                            'e' => {
+                            'e' | 'E' => {
                               match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
                                   Some(0..=9) | None => {
                                     buf.push(self.next());
@@ -1002,7 +1016,9 @@ mod tests {
 
     #[test]
     fn numbers() {
-        let mut lexer = Lexer::new("1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999");
+        let mut lexer = Lexer::new(
+            "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1",
+        );
         lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
@@ -1016,6 +1032,10 @@ mod tests {
         assert_eq!(lexer.tokens[9].data, TokenData::NumericLiteral(2.0));
         assert_eq!(lexer.tokens[10].data, TokenData::NumericLiteral(83.0));
         assert_eq!(lexer.tokens[11].data, TokenData::NumericLiteral(999.0));
+        assert_eq!(lexer.tokens[12].data, TokenData::NumericLiteral(10.0));
+        assert_eq!(lexer.tokens[13].data, TokenData::NumericLiteral(0.1));
+        assert_eq!(lexer.tokens[14].data, TokenData::NumericLiteral(10.0));
+        assert_eq!(lexer.tokens[14].data, TokenData::NumericLiteral(10.0));
     }
 
     #[test]
@@ -1105,7 +1125,7 @@ mod tests {
         assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
         assert_eq!(
             lexer.tokens[2].data,
-            TokenData::NumericLiteral(100000000000.0)
+            TokenData::NumericLiteral(100_000_000_000.0)
         );
     }
 }
