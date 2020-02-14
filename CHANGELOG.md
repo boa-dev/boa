@@ -1,14 +1,58 @@
 # CHANGELOG
 
-TODO
+# [# 0.6.0 (2020-14-02) - Migration to Workspace Architechure + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...HEAD)
 
-Features:
+The lexer has had several fixes in this release, including how it parses numbers, scientific notation should be improved.  
+On top of that the lexer no longer panics on errors including Syntax Errors (thanks @adumbidiot), instead you get some output on where the error happened.
 
-- [FEATURE #74](https://github.com/jasonwilliams/boa/issues/74):
-  Enables Boa to run within the Test 262 framework.  
-  This will help us see what is implemented or not within the spec
-  
-# [# 0.5.1 (2019-12-02) - Rest / Spread (almost)](https://github.com/jasonwilliams/boa/compare/v0.5.1...HEAD)
+## Moving to a workspace architecture
+
+Boa offers both a CLI and a library, initially these were all in the same binary. The downside is
+those who want to embed boa as-is end up with all of the command-line dependencies.  
+So the time has come to separate out the two, this is normal procedure, this should be analogous to ripgrep
+and the regex crate.  
+Cargo has great support for workspaces, so this shouldn't be an issue.
+
+## Benchmarks
+
+We now have [benchmarks which run against master](https://jasonwilliams.github.io/boa/dev/bench)!  
+Thanks to Github Actions these will run automatically a commit is merged.
+
+Feature enhancements:
+
+- [FEATURE #218](https://github.com/jasonwilliams/boa/pull/218):
+  Implement Array.prototype.toString (@cisen)
+- [FEATURE #216](https://github.com/jasonwilliams/boa/commit/85e9a3526105a600358bd53811e2b022987c6fc8):
+  Keep accepting new array elements after spread.
+- [FEATURE #220](https://github.com/jasonwilliams/boa/pull/220):
+  Documentation updates. (@croraf)
+- [FEATURE #226](https://github.com/jasonwilliams/boa/pull/226):
+  add parser benchmark for expressions. (@jasonwilliams)
+- [FEATURE #217](https://github.com/jasonwilliams/boa/pull/217):
+  String.prototype.replace() implemented
+- [FEATURE #247](https://github.com/jasonwilliams/boa/pull/247):
+  Moved to a workspace architecture (@Razican)
+
+Bug fixes:
+
+- [BUG #222](https://github.com/jasonwilliams/boa/pull/222):
+  Fixed clippy errors (@IovoslavIovchev)
+- [BUG #228](https://github.com/jasonwilliams/boa/pull/228):
+  [lexer: single-line-comment] Fix bug when single line comment is last line of file (@croraf)
+- [BUG #229](https://github.com/jasonwilliams/boa/pull/229):
+  Replace error throwing with panic in "Lexer::next()" (@croraf)
+- [BUG #232/BUG #238](https://github.com/jasonwilliams/boa/pull/232):
+  Clippy checking has been scaled right back to just Perf and Style (@jasonwilliams)
+- [BUG #227](https://github.com/jasonwilliams/boa/pull/227):
+  Array.prototype.toString should be called by ES value (@cisen)
+- [BUG #242](https://github.com/jasonwilliams/boa/pull/242):
+  Fixed some panics in the lexer (@adumbidiot)
+- [BUG #235](https://github.com/jasonwilliams/boa/pull/235):
+  Fixed arithmetic operations with no space (@gomesalexandre)
+- [BUG #245](https://github.com/jasonwilliams/boa/pull/245):
+  Fixed parsing of floats with scientific notation (@adumbidiot)
+
+# [# 0.5.1 (2019-12-02) - Rest / Spread (almost)](https://github.com/jasonwilliams/boa/compare/v0.5.0...v0.5.1)
 
 Feature enhancements:
 
@@ -17,8 +61,8 @@ Feature enhancements:
 - [FEATURE #193](https://github.com/jasonwilliams/boa/issues/193):
   Implement macro for setting builtin functions
 - [FEATURE #211](https://github.com/jasonwilliams/boa/pull/211):
-   Better Display support for all Objects (pretty printing)
-  
+  Better Display support for all Objects (pretty printing)
+
 # [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/jasonwilliams/boa/compare/v0.4.0...v0.5.1)
 
 Feature enhancements:
