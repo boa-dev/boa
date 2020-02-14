@@ -1,61 +1,28 @@
-[package]
-name = "Boa"
-version = "0.5.1"
-authors = ["Jason Williams <jase.williams@gmail.com>"]
-description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
-homepage = "https://github.com/jasonwilliams/boa"
-repository = "https://github.com/jasonwilliams/boa"
-keywords = ["javascript", "compiler", "lexer", "parser", "js"]
-license = "Unlicense/MIT"
-exclude = [".vscode/*", "Dockerfile", "Makefile", ".editorConfig"]
-edition = "2018"
-default-run = "boa"
+[workspace]
+members = [
+    "boa",
+    "boa_cli",
+]
 
-[features]
-default = ["wasm-bindgen"]
+# The release profile, used for `cargo build`.
+[profile.dev]
+incremental = true
+opt-level = 0
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+overflow-checks = true
+panic = 'unwind'
 
-[dependencies]
-gc = "^0.3.3"
-gc_derive = "^0.3.2"
-serde_json = "^1.0.40"
-rand = "^0.7.0"
-regex = "^1.3.0"
-structopt = "0.3.2"
-
-# Optional Dependencies
-wasm-bindgen = { version = "^0.2.50", optional = true }
-
-[dev-dependencies]
-criterion = "^0.3.0"
-
-[lib]
-crate-type = ["cdylib", "lib"]
-name = "boa"
-path = "src/lib/lib.rs"
-bench = false
-
-[[bench]]
-name = "string"
-harness = false
-
-[[bench]]
-name = "fib"
-harness = false
-
-[[bench]]
-name = "exec"
-harness = false
-
-[[bench]]
-name = "parser"
-harness = false
-
-[[bin]]
-name = "boa"
-path = "src/bin/bin.rs"
-bench = false
-
-[[bin]]
-name = "boashell"
-path = "src/bin/shell.rs"
-bench = false
+# The release profile, used for `cargo build --release`.
+[profile.release]
+incremental = false
+opt-level = 3
+debug = false
+rpath = false
+codegen-units = 1
+lto = true
+debug-assertions = false
+overflow-checks = false
+panic = 'unwind'

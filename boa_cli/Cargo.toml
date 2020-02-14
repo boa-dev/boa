@@ -1,0 +1,15 @@
+[package]
+name = "boa_cli"
+version = "0.1.0"
+authors = ["razican <iban.eguia@cern.ch>"]
+description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
+repository = "https://github.com/jasonwilliams/boa"
+keywords = ["javascript", "compiler", "lexer", "parser", "js", "cli"]
+categories = ["command-line-utilities"]
+license = "Unlicense/MIT"
+exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
+edition = "2018"
+
+[dependencies]
+Boa = { path = "../boa" }
+structopt = "0.3.9"
