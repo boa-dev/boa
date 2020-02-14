@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1581680103394,
+  "lastUpdate": 1581684058221,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -922,6 +922,70 @@ window.BENCHMARK_DATA = {
           {
             "name": "Hello World (Parser)",
             "value": 1.3612,
+            "range": "+/- 0.020",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jwilliams720@bloomberg.net",
+            "name": "Jason Williams"
+          },
+          "committer": {
+            "email": "jwilliams720@bloomberg.net",
+            "name": "Jason Williams"
+          },
+          "distinct": true,
+          "id": "019033eff066e8c6ba9456139690eb214a0bf61d",
+          "message": "cargo update",
+          "timestamp": "2020-02-14T12:34:45Z",
+          "tree_id": "d16f7eb8eee5bc7ee3c54da5db4deffe636b30d6",
+          "url": "https://github.com/jasonwilliams/boa/commit/019033eff066e8c6ba9456139690eb214a0bf61d"
+        },
+        "date": 1581684055139,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 416.79,
+            "range": "+/- 3.900",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 495.44,
+            "range": "+/- 7.350",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 5.0911,
+            "range": "+/- 0.047",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 10.154,
+            "range": "+/- 0.147",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 430.49,
+            "range": "+/- 4.580",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0047,
+            "range": "+/- -998.899",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.3107,
             "range": "+/- 0.020",
             "unit": "us"
           }
