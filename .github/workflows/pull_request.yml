@@ -20,6 +20,6 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      - uses: jasonwilliams/criterion-compare-action@debugging
+      - uses: jasonwilliams/criterion-compare-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
