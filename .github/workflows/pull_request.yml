@@ -10,6 +10,16 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - uses: jasonwilliams/criterion-compare-action@1bbf23d95bad1853aa9262a9304bc2efb9a954b1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
