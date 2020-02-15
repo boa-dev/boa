@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [# 0.6.0 (2020-02-14) - Migration to Workspace Architechure + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...HEAD)
+# [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...HEAD)
 
 The lexer has had several fixes in this release, including how it parses numbers, scientific notation should be improved.  
 On top of that the lexer no longer panics on errors including Syntax Errors (thanks @adumbidiot), instead you get some output on where the error happened.
