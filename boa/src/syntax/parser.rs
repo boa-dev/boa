@@ -5,6 +5,7 @@ use crate::syntax::ast::op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, Opera
 use crate::syntax::ast::punc::Punctuator;
 use crate::syntax::ast::token::{Token, TokenData};
 use std::collections::btree_map::BTreeMap;
+use std::fmt;
 
 /// `ParseError` is an enum which represents errors encounted during parsing an expression
 #[derive(Debug, Clone)]
@@ -17,6 +18,28 @@ pub enum ParseError {
     UnexpectedKeyword(Keyword),
     /// When there is an abrupt end to the parsing
     AbruptEnd,
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ParseError::Expected(expected, actual, routine) => write!(
+                f,
+                "Expected token '{}', got '{}' in routine '{}'",
+                expected
+                    .first()
+                    .map(|t| t.to_string())
+                    .unwrap_or_else(String::new),
+                actual,
+                routine
+            ),
+            ParseError::ExpectedExpr(expected, actual) => {
+                write!(f, "Expected expression '{}', got '{}'", expected, actual)
+            }
+            ParseError::UnexpectedKeyword(keyword) => write!(f, "Unexpected keyword: {}", keyword),
+            ParseError::AbruptEnd => write!(f, "Abrupt End"),
+        }
+    }
 }
 
 pub type ParseResult = Result<Expr, ParseError>;

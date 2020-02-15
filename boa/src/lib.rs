@@ -10,27 +10,34 @@ pub mod syntax;
 #[cfg(feature = "wasm-bindgen")]
 mod wasm;
 
+#[cfg(feature = "wasm-bindgen")]
+pub use crate::wasm::*;
 use crate::{
     builtins::value::ResultValue,
     exec::{Executor, Interpreter},
     realm::Realm,
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
 };
-#[cfg(feature = "wasm-bindgen")]
-pub use wasm::*;
 
-fn parser_expr(src: &str) -> Expr {
+fn parser_expr(src: &str) -> Result<Expr, String> {
     let mut lexer = Lexer::new(src);
-    lexer.lex().expect("lexing failed");
+    lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
     let tokens = lexer.tokens;
-    Parser::new(tokens).parse_all().expect("parsing failed")
+    Parser::new(tokens)
+        .parse_all()
+        .map_err(|e| format!("ParsingError: {}", e))
 }
 
 /// Execute the code using an existing Interpreter
 /// The str is consumed and the state of the Interpreter is changed
 pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
-    let expr = parser_expr(src);
+    let expr = match parser_expr(src) {
+        Ok(v) => v,
+        Err(error_string) => {
+            return error_string;
+        }
+    };
     let result = engine.run(&expr);
     match result {
         Ok(v) => v.to_string(),
@@ -44,7 +51,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     // Setup executor
-    let expr = parser_expr(src);
+    let expr = parser_expr(src).unwrap();
     engine.run(&expr)
 }
 

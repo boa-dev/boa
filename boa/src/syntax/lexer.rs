@@ -15,7 +15,7 @@ use std::{
 
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
-        let preview = $this.preview_next().unwrap();
+        let preview = $this.preview_next().expect("Could not preview next value");
         match preview {
             '=' => {
                 $this.next();
@@ -25,7 +25,7 @@ macro_rules! vop {
         }
     });
     ($this:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
-        let preview = $this.preview_next().unwrap();
+        let preview = $this.preview_next().expect("Could not preview next value");
         match preview {
             '=' => {
                 $this.next();
@@ -39,7 +39,7 @@ macro_rules! vop {
         }
     });
     ($this:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
-        let preview = $this.preview_next().unwrap();
+        let preview = $this.preview_next().expect("Could not preview next value");
         match preview {
             $($case => {
                 $this.next()?;
@@ -171,6 +171,20 @@ impl<'a> Lexer<'a> {
     fn preview_next(&mut self) -> Option<char> {
         self.buffer.peek().copied()
     }
+    /// Preview a char x indexes further in buf, without incrementing
+    fn preview_multiple_next(&mut self, nb_next: usize) -> Option<char> {
+        let mut next_peek = None;
+
+        for (i, x) in self.buffer.clone().enumerate() {
+            if i >= nb_next {
+                break;
+            }
+
+            next_peek = Some(x);
+        }
+
+        next_peek
+    }
 
     /// Utility Function, while ``f(char)`` is true, read chars and move curser.
     /// All chars are returned as a string
@@ -197,7 +211,7 @@ impl<'a> Lexer<'a> {
         result
     }
 
-    fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> u64 {
+    fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> Result<u64, LexerError> {
         self.next();
         while let Some(ch) = self.preview_next() {
             if ch.is_digit(base) {
@@ -206,7 +220,8 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        u64::from_str_radix(&buf, base).expect("Could not convert value to u64")
+        u64::from_str_radix(&buf, base)
+            .map_err(|_| LexerError::new("Could not convert value to u64"))
     }
 
     fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
@@ -285,8 +300,7 @@ impl<'a> Lexer<'a> {
                                                     Ok(v) => v,
                                                     Err(_) => 0,
                                                 };
-                                                let c = from_u32(as_num)
-                                                    .expect("Invalid Unicode escape sequence");
+                                                let c = from_u32(as_num).ok_or_else(|| LexerError::new("Invalid Unicode escape sequence"))?;
 
                                                 self.next(); // '}'
                                                 self.column_number +=
@@ -326,10 +340,10 @@ impl<'a> Lexer<'a> {
                                             }
                                         }
                                         '\'' | '"' | '\\' => escape,
-                                        ch => panic!(
-                                            "{}:{}: Invalid escape `{}`",
-                                            self.line_number, self.column_number, ch
-                                        ),
+                                        ch => {
+                                            let details = format!("{}:{}: Invalid escape `{}`", self.line_number, self.column_number, ch);
+                                            return Err(LexerError { details });
+                                        }
                                     };
                                     buf.push(escaped_ch);
                                 }
@@ -353,13 +367,13 @@ impl<'a> Lexer<'a> {
                             return Ok(());
                         }
                         Some('x') | Some('X') => {
-                            self.read_integer_in_base(16, buf)
+                            self.read_integer_in_base(16, buf)?
                         }
                         Some('o') | Some('O') => {
-                            self.read_integer_in_base(8, buf)
+                            self.read_integer_in_base(8, buf)?
                         }
                         Some('b') | Some('B') => {
-                            self.read_integer_in_base(2, buf)
+                            self.read_integer_in_base(2, buf)?
                         }
                         Some(ch) if ch.is_ascii_digit() => {
                             // LEGACY OCTAL (ONLY FOR NON-STRICT MODE)
@@ -412,12 +426,37 @@ impl<'a> Lexer<'a> {
                                     None => break,
                                 };
 
-                                if !c.is_digit(10) {
-                                    break 'digitloop;
+                                match c {
+                                    'e' | 'E' => {
+                                        match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
+                                            Some(0..=9) | None => {
+                                                buf.push(self.next());
+                                              }
+                                              _ => {
+                                                break 'digitloop;
+                                              }
+                                        }
+                                    }
+                                    _ => {
+                                        if !c.is_digit(10) {
+                                            break 'digitloop;
+                                        }
+                                    }
                                 }
                             },
-                            'e' | '+' | '-' => {
-                                buf.push(self.next());
+                            'e' | 'E' => {
+                              match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
+                                  Some(0..=9) | None => {
+                                    buf.push(self.next());
+                                  }
+                                  _ => {
+                                    break;
+                                  }
+                                }
+                            buf.push(self.next());
+                            }
+                            '+' | '-' => {
+                              break;
                             }
                             _ if ch.is_digit(10) => {
                                 buf.push(self.next());
@@ -427,7 +466,7 @@ impl<'a> Lexer<'a> {
                     }
                     // TODO make this a bit more safe -------------------------------VVVV
                     self.push_token(TokenData::NumericLiteral(
-                        f64::from_str(&buf).expect("Could not convert value to f64"),
+                        f64::from_str(&buf).map_err(|_| LexerError::new("Could not convert value to f64"))?,
                     ))
                 }
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
@@ -617,10 +656,10 @@ impl<'a> Lexer<'a> {
                 '\u{0020}' | '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{00A0}' | '\u{FEFF}' |
                 // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
                 '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' => (),
-                _ => panic!(
-                    "{}:{}: Unexpected '{}'",
-                    self.line_number, self.column_number, ch
-                ),
+                _ => {
+                    let details = format!("{}:{}: Unexpected '{}'", self.line_number, self.column_number, ch);
+                    return Err(LexerError { details });
+                },
             }
         }
     }
@@ -977,7 +1016,9 @@ mod tests {
 
     #[test]
     fn numbers() {
-        let mut lexer = Lexer::new("1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999");
+        let mut lexer = Lexer::new(
+            "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1",
+        );
         lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
         assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
@@ -991,6 +1032,10 @@ mod tests {
         assert_eq!(lexer.tokens[9].data, TokenData::NumericLiteral(2.0));
         assert_eq!(lexer.tokens[10].data, TokenData::NumericLiteral(83.0));
         assert_eq!(lexer.tokens[11].data, TokenData::NumericLiteral(999.0));
+        assert_eq!(lexer.tokens[12].data, TokenData::NumericLiteral(10.0));
+        assert_eq!(lexer.tokens[13].data, TokenData::NumericLiteral(0.1));
+        assert_eq!(lexer.tokens[14].data, TokenData::NumericLiteral(10.0));
+        assert_eq!(lexer.tokens[14].data, TokenData::NumericLiteral(10.0));
     }
 
     #[test]
@@ -1024,6 +1069,63 @@ mod tests {
         assert_eq!(
             lexer.tokens[0].data,
             TokenData::RegularExpressionLiteral("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
+        );
+    }
+
+    #[test]
+    fn test_addition_no_spaces() {
+        let mut lexer = Lexer::new("1+1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_left_side() {
+        let mut lexer = Lexer::new("1+ 1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_right_side() {
+        let mut lexer = Lexer::new("1 +1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_e_number_left_side() {
+        let mut lexer = Lexer::new("1e2+ 1");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(100.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_e_number_right_side() {
+        let mut lexer = Lexer::new("1 +1e3");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1000.0));
+    }
+
+    #[test]
+    fn test_addition_no_spaces_e_number() {
+        let mut lexer = Lexer::new("1e3+1e11");
+        lexer.lex().expect("failed to lex");
+        assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1000.0));
+        assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+        assert_eq!(
+            lexer.tokens[2].data,
+            TokenData::NumericLiteral(100_000_000_000.0)
         );
     }
 }
