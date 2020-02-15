@@ -113,6 +113,35 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     Ok(this.clone())
 }
 
+/// Array.isArray ( arg )
+///
+/// The isArray function takes one argument arg, and returns the Boolean value true
+/// if the argument is an object whose class internal property is "Array"; otherwise it returns false.
+/// <https://tc39.es/ecma262/#sec-array.isarray>
+/// ECMA-262 v5, 15.4.3.2
+pub fn is_array(_this: &Value, args: &[Value], _interpreter: &mut Interpreter) -> ResultValue {
+    let value_true = Gc::new(ValueData::Boolean(true));
+    let value_false = Gc::new(ValueData::Boolean(false));
+
+    match args.get(0) {
+        Some(arg) => {
+            match *(*arg).clone() {
+                // 1.
+                ValueData::Object(ref obj) => {
+                    // 2.
+                    if obj.borrow().kind == ObjectKind::Array {
+                        return Ok(value_true);
+                    }
+                    Ok(value_false)
+                }
+                // 3.
+                _ => Ok(value_false),
+            }
+        }
+        None => Ok(value_false),
+    }
+}
+
 /// Array.prototype.concat(...arguments)
 ///
 /// When the concat method is called with zero or more arguments, it returns an
@@ -713,6 +742,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(slice, named "slice", with length 2, of array_prototype);
 
     let array = to_value(array_constructor);
+    make_builtin_fn!(is_array, named "isArray", with length 1, of array);
     array.set_field_slice(PROTOTYPE, to_value(array_prototype.clone()));
 
     array_prototype.set_field_slice("constructor", array.clone());
@@ -724,6 +754,46 @@ mod tests {
     use crate::exec::Executor;
     use crate::forward;
     use crate::realm::Realm;
+
+    #[test]
+    fn is_array() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+        let init = r#"
+        var empty = [];
+        var new_arr = new Array();
+        var many = ["a", "b", "c"];
+        "#;
+        forward(&mut engine, init);
+        assert_eq!(forward(&mut engine, "Array.isArray(empty)"), "true");
+        assert_eq!(forward(&mut engine, "Array.isArray(new_arr)"), "true");
+        assert_eq!(forward(&mut engine, "Array.isArray(many)"), "true");
+        assert_eq!(forward(&mut engine, "Array.isArray([1, 2, 3])"), "true");
+        assert_eq!(forward(&mut engine, "Array.isArray([])"), "true");
+        assert_eq!(forward(&mut engine, "Array.isArray({})"), "false");
+        // assert_eq!(forward(&mut engine, "Array.isArray(new Array)"), "true");
+        assert_eq!(forward(&mut engine, "Array.isArray()"), "false");
+        assert_eq!(
+            forward(&mut engine, "Array.isArray({ constructor: Array })"),
+            "false"
+        );
+        assert_eq!(
+            forward(
+                &mut engine,
+                "Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })"
+            ),
+            "false"
+        );
+        assert_eq!(forward(&mut engine, "Array.isArray(17)"), "false");
+        assert_eq!(
+            forward(&mut engine, "Array.isArray({ __proto__: Array.prototype })"),
+            "false"
+        );
+        assert_eq!(
+            forward(&mut engine, "Array.isArray({ length: 0 })"),
+            "false"
+        );
+    }
 
     #[test]
     fn concat() {
