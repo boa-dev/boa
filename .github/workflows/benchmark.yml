@@ -9,6 +9,10 @@ jobs:
     name: Run Criterion benchmark
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - run: rustup toolchain update stable && rustup default stable
+      - name: Run benchmark
+        run: cargo bench -p Boa | tee output.txt
       - name: Cache cargo registry
         uses: actions/cache@v1
         with:
@@ -19,10 +23,6 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions/checkout@v2
-      - run: rustup toolchain update stable && rustup default stable
-      - name: Run benchmark
-        run: cargo bench -p Boa | tee output.txt
       - name: Store benchmark result
         uses: jasonwilliams/github-action-benchmark@v1
         with:
