@@ -26,13 +26,18 @@
     // not in base container images. You can also update this to an specific shell to ensure VS Code
     // uses the right one for terminals and tasks. For example, /bin/bash (or /bin/ash for Alpine).
     "terminal.integrated.shell.linux": null,
-    "lldb.launch.sourceLanguages": ["rust"]
+    "lldb.launch.sourceLanguages": [
+      "rust"
+    ]
   },
   // Uncomment the next line if you want to publish any ports.
   // "appPort": [],
   // Uncomment the next line to run commands after the container is created - for example installing git.
   // "postCreateCommand": "apt-get update && apt-get install -y git",
   // Add the IDs of extensions you want installed when the container is created in the array below.
-  "extensions": ["vadimcn.vscode-lldb", "matklad.rust-analyzer"],
-  "postCreateCommand": "rustup toolchain install stable && rustup component add rls rust-src rust-analysis --toolchain stable"
+  "extensions": [
+    "vadimcn.vscode-lldb",
+    "matklad.rust-analyzer"
+  ],
+  "postCreateCommand": "rustup toolchain install stable && rustup component add rust-src rust-analysis --toolchain stable"
 }
