@@ -10,8 +10,10 @@ use gc::Gc;
 use gc_derive::{Finalize, Trace};
 use std::{borrow::Borrow, collections::HashMap, ops::Deref};
 
+pub use internal_methods_trait::ObjectInternalMethods;
 pub use internal_state::{InternalState, InternalStateCell};
 
+pub mod internal_methods_trait;
 mod internal_state;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
@@ -35,126 +37,9 @@ pub struct Object {
     pub state: Option<Box<InternalStateCell>>,
 }
 
-impl Object {
-    /// Return a new ObjectData struct, with `kind` set to Ordinary
-    pub fn default() -> Self {
-        let mut object = Object {
-            kind: ObjectKind::Ordinary,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
-            state: None,
-        };
-
-        object.set_internal_slot("extensible", to_value(true));
-        object
-    }
-
-    /// ObjectCreate is used to specify the runtime creation of new ordinary objects
-    ///
-    /// https://tc39.es/ecma262/#sec-objectcreate
-    // TODO: proto should be a &Value here
-    pub fn create(proto: Value) -> Object {
-        let mut obj = Object::default();
-        obj.internal_slots
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
-        obj.internal_slots
-            .insert("extensible".to_string(), to_value(true));
-        obj
-    }
-
-    /// Utility function to get an immutable internal slot or Null
-    pub fn get_internal_slot(&self, name: &str) -> Value {
-        match self.internal_slots.get(name) {
-            Some(v) => v.clone(),
-            None => Gc::new(ValueData::Null),
-        }
-    }
-
-    /// Utility function to set an internal slot
-    pub fn set_internal_slot(&mut self, name: &str, val: Value) {
-        self.internal_slots.insert(name.to_string(), val);
-    }
-
-    /// Utility function to set an internal slot which is a function
-    pub fn set_internal_method(&mut self, name: &str, val: NativeFunctionData) {
-        self.internal_slots.insert(name.to_string(), to_value(val));
-    }
-
-    /// Utility function to set a method on this object
-    /// The native function will live in the `properties` field of the Object
-    pub fn set_method(&mut self, name: &str, val: NativeFunctionData) {
-        self.properties
-            .insert(name.to_string(), Property::default().value(to_value(val)));
-    }
-
-    /// Return a new Boolean object whose [[BooleanData]] internal slot is set to argument.
-    fn from_boolean(argument: &Value) -> Self {
-        let mut obj = Object {
-            kind: ObjectKind::Boolean,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
-            state: None,
-        };
-
-        obj.internal_slots
-            .insert("BooleanData".to_string(), argument.clone());
-        obj
-    }
-
-    /// Return a new Number object whose [[NumberData]] internal slot is set to argument.
-    fn from_number(argument: &Value) -> Self {
-        let mut obj = Object {
-            kind: ObjectKind::Number,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
-            state: None,
-        };
-
-        obj.internal_slots
-            .insert("NumberData".to_string(), argument.clone());
-        obj
-    }
-
-    /// Return a new String object whose [[StringData]] internal slot is set to argument.
-    fn from_string(argument: &Value) -> Self {
-        let mut obj = Object {
-            kind: ObjectKind::String,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
-            state: None,
-        };
-
-        obj.internal_slots
-            .insert("StringData".to_string(), argument.clone());
-        obj
-    }
-
-    // https://tc39.es/ecma262/#sec-toobject
-    pub fn from(value: &Value) -> Result<Self, ()> {
-        match *value.deref().borrow() {
-            ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
-            ValueData::Number(_) => Ok(Self::from_number(value)),
-            ValueData::String(_) => Ok(Self::from_string(value)),
-            ValueData::Object(ref obj) => Ok(obj.borrow().clone()),
-            _ => Err(()),
-        }
-    }
-
-    /// Returns either the prototype or null
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
-    pub fn get_prototype_of(&self) -> Value {
-        match self.internal_slots.get(PROTOTYPE) {
-            Some(v) => v.clone(),
-            None => Gc::new(ValueData::Null),
-        }
-    }
-
+impl ObjectInternalMethods for Object {
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
-    pub fn set_prototype_of(&mut self, val: Value) -> bool {
+    fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.get_internal_slot(PROTOTYPE);
         if current == val {
@@ -179,26 +64,30 @@ impl Object {
         true
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    pub fn is_extensible(&self) -> bool {
-        match self.internal_slots.get("extensible") {
-            Some(ref v) => {
-                // try dereferencing it: `&(*v).clone()`
-                from_value((*v).clone()).expect("boolean expected")
-            }
-            None => false,
-        }
+    fn insert_property(&mut self, name: String, p: Property) {
+        self.properties.insert(name, p);
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    pub fn prevent_extensions(&mut self) -> bool {
-        self.set_internal_slot("extensible", to_value(false));
-        true
+    fn remove_property(&mut self, name: &str) {
+        self.properties.remove(name);
+    }
+
+    /// Utility function to set an internal slot
+    fn set_internal_slot(&mut self, name: &str, val: Value) {
+        self.internal_slots.insert(name.to_string(), val);
+    }
+
+    /// Utility function to get an immutable internal slot or Null
+    fn get_internal_slot(&self, name: &str) -> Value {
+        match self.internal_slots.get(name) {
+            Some(v) => v.clone(),
+            None => Gc::new(ValueData::Null),
+        }
     }
 
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
-    pub fn get_own_property(&self, prop: &Value) -> Property {
+    fn get_own_property(&self, prop: &Value) -> Property {
         debug_assert!(Property::is_property_key(prop));
         // Prop could either be a String or Symbol
         match *(*prop) {
@@ -254,28 +143,8 @@ impl Object {
         }
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    pub fn has_property(&self, val: &Value) -> bool {
-        debug_assert!(Property::is_property_key(val));
-        let prop = self.get_own_property(val);
-        if prop.value.is_none() {
-            let parent: Value = self.get_prototype_of();
-            if !parent.is_null() {
-                // the parent value variant should be an object
-                // In the unlikely event it isn't return false
-                return match *parent {
-                    ValueData::Object(ref obj) => obj.borrow().has_property(val),
-                    _ => false,
-                };
-            }
-            return false;
-        }
-
-        true
-    }
-
     #[allow(clippy::option_unwrap_used)]
-    pub fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
+    fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
         let mut current = self.get_own_property(&to_value(property_key.to_string()));
         let extensible = self.is_extensible();
 
@@ -399,98 +268,101 @@ impl Object {
         self.properties.insert(property_key, desc);
         true
     }
+}
 
-    // [[Delete]]
-    pub fn delete(&mut self, prop_key: &Value) -> bool {
-        debug_assert!(Property::is_property_key(prop_key));
-        let desc = self.get_own_property(prop_key);
-        if desc
-            .value
-            .clone()
-            .expect("unable to get value")
-            .is_undefined()
-        {
-            return true;
-        }
-        if desc.configurable.expect("unable to get value") {
-            self.properties.remove(&prop_key.to_string());
-            return true;
-        }
+impl Object {
+    /// Return a new ObjectData struct, with `kind` set to Ordinary
+    pub fn default() -> Self {
+        let mut object = Object {
+            kind: ObjectKind::Ordinary,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+            state: None,
+        };
 
-        false
+        object.set_internal_slot("extensible", to_value(true));
+        object
     }
 
-    // [[Get]]
-    pub fn get(&self, val: &Value) -> Value {
-        debug_assert!(Property::is_property_key(val));
-        let desc = self.get_own_property(val);
-        if desc.value.clone().is_none()
-            || desc
-                .value
-                .clone()
-                .expect("Failed to get object")
-                .is_undefined()
-        {
-            // parent will either be null or an Object
-            let parent = self.get_prototype_of();
-            if parent.is_null() {
-                return Gc::new(ValueData::Undefined);
-            }
-
-            let parent_obj = Object::from(&parent).expect("Failed to get object");
-
-            return parent_obj.get(val);
-        }
-
-        if desc.is_data_descriptor() {
-            return desc.value.clone().expect("failed to extract value");
-        }
-
-        let getter = desc.get.clone();
-        if getter.is_none() || getter.expect("Failed to get object").is_undefined() {
-            return Gc::new(ValueData::Undefined);
-        }
-
-        // TODO!!!!! Call getter from here
-        Gc::new(ValueData::Undefined)
+    /// ObjectCreate is used to specify the runtime creation of new ordinary objects
+    ///
+    /// https://tc39.es/ecma262/#sec-objectcreate
+    // TODO: proto should be a &Value here
+    pub fn create(proto: Value) -> Object {
+        let mut obj = Object::default();
+        obj.internal_slots
+            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
+        obj.internal_slots
+            .insert("extensible".to_string(), to_value(true));
+        obj
     }
 
-    /// [[Set]]   
-    /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
-    pub fn set(&mut self, field: Value, val: Value) -> bool {
-        // [1]
-        debug_assert!(Property::is_property_key(&field));
+    /// Utility function to set an internal slot which is a function
+    pub fn set_internal_method(&mut self, name: &str, val: NativeFunctionData) {
+        self.internal_slots.insert(name.to_string(), to_value(val));
+    }
 
-        // Fetch property key
-        let mut own_desc = self.get_own_property(&field);
-        // [2]
-        if own_desc.is_none() {
-            let parent = self.get_prototype_of();
-            if !parent.is_null() {
-                // TODO: come back to this
-            }
-            own_desc = Property::new()
-                .writable(true)
-                .enumerable(true)
-                .configurable(true);
-        }
-        // [3]
-        if own_desc.is_data_descriptor() {
-            if !own_desc.writable.unwrap() {
-                return false;
-            }
+    /// Utility function to set a method on this object
+    /// The native function will live in the `properties` field of the Object
+    pub fn set_method(&mut self, name: &str, val: NativeFunctionData) {
+        self.properties
+            .insert(name.to_string(), Property::default().value(to_value(val)));
+    }
 
-            // Change value on the current descriptor
-            own_desc = own_desc.value(val);
-            return self.define_own_property(field.to_string(), own_desc);
-        }
-        // [4]
-        debug_assert!(own_desc.is_accessor_descriptor());
-        match own_desc.set {
-            None => false,
-            Some(_) => {
-                unimplemented!();
-            }
+    /// Return a new Boolean object whose [[BooleanData]] internal slot is set to argument.
+    fn from_boolean(argument: &Value) -> Self {
+        let mut obj = Object {
+            kind: ObjectKind::Boolean,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+            state: None,
+        };
+
+        obj.internal_slots
+            .insert("BooleanData".to_string(), argument.clone());
+        obj
+    }
+
+    /// Return a new Number object whose [[NumberData]] internal slot is set to argument.
+    fn from_number(argument: &Value) -> Self {
+        let mut obj = Object {
+            kind: ObjectKind::Number,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+            state: None,
+        };
+
+        obj.internal_slots
+            .insert("NumberData".to_string(), argument.clone());
+        obj
+    }
+
+    /// Return a new String object whose [[StringData]] internal slot is set to argument.
+    fn from_string(argument: &Value) -> Self {
+        let mut obj = Object {
+            kind: ObjectKind::String,
+            internal_slots: Box::new(HashMap::new()),
+            properties: Box::new(HashMap::new()),
+            sym_properties: Box::new(HashMap::new()),
+            state: None,
+        };
+
+        obj.internal_slots
+            .insert("StringData".to_string(), argument.clone());
+        obj
+    }
+
+    // https://tc39.es/ecma262/#sec-toobject
+    pub fn from(value: &Value) -> Result<Self, ()> {
+        match *value.deref().borrow() {
+            ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
+            ValueData::Number(_) => Ok(Self::from_number(value)),
+            ValueData::String(_) => Ok(Self::from_string(value)),
+            ValueData::Object(ref obj) => Ok(obj.borrow().clone()),
+            _ => Err(()),
         }
     }
 }

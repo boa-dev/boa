@@ -1,7 +1,7 @@
 use crate::{
     builtins::{
         function::NativeFunctionData,
-        object::{Object, ObjectKind, PROTOTYPE},
+        object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
         value::{to_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,

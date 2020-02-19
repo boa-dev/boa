@@ -1,6 +1,9 @@
 use crate::{
     builtins::{
-        object::{Object, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{
+            internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
+            PROTOTYPE,
+        },
         value::{to_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
