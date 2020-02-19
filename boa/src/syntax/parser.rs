@@ -553,6 +553,10 @@ impl Parser {
                     let name = match tk.data {
                         TokenData::Identifier(ref id) => id.clone(),
                         TokenData::StringLiteral(ref str) => str.clone(),
+                        TokenData::Punctuator(Punctuator::CloseBlock) => {
+                            self.pos += 1;
+                            break;
+                        }
                         _ => {
                             return Err(ParseError::Expected(
                                 vec![
