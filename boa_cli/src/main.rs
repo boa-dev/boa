@@ -2,7 +2,7 @@
 #![warn(clippy::perf)]
 #![allow(clippy::cognitive_complexity)]
 
-use boa::{exec, exec::Executor, forward_val, realm::Realm};
+use boa::{exec::Executor, forward_val, realm::Realm};
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::StructOpt;
 
@@ -23,16 +23,12 @@ pub fn main() -> Result<(), std::io::Error> {
 
     let buffer = read_to_string(args.file)?;
 
-    if args.shell {
-        let realm = Realm::create();
-        let mut engine = Executor::new(realm);
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
 
-        match forward_val(&mut engine, &buffer) {
-            Ok(v) => print!("{}", v.to_string()),
-            Err(v) => eprint!("{}", v.to_string()),
-        }
-    } else {
-        dbg!(exec(&buffer));
+    match forward_val(&mut engine, &buffer) {
+        Ok(v) => print!("{}", v.to_string()),
+        Err(v) => eprint!("{}", v.to_string()),
     }
 
     Ok(())
