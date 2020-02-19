@@ -374,6 +374,28 @@ impl<'a> Lexer<'a> {
                     // to compensate for the incrementing at the top
                     self.column_number += str_length.wrapping_add(1);
                 }
+                // template literal 
+                '`' => {
+                    let mut buf = String::new();
+                    loop {
+                        let ch = self.preview_next();
+                        match ch {
+                            None => {
+                                return Err(LexerError::new("Unterminated template literal"));
+                            }
+                            Some('`') => {
+                                self.next();
+                                self.push_token(TokenData::TemplateLiteral(buf));
+                                break;
+                            }
+                            Some(ch) => {
+                                self.next();
+                                buf.push(ch);
+                            }
+                            // TODO when there is an expression inside the literal
+                        }
+                    }
+                }
                 '0' => {
                     let mut buf = String::new();
 
@@ -485,7 +507,8 @@ impl<'a> Lexer<'a> {
                         f64::from_str(&buf).map_err(|_| LexerError::new("Could not convert value to f64"))?,
                     ))
                 }
-                _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
+                // 
+                ch if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();
                     while let Some(ch) = self.preview_next() {
                         if ch.is_alphabetic() || ch.is_digit(10) || ch == '_' {
