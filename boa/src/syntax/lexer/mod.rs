@@ -247,9 +247,9 @@ impl<'a> Lexer<'a> {
                 return Ok(());
             }
             self.column_number += 1;
-            let ch = self.next();
-            match ch {
-                '"' | '\'' => {
+            match self.next() {
+                // StringLiteral (")
+                ch @ '"' | ch @ '\'' => {
                     let mut buf = String::new();
                     loop {
                         if self.preview_next().is_none() {
@@ -452,7 +452,7 @@ impl<'a> Lexer<'a> {
                         return Err(e)
                     };
                 }
-                _ if ch.is_digit(10) => {
+                ch if ch.is_digit(10) => {
                     let mut buf = ch.to_string();
                     'digitloop: while let Some(ch) = self.preview_next() {
                         match ch {
@@ -711,7 +711,7 @@ impl<'a> Lexer<'a> {
                 '\u{0020}' | '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{00A0}' | '\u{FEFF}' |
                 // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
                 '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' => (),
-                _ => {
+                ch => {
                     let details = format!("{}:{}: Unexpected '{}'", self.line_number, self.column_number, ch);
                     return Err(LexerError { details });
                 },
