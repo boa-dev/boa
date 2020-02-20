@@ -20,7 +20,8 @@ use crate::{
 use gc::{Gc, GcCell};
 use std::collections::{hash_map::HashMap, hash_set::HashSet};
 
-/// Representation of a Realm.   
+/// Representation of a Realm.
+///
 /// In the specification these are called Realm Records.
 #[derive(Debug)]
 pub struct Realm {
@@ -54,14 +55,13 @@ impl Realm {
     fn create_instrinsics(&self) {
         let global = &self.global_obj;
         // Create intrinsics, add global objects here
-        function::init(global);
-
         global.set_field_slice("Array", array::create_constructor(global));
         global.set_field_slice("Boolean", boolean::create_constructor(global));
         global.set_field_slice("JSON", json::create_constructor(global));
         global.set_field_slice("Math", math::create_constructor(global));
         global.set_field_slice("Number", number::create_constructor(global));
         global.set_field_slice("Object", object::create_constructor(global));
+        global.set_field_slice("Function", function::create_constructor(global));
         global.set_field_slice("RegExp", regexp::create_constructor(global));
         global.set_field_slice("String", string::create_constructor(global));
         global.set_field_slice("Symbol", symbol::create_constructor(global));
@@ -70,8 +70,12 @@ impl Realm {
 
     /// Utility to add a function to the global object
     pub fn register_global_func(self, func_name: &str, func: NativeFunctionData) -> Self {
+        let func = crate::builtins::function::Function::create_builtin(
+            vec![],
+            crate::builtins::function::FunctionBody::BuiltIn(func),
+        );
         self.global_obj
-            .set_field(func_name.to_value(), func.to_value());
+            .set_field(func_name.to_value(), ValueData::from_func(func));
 
         self
     }

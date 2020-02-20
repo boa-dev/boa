@@ -6,17 +6,15 @@ mod tests;
 use crate::{
     builtins::{
         array,
-        function::{create_unmapped_arguments_object, Function, RegularFunction},
+        function::{Function as FunctionObject, FunctionBody, ThisMode},
         object::{
-            internal_methods_trait::ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE,
+            internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
             PROTOTYPE,
         },
         property::Property,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
-    environment::lexical_environment::{
-        new_declarative_environment, new_function_environment, VariableScope,
-    },
+    environment::lexical_environment::{new_declarative_environment, VariableScope},
     realm::Realm,
     syntax::ast::{
         constant::Const,
@@ -24,10 +22,10 @@ use crate::{
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
     },
 };
-use gc::{Gc, GcCell};
+use gc::Gc;
 use std::{
-    borrow::Borrow,
-    ops::{Deref, DerefMut},
+    borrow::{Borrow, BorrowMut},
+    ops::Deref,
 };
 
 /// An execution engine
@@ -124,7 +122,7 @@ impl Executor for Interpreter {
                     .get_field_slice(&val_field.borrow().to_string()))
             }
             Node::Call(ref callee, ref args) => {
-                let (this, func) = match callee.deref() {
+                let (mut this, func) = match callee.deref() {
                     Node::GetConstField(ref obj, ref field) => {
                         let mut obj = self.run(obj)?;
                         if obj.get_type() != "object" || obj.get_type() != "symbol" {
@@ -154,7 +152,7 @@ impl Executor for Interpreter {
                 }
 
                 // execute the function call itself
-                let fnct_result = self.call(&func, &this, v_args);
+                let fnct_result = self.call(&func, &mut this, &v_args);
 
                 // unset the early return flag
                 self.is_return = false;
@@ -258,29 +256,68 @@ impl Executor for Interpreter {
                 array::add_to_array_object(&array, &elements)?;
                 Ok(array)
             }
+            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref name, ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.to_vec()));
-                let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
+                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
+                // let proto = &self
+                //     .realm
+                //     .environment
+                //     .get_global_object()
+                //     .expect("Could not get the global object")
+                //     .get_field_slice("Object")
+                //     .get_field_slice("Prototype");
+
+                let func = FunctionObject::create_ordinary(
+                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
+                    self.realm.environment.get_current_environment().clone(),
+                    FunctionBody::Ordinary(*expr.clone()),
+                    ThisMode::NonLexical,
+                );
+
+                let mut new_func = Object::function();
+                new_func.set_call(func);
+                let val = to_value(new_func);
+                val.set_field_slice("length", to_value(args.len()));
+
+                // Set the name and assign it in the current environment
                 if name.is_some() {
                     self.realm.environment.create_mutable_binding(
                         name.clone().expect("No name was supplied"),
                         false,
                         VariableScope::Function,
                     );
+
                     self.realm.environment.initialize_binding(
                         name.as_ref().expect("Could not get name as reference"),
                         val.clone(),
                     )
                 }
+
                 Ok(val)
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.to_vec()));
-                Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
-                    function,
-                )))))
+                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
+                // let proto = &self
+                //     .realm
+                //     .environment
+                //     .get_global_object()
+                //     .expect("Could not get the global object")
+                //     .get_field_slice("Object")
+                //     .get_field_slice("Prototype");
+
+                let func = FunctionObject::create_ordinary(
+                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
+                    self.realm.environment.get_current_environment().clone(),
+                    FunctionBody::Ordinary(*expr.clone()),
+                    ThisMode::Lexical,
+                );
+
+                let mut new_func = Object::function();
+                new_func.set_call(func);
+                let val = to_value(new_func);
+                val.set_field_slice("length", to_value(args.len()));
+
+                Ok(val)
             }
             Node::BinOp(BinOp::Num(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
@@ -331,10 +368,10 @@ impl Executor for Interpreter {
                 }))
             }
             Node::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
-                let v_r_a = self.run(a)?;
-                let v_r_b = self.run(b)?;
-                let v_a = v_r_a.borrow();
-                let v_b = v_r_b.borrow();
+                let mut v_r_a = self.run(a)?;
+                let mut v_r_b = self.run(b)?;
+                let mut v_a = v_r_a.borrow_mut();
+                let mut v_b = v_r_b.borrow_mut();
                 Ok(to_value(match *op {
                     CompOp::Equal if v_a.is_object() => v_r_a == v_r_b,
                     CompOp::Equal => v_a == v_b,
@@ -352,8 +389,8 @@ impl Executor for Interpreter {
                         if !v_b.is_object() {
                             panic!("TypeError: {} is not an Object.", v_b);
                         }
-                        let key = self.to_property_key(v_a);
-                        self.has_property(v_b, &key)
+                        let key = self.to_property_key(&mut v_a);
+                        self.has_property(&mut v_b, &key)
                     }
                 }))
             }
@@ -399,54 +436,19 @@ impl Executor for Interpreter {
                 for arg in args.iter() {
                     v_args.push(self.run(arg)?);
                 }
-                let this = ValueData::new_obj(None);
+                let mut this = ValueData::new_obj(None);
                 // Create a blank object, then set its __proto__ property to the [Constructor].prototype
                 this.borrow().set_internal_slot(
                     INSTANCE_PROTOTYPE,
                     func_object.borrow().get_field_slice(PROTOTYPE),
                 );
 
-                let construct = func_object.get_internal_slot("construct");
-
-                match *construct {
-                    ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
-                        Function::NativeFunc(ref ntv) => {
-                            let func = ntv.data;
-                            match func(&this, &v_args, self) {
-                                Ok(_) => Ok(this),
-                                Err(ref v) => Err(v.clone()),
-                            }
-                        }
-                        Function::RegularFunc(ref data) => {
-                            // Create new scope
-                            let env = &mut self.realm.environment;
-                            env.push(new_function_environment(
-                                construct.clone(),
-                                this,
-                                Some(env.get_current_environment_ref().clone()),
-                            ));
-
-                            for i in 0..data.args.len() {
-                                let arg_expr =
-                                    data.args.get(i).expect("Could not get data argument");
-                                let name = match arg_expr.deref() {
-                                    Node::Local(ref n) => Some(n),
-                                    _ => None,
-                                }
-                                .expect("Could not get argument");
-                                let expr = v_args.get(i).expect("Could not get argument");
-                                env.create_mutable_binding(
-                                    name.clone(),
-                                    false,
-                                    VariableScope::Function,
-                                );
-                                env.initialize_binding(name, expr.to_owned());
-                            }
-                            let result = self.run(&data.node);
-                            self.realm.environment.pop();
-                            result
-                        }
-                    },
+                match *(func_object.borrow()).deref() {
+                    ValueData::Object(ref o) => (*o.deref().clone().borrow_mut())
+                        .construct
+                        .as_ref()
+                        .unwrap()
+                        .construct(&mut func_object.clone(), &v_args, self, &mut this),
                     _ => Ok(Gc::new(ValueData::Undefined)),
                 }
             }
@@ -542,11 +544,17 @@ impl Executor for Interpreter {
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
                     ValueData::Symbol(_) => "symbol",
-                    ValueData::Null | ValueData::Object(_) => "object",
+                    ValueData::Null => "object",
                     ValueData::Boolean(_) => "boolean",
                     ValueData::Rational(_) | ValueData::Integer(_) => "number",
                     ValueData::String(_) => "string",
-                    ValueData::Function(_) => "function",
+                    ValueData::Object(ref o) => {
+                        if o.deref().borrow().is_callable() {
+                            "function"
+                        } else {
+                            "object"
+                        }
+                    }
                 }))
             }
             Node::StatementList(ref list) => {
@@ -591,88 +599,25 @@ impl Interpreter {
     }
 
     /// https://tc39.es/ecma262/#sec-call
-    pub(crate) fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
+    pub(crate) fn call(
+        &mut self,
+        f: &Value,
+        this: &mut Value,
+        arguments_list: &[Value],
+    ) -> ResultValue {
         // All functions should be objects, and eventually will be.
         // During this transition call will support both native functions and function objects
         match (*f).deref() {
-            ValueData::Object(ref obj) => {
-                let func: Value = obj.borrow_mut().deref_mut().get_internal_slot("call");
-                if !func.is_undefined() {
-                    return self.call(&func, v, arguments_list);
-                }
-                // TODO: error object should be here
-                Err(Gc::new(ValueData::Undefined))
-            }
-            ValueData::Function(ref inner_func) => match *inner_func.deref().borrow() {
-                Function::NativeFunc(ref ntv) => {
-                    let func = ntv.data;
-                    func(v, &arguments_list, self)
-                }
-                Function::RegularFunc(ref data) => {
-                    let env = &mut self.realm.environment;
-                    // New target (second argument) is only needed for constructors, just pass undefined
-                    let undefined = Gc::new(ValueData::Undefined);
-                    env.push(new_function_environment(
-                        f.clone(),
-                        undefined,
-                        Some(env.get_current_environment_ref().clone()),
-                    ));
-                    for i in 0..data.args.len() {
-                        let arg_expr = data.args.get(i).expect("Could not get data argument");
-                        match arg_expr.deref() {
-                            Node::Local(ref name) => {
-                                let expr: &Value =
-                                    arguments_list.get(i).expect("Could not get argument");
-                                self.realm.environment.create_mutable_binding(
-                                    name.clone(),
-                                    false,
-                                    VariableScope::Function,
-                                );
-                                self.realm
-                                    .environment
-                                    .initialize_binding(name, expr.clone());
-                            }
-                            Node::Spread(ref expr) => {
-                                if let Node::Local(ref name) = expr.deref() {
-                                    let array = array::new_array(self)?;
-                                    array::add_to_array_object(&array, &arguments_list[i..])?;
-
-                                    self.realm.environment.create_mutable_binding(
-                                        name.clone(),
-                                        false,
-                                        VariableScope::Function,
-                                    );
-                                    self.realm.environment.initialize_binding(name, array);
-                                } else {
-                                    panic!("Unsupported function argument declaration")
-                                }
-                            }
-                            _ => panic!("Unsupported function argument declaration"),
-                        }
-                    }
-
-                    // Add arguments object
-                    let arguments_obj = create_unmapped_arguments_object(arguments_list);
-                    self.realm.environment.create_mutable_binding(
-                        "arguments".to_string(),
-                        false,
-                        VariableScope::Function,
-                    );
-                    self.realm
-                        .environment
-                        .initialize_binding("arguments", arguments_obj);
-
-                    let result = self.run(&data.node);
-                    self.realm.environment.pop();
-                    result
-                }
+            ValueData::Object(ref obj) => match (*obj).deref().borrow().call {
+                Some(ref func) => func.call(&mut f.clone(), arguments_list, self, this),
+                None => panic!("Expected function"),
             },
             _ => Err(Gc::new(ValueData::Undefined)),
         }
     }
 
     /// https://tc39.es/ecma262/#sec-ordinarytoprimitive
-    fn ordinary_to_primitive(&mut self, o: &Value, hint: &str) -> Value {
+    fn ordinary_to_primitive(&mut self, o: &mut Value, hint: &str) -> Value {
         debug_assert!(o.get_type() == "object");
         debug_assert!(hint == "string" || hint == "number");
         let method_names: Vec<&str> = if hint == "string" {
@@ -683,7 +628,7 @@ impl Interpreter {
         for name in method_names.iter() {
             let method: Value = o.get_field_slice(name);
             if method.is_function() {
-                let result = self.call(&method, &o, vec![]);
+                let result = self.call(&method, o, &[]);
                 match result {
                     Ok(val) => {
                         if val.is_object() {
@@ -704,7 +649,7 @@ impl Interpreter {
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
     /// https://tc39.es/ecma262/#sec-toprimitive
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_primitive(&mut self, input: &Value, preferred_type: Option<&str>) -> Value {
+    pub fn to_primitive(&mut self, input: &mut Value, preferred_type: Option<&str>) -> Value {
         let mut hint: &str;
         match (*input).deref() {
             ValueData::Object(_) => {
@@ -723,7 +668,7 @@ impl Interpreter {
                     hint = "number";
                 };
 
-                self.ordinary_to_primitive(&input, hint)
+                self.ordinary_to_primitive(input, hint)
             }
             _ => input.clone(),
         }
@@ -740,7 +685,7 @@ impl Interpreter {
             ValueData::Integer(ref num) => to_value(num.to_string()),
             ValueData::String(ref string) => to_value(string.clone()),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(value, Some("string"));
+                let prim_value = self.to_primitive(&mut (value.clone()), Some("string"));
                 self.to_string(&prim_value)
             }
             _ => to_value("function(){...}"),
@@ -750,7 +695,7 @@ impl Interpreter {
     /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_property_key(&mut self, value: &Value) -> Value {
+    pub fn to_property_key(&mut self, value: &mut Value) -> Value {
         let key = self.to_primitive(value, Some("string"));
         if key.is_symbol() {
             key
@@ -760,7 +705,7 @@ impl Interpreter {
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty
-    pub fn has_property(&self, obj: &Value, key: &Value) -> bool {
+    pub fn has_property(&self, obj: &mut Value, key: &Value) -> bool {
         if let Some(obj) = obj.as_object() {
             if !Property::is_property_key(key) {
                 false
@@ -777,10 +722,9 @@ impl Interpreter {
     #[allow(clippy::wrong_self_convention)]
     pub fn to_object(&mut self, value: &Value) -> ResultValue {
         match *value.deref().borrow() {
-            ValueData::Undefined
-            | ValueData::Function(_)
-            | ValueData::Integer(_)
-            | ValueData::Null => Err(Gc::new(ValueData::Undefined)),
+            ValueData::Undefined | ValueData::Integer(_) | ValueData::Null => {
+                Err(Gc::new(ValueData::Undefined))
+            }
             ValueData::Boolean(_) => {
                 let proto = self
                     .realm
@@ -825,7 +769,7 @@ impl Interpreter {
             ValueData::Integer(ref num) => num.to_string(),
             ValueData::String(ref string) => string.clone(),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(value, Some("string"));
+                let prim_value = self.to_primitive(&mut (value.clone()), Some("string"));
                 self.to_string(&prim_value).to_string()
             }
             _ => String::from("undefined"),
@@ -846,7 +790,7 @@ impl Interpreter {
             ValueData::Integer(num) => f64::from(num),
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(value, Some("number"));
+                let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
                 self.to_string(&prim_value)
                     .to_string()
                     .parse::<f64>()

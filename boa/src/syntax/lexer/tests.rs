@@ -420,7 +420,10 @@ fn hexadecimal_edge_case() {
         TokenKind::Identifier(String::from("ff"))
     );
 
-    assert_eq!(lexer.tokens[3].kind, TokenKind::numeric_literal(0xffffff));
+    assert_eq!(
+        lexer.tokens[3].kind,
+        TokenKind::numeric_literal(0x00ff_ffff)
+    );
 }
 
 #[test]

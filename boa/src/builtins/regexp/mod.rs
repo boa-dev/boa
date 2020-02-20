@@ -16,8 +16,7 @@ use regex::Regex;
 
 use crate::{
     builtins::{
-        function::NativeFunctionData,
-        object::{InternalState, Object, ObjectKind, PROTOTYPE},
+        object::{InternalState, Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
         property::Property,
         value::{from_value, to_value, FromValue, ResultValue, Value, ValueData},
     },
@@ -66,7 +65,7 @@ fn get_argument<T: FromValue>(args: &[Value], idx: usize) -> Result<T, Value> {
 }
 
 /// Create a new `RegExp`
-pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(Gc::new(ValueData::Undefined));
     }
@@ -181,7 +180,7 @@ pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
-fn get_dot_all(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_dot_all(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.dot_all)))
 }
 
@@ -196,7 +195,7 @@ fn get_dot_all(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
 /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
-fn get_flags(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_flags(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.flags.clone())))
 }
 
@@ -210,7 +209,7 @@ fn get_flags(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
-fn get_global(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_global(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.global)))
 }
 
@@ -224,7 +223,7 @@ fn get_global(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
-fn get_ignore_case(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_ignore_case(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.ignore_case)))
 }
 
@@ -238,7 +237,7 @@ fn get_ignore_case(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
-fn get_multiline(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_multiline(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.multiline)))
 }
 
@@ -253,7 +252,7 @@ fn get_multiline(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
-fn get_source(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_source(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(this.get_internal_slot("OriginalSource"))
 }
 
@@ -267,7 +266,7 @@ fn get_source(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
-fn get_sticky(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_sticky(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.sticky)))
 }
 
@@ -282,13 +281,8 @@ fn get_sticky(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
-fn get_unicode(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+fn get_unicode(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.unicode)))
-}
-
-/// Helper function.
-fn _make_prop(getter: NativeFunctionData) -> Property {
-    Property::default().get(to_value(getter))
 }
 
 /// `RegExp.prototype.test( string )`
@@ -303,7 +297,7 @@ fn _make_prop(getter: NativeFunctionData) -> Property {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
-pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn test(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
     let mut last_index =
         from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
@@ -337,7 +331,7 @@ pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
-pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn exec(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
     let mut last_index =
         from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
@@ -387,7 +381,7 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@match
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match
-pub fn r#match(this: &Value, arg: String, ctx: &mut Interpreter) -> ResultValue {
+pub fn r#match(this: &mut Value, arg: String, ctx: &mut Interpreter) -> ResultValue {
     let (matcher, flags) =
         this.with_internal_state_ref(|regex: &RegExp| (regex.matcher.clone(), regex.flags.clone()));
     if flags.contains('g') {
@@ -414,7 +408,7 @@ pub fn r#match(this: &Value, arg: String, ctx: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
-pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let body = from_value::<String>(this.get_internal_slot("OriginalSource")).map_err(to_value)?;
     let flags = this.with_internal_state_ref(|regex: &RegExp| regex.flags.clone());
     Ok(to_value(format!("/{}/{}", body, flags)))
@@ -431,7 +425,7 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-regexp-prototype-matchall
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll
 // TODO: it's returning an array, it should return an iterator
-pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
+pub fn match_all(this: &mut Value, arg_str: String) -> ResultValue {
     let matches: Vec<Value> = this.with_internal_state_ref(|regex: &RegExp| {
         let mut matches = Vec::new();
 
@@ -473,32 +467,23 @@ pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
 
 /// Create a new `RegExp` object.
 pub fn create_constructor(global: &Value) -> Value {
-    // Create constructor function
-    let mut regexp_constructor = Object::default();
-    regexp_constructor.kind = ObjectKind::Function;
-    regexp_constructor.set_internal_method("construct", make_regexp);
-    // Todo: add call function, currently call points to contructor, this is wrong
-    regexp_constructor.set_internal_method("call", make_regexp);
-
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
+    proto.set_field_slice("lastIndex", to_value(0));
+
     make_builtin_fn!(test, named "test", with length 1, of proto);
     make_builtin_fn!(exec, named "exec", with length 1, of proto);
     make_builtin_fn!(to_string, named "toString", of proto);
-    proto.set_field_slice("lastIndex", to_value(0));
-    proto.set_prop_slice("dotAll", _make_prop(get_dot_all));
-    proto.set_prop_slice("flags", _make_prop(get_flags));
-    proto.set_prop_slice("global", _make_prop(get_global));
-    proto.set_prop_slice("ignoreCase", _make_prop(get_ignore_case));
-    proto.set_prop_slice("multiline", _make_prop(get_multiline));
-    proto.set_prop_slice("source", _make_prop(get_source));
-    proto.set_prop_slice("sticky", _make_prop(get_sticky));
-    proto.set_prop_slice("unicode", _make_prop(get_unicode));
+    make_builtin_fn!(get_dot_all, named "dotAll", of proto);
+    make_builtin_fn!(get_flags, named "flags", of proto);
+    make_builtin_fn!(get_global, named "global", of proto);
+    make_builtin_fn!(get_ignore_case, named "ignoreCase", of proto);
+    make_builtin_fn!(get_multiline, named "multiline", of proto);
+    make_builtin_fn!(get_source, named "source", of proto);
+    make_builtin_fn!(get_sticky, named "sticky", of proto);
+    make_builtin_fn!(get_unicode, named "unicode", of proto);
 
-    let regexp = to_value(regexp_constructor);
-    regexp.set_field_slice(PROTOTYPE, proto.clone());
-    proto.set_field_slice("constructor", regexp.clone());
-    regexp
+    make_constructor_fn!(make_regexp, make_regexp, global, proto)
 }
 
 #[cfg(test)]

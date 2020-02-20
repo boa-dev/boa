@@ -14,8 +14,7 @@ mod tests;
 
 use crate::{
     builtins::{
-        function::NativeFunctionData,
-        object::{Object, ObjectKind, PROTOTYPE},
+        object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
         property::Property,
         regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
         value::{from_value, to_value, ResultValue, Value, ValueData},
@@ -32,7 +31,7 @@ use std::{
 
 /// Create new string [[Construct]]
 // This gets called when a new String() is created, it's called by exec:346
-pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn make_string(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // If we're constructing a string, we should set the initial length
     // To do this we need to convert the string back to a Rust String, then get the .len()
     // let a: String = from_value(args.get(0).expect("failed to get argument for String method").clone()).unwrap();
@@ -53,7 +52,7 @@ pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
 /// Call new string [[Call]]
 ///
 /// More information: [ECMAScript reference](https://tc39.es/ecma262/#sec-string-constructor-string-value)
-pub fn call_string(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn call_string(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg = match args.get(0) {
         Some(v) => v.clone(),
         None => Gc::new(ValueData::Undefined),
@@ -67,7 +66,7 @@ pub fn call_string(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 }
 
 /// Get the string value to a primitive string
-pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     // Get String from String Object and send it back as a new value
     let primitive_val = this.get_internal_slot("StringData");
     Ok(to_value(format!("{}", primitive_val)))
@@ -89,7 +88,7 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charat
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt
-pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn char_at(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val = ctx.value_to_rust_string(this);
@@ -133,7 +132,7 @@ pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charcodeat
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt
-pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn char_code_at(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -175,7 +174,7 @@ pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat
-pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn concat(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let mut new_str = ctx.value_to_rust_string(this);
@@ -199,7 +198,7 @@ pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
-pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn repeat(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -223,7 +222,7 @@ pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.slice
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
-pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn slice(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -280,7 +279,7 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.startswith
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
-pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn starts_with(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -325,7 +324,7 @@ pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resul
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.endswith
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
-pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn ends_with(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -372,7 +371,7 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.includes
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
-pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn includes(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -437,7 +436,7 @@ fn get_regex_string(value: &Value) -> String {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.replace
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
-pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn replace(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // TODO: Support Symbol replacer
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
@@ -494,7 +493,7 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 
                 result
             }
-            ValueData::Function(_) => {
+            ValueData::Object(_) => {
                 // This will return the matched substring first, then captured parenthesized groups later
                 let mut results: Vec<Value> = caps
                     .iter()
@@ -510,7 +509,7 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
                 // Push the whole string being examined
                 results.push(to_value(primitive_val.to_string()));
 
-                let result = ctx.call(&replace_object, &this, results).unwrap();
+                let result = ctx.call(&replace_object, this, &results).unwrap();
 
                 ctx.value_to_rust_string(&result)
             }
@@ -539,7 +538,7 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf
-pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -591,7 +590,7 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.lastindexof
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf
-pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn last_index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -643,9 +642,9 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.match
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
 /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
-pub fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let re = make_regexp(&to_value(Object::default()), &[args[0].clone()], ctx)?;
-    regexp_match(&re, ctx.value_to_rust_string(this), ctx)
+pub fn r#match(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let mut re = make_regexp(&mut to_value(Object::default()), &[args[0].clone()], ctx)?;
+    regexp_match(&mut re, ctx.value_to_rust_string(this), ctx)
 }
 
 /// Abstract method `StringPad`.
@@ -701,7 +700,7 @@ fn string_pad(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd
-pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn pad_end(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
         return Err(to_value("padEnd requires maxLength argument"));
@@ -735,7 +734,7 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
-pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn pad_start(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
         return Err(to_value("padStart requires maxLength argument"));
@@ -788,7 +787,7 @@ fn is_trimmable_whitespace(c: char) -> bool {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
-pub fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn trim(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
@@ -805,7 +804,7 @@ pub fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
-pub fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn trim_start(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(
         this_str.trim_start_matches(is_trimmable_whitespace),
@@ -824,7 +823,7 @@ pub fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultVal
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
-pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn trim_end(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
@@ -839,7 +838,7 @@ pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tolowercase
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
-pub fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn to_lowercase(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let this_str: String = ctx.value_to_rust_string(this);
@@ -860,7 +859,7 @@ pub fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
-pub fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn to_uppercase(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let this_str: String = ctx.value_to_rust_string(this);
@@ -879,7 +878,7 @@ pub fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring
-pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn substring(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -930,7 +929,7 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
 /// <https://tc39.es/ecma262/#sec-string.prototype.substr>
-pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn substr(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -987,7 +986,7 @@ pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.value_of
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf
-pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn value_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // Use the to_string method because it is specified to do the same thing in this case
     to_string(this, args, ctx)
 }
@@ -1005,12 +1004,12 @@ pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
 /// [cg]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges
 // TODO: update this method to return iterator
-pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let re: Value = match args.get(0) {
+pub fn match_all(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    let mut re: Value = match args.get(0) {
         Some(arg) => {
             if arg == &Gc::new(ValueData::Null) {
                 make_regexp(
-                    &to_value(Object::default()),
+                    &mut to_value(Object::default()),
                     &[
                         to_value(ctx.value_to_rust_string(arg)),
                         to_value(String::from("g")),
@@ -1019,7 +1018,7 @@ pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
                 )
             } else if arg == &Gc::new(ValueData::Undefined) {
                 make_regexp(
-                    &to_value(Object::default()),
+                    &mut to_value(Object::default()),
                     &[Gc::new(ValueData::Undefined), to_value(String::from("g"))],
                     ctx,
                 )
@@ -1028,26 +1027,17 @@ pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
             }
         }
         None => make_regexp(
-            &to_value(Object::default()),
+            &mut to_value(Object::default()),
             &[to_value(String::new()), to_value(String::from("g"))],
             ctx,
         ),
     }?;
 
-    regexp_match_all(&re, ctx.value_to_rust_string(this))
+    regexp_match_all(&mut re, ctx.value_to_rust_string(this))
 }
 
 /// Create a new `String` object
 pub fn create_constructor(global: &Value) -> Value {
-    // Create constructor function object
-    let mut string_constructor = Object::default();
-    string_constructor.kind = ObjectKind::Function;
-
-    string_constructor.set_internal_method("construct", make_string);
-    // Todo: add call internal method (should be easy)
-    // Currently call points to the constructor function, this is wrong
-    string_constructor.set_internal_method("call", call_string);
-
     // Create prototype
     let proto = ValueData::new_obj(Some(global));
     let prop = Property::default().value(to_value(0_i32));
@@ -1077,10 +1067,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(match_all, named "matchAll", with length 1, of proto);
     make_builtin_fn!(replace, named "replace", with length 2, of proto);
 
-    let string = to_value(string_constructor);
-    proto.set_field_slice("constructor", string.clone());
-    string.set_field_slice(PROTOTYPE, proto);
-    string
+    make_constructor_fn!(make_string, call_string, global, proto)
 }
 
 /// Initialise the `String` object on the global object

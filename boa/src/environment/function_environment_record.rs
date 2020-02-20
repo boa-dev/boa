@@ -41,7 +41,7 @@ pub struct FunctionEnvironmentRecord {
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
     pub this_binding_status: BindingStatus,
     /// The function object whose invocation caused this Environment Record to be created.
-    pub function_object: Value,
+    pub function: Value,
     /// If the associated function has super property accesses and is not an ArrowFunction,
     /// [[HomeObject]] is the object that the function is bound to as a method.
     /// The default value for [[HomeObject]] is undefined.

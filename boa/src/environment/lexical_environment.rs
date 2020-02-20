@@ -229,11 +229,10 @@ pub fn new_function_environment(
     new_target: Value,
     outer: Option<Environment>,
 ) -> Environment {
-    debug_assert!(f.is_function());
     debug_assert!(new_target.is_object() || new_target.is_undefined());
     Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
         env_rec: HashMap::new(),
-        function_object: f,
+        function: f,
         this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
         home_object: Gc::new(ValueData::Undefined),
         new_target,
