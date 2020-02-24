@@ -115,7 +115,16 @@ impl Interpreter {
                 let obj = (**obj).borrow();
                 let func = obj.func.as_ref().expect("Expected function");
                 func.call(&mut f.clone(), arguments_list, self, this)
-            }
+            },
+            ExprDef::ImportDecl(ref _specifier, Some(ref _expr)) => {
+                // TODO: Implement assignment imports (`import * as test from "file.js"` + `import { someExport } from "file.js"`)
+                dbg!(_specifier, _expr);
+                unimplemented!();
+            },
+            ExprDef::ImportDecl(ref _specifier, None) => {
+                // TODO: Implement non-assignment imports (`import "file.js"`)
+                unimplemented!();
+            },
             _ => Err(Value::undefined()),
         }
     }

@@ -26,6 +26,10 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Keyword {
+    // TODO(afinch7) update to contain docs like other keywords
+    /// The `as` keyword
+    As,
+
     /// The `await` keyword.
     ///
     /// More information:
@@ -212,6 +216,10 @@ pub enum Keyword {
     /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
     For,
+
+    // TODO(afinch7) update to contain docs like other keywords
+    /// The `from` keyword
+    From,
 
     /// The `function` keyword.
     ///
@@ -442,6 +450,7 @@ impl Keyword {
     /// Gets the keyword as a string.
     pub fn as_str(self) -> &'static str {
         match self {
+            Self::As => "as",
             Self::Await => "await",
             Self::Break => "break",
             Self::Case => "case",
@@ -459,6 +468,7 @@ impl Keyword {
             Self::Export => "export",
             Self::Finally => "finally",
             Self::For => "for",
+            Self::From => "from",
             Self::Function => "function",
             Self::If => "if",
             Self::In => "in",
@@ -513,6 +523,7 @@ impl FromStr for Keyword {
     type Err = KeywordError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "as" => Ok(Self::As),
             "await" => Ok(Self::Await),
             "break" => Ok(Self::Break),
             "case" => Ok(Self::Case),
@@ -530,6 +541,7 @@ impl FromStr for Keyword {
             "export" => Ok(Self::Export),
             "finally" => Ok(Self::Finally),
             "for" => Ok(Self::For),
+            "from" => Ok(Self::From),
             "function" => Ok(Self::Function),
             "if" => Ok(Self::If),
             "in" => Ok(Self::In),
