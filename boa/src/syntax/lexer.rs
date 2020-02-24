@@ -536,28 +536,38 @@ impl<'a> Lexer<'a> {
                         match ch {
                             // line comment
                             '/' => {
-                                let comment = self.read_line()?;
+                                let comment = "/".to_owned() + &self.read_line()?;
                                 self.push_token(TokenData::Comment(comment));
+                                self.line_number += 1;
+                                self.column_number = 0;
                             }
                             // block comment
                             '*' => {
-                                let mut buf = String::new();
+                                let mut buf = "/".to_owned();
+                                let mut lines = 0;
                                 loop {
                                     if self.preview_next().is_none() {
                                         return Err(LexerError::new("Unterminated Multiline Comment"));
                                     }
                                     match self.next() {
                                         '*' => {
+                                            buf.push('*');
                                             if self.next_is('/') {
+                                                buf.push('/');
                                                 break;
-                                            } else {
-                                                buf.push('*')
                                             }
                                         }
-                                        next_ch => buf.push(next_ch),
+                                        next_ch => {
+                                            if next_ch == '\n' {
+                                                lines += 1;
+                                            }
+                                            buf.push(next_ch)
+                                        },
                                     }
                                 }
                                 self.push_token(TokenData::Comment(buf));
+                                self.line_number += lines;
+                                self.column_number = 0;
                             }
                             // division, assigndiv or regex literal
                             _ => {
@@ -669,7 +679,7 @@ impl<'a> Lexer<'a> {
                 // of characters as whitespaces:
                 //  * Rust uses \p{White_Space},
                 //  * ecma standard uses \{Space_Separator} + \u{0009}, \u{000B}, \u{000C}, \u{FEFF}
-                // 
+                //
                 // Explicit whitespace: see https://tc39.es/ecma262/#table-32
                 '\u{0020}' | '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{00A0}' | '\u{FEFF}' |
                 // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
@@ -695,7 +705,7 @@ mod tests {
         let mut lexer = Lexer::new(s1);
         lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
-
+        assert_eq!(lexer.tokens[1].data, TokenData::Comment("//=".to_owned()));
         assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
     }
 
@@ -705,7 +715,10 @@ mod tests {
         let mut lexer = Lexer::new(s);
         lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
-
+        assert_eq!(
+            lexer.tokens[1].data,
+            TokenData::Comment("/* await \n break \n*/".to_owned())
+        );
         assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
     }
 
@@ -972,7 +985,7 @@ mod tests {
 
     #[test]
     fn check_variable_definition_tokens() {
-        let s = &String::from("let a = 'hello';");
+        let s = "let a = 'hello';";
         let mut lexer = Lexer::new(s);
         lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Let));
@@ -989,38 +1002,69 @@ mod tests {
 
     #[test]
     fn check_positions() {
-        let s = &String::from("console.log(\"hello world\");");
-        // -------------------123456789
+        let s = "console.log(\"hello world\"); // Test";
+        // ------123456789
         let mut lexer = Lexer::new(s);
         lexer.lex().expect("failed to lex");
         // The first column is 1 (not zero indexed)
         assert_eq!(lexer.tokens[0].pos.column_number, 1);
         assert_eq!(lexer.tokens[0].pos.line_number, 1);
-        // Dot Token starts on line 7
+        // Dot Token starts on column 8
         assert_eq!(lexer.tokens[1].pos.column_number, 8);
         assert_eq!(lexer.tokens[1].pos.line_number, 1);
-        // Log Token starts on line 7
+        // Log Token starts on column 9
         assert_eq!(lexer.tokens[2].pos.column_number, 9);
         assert_eq!(lexer.tokens[2].pos.line_number, 1);
-        // Open parenthesis token starts on line 12
+        // Open parenthesis token starts on column 12
         assert_eq!(lexer.tokens[3].pos.column_number, 12);
         assert_eq!(lexer.tokens[3].pos.line_number, 1);
-        // String token starts on line 13
+        // String token starts on column 13
         assert_eq!(lexer.tokens[4].pos.column_number, 13);
         assert_eq!(lexer.tokens[4].pos.line_number, 1);
-        // Close parenthesis token starts on line 26
+        // Close parenthesis token starts on column 26
         assert_eq!(lexer.tokens[5].pos.column_number, 26);
         assert_eq!(lexer.tokens[5].pos.line_number, 1);
-        // Semi Colon token starts on line 27
+        // Semi Colon token starts on column 27
         assert_eq!(lexer.tokens[6].pos.column_number, 27);
         assert_eq!(lexer.tokens[6].pos.line_number, 1);
+        // Comment start on column 29
+        // Semi Colon token starts on column 27
+        assert_eq!(lexer.tokens[7].pos.column_number, 29);
+        assert_eq!(lexer.tokens[7].pos.line_number, 1);
+    }
+
+    #[test]
+    fn check_line_numbers() {
+        let s = "// Copyright (C) 2017 Ecma International.  All rights reserved.\n\
+                 // This code is governed by the BSD license found in the LICENSE file.\n\
+                 /*---\n\
+                 description: |\n    \
+                     Collection of assertion functions used throughout test262\n\
+                 defines: [assert]\n\
+                 ---*/\n\n\n\
+                 function assert(mustBeTrue, message) {";
+
+        let mut lexer = Lexer::new(s);
+        lexer.lex().expect("failed to lex");
+        // The first column is 1 (not zero indexed), first line is also 1
+        assert_eq!(lexer.tokens[0].pos.column_number, 1);
+        assert_eq!(lexer.tokens[0].pos.line_number, 1);
+        // Second comment starts on line 2
+        assert_eq!(lexer.tokens[1].pos.column_number, 1);
+        assert_eq!(lexer.tokens[1].pos.line_number, 2);
+        // Multiline comment starts on line 3
+        assert_eq!(lexer.tokens[2].pos.column_number, 1);
+        assert_eq!(lexer.tokens[2].pos.line_number, 3);
+        // Function Token is on line 10
+        assert_eq!(lexer.tokens[3].pos.column_number, 1);
+        assert_eq!(lexer.tokens[3].pos.line_number, 10);
     }
 
     // Increment/Decrement
     #[test]
     fn check_decrement_advances_lexer_2_places() {
         // Here we want an example of decrementing an integer
-        let s = &String::from("let a = b--;");
+        let s = "let a = b--;";
         let mut lexer = Lexer::new(s);
         lexer.lex().expect("failed to lex");
         assert_eq!(lexer.tokens[4].data, TokenData::Punctuator(Punctuator::Dec));
