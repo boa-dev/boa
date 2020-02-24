@@ -632,6 +632,28 @@ fn check_function_declarations() {
     );
 
     check_parser(
+        "function foo(a) { return; }",
+        &[Expr::new(ExprDef::FunctionDecl(
+            Some(String::from("foo")),
+            vec![Expr::new(ExprDef::Local(String::from("a")))],
+            Box::new(Expr::new(ExprDef::Block(vec![Expr::new(ExprDef::Return(
+                None,
+            ))]))),
+        ))],
+    );
+
+    check_parser(
+        "function foo(a) { return }",
+        &[Expr::new(ExprDef::FunctionDecl(
+            Some(String::from("foo")),
+            vec![Expr::new(ExprDef::Local(String::from("a")))],
+            Box::new(Expr::new(ExprDef::Block(vec![Expr::new(ExprDef::Return(
+                None,
+            ))]))),
+        ))],
+    );
+
+    check_parser(
         "function (a, ...b) {}",
         &[Expr::new(ExprDef::FunctionDecl(
             None,
@@ -685,6 +707,32 @@ fn check_function_declarations() {
                     Expr::new(ExprDef::Local(String::from("a"))),
                     Expr::new(ExprDef::Local(String::from("b"))),
                 ))),
+            ))]))),
+        ))],
+    );
+
+    check_parser(
+        "(a, b) => { return; }",
+        &[Expr::new(ExprDef::ArrowFunctionDecl(
+            vec![
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            ],
+            Box::new(Expr::new(ExprDef::Block(vec![Expr::new(ExprDef::Return(
+                None,
+            ))]))),
+        ))],
+    );
+
+    check_parser(
+        "(a, b) => { return }",
+        &[Expr::new(ExprDef::ArrowFunctionDecl(
+            vec![
+                Expr::new(ExprDef::Local(String::from("a"))),
+                Expr::new(ExprDef::Local(String::from("b"))),
+            ],
+            Box::new(Expr::new(ExprDef::Block(vec![Expr::new(ExprDef::Return(
+                None,
             ))]))),
         ))],
     );
