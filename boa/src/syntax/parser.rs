@@ -25,13 +25,15 @@ impl fmt::Display for ParseError {
         match self {
             ParseError::Expected(expected, actual, routine) => write!(
                 f,
-                "Expected token '{}', got '{}' in routine '{}'",
+                "Expected token '{}', got '{}' in routine '{}' at line {}, col {}",
                 expected
                     .first()
                     .map(|t| t.to_string())
                     .unwrap_or_else(String::new),
                 actual,
-                routine
+                routine,
+                actual.pos.line_number,
+                actual.pos.column_number
             ),
             ParseError::ExpectedExpr(expected, actual) => {
                 write!(f, "Expected expression '{}', got '{}'", expected, actual)

@@ -51,8 +51,13 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     // Setup executor
-    let expr = parser_expr(src).unwrap();
-    engine.run(&expr)
+    match parser_expr(src) {
+        Ok(expr) => engine.run(&expr),
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    }
 }
 
 /// Create a clean Interpreter and execute the code
