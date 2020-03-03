@@ -18,13 +18,21 @@ struct Opt {
     #[structopt(short, long)]
     shell: bool,
 }
-
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
     let realm = Realm::create().register_global_func("print", log);
 
     let mut engine = Executor::new(realm);
+
+    for file in &args.files {
+        let buffer = read_to_string(file)?;
+
+        match forward_val(&mut engine, &buffer) {
+            Ok(v) => print!("{}", v.to_string()),
+            Err(v) => eprint!("{}", v.to_string()),
+        }
+    }
 
     if args.shell || args.files.is_empty() {
         loop {
@@ -35,15 +43,6 @@ pub fn main() -> Result<(), std::io::Error> {
             match forward_val(&mut engine, buffer.trim_end()) {
                 Ok(v) => println!("{}", v.to_string()),
                 Err(v) => eprintln!("{}", v.to_string()),
-            }
-        }
-    } else {
-        for file in args.files {
-            let buffer = read_to_string(file)?;
-
-            match forward_val(&mut engine, &buffer) {
-                Ok(v) => print!("{}", v.to_string()),
-                Err(v) => eprint!("{}", v.to_string()),
             }
         }
     }
