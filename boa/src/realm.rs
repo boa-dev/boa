@@ -5,8 +5,10 @@
 //!A realm is represented in this implementation as a Realm struct with the fields specified from the spec
 use crate::{
     builtins::{
-        array, boolean, console, function, json, math, number, object, regexp, string, symbol,
-        value::{Value, ValueData},
+        array, boolean, console, function,
+        function::NativeFunctionData,
+        json, math, number, object, regexp, string, symbol,
+        value::{ToValue, Value, ValueData},
     },
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -64,6 +66,14 @@ impl Realm {
         global.set_field_slice("String", string::create_constructor(global));
         global.set_field_slice("Symbol", symbol::create_constructor(global));
         global.set_field_slice("console", console::create_constructor(global));
+    }
+
+    /// Utility to add a function to the global object
+    pub fn register_global_func(self, func_name: &str, func: NativeFunctionData) -> Self {
+        self.global_obj
+            .set_field(func_name.to_value(), func.to_value());
+
+        self
     }
 }
 

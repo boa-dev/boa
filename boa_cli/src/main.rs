@@ -2,11 +2,11 @@
 #![warn(clippy::perf)]
 #![allow(clippy::cognitive_complexity)]
 
+use boa::builtins::console::log;
 use boa::{exec::Executor, forward_val, realm::Realm};
 use std::io;
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::StructOpt;
-
 /// CLI configuration for Boa.
 #[derive(Debug, StructOpt)]
 #[structopt(author, about)]
@@ -14,7 +14,7 @@ struct Opt {
     /// The javascript file to be evaluated.
     #[structopt(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
-    /// Open a boa shell (WIP).
+    /// Open a boa shell.
     #[structopt(short, long)]
     shell: bool,
 }
@@ -22,7 +22,8 @@ struct Opt {
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
-    let realm = Realm::create();
+    let realm = Realm::create().register_global_func("print", log);
+
     let mut engine = Executor::new(realm);
 
     if args.shell || args.files.is_empty() {
