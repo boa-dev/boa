@@ -222,7 +222,13 @@ impl Parser {
 
                 Ok(Expr::new(ExprDef::ConstDecl(vars)))
             }
-            Keyword::Return => Ok(Expr::new(ExprDef::Return(Some(Box::new(self.parse()?))))),
+            Keyword::Return => match self.get_token(self.pos)?.data {
+                TokenData::Punctuator(Punctuator::Semicolon)
+                | TokenData::Punctuator(Punctuator::CloseBlock) => {
+                    Ok(Expr::new(ExprDef::Return(None)))
+                }
+                _ => Ok(Expr::new(ExprDef::Return(Some(Box::new(self.parse()?))))),
+            },
             Keyword::New => {
                 let call = self.parse()?;
                 match call.def {
