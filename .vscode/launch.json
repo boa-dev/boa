@@ -8,7 +8,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "Launch",
-      "program": "${workspaceFolder}/target/debug/boa_cli",
+      "program": "${workspaceFolder}/target/debug/boa_cli.exe",
       "sourceLanguages": ["rust"]
     },
     {
