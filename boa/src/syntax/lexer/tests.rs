@@ -3,6 +3,7 @@
 
 use super::*;
 use crate::syntax::ast::keyword::Keyword;
+use std::error::Error;
 
 #[test]
 fn check_single_line_comment() {
@@ -41,6 +42,29 @@ fn check_string() {
         lexer.tokens[1].data,
         TokenData::StringLiteral("bbb".to_string())
     );
+}
+
+#[test]
+fn check_template_literal_simple() {
+    let s = "`I'm a template literal`";
+    let mut lexer = Lexer::new(s);
+    lexer.lex().expect("failed to lex");
+    assert_eq!(
+        lexer.tokens[0].data,
+        TokenData::TemplateLiteral("I'm a template literal".to_string())
+    );
+}
+
+#[test]
+fn check_template_literal_unterminated() {
+    let s = "`I'm a template";
+    let mut lexer = Lexer::new(s);
+    match lexer.lex() {
+        Ok(_) => panic!("Lexer did not detect end of stream"),
+        Err(e) => {
+            assert_eq!(e.description(), "Unterminated template literal");
+        }
+    }
 }
 
 #[test]
