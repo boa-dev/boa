@@ -6,6 +6,7 @@ use crate::syntax::ast::{
     expr::{Expr, ExprDef},
     keyword::Keyword,
     op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp},
+    pos::Position,
     punc::Punctuator,
     token::{Token, TokenData},
 };
@@ -17,9 +18,9 @@ pub enum ParseError {
     /// When it expected a certain kind of token, but got another as part of something
     Expected(Vec<TokenData>, Token, &'static str),
     /// When it expected a certain expression, but got another
-    ExpectedExpr(&'static str, Expr),
+    ExpectedExpr(&'static str, Expr, Position),
     /// When it didn't expect this keyword
-    UnexpectedKeyword(Keyword),
+    UnexpectedKeyword(Keyword, Position),
     /// When there is an abrupt end to the parsing
     AbruptEnd,
 }
@@ -39,10 +40,16 @@ impl fmt::Display for ParseError {
                 actual.pos.line_number,
                 actual.pos.column_number
             ),
-            ParseError::ExpectedExpr(expected, actual) => {
-                write!(f, "Expected expression '{}', got '{}'", expected, actual)
-            }
-            ParseError::UnexpectedKeyword(keyword) => write!(f, "Unexpected keyword: {}", keyword),
+            ParseError::ExpectedExpr(expected, actual, pos) => write!(
+                f,
+                "Expected expression '{}', got '{}' at line {}, col {}",
+                expected, actual, pos.line_number, pos.column_number
+            ),
+            ParseError::UnexpectedKeyword(keyword, pos) => write!(
+                f,
+                "Unexpected keyword '{}' at line {}, col {}",
+                keyword, pos.line_number, pos.column_number
+            ),
             ParseError::AbruptEnd => write!(f, "Abrupt End"),
         }
     }
@@ -230,12 +237,16 @@ impl Parser {
                 _ => Ok(Expr::new(ExprDef::Return(Some(Box::new(self.parse()?))))),
             },
             Keyword::New => {
+                let start_pos = self.pos;
                 let call = self.parse()?;
                 match call.def {
                     ExprDef::Call(ref func, ref args) => {
                         Ok(Expr::new(ExprDef::Construct(func.clone(), args.clone())))
                     }
-                    _ => Err(ParseError::ExpectedExpr("constructor", call)),
+                    _ => {
+                        let token = self.get_token(start_pos)?;
+                        Err(ParseError::ExpectedExpr("constructor", call, token.pos))
+                    }
                 }
             }
             Keyword::TypeOf => Ok(Expr::new(ExprDef::TypeOf(Box::new(self.parse()?)))),
@@ -357,7 +368,10 @@ impl Parser {
                     Box::new(block),
                 )))
             }
-            _ => Err(ParseError::UnexpectedKeyword(keyword)),
+            _ => {
+                let token = self.get_token(self.pos - 1)?; // Gets the offending token
+                Err(ParseError::UnexpectedKeyword(keyword, token.pos))
+            }
         }
     }
 
@@ -780,6 +794,7 @@ impl Parser {
                 result = self.binop(BinOp::Assign(AssignOp::Mod), expr)?
             }
             TokenData::Punctuator(Punctuator::Arrow) => {
+                let start_pos = self.pos;
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
                 match result.def {
@@ -787,7 +802,10 @@ impl Parser {
                         args.push(Expr::new(ExprDef::Local((*name).clone())))
                     }
                     ExprDef::UnaryOp(UnaryOp::Spread, _) => args.push(result),
-                    _ => return Err(ParseError::ExpectedExpr("identifier", result)),
+                    _ => {
+                        let token = self.get_token(start_pos)?;
+                        return Err(ParseError::ExpectedExpr("identifier", result, token.pos));
+                    }
                 }
                 let next = self.parse()?;
                 result = Expr::new(ExprDef::ArrowFunctionDecl(args, Box::new(next)));

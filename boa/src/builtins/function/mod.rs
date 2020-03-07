@@ -55,8 +55,8 @@ impl RegularFunction {
     }
 }
 
-#[derive(Finalize, Clone)]
 /// Represents a native javascript function in memory
+#[derive(Finalize, Clone)]
 pub struct NativeFunction {
     /// The fields associated with the function
     pub object: Object,

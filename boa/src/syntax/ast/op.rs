@@ -13,8 +13,8 @@ pub trait Operator {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A numeric operation between 2 values
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum NumOp {
     /// `a + b` - Addition
     Add,
@@ -47,8 +47,8 @@ impl Display for NumOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A unary operation on a single value
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum UnaryOp {
     /// `a++` - increment the value
     IncrementPost,
@@ -88,8 +88,8 @@ impl Display for UnaryOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A bitwise operation between 2 values
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BitOp {
     /// `a & b` - Bitwise and
     And,
@@ -119,8 +119,8 @@ impl Display for BitOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A comparitive operation between 2 values
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum CompOp {
     /// `a == b` - Equality
     Equal,
@@ -159,8 +159,8 @@ impl Display for CompOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A logical operation between 2 boolean values
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum LogOp {
     /// `a && b` - Logical and
     And,
@@ -181,8 +181,8 @@ impl Display for LogOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A binary operation between 2 values
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BinOp {
     /// Numeric operation
     Num(NumOp),
@@ -240,8 +240,8 @@ impl Display for BinOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A binary operation between 2 values
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum AssignOp {
     /// `a += b` - Add assign
     Add,

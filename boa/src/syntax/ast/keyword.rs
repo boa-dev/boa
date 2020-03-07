@@ -4,9 +4,9 @@ use std::{
     str::FromStr,
 };
 
-#[derive(Clone, Copy, PartialEq, Debug)]
 /// A Javascript Keyword
 /// As specificed by <https://www.ecma-international.org/ecma-262/#sec-keywords>
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Keyword {
     /// The `await` keyword
     Await,

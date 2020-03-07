@@ -27,8 +27,8 @@ impl Display for Expr {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript Expression
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum ExprDef {
     /// Run a operation between 2 expressions
     BinOp(BinOp, Box<Expr>, Box<Expr>),
