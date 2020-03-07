@@ -11,12 +11,9 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(author, about)]
 struct Opt {
-    /// The javascript file to be evaluated.
+    /// The JavaScript file(s) to be evaluated.
     #[structopt(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
-    /// Open a boa shell.
-    #[structopt(short, long)]
-    shell: bool,
 }
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
@@ -34,7 +31,7 @@ pub fn main() -> Result<(), std::io::Error> {
         }
     }
 
-    if args.shell || args.files.is_empty() {
+    if args.files.is_empty() {
         loop {
             let mut buffer = String::new();
 
