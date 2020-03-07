@@ -4,7 +4,7 @@ There are multiple ways to debug what Boa is doing. Or maybe you just want to kn
 
 One way to do so is to create a file in the root of the repository. For example `test.js`. Then execute `cargo run -- test.js` to run the file with boa.
 
-You can also run boa in interactive mode by simply calling `cargo run` without any arguments to start an interactive shell to execute JS.
+You can also run boa interactively by simply calling `cargo run` without any arguments to start a shell to execute JS.
 
 These are added in order of how the code is read:
 
