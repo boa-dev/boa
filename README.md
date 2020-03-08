@@ -74,6 +74,20 @@ see [CHANGELOG](./CHANGELOG.md)
 - Run with `cargo run -- test.js` where `test.js` is an existing JS file
 - If any JS doesn't work then it's a bug. Please raise an issue!
 
+## Command-line Options
+
+```
+USAGE:
+    boa_cli [FILE]...
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+ARGS:
+    <FILE>...    The JavaScript file(s) to be evaluated
+```
+
 ## Communication
 
 Feel free to contact us on Discord https://discord.gg/tUFFk9Y

@@ -1,9 +1,10 @@
 # Debugging
 
-There are multiple ways to debug what Boa is doing. Or maybe you just want to know how it works under the hood. Or even test some javaScript.
+There are multiple ways to debug what Boa is doing. Or maybe you just want to know how it works under the hood. Or even test some JavaScript.
 
-The first thing i usually do is add some JS [here](../tests/js/test.js).  
-This file will be read if no arguments are provided. Then boa will begin to parse and execute that JS.
+One way to do so is to create a file in the root of the repository. For example `test.js`. Then execute `cargo run -- test.js` to run the file with boa.
+
+You can also run boa interactively by simply calling `cargo run` without any arguments to start a shell to execute JS.
 
 These are added in order of how the code is read:
 
