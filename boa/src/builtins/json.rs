@@ -29,14 +29,8 @@ pub fn stringify(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 
 /// Create a new `JSON` object
 pub fn create_constructor(global: &Value) -> Value {
-    let mut json = Object::default();
-    json.kind = ObjectKind::Ordinary;
-
-    let prototype = ValueData::new_obj(Some(global));
-    make_builtin_fn!(parse, named "parse", with length 2, of prototype);
-    make_builtin_fn!(stringify, named "stringify", with length 3, of prototype);
-
-    let json_value = to_value(json);
-    json_value.set_field_slice(PROTOTYPE, prototype);
-    json_value
+    let json = ValueData::new_obj(Some(global));
+    make_builtin_fn!(parse, named "parse", with length 2, of json);
+    make_builtin_fn!(stringify, named "stringify", with length 3, of json);
+    json
 }
