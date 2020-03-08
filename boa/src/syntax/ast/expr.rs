@@ -70,14 +70,18 @@ pub enum ExprDef {
     Throw(Box<Expr>),
     /// Assign an expression to a value
     Assign(Box<Expr>, Box<Expr>),
-    /// {
-    /// A variable declaratio
-    /// }
+    /// A variable declaration
     VarDecl(Vec<(String, Option<Expr>)>),
     /// Let declaraton
     LetDecl(Vec<(String, Option<Expr>)>),
     /// Return a string representing the type of the given expression
     TypeOf(Box<Expr>),
+    /// Try...catch...finally block.
+    TryCatch(
+        Box<Expr>,
+        Option<(Option<String>, Box<Expr>)>,
+        Option<Box<Expr>>,
+    ),
 }
 
 impl Operator for ExprDef {
@@ -117,9 +121,9 @@ impl Display for ExprDef {
         match *self {
             ExprDef::Const(ref c) => write!(f, "{}", c),
             ExprDef::Block(ref block) => {
-                write!(f, "{{")?;
+                writeln!(f, "{{")?;
                 for expr in block.iter() {
-                    write!(f, "{};", expr)?;
+                    writeln!(f, "{};", expr)?;
                 }
                 write!(f, "}}")
             }
@@ -223,6 +227,21 @@ impl Display for ExprDef {
                 Ok(())
             }
             ExprDef::TypeOf(ref e) => write!(f, "typeof {}", e),
+            ExprDef::TryCatch(ref try_block, ref catch_block, ref finally_block) => {
+                write!(f, "try {} ", try_block)?;
+                if let Some((catch_binding, catch_expr)) = catch_block {
+                    f.write_str("catch ")?;
+                    if let Some(exc) = catch_binding {
+                        write!(f, "({}) ", exc)?;
+                    }
+                    write!(f, "{}", catch_expr)?;
+                }
+                if let Some(finally) = finally_block {
+                    write!(f, "finally {}", finally)?;
+                }
+
+                Ok(())
+            }
         }
     }
 }

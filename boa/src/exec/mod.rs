@@ -510,6 +510,39 @@ impl Executor for Interpreter {
                     ValueData::Function(_) => "function",
                 }))
             }
+            // <tc39.es/ecma262/#sec-try-statement>
+            ExprDef::TryCatch(ref try_block, ref catch_expr, ref finally_block) => {
+                if let Err(val) = self.run(try_block) {
+                    if let Some((catch_bind, catch_block)) = catch_expr {
+                        {
+                            let env = &mut self.realm.environment;
+                            env.push(new_declarative_environment(Some(
+                                env.get_current_environment_ref().clone(),
+                            )));
+                        }
+
+                        if let Some(catch_bind) = catch_bind {
+                            self.realm.environment.create_mutable_binding(
+                                catch_bind.clone(),
+                                false,
+                                VariableScope::Block,
+                            );
+
+                            self.realm.environment.initialize_binding(catch_bind, val);
+                        }
+
+                        todo!("run the catch block");
+                    } else {
+                        return Err(val);
+                    }
+                }
+
+                if let Some(expr) = finally_block {
+                    self.run(expr)?;
+                }
+
+                Ok(Gc::new(ValueData::Undefined))
+            }
         }
     }
 }
@@ -520,7 +553,7 @@ impl Interpreter {
         &self.realm
     }
 
-    /// https://tc39.es/ecma262/#sec-call
+    /// <https://tc39.es/ecma262/#sec-call>
     pub(crate) fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
         // All functions should be objects, and eventually will be.
         // During this transition call will support both native functions and function objects
@@ -764,7 +797,7 @@ impl Interpreter {
         }
     }
 
-    /// `extract_array_properties` converts an array object into a rust vector of Values.   
+    /// `extract_array_properties` converts an array object into a rust vector of Values.
     /// This is useful for the spread operator, for any other object an `Err` is returned
     fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Gc<ValueData>>, ()> {
         if let ValueData::Object(ref x) = *value.deref().borrow() {
