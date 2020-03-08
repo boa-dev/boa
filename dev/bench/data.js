@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1583690482389,
+  "lastUpdate": 1583704271864,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2307,6 +2307,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.4145,
             "range": "+/- 0.020",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "936006+jasonwilliams@users.noreply.github.com",
+            "name": "Jason Williams",
+            "username": "jasonwilliams"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9766409c521af12f93ec53b68169fdafd5bd5b21",
+          "message": "Addition of forEach() (#268)\n\n* Addition of forEach()\r\n* fixing LLDB launcher for windows (it needs .exe to work for windows)",
+          "timestamp": "2020-03-08T21:45:24Z",
+          "tree_id": "9b4f64f4c833da46d4ce90bbed83c56691b3fb61",
+          "url": "https://github.com/jasonwilliams/boa/commit/9766409c521af12f93ec53b68169fdafd5bd5b21"
+        },
+        "date": 1583704269946,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 423.31,
+            "range": "+/- 6.340",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 495.75,
+            "range": "+/- 5.050",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.7891,
+            "range": "+/- 0.034",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 10.477,
+            "range": "+/- 0.080",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 434.03,
+            "range": "+/- 2.470",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0174,
+            "range": "+/- 0.006",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.3809,
+            "range": "+/- 0.010",
             "unit": "us"
           }
         ]
