@@ -589,14 +589,45 @@ impl ValueData {
             | ValueData::Undefined
             | ValueData::Function(_) => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
-            ValueData::Object(ref obj) => {
+            ValueData::Object(ref obj) if obj.borrow().kind == ObjectKind::Ordinary => {
                 let mut new_obj = Map::new();
-                for (k, v) in obj.borrow().internal_slots.iter() {
-                    if k != INSTANCE_PROTOTYPE {
-                        new_obj.insert(k.clone(), v.to_json());
+
+                for (name, prop) in obj.borrow().properties.iter() {
+                    if let Some(value) = &prop.value {
+                        new_obj.insert(name.clone(), value.to_json());
                     }
                 }
+
                 JSONValue::Object(new_obj)
+            }
+            ValueData::Object(ref array) => {
+                let length = array
+                    .borrow()
+                    .properties
+                    .get("length")
+                    .and_then(|prop| prop.value.as_ref())
+                    .map(|val| val.to_int());
+
+                let mut values = Vec::with_capacity(length.unwrap_or(0) as usize);
+
+                if let Some(length) = length {
+                    for i in 0..length {
+                        let value = array
+                            .borrow()
+                            .properties
+                            .get(&i.to_string())
+                            .map(|prop| {
+                                prop.value
+                                    .as_ref()
+                                    .map(|v| v.to_json())
+                                    .unwrap_or(JSONValue::Null)
+                            })
+                            .unwrap_or(JSONValue::Null);
+                        values.insert(i as usize, value);
+                    }
+                }
+
+                JSONValue::Array(values)
             }
             ValueData::String(ref str) => JSONValue::String(str.clone()),
             ValueData::Number(num) => JSONValue::Number(
