@@ -118,126 +118,161 @@ impl Operator for ExprDef {
 
 impl Display for ExprDef {
     fn fmt(&self, f: &mut Formatter) -> Result {
+        self.display(f, 0)
+    }
+}
+
+impl ExprDef {
+    fn display(&self, f: &mut Formatter, indentation: usize) -> Result {
+        let indent = "    ".repeat(indentation);
         match *self {
-            ExprDef::Const(ref c) => write!(f, "{}", c),
-            ExprDef::Block(ref block) => {
+            Self::Block(_) => {}
+            _ => write!(f, "{}", indent)?,
+        }
+
+        match *self {
+            Self::Const(ref c) => write!(f, "{}", c),
+            Self::Block(ref block) => {
                 writeln!(f, "{{")?;
                 for expr in block.iter() {
-                    writeln!(f, "{};", expr)?;
+                    expr.def.display(f, indentation + 1)?;
+
+                    match expr.def {
+                        Self::Block(_)
+                        | Self::If(_, _, _)
+                        | Self::Switch(_, _, _)
+                        | Self::FunctionDecl(_, _, _)
+                        | Self::WhileLoop(_, _)
+                        | Self::TryCatch(_, _, _) => {}
+                        _ => write!(f, ";")?,
+                    }
+                    writeln!(f)?;
                 }
-                write!(f, "}}")
+                write!(f, "{}}}", indent)
             }
-            ExprDef::Local(ref s) => write!(f, "{}", s),
-            ExprDef::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
-            ExprDef::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
-            ExprDef::Call(ref ex, ref args) => {
+            Self::Local(ref s) => write!(f, "{}", s),
+            Self::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
+            Self::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
+            Self::Call(ref ex, ref args) => {
                 write!(f, "{}(", ex)?;
                 let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
-                write!(f, "{})", arg_strs.join(","))
+                write!(f, "{})", arg_strs.join(", "))
             }
-            ExprDef::Construct(ref func, ref args) => {
-                f.write_fmt(format_args!("new {}", func))?;
+            Self::Construct(ref func, ref args) => {
+                write!(f, "new {}", func)?;
                 f.write_str("(")?;
                 let mut first = true;
                 for e in args.iter() {
                     if !first {
                         f.write_str(", ")?;
+                        first = false;
                     }
-                    first = false;
+
                     Display::fmt(e, f)?;
                 }
                 f.write_str(")")
             }
-            ExprDef::WhileLoop(ref cond, ref expr) => write!(f, "while({}) {}", cond, expr),
-            ExprDef::If(ref cond, ref expr, None) => write!(f, "if({}) {}", cond, expr),
-            ExprDef::If(ref cond, ref expr, Some(ref else_e)) => {
-                write!(f, "if({}) {} else {}", cond, expr, else_e)
+            Self::WhileLoop(ref cond, ref expr) => {
+                write!(f, "while ({}) ", cond)?;
+                expr.def.display(f, indentation)
             }
-            ExprDef::Switch(ref val, ref vals, None) => {
-                f.write_fmt(format_args!("switch({})", val))?;
-                f.write_str(" {")?;
+            Self::If(ref cond, ref expr, None) => {
+                write!(f, "if ({}) ", cond)?;
+                expr.def.display(f, indentation)
+            }
+            Self::If(ref cond, ref expr, Some(ref else_e)) => {
+                write!(f, "if ({}) ", cond)?;
+                expr.def.display(f, indentation)?;
+                f.write_str(" else ")?;
+                else_e.def.display(f, indentation)
+            }
+            Self::Switch(ref val, ref vals, None) => {
+                writeln!(f, "switch ({}) {{", val)?;
                 for e in vals.iter() {
-                    f.write_fmt(format_args!("case {}: \n", e.0))?;
+                    writeln!(f, "{}case {}:", indent, e.0)?;
                     join_expr(f, &e.1)?;
                 }
-                f.write_str("}")
+                writeln!(f, "{}}}", indent)
             }
-            ExprDef::Switch(ref val, ref vals, Some(ref def)) => {
-                f.write_fmt(format_args!("switch({})", val))?;
-                f.write_str(" {")?;
+            Self::Switch(ref val, ref vals, Some(ref def)) => {
+                writeln!(f, "switch ({}) {{", val)?;
                 for e in vals.iter() {
-                    f.write_fmt(format_args!("case {}: \n", e.0))?;
+                    writeln!(f, "{}case {}:", indent, e.0)?;
                     join_expr(f, &e.1)?;
                 }
-                f.write_str("default: \n")?;
-                Display::fmt(def, f)?;
-                f.write_str("}")
+                write!(f, "{}default:\n", indent)?;
+                def.def.display(f, indentation + 1)?;
+                write!(f, "{}}}", indent)
             }
-            ExprDef::ObjectDecl(ref map) => {
-                f.write_str("{")?;
+            Self::ObjectDecl(ref map) => {
+                f.write_str("{\n")?;
                 for (key, value) in map.iter() {
-                    f.write_fmt(format_args!("{}: {},", key, value))?;
+                    write!(f, "{}    {}: {},", indent, key, value)?;
                 }
                 f.write_str("}")
             }
-            ExprDef::ArrayDecl(ref arr) => {
+            Self::ArrayDecl(ref arr) => {
                 f.write_str("[")?;
                 join_expr(f, arr)?;
                 f.write_str("]")
             }
-            ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
+            Self::FunctionDecl(ref name, ref args, ref expr) => {
                 write!(f, "function ")?;
                 if let Some(func_name) = name {
-                    f.write_fmt(format_args!("{}", func_name))?;
+                    write!(f, "{}", func_name)?;
                 }
                 write!(f, "{{")?;
                 join_expr(f, args)?;
-                write!(f, "}} {}", expr)
+                f.write_str("} ")?;
+                expr.def.display(f, indentation + 1)
             }
-            ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
+            Self::ArrowFunctionDecl(ref args, ref expr) => {
                 write!(f, "(")?;
                 join_expr(f, args)?;
-                write!(f, ") => {}", expr)
+                f.write_str(") => ")?;
+                expr.def.display(f, indentation)
             }
-            ExprDef::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
-            ExprDef::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
-            ExprDef::Return(Some(ref ex)) => write!(f, "return {}", ex),
-            ExprDef::Return(None) => write!(f, "return"),
-            ExprDef::Throw(ref ex) => write!(f, "throw {}", ex),
-            ExprDef::Assign(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
-            ExprDef::VarDecl(ref vars) | ExprDef::LetDecl(ref vars) => {
-                if let ExprDef::VarDecl(_) = *self {
+            Self::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
+            Self::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
+            Self::Return(Some(ref ex)) => write!(f, "return {}", ex),
+            Self::Return(None) => write!(f, "return"),
+            Self::Throw(ref ex) => write!(f, "throw {}", ex),
+            Self::Assign(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
+            Self::VarDecl(ref vars) | Self::LetDecl(ref vars) => {
+                if let Self::VarDecl(_) = *self {
                     f.write_str("var ")?;
                 } else {
                     f.write_str("let ")?;
                 }
                 for (key, val) in vars.iter() {
                     match val {
-                        Some(x) => f.write_fmt(format_args!("{} = {}", key, x))?,
-                        None => f.write_fmt(format_args!("{}", key))?,
+                        Some(x) => write!(f, "{} = {}", key, x)?,
+                        None => write!(f, "{}", key)?,
                     }
                 }
                 Ok(())
             }
-            ExprDef::ConstDecl(ref vars) => {
+            Self::ConstDecl(ref vars) => {
                 f.write_str("const ")?;
                 for (key, val) in vars.iter() {
-                    f.write_fmt(format_args!("{} = {}", key, val))?
+                    write!(f, "{} = {}", key, val)?
                 }
                 Ok(())
             }
-            ExprDef::TypeOf(ref e) => write!(f, "typeof {}", e),
-            ExprDef::TryCatch(ref try_block, ref catch_block, ref finally_block) => {
-                write!(f, "try {} ", try_block)?;
+            Self::TypeOf(ref e) => write!(f, "typeof {}", e),
+            Self::TryCatch(ref try_block, ref catch_block, ref finally_block) => {
+                f.write_str("try ")?;
+                try_block.def.display(f, indentation)?;
                 if let Some((catch_binding, catch_expr)) = catch_block {
-                    f.write_str("catch ")?;
+                    f.write_str(" catch ")?;
                     if let Some(exc) = catch_binding {
                         write!(f, "({}) ", exc)?;
                     }
-                    write!(f, "{}", catch_expr)?;
+                    catch_expr.def.display(f, indentation)?;
                 }
                 if let Some(finally) = finally_block {
-                    write!(f, "finally {}", finally)?;
+                    f.write_str(" finally ")?;
+                    finally.def.display(f, indentation)?;
                 }
 
                 Ok(())
