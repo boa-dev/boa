@@ -8,7 +8,12 @@
       "type": "lldb",
       "request": "launch",
       "name": "Launch",
-      "program": "${workspaceFolder}/target/debug/boa_cli.exe",
+      "windows": {
+        "program": "${workspaceFolder}/target/debug/boa_cli.exe"
+      },
+      "osx": {
+        "program": "${workspaceFolder}/target/debug/boa_cli"
+      },
       "sourceLanguages": ["rust"]
     },
     {
