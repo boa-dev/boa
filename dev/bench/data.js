@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1583528659365,
+  "lastUpdate": 1583690482389,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2241,6 +2241,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.2766,
             "range": "+/- 0.023",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "doneth7@gmail.com",
+            "name": "John Doneth",
+            "username": "JohnDoneth"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d92da39299e8eb5810b2274eab9ab10dae2cbbe3",
+          "message": "Add print & REPL functionality to CLI (#267)\n\n* Add basic REPL functionality\r\n* Add utility function to Realm\r\n* Rework flow to allow files to be loaded as well as open a shell\r\n* Remove shell option (not needed now its the default)\r\n* Update README.md & docs/debugging.md",
+          "timestamp": "2020-03-08T17:54:57Z",
+          "tree_id": "be197b050c80156297f487e56abac52efabf2e18",
+          "url": "https://github.com/jasonwilliams/boa/commit/d92da39299e8eb5810b2274eab9ab10dae2cbbe3"
+        },
+        "date": 1583690480295,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 463.16,
+            "range": "+/- 8.840",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 577.42,
+            "range": "+/- 16.740",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 5.7029,
+            "range": "+/- 0.081",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 11.563,
+            "range": "+/- 0.241",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 502.14,
+            "range": "+/- 13.150",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.2068,
+            "range": "+/- 0.021",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.4145,
+            "range": "+/- 0.020",
             "unit": "us"
           }
         ]
