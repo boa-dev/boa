@@ -206,6 +206,33 @@ pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(pop_value)
 }
 
+/// Array.prototype.forEach ( callbackFn [ , thisArg ] )
+///
+/// This method executes the provided callback function for each element in the array.
+/// <https://tc39.es/ecma262/#sec-array.prototype.foreach>
+pub fn for_each(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    if args.is_empty() {
+        return Err(to_value(
+            "Missing argument for Array.prototype.forEach".to_string(),
+        ));
+    }
+
+    let callback_arg = args.get(0).expect("Could not get `callbackFn` argument.");
+    let this_arg = args.get(1).cloned().unwrap_or_else(undefined);
+
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
+
+    for i in 0..length {
+        let element = this.get_field_slice(&i.to_string());
+        let arguments = vec![element.clone(), to_value(i), this.clone()];
+
+        interpreter.call(callback_arg, &this_arg, arguments)?;
+    }
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
 /// Array.prototype.join ( separator )
 ///
 /// The elements of the array are converted to Strings, and these Strings are
@@ -732,7 +759,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(includes_value, named "includes", with length 1, of array_prototype);
     make_builtin_fn!(map, named "map", with length 1, of array_prototype);
     make_builtin_fn!(fill, named "fill", with length 1, of array_prototype);
-
+    make_builtin_fn!(for_each, named "forEach", with length 1, of array_prototype);
     make_builtin_fn!(pop, named "pop", of array_prototype);
     make_builtin_fn!(join, named "join", with length 1, of array_prototype);
     make_builtin_fn!(to_string, named "toString", of array_prototype);

@@ -12,6 +12,9 @@
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "presentation": {
+        "clear": true
       }
     },
     {
@@ -23,6 +26,9 @@
       "group": {
         "kind": "test",
         "isDefault": true
+      },
+      "presentation": {
+        "clear": true
       }
     }
   ]

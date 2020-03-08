@@ -631,3 +631,47 @@ fn slice() {
     assert_eq!(forward(&mut engine, "many2.length"), "1");
     assert_eq!(forward(&mut engine, "many3.length"), "0");
 }
+
+#[test]
+fn for_each() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        var a = [2, 3, 4, 5];
+        var sum = 0;
+        var indexSum = 0;
+        var listLengthSum = 0;
+        function callingCallback(item, index, list) {
+            sum += item;
+            indexSum += index;
+            listLengthSum += list.length;
+        }
+        a.forEach(callingCallback);
+        "#;
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "sum"), "14");
+    assert_eq!(forward(&mut engine, "indexSum"), "6");
+    assert_eq!(forward(&mut engine, "listLengthSum"), "16");
+}
+
+#[test]
+fn for_each_push_value() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        var a = [1, 2, 3, 4];
+        function callingCallback(item, index, list) {
+            list.push(item * 2);
+        }
+        a.forEach(callingCallback);
+        "#;
+    forward(&mut engine, init);
+
+    // [ 1, 2, 3, 4, 2, 4, 6, 8 ]
+    assert_eq!(forward(&mut engine, "a.length"), "8");
+    assert_eq!(forward(&mut engine, "a[4]"), "2");
+    assert_eq!(forward(&mut engine, "a[5]"), "4");
+    assert_eq!(forward(&mut engine, "a[6]"), "6");
+    assert_eq!(forward(&mut engine, "a[7]"), "8");
+}

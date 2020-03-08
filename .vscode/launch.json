@@ -8,13 +8,18 @@
       "type": "lldb",
       "request": "launch",
       "name": "Launch",
+      "windows": {
+        "program": "${workspaceFolder}/target/debug/boa_cli.exe"
+      },
       "program": "${workspaceFolder}/target/debug/boa_cli",
+      "args": ["${workspaceFolder}/tests/js/test.js"],
       "sourceLanguages": ["rust"]
     },
     {
       "name": "(Windows) Launch",
       "type": "cppvsdbg",
       "request": "launch",
+      "args": ["${workspaceFolder}/tests/js/test.js"],
       "program": "${workspaceFolder}/target/debug/boa_cli.exe",
       "cwd": "${workspaceFolder}",
       "sourceFileMap": {
