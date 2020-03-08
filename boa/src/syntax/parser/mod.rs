@@ -177,54 +177,7 @@ impl Parser {
                     _ => Ok(Expr::new(ExprDef::VarDecl(vars))),
                 }
             }
-            Keyword::Const => {
-                let mut vars = Vec::new();
-                loop {
-                    let name = match self.get_token(self.pos) {
-                        Ok(Token {
-                            data: TokenData::Identifier(ref name),
-                            ..
-                        }) => name.clone(),
-                        Ok(tok) => {
-                            return Err(ParseError::Expected(
-                                vec![TokenData::Identifier("identifier".to_string())],
-                                tok,
-                                "const declaration",
-                            ))
-                        }
-                        Err(ParseError::AbruptEnd) => break,
-                        Err(e) => return Err(e),
-                    };
-                    self.pos += 1;
-                    match self.get_token(self.pos) {
-                        Ok(Token {
-                            data: TokenData::Punctuator(Punctuator::Assign),
-                            ..
-                        }) => {
-                            self.pos += 1;
-                            let val = self.parse()?;
-                            vars.push((name, val));
-                            match self.get_token(self.pos) {
-                                Ok(Token {
-                                    data: TokenData::Punctuator(Punctuator::Comma),
-                                    ..
-                                }) => self.pos += 1,
-                                _ => break,
-                            }
-                        }
-                        Ok(tok) => {
-                            return Err(ParseError::Expected(
-                                vec![TokenData::Punctuator(Punctuator::Assign)],
-                                tok,
-                                "const declration",
-                            ))
-                        }
-                        _ => break,
-                    }
-                }
-
-                Ok(Expr::new(ExprDef::ConstDecl(vars)))
-            }
+            Keyword::Const => self.const_expr(),
             Keyword::Return => match self.get_token(self.pos)?.data {
                 TokenData::Punctuator(Punctuator::Semicolon)
                 | TokenData::Punctuator(Punctuator::CloseBlock) => {
@@ -361,74 +314,7 @@ impl Parser {
                 )))
             }
             // <tc39.es/ecma262/#sec-try-statement>
-            Keyword::Try => {
-                let try_block = self.parse()?;
-                let mut catch_block = None;
-                let mut finally_block = None;
-
-                loop {
-                    let token = self.get_token(self.pos)?;
-                    match token.data {
-                        TokenData::Keyword(Keyword::Catch) if catch_block.is_none() => {
-                            self.pos += 1;
-                            let next_token = self.get_token(self.pos)?;
-
-                            let exc_var = if let TokenData::Punctuator(Punctuator::OpenParen) =
-                                next_token.data
-                            {
-                                self.pos += 1;
-                                let ident_token = self.get_token(self.pos)?;
-                                if let TokenData::Identifier(ref id) = ident_token.data {
-                                    self.pos += 1;
-                                    let close_paren = self.get_token(self.pos)?;
-
-                                    if let TokenData::Punctuator(Punctuator::CloseParen) =
-                                        close_paren.data
-                                    {
-                                        self.pos += 1;
-                                    } else {
-                                        return Err(ParseError::Expected(
-                                            vec![TokenData::Punctuator(Punctuator::CloseParen)],
-                                            next_token,
-                                            "catch",
-                                        ));
-                                    }
-
-                                    Some(id.clone())
-                                } else {
-                                    return Err(ParseError::Expected(
-                                        vec![TokenData::Identifier("identifier".to_string())],
-                                        next_token,
-                                        "catch",
-                                    ));
-                                }
-                            } else {
-                                None
-                            };
-                            let block = self.parse()?;
-
-                            catch_block = Some((exc_var, Box::new(block)));
-                        }
-                        TokenData::Keyword(Keyword::Finally) => {
-                            // Set the finally block
-                            let block = self.parse()?;
-                            finally_block = Some(Box::new(block));
-                            break;
-                        }
-                        _ => break,
-                    }
-                }
-
-                if catch_block.is_none() && finally_block.is_none() {
-                    todo!("SyntaxError: missing catch or finally after try")
-                } else {
-                    Ok(Expr::new(ExprDef::TryCatch(
-                        Box::new(try_block),
-                        catch_block,
-                        finally_block,
-                    )))
-                }
-            }
+            Keyword::Try => self.try_catch(),
             _ => Err(ParseError::UnexpectedKeyword(keyword)),
         }
     }
@@ -945,6 +831,123 @@ impl Parser {
             self.parse_next(result)
         } else {
             Ok(result)
+        }
+    }
+
+    fn const_expr(&mut self) -> Result<Expr, ParseError> {
+        let mut vars = Vec::new();
+        loop {
+            let name = match self.get_token(self.pos) {
+                Ok(Token {
+                    data: TokenData::Identifier(ref name),
+                    ..
+                }) => name.clone(),
+                Ok(tok) => {
+                    return Err(ParseError::Expected(
+                        vec![TokenData::Identifier("identifier".to_string())],
+                        tok,
+                        "const declaration",
+                    ))
+                }
+                Err(ParseError::AbruptEnd) => break,
+                Err(e) => return Err(e),
+            };
+            self.pos += 1;
+            match self.get_token(self.pos) {
+                Ok(Token {
+                    data: TokenData::Punctuator(Punctuator::Assign),
+                    ..
+                }) => {
+                    self.pos += 1;
+                    let val = self.parse()?;
+                    vars.push((name, val));
+                    match self.get_token(self.pos) {
+                        Ok(Token {
+                            data: TokenData::Punctuator(Punctuator::Comma),
+                            ..
+                        }) => self.pos += 1,
+                        _ => break,
+                    }
+                }
+                Ok(tok) => {
+                    return Err(ParseError::Expected(
+                        vec![TokenData::Punctuator(Punctuator::Assign)],
+                        tok,
+                        "const declration",
+                    ))
+                }
+                _ => break,
+            }
+        }
+
+        Ok(Expr::new(ExprDef::ConstDecl(vars)))
+    }
+
+    fn try_catch(&mut self) -> Result<Expr, ParseError> {
+        let try_block = self.parse()?;
+        let mut catch_block = None;
+        let mut finally_block = None;
+
+        loop {
+            let token = self.get_token(self.pos)?;
+            match token.data {
+                TokenData::Keyword(Keyword::Catch) if catch_block.is_none() => {
+                    self.pos += 1;
+                    let next_token = self.get_token(self.pos)?;
+
+                    let exc_var = if let TokenData::Punctuator(Punctuator::OpenParen) =
+                        next_token.data
+                    {
+                        self.pos += 1;
+                        let ident_token = self.get_token(self.pos)?;
+                        if let TokenData::Identifier(ref id) = ident_token.data {
+                            self.pos += 1;
+                            let close_paren = self.get_token(self.pos)?;
+
+                            if let TokenData::Punctuator(Punctuator::CloseParen) = close_paren.data
+                            {
+                                self.pos += 1;
+                            } else {
+                                return Err(ParseError::Expected(
+                                    vec![TokenData::Punctuator(Punctuator::CloseParen)],
+                                    next_token,
+                                    "catch",
+                                ));
+                            }
+
+                            Some(id.clone())
+                        } else {
+                            return Err(ParseError::Expected(
+                                vec![TokenData::Identifier("identifier".to_string())],
+                                next_token,
+                                "catch",
+                            ));
+                        }
+                    } else {
+                        None
+                    };
+                    let block = self.parse()?;
+
+                    catch_block = Some((exc_var, Box::new(block)));
+                }
+                TokenData::Keyword(Keyword::Finally) => {
+                    // Set the finally block
+                    let block = self.parse()?;
+                    finally_block = Some(Box::new(block));
+                    break;
+                }
+                _ => break,
+            }
+        }
+
+        if catch_block.is_none() && finally_block.is_none() {
+            todo!("SyntaxError: missing catch or finally after try")
+        } else {
+            Ok(Expr::new(ExprDef::TryCatch(
+                Box::new(try_block),
+                catch_block,
+                finally_block,
+            )))
         }
     }
 

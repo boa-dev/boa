@@ -42,10 +42,10 @@ pub fn main() -> Result<(), std::io::Error> {
             match forward_val(&mut engine, &buffer) {
                 Ok(v) => {
                     if file_iter.peek().is_none() {
-                        print!("{}", v.to_string())
+                        println!("{}", v.to_string())
                     }
                 }
-                Err(v) => eprint!("{}", v.to_string()),
+                Err(v) => eprintln!("{}", v.to_string()),
             }
         }
     }
