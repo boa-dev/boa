@@ -200,7 +200,7 @@ impl ExprDef {
                     writeln!(f, "{}case {}:", indent, e.0)?;
                     join_expr(f, &e.1)?;
                 }
-                write!(f, "{}default:\n", indent)?;
+                writeln!(f, "{}default:", indent)?;
                 def.def.display(f, indentation + 1)?;
                 write!(f, "{}}}", indent)
             }
