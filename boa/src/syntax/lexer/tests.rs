@@ -383,8 +383,10 @@ fn check_decrement_advances_lexer_2_places() {
 
 #[test]
 fn numbers() {
-    let mut lexer =
-        Lexer::new("1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1");
+    let mut lexer = Lexer::new(
+        "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1 0.0 0.12",
+    );
+
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
     assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
@@ -401,7 +403,9 @@ fn numbers() {
     assert_eq!(lexer.tokens[12].data, TokenData::NumericLiteral(10.0));
     assert_eq!(lexer.tokens[13].data, TokenData::NumericLiteral(0.1));
     assert_eq!(lexer.tokens[14].data, TokenData::NumericLiteral(10.0));
-    assert_eq!(lexer.tokens[14].data, TokenData::NumericLiteral(10.0));
+    assert_eq!(lexer.tokens[15].data, TokenData::NumericLiteral(10.0));
+    assert_eq!(lexer.tokens[16].data, TokenData::NumericLiteral(0.0));
+    assert_eq!(lexer.tokens[17].data, TokenData::NumericLiteral(0.12));
 }
 
 #[test]
