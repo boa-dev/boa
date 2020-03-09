@@ -737,6 +737,47 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     Ok(new_array)
 }
 
+/// Array.prototype.filter ( callback, [ thisArg ] )
+///
+/// For each element in the array the callback function is called, and a new
+/// array is constructed for every value whose callback returned a truthy value
+/// <https://tc39.es/ecma262/#sec-array.prototype.filter>
+pub fn filter(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    if args.is_empty() {
+        return Err(to_value(
+            "missing argument 0 when calling function Array.prototype.filter",
+        ));
+    }
+
+    let callback = args.get(0).cloned().unwrap_or_else(undefined);
+    let this_val = args.get(1).cloned().unwrap_or_else(undefined);
+
+    let length: i32 =
+        from_value(this.get_field_slice("length")).expect("Could not get `length` property.");
+
+    let new = new_array(&interpreter)?;
+
+    let values = (0..length)
+        .filter_map(|idx| {
+            let element = this.get_field_slice(&idx.to_string());
+
+            let args = vec![element.clone(), to_value(idx), new.clone()];
+
+            let callback_result = interpreter
+                .call(&callback, &this_val, args)
+                .unwrap_or_else(|_| undefined());
+
+            if callback_result.is_true() {
+                Some(element)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<Value>>();
+
+    construct_array(&new, &values)
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -760,6 +801,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(map, named "map", with length 1, of array_prototype);
     make_builtin_fn!(fill, named "fill", with length 1, of array_prototype);
     make_builtin_fn!(for_each, named "forEach", with length 1, of array_prototype);
+    make_builtin_fn!(filter, named "filter", with length 1, of array_prototype);
     make_builtin_fn!(pop, named "pop", of array_prototype);
     make_builtin_fn!(join, named "join", with length 1, of array_prototype);
     make_builtin_fn!(to_string, named "toString", of array_prototype);

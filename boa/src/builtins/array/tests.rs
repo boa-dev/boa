@@ -675,3 +675,70 @@ fn for_each_push_value() {
     assert_eq!(forward(&mut engine, "a[6]"), "6");
     assert_eq!(forward(&mut engine, "a[7]"), "8");
 }
+
+#[test]
+fn filter() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+
+    let js = r#"
+        var empty = [];
+        var one = ["1"];
+        var many = ["1", "0", "1"];
+
+        var empty_filtered = empty.filter(v => v === "1");
+        var one_filtered = one.filter(v => v === "1");
+        var zero_filtered = one.filter(v => v === "0");
+        var many_one_filtered = many.filter(v => v === "1");
+        var many_zero_filtered = many.filter(v => v === "0");
+        "#;
+
+    forward(&mut engine, js);
+
+    // assert the old arrays have not been modified
+    assert_eq!(forward(&mut engine, "one[0]"), String::from("1"));
+    assert_eq!(
+        forward(&mut engine, "many[2] + many[1] + many[0]"),
+        String::from("101")
+    );
+
+    // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
+    // Empty
+    assert_eq!(
+        forward(&mut engine, "empty_filtered.length"),
+        String::from("0")
+    );
+
+    // One filtered on "1"
+    assert_eq!(
+        forward(&mut engine, "one_filtered.length"),
+        String::from("1")
+    );
+    assert_eq!(forward(&mut engine, "one_filtered[0]"), String::from("1"));
+
+    //  One filtered on "0"
+    assert_eq!(
+        forward(&mut engine, "zero_filtered.length"),
+        String::from("0")
+    );
+
+    // Many filtered on "1"
+    assert_eq!(
+        forward(&mut engine, "many_one_filtered.length"),
+        String::from("2")
+    );
+    assert_eq!(
+        forward(&mut engine, "many_one_filtered[0] + many_one_filtered[1]"),
+        String::from("11")
+    );
+
+    // Many filtered on "0"
+    assert_eq!(
+        forward(&mut engine, "many_zero_filtered.length"),
+        String::from("1")
+    );
+    assert_eq!(
+        forward(&mut engine, "many_zero_filtered[0]"),
+        String::from("0")
+    );
+}
