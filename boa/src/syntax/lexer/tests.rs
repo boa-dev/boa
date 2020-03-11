@@ -9,9 +9,9 @@ fn check_single_line_comment() {
     let s1 = "var \n//=\nx";
     let mut lexer = Lexer::new(s1);
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
-    assert_eq!(lexer.tokens[1].data, TokenData::Comment("//=".to_owned()));
-    assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Comment("//=".to_owned()));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::Identifier("x".to_string()));
 }
 
 #[test]
@@ -19,12 +19,12 @@ fn check_multi_line_comment() {
     let s = "var /* await \n break \n*/ x";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Var));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));
     assert_eq!(
-        lexer.tokens[1].data,
-        TokenData::Comment("/* await \n break \n*/".to_owned())
+        lexer.tokens[1].kind,
+        TokenKind::Comment("/* await \n break \n*/".to_owned())
     );
-    assert_eq!(lexer.tokens[2].data, TokenData::Identifier("x".to_string()));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::Identifier("x".to_string()));
 }
 
 #[test]
@@ -33,13 +33,13 @@ fn check_string() {
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(
-        lexer.tokens[0].data,
-        TokenData::StringLiteral("aaa".to_string())
+        lexer.tokens[0].kind,
+        TokenKind::StringLiteral("aaa".to_string())
     );
 
     assert_eq!(
-        lexer.tokens[1].data,
-        TokenData::StringLiteral("bbb".to_string())
+        lexer.tokens[1].kind,
+        TokenKind::StringLiteral("bbb".to_string())
     );
 }
 
@@ -52,191 +52,191 @@ fn check_punctuators() {
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(
-        lexer.tokens[0].data,
-        TokenData::Punctuator(Punctuator::OpenBlock)
+        lexer.tokens[0].kind,
+        TokenKind::Punctuator(Punctuator::OpenBlock)
     );
     assert_eq!(
-        lexer.tokens[1].data,
-        TokenData::Punctuator(Punctuator::OpenParen)
+        lexer.tokens[1].kind,
+        TokenKind::Punctuator(Punctuator::OpenParen)
     );
     assert_eq!(
-        lexer.tokens[2].data,
-        TokenData::Punctuator(Punctuator::CloseParen)
+        lexer.tokens[2].kind,
+        TokenKind::Punctuator(Punctuator::CloseParen)
     );
     assert_eq!(
-        lexer.tokens[3].data,
-        TokenData::Punctuator(Punctuator::OpenBracket)
+        lexer.tokens[3].kind,
+        TokenKind::Punctuator(Punctuator::OpenBracket)
     );
     assert_eq!(
-        lexer.tokens[4].data,
-        TokenData::Punctuator(Punctuator::CloseBracket)
+        lexer.tokens[4].kind,
+        TokenKind::Punctuator(Punctuator::CloseBracket)
     );
-    assert_eq!(lexer.tokens[5].data, TokenData::Punctuator(Punctuator::Dot));
+    assert_eq!(lexer.tokens[5].kind, TokenKind::Punctuator(Punctuator::Dot));
     assert_eq!(
-        lexer.tokens[6].data,
-        TokenData::Punctuator(Punctuator::Spread)
-    );
-    assert_eq!(
-        lexer.tokens[7].data,
-        TokenData::Punctuator(Punctuator::Semicolon)
+        lexer.tokens[6].kind,
+        TokenKind::Punctuator(Punctuator::Spread)
     );
     assert_eq!(
-        lexer.tokens[8].data,
-        TokenData::Punctuator(Punctuator::Comma)
+        lexer.tokens[7].kind,
+        TokenKind::Punctuator(Punctuator::Semicolon)
     );
     assert_eq!(
-        lexer.tokens[9].data,
-        TokenData::Punctuator(Punctuator::LessThan)
+        lexer.tokens[8].kind,
+        TokenKind::Punctuator(Punctuator::Comma)
     );
     assert_eq!(
-        lexer.tokens[10].data,
-        TokenData::Punctuator(Punctuator::GreaterThan)
+        lexer.tokens[9].kind,
+        TokenKind::Punctuator(Punctuator::LessThan)
     );
     assert_eq!(
-        lexer.tokens[11].data,
-        TokenData::Punctuator(Punctuator::LessThanOrEq)
+        lexer.tokens[10].kind,
+        TokenKind::Punctuator(Punctuator::GreaterThan)
     );
     assert_eq!(
-        lexer.tokens[12].data,
-        TokenData::Punctuator(Punctuator::GreaterThanOrEq)
-    );
-    assert_eq!(lexer.tokens[13].data, TokenData::Punctuator(Punctuator::Eq));
-    assert_eq!(
-        lexer.tokens[14].data,
-        TokenData::Punctuator(Punctuator::NotEq)
+        lexer.tokens[11].kind,
+        TokenKind::Punctuator(Punctuator::LessThanOrEq)
     );
     assert_eq!(
-        lexer.tokens[15].data,
-        TokenData::Punctuator(Punctuator::StrictEq)
+        lexer.tokens[12].kind,
+        TokenKind::Punctuator(Punctuator::GreaterThanOrEq)
+    );
+    assert_eq!(lexer.tokens[13].kind, TokenKind::Punctuator(Punctuator::Eq));
+    assert_eq!(
+        lexer.tokens[14].kind,
+        TokenKind::Punctuator(Punctuator::NotEq)
     );
     assert_eq!(
-        lexer.tokens[16].data,
-        TokenData::Punctuator(Punctuator::StrictNotEq)
+        lexer.tokens[15].kind,
+        TokenKind::Punctuator(Punctuator::StrictEq)
     );
     assert_eq!(
-        lexer.tokens[17].data,
-        TokenData::Punctuator(Punctuator::Add)
+        lexer.tokens[16].kind,
+        TokenKind::Punctuator(Punctuator::StrictNotEq)
     );
     assert_eq!(
-        lexer.tokens[18].data,
-        TokenData::Punctuator(Punctuator::Sub)
+        lexer.tokens[17].kind,
+        TokenKind::Punctuator(Punctuator::Add)
     );
     assert_eq!(
-        lexer.tokens[19].data,
-        TokenData::Punctuator(Punctuator::Mul)
+        lexer.tokens[18].kind,
+        TokenKind::Punctuator(Punctuator::Sub)
     );
     assert_eq!(
-        lexer.tokens[20].data,
-        TokenData::Punctuator(Punctuator::Mod)
+        lexer.tokens[19].kind,
+        TokenKind::Punctuator(Punctuator::Mul)
     );
     assert_eq!(
-        lexer.tokens[21].data,
-        TokenData::Punctuator(Punctuator::Dec)
+        lexer.tokens[20].kind,
+        TokenKind::Punctuator(Punctuator::Mod)
     );
     assert_eq!(
-        lexer.tokens[22].data,
-        TokenData::Punctuator(Punctuator::LeftSh)
+        lexer.tokens[21].kind,
+        TokenKind::Punctuator(Punctuator::Dec)
     );
     assert_eq!(
-        lexer.tokens[23].data,
-        TokenData::Punctuator(Punctuator::RightSh)
+        lexer.tokens[22].kind,
+        TokenKind::Punctuator(Punctuator::LeftSh)
     );
     assert_eq!(
-        lexer.tokens[24].data,
-        TokenData::Punctuator(Punctuator::URightSh)
+        lexer.tokens[23].kind,
+        TokenKind::Punctuator(Punctuator::RightSh)
     );
     assert_eq!(
-        lexer.tokens[25].data,
-        TokenData::Punctuator(Punctuator::And)
-    );
-    assert_eq!(lexer.tokens[26].data, TokenData::Punctuator(Punctuator::Or));
-    assert_eq!(
-        lexer.tokens[27].data,
-        TokenData::Punctuator(Punctuator::Xor)
+        lexer.tokens[24].kind,
+        TokenKind::Punctuator(Punctuator::URightSh)
     );
     assert_eq!(
-        lexer.tokens[28].data,
-        TokenData::Punctuator(Punctuator::Not)
+        lexer.tokens[25].kind,
+        TokenKind::Punctuator(Punctuator::And)
+    );
+    assert_eq!(lexer.tokens[26].kind, TokenKind::Punctuator(Punctuator::Or));
+    assert_eq!(
+        lexer.tokens[27].kind,
+        TokenKind::Punctuator(Punctuator::Xor)
     );
     assert_eq!(
-        lexer.tokens[29].data,
-        TokenData::Punctuator(Punctuator::Neg)
+        lexer.tokens[28].kind,
+        TokenKind::Punctuator(Punctuator::Not)
     );
     assert_eq!(
-        lexer.tokens[30].data,
-        TokenData::Punctuator(Punctuator::BoolAnd)
+        lexer.tokens[29].kind,
+        TokenKind::Punctuator(Punctuator::Neg)
     );
     assert_eq!(
-        lexer.tokens[31].data,
-        TokenData::Punctuator(Punctuator::BoolOr)
+        lexer.tokens[30].kind,
+        TokenKind::Punctuator(Punctuator::BoolAnd)
     );
     assert_eq!(
-        lexer.tokens[32].data,
-        TokenData::Punctuator(Punctuator::Question)
+        lexer.tokens[31].kind,
+        TokenKind::Punctuator(Punctuator::BoolOr)
     );
     assert_eq!(
-        lexer.tokens[33].data,
-        TokenData::Punctuator(Punctuator::Colon)
+        lexer.tokens[32].kind,
+        TokenKind::Punctuator(Punctuator::Question)
     );
     assert_eq!(
-        lexer.tokens[34].data,
-        TokenData::Punctuator(Punctuator::Assign)
+        lexer.tokens[33].kind,
+        TokenKind::Punctuator(Punctuator::Colon)
     );
     assert_eq!(
-        lexer.tokens[35].data,
-        TokenData::Punctuator(Punctuator::AssignAdd)
+        lexer.tokens[34].kind,
+        TokenKind::Punctuator(Punctuator::Assign)
     );
     assert_eq!(
-        lexer.tokens[36].data,
-        TokenData::Punctuator(Punctuator::AssignSub)
+        lexer.tokens[35].kind,
+        TokenKind::Punctuator(Punctuator::AssignAdd)
     );
     assert_eq!(
-        lexer.tokens[37].data,
-        TokenData::Punctuator(Punctuator::AssignMul)
+        lexer.tokens[36].kind,
+        TokenKind::Punctuator(Punctuator::AssignSub)
     );
     assert_eq!(
-        lexer.tokens[38].data,
-        TokenData::Punctuator(Punctuator::AssignAnd)
+        lexer.tokens[37].kind,
+        TokenKind::Punctuator(Punctuator::AssignMul)
     );
     assert_eq!(
-        lexer.tokens[39].data,
-        TokenData::Punctuator(Punctuator::AssignPow)
+        lexer.tokens[38].kind,
+        TokenKind::Punctuator(Punctuator::AssignAnd)
     );
     assert_eq!(
-        lexer.tokens[40].data,
-        TokenData::Punctuator(Punctuator::Inc)
+        lexer.tokens[39].kind,
+        TokenKind::Punctuator(Punctuator::AssignPow)
     );
     assert_eq!(
-        lexer.tokens[41].data,
-        TokenData::Punctuator(Punctuator::Pow)
+        lexer.tokens[40].kind,
+        TokenKind::Punctuator(Punctuator::Inc)
     );
     assert_eq!(
-        lexer.tokens[42].data,
-        TokenData::Punctuator(Punctuator::AssignLeftSh)
+        lexer.tokens[41].kind,
+        TokenKind::Punctuator(Punctuator::Pow)
     );
     assert_eq!(
-        lexer.tokens[43].data,
-        TokenData::Punctuator(Punctuator::AssignRightSh)
+        lexer.tokens[42].kind,
+        TokenKind::Punctuator(Punctuator::AssignLeftSh)
     );
     assert_eq!(
-        lexer.tokens[44].data,
-        TokenData::Punctuator(Punctuator::AssignURightSh)
+        lexer.tokens[43].kind,
+        TokenKind::Punctuator(Punctuator::AssignRightSh)
     );
     assert_eq!(
-        lexer.tokens[45].data,
-        TokenData::Punctuator(Punctuator::AssignAnd)
+        lexer.tokens[44].kind,
+        TokenKind::Punctuator(Punctuator::AssignURightSh)
     );
     assert_eq!(
-        lexer.tokens[46].data,
-        TokenData::Punctuator(Punctuator::AssignOr)
+        lexer.tokens[45].kind,
+        TokenKind::Punctuator(Punctuator::AssignAnd)
     );
     assert_eq!(
-        lexer.tokens[47].data,
-        TokenData::Punctuator(Punctuator::AssignXor)
+        lexer.tokens[46].kind,
+        TokenKind::Punctuator(Punctuator::AssignOr)
     );
     assert_eq!(
-        lexer.tokens[48].data,
-        TokenData::Punctuator(Punctuator::Arrow)
+        lexer.tokens[47].kind,
+        TokenKind::Punctuator(Punctuator::AssignXor)
+    );
+    assert_eq!(
+        lexer.tokens[48].kind,
+        TokenKind::Punctuator(Punctuator::Arrow)
     );
 }
 
@@ -249,43 +249,43 @@ fn check_keywords() {
 
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Await));
-    assert_eq!(lexer.tokens[1].data, TokenData::Keyword(Keyword::Break));
-    assert_eq!(lexer.tokens[2].data, TokenData::Keyword(Keyword::Case));
-    assert_eq!(lexer.tokens[3].data, TokenData::Keyword(Keyword::Catch));
-    assert_eq!(lexer.tokens[4].data, TokenData::Keyword(Keyword::Class));
-    assert_eq!(lexer.tokens[5].data, TokenData::Keyword(Keyword::Const));
-    assert_eq!(lexer.tokens[6].data, TokenData::Keyword(Keyword::Continue));
-    assert_eq!(lexer.tokens[7].data, TokenData::Keyword(Keyword::Debugger));
-    assert_eq!(lexer.tokens[8].data, TokenData::Keyword(Keyword::Default));
-    assert_eq!(lexer.tokens[9].data, TokenData::Keyword(Keyword::Delete));
-    assert_eq!(lexer.tokens[10].data, TokenData::Keyword(Keyword::Do));
-    assert_eq!(lexer.tokens[11].data, TokenData::Keyword(Keyword::Else));
-    assert_eq!(lexer.tokens[12].data, TokenData::Keyword(Keyword::Export));
-    assert_eq!(lexer.tokens[13].data, TokenData::Keyword(Keyword::Extends));
-    assert_eq!(lexer.tokens[14].data, TokenData::Keyword(Keyword::Finally));
-    assert_eq!(lexer.tokens[15].data, TokenData::Keyword(Keyword::For));
-    assert_eq!(lexer.tokens[16].data, TokenData::Keyword(Keyword::Function));
-    assert_eq!(lexer.tokens[17].data, TokenData::Keyword(Keyword::If));
-    assert_eq!(lexer.tokens[18].data, TokenData::Keyword(Keyword::Import));
-    assert_eq!(lexer.tokens[19].data, TokenData::Keyword(Keyword::In));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Await));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Keyword(Keyword::Break));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::Keyword(Keyword::Case));
+    assert_eq!(lexer.tokens[3].kind, TokenKind::Keyword(Keyword::Catch));
+    assert_eq!(lexer.tokens[4].kind, TokenKind::Keyword(Keyword::Class));
+    assert_eq!(lexer.tokens[5].kind, TokenKind::Keyword(Keyword::Const));
+    assert_eq!(lexer.tokens[6].kind, TokenKind::Keyword(Keyword::Continue));
+    assert_eq!(lexer.tokens[7].kind, TokenKind::Keyword(Keyword::Debugger));
+    assert_eq!(lexer.tokens[8].kind, TokenKind::Keyword(Keyword::Default));
+    assert_eq!(lexer.tokens[9].kind, TokenKind::Keyword(Keyword::Delete));
+    assert_eq!(lexer.tokens[10].kind, TokenKind::Keyword(Keyword::Do));
+    assert_eq!(lexer.tokens[11].kind, TokenKind::Keyword(Keyword::Else));
+    assert_eq!(lexer.tokens[12].kind, TokenKind::Keyword(Keyword::Export));
+    assert_eq!(lexer.tokens[13].kind, TokenKind::Keyword(Keyword::Extends));
+    assert_eq!(lexer.tokens[14].kind, TokenKind::Keyword(Keyword::Finally));
+    assert_eq!(lexer.tokens[15].kind, TokenKind::Keyword(Keyword::For));
+    assert_eq!(lexer.tokens[16].kind, TokenKind::Keyword(Keyword::Function));
+    assert_eq!(lexer.tokens[17].kind, TokenKind::Keyword(Keyword::If));
+    assert_eq!(lexer.tokens[18].kind, TokenKind::Keyword(Keyword::Import));
+    assert_eq!(lexer.tokens[19].kind, TokenKind::Keyword(Keyword::In));
     assert_eq!(
-        lexer.tokens[20].data,
-        TokenData::Keyword(Keyword::InstanceOf)
+        lexer.tokens[20].kind,
+        TokenKind::Keyword(Keyword::InstanceOf)
     );
-    assert_eq!(lexer.tokens[21].data, TokenData::Keyword(Keyword::New));
-    assert_eq!(lexer.tokens[22].data, TokenData::Keyword(Keyword::Return));
-    assert_eq!(lexer.tokens[23].data, TokenData::Keyword(Keyword::Super));
-    assert_eq!(lexer.tokens[24].data, TokenData::Keyword(Keyword::Switch));
-    assert_eq!(lexer.tokens[25].data, TokenData::Keyword(Keyword::This));
-    assert_eq!(lexer.tokens[26].data, TokenData::Keyword(Keyword::Throw));
-    assert_eq!(lexer.tokens[27].data, TokenData::Keyword(Keyword::Try));
-    assert_eq!(lexer.tokens[28].data, TokenData::Keyword(Keyword::TypeOf));
-    assert_eq!(lexer.tokens[29].data, TokenData::Keyword(Keyword::Var));
-    assert_eq!(lexer.tokens[30].data, TokenData::Keyword(Keyword::Void));
-    assert_eq!(lexer.tokens[31].data, TokenData::Keyword(Keyword::While));
-    assert_eq!(lexer.tokens[32].data, TokenData::Keyword(Keyword::With));
-    assert_eq!(lexer.tokens[33].data, TokenData::Keyword(Keyword::Yield));
+    assert_eq!(lexer.tokens[21].kind, TokenKind::Keyword(Keyword::New));
+    assert_eq!(lexer.tokens[22].kind, TokenKind::Keyword(Keyword::Return));
+    assert_eq!(lexer.tokens[23].kind, TokenKind::Keyword(Keyword::Super));
+    assert_eq!(lexer.tokens[24].kind, TokenKind::Keyword(Keyword::Switch));
+    assert_eq!(lexer.tokens[25].kind, TokenKind::Keyword(Keyword::This));
+    assert_eq!(lexer.tokens[26].kind, TokenKind::Keyword(Keyword::Throw));
+    assert_eq!(lexer.tokens[27].kind, TokenKind::Keyword(Keyword::Try));
+    assert_eq!(lexer.tokens[28].kind, TokenKind::Keyword(Keyword::TypeOf));
+    assert_eq!(lexer.tokens[29].kind, TokenKind::Keyword(Keyword::Var));
+    assert_eq!(lexer.tokens[30].kind, TokenKind::Keyword(Keyword::Void));
+    assert_eq!(lexer.tokens[31].kind, TokenKind::Keyword(Keyword::While));
+    assert_eq!(lexer.tokens[32].kind, TokenKind::Keyword(Keyword::With));
+    assert_eq!(lexer.tokens[33].kind, TokenKind::Keyword(Keyword::Yield));
 }
 
 #[test]
@@ -293,15 +293,15 @@ fn check_variable_definition_tokens() {
     let s = "let a = 'hello';";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::Keyword(Keyword::Let));
-    assert_eq!(lexer.tokens[1].data, TokenData::Identifier("a".to_string()));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Let));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Identifier("a".to_string()));
     assert_eq!(
-        lexer.tokens[2].data,
-        TokenData::Punctuator(Punctuator::Assign)
+        lexer.tokens[2].kind,
+        TokenKind::Punctuator(Punctuator::Assign)
     );
     assert_eq!(
-        lexer.tokens[3].data,
-        TokenData::StringLiteral("hello".to_string())
+        lexer.tokens[3].kind,
+        TokenKind::StringLiteral("hello".to_string())
     );
 }
 
@@ -372,12 +372,12 @@ fn check_decrement_advances_lexer_2_places() {
     let s = "let a = b--;";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[4].data, TokenData::Punctuator(Punctuator::Dec));
+    assert_eq!(lexer.tokens[4].kind, TokenKind::Punctuator(Punctuator::Dec));
     // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
     // and move the curser forward by 2, meaning the next token should be a semicolon
     assert_eq!(
-        lexer.tokens[5].data,
-        TokenData::Punctuator(Punctuator::Semicolon)
+        lexer.tokens[5].kind,
+        TokenKind::Punctuator(Punctuator::Semicolon)
     );
 }
 
@@ -418,8 +418,8 @@ fn test_single_number_without_semicolon() {
 fn test_number_followed_by_dot() {
     let mut lexer = Lexer::new("1..");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Dot));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Dot));
 }
 
 #[test]
@@ -427,8 +427,8 @@ fn test_regex_literal() {
     let mut lexer = Lexer::new("/(?:)/");
     lexer.lex().expect("failed to lex");
     assert_eq!(
-        lexer.tokens[0].data,
-        TokenData::RegularExpressionLiteral("(?:)".to_string(), "".to_string())
+        lexer.tokens[0].kind,
+        TokenKind::RegularExpressionLiteral("(?:)".to_string(), "".to_string())
     );
 }
 
@@ -437,8 +437,8 @@ fn test_regex_literal_flags() {
     let mut lexer = Lexer::new(r"/\/[^\/]*\/*/gmi");
     lexer.lex().expect("failed to lex");
     assert_eq!(
-        lexer.tokens[0].data,
-        TokenData::RegularExpressionLiteral("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
+        lexer.tokens[0].kind,
+        TokenKind::RegularExpressionLiteral("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
     );
 }
 
@@ -446,55 +446,55 @@ fn test_regex_literal_flags() {
 fn test_addition_no_spaces() {
     let mut lexer = Lexer::new("1+1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
 }
 
 #[test]
 fn test_addition_no_spaces_left_side() {
     let mut lexer = Lexer::new("1+ 1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
 }
 
 #[test]
 fn test_addition_no_spaces_right_side() {
     let mut lexer = Lexer::new("1 +1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
 }
 
 #[test]
 fn test_addition_no_spaces_e_number_left_side() {
     let mut lexer = Lexer::new("1e2+ 1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(100.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(100.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
 }
 
 #[test]
 fn test_addition_no_spaces_e_number_right_side() {
     let mut lexer = Lexer::new("1 +1e3");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(1000.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1000.0));
 }
 
 #[test]
 fn test_addition_no_spaces_e_number() {
     let mut lexer = Lexer::new("1e3+1e11");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1000.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::Punctuator(Punctuator::Add));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1000.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
     assert_eq!(
-        lexer.tokens[2].data,
-        TokenData::NumericLiteral(100_000_000_000.0)
+        lexer.tokens[2].kind,
+        TokenKind::NumericLiteral(100_000_000_000.0)
     );
 }
