@@ -582,6 +582,7 @@ impl ValueData {
         }
     }
 
+    #[allow(clippy::float_cmp)]
     pub fn to_json(&self) -> JSONValue {
         match *self {
             ValueData::Null
@@ -630,9 +631,17 @@ impl ValueData {
                 JSONValue::Array(values)
             }
             ValueData::String(ref str) => JSONValue::String(str.clone()),
-            ValueData::Number(num) => JSONValue::Number(
-                JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
-            ),
+            ValueData::Number(num) => {
+                // TODO: This is because for some reason we are never getting a `ValueData::Integer` value
+                // this is a quick and dirty fix
+                if num == num.round() {
+                    JSONValue::Number(JSONNumber::from(num as i64))
+                } else {
+                    JSONValue::Number(
+                        JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
+                    )
+                }
+            }
             ValueData::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
         }
     }

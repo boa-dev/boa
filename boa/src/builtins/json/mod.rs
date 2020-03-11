@@ -1,5 +1,7 @@
+#[cfg(test)]
+mod tests;
+
 use crate::builtins::function::NativeFunctionData;
-use crate::builtins::object::{Object, ObjectKind, PROTOTYPE};
 /// The JSON Object
 /// <https://tc39.github.io/ecma262/#sec-json-object>
 use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
