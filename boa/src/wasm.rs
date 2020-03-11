@@ -1,7 +1,7 @@
 use crate::{
     exec::{Executor, Interpreter},
     realm::Realm,
-    syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
+    syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
 };
 use wasm_bindgen::prelude::*;
 
@@ -25,7 +25,7 @@ pub fn evaluate(src: &str) -> String {
     let tokens = lexer.tokens;
 
     // Setup executor
-    let expr: Expr;
+    let expr: Node;
 
     match Parser::new(tokens).parse_all() {
         Ok(v) => {

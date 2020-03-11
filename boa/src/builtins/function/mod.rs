@@ -8,7 +8,7 @@ use crate::{
         value::{to_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
-    syntax::ast::expr::Expr,
+    syntax::ast::node::Node,
 };
 use gc::{custom_trace, Gc};
 use gc_derive::{Finalize, Trace};
@@ -37,15 +37,15 @@ pub struct RegularFunction {
     /// The fields associated with the function
     pub object: Object,
     /// This function's expression
-    pub expr: Expr,
+    pub expr: Node,
     /// The argument declarations of the function
-    pub args: Vec<Expr>,
+    pub args: Vec<Node>,
 }
 
 impl RegularFunction {
     /// Make a new regular function
     #[allow(clippy::cast_possible_wrap)]
-    pub fn new(expr: Expr, args: Vec<Expr>) -> Self {
+    pub fn new(expr: Node, args: Vec<Node>) -> Self {
         let mut object = Object::default();
         object.properties.insert(
             "arguments".to_string(),

@@ -8,130 +8,109 @@ use std::{
     fmt::{Display, Formatter, Result},
 };
 
-#[derive(Clone, Trace, Finalize, Debug, PartialEq)]
-pub struct Expr {
-    /// The expression definition
-    pub def: ExprDef,
-}
-
-impl Expr {
-    /// Create a new expression with a starting and ending position
-    pub fn new(def: ExprDef) -> Self {
-        Self { def }
-    }
-}
-
-impl Display for Expr {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{}", self.def)
-    }
-}
-
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A Javascript Expression
-pub enum ExprDef {
+/// A Javascript AST Node
+pub enum Node {
     /// Run a operation between 2 expressions
-    BinOp(BinOp, Box<Expr>, Box<Expr>),
+    BinOp(BinOp, Box<Node>, Box<Node>),
     /// Run an operation on a value
-    UnaryOp(UnaryOp, Box<Expr>),
+    UnaryOp(UnaryOp, Box<Node>),
     /// Make a constant value
     Const(Const),
     /// Const declaration
-    ConstDecl(Vec<(String, Expr)>),
+    ConstDecl(Vec<(String, Node)>),
     /// Construct an object from the function and arg{
-    Construct(Box<Expr>, Vec<Expr>),
+    Construct(Box<Node>, Vec<Node>),
     /// Run several expressions from top-to-bottom
-    Block(Vec<Expr>),
+    Block(Vec<Node>),
     /// Load a reference to a value, or a function argument
     Local(String),
     /// Gets the constant field of a value
-    GetConstField(Box<Expr>, String),
+    GetConstField(Box<Node>, String),
     /// Gets the field of a value
-    GetField(Box<Expr>, Box<Expr>),
+    GetField(Box<Node>, Box<Node>),
     /// Call a function with some values
-    Call(Box<Expr>, Vec<Expr>),
+    Call(Box<Node>, Vec<Node>),
     /// Repeatedly run an expression while the conditional expression resolves to true
-    WhileLoop(Box<Expr>, Box<Expr>),
+    WhileLoop(Box<Node>, Box<Node>),
     /// Check if a conditional expression is true and run an expression if it is and another expression if it isn't
-    If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
+    If(Box<Node>, Box<Node>, Option<Box<Node>>),
     /// Run blocks whose cases match the expression
-    Switch(Box<Expr>, Vec<(Expr, Vec<Expr>)>, Option<Box<Expr>>),
+    Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
     /// Create an object out of the binary tree given
-    ObjectDecl(Box<BTreeMap<String, Expr>>),
+    ObjectDecl(Box<BTreeMap<String, Node>>),
     /// Create an array with items inside
-    ArrayDecl(Vec<Expr>),
+    ArrayDecl(Vec<Node>),
     /// Create a function with the given name, arguments, and expression
-    FunctionDecl(Option<String>, Vec<Expr>, Box<Expr>),
+    FunctionDecl(Option<String>, Vec<Node>, Box<Node>),
     /// Create an arrow function with the given arguments and expression
-    ArrowFunctionDecl(Vec<Expr>, Box<Expr>),
+    ArrowFunctionDecl(Vec<Node>, Box<Node>),
     /// Return the expression from a function
-    Return(Option<Box<Expr>>),
+    Return(Option<Box<Node>>),
     /// Throw a value
-    Throw(Box<Expr>),
+    Throw(Box<Node>),
     /// Assign an expression to a value
-    Assign(Box<Expr>, Box<Expr>),
-    /// {
-    /// A variable declaratio
-    /// }
-    VarDecl(Vec<(String, Option<Expr>)>),
+    Assign(Box<Node>, Box<Node>),
+    /// A variable declaration
+    VarDecl(Vec<(String, Option<Node>)>),
     /// Let declaraton
-    LetDecl(Vec<(String, Option<Expr>)>),
+    LetDecl(Vec<(String, Option<Node>)>),
     /// Return a string representing the type of the given expression
-    TypeOf(Box<Expr>),
+    TypeOf(Box<Node>),
 }
 
-impl Operator for ExprDef {
+impl Operator for Node {
     fn get_assoc(&self) -> bool {
         match *self {
-            ExprDef::Construct(_, _)
-            | ExprDef::UnaryOp(_, _)
-            | ExprDef::TypeOf(_)
-            | ExprDef::If(_, _, _)
-            | ExprDef::Assign(_, _) => false,
+            Node::Construct(_, _)
+            | Node::UnaryOp(_, _)
+            | Node::TypeOf(_)
+            | Node::If(_, _, _)
+            | Node::Assign(_, _) => false,
             _ => true,
         }
     }
     fn get_precedence(&self) -> u64 {
         match self {
-            ExprDef::GetField(_, _) | ExprDef::GetConstField(_, _) => 1,
-            ExprDef::Call(_, _) | ExprDef::Construct(_, _) => 2,
-            ExprDef::UnaryOp(UnaryOp::IncrementPost, _)
-            | ExprDef::UnaryOp(UnaryOp::IncrementPre, _)
-            | ExprDef::UnaryOp(UnaryOp::DecrementPost, _)
-            | ExprDef::UnaryOp(UnaryOp::DecrementPre, _) => 3,
-            ExprDef::UnaryOp(UnaryOp::Not, _)
-            | ExprDef::UnaryOp(UnaryOp::Tilde, _)
-            | ExprDef::UnaryOp(UnaryOp::Minus, _)
-            | ExprDef::TypeOf(_) => 4,
-            ExprDef::BinOp(op, _, _) => op.get_precedence(),
-            ExprDef::If(_, _, _) => 15,
+            Node::GetField(_, _) | Node::GetConstField(_, _) => 1,
+            Node::Call(_, _) | Node::Construct(_, _) => 2,
+            Node::UnaryOp(UnaryOp::IncrementPost, _)
+            | Node::UnaryOp(UnaryOp::IncrementPre, _)
+            | Node::UnaryOp(UnaryOp::DecrementPost, _)
+            | Node::UnaryOp(UnaryOp::DecrementPre, _) => 3,
+            Node::UnaryOp(UnaryOp::Not, _)
+            | Node::UnaryOp(UnaryOp::Tilde, _)
+            | Node::UnaryOp(UnaryOp::Minus, _)
+            | Node::TypeOf(_) => 4,
+            Node::BinOp(op, _, _) => op.get_precedence(),
+            Node::If(_, _, _) => 15,
             // 16 should be yield
-            ExprDef::Assign(_, _) => 17,
+            Node::Assign(_, _) => 17,
             _ => 19,
         }
     }
 }
 
-impl Display for ExprDef {
+impl Display for Node {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
-            ExprDef::Const(ref c) => write!(f, "{}", c),
-            ExprDef::Block(ref block) => {
+            Node::Const(ref c) => write!(f, "{}", c),
+            Node::Block(ref block) => {
                 write!(f, "{{")?;
                 for expr in block.iter() {
                     write!(f, "{};", expr)?;
                 }
                 write!(f, "}}")
             }
-            ExprDef::Local(ref s) => write!(f, "{}", s),
-            ExprDef::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
-            ExprDef::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
-            ExprDef::Call(ref ex, ref args) => {
+            Node::Local(ref s) => write!(f, "{}", s),
+            Node::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
+            Node::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
+            Node::Call(ref ex, ref args) => {
                 write!(f, "{}(", ex)?;
                 let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
                 write!(f, "{})", arg_strs.join(","))
             }
-            ExprDef::Construct(ref func, ref args) => {
+            Node::Construct(ref func, ref args) => {
                 f.write_fmt(format_args!("new {}", func))?;
                 f.write_str("(")?;
                 let mut first = true;
@@ -144,12 +123,12 @@ impl Display for ExprDef {
                 }
                 f.write_str(")")
             }
-            ExprDef::WhileLoop(ref cond, ref expr) => write!(f, "while({}) {}", cond, expr),
-            ExprDef::If(ref cond, ref expr, None) => write!(f, "if({}) {}", cond, expr),
-            ExprDef::If(ref cond, ref expr, Some(ref else_e)) => {
+            Node::WhileLoop(ref cond, ref expr) => write!(f, "while({}) {}", cond, expr),
+            Node::If(ref cond, ref expr, None) => write!(f, "if({}) {}", cond, expr),
+            Node::If(ref cond, ref expr, Some(ref else_e)) => {
                 write!(f, "if({}) {} else {}", cond, expr, else_e)
             }
-            ExprDef::Switch(ref val, ref vals, None) => {
+            Node::Switch(ref val, ref vals, None) => {
                 f.write_fmt(format_args!("switch({})", val))?;
                 f.write_str(" {")?;
                 for e in vals.iter() {
@@ -158,7 +137,7 @@ impl Display for ExprDef {
                 }
                 f.write_str("}")
             }
-            ExprDef::Switch(ref val, ref vals, Some(ref def)) => {
+            Node::Switch(ref val, ref vals, Some(ref def)) => {
                 f.write_fmt(format_args!("switch({})", val))?;
                 f.write_str(" {")?;
                 for e in vals.iter() {
@@ -169,19 +148,19 @@ impl Display for ExprDef {
                 Display::fmt(def, f)?;
                 f.write_str("}")
             }
-            ExprDef::ObjectDecl(ref map) => {
+            Node::ObjectDecl(ref map) => {
                 f.write_str("{")?;
                 for (key, value) in map.iter() {
                     f.write_fmt(format_args!("{}: {},", key, value))?;
                 }
                 f.write_str("}")
             }
-            ExprDef::ArrayDecl(ref arr) => {
+            Node::ArrayDecl(ref arr) => {
                 f.write_str("[")?;
                 join_expr(f, arr)?;
                 f.write_str("]")
             }
-            ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
+            Node::FunctionDecl(ref name, ref args, ref expr) => {
                 write!(f, "function ")?;
                 if let Some(func_name) = name {
                     f.write_fmt(format_args!("{}", func_name))?;
@@ -190,19 +169,19 @@ impl Display for ExprDef {
                 join_expr(f, args)?;
                 write!(f, "}} {}", expr)
             }
-            ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
+            Node::ArrowFunctionDecl(ref args, ref expr) => {
                 write!(f, "(")?;
                 join_expr(f, args)?;
                 write!(f, ") => {}", expr)
             }
-            ExprDef::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
-            ExprDef::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
-            ExprDef::Return(Some(ref ex)) => write!(f, "return {}", ex),
-            ExprDef::Return(None) => write!(f, "return"),
-            ExprDef::Throw(ref ex) => write!(f, "throw {}", ex),
-            ExprDef::Assign(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
-            ExprDef::VarDecl(ref vars) | ExprDef::LetDecl(ref vars) => {
-                if let ExprDef::VarDecl(_) = *self {
+            Node::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
+            Node::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
+            Node::Return(Some(ref ex)) => write!(f, "return {}", ex),
+            Node::Return(None) => write!(f, "return"),
+            Node::Throw(ref ex) => write!(f, "throw {}", ex),
+            Node::Assign(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
+            Node::VarDecl(ref vars) | Node::LetDecl(ref vars) => {
+                if let Node::VarDecl(_) = *self {
                     f.write_str("var ")?;
                 } else {
                     f.write_str("let ")?;
@@ -215,20 +194,20 @@ impl Display for ExprDef {
                 }
                 Ok(())
             }
-            ExprDef::ConstDecl(ref vars) => {
+            Node::ConstDecl(ref vars) => {
                 f.write_str("const ")?;
                 for (key, val) in vars.iter() {
                     f.write_fmt(format_args!("{} = {}", key, val))?
                 }
                 Ok(())
             }
-            ExprDef::TypeOf(ref e) => write!(f, "typeof {}", e),
+            Node::TypeOf(ref e) => write!(f, "typeof {}", e),
         }
     }
 }
 
 /// `join_expr` - Utility to join multiple Expressions into a single string
-fn join_expr(f: &mut Formatter, expr: &[Expr]) -> Result {
+fn join_expr(f: &mut Formatter, expr: &[Node]) -> Result {
     let mut first = true;
     for e in expr.iter() {
         if !first {

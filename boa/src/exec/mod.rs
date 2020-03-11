@@ -17,7 +17,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        expr::{Expr, ExprDef},
+        node::Node,
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
     },
 };
@@ -32,7 +32,7 @@ pub trait Executor {
     /// Make a new execution engine
     fn new(realm: Realm) -> Self;
     /// Run an expression
-    fn run(&mut self, expr: &Expr) -> ResultValue;
+    fn run(&mut self, expr: &Node) -> ResultValue;
 }
 
 /// A Javascript intepreter
@@ -68,18 +68,18 @@ impl Executor for Interpreter {
     }
 
     #[allow(clippy::match_same_arms)]
-    fn run(&mut self, expr: &Expr) -> ResultValue {
-        match expr.def {
-            ExprDef::Const(Const::Null) => Ok(to_value(None::<()>)),
-            ExprDef::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
-            ExprDef::Const(Const::Num(num)) => Ok(to_value(num)),
-            ExprDef::Const(Const::Int(num)) => Ok(to_value(num)),
+    fn run(&mut self, expr: &Node) -> ResultValue {
+        match *expr {
+            Node::Const(Const::Null) => Ok(to_value(None::<()>)),
+            Node::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
+            Node::Const(Const::Num(num)) => Ok(to_value(num)),
+            Node::Const(Const::Int(num)) => Ok(to_value(num)),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            ExprDef::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
-            ExprDef::Const(Const::Bool(val)) => Ok(to_value(val)),
-            ExprDef::Block(ref es) => {
+            Node::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
+            Node::Const(Const::Bool(val)) => Ok(to_value(val)),
+            Node::Block(ref es) => {
                 {
                     let env = &mut self.realm.environment;
                     env.push(new_declarative_environment(Some(
@@ -105,31 +105,31 @@ impl Executor for Interpreter {
 
                 Ok(obj)
             }
-            ExprDef::Local(ref name) => {
+            Node::Local(ref name) => {
                 let val = self.realm.environment.get_binding_value(name);
                 Ok(val)
             }
-            ExprDef::GetConstField(ref obj, ref field) => {
+            Node::GetConstField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 Ok(val_obj.borrow().get_field_slice(field))
             }
-            ExprDef::GetField(ref obj, ref field) => {
+            Node::GetField(ref obj, ref field) => {
                 let val_obj = self.run(obj)?;
                 let val_field = self.run(field)?;
                 Ok(val_obj
                     .borrow()
                     .get_field_slice(&val_field.borrow().to_string()))
             }
-            ExprDef::Call(ref callee, ref args) => {
-                let (this, func) = match callee.def {
-                    ExprDef::GetConstField(ref obj, ref field) => {
+            Node::Call(ref callee, ref args) => {
+                let (this, func) = match callee.deref() {
+                    Node::GetConstField(ref obj, ref field) => {
                         let mut obj = self.run(obj)?;
                         if obj.get_type() != "object" || obj.get_type() != "symbol" {
                             obj = self.to_object(&obj).expect("failed to convert to object");
                         }
                         (obj.clone(), obj.borrow().get_field_slice(field))
                     }
-                    ExprDef::GetField(ref obj, ref field) => {
+                    Node::GetField(ref obj, ref field) => {
                         let obj = self.run(obj)?;
                         let field = self.run(field)?;
                         (
@@ -141,7 +141,7 @@ impl Executor for Interpreter {
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
-                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = arg.def {
+                    if let Node::UnaryOp(UnaryOp::Spread, ref x) = arg.deref() {
                         let val = self.run(x)?;
                         let mut vals = self.extract_array_properties(&val).unwrap();
                         v_args.append(&mut vals);
@@ -158,31 +158,31 @@ impl Executor for Interpreter {
 
                 fnct_result
             }
-            ExprDef::WhileLoop(ref cond, ref expr) => {
+            Node::WhileLoop(ref cond, ref expr) => {
                 let mut result = Gc::new(ValueData::Undefined);
                 while self.run(cond)?.borrow().is_true() {
                     result = self.run(expr)?;
                 }
                 Ok(result)
             }
-            ExprDef::If(ref cond, ref expr, None) => Ok(if self.run(cond)?.borrow().is_true() {
+            Node::If(ref cond, ref expr, None) => Ok(if self.run(cond)?.borrow().is_true() {
                 self.run(expr)?
             } else {
                 Gc::new(ValueData::Undefined)
             }),
-            ExprDef::If(ref cond, ref expr, Some(ref else_e)) => {
+            Node::If(ref cond, ref expr, Some(ref else_e)) => {
                 Ok(if self.run(cond)?.borrow().is_true() {
                     self.run(expr)?
                 } else {
                     self.run(else_e)?
                 })
             }
-            ExprDef::Switch(ref val_e, ref vals, ref default) => {
+            Node::Switch(ref val_e, ref vals, ref default) => {
                 let val = self.run(val_e)?;
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
                 for tup in vals.iter() {
-                    let tup: &(Expr, Vec<Expr>) = tup;
+                    let tup: &(Node, Vec<Node>) = tup;
                     let cond = &tup.0;
                     let block = &tup.1;
                     if val == self.run(cond)? {
@@ -205,7 +205,7 @@ impl Executor for Interpreter {
                 }
                 Ok(result)
             }
-            ExprDef::ObjectDecl(ref map) => {
+            Node::ObjectDecl(ref map) => {
                 let global_val = &self
                     .realm
                     .environment
@@ -217,11 +217,11 @@ impl Executor for Interpreter {
                 }
                 Ok(obj)
             }
-            ExprDef::ArrayDecl(ref arr) => {
+            Node::ArrayDecl(ref arr) => {
                 let array = array::new_array(self)?;
                 let mut elements: Vec<Value> = vec![];
                 for elem in arr.iter() {
-                    if let ExprDef::UnaryOp(UnaryOp::Spread, ref x) = elem.def {
+                    if let Node::UnaryOp(UnaryOp::Spread, ref x) = elem.deref() {
                         let val = self.run(x)?;
                         let mut vals = self.extract_array_properties(&val).unwrap();
                         elements.append(&mut vals);
@@ -232,7 +232,7 @@ impl Executor for Interpreter {
                 array::add_to_array_object(&array, &elements)?;
                 Ok(array)
             }
-            ExprDef::FunctionDecl(ref name, ref args, ref expr) => {
+            Node::FunctionDecl(ref name, ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
                 let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
@@ -249,14 +249,14 @@ impl Executor for Interpreter {
                 }
                 Ok(val)
             }
-            ExprDef::ArrowFunctionDecl(ref args, ref expr) => {
+            Node::ArrowFunctionDecl(ref args, ref expr) => {
                 let function =
                     Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
                 Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
                     function,
                 )))))
             }
-            ExprDef::BinOp(BinOp::Num(ref op), ref a, ref b) => {
+            Node::BinOp(BinOp::Num(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
                 let v_r_b = self.run(b)?;
                 let v_a = (*v_r_a).clone();
@@ -270,7 +270,7 @@ impl Executor for Interpreter {
                     NumOp::Mod => v_a % v_b,
                 }))
             }
-            ExprDef::UnaryOp(ref op, ref a) => {
+            Node::UnaryOp(ref op, ref a) => {
                 let v_r_a = self.run(a)?;
                 let v_a = (*v_r_a).clone();
                 Ok(match *op {
@@ -290,7 +290,7 @@ impl Executor for Interpreter {
                     _ => unreachable!(),
                 })
             }
-            ExprDef::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
+            Node::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
                 let v_r_b = self.run(b)?;
                 let v_a = (*v_r_a).clone();
@@ -303,7 +303,7 @@ impl Executor for Interpreter {
                     BitOp::Shr => v_a >> v_b,
                 }))
             }
-            ExprDef::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
+            Node::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
                 let v_r_a = self.run(a)?;
                 let v_r_b = self.run(b)?;
                 let v_a = v_r_a.borrow();
@@ -323,7 +323,7 @@ impl Executor for Interpreter {
                     CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
                 }))
             }
-            ExprDef::BinOp(BinOp::Log(ref op), ref a, ref b) => {
+            Node::BinOp(BinOp::Log(ref op), ref a, ref b) => {
                 // turn a `Value` into a `bool`
                 let to_bool =
                     |val| from_value::<bool>(val).expect("Could not convert JS value to bool");
@@ -332,8 +332,8 @@ impl Executor for Interpreter {
                     LogOp::Or => to_value(to_bool(self.run(a)?) || to_bool(self.run(b)?)),
                 })
             }
-            ExprDef::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.def {
-                ExprDef::Local(ref name) => {
+            Node::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.deref() {
+                Node::Local(ref name) => {
                     let v_a = (*self.realm.environment.get_binding_value(&name)).clone();
                     let v_b = (*self.run(b)?).clone();
                     let value = exec_assign_op(op, v_a, v_b);
@@ -342,7 +342,7 @@ impl Executor for Interpreter {
                         .set_mutable_binding(&name, value.clone(), true);
                     Ok(value)
                 }
-                ExprDef::GetConstField(ref obj, ref field) => {
+                Node::GetConstField(ref obj, ref field) => {
                     let v_r_a = self.run(obj)?;
                     let v_a = (*v_r_a.borrow().get_field_slice(field)).clone();
                     let v_b = (*self.run(b)?).clone();
@@ -354,7 +354,7 @@ impl Executor for Interpreter {
                 }
                 _ => Ok(Gc::new(ValueData::Undefined)),
             },
-            ExprDef::Construct(ref callee, ref args) => {
+            Node::Construct(ref callee, ref args) => {
                 let func_object = self.run(callee)?;
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
@@ -390,8 +390,8 @@ impl Executor for Interpreter {
                             for i in 0..data.args.len() {
                                 let arg_expr =
                                     data.args.get(i).expect("Could not get data argument");
-                                let name = match arg_expr.def {
-                                    ExprDef::Local(ref n) => Some(n),
+                                let name = match arg_expr.deref() {
+                                    Node::Local(ref n) => Some(n),
                                     _ => None,
                                 }
                                 .expect("Could not get argument");
@@ -411,7 +411,7 @@ impl Executor for Interpreter {
                     _ => Ok(Gc::new(ValueData::Undefined)),
                 }
             }
-            ExprDef::Return(ref ret) => {
+            Node::Return(ref ret) => {
                 let result = match *ret {
                     Some(ref v) => self.run(v),
                     None => Ok(Gc::new(ValueData::Undefined)),
@@ -420,11 +420,11 @@ impl Executor for Interpreter {
                 self.is_return = true;
                 result
             }
-            ExprDef::Throw(ref ex) => Err(self.run(ex)?),
-            ExprDef::Assign(ref ref_e, ref val_e) => {
+            Node::Throw(ref ex) => Err(self.run(ex)?),
+            Node::Assign(ref ref_e, ref val_e) => {
                 let val = self.run(val_e)?;
-                match ref_e.def {
-                    ExprDef::Local(ref name) => {
+                match ref_e.deref() {
+                    Node::Local(ref name) => {
                         if self.realm.environment.has_binding(name) {
                             // Binding already exists
                             self.realm
@@ -439,13 +439,13 @@ impl Executor for Interpreter {
                             self.realm.environment.initialize_binding(name, val.clone());
                         }
                     }
-                    ExprDef::GetConstField(ref obj, ref field) => {
+                    Node::GetConstField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
                         val_obj
                             .borrow()
                             .set_field_slice(&field.clone(), val.clone());
                     }
-                    ExprDef::GetField(ref obj, ref field) => {
+                    Node::GetField(ref obj, ref field) => {
                         let val_obj = self.run(obj)?;
                         let val_field = self.run(field)?;
                         val_obj.borrow().set_field(val_field, val.clone());
@@ -454,7 +454,7 @@ impl Executor for Interpreter {
                 }
                 Ok(val)
             }
-            ExprDef::VarDecl(ref vars) => {
+            Node::VarDecl(ref vars) => {
                 for var in vars.iter() {
                     let (name, value) = var.clone();
                     let val = match value {
@@ -470,7 +470,7 @@ impl Executor for Interpreter {
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
-            ExprDef::LetDecl(ref vars) => {
+            Node::LetDecl(ref vars) => {
                 for var in vars.iter() {
                     let (name, value) = var.clone();
                     let val = match value {
@@ -486,7 +486,7 @@ impl Executor for Interpreter {
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
-            ExprDef::ConstDecl(ref vars) => {
+            Node::ConstDecl(ref vars) => {
                 for (name, value) in vars.iter() {
                     self.realm.environment.create_immutable_binding(
                         name.clone(),
@@ -498,7 +498,7 @@ impl Executor for Interpreter {
                 }
                 Ok(Gc::new(ValueData::Undefined))
             }
-            ExprDef::TypeOf(ref val_e) => {
+            Node::TypeOf(ref val_e) => {
                 let val = self.run(val_e)?;
                 Ok(to_value(match *val {
                     ValueData::Undefined => "undefined",
@@ -549,8 +549,8 @@ impl Interpreter {
                     ));
                     for i in 0..data.args.len() {
                         let arg_expr = data.args.get(i).expect("Could not get data argument");
-                        match arg_expr.def {
-                            ExprDef::Local(ref name) => {
+                        match arg_expr.deref() {
+                            Node::Local(ref name) => {
                                 let expr: &Value =
                                     arguments_list.get(i).expect("Could not get argument");
                                 self.realm.environment.create_mutable_binding(
@@ -562,8 +562,8 @@ impl Interpreter {
                                     .environment
                                     .initialize_binding(name, expr.clone());
                             }
-                            ExprDef::UnaryOp(UnaryOp::Spread, ref expr) => {
-                                if let ExprDef::Local(ref name) = expr.def {
+                            Node::UnaryOp(UnaryOp::Spread, ref expr) => {
+                                if let Node::Local(ref name) = expr.deref() {
                                     let array = array::new_array(self)?;
                                     array::add_to_array_object(&array, &arguments_list[i..])?;
 

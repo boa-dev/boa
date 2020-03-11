@@ -16,10 +16,10 @@ use crate::{
     builtins::value::ResultValue,
     exec::{Executor, Interpreter},
     realm::Realm,
-    syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
+    syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
 };
 
-fn parser_expr(src: &str) -> Result<Expr, String> {
+fn parser_expr(src: &str) -> Result<Node, String> {
     let mut lexer = Lexer::new(src);
     lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
     let tokens = lexer.tokens;
