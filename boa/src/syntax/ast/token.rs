@@ -9,16 +9,16 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token Data
-    pub data: TokenData,
+    pub kind: TokenKind,
     /// Token position from original source code
     pub pos: Position,
 }
 
 impl Token {
     /// Create a new detailed token from the token data, line number and column number
-    pub fn new(data: TokenData, line_number: u64, column_number: u64) -> Self {
+    pub fn new(kind: TokenKind, line_number: u64, column_number: u64) -> Self {
         Self {
-            data,
+            kind,
             pos: Position::new(line_number, column_number),
         }
     }
@@ -26,7 +26,7 @@ impl Token {
 
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{}", self.data)
+        write!(f, "{}", self.kind)
     }
 }
 
@@ -43,8 +43,8 @@ impl Debug for VecToken {
 }
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
-/// Represents the type of Token
-pub enum TokenData {
+/// Represents the type of Token and the data it has inside.
+pub enum TokenKind {
     /// A boolean literal, which is either `true` or `false`
     BooleanLiteral(bool),
     /// The end of the file
@@ -67,21 +67,21 @@ pub enum TokenData {
     Comment(String),
 }
 
-impl Display for TokenData {
+impl Display for TokenKind {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
-            TokenData::BooleanLiteral(ref val) => write!(f, "{}", val),
-            TokenData::EOF => write!(f, "end of file"),
-            TokenData::Identifier(ref ident) => write!(f, "{}", ident),
-            TokenData::Keyword(ref word) => write!(f, "{}", word),
-            TokenData::NullLiteral => write!(f, "null"),
-            TokenData::NumericLiteral(ref num) => write!(f, "{}", num),
-            TokenData::Punctuator(ref punc) => write!(f, "{}", punc),
-            TokenData::StringLiteral(ref lit) => write!(f, "{}", lit),
-            TokenData::RegularExpressionLiteral(ref body, ref flags) => {
+            TokenKind::BooleanLiteral(ref val) => write!(f, "{}", val),
+            TokenKind::EOF => write!(f, "end of file"),
+            TokenKind::Identifier(ref ident) => write!(f, "{}", ident),
+            TokenKind::Keyword(ref word) => write!(f, "{}", word),
+            TokenKind::NullLiteral => write!(f, "null"),
+            TokenKind::NumericLiteral(ref num) => write!(f, "{}", num),
+            TokenKind::Punctuator(ref punc) => write!(f, "{}", punc),
+            TokenKind::StringLiteral(ref lit) => write!(f, "{}", lit),
+            TokenKind::RegularExpressionLiteral(ref body, ref flags) => {
                 write!(f, "/{}/{}", body, flags)
             }
-            TokenData::Comment(ref comm) => write!(f, "/*{}*/", comm),
+            TokenKind::Comment(ref comm) => write!(f, "/*{}*/", comm),
         }
     }
 }
