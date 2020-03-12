@@ -11,7 +11,7 @@ use std::{
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript AST Node
 pub enum Node {
-    /// Run a operation between 2 expressions
+    /// Run an operation between 2 expressions
     BinOp(BinOp, Box<Node>, Box<Node>),
     /// Run an operation on a value
     UnaryOp(UnaryOp, Box<Node>),
