@@ -22,6 +22,10 @@ pub enum ParseError {
     UnexpectedKeyword(Keyword),
     /// When there is an abrupt end to the parsing
     AbruptEnd,
+    /// Out of range error, attempting to set a position where there is no token
+    RangeError,
+    /// End of the stream has been reached
+    NormalEOF,
 }
 
 impl fmt::Display for ParseError {
@@ -75,6 +79,7 @@ impl Parser {
         Ok(Node::Block(exprs))
     }
 
+    // I hope to deprecate this
     fn get_token(&self, pos: usize) -> Result<Token, ParseError> {
         if pos < self.tokens.len() {
             Ok(self.tokens.get(pos).expect("failed getting token").clone())
@@ -89,20 +94,83 @@ impl Parser {
         self.get_token(self.pos)
     }
 
+    /// Returns the current token  the cursor is sitting on
+    fn get_current_token(&self) -> Result<Token, ParseError> {
+        self.get_token(self.pos)
+    }
+
     /// Move the cursor back 1
     fn step_back(&self) {
         self.pos -= 1;
     }
 
     /// peeks at the next token
-    fn peek_next_token(&self) -> Result<Token, ParseError> {
-        self.get_token(self.pos + 1)
+    fn peek(&self, num: usize) -> Result<Token, ParseError> {
+        self.get_token(self.pos + 1 + num)
+    }
+
+    /// get_current_pos
+    fn get_current_pos(&self) -> usize {
+        self.pos
+    }
+
+    /// set the current position
+    fn set_current_pos(&self, pos: usize) -> Result<(), ParseError> {
+        if pos < self.tokens.len() {
+            self.pos = pos;
+            Ok(())
+        } else {
+            Err(ParseError::RangeError)
+        }
+    }
+
+    /// Peek the next token.
+    /// Skipping line terminators.
+    pub fn peek_skip_lineterminator(&mut self) -> Result<Token, ParseError> {
+        let len = self.tokens.len();
+        for i in self.pos..len {
+            let tok = self.tokens[i].clone();
+            if tok.kind != TokenKind::LineTerminator {
+                return Ok(tok);
+            }
+        }
+
+        Err(ParseError::NormalEOF)
+    }
+
+    /// Get the next token.
+    /// Skipping line terminators.
+    pub fn next_skip_lineterminator(&mut self) -> Result<Token, ParseError> {
+        self.prev_token_pos = self.token_pos;
+        loop {
+            let tok = self.read_token()?;
+            if tok.kind != Kind::LineTerminator {
+                return Ok(tok);
+            }
+        }
+    }
+
+    /// Peek the next token, and when token is kind:TokenKind, get the token
+    /// Otherwise None
+    /// Skipping line terminators.
+    fn next_if_skip_lineterminator(&mut self, kind: TokenKind) -> Result<bool, ParseError> {
+        match self.peek_skip_lineterminator() {
+            Ok(tok) => {
+                if tok.kind == kind {
+                    self.next_skip_lineterminator()?;
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+            }
+            Err(e) => Err(e),
+        }
     }
 
     /// Peek the next token and if it is ``kind``, get the next token, return true.
     /// Otherwise, return false.
     fn next_if(&mut self, kind: TokenKind) -> Option<Token> {
-        match self.peek_next_token() {
+        match self.peek(0) {
             Ok(tok) => {
                 if tok.kind == kind {
                     Some(self.get_next_token().unwrap())
@@ -1026,8 +1094,39 @@ impl Parser {
         Ok(Node::VarDecl(list))
     }
 
-    /// https://tc39.es/ecma262/#prod-VariableDeclaration
-    fn read_variable_declaration(&mut self) -> Result<Node, ParseError> {
+    fn variable_declaration_continuation(&mut self) -> Result<bool, ParseError> {
+        let mut newline_found = false;
+
+        for i in 0.. {
+            match self.peek(0) {
+                Ok(tok) => match tok.kind {
+                    TokenKind::LineTerminator => newline_found = true,
+                    TokenKind::Punctuator(Punctuator::Semicolon) => {
+                        return Ok(false);
+                    }
+                    TokenKind::Punctuator(Punctuator::Comma) => {
+                        // self.lexer.next()?; im not sure this needs to advance
+                        return Ok(true);
+                    }
+                    _ if newline_found => return Ok(false),
+                    _ => break,
+                },
+                Err(_) => return Ok(false),
+            }
+        }
+
+        Err(ParseError::Expected(
+            vec![
+                TokenKind::Punctuator(Punctuator::Semicolon),
+                TokenKind::LineTerminator,
+            ],
+            self.get_current_token()?,
+            "expect ';' or line terminator",
+        ))
+    }
+
+    /// <https://tc39.es/ecma262/#prod-VariableDeclaration>
+    fn read_variable_declaration(&mut self) -> Result<(String, Option<Node>), ParseError> {
         let tok = self.get_next_token()?;
         let name = match tok.kind {
             TokenKind::Identifier(name) => name,
@@ -1040,16 +1139,146 @@ impl Parser {
             }
         };
 
-        if self
-            .lexer
-            .next_if_skip_lineterminator(Kind::Symbol(Symbol::Assign))?
-        {
-            Ok(Node::new(
-                NodeBase::VarDecl(name, Some(Box::new(self.read_initializer()?)), VarKind::Var),
-                pos,
-            ))
-        } else {
-            Ok(Node::new(NodeBase::VarDecl(name, None, VarKind::Var), pos))
+        match self.next_if(TokenKind::Punctuator(Punctuator::Assign)) {
+            Some(tok) => Ok((name, Some(self.read_initializer()?))),
+            None => Ok((name, None)),
         }
+    }
+
+    /// <https://tc39.es/ecma262/#prod-Initializer>
+    fn read_initializer(&mut self) -> Result<Node, ParseError> {
+        self.read_assignment_expression()
+    }
+
+    /// <https://tc39.es/ecma262/#prod-AssignmentExpression>
+    fn read_assignment_expression(&mut self) -> Result<Node, ParseError> {
+        let pos = self.get_current_pos();
+        // Arrow function
+        let next_token = self.peek(0)?;
+        match next_token.kind {
+            // (a,b)=>{}
+            TokenKind::Punctuator(Punctuator::OpenParen) => {
+                let save_pos = self.get_current_pos();
+                let f = self.read_arrow_function(true);
+                if f.is_err() {
+                    self.set_current_pos(save_pos)?;
+                } else {
+                    return f;
+                }
+            }
+            // a=>{}
+            TokenKind::Identifier(_) => match self.peek(1) {
+                Ok(tok) => {
+                    if tok.kind == TokenKind::Punctuator(Punctuator::Arrow) {
+                        return self.read_arrow_function(false);
+                    }
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+
+        let mut lhs = self.read_conditional_expression()?;
+
+        if let Ok(tok) = self.get_next_token() {
+            match tok.kind {
+                TokenKind::Punctuator(Punctuator::Assign) => {
+                    lhs = Node::Assign(Box::new(lhs), Box::new(self.read_assignment_expression()?))
+                }
+                TokenKind::Punctuator(Punctuator::AssignAdd) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Add),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignSub) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Sub),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignMul) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Mul),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignDiv) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Div),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignAnd) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::And),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignOr) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Or),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignXor) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Xor),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignRightSh) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Shr),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignLeftSh) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Shl),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                TokenKind::Punctuator(Punctuator::AssignMod) => {
+                    lhs = self.binop(
+                        BinOp::Assign(AssignOp::Mod),
+                        self.read_assignment_expression()?,
+                    )?
+                }
+                _ => self.step_back(),
+            }
+        }
+
+        Ok(lhs)
+    }
+
+    /// <https://tc39.es/ecma262/#sec-arrow-function-definitions>
+    fn read_arrow_function(&mut self, is_parenthesized_param: bool) -> Result<Node, ParseError> {
+        let params;
+        if is_parenthesized_param {
+            self.expect_punc(Punctuator::OpenParen, "exect '('");
+            params = self.read_formal_parameters()?;
+        } else {
+            let param_name = match self.get_next_token()?.kind {
+                TokenKind::Identifier(s) => s,
+                _ => unreachable!(),
+            };
+            params = vec![FormalParameter {
+                init: None,
+                name: param_name,
+                is_rest_param: false,
+            }];
+        }
+        expect_no_lineterminator!(self, Kind::Symbol(Symbol::FatArrow), "expect '=>'");
+        let body = if self
+            .next_if(TokenKind::Punctuator(Punctuator::OpenBlock))
+            .is_some()
+        {
+            self.read_block()?
+        } else {
+            Node::Return(Some(Box::new(self.read_assignment_expression()?)))
+        };
+
+        Ok(Node::ArrowFunctionDecl(params, Box::new(body)))
     }
 }

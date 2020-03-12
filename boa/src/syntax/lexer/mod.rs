@@ -675,6 +675,7 @@ impl<'a> Lexer<'a> {
                 '\n' | '\u{2028}' | '\u{2029}' => {
                     self.line_number += 1;
                     self.column_number = 0;
+                    self.push_token(TokenKind::LineTerminator);
                 }
                 '\r' => {
                     self.column_number = 0;

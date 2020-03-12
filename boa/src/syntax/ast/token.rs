@@ -65,6 +65,8 @@ pub enum TokenKind {
     RegularExpressionLiteral(String, String),
     /// A comment
     Comment(String),
+    /// Indicates the end of a line \n
+    LineTerminator,
 }
 
 impl Display for TokenKind {
@@ -82,6 +84,7 @@ impl Display for TokenKind {
                 write!(f, "/{}/{}", body, flags)
             }
             TokenKind::Comment(ref comm) => write!(f, "/*{}*/", comm),
+            TokenKind::LineTerminator => write!(f, "\\n"),
         }
     }
 }
