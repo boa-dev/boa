@@ -99,6 +99,21 @@ impl Parser {
         self.get_token(self.pos + 1)
     }
 
+    /// Peek the next token and if it is ``kind``, get the next token, return true.
+    /// Otherwise, return false.
+    fn next_if(&mut self, kind: TokenKind) -> Option<Token> {
+        match self.peek_next_token() {
+            Ok(tok) => {
+                if tok.kind == kind {
+                    Some(self.get_next_token().unwrap())
+                } else {
+                    None
+                }
+            }
+            Err(_) => None,
+        }
+    }
+
     fn parse_function_parameters(&mut self) -> Result<Vec<Node>, ParseError> {
         self.expect_punc(Punctuator::OpenParen, "function parameters ( expected")?;
         let mut args = Vec::new();
