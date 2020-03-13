@@ -8,6 +8,9 @@ use crate::{
 use rand::random;
 use std::f64;
 
+#[cfg(test)]
+mod tests;
+
 /// Get the absolute value of a number
 pub fn abs(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
@@ -153,9 +156,14 @@ pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .log(f64::consts::E)
+        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
+            .expect("Could not convert argument to f64");
+
+        if value <= 0.0 {
+            f64::NAN
+        } else {
+            value.log(f64::consts::E)
+        }
     }))
 }
 /// Get the base 10 logarithm of the number
@@ -163,9 +171,14 @@ pub fn log10(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .log10()
+        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
+            .expect("Could not convert argument to f64");
+
+        if value <= 0.0 {
+            f64::NAN
+        } else {
+            value.log10()
+        }
     }))
 }
 /// Get the base 2 logarithm of the number
@@ -173,9 +186,14 @@ pub fn log2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .log2()
+        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
+            .expect("Could not convert argument to f64");
+
+        if value <= 0.0 {
+            f64::NAN
+        } else {
+            value.log2()
+        }
     }))
 }
 /// Get the maximum of several numbers
@@ -227,9 +245,14 @@ pub fn sign(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .signum()
+        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
+            .expect("Could not convert argument to f64");
+
+        if value == 0.0 || value == -0.0 {
+            value
+        } else {
+            value.signum()
+        }
     }))
 }
 /// Get the sine of a number
