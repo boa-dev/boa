@@ -4,7 +4,7 @@ mod tests;
 use crate::syntax::ast::{
     constant::Const,
     keyword::Keyword,
-    node::Node,
+    node::{FormalParameter, FormalParameters, Node},
     op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp},
     punc::Punctuator,
     token::{Token, TokenKind},
@@ -20,6 +20,8 @@ pub enum ParseError {
     ExpectedExpr(&'static str, Node),
     /// When it didn't expect this keyword
     UnexpectedKeyword(Keyword),
+    /// When a token is unexpected
+    Unexpected(Token, &'static str),
     /// When there is an abrupt end to the parsing
     AbruptEnd,
     /// Out of range error, attempting to set a position where there is no token
@@ -94,6 +96,17 @@ impl Parser {
         self.get_token(self.pos)
     }
 
+    /// consume the next token and increment position (Skipping over lineTerminators)
+    fn get_next_token_skip_lineterminator(&self) -> Result<Token, ParseError> {
+        self.pos += 1;
+        loop {
+            let token = self.get_token(self.pos)?;
+            if token.kind != TokenKind::LineTerminator {
+                return Ok(token);
+            }
+        }
+    }
+
     /// Returns the current token  the cursor is sitting on
     fn get_current_token(&self) -> Result<Token, ParseError> {
         self.get_token(self.pos)
@@ -107,6 +120,11 @@ impl Parser {
     /// peeks at the next token
     fn peek(&self, num: usize) -> Result<Token, ParseError> {
         self.get_token(self.pos + 1 + num)
+    }
+
+    /// get_current_pos
+    fn get_prev_pos(&self) -> usize {
+        self.pos - 1;
     }
 
     /// get_current_pos
@@ -978,13 +996,160 @@ impl Parser {
         }
     }
 
+    /// Returns an error if the next symbol is not `tk`
+    fn expect_no_lineterminator(
+        &mut self,
+        tk: TokenKind,
+        routine: &'static str,
+    ) -> Result<(), ParseError> {
+        let curr_tk = self.get_next_token_skip_lineterminator()?;
+        if curr_tk.kind == tk {
+            Ok(())
+        } else {
+            Err(ParseError::Expected(vec![tk], curr_tk, routine))
+        }
+    }
+
     /// Returns an error if the next symbol is not the punctuator `p`
-    #[inline(always)]
     fn expect_punc(&mut self, p: Punctuator, routine: &'static str) -> Result<(), ParseError> {
         self.expect(TokenKind::Punctuator(p), routine)
     }
 
     // New Stuff
+
+    fn read_statement_list(&mut self) -> Result<Node, ParseError> {
+        self.read_statements(false, false)
+    }
+
+    fn read_block_statement(&mut self) -> Result<Node, ParseError> {
+        self.read_statements(true, true)
+    }
+
+    fn read_block(&mut self) -> Result<Node, ParseError> {
+        self.read_statements(true, false)
+    }
+
+    fn read_statements(
+        &mut self,
+        break_when_closingbrase: bool,
+        is_block_statement: bool,
+    ) -> Result<Node, ParseError> {
+        let pos = if break_when_closingbrase {
+            self.get_prev_pos()
+        } else {
+            self.get_current_pos()
+        };
+
+        let mut items = vec![];
+
+        loop {
+            match self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::CloseBlock)) {
+                Ok(true) => {
+                    if break_when_closingbrase {
+                        break;
+                    } else {
+                        return Err(ParseError::Unexpected(
+                            self.peek_skip_lineterminator()?,
+                            "unexpected token '}'.",
+                        ));
+                    }
+                }
+                Ok(false) => {}
+                Err(ParseError::NormalEOF) => {}
+                Err(e) => return Err(e),
+            }
+
+            if let Err(ParseError::NormalEOF) = self.peek_skip_lineterminator() {
+                if break_when_closingbrase {
+                    return Err(ParseError::Unexpected(
+                        self.get_current_token()?,
+                        "expected '}'.",
+                    ));
+                } else {
+                    break;
+                }
+            };
+
+            match self.read_statement_list_item() {
+                Ok(ok) => items.push(ok),
+                Err(ParseError::NormalEOF) => {
+                    return Err(ParseError::AbruptEnd);
+                }
+                Err(e) => return Err(e),
+            }
+
+            while match self
+                .next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Semicolon))
+            {
+                Ok(succ) => succ,
+                Err(ParseError::NormalEOF) => false,
+                Err(e) => return Err(e),
+            } {}
+        }
+
+        if is_block_statement {
+            Ok(Node::Block(items))
+        } else {
+            Ok(Node::StatementList(items))
+        }
+    }
+
+    /// <https://tc39.es/ecma262/#prod-StatementListItem>
+    fn read_statement_list_item(&mut self) -> Result<Node, ParseError> {
+        if let Ok(tok) = self.peek_skip_lineterminator() {
+            match tok.kind {
+                TokenKind::Keyword(Keyword::Function) => self.read_declaration(),
+                TokenKind::Keyword(Keyword::Const) => self.read_declaration(),
+                TokenKind::Keyword(Keyword::Let) => self.read_declaration(),
+                _ => self.read_statement(),
+            }
+        } else {
+            Err(ParseError::NormalEOF)
+        }
+    }
+
+    /// <https://tc39.es/ecma262/#prod-Declaration>
+    fn read_declaration(&mut self) -> Result<Node, ParseError> {
+        let tok = self.next_skip_lineterminator()?;
+        match tok.kind {
+            TokenKind::Keyword(Keyword::Function) => self.read_function_declaration(),
+            TokenKind::Keyword(Keyword::Const) => self.read_lexical_declaration(true),
+            TokenKind::Keyword(Keyword::Let) => self.read_lexical_declaration(false),
+            _ => unreachable!(),
+        }
+    }
+
+    /// <https://tc39.es/ecma262/#prod-LexicalDeclaration>
+    fn read_lexical_declaration(&mut self, is_const: bool) -> Result<Node, ParseError> {
+        let mut list = vec![];
+
+        loop {
+            let token = self.next_skip_lineterminator()?;
+            let name = match token.kind {
+                TokenKind::Identifier(name) => name,
+                _ => {
+                    return Err(ParseError::UnexpectedToken(token, "Expect identifier."));
+                }
+            };
+
+            if self
+                .lexer
+                .next_if_skip_lineterminator(Kind::Symbol(Symbol::Assign))?
+            {
+                let init = Some(Box::new(self.read_initializer()?));
+                let decl = NodeBase::VarDecl(name, init, var_kind);
+                list.push(Node::new(decl, pos))
+            } else {
+                list.push(Node::new(NodeBase::VarDecl(name, None, var_kind), pos))
+            }
+
+            if !self.variable_declaration_continuation()? {
+                break;
+            }
+        }
+
+        Ok(Node::new(NodeBase::StatementList(list), pos))
+    }
 
     /// <https://tc39.es/ecma262/#prod-Statement>
     fn read_statement(&mut self) -> Result<Node, ParseError> {
@@ -1269,16 +1434,87 @@ impl Parser {
                 is_rest_param: false,
             }];
         }
-        expect_no_lineterminator!(self, Kind::Symbol(Symbol::FatArrow), "expect '=>'");
-        let body = if self
-            .next_if(TokenKind::Punctuator(Punctuator::OpenBlock))
-            .is_some()
-        {
+        let body = if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Arrow))? {
             self.read_block()?
         } else {
             Node::Return(Some(Box::new(self.read_assignment_expression()?)))
         };
 
         Ok(Node::ArrowFunctionDecl(params, Box::new(body)))
+    }
+
+    /// Collect parameters from functions or arrow functions
+    fn read_formal_parameters(&mut self) -> Result<FormalParameters, ParseError> {
+        if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::CloseParen))? {
+            return Ok(vec![]);
+        }
+
+        let mut params = vec![];
+
+        loop {
+            let mut rest_param = false;
+
+            params.push(
+                if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Spread))? {
+                    rest_param = true;
+                    self.read_function_rest_parameter()?
+                } else {
+                    self.read_formal_parameter()?
+                },
+            );
+
+            if self
+                .next_if(TokenKind::Punctuator(Punctuator::CloseParen))
+                .is_some()
+            {
+                break;
+            }
+
+            if rest_param {
+                return Err(ParseError::Unexpected(
+                    self.get_current_token()?,
+                    "rest parameter must be the last formal parameter",
+                ));
+            }
+
+            self.expect(TokenKind::Punctuator(Punctuator::Comma), "expect ','");
+        }
+
+        Ok(params)
+    }
+
+    // <https://tc39.es/ecma262/#prod-FunctionRestParameter>
+    fn read_function_rest_parameter(&mut self) -> Result<FormalParameter, ParseError> {
+        let token = self.get_next_token()?;
+        Ok(FormalParameter::new(
+            if let TokenKind::Identifier(name) = self.get_next_token()?.kind {
+                name
+            } else {
+                return Err(ParseError::Expected(
+                    vec![TokenKind::Identifier(String::from("identifier"))],
+                    token,
+                    "rest params: expect identifier",
+                ));
+            },
+            None,
+            true,
+        ))
+    }
+
+    // <https://tc39.es/ecma262/#prod-FormalParameter>
+    fn read_formal_parameter(&mut self) -> Result<FormalParameter, ParseError> {
+        let token = self.next_skip_lineterminator()?;
+        let name = if let TokenKind::Identifier(name) = token.kind {
+            name
+        } else {
+            return Err(ParseError::Expected(
+                vec![TokenKind::Identifier(String::from("identifier"))],
+                token,
+                "expect identifier (unsupported feature)",
+            ));
+        };
+
+        // TODO: Implement initializer.
+        Ok(FormalParameter::new(name, None, false))
     }
 }
