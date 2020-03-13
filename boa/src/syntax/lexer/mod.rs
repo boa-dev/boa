@@ -383,17 +383,17 @@ impl<'a> Lexer<'a> {
                             return Ok(());
                         }
                         Some('x') | Some('X') => {
-                            self.read_integer_in_base(16, buf)?
+                            self.read_integer_in_base(16, buf)? as f64
                         }
                         Some('o') | Some('O') => {
-                            self.read_integer_in_base(8, buf)?
+                            self.read_integer_in_base(8, buf)? as f64
                         }
                         Some('b') | Some('B') => {
-                            self.read_integer_in_base(2, buf)?
+                            self.read_integer_in_base(2, buf)? as f64
                         }
-                        Some(ch) if ch.is_ascii_digit() => {
+                        Some(ch) if (ch.is_ascii_digit() || ch == '.') => {
                             // LEGACY OCTAL (ONLY FOR NON-STRICT MODE)
-                            let mut gone_decimal = false;
+                            let mut gone_decimal = ch == '.';
                             while let Some(next_ch) = self.preview_next() {
                                 match next_ch {
                                     c if next_ch.is_digit(8) => {
@@ -411,19 +411,19 @@ impl<'a> Lexer<'a> {
                                 }
                             }
                             if gone_decimal {
-                                u64::from_str(&buf).map_err(|_e| LexerError::new("Could not convert value to u64"))?
+                                f64::from_str(&buf).map_err(|_e| LexerError::new("Could not convert value to f64"))?
                             } else if buf.is_empty() {
-                                0
+                                0.0
                             } else {
-                                u64::from_str_radix(&buf, 8).map_err(|_e| LexerError::new("Could not convert value to u64"))?
+                                (u64::from_str_radix(&buf, 8).map_err(|_e| LexerError::new("Could not convert value to u64"))?) as f64
                             }
                         }
                         Some(_) => {
-                            0
+                            0.0
                         }
                     };
 
-                    self.push_token(TokenData::NumericLiteral(num as f64));
+                    self.push_token(TokenData::NumericLiteral(num));
 
                     //11.8.3
                     if let Err(e) = self.check_after_numeric_literal() {
