@@ -23,6 +23,8 @@ pub enum Node {
     Construct(Box<Node>, Vec<Node>),
     /// Run several expressions from top-to-bottom
     Block(Vec<Node>),
+    // Similar to Block but without the braces
+    StatementList(Vec<Node>),
     /// Load a reference to a value, or a function argument
     Local(String),
     /// Gets the constant field of a value
@@ -101,6 +103,11 @@ impl Display for Node {
                     write!(f, "{};", expr)?;
                 }
                 write!(f, "}}")
+            }
+            Node::StatementList(ref block) => {
+                for expr in block.iter() {
+                    write!(f, "{};", expr)?;
+                }
             }
             Node::Local(ref s) => write!(f, "{}", s),
             Node::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
@@ -217,4 +224,24 @@ fn join_expr(f: &mut Formatter, expr: &[Node]) -> Result {
         Display::fmt(e, f)?;
     }
     Ok(())
+}
+
+// https://tc39.es/ecma262/#prod-FormalParameter
+#[derive(Clone, Debug, PartialEq)]
+pub struct FormalParameter {
+    pub name: String,
+    pub init: Option<Node>,
+    pub is_rest_param: bool,
+}
+
+pub type FormalParameters = Vec<FormalParameter>;
+
+impl FormalParameter {
+    pub fn new(name: String, init: Option<Node>, is_rest_param: bool) -> FormalParameter {
+        FormalParameter {
+            name: name,
+            init: init,
+            is_rest_param: is_rest_param,
+        }
+    }
 }
