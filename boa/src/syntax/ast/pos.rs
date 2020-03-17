@@ -1,4 +1,6 @@
-#[derive(Clone, Copy, PartialEq, Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 /// A position in the Javascript source code
 /// Stores both the column number and the line number
 ///

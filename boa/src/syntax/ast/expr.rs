@@ -3,12 +3,13 @@ use crate::syntax::ast::{
     op::{BinOp, Operator, UnaryOp},
 };
 use gc_derive::{Finalize, Trace};
+use serde::{Deserialize, Serialize};
 use std::{
     collections::btree_map::BTreeMap,
     fmt::{Display, Formatter, Result},
 };
 
-#[derive(Clone, Trace, Finalize, Debug, PartialEq)]
+#[derive(Clone, Trace, Finalize, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Expr {
     /// The expression definition
     pub def: ExprDef,
@@ -27,7 +28,7 @@ impl Display for Expr {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
 /// A Javascript Expression
 pub enum ExprDef {
     /// Run a operation between 2 expressions

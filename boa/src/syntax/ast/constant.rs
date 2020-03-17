@@ -1,7 +1,8 @@
 use gc_derive::{Finalize, Trace};
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
 /// A Javascript Constant
 pub enum Const {
     /// A UTF-8 string, such as `"Hello, world"`

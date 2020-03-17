@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Error, Formatter};
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 /// Punctuation
 pub enum Punctuator {
     /// `+`

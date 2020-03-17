@@ -1,10 +1,11 @@
+use serde::{Deserialize, Serialize};
 use std::{
     error,
     fmt::{Display, Error, Formatter},
     str::FromStr,
 };
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 /// A Javascript Keyword
 /// As specificed by <https://www.ecma-international.org/ecma-262/#sec-keywords>
 pub enum Keyword {

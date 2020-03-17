@@ -1,9 +1,10 @@
 use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
+use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, Formatter, Result};
 
 #[derive(Clone, PartialEq)]
 /// Represents a token
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Token {
     /// The token Data
     pub data: TokenData,
@@ -39,7 +40,7 @@ impl Debug for VecToken {
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 /// Represents the type of Token
 pub enum TokenData {
     /// A boolean literal, which is either `true` or `false`
