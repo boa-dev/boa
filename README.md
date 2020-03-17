@@ -1,6 +1,14 @@
 # Boa
 
-This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.  
+<p align="center">
+    <img
+      alt="logo"
+      src="./assets/logo.png"
+      width="30%"
+    />
+</p>
+
+This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
 [![Build Status](https://travis-ci.com/jasonwilliams/boa.svg?branch=master)](https://travis-ci.com/jasonwilliams/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
@@ -29,7 +37,7 @@ Then simply clone this project and `cargo build` inside the directory.
 
 #### Plugins
 
-Either the [Rust (RLS)](https://github.com/rust-lang/rls) or the [Rust Analyzer](https://github.com/rust-analyzer/rust-analyzer) extension is preferred. RLS is easier to set up but most of the development is moving towards Rust Analyzer.  
+Either the [Rust (RLS)](https://github.com/rust-lang/rls) or the [Rust Analyzer](https://github.com/rust-analyzer/rust-analyzer) extension is preferred. RLS is easier to set up but most of the development is moving towards Rust Analyzer.
 Both of these plugins will help you with your Rust Development
 
 #### Tasks
@@ -37,7 +45,7 @@ Both of these plugins will help you with your Rust Development
 There are some pre-defined tasks in [tasks.json](.vscode/tasks.json)
 
 - Build - shift+cmd/ctrl+b should build and run cargo. You should be able to make changes and run this task.
-- Test - (there is no shortcut, you'll need to make one) - Runs `Cargo Test`.  
+- Test - (there is no shortcut, you'll need to make one) - Runs `Cargo Test`.
   I personally set a shortcut of shift+cmd+option+T (or shift+ctrl+alt+T)
 
 If you don't want to install everything on your machine, you can use the Dockerfile.
