@@ -3,8 +3,8 @@
 #![allow(clippy::cognitive_complexity)]
 
 use boa::builtins::console::log;
+use boa::syntax::ast::{expr::Expr, token::Token};
 use boa::{exec::Executor, forward_val, realm::Realm};
-use boa::syntax::ast::{token::Token, expr::Expr};
 use std::io;
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::StructOpt;
@@ -17,11 +17,11 @@ struct Opt {
     files: Vec<PathBuf>,
 
     /// Dump the token stream to stdout.
-    #[structopt(long, short="-t", conflicts_with = "dump-ast")]
+    #[structopt(long, short = "-t", conflicts_with = "dump-ast")]
     dump_tokens: bool,
 
     /// Dump the ast to stdout.
-    #[structopt(long, short="-a")]
+    #[structopt(long, short = "-a")]
     dump_ast: bool,
 }
 
@@ -78,7 +78,7 @@ pub fn main() -> Result<(), std::io::Error> {
 
         if args.dump_tokens || args.dump_ast {
             match dump(&buffer, &args) {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(e) => print!("{}", e),
             }
         } else {
@@ -97,7 +97,7 @@ pub fn main() -> Result<(), std::io::Error> {
 
             if args.dump_tokens || args.dump_ast {
                 match dump(&buffer, &args) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(e) => print!("{}", e),
                 }
             } else {
