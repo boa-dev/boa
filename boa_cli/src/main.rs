@@ -60,18 +60,18 @@ arg_enum! {
     // adding a field to this enum and adding the necessary
     // implementation. Example: Toml, Html, etc.
     //
-    // NOTE: The fields of this enum are using doc comment because
+    // NOTE: The fields of this enum are not doc comments because
     // arg_enum! macro does not support it.
     #[derive(Debug)]
     enum DumpFormat {
         // This is the default format that you get from std::fmt::Debug.
         Debug,
 
-        // This is a pretty printed json format.
+        // This is a minified json format.
         Json,
 
-        // This is a minified json format.
-        JsonMinified,
+        // This is a pretty printed json format.
+        JsonPretty,
     }
 }
 
@@ -110,8 +110,10 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
         match arg {
             Some(format) => match format {
                 DumpFormat::Debug => println!("{:#?}", tokens),
-                DumpFormat::Json => println!("{}", serde_json::to_string_pretty(&tokens).unwrap()),
-                DumpFormat::JsonMinified => println!("{}", serde_json::to_string(&tokens).unwrap()),
+                DumpFormat::Json => println!("{}", serde_json::to_string(&tokens).unwrap()),
+                DumpFormat::JsonPretty => {
+                    println!("{}", serde_json::to_string_pretty(&tokens).unwrap())
+                }
             },
             // Default token stream dumping format.
             None => println!("{:#?}", tokens),
@@ -122,8 +124,10 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
         match arg {
             Some(format) => match format {
                 DumpFormat::Debug => println!("{:#?}", ast),
-                DumpFormat::Json => println!("{}", serde_json::to_string_pretty(&ast).unwrap()),
-                DumpFormat::JsonMinified => println!("{}", serde_json::to_string(&ast).unwrap()),
+                DumpFormat::Json => println!("{}", serde_json::to_string(&ast).unwrap()),
+                DumpFormat::JsonPretty => {
+                    println!("{}", serde_json::to_string_pretty(&ast).unwrap())
+                }
             },
             // Default ast dumping format.
             None => println!("{:#?}", ast),
