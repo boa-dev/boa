@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1584532827583,
+  "lastUpdate": 1584558138880,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2571,6 +2571,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.202,
             "range": "+/- 0.032",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "HalidOdat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f53b352a4e6984ff8e8a6bcc164707cbd2842227",
+          "message": "Added a logo to the project. (#277)\n\n* Added a logo to the project.\r\n\r\n* Changed the logo from a png to a svg.",
+          "timestamp": "2020-03-18T18:56:01Z",
+          "tree_id": "98c090568d96a83e63a7379b42619e5b6ba64535",
+          "url": "https://github.com/jasonwilliams/boa/commit/f53b352a4e6984ff8e8a6bcc164707cbd2842227"
+        },
+        "date": 1584558136891,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 459.24,
+            "range": "+/- 11.140",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 534.57,
+            "range": "+/- 23.340",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 5.3335,
+            "range": "+/- 0.049",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 11.069,
+            "range": "+/- 0.232",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 456.34,
+            "range": "+/- 6.230",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0626,
+            "range": "+/- 0.033",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.3489,
+            "range": "+/- 0.013",
             "unit": "us"
           }
         ]
