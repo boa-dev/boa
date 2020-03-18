@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1584558138880,
+  "lastUpdate": 1584569464068,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2637,6 +2637,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.3489,
             "range": "+/- 0.013",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hello@nickforall.nl",
+            "name": "Nick Vernij",
+            "username": "Nickforall"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9b8c803bbe95b2a3d437893c0962f98a8a58585b",
+          "message": "Add methods with f64 std equivelant to Math object (#260)\n\n* Add methods with f64 std equivelant to Math object\r\n* Add testS for Math static methods",
+          "timestamp": "2020-03-18T22:05:29Z",
+          "tree_id": "5268267b0d9b35ac1f8c27caf2658f11f2cb3c2f",
+          "url": "https://github.com/jasonwilliams/boa/commit/9b8c803bbe95b2a3d437893c0962f98a8a58585b"
+        },
+        "date": 1584569461649,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 404.56,
+            "range": "+/- 5.440",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 505.87,
+            "range": "+/- 7.880",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.5497,
+            "range": "+/- 0.051",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 10.146,
+            "range": "+/- 0.196",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 420.23,
+            "range": "+/- 7.620",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0443,
+            "range": "+/- 0.020",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.36,
+            "range": "+/- 0.043",
             "unit": "us"
           }
         ]
