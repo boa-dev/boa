@@ -19,6 +19,7 @@ use crate::{
     syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
 };
 
+#[cfg(feature = "serde-ast")]
 pub use serde_json;
 
 fn parser_expr(src: &str) -> Result<Expr, String> {

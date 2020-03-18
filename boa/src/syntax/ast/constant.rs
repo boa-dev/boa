@@ -1,8 +1,11 @@
 use gc_derive::{Finalize, Trace};
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript Constant
 pub enum Const {
     /// A UTF-8 string, such as `"Hello, world"`

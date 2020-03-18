@@ -1,6 +1,8 @@
 use gc_derive::{Finalize, Trace};
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
+
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
 
 /// Represents an operator
 pub trait Operator {
@@ -14,7 +16,8 @@ pub trait Operator {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A numeric operation between 2 values
 pub enum NumOp {
     /// `a + b` - Addition
@@ -48,7 +51,8 @@ impl Display for NumOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A unary operation on a single value
 pub enum UnaryOp {
     /// `a++` - increment the value
@@ -89,7 +93,8 @@ impl Display for UnaryOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A bitwise operation between 2 values
 pub enum BitOp {
     /// `a & b` - Bitwise and
@@ -120,7 +125,8 @@ impl Display for BitOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A comparitive operation between 2 values
 pub enum CompOp {
     /// `a == b` - Equality
@@ -160,7 +166,8 @@ impl Display for CompOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A logical operation between 2 boolean values
 pub enum LogOp {
     /// `a && b` - Logical and
@@ -182,7 +189,8 @@ impl Display for LogOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A binary operation between 2 values
 pub enum BinOp {
     /// Numeric operation
@@ -241,7 +249,8 @@ impl Display for BinOp {
     }
 }
 
-#[derive(Clone, Debug, Trace, Finalize, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A binary operation between 2 values
 pub enum AssignOp {
     /// `a += b` - Add assign

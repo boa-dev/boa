@@ -1,11 +1,14 @@
-use serde::{Deserialize, Serialize};
 use std::{
     error,
     fmt::{Display, Error, Formatter},
     str::FromStr,
 };
 
-#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, PartialEq, Debug)]
 /// A Javascript Keyword
 /// As specificed by <https://www.ecma-international.org/ecma-262/#sec-keywords>
 pub enum Keyword {

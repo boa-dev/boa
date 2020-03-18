@@ -11,5 +11,5 @@ exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2018"
 
 [dependencies]
-Boa = { path = "../boa", default-features = false }
+Boa = { path = "../boa", features = ["serde-ast"], default-features = false }
 structopt = "0.3.9"

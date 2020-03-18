@@ -1,7 +1,10 @@
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Error, Formatter};
 
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(PartialEq, Clone, Copy, Debug)]
 /// Punctuation
 pub enum Punctuator {
     /// `+`
