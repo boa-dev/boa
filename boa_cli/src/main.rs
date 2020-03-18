@@ -3,12 +3,20 @@
 #![allow(clippy::cognitive_complexity)]
 
 use boa::builtins::console::log;
+use boa::serde_json;
 use boa::syntax::ast::{expr::Expr, token::Token};
 use boa::{exec::Executor, forward_val, realm::Realm};
-use std::io;
+use std::io::{self, Write};
 use std::{fs::read_to_string, path::PathBuf};
+use structopt::clap::arg_enum;
 use structopt::StructOpt;
+
 /// CLI configuration for Boa.
+//
+// Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
+// is an optional argument that optionally takes a value ([--opt=[val]]).
+// https://docs.rs/structopt/0.3.11/structopt/#type-magic
+#[allow(clippy::option_option)]
 #[derive(Debug, StructOpt)]
 #[structopt(author, about)]
 struct Opt {
@@ -16,13 +24,55 @@ struct Opt {
     #[structopt(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
 
-    /// Dump the token stream to stdout.
-    #[structopt(long, short = "-t", conflicts_with = "dump-ast")]
-    dump_tokens: bool,
+    /// Dump the token stream to stdout with the given format.
+    #[structopt(
+        long,
+        short = "-t",
+        value_name = "FORMAT",
+        possible_values = &DumpFormat::variants(),
+        case_insensitive = true,
+        conflicts_with = "dump-ast"
+    )]
+    dump_tokens: Option<Option<DumpFormat>>,
 
-    /// Dump the ast to stdout.
-    #[structopt(long, short = "-a")]
-    dump_ast: bool,
+    /// Dump the ast to stdout with the given format.
+    #[structopt(
+        long,
+        short = "-a",
+        value_name = "FORMAT",
+        possible_values = &DumpFormat::variants(),
+        case_insensitive = true
+    )]
+    dump_ast: Option<Option<DumpFormat>>,
+}
+
+impl Opt {
+    /// Returns whether a dump flag has been used.
+    fn has_dump_flag(&self) -> bool {
+        self.dump_tokens.is_some() || self.dump_ast.is_some()
+    }
+}
+
+arg_enum! {
+    /// The different types of format available for dumping.
+    ///
+    // NOTE: This can easily support other formats just by
+    // adding a field to this enum and adding the necessary
+    // implementation. Example: Toml, Html, etc.
+    //
+    // NOTE: The fields of this enum are using doc comment because
+    // arg_enum! macro does not support it.
+    #[derive(Debug)]
+    enum DumpFormat {
+        // This is the default format that you get from std::fmt::Debug.
+        Debug,
+
+        // This is a pretty printed json format.
+        Json,
+
+        // This is a minified json format.
+        JsonMinified,
+    }
 }
 
 /// Lexes the given source code into a stream of tokens and return it.
@@ -56,11 +106,28 @@ fn parse_tokens(tokens: Vec<Token>) -> Result<Expr, String> {
 fn dump(src: &str, args: &Opt) -> Result<(), String> {
     let tokens = lex_source(src)?;
 
-    if args.dump_tokens {
-        println!("Tokens: {:#?}", tokens);
-    } else if args.dump_ast {
+    if let Some(ref arg) = args.dump_tokens {
+        match arg {
+            Some(format) => match format {
+                DumpFormat::Debug => println!("{:#?}", tokens),
+                DumpFormat::Json => println!("{}", serde_json::to_string_pretty(&tokens).unwrap()),
+                DumpFormat::JsonMinified => println!("{}", serde_json::to_string(&tokens).unwrap()),
+            },
+            // Default token stream dumping format.
+            None => println!("{:#?}", tokens),
+        }
+    } else if let Some(ref arg) = args.dump_ast {
         let ast = parse_tokens(tokens)?;
-        println!("Ast: {:#?}", ast);
+
+        match arg {
+            Some(format) => match format {
+                DumpFormat::Debug => println!("{:#?}", ast),
+                DumpFormat::Json => println!("{}", serde_json::to_string_pretty(&ast).unwrap()),
+                DumpFormat::JsonMinified => println!("{}", serde_json::to_string(&ast).unwrap()),
+            },
+            // Default ast dumping format.
+            None => println!("{:#?}", ast),
+        }
     }
 
     Ok(())
@@ -76,10 +143,10 @@ pub fn main() -> Result<(), std::io::Error> {
     for file in &args.files {
         let buffer = read_to_string(file)?;
 
-        if args.dump_tokens || args.dump_ast {
+        if args.has_dump_flag() {
             match dump(&buffer, &args) {
                 Ok(_) => {}
-                Err(e) => print!("{}", e),
+                Err(e) => eprintln!("{}", e),
             }
         } else {
             match forward_val(&mut engine, &buffer) {
@@ -95,10 +162,10 @@ pub fn main() -> Result<(), std::io::Error> {
 
             io::stdin().read_line(&mut buffer)?;
 
-            if args.dump_tokens || args.dump_ast {
+            if args.has_dump_flag() {
                 match dump(&buffer, &args) {
                     Ok(_) => {}
-                    Err(e) => print!("{}", e),
+                    Err(e) => eprintln!("{}", e),
                 }
             } else {
                 match forward_val(&mut engine, buffer.trim_end()) {
@@ -106,6 +173,9 @@ pub fn main() -> Result<(), std::io::Error> {
                     Err(v) => eprintln!("{}", v.to_string()),
                 }
             }
+
+            // The flush is needed because where in a REPL and we do not want buffering.
+            std::io::stdout().flush().unwrap();
         }
     }
 
