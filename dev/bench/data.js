@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1584058232491,
+  "lastUpdate": 1584532827583,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2505,6 +2505,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.284,
             "range": "+/- 0.023",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "62383f5a06e9e4c59a10d550b6bf9ab53cb042b4",
+          "message": "Bump acorn from 6.4.0 to 6.4.1 (#275)\n\nBumps [acorn](https://github.com/acornjs/acorn) from 6.4.0 to 6.4.1.\r\n- [Release notes](https://github.com/acornjs/acorn/releases)\r\n- [Commits](https://github.com/acornjs/acorn/compare/6.4.0...6.4.1)\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2020-03-18T11:54:34Z",
+          "tree_id": "2f698f1ab29a1ee6357151e0eb0c1eb3346d09d3",
+          "url": "https://github.com/jasonwilliams/boa/commit/62383f5a06e9e4c59a10d550b6bf9ab53cb042b4"
+        },
+        "date": 1584532825844,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 400.05,
+            "range": "+/- 10.540",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 446.86,
+            "range": "+/- 6.750",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.6384,
+            "range": "+/- 0.032",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 9.383,
+            "range": "+/- 0.111",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 393.56,
+            "range": "+/- 6.040",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 955.7,
+            "range": "+/- 32.100",
+            "unit": "ns"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.202,
+            "range": "+/- 0.032",
             "unit": "us"
           }
         ]
