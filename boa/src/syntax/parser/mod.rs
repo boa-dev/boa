@@ -11,27 +11,6 @@ use crate::syntax::ast::{
 };
 use std::{collections::btree_map::BTreeMap, fmt};
 
-macro_rules! expression { ( $name:ident, $lower:ident, [ $( $op:path ),* ] ) => {
-    fn $name (&mut self) -> Result<Node, ParseError> {
-        let mut lhs = self. $lower ()?;
-        while let Ok(tok) = self.peek_skip_lineterminator() {
-            match tok.kind {
-                TokenKind::Punctuator(ref op) if $( op == &$op )||* => {
-                    self.next_skip_lineterminator().unwrap();
-                    let pos = self.get_current_pos();
-                    lhs = Node::BinOp(
-                        op
-                        Box::new(lhs),
-                        Box::new(self. $lower ()?),
-                    );
-                }
-                _ => break
-            }
-        }
-        Ok(lhs)
-    }
-} }
-
 /// `ParseError` is an enum which represents errors encounted during parsing an expression
 #[derive(Debug, Clone)]
 pub enum ParseError {
@@ -86,6 +65,34 @@ pub struct Parser {
     /// The current position within the tokens
     pos: usize,
 }
+
+macro_rules! expression { ( $name:ident, $lower:ident, [ $( $op:path ),* ] ) => {
+    fn $name (&mut self) -> Result<Node, ParseError> {
+        let mut lhs = self. $lower ()?;
+        while let Ok(tok) = self.peek_skip_lineterminator() {
+            match tok.kind {
+                // Parse assign expression
+                TokenKind::Punctuator(ref op) if op == &Punctuator::Assign => {
+                    self.next_skip_lineterminator().unwrap();
+                    lhs = Node::Assign(
+                        Box::new(lhs),
+                        Box::new(self. $lower ()?)
+                    )
+                }
+                TokenKind::Punctuator(ref op) if $( op == &$op )||* => {
+                    self.next_skip_lineterminator().unwrap();
+                    lhs = Node::BinOp(
+                        op.as_binop().unwrap(),
+                        Box::new(lhs),
+                        Box::new(self. $lower ()?)
+                    )
+                }
+                _ => break
+            }
+        }
+        Ok(lhs)
+    }
+} }
 
 impl Parser {
     /// Create a new parser, using `tokens` as input
@@ -147,7 +154,7 @@ impl Parser {
 
     /// get_current_pos
     fn get_prev_pos(&self) -> usize {
-        self.pos - 1;
+        self.pos - 1
     }
 
     /// get_current_pos
@@ -182,10 +189,9 @@ impl Parser {
     /// Get the next token.
     /// Skipping line terminators.
     pub fn next_skip_lineterminator(&mut self) -> Result<Token, ParseError> {
-        self.prev_token_pos = self.token_pos;
         loop {
-            let tok = self.read_token()?;
-            if tok.kind != Kind::LineTerminator {
+            let tok = self.get_next_token()?;
+            if tok.kind != TokenKind::LineTerminator {
                 return Ok(tok);
             }
         }
@@ -551,12 +557,20 @@ impl Parser {
 
                                 let mut args = vec![
                                     match next {
-                                        Node::Local(ref name) => Node::Local((*name).clone()),
-                                        _ => Node::Local("".to_string()),
+                                        Node::Local(ref name) => FormalParameter::new(
+                                            name.clone(),
+                                            Some(Node::Local((*name).clone())),
+                                            false,
+                                        ),
+                                        _ => FormalParameter::new(String::new(), None, false),
                                     },
                                     match self.get_token(self.pos)?.kind {
-                                        TokenKind::Identifier(ref id) => Node::Local(id.clone()),
-                                        _ => Node::Local("".to_string()),
+                                        TokenKind::Identifier(ref id) => FormalParameter::new(
+                                            id.clone(),
+                                            Some(Node::Local(id.clone())),
+                                            false,
+                                        ),
+                                        _ => FormalParameter::new(String::new(), None, false),
                                     },
                                 ];
                                 let mut expect_ident = true;
@@ -565,7 +579,12 @@ impl Parser {
                                     let curr_tk = self.get_token(self.pos)?;
                                     match curr_tk.kind {
                                         TokenKind::Identifier(ref id) if expect_ident => {
-                                            args.push(Node::Local(id.clone()));
+                                            let arg = FormalParameter::new(
+                                                id.clone(),
+                                                Some(Node::Local(id.clone())),
+                                                false,
+                                            );
+                                            args.push(arg);
                                             expect_ident = false;
                                         }
                                         TokenKind::Punctuator(Punctuator::Comma) => {
@@ -575,7 +594,11 @@ impl Parser {
                                             let ident_token = self.get_token(self.pos + 1)?;
                                             if let TokenKind::Identifier(ref _id) = ident_token.kind
                                             {
-                                                args.push(self.parse()?);
+                                                args.push(FormalParameter::new(
+                                                    String::new(),
+                                                    Some(self.parse()?),
+                                                    false,
+                                                ));
                                                 self.pos -= 1;
                                                 expect_ident = false;
                                             } else {
@@ -902,8 +925,12 @@ impl Parser {
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
                 match result {
-                    Node::Local(ref name) => args.push(Node::Local((*name).clone())),
-                    Node::UnaryOp(UnaryOp::Spread, _) => args.push(result),
+                    Node::Local(ref name) => {
+                        args.push(FormalParameter::new(name.clone(), Some(result), false))
+                    }
+                    Node::UnaryOp(UnaryOp::Spread, _) => {
+                        args.push(FormalParameter::new(String::new(), Some(result), true))
+                    }
                     _ => return Err(ParseError::ExpectedExpr("identifier", result)),
                 }
                 let next = self.parse()?;
@@ -1586,20 +1613,11 @@ impl Parser {
     }
 
     /// https://tc39.github.io/ecma262/#prod-Expression
-    // expression!(
-    //     read_expression,
-    //     read_assignment_expression,
-    //     [Punctuator::Comma]
-    // );
-
-    fn read_expression(&mut self) -> Result<Node, ParseError> {
-        let mut lhs = self.read_assignment_expression()?;
-        while let Ok(tok) = self.peek_skip_lineterminator()? {
-            match tok.kind {
-                TokenKind::Punctuator(ref punc)
-            }
-        }
-    }
+    expression!(
+        read_expression,
+        read_assignment_expression,
+        [Punctuator::Comma]
+    );
 
     /// <https://tc39.es/ecma262/#prod-AssignmentExpression>
     fn read_assignment_expression(&mut self) -> Result<Node, ParseError> {

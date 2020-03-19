@@ -107,6 +107,8 @@ pub enum BitOp {
     Shl,
     /// `a >> b` - Bit-shift rightrights
     Shr,
+    /// `a >>> b` - Zero-fill right shift
+    UShr,
 }
 
 impl Display for BitOp {
@@ -120,6 +122,7 @@ impl Display for BitOp {
                 BitOp::Xor => "^",
                 BitOp::Shl => "<<",
                 BitOp::Shr => ">>",
+                BitOp::UShr => ">>>",
             }
         )
     }
@@ -252,6 +255,7 @@ impl Display for BinOp {
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A binary operation between 2 values
+/// https://tc39.es/ecma262/#prod-AssignmentOperator
 pub enum AssignOp {
     /// `a += b` - Add assign
     Add,
