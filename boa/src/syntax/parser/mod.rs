@@ -11,6 +11,27 @@ use crate::syntax::ast::{
 };
 use std::{collections::btree_map::BTreeMap, fmt};
 
+macro_rules! expression { ( $name:ident, $lower:ident, [ $( $op:path ),* ] ) => {
+    fn $name (&mut self) -> Result<Node, ParseError> {
+        let mut lhs = self. $lower ()?;
+        while let Ok(tok) = self.peek_skip_lineterminator() {
+            match tok.kind {
+                TokenKind::Punctuator(ref op) if $( op == &$op )||* => {
+                    self.next_skip_lineterminator().unwrap();
+                    let pos = self.get_current_pos();
+                    lhs = Node::BinOp(
+                        op
+                        Box::new(lhs),
+                        Box::new(self. $lower ()?),
+                    );
+                }
+                _ => break
+            }
+        }
+        Ok(lhs)
+    }
+} }
+
 /// `ParseError` is an enum which represents errors encounted during parsing an expression
 #[derive(Debug, Clone)]
 pub enum ParseError {
@@ -28,6 +49,8 @@ pub enum ParseError {
     RangeError,
     /// End of the stream has been reached
     NormalEOF,
+    /// Catch all General Error
+    General(&'static str),
 }
 
 impl fmt::Display for ParseError {
@@ -1010,7 +1033,8 @@ impl Parser {
         }
     }
 
-    /// Returns an error if the next symbol is not the punctuator `p`
+    /// Returns an error if the next symbol is not the punctuator `p`   
+    /// Consumes the next symbol otherwise
     fn expect_punc(&mut self, p: Punctuator, routine: &'static str) -> Result<(), ParseError> {
         self.expect(TokenKind::Punctuator(p), routine)
     }
@@ -1021,10 +1045,13 @@ impl Parser {
         self.read_statements(false, false)
     }
 
+    /// Starts after `{`
     fn read_block_statement(&mut self) -> Result<Node, ParseError> {
         self.read_statements(true, true)
     }
 
+    /// Read a line of statements and stop after `}`   
+    /// Starts after `{`
     fn read_block(&mut self) -> Result<Node, ParseError> {
         self.read_statements(true, false)
     }
@@ -1128,19 +1155,33 @@ impl Parser {
             let name = match token.kind {
                 TokenKind::Identifier(name) => name,
                 _ => {
-                    return Err(ParseError::UnexpectedToken(token, "Expect identifier."));
+                    return Err(ParseError::Expected(
+                        vec![TokenKind::Identifier(String::from("Identifier"))],
+                        token,
+                        "Expect identifier.",
+                    ));
                 }
             };
 
-            if self
-                .lexer
-                .next_if_skip_lineterminator(Kind::Symbol(Symbol::Assign))?
-            {
-                let init = Some(Box::new(self.read_initializer()?));
-                let decl = NodeBase::VarDecl(name, init, var_kind);
-                list.push(Node::new(decl, pos))
+            if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Assign))? {
+                let init = Some(self.read_initializer()?);
+                let decl = if is_const {
+                    Node::ConstDecl(vec![(name, init.unwrap())])
+                } else {
+                    Node::LetDecl(vec![(name, init)])
+                };
+
+                list.push(decl);
             } else {
-                list.push(Node::new(NodeBase::VarDecl(name, None, var_kind), pos))
+                if is_const {
+                    return Err(ParseError::Expected(
+                        vec![TokenKind::Identifier(String::from("Expression"))],
+                        token,
+                        "Expected Expression for Const!",
+                    ));
+                } else {
+                    list.push(Node::LetDecl(vec![(name, None)]));
+                }
             }
 
             if !self.variable_declaration_continuation()? {
@@ -1148,7 +1189,34 @@ impl Parser {
             }
         }
 
-        Ok(Node::new(NodeBase::StatementList(list), pos))
+        Ok(Node::StatementList(list))
+    }
+
+    /// <https://tc39.es/ecma262/#prod-FunctionDeclaration>
+    fn read_function_declaration(&mut self) -> Result<Node, ParseError> {
+        let token = self.next_skip_lineterminator()?;
+        let name = if let TokenKind::Identifier(name) = token.kind {
+            name
+        } else {
+            return Err(ParseError::Expected(
+                vec![TokenKind::Identifier(String::from("function name"))],
+                token,
+                "expected function name",
+            ));
+        };
+
+        self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('");
+
+        let params = self.read_formal_parameters()?;
+
+        self.expect(
+            TokenKind::Punctuator(Punctuator::OpenBracket),
+            "expected '{'",
+        );
+
+        let body = self.read_block()?;
+
+        Ok(Node::FunctionDecl(Some(name), params, Box::new(body)))
     }
 
     /// <https://tc39.es/ecma262/#prod-Statement>
@@ -1168,9 +1236,9 @@ impl Parser {
             TokenKind::Keyword(Keyword::Throw) => self.read_throw_statement(),
             TokenKind::Punctuator(Punctuator::OpenBlock) => self.read_block_statement(),
             // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
-            TokenKind::Punctuator(Punctuator::Semicolon) => {
-                return Ok(Node::new(NodeBase::Nope, tok.pos))
-            }
+            // TokenKind::Punctuator(Punctuator::Semicolon) => {
+            //     return Ok(Node::new(NodeBase::Nope, tok.pos))
+            // }
             _ => {
                 self.step_back();
                 is_expression_statement = true;
@@ -1178,28 +1246,118 @@ impl Parser {
             }
         };
 
-        // match self
-        //     .lexer
-        //     .next_if_skip_lineterminator(Kind::Symbol(Symbol::Semicolon))
-        // {
-        //     Ok(true) | Err(Error::NormalEOF) => {}
-        //     Ok(false) => {
-        //         if is_expression_statement {
-        //             match self.lexer.peek(0)?.kind {
-        //                 Kind::LineTerminator | Kind::Symbol(Symbol::ClosingBrace) => {}
-        //                 _ => {
-        //                     return Err(Error::UnexpectedToken(
-        //                         self.lexer.get_current_pos(),
-        //                         format!("unexpected token."),
-        //                     ));
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     Err(e) => return Err(e),
-        // }
+        match self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Semicolon)) {
+            Ok(true) | Err(ParseError::NormalEOF) => {}
+            Ok(false) => {
+                if is_expression_statement {
+                    match self.peek(0)?.kind {
+                        TokenKind::LineTerminator
+                        | TokenKind::Punctuator(Punctuator::CloseBlock) => {}
+                        _ => {
+                            return Err(ParseError::Unexpected(
+                                self.get_current_token()?,
+                                "unexpected token.",
+                            ));
+                        }
+                    }
+                }
+            }
+            Err(e) => return Err(e),
+        }
 
-        // stmt
+        stmt
+    }
+
+    /// <https://tc39.es/ecma262/#sec-expression-statement>
+    fn read_expression_statement(&mut self) -> Result<Node, ParseError> {
+        self.read_expression()
+    }
+
+    /// <https://tc39.es/ecma262/#sec-break-statement>
+    fn read_break_statement(&mut self) -> Result<Node, ParseError> {
+        let tok = self.get_next_token()?;
+        match tok.kind {
+            TokenKind::LineTerminator
+            | TokenKind::Punctuator(Punctuator::Semicolon)
+            | TokenKind::Punctuator(Punctuator::CloseParen) => {
+                self.step_back();
+                Ok(Node::Break(None))
+            }
+            TokenKind::Identifier(name) => Ok(Node::Break(Some(name))),
+            _ => Err(ParseError::Unexpected(
+                tok,
+                "expected ';', identifier or line terminator",
+            )),
+        }
+    }
+
+    /// <https://tc39.es/ecma262/#sec-continue-statement>
+    fn read_continue_statement(&mut self) -> Result<Node, ParseError> {
+        let tok = self.get_next_token()?;
+        match tok.kind {
+            TokenKind::LineTerminator
+            | TokenKind::Punctuator(Punctuator::Semicolon)
+            | TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                self.step_back();
+                Ok(Node::Continue(None))
+            }
+            TokenKind::Identifier(name) => Ok(Node::Continue(Some(name))),
+            _ => Err(ParseError::Unexpected(
+                tok,
+                "expected ';', identifier or line terminator",
+            )),
+        }
+    }
+
+    /// https://tc39.github.io/ecma262/#prod-ThrowStatement
+    fn read_throw_statement(&mut self) -> Result<Node, ParseError> {
+        // no LineTerminator here
+        if self.next_if(TokenKind::LineTerminator).is_some() {
+            return Err(ParseError::General("Illegal new line after throw"));
+        }
+
+        if self
+            .next_if(TokenKind::Punctuator(Punctuator::Semicolon))
+            .is_some()
+        {
+            return Err(ParseError::General("Unexpected token ;"));
+        }
+
+        if self.peek(0)?.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
+            return Err(ParseError::Unexpected(
+                self.get_next_token()?,
+                "Unexpected token }",
+            ));
+        }
+
+        let expr = self.read_expression()?;
+        self.next_if(TokenKind::Punctuator(Punctuator::Semicolon));
+
+        Ok(Node::Throw(Box::new(expr)))
+    }
+
+    /// <https://tc39.es/ecma262/#prod-ReturnStatement>
+    fn read_return_statement(&mut self) -> Result<Node, ParseError> {
+        if self.next_if(TokenKind::LineTerminator).is_some() {
+            return Ok(Node::Return(None));
+        }
+
+        if self
+            .next_if(TokenKind::Punctuator(Punctuator::Semicolon))
+            .is_some()
+        {
+            return Ok(Node::Return(None));
+        }
+
+        if self.peek(0)?.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
+            return Ok(Node::Return(None));
+        }
+
+        let expr = self.read_expression()?;
+
+        self.next_if(TokenKind::Punctuator(Punctuator::Semicolon));
+
+        Ok(Node::Return(Some(Box::new(expr))))
     }
 
     /// <https://tc39.es/ecma262/#sec-if-statement>
@@ -1240,6 +1398,118 @@ impl Parser {
         Ok(Node::If(Box::new(cond), Box::new(then_), None))
     }
 
+    /// <https://tc39.es/ecma262/#sec-while-statement>
+    fn read_while_statement(&mut self) -> Result<Node, ParseError> {
+        self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('");
+
+        let cond = self.read_expression()?;
+
+        self.expect(
+            TokenKind::Punctuator(Punctuator::CloseParen),
+            "expected ')'",
+        );
+
+        let body = self.read_statement()?;
+
+        Ok(Node::WhileLoop(Box::new(cond), Box::new(body)))
+    }
+
+    /// <https://tc39.es/ecma262/#sec-try-statement>
+    fn read_try_statement(&mut self) -> Result<Node, ParseError> {
+        // TRY
+        self.expect_punc(Punctuator::OpenBlock, "Expected open brace {");
+        let try_clause = self.read_block_statement()?;
+        let is_catch = self
+            .next_if_skip_lineterminator(TokenKind::Keyword(Keyword::Catch))
+            .unwrap_or(false);
+
+        // CATCH
+        let (catch, param) = if is_catch {
+            self.expect_punc(Punctuator::OpenParen, "Expected opening parenthesis (");
+            // TODO: should accept BindingPattern
+            let tok = self.get_next_token()?;
+            let catch_param = match tok.kind {
+                TokenKind::Identifier(s) => Node::Local(s),
+                _ => {
+                    return Err(ParseError::Unexpected(tok, "expected identifier."));
+                }
+            };
+            self.expect_punc(Punctuator::CloseParen, "Expected )");
+            self.expect_punc(Punctuator::OpenBlock, "Expected {");
+            (
+                Some(Box::new(self.read_block()?)),
+                Some(Box::new(catch_param)),
+            )
+        } else {
+            (None, None)
+        };
+
+        // FINALLY
+        let is_finally = self
+            .next_if_skip_lineterminator(TokenKind::Keyword(Keyword::Finally))
+            .unwrap_or(false);
+        let finally = if is_finally {
+            self.expect_punc(Punctuator::OpenBlock, "Expected {");
+            Some(Box::new(self.read_block_statement()?))
+        } else {
+            None
+        };
+
+        Ok(Node::Try(Box::new(try_clause), catch, param, finally))
+    }
+
+    /// <https://tc39.es/ecma262/#sec-for-statement>
+    fn read_for_statement(&mut self) -> Result<Node, ParseError> {
+        self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('")?;
+
+        let init = match self.peek(0)?.kind {
+            TokenKind::Keyword(Keyword::Var) => {
+                assert_eq!(
+                    self.get_next_token()?.kind,
+                    TokenKind::Keyword(Keyword::Var)
+                );
+                Some(Box::new(self.read_variable_declaration_list()?))
+            }
+            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
+                Some(Box::new(self.read_declaration()?))
+            }
+            TokenKind::Punctuator(Punctuator::Semicolon) => None,
+            _ => Some(Box::new(self.read_expression()?)),
+        };
+
+        self.expect(TokenKind::Punctuator(Punctuator::Semicolon), "expect ';'")?;
+
+        let cond = if self
+            .next_if(TokenKind::Punctuator(Punctuator::Semicolon))
+            .is_some()
+        {
+            Some(Box::new(Node::Const(Const::Bool(true))))
+        } else {
+            let step = Some(Box::new(self.read_expression()?));
+            self.expect(TokenKind::Punctuator(Punctuator::Semicolon), "expected ';'")?;
+            step
+        };
+
+        let step = if self
+            .next_if(TokenKind::Punctuator(Punctuator::CloseParen))
+            .is_some()
+        {
+            None
+        } else {
+            let step = self.read_expression()?;
+            self.expect(
+                TokenKind::Punctuator(Punctuator::CloseParen),
+                "expected ')'",
+            );
+            Some(Box::new(step))
+        };
+
+        let body = Box::new(self.read_statement()?);
+
+        let for_node = Node::ForLoop(init, cond, step, body);
+
+        Ok(Node::Block(vec![for_node]))
+    }
     /// <https://tc39.es/ecma262/#prod-VariableStatement>
     fn read_variable_statement(&mut self) -> Result<Node, ParseError> {
         self.read_variable_declaration_list()
@@ -1313,6 +1583,22 @@ impl Parser {
     /// <https://tc39.es/ecma262/#prod-Initializer>
     fn read_initializer(&mut self) -> Result<Node, ParseError> {
         self.read_assignment_expression()
+    }
+
+    /// https://tc39.github.io/ecma262/#prod-Expression
+    // expression!(
+    //     read_expression,
+    //     read_assignment_expression,
+    //     [Punctuator::Comma]
+    // );
+
+    fn read_expression(&mut self) -> Result<Node, ParseError> {
+        let mut lhs = self.read_assignment_expression()?;
+        while let Ok(tok) = self.peek_skip_lineterminator()? {
+            match tok.kind {
+                TokenKind::Punctuator(ref punc)
+            }
+        }
     }
 
     /// <https://tc39.es/ecma262/#prod-AssignmentExpression>

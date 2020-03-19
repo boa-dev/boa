@@ -21,8 +21,12 @@ pub enum Node {
     ConstDecl(Vec<(String, Node)>),
     /// Construct an object from the function and arg{
     Construct(Box<Node>, Vec<Node>),
+    /// Continue with an optional label
+    Continue(Option<String>),
     /// Run several expressions from top-to-bottom
     Block(Vec<Node>),
+    /// Break statement with an optional label
+    Break(Option<String>),
     // Similar to Block but without the braces
     StatementList(Vec<Node>),
     /// Load a reference to a value, or a function argument
@@ -35,6 +39,13 @@ pub enum Node {
     Call(Box<Node>, Vec<Node>),
     /// Repeatedly run an expression while the conditional expression resolves to true
     WhileLoop(Box<Node>, Box<Node>),
+    /// [init], [cond], [step], body
+    ForLoop(
+        Option<Box<Node>>,
+        Option<Box<Node>>,
+        Option<Box<Node>>,
+        Box<Node>,
+    ),
     /// Check if a conditional expression is true and run an expression if it is and another expression if it isn't
     If(Box<Node>, Box<Node>, Option<Box<Node>>),
     /// Run blocks whose cases match the expression
@@ -59,6 +70,13 @@ pub enum Node {
     LetDecl(Vec<(String, Option<Node>)>),
     /// Return a string representing the type of the given expression
     TypeOf(Box<Node>),
+    /// Try / Catch
+    Try(
+        Box<Node>,
+        Option<Box<Node>>,
+        Option<Box<Node>>,
+        Option<Box<Node>>,
+    ),
 }
 
 impl Operator for Node {
@@ -97,6 +115,8 @@ impl Display for Node {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
             Node::Const(ref c) => write!(f, "{}", c),
+            Node::Break(_) => write!(f, "break"),
+            Node::Continue(_) => write!(f, "continue"),
             Node::Block(ref block) => {
                 write!(f, "{{")?;
                 for expr in block.iter() {
@@ -108,6 +128,7 @@ impl Display for Node {
                 for expr in block.iter() {
                     write!(f, "{};", expr)?;
                 }
+                write!(f, "")
             }
             Node::Local(ref s) => write!(f, "{}", s),
             Node::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
