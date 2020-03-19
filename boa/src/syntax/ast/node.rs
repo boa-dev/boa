@@ -57,7 +57,7 @@ pub enum Node {
     /// Create a function with the given name, arguments, and expression
     FunctionDecl(Option<String>, Vec<Node>, Box<Node>),
     /// Create an arrow function with the given arguments and expression
-    ArrowFunctionDecl(Vec<Node>, Box<Node>),
+    ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
     /// Return the expression from a function
     Return(Option<Box<Node>>),
     /// Throw a value
@@ -199,7 +199,7 @@ impl Display for Node {
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
                 write!(f, "(")?;
-                join_expr(f, args)?;
+                // join_expr(f, args.ini)?;
                 write!(f, ") => {}", expr)
             }
             Node::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
@@ -248,7 +248,7 @@ fn join_expr(f: &mut Formatter, expr: &[Node]) -> Result {
 }
 
 // https://tc39.es/ecma262/#prod-FormalParameter
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
     pub name: String,
     pub init: Option<Node>,
