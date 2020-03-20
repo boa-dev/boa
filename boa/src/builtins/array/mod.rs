@@ -778,6 +778,43 @@ pub fn filter(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Re
     construct_array(&new, &values)
 }
 
+/// Array.prototype.some ( callbackfn [ , thisArg ] )
+///
+/// The some method tests whether at least one element in the array passes
+/// the test implemented by the provided callback function. It returns a Boolean value,
+/// true if the callback function returns a truthy value for at least one element
+/// in the array. Otherwise, false.
+///
+/// Caution: Calling this method on an empty array returns false for any condition!
+/// <https://tc39.es/ecma262/#sec-array.prototype.some/>
+pub fn some(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    if args.is_empty() {
+        return Err(to_value(
+            "missing callback when calling function Array.prototype.some".to_string(),
+        ));
+    }
+    let callback = &args[0];
+    let this_arg = if args.len() > 1 {
+        args[1].clone()
+    } else {
+        Gc::new(ValueData::Undefined)
+    };
+    let mut i = 0;
+    let max_len: i32 = from_value(this.get_field_slice("length")).unwrap();
+    let mut len = max_len;
+    while i < len {
+        let element = this.get_field_slice(&i.to_string());
+        let arguments = vec![element.clone(), to_value(i), this.clone()];
+        let result = interpreter.call(callback, &this_arg, arguments)?.is_true();
+        if result {
+            return Ok(to_value(true));
+        }
+        len = min(max_len, from_value(this.get_field_slice("length")).unwrap());
+        i += 1;
+    }
+    Ok(to_value(false))
+}
+
 /// Create a new `Array` object
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
@@ -812,6 +849,7 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(find, named "find", with length 1, of array_prototype);
     make_builtin_fn!(find_index, named "findIndex", with length 1, of array_prototype);
     make_builtin_fn!(slice, named "slice", with length 2, of array_prototype);
+    make_builtin_fn!(some, named "some", with length 2, of array_prototype);
 
     let array = to_value(array_constructor);
     make_builtin_fn!(is_array, named "isArray", with length 1, of array);

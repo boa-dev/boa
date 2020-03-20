@@ -742,3 +742,52 @@ fn filter() {
         String::from("0")
     );
 }
+
+#[test]
+fn some() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        var empty = [];
+
+        var array = [11, 23, 45];
+        function lessThan10(element) {
+            return element > 10;
+        }
+        function greaterThan10(element) {
+            return element < 10;
+        }
+
+        // Cases where callback mutates the array.
+        var appendArray = [1,2,3,4];
+        function appendingCallback(elem,index,arr) {
+          arr.push('new');
+          return elem !== "new";
+        }
+
+        var delArray = [1,2,3,4];
+        function deletingCallback(elem,index,arr) {
+          arr.pop()
+          return elem < 3;
+        }
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "array.some(lessThan10);");
+    assert_eq!(result, "true");
+
+    let result = forward(&mut engine, "empty.some(lessThan10);");
+    assert_eq!(result, "false");
+
+    let result = forward(&mut engine, "array.some(greaterThan10);");
+    assert_eq!(result, "false");
+
+    let result = forward(&mut engine, "appendArray.some(appendingCallback);");
+    let append_array_length = forward(&mut engine, "appendArray.length");
+    assert_eq!(append_array_length, "5");
+    assert_eq!(result, "true");
+
+    let result = forward(&mut engine, "delArray.some(deletingCallback);");
+    let del_array_length = forward(&mut engine, "delArray.length");
+    assert_eq!(del_array_length, "3");
+    assert_eq!(result, "true");
+}
