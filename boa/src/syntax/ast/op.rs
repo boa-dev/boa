@@ -29,7 +29,7 @@ pub enum NumOp {
     /// `a * b` - Multiplication
     Mul,
     /// `a ** b` - Exponentiation
-    Pow,
+    Exp,
     /// `a % b` - Modulus
     Mod,
 }
@@ -44,7 +44,7 @@ impl Display for NumOp {
                 NumOp::Sub => "-",
                 NumOp::Div => "/",
                 NumOp::Mul => "*",
-                NumOp::Pow => "**",
+                NumOp::Exp => "**",
                 NumOp::Mod => "%",
             }
         )
@@ -53,7 +53,8 @@ impl Display for NumOp {
 
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A unary operation on a single value
+/// A unary operation on a single value   
+/// <https://tc39.es/ecma262/#prod-UnaryExpression>
 pub enum UnaryOp {
     /// `a++` - increment the value
     IncrementPost,
@@ -71,8 +72,14 @@ pub enum UnaryOp {
     Not,
     /// `~a` - bitwise-not of the value
     Tilde,
+    /// `type of` - Get the type of object
+    TypeOf,
     /// `...a` - spread an iterable value
     Spread,
+    /// Delete
+    Delete,
+    /// Void
+    Void,
 }
 
 impl Display for UnaryOp {
@@ -88,6 +95,8 @@ impl Display for UnaryOp {
                 UnaryOp::Not => "!",
                 UnaryOp::Tilde => "~",
                 UnaryOp::Spread => "...",
+                UnaryOp::Delete => "delete",
+                UnaryOp::TypeOf => "typeof",
             }
         )
     }
@@ -214,7 +223,7 @@ impl Operator for BinOp {
     }
     fn get_precedence(&self) -> u64 {
         match *self {
-            BinOp::Num(NumOp::Pow) => 4,
+            BinOp::Num(NumOp::Exp) => 4,
             BinOp::Num(NumOp::Mul) | BinOp::Num(NumOp::Div) | BinOp::Num(NumOp::Mod) => 5,
             BinOp::Num(NumOp::Add) | BinOp::Num(NumOp::Sub) => 6,
             BinOp::Bit(BitOp::Shl) | BinOp::Bit(BitOp::Shr) => 7,
@@ -264,7 +273,7 @@ pub enum AssignOp {
     /// `a *= b` - Mul assign
     Mul,
     /// `a **= b` - Exponent assign
-    Pow,
+    Exp,
     /// `a /= b` - Div assign
     Div,
     /// `a %= b` - Modulus assign
@@ -290,7 +299,7 @@ impl Display for AssignOp {
                 AssignOp::Add => "+=",
                 AssignOp::Sub => "-=",
                 AssignOp::Mul => "*=",
-                AssignOp::Pow => "**=",
+                AssignOp::Exp => "**=",
                 AssignOp::Div => "/=",
                 AssignOp::Mod => "%=",
                 AssignOp::And => "&=",

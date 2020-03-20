@@ -48,7 +48,7 @@ fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
         AssignOp::Add => v_a + v_b,
         AssignOp::Sub => v_a - v_b,
         AssignOp::Mul => v_a * v_b,
-        AssignOp::Pow => v_a.as_num_to_power(v_b),
+        AssignOp::Exp => v_a.as_num_to_power(v_b),
         AssignOp::Div => v_a / v_b,
         AssignOp::Mod => v_a % v_b,
         AssignOp::And => v_a & v_b,
@@ -233,8 +233,10 @@ impl Executor for Interpreter {
                 Ok(array)
             }
             Node::FunctionDecl(ref name, ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
+                let function = Function::RegularFunc(RegularFunction::new(
+                    *expr.clone(),
+                    args.into_iter().map(|x| x.init.unwrap()).collect(),
+                ));
                 let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
                 if name.is_some() {
                     self.realm.environment.create_mutable_binding(
@@ -250,8 +252,10 @@ impl Executor for Interpreter {
                 Ok(val)
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.clone()));
+                let function = Function::RegularFunc(RegularFunction::new(
+                    *expr.clone(),
+                    args.into_iter().map(|x| x.init.unwrap()).collect(),
+                ));
                 Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
                     function,
                 )))))
@@ -265,7 +269,7 @@ impl Executor for Interpreter {
                     NumOp::Add => v_a + v_b,
                     NumOp::Sub => v_a - v_b,
                     NumOp::Mul => v_a * v_b,
-                    NumOp::Pow => v_a.as_num_to_power(v_b),
+                    NumOp::Exp => v_a.as_num_to_power(v_b),
                     NumOp::Div => v_a / v_b,
                     NumOp::Mod => v_a % v_b,
                 }))

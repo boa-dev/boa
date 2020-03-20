@@ -631,7 +631,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul, {
-                    '*' => vop!(self, Punctuator::AssignPow, Punctuator::Pow)
+                    '*' => vop!(self, Punctuator::AssignPow, Punctuator::Exp)
                 }),
                 '+' => op!(self, Punctuator::AssignAdd, Punctuator::Add, {
                     '+' => Punctuator::Inc

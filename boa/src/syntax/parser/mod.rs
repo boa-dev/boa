@@ -229,15 +229,23 @@ impl Parser {
         }
     }
 
-    fn parse_function_parameters(&mut self) -> Result<Vec<Node>, ParseError> {
+    fn parse_function_parameters(&mut self) -> Result<Vec<FormalParameter>, ParseError> {
         self.expect_punc(Punctuator::OpenParen, "function parameters ( expected")?;
         let mut args = Vec::new();
         let mut tk = self.get_token(self.pos)?;
         while tk.kind != TokenKind::Punctuator(Punctuator::CloseParen) {
             match tk.kind {
-                TokenKind::Identifier(ref id) => args.push(Node::Local(id.clone())),
+                TokenKind::Identifier(ref id) => args.push(FormalParameter::new(
+                    id.clone(),
+                    Some(Node::Local(id.clone())),
+                    false,
+                )),
                 TokenKind::Punctuator(Punctuator::Spread) => {
-                    args.push(self.parse()?);
+                    args.push(FormalParameter::new(
+                        String::new(),
+                        Some(self.parse()?),
+                        true,
+                    ));
                     self.pos -= 1; // roll back so we're sitting on the closeParen ')'
                 }
                 _ => {
@@ -1612,7 +1620,7 @@ impl Parser {
         self.read_assignment_expression()
     }
 
-    /// https://tc39.github.io/ecma262/#prod-Expression
+    // https://tc39.github.io/ecma262/#prod-Expression
     expression!(
         read_expression,
         read_assignment_expression,
@@ -1648,6 +1656,7 @@ impl Parser {
         }
 
         let mut lhs = self.read_conditional_expression()?;
+        // let mut lhs = self.read_block()?;
 
         if let Ok(tok) = self.get_next_token() {
             match tok.kind {
@@ -1713,6 +1722,29 @@ impl Parser {
                         BinOp::Assign(AssignOp::Mod),
                         self.read_assignment_expression()?,
                     )?
+                }
+                _ => self.step_back(),
+            }
+        }
+
+        Ok(lhs)
+    }
+
+    /// <https://tc39.es/ecma262/#prod-ConditionalExpression>
+    fn read_conditional_expression(&mut self) -> Result<Node, ParseError> {
+        let lhs = self.read_logical_or_expression()?;
+
+        if let Ok(tok) = self.get_next_token() {
+            match tok.kind {
+                TokenKind::Punctuator(Punctuator::Question) => {
+                    let then_ = self.read_assignment_expression()?;
+                    self.expect_punc(Punctuator::Colon, "expect ':'");
+                    let else_ = self.read_assignment_expression()?;
+                    return Ok(Node::ConditionalOp(
+                        Box::new(lhs),
+                        Box::new(then_),
+                        Box::new(else_),
+                    ));
                 }
                 _ => self.step_back(),
             }
@@ -1787,7 +1819,7 @@ impl Parser {
         Ok(params)
     }
 
-    // <https://tc39.es/ecma262/#prod-FunctionRestParameter>
+    /// <https://tc39.es/ecma262/#prod-FunctionRestParameter>
     fn read_function_rest_parameter(&mut self) -> Result<FormalParameter, ParseError> {
         let token = self.get_next_token()?;
         Ok(FormalParameter::new(
@@ -1805,7 +1837,7 @@ impl Parser {
         ))
     }
 
-    // <https://tc39.es/ecma262/#prod-FormalParameter>
+    /// <https://tc39.es/ecma262/#prod-FormalParameter>
     fn read_formal_parameter(&mut self) -> Result<FormalParameter, ParseError> {
         let token = self.next_skip_lineterminator()?;
         let name = if let TokenKind::Identifier(name) = token.kind {
@@ -1820,5 +1852,217 @@ impl Parser {
 
         // TODO: Implement initializer.
         Ok(FormalParameter::new(name, None, false))
+    }
+
+    // <https://tc39.es/ecma262/#prod-LogicalORExpression>
+    expression!(
+        read_logical_or_expression,
+        read_logical_and_expression,
+        [Punctuator::BoolOr]
+    );
+
+    // <https://tc39.es/ecma262/#prod-LogicalANDExpression>
+    expression!(
+        read_logical_and_expression,
+        read_bitwise_or_expression,
+        [Punctuator::BoolAnd]
+    );
+
+    // https://tc39.es/ecma262/#prod-BitwiseORExpression
+    expression!(
+        read_bitwise_or_expression,
+        read_bitwise_xor_expression,
+        [Punctuator::Or]
+    );
+
+    // https://tc39.es/ecma262/#prod-BitwiseXORExpression
+    expression!(
+        read_bitwise_xor_expression,
+        read_bitwise_and_expression,
+        [Punctuator::Xor]
+    );
+
+    // <https://tc39.es/ecma262/#prod-BitwiseANDExpression>
+    expression!(
+        read_bitwise_and_expression,
+        read_equality_expression,
+        [Punctuator::And]
+    );
+
+    // <https://tc39.es/ecma262/#prod-EqualityExpression>
+    expression!(
+        read_equality_expression,
+        read_relational_expression,
+        [
+            Punctuator::Eq,
+            Punctuator::NotEq,
+            Punctuator::StrictEq,
+            Punctuator::StrictNotEq
+        ]
+    );
+
+    // <https://tc39.es/ecma262/#prod-RelationalExpression>
+    expression!(
+        read_relational_expression,
+        read_shift_expression,
+        [
+            Punctuator::LessThan,
+            Punctuator::GreaterThan,
+            Punctuator::LessThanOrEq,
+            Punctuator::GreaterThanOrEq
+        ]
+    );
+
+    // <https://tc39.es/ecma262/#prod-ShiftExpression>
+    expression!(
+        read_shift_expression,
+        read_additive_expression,
+        [
+            Punctuator::LeftSh,
+            Punctuator::RightSh,
+            Punctuator::URightSh
+        ]
+    );
+
+    // <https://tc39.es/ecma262/#prod-AdditiveExpression>
+    expression!(
+        read_additive_expression,
+        read_multiplicate_expression,
+        [Punctuator::Add, Punctuator::Sub]
+    );
+
+    // <https://tc39.es/ecma262/#prod-MultiplicativeExpression>
+    expression!(
+        read_multiplicate_expression,
+        read_exponentiation_expression,
+        [Punctuator::Mul, Punctuator::Div, Punctuator::Mod]
+    );
+
+    /// <https://tc39.es/ecma262/#prod-MultiplicativeExpression>
+    fn read_exponentiation_expression(&mut self) -> Result<Node, ParseError> {
+        if self.is_unary_expression() {
+            return self.read_unary_expression();
+        }
+
+        let lhs = self.read_update_expression()?;
+        if let Ok(tok) = self.get_next_token() {
+            if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind {
+                return Ok(Node::BinOp(
+                    BinOp::Num(NumOp::Exp),
+                    Box::new(lhs),
+                    Box::new(self.read_exponentiation_expression()?),
+                ));
+            } else {
+                self.step_back();
+            }
+        }
+        Ok(lhs)
+    }
+
+    // Checks by looking at the next token to see whether its a Unary operator or not
+    fn is_unary_expression(&mut self) -> bool {
+        match self.peek(0) {
+            Ok(ok) => match ok.kind {
+                TokenKind::Keyword(Keyword::Delete)
+                | TokenKind::Keyword(Keyword::Void)
+                | TokenKind::Keyword(Keyword::TypeOf)
+                | TokenKind::Punctuator(Punctuator::Add)
+                | TokenKind::Punctuator(Punctuator::Sub)
+                | TokenKind::Punctuator(Punctuator::Not)
+                | TokenKind::Punctuator(Punctuator::Neg) => true,
+                _ => false,
+            },
+            Err(_) => false,
+        }
+    }
+
+    /// <https://tc39.es/ecma262/#prod-UnaryExpression>
+    fn read_unary_expression(&mut self) -> Result<Node, ParseError> {
+        let tok = self.get_next_token()?;
+        match tok.kind {
+            TokenKind::Keyword(Keyword::Delete) => Ok(Node::UnaryOp(
+                UnaryOp::Delete,
+                Box::new(self.read_unary_expression()?),
+            )),
+            TokenKind::Keyword(Keyword::Void) => Ok(Node::UnaryOp(
+                UnaryOp::Void,
+                Box::new(self.read_unary_expression()?),
+            )),
+            TokenKind::Keyword(Keyword::TypeOf) => Ok(Node::UnaryOp(
+                UnaryOp::TypeOf,
+                Box::new(self.read_unary_expression()?),
+            )),
+            TokenKind::Punctuator(Punctuator::Add) => Ok(Node::UnaryOp(
+                UnaryOp::Plus,
+                Box::new(self.read_unary_expression()?),
+            )),
+            TokenKind::Punctuator(Punctuator::Sub) => Ok(Node::UnaryOp(
+                UnaryOp::Minus,
+                Box::new(self.read_unary_expression()?),
+            )),
+            TokenKind::Punctuator(Punctuator::Neg) => Ok(Node::UnaryOp(
+                UnaryOp::Tilde,
+                Box::new(self.read_unary_expression()?),
+            )),
+            TokenKind::Punctuator(Punctuator::Not) => Ok(Node::UnaryOp(
+                UnaryOp::Not,
+                Box::new(self.read_unary_expression()?),
+            )),
+            _ => {
+                self.step_back();
+                self.read_update_expression()
+            }
+        }
+    }
+
+    /// <https://tc39.es/ecma262/#prod-UpdateExpression>
+    fn read_update_expression(&mut self) -> Result<Node, ParseError> {
+        let tok = self.peek_skip_lineterminator()?;
+        match tok.kind {
+            TokenKind::Punctuator(Punctuator::Inc) => {
+                self.next_skip_lineterminator().unwrap();
+                return Ok(Node::UnaryOp(
+                    UnaryOp::IncrementPre,
+                    Box::new(self.read_left_hand_side_expression()?),
+                ));
+            }
+            TokenKind::Punctuator(Punctuator::Dec) => {
+                self.next_skip_lineterminator().unwrap();
+                return Ok(Node::UnaryOp(
+                    UnaryOp::DecrementPre,
+                    Box::new(self.read_left_hand_side_expression()?),
+                ));
+            }
+            _ => {}
+        }
+
+        let lhs = self.read_left_hand_side_expression()?;
+        if let Ok(tok) = self.peek(0) {
+            match tok.kind {
+                TokenKind::Punctuator(Punctuator::Inc) => {
+                    self.get_next_token().unwrap();
+                    return Ok(Node::UnaryOp(UnaryOp::IncrementPost, Box::new(lhs)));
+                }
+                TokenKind::Punctuator(Punctuator::Dec) => {
+                    self.get_next_token().unwrap();
+                    return Ok(Node::UnaryOp(UnaryOp::DecrementPost, Box::new(lhs)));
+                }
+                _ => {}
+            }
+        }
+
+        Ok(lhs)
+    }
+
+    /// https://tc39.github.io/ecma262/#prod-LeftHandSideExpression
+    /// TODO: Implement NewExpression: new MemberExpression
+    fn read_left_hand_side_expression(&mut self) -> Result<Node, Error> {
+        let lhs = self.read_member_expression()?;
+        match self.peek_skip_lineterminator() {
+            Ok(ref tok) if tok.kind == Kind::Symbol(Symbol::OpeningParen) => {
+                self.read_call_expression(lhs)
+            }
+            _ => self.read_new_expression(lhs),
+        }
     }
 }
