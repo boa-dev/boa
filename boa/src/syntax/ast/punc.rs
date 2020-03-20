@@ -89,7 +89,7 @@ pub enum Punctuator {
     /// `|`
     Or,
     /// `**`
-    Pow,
+    Exp,
     /// `?`
     Question,
     /// `>>`
@@ -190,7 +190,7 @@ impl Display for Punctuator {
                 Punctuator::OpenBracket => "[",
                 Punctuator::OpenParen => "(",
                 Punctuator::Or => "|",
-                Punctuator::Pow => "**",
+                Punctuator::Exp => "**",
                 Punctuator::Question => "?",
                 Punctuator::RightSh => ">>",
                 Punctuator::Semicolon => ";",

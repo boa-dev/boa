@@ -208,7 +208,7 @@ fn check_punctuators() {
     );
     assert_eq!(
         lexer.tokens[41].kind,
-        TokenKind::Punctuator(Punctuator::Pow)
+        TokenKind::Punctuator(Punctuator::Exp)
     );
     assert_eq!(
         lexer.tokens[42].kind,

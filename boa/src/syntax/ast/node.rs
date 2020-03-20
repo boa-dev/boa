@@ -55,7 +55,7 @@ pub enum Node {
     /// Create an array with items inside
     ArrayDecl(Vec<Node>),
     /// Create a function with the given name, arguments, and expression
-    FunctionDecl(Option<String>, Vec<Node>, Box<Node>),
+    FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
     /// Create an arrow function with the given arguments and expression
     ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
     /// Return the expression from a function
@@ -68,6 +68,8 @@ pub enum Node {
     VarDecl(Vec<(String, Option<Node>)>),
     /// Let declaraton
     LetDecl(Vec<(String, Option<Node>)>),
+    /// Conditional Operator ( ? : )
+    ConditionalOp(Box<Node>, Box<Node>, Box<Node>),
     /// Return a string representing the type of the given expression
     TypeOf(Box<Node>),
     /// Try / Catch
@@ -194,7 +196,7 @@ impl Display for Node {
                     f.write_fmt(format_args!("{}", func_name))?;
                 }
                 write!(f, "{{")?;
-                join_expr(f, args)?;
+                // join_expr(f, args)?;
                 write!(f, "}} {}", expr)
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
