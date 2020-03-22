@@ -11,10 +11,22 @@ use std::{
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript AST Node
 pub enum Node {
+    /// Create an array with items inside
+    ArrayDecl(Vec<Node>),
+    /// Create an arrow function with the given arguments and expression
+    ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
+    /// Assign an expression to a value
+    Assign(Box<Node>, Box<Node>),
     /// Run an operation between 2 expressions
     BinOp(BinOp, Box<Node>, Box<Node>),
-    /// Run an operation on a value
-    UnaryOp(UnaryOp, Box<Node>),
+    /// Run several expressions from top-to-bottom
+    Block(Vec<Node>),
+    /// Break statement with an optional label
+    Break(Option<String>),
+    /// Call a function with some values
+    Call(Box<Node>, Vec<Node>),
+    /// Conditional Operator ( ? : )
+    ConditionalOp(Box<Node>, Box<Node>, Box<Node>),
     /// Make a constant value
     Const(Const),
     /// Const declaration
@@ -23,22 +35,12 @@ pub enum Node {
     Construct(Box<Node>, Vec<Node>),
     /// Continue with an optional label
     Continue(Option<String>),
-    /// Run several expressions from top-to-bottom
-    Block(Vec<Node>),
-    /// Break statement with an optional label
-    Break(Option<String>),
-    // Similar to Block but without the braces
-    StatementList(Vec<Node>),
-    /// Load a reference to a value, or a function argument
-    Local(String),
+    /// Create a function with the given name, arguments, and expression
+    FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
     /// Gets the constant field of a value
     GetConstField(Box<Node>, String),
-    /// Gets the field of a value
+    /// Gets the [field] of a value
     GetField(Box<Node>, Box<Node>),
-    /// Call a function with some values
-    Call(Box<Node>, Vec<Node>),
-    /// Repeatedly run an expression while the conditional expression resolves to true
-    WhileLoop(Box<Node>, Box<Node>),
     /// [init], [cond], [step], body
     ForLoop(
         Option<Box<Node>>,
@@ -48,28 +50,26 @@ pub enum Node {
     ),
     /// Check if a conditional expression is true and run an expression if it is and another expression if it isn't
     If(Box<Node>, Box<Node>, Option<Box<Node>>),
-    /// Run blocks whose cases match the expression
-    Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
-    /// Create an object out of the binary tree given
-    ObjectDecl(Box<BTreeMap<String, Node>>),
-    /// Create an array with items inside
-    ArrayDecl(Vec<Node>),
-    /// Create a function with the given name, arguments, and expression
-    FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
-    /// Create an arrow function with the given arguments and expression
-    ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
-    /// Return the expression from a function
-    Return(Option<Box<Node>>),
-    /// Throw a value
-    Throw(Box<Node>),
-    /// Assign an expression to a value
-    Assign(Box<Node>, Box<Node>),
-    /// A variable declaration
-    VarDecl(Vec<(String, Option<Node>)>),
     /// Let declaraton
     LetDecl(Vec<(String, Option<Node>)>),
-    /// Conditional Operator ( ? : )
-    ConditionalOp(Box<Node>, Box<Node>, Box<Node>),
+    /// Load a reference to a value, or a function argument
+    Local(String),
+    /// New
+    New(Box<Node>),
+    /// Create an object out of the binary tree given
+    ObjectDecl(Box<BTreeMap<String, Node>>),
+    /// Object Declaration (replaces ObjectDecl)
+    Object(Vec<PropertyDefinition>),
+    /// Return the expression from a function
+    Return(Option<Box<Node>>),
+    /// Run blocks whose cases match the expression
+    Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
+    /// Spread operator
+    Spread(Box<Node>),
+    // Similar to Block but without the braces
+    StatementList(Vec<Node>),
+    /// Throw a value
+    Throw(Box<Node>),
     /// Return a string representing the type of the given expression
     TypeOf(Box<Node>),
     /// Try / Catch
@@ -79,6 +79,13 @@ pub enum Node {
         Option<Box<Node>>,
         Option<Box<Node>>,
     ),
+    This,
+    /// Run an operation on a value
+    UnaryOp(UnaryOp, Box<Node>),
+    /// A variable declaration
+    VarDecl(Vec<(String, Option<Node>)>),
+    /// Repeatedly run an expression while the conditional expression resolves to true
+    WhileLoop(Box<Node>, Box<Node>),
 }
 
 impl Operator for Node {
@@ -117,6 +124,13 @@ impl Display for Node {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
             Node::Const(ref c) => write!(f, "{}", c),
+            Node::ConditionalOp(_, _, _) => write!(f, "Conditional op"),
+            Node::ForLoop(_, _, _, _) => write!(f, "for loop"),
+            Node::This => write!(f, "this"),
+            Node::Object(_) => write!(f, "object"),
+            Node::Spread(_) => write!(f, "spread"),
+            Node::New(_) => write!(f, "new"),
+            Node::Try(_, _, _, _) => write!(f, "try/catch/finally"),
             Node::Break(_) => write!(f, "break"),
             Node::Continue(_) => write!(f, "continue"),
             Node::Block(ref block) => {
@@ -190,7 +204,7 @@ impl Display for Node {
                 join_expr(f, arr)?;
                 f.write_str("]")
             }
-            Node::FunctionDecl(ref name, ref args, ref expr) => {
+            Node::FunctionDecl(ref name, ref _args, ref expr) => {
                 write!(f, "function ")?;
                 if let Some(func_name) = name {
                     f.write_fmt(format_args!("{}", func_name))?;
@@ -199,7 +213,7 @@ impl Display for Node {
                 // join_expr(f, args)?;
                 write!(f, "}} {}", expr)
             }
-            Node::ArrowFunctionDecl(ref args, ref expr) => {
+            Node::ArrowFunctionDecl(ref _args, ref expr) => {
                 write!(f, "(")?;
                 // join_expr(f, args.ini)?;
                 write!(f, ") => {}", expr)
@@ -253,18 +267,34 @@ fn join_expr(f: &mut Formatter, expr: &[Node]) -> Result {
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
     pub name: String,
-    pub init: Option<Node>,
+    pub init: Option<Box<Node>>,
     pub is_rest_param: bool,
 }
 
 pub type FormalParameters = Vec<FormalParameter>;
 
 impl FormalParameter {
-    pub fn new(name: String, init: Option<Node>, is_rest_param: bool) -> FormalParameter {
+    pub fn new(name: String, init: Option<Box<Node>>, is_rest_param: bool) -> FormalParameter {
         FormalParameter {
             name: name,
             init: init,
             is_rest_param: is_rest_param,
         }
     }
+}
+
+// TODO: Support all features: https://tc39.github.io/ecma262/#prod-PropertyDefinition
+#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
+pub enum PropertyDefinition {
+    IdentifierReference(String),
+    Property(String, Node),
+    MethodDefinition(MethodDefinitionKind, String, Node),
+    SpreadObject(Node),
+}
+
+#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
+pub enum MethodDefinitionKind {
+    Get,
+    Set,
+    Ordinary,
 }

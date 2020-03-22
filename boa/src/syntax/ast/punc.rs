@@ -131,7 +131,6 @@ impl Punctuator {
             Punctuator::StrictNotEq => Some(BinOp::Comp(CompOp::StrictNotEqual)),
             Punctuator::LessThan => Some(BinOp::Comp(CompOp::LessThan)),
             Punctuator::GreaterThan => Some(BinOp::Comp(CompOp::GreaterThan)),
-            Punctuator::LessThan => Some(BinOp::Comp(CompOp::LessThan)),
             Punctuator::GreaterThanOrEq => Some(BinOp::Comp(CompOp::GreaterThanOrEqual)),
             Punctuator::LessThanOrEq => Some(BinOp::Comp(CompOp::LessThanOrEqual)),
             Punctuator::LeftSh => Some(BinOp::Bit(BitOp::Shl)),

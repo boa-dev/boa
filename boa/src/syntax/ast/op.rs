@@ -92,6 +92,7 @@ impl Display for UnaryOp {
                 UnaryOp::Spread => "...",
                 UnaryOp::Delete => "delete",
                 UnaryOp::TypeOf => "typeof",
+                UnaryOp::Void => "void",
             }
         )
     }
@@ -217,7 +218,7 @@ impl Operator for BinOp {
             BinOp::Num(NumOp::Exp) => 4,
             BinOp::Num(NumOp::Mul) | BinOp::Num(NumOp::Div) | BinOp::Num(NumOp::Mod) => 5,
             BinOp::Num(NumOp::Add) | BinOp::Num(NumOp::Sub) => 6,
-            BinOp::Bit(BitOp::Shl) | BinOp::Bit(BitOp::Shr) => 7,
+            BinOp::Bit(BitOp::Shl) | BinOp::Bit(BitOp::Shr) | BinOp::Bit(BitOp::UShr) => 7,
             BinOp::Comp(CompOp::LessThan)
             | BinOp::Comp(CompOp::LessThanOrEqual)
             | BinOp::Comp(CompOp::GreaterThan)
