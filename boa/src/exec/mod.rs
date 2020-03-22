@@ -233,10 +233,8 @@ impl Executor for Interpreter {
                 Ok(array)
             }
             Node::FunctionDecl(ref name, ref args, ref expr) => {
-                let function = Function::RegularFunc(RegularFunction::new(
-                    *expr.clone(),
-                    args.into_iter().map(|x| x.init.unwrap()).collect(),
-                ));
+                let function =
+                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.to_vec()));
                 let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
                 if name.is_some() {
                     self.realm.environment.create_mutable_binding(
@@ -252,10 +250,8 @@ impl Executor for Interpreter {
                 Ok(val)
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
-                let function = Function::RegularFunc(RegularFunction::new(
-                    *expr.clone(),
-                    args.into_iter().map(|x| x.init.unwrap()).collect(),
-                ));
+                let function =
+                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.to_vec()));
                 Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
                     function,
                 )))))
@@ -305,6 +301,8 @@ impl Executor for Interpreter {
                     BitOp::Xor => v_a ^ v_b,
                     BitOp::Shl => v_a << v_b,
                     BitOp::Shr => v_a >> v_b,
+                    // TODO Fix
+                    BitOp::UShr => v_a >> v_b,
                 }))
             }
             Node::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
