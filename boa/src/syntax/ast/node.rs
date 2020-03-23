@@ -79,6 +79,13 @@ pub enum Node {
         Option<Box<Node>>,
         Option<Box<Node>>,
     ),
+    /// The JavaScript `this` keyword refers to the object it belongs to.
+    ///
+    /// A property of an execution context (global, function or eval) that, 
+    /// in non–strict mode, is always a reference to an object and in strict
+    /// mode can be any value.
+    ///
+    /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this>
     This,
     /// Run an operation on a value
     UnaryOp(UnaryOp, Box<Node>),
