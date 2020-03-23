@@ -1077,7 +1077,7 @@ impl Parser {
         }
     }
 
-    /// Returns an error if the next symbol is not the punctuator `p`   
+    /// Returns an error if the next symbol is not the punctuator `p`
     /// Consumes the next symbol otherwise
     fn expect_punc(&mut self, p: Punctuator, routine: &'static str) -> Result<(), ParseError> {
         self.expect(TokenKind::Punctuator(p), routine)
