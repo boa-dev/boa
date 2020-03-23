@@ -263,7 +263,15 @@ fn join_expr(f: &mut Formatter, expr: &[Node]) -> Result {
     Ok(())
 }
 
-// https://tc39.es/ecma262/#prod-FormalParameter
+/// "Formal parameter" is a fancy way of saying "function parameter".
+///
+/// In the declaration of a function, the parameters must be identifiers,
+/// not any value like numbers, strings, or objects.
+///```javascript
+///function foo(formalParametar1, formalParametar2) {
+///}
+///```
+/// For more information, please check <https://tc39.es/ecma262/#prod-FormalParameter>
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
     pub name: String,
