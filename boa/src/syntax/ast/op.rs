@@ -67,7 +67,7 @@ pub enum UnaryOp {
     Not,
     /// `~a` - bitwise-not of the value
     Tilde,
-    /// `type of` - Get the type of object
+    /// `typeof` - Get the type of object
     TypeOf,
     /// `...a` - spread an iterable value
     Spread,
