@@ -2238,7 +2238,7 @@ impl Parser {
         Ok(Node::FunctionDecl(name, params, Box::new(body)))
     }
 
-    /// https://tc39.github.io/ecma262/#prod-ArrayLiteral
+    /// <https://tc39.github.io/ecma262/#prod-ArrayLiteral>
     fn read_array_literal(&mut self) -> Result<Node, ParseError> {
         let mut elements = vec![];
 
