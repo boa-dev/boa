@@ -2288,7 +2288,7 @@ impl Parser {
         Ok(Node::Object(elements))
     }
 
-    /// https://tc39.github.io/ecma262/#prod-PropertyDefinition
+    /// <https://tc39.github.io/ecma262/#prod-PropertyDefinition>
     fn read_property_definition(&mut self) -> Result<PropertyDefinition, ParseError> {
         fn to_string(kind: TokenKind) -> String {
             match kind {
