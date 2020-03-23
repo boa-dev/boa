@@ -48,8 +48,8 @@ impl RegularFunction {
     pub fn new(expr: Node, f_args: Vec<FormalParameter>) -> Self {
         let mut args = vec![];
         for i in f_args {
-            let node = i.clone();
-            args.push(node.init.unwrap().clone());
+            let node = (i.init.as_deref().unwrap()).clone();
+            args.push(node);
         }
 
         let mut object = Object::default();

@@ -512,6 +512,7 @@ impl Executor for Interpreter {
                     ValueData::Function(_) => "function",
                 }))
             }
+            _ => unimplemented!(),
         }
     }
 }
