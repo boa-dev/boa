@@ -1458,7 +1458,7 @@ impl Parser {
                 }
             };
             self.expect_punc(Punctuator::CloseParen, "Expected )")?;
-            self.expect_punc(Punctuator::OpenBlock, "Expected {");
+            self.expect_punc(Punctuator::OpenBlock, "Expected {")?;
             (
                 Some(Box::new(self.read_block()?)),
                 Some(Box::new(catch_param)),
