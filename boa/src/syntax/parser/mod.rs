@@ -1195,16 +1195,14 @@ impl Parser {
                 };
 
                 list.push(decl);
+            } else if is_const {
+                return Err(ParseError::Expected(
+                    vec![TokenKind::Identifier(String::from("Expression"))],
+                    token,
+                    "Expected Expression for Const!",
+                ));
             } else {
-                if is_const {
-                    return Err(ParseError::Expected(
-                        vec![TokenKind::Identifier(String::from("Expression"))],
-                        token,
-                        "Expected Expression for Const!",
-                    ));
-                } else {
-                    list.push(Node::LetDecl(vec![(name, None)]));
-                }
+                list.push(Node::LetDecl(vec![(name, None)]));
             }
 
             if !self.variable_declaration_continuation()? {
