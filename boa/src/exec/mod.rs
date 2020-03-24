@@ -511,7 +511,17 @@ impl Executor for Interpreter {
                     ValueData::String(_) => "string",
                     ValueData::Function(_) => "function",
                 }))
-            }
+            },
+            Node::StatementList(ref list) => {
+                for (i, item) in list.iter().enumerate() {
+                    if i + 1 == list.len() {
+                        return self.run(item);
+                    }
+                    self.run(item)?;
+                }
+
+                Ok(Gc::new(ValueData::Undefined))
+            },
             _ => unimplemented!(),
         }
     }
