@@ -19,7 +19,7 @@ pub enum Const {
 }
 
 impl Display for Const {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match *self {
             Const::String(ref st) => write!(f, "\"{}\"", st),
             Const::Num(num) => write!(f, "{}", num),

@@ -31,7 +31,7 @@ pub enum NumOp {
 }
 
 impl Display for NumOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -76,8 +76,8 @@ pub enum UnaryOp {
     ///
     /// Unlike what common belief suggests, the delete operator has nothing to do with
     /// directly freeing memory. Memory management is done indirectly via breaking references.
-    /// If no more references to the same property are held, it is eventually released automatically. 
-    /// 
+    /// If no more references to the same property are held, it is eventually released automatically.
+    ///
     /// The `delete` operator returns `true` for all cases except when the property is an
     /// [own](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty)
     /// [non-configurable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_delete)
@@ -85,7 +85,7 @@ pub enum UnaryOp {
     ///
     /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete>
     Delete,
-    
+
     /// The `void` operator evaluates the given `expression` and then returns `undefined`.
     ///
     /// This operator allows evaluating expressions that produce a value into places where an
@@ -101,7 +101,7 @@ pub enum UnaryOp {
 }
 
 impl Display for UnaryOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -139,7 +139,7 @@ pub enum BitOp {
 }
 
 impl Display for BitOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -177,7 +177,7 @@ pub enum CompOp {
 }
 
 impl Display for CompOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -205,7 +205,7 @@ pub enum LogOp {
 }
 
 impl Display for LogOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -261,7 +261,7 @@ impl Operator for BinOp {
 }
 
 impl Display for BinOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -305,7 +305,7 @@ pub enum AssignOp {
 }
 
 impl Display for AssignOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",

@@ -61,7 +61,7 @@ impl EnvironmentError {
 }
 
 impl fmt::Display for EnvironmentError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.details)
     }
 }

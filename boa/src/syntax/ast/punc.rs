@@ -113,7 +113,7 @@ pub enum Punctuator {
 impl Punctuator {
     /// as_binop will attempt to convert a punctuator (+=) to a Binary Operator   
     /// If there is no match None will be returned
-    pub fn as_binop(&self) -> Option<BinOp> {
+    pub fn as_binop(self) -> Option<BinOp> {
         match self {
             Punctuator::Add => Some(BinOp::Num(NumOp::Add)),
             Punctuator::Sub => Some(BinOp::Num(NumOp::Sub)),
@@ -142,7 +142,7 @@ impl Punctuator {
 }
 
 impl Display for Punctuator {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
             f,
             "{}",

@@ -84,7 +84,7 @@ impl LexerError {
 }
 
 impl fmt::Display for LexerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.details)
     }
 }
@@ -423,7 +423,7 @@ impl<'a> Lexer<'a> {
                         }
                     };
 
-                    self.push_token(TokenKind::NumericLiteral(num as f64));
+                    self.push_token(TokenKind::NumericLiteral(num));
 
                     //11.8.3
                     if let Err(e) = self.check_after_numeric_literal() {

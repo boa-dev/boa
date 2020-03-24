@@ -192,19 +192,16 @@ pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let mut last_index =
         from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
     let result = this.with_internal_state_ref(|regex: &RegExp| {
-        let result = match regex.matcher.find_at(arg_str.as_str(), last_index) {
-            Some(m) => {
-                if regex.use_last_index {
-                    last_index = m.end();
-                }
-                true
+        let result = if let Some(m) = regex.matcher.find_at(arg_str.as_str(), last_index) {
+            if regex.use_last_index {
+                last_index = m.end();
             }
-            None => {
-                if regex.use_last_index {
-                    last_index = 0;
-                }
-                false
+            true
+        } else {
+            if regex.use_last_index {
+                last_index = 0;
             }
+            false
         };
         Ok(Gc::new(ValueData::Boolean(result)))
     });
@@ -219,37 +216,34 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
     let result = this.with_internal_state_ref(|regex: &RegExp| {
         let mut locations = regex.matcher.capture_locations();
-        let result =
-            match regex
+        let result = if let Some(m) =
+            regex
                 .matcher
                 .captures_read_at(&mut locations, arg_str.as_str(), last_index)
-            {
-                Some(m) => {
-                    if regex.use_last_index {
-                        last_index = m.end();
-                    }
-                    let mut result = Vec::with_capacity(locations.len());
-                    for i in 0..locations.len() {
-                        if let Some((start, end)) = locations.get(i) {
-                            result.push(to_value(
-                                arg_str.get(start..end).expect("Could not get slice"),
-                            ));
-                        } else {
-                            result.push(Gc::new(ValueData::Undefined));
-                        }
-                    }
-                    let result = to_value(result);
-                    result.set_prop_slice("index", Property::default().value(to_value(m.start())));
-                    result.set_prop_slice("input", Property::default().value(to_value(arg_str)));
-                    result
+        {
+            if regex.use_last_index {
+                last_index = m.end();
+            }
+            let mut result = Vec::with_capacity(locations.len());
+            for i in 0..locations.len() {
+                if let Some((start, end)) = locations.get(i) {
+                    result.push(to_value(
+                        arg_str.get(start..end).expect("Could not get slice"),
+                    ));
+                } else {
+                    result.push(Gc::new(ValueData::Undefined));
                 }
-                None => {
-                    if regex.use_last_index {
-                        last_index = 0;
-                    }
-                    Gc::new(ValueData::Null)
-                }
-            };
+            }
+            let result = to_value(result);
+            result.set_prop_slice("index", Property::default().value(to_value(m.start())));
+            result.set_prop_slice("input", Property::default().value(to_value(arg_str)));
+            result
+        } else {
+            if regex.use_last_index {
+                last_index = 0;
+            }
+            Gc::new(ValueData::Null)
+        };
         Ok(result)
     });
     this.set_field_slice("lastIndex", to_value(last_index));

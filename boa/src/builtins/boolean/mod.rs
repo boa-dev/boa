@@ -16,13 +16,10 @@ pub fn construct_boolean(this: &Value, args: &[Value], _: &mut Interpreter) -> R
     this.set_kind(ObjectKind::Boolean);
 
     // Get the argument, if any
-    match args.get(0) {
-        Some(ref value) => {
-            this.set_internal_slot("BooleanData", to_boolean(value));
-        }
-        None => {
-            this.set_internal_slot("BooleanData", to_boolean(&to_value(false)));
-        }
+    if let Some(ref value) = args.get(0) {
+        this.set_internal_slot("BooleanData", to_boolean(value));
+    } else {
+        this.set_internal_slot("BooleanData", to_boolean(&to_value(false)));
     }
 
     // no need to return `this` as its passed by reference

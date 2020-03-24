@@ -33,7 +33,7 @@ pub enum ParseError {
 }
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::Expected(expected, actual, routine) => write!(
                 f,
@@ -1175,15 +1175,14 @@ impl Parser {
 
         loop {
             let token = self.next_skip_lineterminator()?;
-            let name = match token.clone().kind {
-                TokenKind::Identifier(name) => name,
-                _ => {
-                    return Err(ParseError::Expected(
-                        vec![TokenKind::Identifier(String::from("Identifier"))],
-                        token.clone(),
-                        "Expect identifier.",
-                    ));
-                }
+            let name = if let TokenKind::Identifier(ref name) = token.kind {
+                name.clone()
+            } else {
+                return Err(ParseError::Expected(
+                    vec![TokenKind::Identifier(String::from("Identifier"))],
+                    token,
+                    "Expect identifier.",
+                ));
             };
 
             if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Assign))? {
@@ -1195,16 +1194,14 @@ impl Parser {
                 };
 
                 list.push(decl);
+            } else if is_const {
+                return Err(ParseError::Expected(
+                    vec![TokenKind::Identifier(String::from("Expression"))],
+                    token,
+                    "Expected Expression for Const!",
+                ));
             } else {
-                if is_const {
-                    return Err(ParseError::Expected(
-                        vec![TokenKind::Identifier(String::from("Expression"))],
-                        token,
-                        "Expected Expression for Const!",
-                    ));
-                } else {
-                    list.push(Node::LetDecl(vec![(name, None)]));
-                }
+                list.push(Node::LetDecl(vec![(name, None)]));
             }
 
             if !self.variable_declaration_continuation()? {
@@ -1451,11 +1448,10 @@ impl Parser {
             self.expect_punc(Punctuator::OpenParen, "Expected opening parenthesis (")?;
             // TODO: should accept BindingPattern
             let tok = self.get_next_token()?;
-            let catch_param = match tok.kind {
-                TokenKind::Identifier(s) => Node::Local(s),
-                _ => {
-                    return Err(ParseError::Unexpected(tok, "expected identifier."));
-                }
+            let catch_param = if let TokenKind::Identifier(s) = tok.kind {
+                Node::Local(s)
+            } else {
+                return Err(ParseError::Unexpected(tok, "expected identifier."));
             };
             self.expect_punc(Punctuator::CloseParen, "Expected )")?;
             self.expect_punc(Punctuator::OpenBlock, "Expected {")?;
@@ -1472,7 +1468,7 @@ impl Parser {
             .next_if_skip_lineterminator(TokenKind::Keyword(Keyword::Finally))
             .unwrap_or(false);
         let finally = if is_finally {
-            self.expect_punc(Punctuator::OpenBlock, "Expected {");
+            self.expect_punc(Punctuator::OpenBlock, "Expected {")?;
             Some(Box::new(self.read_block_statement()?))
         } else {
             None
@@ -1523,7 +1519,7 @@ impl Parser {
             self.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "expected ')'",
-            );
+            )?;
             Some(Box::new(step))
         };
 
@@ -1586,20 +1582,23 @@ impl Parser {
     /// <https://tc39.es/ecma262/#prod-VariableDeclaration>
     fn read_variable_declaration(&mut self) -> Result<(String, Option<Node>), ParseError> {
         let tok = self.get_next_token()?;
-        let name = match tok.kind {
-            TokenKind::Identifier(name) => name,
-            _ => {
-                return Err(ParseError::Expected(
-                    vec![TokenKind::Identifier("identifier".to_string())],
-                    tok,
-                    "Expect identifier.",
-                ));
-            }
+        let name = if let TokenKind::Identifier(name) = tok.kind {
+            name
+        } else {
+            return Err(ParseError::Expected(
+                vec![TokenKind::Identifier("identifier".to_string())],
+                tok,
+                "Expect identifier.",
+            ));
         };
 
-        match self.next_if(TokenKind::Punctuator(Punctuator::Assign)) {
-            Some(_) => Ok((name, Some(self.read_initializer()?))),
-            None => Ok((name, None)),
+        if self
+            .next_if(TokenKind::Punctuator(Punctuator::Assign))
+            .is_some()
+        {
+            Ok((name, Some(self.read_initializer()?)))
+        } else {
+            Ok((name, None))
         }
     }
 
@@ -1631,14 +1630,13 @@ impl Parser {
                 }
             }
             // a=>{}
-            TokenKind::Identifier(_) => match self.peek(1) {
-                Ok(tok) => {
+            TokenKind::Identifier(_) => {
+                if let Ok(tok) = self.peek(1) {
                     if tok.kind == TokenKind::Punctuator(Punctuator::Arrow) {
                         return self.read_arrow_function(false);
                     }
                 }
-                _ => {}
-            },
+            }
             _ => {}
         }
 
@@ -1705,7 +1703,7 @@ impl Parser {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::Question) => {
                     let then_ = self.read_assignment_expression()?;
-                    self.expect_punc(Punctuator::Colon, "expect ':'");
+                    self.expect_punc(Punctuator::Colon, "expect ':'")?;
                     let else_ = self.read_assignment_expression()?;
                     return Ok(Node::ConditionalOp(
                         Box::new(lhs),
@@ -1722,21 +1720,21 @@ impl Parser {
 
     /// <https://tc39.es/ecma262/#sec-arrow-function-definitions>
     fn read_arrow_function(&mut self, is_parenthesized_param: bool) -> Result<Node, ParseError> {
-        let params;
-        if is_parenthesized_param {
-            self.expect_punc(Punctuator::OpenParen, "exect '('");
-            params = self.read_formal_parameters()?;
+        let params = if is_parenthesized_param {
+            self.expect_punc(Punctuator::OpenParen, "exect '('")?;
+            self.read_formal_parameters()?
         } else {
             let param_name = match self.get_next_token()?.kind {
                 TokenKind::Identifier(s) => s,
                 _ => unreachable!(),
             };
-            params = vec![FormalParameter {
+            vec![FormalParameter {
                 init: None,
                 name: param_name,
                 is_rest_param: false,
-            }];
-        }
+            }]
+        };
+
         let body = if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Arrow))? {
             self.read_block()?
         } else {
@@ -1780,7 +1778,7 @@ impl Parser {
                 ));
             }
 
-            self.expect(TokenKind::Punctuator(Punctuator::Comma), "expect ','");
+            self.expect(TokenKind::Punctuator(Punctuator::Comma), "expect ','")?;
         }
 
         Ok(params)
@@ -1926,7 +1924,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    // Checks by looking at the next token to see whether its a Unary operator or not
+    // Checks by looking at the next token to see whether its a Unary operator or not.
     fn is_unary_expression(&mut self) -> bool {
         match self.peek(0) {
             Ok(ok) => match ok.kind {
@@ -2021,7 +2019,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    /// https://tc39.github.io/ecma262/#prod-LeftHandSideExpression
+    /// <https://tc39.github.io/ecma262/#prod-LeftHandSideExpression>
     /// TODO: Implement NewExpression: new MemberExpression
     fn read_left_hand_side_expression(&mut self) -> Result<Node, ParseError> {
         let lhs = self.read_member_expression()?;
@@ -2033,7 +2031,7 @@ impl Parser {
         }
     }
 
-    /// https://tc39.github.io/ecma262/#prod-NewExpression
+    /// <https://tc39.github.io/ecma262/#prod-NewExpression>
     fn read_new_expression(&mut self, first_member_expr: Node) -> Result<Node, ParseError> {
         Ok(first_member_expr)
     }
@@ -2043,9 +2041,10 @@ impl Parser {
         let mut lhs = if self.peek_skip_lineterminator()?.kind == TokenKind::Keyword(Keyword::New) {
             self.next_skip_lineterminator()?;
             let lhs = self.read_member_expression()?;
-            self.expect_punc(Punctuator::OpenParen, "expect '('.");
+            self.expect_punc(Punctuator::OpenParen, "expect '('.")?;
             let args = self.read_arguments()?;
             let call_node = Node::Call(Box::new(lhs), args);
+
             Node::New(Box::new(call_node))
         } else {
             self.read_primary_expression()?
@@ -2084,18 +2083,17 @@ impl Parser {
         Ok(lhs)
     }
 
-    /// https://tc39.github.io/ecma262/#prod-CallExpression
+    /// <https://tc39.github.io/ecma262/#prod-CallExpression>
     fn read_call_expression(&mut self, first_member_expr: Node) -> Result<Node, ParseError> {
         let mut lhs = first_member_expr;
-        match self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenParen)) {
-            Ok(true) => {
-                let args = self.read_arguments()?;
-                lhs = Node::Call(Box::new(lhs), args);
-            }
-            _ => {
-                panic!("CallExpression MUST start with MemberExpression.");
-            }
-        };
+        if let Ok(true) =
+            self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenParen))
+        {
+            let args = self.read_arguments()?;
+            lhs = Node::Call(Box::new(lhs), args);
+        } else {
+            panic!("CallExpression MUST start with MemberExpression.");
+        }
 
         while let Ok(tok) = self.next_skip_lineterminator() {
             match tok.kind {
@@ -2142,7 +2140,7 @@ impl Parser {
             match self.next_skip_lineterminator() {
                 Ok(ref tok) if tok.kind == TokenKind::Punctuator(Punctuator::CloseParen) => break,
                 Ok(ref tok) if tok.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    if args.len() == 0 {
+                    if args.is_empty() {
                         return Err(ParseError::Unexpected(tok.clone(), "Unexpected token."));
                     }
                     if self.next_if_skip_lineterminator(TokenKind::Punctuator(
@@ -2152,7 +2150,7 @@ impl Parser {
                     }
                 }
                 Ok(tok) => {
-                    if args.len() != 0 {
+                    if !args.is_empty() {
                         return Err(ParseError::Expected(
                             vec![
                                 TokenKind::Punctuator(Punctuator::Comma),
@@ -2186,7 +2184,7 @@ impl Parser {
             TokenKind::Keyword(Keyword::Function) => self.read_function_expression(),
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let expr = self.read_expression();
-                self.expect_punc(Punctuator::CloseParen, "Expect punc");
+                self.expect_punc(Punctuator::CloseParen, "Expect punc")?;
                 expr
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => self.read_array_literal(),
@@ -2211,11 +2209,11 @@ impl Parser {
             None
         };
 
-        self.expect_punc(Punctuator::OpenParen, "expect '('");
+        self.expect_punc(Punctuator::OpenParen, "expect '('")?;
 
         let params = self.read_formal_parameters()?;
 
-        self.expect_punc(Punctuator::OpenBlock, "expect '{'");
+        self.expect_punc(Punctuator::OpenBlock, "expect '{'")?;
 
         let body = self.read_block()?;
 

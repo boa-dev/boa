@@ -1,11 +1,14 @@
-use crate::builtins::function::NativeFunctionData;
-use crate::builtins::value::{
-    from_value, log_string_from, to_value, ResultValue, Value, ValueData,
+#![allow(clippy::print_stdout)]
+
+use crate::{
+    builtins::{
+        function::NativeFunctionData,
+        value::{from_value, log_string_from, to_value, ResultValue, Value, ValueData},
+    },
+    exec::Interpreter,
 };
-use crate::exec::Interpreter;
 use gc::Gc;
-use std::iter::FromIterator;
-use std::ops::Deref;
+use std::{iter::FromIterator, ops::Deref};
 
 /// Print a javascript value to the standard output stream
 /// <https://console.spec.whatwg.org/#logger>

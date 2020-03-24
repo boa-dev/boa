@@ -179,16 +179,15 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn get_binding_value(&self, name: &str, _strict: bool) -> Value {
-        match self.env_rec.get(name) {
-            Some(binding) => binding
+        if let Some(binding) = self.env_rec.get(name) {
+            binding
                 .value
                 .as_ref()
                 .expect("Could not get record as reference")
-                .clone(),
-            None => {
-                // TODO: change this when error handling comes into play
-                panic!("ReferenceError: Cannot get binding value for {}", name);
-            }
+                .clone()
+        } else {
+            // TODO: change this when error handling comes into play
+            panic!("ReferenceError: Cannot get binding value for {}", name);
         }
     }
 

@@ -22,7 +22,7 @@ impl Token {
 }
 
 impl Display for Token {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.kind)
     }
 }
@@ -30,7 +30,7 @@ impl Display for Token {
 pub struct VecToken(Vec<Token>);
 
 impl Debug for VecToken {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let mut buffer = String::new();
         for token in &self.0 {
             buffer.push_str(&token.to_string());
@@ -67,7 +67,7 @@ pub enum TokenKind {
 }
 
 impl Display for TokenKind {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match *self {
             TokenKind::BooleanLiteral(ref val) => write!(f, "{}", val),
             TokenKind::EOF => write!(f, "end of file"),

@@ -3,39 +3,36 @@ use crate::syntax::ast::{
     op::{BinOp, Operator, UnaryOp},
 };
 use gc_derive::{Finalize, Trace};
-use std::{
-    collections::btree_map::BTreeMap,
-    fmt::{Display, Formatter, Result},
-};
+use std::{collections::btree_map::BTreeMap, fmt};
 
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A Javascript AST Node
+/// A Javascript AST Node.
 pub enum Node {
-    /// Create an array with items inside
+    /// Create an array with items inside.
     ArrayDecl(Vec<Node>),
-    /// Create an arrow function with the given arguments and expression
+    /// Create an arrow function with the given arguments and internal AST node.
     ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
-    /// Assign an expression to a value
+    /// Assign an AST node result to an AST node.
     Assign(Box<Node>, Box<Node>),
-    /// Run an operation between 2 expressions
+    /// Run an operation between 2 AST nodes.
     BinOp(BinOp, Box<Node>, Box<Node>),
-    /// Run several expressions from top-to-bottom
+    /// Run several AST nodes from top-to-bottom.
     Block(Vec<Node>),
-    /// Break statement with an optional label
+    /// Break statement with an optional label.
     Break(Option<String>),
-    /// Call a function with some values
+    /// Call a function with some values.
     Call(Box<Node>, Vec<Node>),
-    /// Conditional Operator ( ? : )
+    /// Conditional Operator (`{condition} ? {if true} : {if false}`).
     ConditionalOp(Box<Node>, Box<Node>, Box<Node>),
-    /// Make a constant value
+    /// Make a constant value.
     Const(Const),
-    /// Const declaration
+    /// Const declaration.
     ConstDecl(Vec<(String, Node)>),
-    /// Construct an object from the function and arg{
+    /// Construct an object from the function and arguments.
     Construct(Box<Node>, Vec<Node>),
-    /// Continue with an optional label
+    /// Continue with an optional label.
     Continue(Option<String>),
-    /// Create a function with the given name, arguments, and expression
+    /// Create a function with the given name, arguments, and internal AST node.
     FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
     /// Gets the constant field of a value
     GetConstField(Box<Node>, String),
@@ -81,7 +78,7 @@ pub enum Node {
     ),
     /// The JavaScript `this` keyword refers to the object it belongs to.
     ///
-    /// A property of an execution context (global, function or eval) that, 
+    /// A property of an execution context (global, function or eval) that,
     /// in non–strict mode, is always a reference to an object and in strict
     /// mode can be any value.
     ///
@@ -127,42 +124,77 @@ impl Operator for Node {
     }
 }
 
-impl Display for Node {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display(f, 0)
+    }
+}
+
+impl Node {
+    /// Implements the display formatting with indentation.
+    fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+        let indent = "    ".repeat(indentation);
         match *self {
-            Node::Const(ref c) => write!(f, "{}", c),
-            Node::ConditionalOp(_, _, _) => write!(f, "Conditional op"),
-            Node::ForLoop(_, _, _, _) => write!(f, "for loop"),
-            Node::This => write!(f, "this"),
-            Node::Object(_) => write!(f, "object"),
-            Node::Spread(_) => write!(f, "spread"),
-            Node::New(_) => write!(f, "new"),
-            Node::Try(_, _, _, _) => write!(f, "try/catch/finally"),
-            Node::Break(_) => write!(f, "break"),
-            Node::Continue(_) => write!(f, "continue"),
-            Node::Block(ref block) => {
-                write!(f, "{{")?;
-                for expr in block.iter() {
-                    write!(f, "{};", expr)?;
+            Self::Block(_) => {}
+            _ => write!(f, "{}", indent)?,
+        }
+
+        match *self {
+            Self::Const(ref c) => write!(f, "{}", c),
+            Self::ConditionalOp(_, _, _) => write!(f, "Conditional op"), // TODO
+            Self::ForLoop(_, _, _, _) => write!(f, "for loop"),          // TODO
+            Self::This => write!(f, "this"),                             // TODO
+            Self::Object(_) => write!(f, "object"),                      // TODO
+            Self::Spread(_) => write!(f, "spread"),                      // TODO
+            Self::New(_) => write!(f, "new"),                            // TODO
+            Self::Try(_, _, _, _) => write!(f, "try/catch/finally"),     // TODO
+            Self::Break(_) => write!(f, "break"), // TODO: add potential value
+            Self::Continue(_) => write!(f, "continue"), // TODO: add potential value
+            Self::Block(ref block) => {
+                writeln!(f, "{{")?;
+                for node in block.iter() {
+                    node.display(f, indentation + 1)?;
+
+                    match node {
+                        Self::Block(_)
+                        | Self::If(_, _, _)
+                        | Self::Switch(_, _, _)
+                        | Self::FunctionDecl(_, _, _)
+                        | Self::WhileLoop(_, _)
+                        | Self::StatementList(_) => {}
+                        _ => write!(f, ";")?,
+                    }
+                    writeln!(f)?;
                 }
-                write!(f, "}}")
+                write!(f, "{}}}", indent)
             }
-            Node::StatementList(ref block) => {
-                for expr in block.iter() {
-                    write!(f, "{};", expr)?;
+            Node::StatementList(ref list) => {
+                for node in list.iter() {
+                    node.display(f, indentation + 1)?;
+
+                    match node {
+                        Self::Block(_)
+                        | Self::If(_, _, _)
+                        | Self::Switch(_, _, _)
+                        | Self::FunctionDecl(_, _, _)
+                        | Self::WhileLoop(_, _)
+                        | Self::StatementList(_) => {}
+                        _ => write!(f, ";")?,
+                    }
+                    writeln!(f)?;
                 }
-                write!(f, "")
+                Ok(())
             }
-            Node::Local(ref s) => write!(f, "{}", s),
-            Node::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
-            Node::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
-            Node::Call(ref ex, ref args) => {
+            Self::Local(ref s) => write!(f, "{}", s),
+            Self::GetConstField(ref ex, ref field) => write!(f, "{}.{}", ex, field),
+            Self::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
+            Self::Call(ref ex, ref args) => {
                 write!(f, "{}(", ex)?;
                 let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
-                write!(f, "{})", arg_strs.join(","))
+                write!(f, "{})", arg_strs.join(", "))
             }
-            Node::Construct(ref func, ref args) => {
-                f.write_fmt(format_args!("new {}", func))?;
+            Self::Construct(ref func, ref args) => {
+                write!(f, "new {}", func)?;
                 f.write_str("(")?;
                 let mut first = true;
                 for e in args.iter() {
@@ -170,102 +202,111 @@ impl Display for Node {
                         f.write_str(", ")?;
                     }
                     first = false;
-                    Display::fmt(e, f)?;
+                    write!(f, "{}", e)?;
                 }
                 f.write_str(")")
             }
-            Node::WhileLoop(ref cond, ref expr) => write!(f, "while({}) {}", cond, expr),
-            Node::If(ref cond, ref expr, None) => write!(f, "if({}) {}", cond, expr),
-            Node::If(ref cond, ref expr, Some(ref else_e)) => {
-                write!(f, "if({}) {} else {}", cond, expr, else_e)
+            Self::WhileLoop(ref cond, ref node) => {
+                write!(f, "while ({}) ", cond)?;
+                node.display(f, indentation)
             }
-            Node::Switch(ref val, ref vals, None) => {
-                f.write_fmt(format_args!("switch({})", val))?;
-                f.write_str(" {")?;
+            Self::If(ref cond, ref node, None) => {
+                write!(f, "if ({}) ", cond)?;
+                node.display(f, indentation)
+            }
+            Self::If(ref cond, ref node, Some(ref else_e)) => {
+                write!(f, "if ({}) ", cond)?;
+                node.display(f, indentation)?;
+                f.write_str(" else ")?;
+                else_e.display(f, indentation)
+            }
+            Self::Switch(ref val, ref vals, None) => {
+                writeln!(f, "switch ({}) {{", val)?;
                 for e in vals.iter() {
-                    f.write_fmt(format_args!("case {}: \n", e.0))?;
-                    join_expr(f, &e.1)?;
+                    writeln!(f, "{}case {}:", indent, e.0)?;
+                    join_nodes(f, &e.1)?;
                 }
-                f.write_str("}")
+                writeln!(f, "{}}}", indent)
             }
-            Node::Switch(ref val, ref vals, Some(ref def)) => {
-                f.write_fmt(format_args!("switch({})", val))?;
-                f.write_str(" {")?;
+            Self::Switch(ref val, ref vals, Some(ref def)) => {
+                writeln!(f, "switch ({}) {{", val)?;
                 for e in vals.iter() {
-                    f.write_fmt(format_args!("case {}: \n", e.0))?;
-                    join_expr(f, &e.1)?;
+                    writeln!(f, "{}case {}:", indent, e.0)?;
+                    join_nodes(f, &e.1)?;
                 }
-                f.write_str("default: \n")?;
-                Display::fmt(def, f)?;
-                f.write_str("}")
+                writeln!(f, "{}default:", indent)?;
+                def.display(f, indentation + 1)?;
+                write!(f, "{}}}", indent)
             }
-            Node::ObjectDecl(ref map) => {
-                f.write_str("{")?;
+            Self::ObjectDecl(ref map) => {
+                f.write_str("{\n")?;
                 for (key, value) in map.iter() {
-                    f.write_fmt(format_args!("{}: {},", key, value))?;
+                    write!(f, "{}    {}: {},", indent, key, value)?;
                 }
                 f.write_str("}")
             }
-            Node::ArrayDecl(ref arr) => {
+            Self::ArrayDecl(ref arr) => {
                 f.write_str("[")?;
-                join_expr(f, arr)?;
+                join_nodes(f, arr)?;
                 f.write_str("]")
             }
-            Node::FunctionDecl(ref name, ref _args, ref expr) => {
+            Self::FunctionDecl(ref name, ref _args, ref node) => {
                 write!(f, "function ")?;
                 if let Some(func_name) = name {
-                    f.write_fmt(format_args!("{}", func_name))?;
+                    write!(f, "{}", func_name)?;
                 }
                 write!(f, "{{")?;
-                // join_expr(f, args)?;
-                write!(f, "}} {}", expr)
+                //join_nodes(f, args)?; TODO: port
+                f.write_str("} ")?;
+                node.display(f, indentation + 1)
             }
-            Node::ArrowFunctionDecl(ref _args, ref expr) => {
+            Self::ArrowFunctionDecl(ref _args, ref node) => {
                 write!(f, "(")?;
-                // join_expr(f, args.ini)?;
-                write!(f, ") => {}", expr)
+                //join_nodes(f, args)?; TODO: port
+                f.write_str(") => ")?;
+                node.display(f, indentation)
             }
-            Node::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
-            Node::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
-            Node::Return(Some(ref ex)) => write!(f, "return {}", ex),
-            Node::Return(None) => write!(f, "return"),
-            Node::Throw(ref ex) => write!(f, "throw {}", ex),
-            Node::Assign(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
-            Node::VarDecl(ref vars) | Node::LetDecl(ref vars) => {
-                if let Node::VarDecl(_) = *self {
+            Self::BinOp(ref op, ref a, ref b) => write!(f, "{} {} {}", a, op, b),
+            Self::UnaryOp(ref op, ref a) => write!(f, "{}{}", op, a),
+            Self::Return(Some(ref ex)) => write!(f, "return {}", ex),
+            Self::Return(None) => write!(f, "return"),
+            Self::Throw(ref ex) => write!(f, "throw {}", ex),
+            Self::Assign(ref ref_e, ref val) => write!(f, "{} = {}", ref_e, val),
+            Self::VarDecl(ref vars) | Self::LetDecl(ref vars) => {
+                if let Self::VarDecl(_) = *self {
                     f.write_str("var ")?;
                 } else {
                     f.write_str("let ")?;
                 }
                 for (key, val) in vars.iter() {
                     match val {
-                        Some(x) => f.write_fmt(format_args!("{} = {}", key, x))?,
-                        None => f.write_fmt(format_args!("{}", key))?,
+                        Some(x) => write!(f, "{} = {}", key, x)?,
+                        None => write!(f, "{}", key)?,
                     }
                 }
                 Ok(())
             }
-            Node::ConstDecl(ref vars) => {
+            Self::ConstDecl(ref vars) => {
                 f.write_str("const ")?;
                 for (key, val) in vars.iter() {
-                    f.write_fmt(format_args!("{} = {}", key, val))?
+                    write!(f, "{} = {}", key, val)?
                 }
                 Ok(())
             }
-            Node::TypeOf(ref e) => write!(f, "typeof {}", e),
+            Self::TypeOf(ref e) => write!(f, "typeof {}", e),
         }
     }
 }
 
-/// `join_expr` - Utility to join multiple Expressions into a single string
-fn join_expr(f: &mut Formatter, expr: &[Node]) -> Result {
+/// Utility to join multiple Nodes into a single string.
+fn join_nodes(f: &mut fmt::Formatter<'_>, nodes: &[Node]) -> fmt::Result {
     let mut first = true;
-    for e in expr.iter() {
+    for e in nodes {
         if !first {
             f.write_str(", ")?;
         }
         first = false;
-        Display::fmt(e, f)?;
+        write!(f, "{}", e)?;
     }
     Ok(())
 }
