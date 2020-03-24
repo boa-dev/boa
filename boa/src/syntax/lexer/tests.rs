@@ -388,24 +388,24 @@ fn numbers() {
     );
 
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].data, TokenData::NumericLiteral(1.0));
-    assert_eq!(lexer.tokens[1].data, TokenData::NumericLiteral(2.0));
-    assert_eq!(lexer.tokens[2].data, TokenData::NumericLiteral(52.0));
-    assert_eq!(lexer.tokens[3].data, TokenData::NumericLiteral(46.0));
-    assert_eq!(lexer.tokens[4].data, TokenData::NumericLiteral(7.89));
-    assert_eq!(lexer.tokens[5].data, TokenData::NumericLiteral(42.0));
-    assert_eq!(lexer.tokens[6].data, TokenData::NumericLiteral(5000.0));
-    assert_eq!(lexer.tokens[7].data, TokenData::NumericLiteral(5000.0));
-    assert_eq!(lexer.tokens[8].data, TokenData::NumericLiteral(0.005));
-    assert_eq!(lexer.tokens[9].data, TokenData::NumericLiteral(2.0));
-    assert_eq!(lexer.tokens[10].data, TokenData::NumericLiteral(83.0));
-    assert_eq!(lexer.tokens[11].data, TokenData::NumericLiteral(999.0));
-    assert_eq!(lexer.tokens[12].data, TokenData::NumericLiteral(10.0));
-    assert_eq!(lexer.tokens[13].data, TokenData::NumericLiteral(0.1));
-    assert_eq!(lexer.tokens[14].data, TokenData::NumericLiteral(10.0));
-    assert_eq!(lexer.tokens[15].data, TokenData::NumericLiteral(10.0));
-    assert_eq!(lexer.tokens[16].data, TokenData::NumericLiteral(0.0));
-    assert_eq!(lexer.tokens[17].data, TokenData::NumericLiteral(0.12));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::NumericLiteral(2.0));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(52.0));
+    assert_eq!(lexer.tokens[3].kind, TokenKind::NumericLiteral(46.0));
+    assert_eq!(lexer.tokens[4].kind, TokenKind::NumericLiteral(7.89));
+    assert_eq!(lexer.tokens[5].kind, TokenKind::NumericLiteral(42.0));
+    assert_eq!(lexer.tokens[6].kind, TokenKind::NumericLiteral(5000.0));
+    assert_eq!(lexer.tokens[7].kind, TokenKind::NumericLiteral(5000.0));
+    assert_eq!(lexer.tokens[8].kind, TokenKind::NumericLiteral(0.005));
+    assert_eq!(lexer.tokens[9].kind, TokenKind::NumericLiteral(2.0));
+    assert_eq!(lexer.tokens[10].kind, TokenKind::NumericLiteral(83.0));
+    assert_eq!(lexer.tokens[11].kind, TokenKind::NumericLiteral(999.0));
+    assert_eq!(lexer.tokens[12].kind, TokenKind::NumericLiteral(10.0));
+    assert_eq!(lexer.tokens[13].kind, TokenKind::NumericLiteral(0.1));
+    assert_eq!(lexer.tokens[14].kind, TokenKind::NumericLiteral(10.0));
+    assert_eq!(lexer.tokens[15].kind, TokenKind::NumericLiteral(10.0));
+    assert_eq!(lexer.tokens[16].kind, TokenKind::NumericLiteral(0.0));
+    assert_eq!(lexer.tokens[17].kind, TokenKind::NumericLiteral(0.12));
 }
 
 #[test]
