@@ -25,11 +25,11 @@ pub fn evaluate(src: &str) -> String {
     let tokens = lexer.tokens;
 
     // Setup executor
-    let expr: Node;
+    let node: Node;
 
     match Parser::new(tokens).parse_all() {
         Ok(v) => {
-            expr = v;
+            node = v;
         }
         Err(_v) => {
             log("parsing fail");
@@ -39,7 +39,7 @@ pub fn evaluate(src: &str) -> String {
     // Create new Realm
     let realm = Realm::create();
     let mut engine: Interpreter = Executor::new(realm);
-    let result = engine.run(&expr);
+    let result = engine.run(&node);
     match result {
         Ok(v) => v.to_string(),
         Err(v) => format!("{}: {}", "error", v.to_string()),
