@@ -1235,7 +1235,7 @@ impl Parser {
         self.expect(
             TokenKind::Punctuator(Punctuator::OpenBracket),
             "expected '{'",
-        );
+        )?;
 
         let body = self.read_block()?;
 
