@@ -106,13 +106,7 @@ impl Parser {
 
     /// Parse all expressions in the token array
     pub fn parse_all(&mut self) -> ParseResult {
-        let mut exprs = Vec::new();
-        while self.pos < self.tokens.len() {
-            let result = self.parse()?;
-            exprs.push(result);
-        }
-
-        Ok(Node::Block(exprs))
+        self.read_statement_list()
     }
 
     // I hope to deprecate this
@@ -128,17 +122,6 @@ impl Parser {
     fn get_next_token(&mut self) -> Result<Token, ParseError> {
         self.pos += 1;
         self.get_token(self.pos)
-    }
-
-    /// consume the next token and increment position (Skipping over lineTerminators)
-    fn get_next_token_skip_lineterminator(&mut self) -> Result<Token, ParseError> {
-        self.pos += 1;
-        loop {
-            let token = self.get_token(self.pos)?;
-            if token.kind != TokenKind::LineTerminator {
-                return Ok(token);
-            }
-        }
     }
 
     /// Returns the current token  the cursor is sitting on
@@ -190,7 +173,7 @@ impl Parser {
         Err(ParseError::NormalEOF)
     }
 
-    /// Get the next token.
+    /// Consume the next token.\
     /// Skipping line terminators.
     pub fn next_skip_lineterminator(&mut self) -> Result<Token, ParseError> {
         loop {
@@ -892,7 +875,9 @@ impl Parser {
                 )?;
                 result = Node::GetField(Box::new(expr), Box::new(index));
             }
-            TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::Comment(_) => {
+            TokenKind::Punctuator(Punctuator::Semicolon)
+            | TokenKind::LineTerminator
+            | TokenKind::Comment(_) => {
                 self.pos += 1;
             }
             TokenKind::Punctuator(Punctuator::Assign) => {
@@ -1026,7 +1011,6 @@ impl Parser {
         if carry_on && self.pos < self.tokens.len() {
             self.parse_next(result)
         } else {
-            dbg!(&result);
             Ok(result)
         }
     }
@@ -1069,7 +1053,7 @@ impl Parser {
         tk: TokenKind,
         routine: &'static str,
     ) -> Result<(), ParseError> {
-        let curr_tk = self.get_next_token_skip_lineterminator()?;
+        let curr_tk = self.next_skip_lineterminator()?;
         if curr_tk.kind == tk {
             Ok(())
         } else {
