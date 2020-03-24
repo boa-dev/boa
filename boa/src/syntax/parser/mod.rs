@@ -120,8 +120,9 @@ impl Parser {
 
     /// consume the next token and increment position
     fn get_next_token(&mut self) -> Result<Token, ParseError> {
+        let token = self.get_token(self.pos);
         self.pos += 1;
-        self.get_token(self.pos)
+        token
     }
 
     /// Returns the current token  the cursor is sitting on
