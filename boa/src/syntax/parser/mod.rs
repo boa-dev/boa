@@ -1423,7 +1423,7 @@ impl Parser {
 
     /// <https://tc39.es/ecma262/#sec-while-statement>
     fn read_while_statement(&mut self) -> Result<Node, ParseError> {
-        self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('");
+        self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('")?;
 
         let cond = self.read_expression()?;
 
