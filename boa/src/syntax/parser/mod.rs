@@ -1440,7 +1440,7 @@ impl Parser {
     /// <https://tc39.es/ecma262/#sec-try-statement>
     fn read_try_statement(&mut self) -> Result<Node, ParseError> {
         // TRY
-        self.expect_punc(Punctuator::OpenBlock, "Expected open brace {");
+        self.expect_punc(Punctuator::OpenBlock, "Expected open brace {")?;
         let try_clause = self.read_block_statement()?;
         let is_catch = self
             .next_if_skip_lineterminator(TokenKind::Keyword(Keyword::Catch))
