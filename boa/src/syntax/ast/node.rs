@@ -291,9 +291,9 @@ pub type FormalParameters = Vec<FormalParameter>;
 impl FormalParameter {
     pub fn new(name: String, init: Option<Box<Node>>, is_rest_param: bool) -> FormalParameter {
         FormalParameter {
-            name: name,
-            init: init,
-            is_rest_param: is_rest_param,
+            name,
+            init,
+            is_rest_param,
         }
     }
 }
