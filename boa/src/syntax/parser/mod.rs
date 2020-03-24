@@ -2046,8 +2046,7 @@ impl Parser {
             self.expect_punc(Punctuator::OpenParen, "expect '('.");
             let args = self.read_arguments()?;
             let call_node = Node::Call(Box::new(lhs), args);
-            let new_node = Node::New(Box::new(call_node));
-            new_node
+            Node::New(Box::new(call_node))
         } else {
             self.read_primary_expression()?
         };
