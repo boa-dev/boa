@@ -1448,7 +1448,7 @@ impl Parser {
 
         // CATCH
         let (catch, param) = if is_catch {
-            self.expect_punc(Punctuator::OpenParen, "Expected opening parenthesis (");
+            self.expect_punc(Punctuator::OpenParen, "Expected opening parenthesis (")?;
             // TODO: should accept BindingPattern
             let tok = self.get_next_token()?;
             let catch_param = match tok.kind {
