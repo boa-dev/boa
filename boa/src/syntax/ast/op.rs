@@ -76,9 +76,31 @@ pub enum UnaryOp {
     TypeOf,
     /// `...a` - spread an iterable value
     Spread,
-    /// Delete
+    /// The JavaScript `delete` operator removes a property from an object.
+    ///
+    /// Unlike what common belief suggests, the delete operator has nothing to do with
+    /// directly freeing memory. Memory management is done indirectly via breaking references.
+    /// If no more references to the same property are held, it is eventually released automatically. 
+    /// 
+    /// The `delete` operator returns `true` for all cases except when the property is an
+    /// [own](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty)
+    /// [non-configurable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_delete)
+    /// property, in which case, `false` is returned in non-strict mode.
+    ///
+    /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete>
     Delete,
-    /// Void
+    
+    /// The `void` operator evaluates the given `expression` and then returns `undefined`.
+    ///
+    /// This operator allows evaluating expressions that produce a value into places where an
+    /// expression that evaluates to `undefined` is desired.
+    /// The `void` operator is often used merely to obtain the `undefined` primitive value, usually using `void(0)`
+    /// (which is equivalent to `void 0`). In these cases, the global variable undefined can be used.
+    ///
+    /// When using an [immediately-invoked function expression](https://developer.mozilla.org/en-US/docs/Glossary/IIFE),
+    /// `void` can be used to force the function keyword to be treated as an expression instead of a declaration.
+    ///
+    /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void>
     Void,
 }
 
