@@ -53,8 +53,9 @@ impl Display for NumOp {
 
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A unary operation on a single value   
-/// <https://tc39.es/ecma262/#prod-UnaryExpression>
+/// A unary operation on a single value
+///
+/// For more information, please check: <https://tc39.es/ecma262/#prod-UnaryExpression>
 pub enum UnaryOp {
     /// `a++` - increment the value
     IncrementPost,
