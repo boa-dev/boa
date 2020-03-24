@@ -1430,7 +1430,7 @@ impl Parser {
         self.expect(
             TokenKind::Punctuator(Punctuator::CloseParen),
             "expected ')'",
-        );
+        )?;
 
         let body = self.read_statement()?;
 
