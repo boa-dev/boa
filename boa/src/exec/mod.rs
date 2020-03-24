@@ -68,8 +68,8 @@ impl Executor for Interpreter {
     }
 
     #[allow(clippy::match_same_arms)]
-    fn run(&mut self, expr: &Node) -> ResultValue {
-        match *expr {
+    fn run(&mut self, node: &Node) -> ResultValue {
+        match *node {
             Node::Const(Const::Null) => Ok(to_value(None::<()>)),
             Node::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
             Node::Const(Const::Num(num)) => Ok(to_value(num)),
