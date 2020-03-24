@@ -850,10 +850,9 @@ impl Display for ValueData {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
                 Function::RegularFunc(ref rf) => {
                     write!(f, "function{}(", if rf.args.is_empty() { "" } else { " " })?;
-                    let last_index = rf.args.len() - 1;
                     for (index, arg) in rf.args.iter().enumerate() {
                         write!(f, "{}", arg)?;
-                        if index != last_index {
+                        if index + 1 != rf.args.len() {
                             write!(f, ", ")?;
                         }
                     }
