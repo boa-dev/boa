@@ -1457,7 +1457,7 @@ impl Parser {
                     return Err(ParseError::Unexpected(tok, "expected identifier."));
                 }
             };
-            self.expect_punc(Punctuator::CloseParen, "Expected )");
+            self.expect_punc(Punctuator::CloseParen, "Expected )")?;
             self.expect_punc(Punctuator::OpenBlock, "Expected {");
             (
                 Some(Box::new(self.read_block()?)),
