@@ -1228,7 +1228,7 @@ impl Parser {
             ));
         };
 
-        self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('");
+        self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('")?;
 
         let params = self.read_formal_parameters()?;
 
