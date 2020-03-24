@@ -863,7 +863,7 @@ impl Display for ValueData {
                             write!(f, ", ")?;
                         }
                     }
-                    write!(f, "){}", rf.expr)
+                    write!(f, "){}", rf.node)
                 }
             },
         }

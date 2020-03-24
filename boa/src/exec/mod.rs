@@ -405,7 +405,7 @@ impl Executor for Interpreter {
                                 );
                                 env.initialize_binding(name, expr.to_owned());
                             }
-                            let result = self.run(&data.expr);
+                            let result = self.run(&data.node);
                             self.realm.environment.pop();
                             result
                         }
@@ -595,7 +595,7 @@ impl Interpreter {
                         .environment
                         .initialize_binding("arguments", arguments_obj);
 
-                    let result = self.run(&data.expr);
+                    let result = self.run(&data.node);
                     self.realm.environment.pop();
                     result
                 }

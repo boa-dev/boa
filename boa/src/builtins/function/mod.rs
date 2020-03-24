@@ -37,7 +37,7 @@ pub struct RegularFunction {
     /// The fields associated with the function
     pub object: Object,
     /// This function's expression
-    pub expr: Node,
+    pub node: Node,
     /// The argument declarations of the function
     pub args: Vec<Node>,
 }
@@ -45,7 +45,7 @@ pub struct RegularFunction {
 impl RegularFunction {
     /// Make a new regular function
     #[allow(clippy::cast_possible_wrap)]
-    pub fn new(expr: Node, f_args: Vec<FormalParameter>) -> Self {
+    pub fn new(node: Node, f_args: Vec<FormalParameter>) -> Self {
         let mut args = vec![];
         for i in f_args {
             let node = (i.init.as_deref().unwrap()).clone();
@@ -57,7 +57,7 @@ impl RegularFunction {
             "arguments".to_string(),
             Property::default().value(Gc::new(ValueData::Integer(args.len() as i32))),
         );
-        Self { object, expr, args }
+        Self { object, node, args }
     }
 }
 
