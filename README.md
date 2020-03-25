@@ -86,11 +86,17 @@ see [CHANGELOG](./CHANGELOG.md)
 
 ```
 USAGE:
-    boa_cli [FILE]...
+    boa_cli [OPTIONS] [FILE]...
 
 FLAGS:
     -h, --help       Prints help information
     -V, --version    Prints version information
+
+OPTIONS:
+    -a, --dump-ast <FORMAT>       Dump the ast to stdout with the given format [possible values: Debug, Json,
+                                  JsonPretty]
+    -t, --dump-tokens <FORMAT>    Dump the token stream to stdout with the given format [possible values: Debug, Json,
+                                  JsonPretty]
 
 ARGS:
     <FILE>...    The JavaScript file(s) to be evaluated

@@ -1,6 +1,9 @@
 use gc_derive::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
 /// Represents an operator
 pub trait Operator {
     /// Get the associativity as a boolean that is true if it goes rightwards
@@ -13,6 +16,7 @@ pub trait Operator {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A numeric operation between 2 values
 pub enum NumOp {
@@ -47,6 +51,7 @@ impl Display for NumOp {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A unary operation on a single value
 pub enum UnaryOp {
@@ -88,6 +93,7 @@ impl Display for UnaryOp {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A bitwise operation between 2 values
 pub enum BitOp {
@@ -119,6 +125,7 @@ impl Display for BitOp {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A comparitive operation between 2 values
 pub enum CompOp {
@@ -159,6 +166,7 @@ impl Display for CompOp {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A logical operation between 2 boolean values
 pub enum LogOp {
@@ -181,6 +189,7 @@ impl Display for LogOp {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A binary operation between 2 values
 pub enum BinOp {
@@ -240,6 +249,7 @@ impl Display for BinOp {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A binary operation between 2 values
 pub enum AssignOp {

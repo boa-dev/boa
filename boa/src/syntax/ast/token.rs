@@ -1,9 +1,12 @@
 use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
 use std::fmt::{Debug, Display, Formatter, Result};
 
-#[derive(Clone, PartialEq)]
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
 /// Represents a token
-#[derive(Debug)]
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token Data
     pub data: TokenData,
@@ -38,7 +41,7 @@ impl Debug for VecToken {
         write!(f, "{}", buffer)
     }
 }
-
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 /// Represents the type of Token
 pub enum TokenData {

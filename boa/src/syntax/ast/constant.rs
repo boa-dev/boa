@@ -1,6 +1,10 @@
 use gc_derive::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript Constant
 pub enum Const {

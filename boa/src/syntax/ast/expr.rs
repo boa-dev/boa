@@ -8,6 +8,10 @@ use std::{
     fmt::{Display, Formatter, Result},
 };
 
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Trace, Finalize, Debug, PartialEq)]
 pub struct Expr {
     /// The expression definition
@@ -27,6 +31,7 @@ impl Display for Expr {
     }
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript Expression
 pub enum ExprDef {

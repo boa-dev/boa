@@ -1,3 +1,7 @@
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq, Debug)]
 /// A position in the Javascript source code
 /// Stores both the column number and the line number
