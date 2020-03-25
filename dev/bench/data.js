@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1584569464068,
+  "lastUpdate": 1585098334742,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2703,6 +2703,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.36,
             "range": "+/- 0.043",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "HalidOdat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5a85c595d4dff8fffd3d7881e4e9bca188691074",
+          "message": "Added the ability to dump the token stream or ast in bin. (#278)\n\n* Added the ability to dump the token stream or ast in bin.\r\n\r\nThe dump functionality works both for files and REPL.\r\n\r\nWith --dump-tokens or -t for short it dumps the token stream to stdout  and --dump-ast or -a for short to dump the ast to stdout.\r\n\r\nThe dumping of tokens and ast is mutually exclusive. and when dumping it wont run the code.\r\n\r\n* Fixed some issues with rustfmt.\r\n\r\n* Added serde serialization and deserialization to token and the ast.\r\n\r\n* Added a dynamic multi-format dumping of token stream and ast in bin.\r\n\r\n- Changed the --dump-tokens and --dump-ast to be an optional argument that optionally takes a value of format type ([--opt=[val]]).\r\n- The default format for --dump-tokens and --dump-ast is Debug format which calls std::fmt::Debug.\r\n- Added Json and JsonMinified format for both dumps,  use serde_json internally.\r\n- It is easy to support other format types, such as Toml with toml-rs for example.\r\n\r\n* Made serde an optional dependency.\r\n\r\n- Serde serialization and deserialization can be switched on by using the feature flag \"serde-ast\".\r\n\r\n* Changed the JSON dumping format.\r\n\r\n- Now Json  dumping format prints the data in minefied JSON form by default.\r\n- Removed JsonMinified.\r\n- Added JsonPretty as a way to dump the data in pretty printed JSON format.\r\n\r\n* Updated the docs.",
+          "timestamp": "2020-03-25T00:12:16Z",
+          "tree_id": "8e55a5b8a2198ea513e42eaa96d1d4c690e446c4",
+          "url": "https://github.com/jasonwilliams/boa/commit/5a85c595d4dff8fffd3d7881e4e9bca188691074"
+        },
+        "date": 1585098332844,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 479.27,
+            "range": "+/- 4.010",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 592.94,
+            "range": "+/- 6.110",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 5.4599,
+            "range": "+/- 0.035",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 11.197,
+            "range": "+/- 0.092",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 485.84,
+            "range": "+/- 3.910",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.1735,
+            "range": "+/- 0.010",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.3159,
+            "range": "+/- 0.010",
             "unit": "us"
           }
         ]
