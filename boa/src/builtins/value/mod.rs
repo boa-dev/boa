@@ -57,17 +57,14 @@ pub enum ValueData {
 impl ValueData {
     /// Returns a new empty object
     pub fn new_obj(global: Option<&Value>) -> Value {
-        match global {
-            Some(glob) => {
-                let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
+        if let Some(glob) = global {
+            let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
 
-                let obj = Object::create(obj_proto);
-                Gc::new(ValueData::Object(GcCell::new(obj)))
-            }
-            None => {
-                let obj = Object::default();
-                Gc::new(ValueData::Object(GcCell::new(obj)))
-            }
+            let obj = Object::create(obj_proto);
+            Gc::new(ValueData::Object(GcCell::new(obj)))
+        } else {
+            let obj = Object::default();
+            Gc::new(ValueData::Object(GcCell::new(obj)))
         }
     }
 
@@ -341,15 +338,14 @@ impl ValueData {
                         };
 
                         // If the getter is populated, use that. If not use [[Value]] instead
-                        match prop_getter {
-                            Some(val) => val,
-                            None => {
-                                let val = prop
-                                    .value
-                                    .as_ref()
-                                    .expect("Could not get property as reference");
-                                val.clone()
-                            }
+                        if let Some(val) = prop_getter {
+                            val
+                        } else {
+                            let val = prop
+                                .value
+                                .as_ref()
+                                .expect("Could not get property as reference");
+                            val.clone()
                         }
                     }
                     None => Gc::new(ValueData::Undefined),
@@ -789,39 +785,37 @@ fn display_obj(v: &ValueData, print_internals: bool) -> String {
         indent: usize,
         print_internals: bool,
     ) -> String {
-        match *data {
-            ValueData::Object(ref v) => {
-                // The in-memory address of the current object
-                let addr = address_of(v.borrow().deref());
+        if let ValueData::Object(ref v) = *data {
+            // The in-memory address of the current object
+            let addr = address_of(v.borrow().deref());
 
-                // We need not continue if this object has already been
-                // printed up the current chain
-                if encounters.contains(&addr) {
-                    return String::from("[Cycle]");
-                }
-
-                // Mark the current object as encountered
-                encounters.insert(addr);
-
-                let result = if print_internals {
-                    print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
-                } else {
-                    print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
-                        .join(",\n")
-                };
-
-                // If the current object is referenced in a different branch,
-                // it will not cause an infinte printing loop, so it is safe to be printed again
-                encounters.remove(&addr);
-
-                let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
-                    .expect("Could not create the closing brace's indentation string");
-
-                format!("{{\n{}\n{}}}", result, closing_indent)
+            // We need not continue if this object has already been
+            // printed up the current chain
+            if encounters.contains(&addr) {
+                return String::from("[Cycle]");
             }
 
+            // Mark the current object as encountered
+            encounters.insert(addr);
+
+            let result = if print_internals {
+                print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
+            } else {
+                print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
+                        .join(",\n")
+            };
+
+            // If the current object is referenced in a different branch,
+            // it will not cause an infinte printing loop, so it is safe to be printed again
+            encounters.remove(&addr);
+
+            let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
+                .expect("Could not create the closing brace's indentation string");
+
+            format!("{{\n{}\n{}}}", result, closing_indent)
+        } else {
             // Every other type of data is printed as is
-            _ => format!("{}", data),
+            format!("{}", data)
         }
     }
 
@@ -829,7 +823,7 @@ fn display_obj(v: &ValueData, print_internals: bool) -> String {
 }
 
 impl Display for ValueData {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ValueData::Null => write!(f, "null"),
             ValueData::Undefined => write!(f, "undefined"),
@@ -855,15 +849,14 @@ impl Display for ValueData {
             ValueData::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
                 Function::RegularFunc(ref rf) => {
-                    write!(f, "function(")?;
-                    let last_index = rf.args.len() - 1;
+                    write!(f, "function{}(", if rf.args.is_empty() { "" } else { " " })?;
                     for (index, arg) in rf.args.iter().enumerate() {
                         write!(f, "{}", arg)?;
-                        if index != last_index {
+                        if index + 1 != rf.args.len() {
                             write!(f, ", ")?;
                         }
                     }
-                    write!(f, "){}", rf.node)
+                    write!(f, ") {}", rf.node)
                 }
             },
         }

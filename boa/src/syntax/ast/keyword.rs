@@ -89,7 +89,7 @@ pub enum Keyword {
 #[derive(Debug, Clone, Copy)]
 pub struct KeywordError;
 impl Display for KeywordError {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "invalid token")
     }
 }
@@ -150,7 +150,7 @@ impl FromStr for Keyword {
     }
 }
 impl Display for Keyword {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
             f,
             "{}",

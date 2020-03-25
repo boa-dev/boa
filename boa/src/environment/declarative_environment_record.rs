@@ -80,12 +80,11 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 
     fn initialize_binding(&mut self, name: &str, value: Value) {
         if let Some(ref mut record) = self.env_rec.get_mut(name) {
-            match record.value {
-                Some(_) => {
-                    // TODO: change this when error handling comes into play
-                    panic!("Identifier {} has already been defined", name);
-                }
-                None => record.value = Some(value),
+            if record.value.is_none() {
+                record.value = Some(value);
+            } else {
+                // TODO: change this when error handling comes into play
+                panic!("Identifier {} has already been defined", name);
             }
         }
     }
@@ -121,16 +120,15 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn get_binding_value(&self, name: &str, _strict: bool) -> Value {
-        match self.env_rec.get(name) {
-            Some(binding) => binding
+        if let Some(binding) = self.env_rec.get(name) {
+            binding
                 .value
                 .as_ref()
                 .expect("Could not get record as reference")
-                .clone(),
-            None => {
-                // TODO: change this when error handling comes into play
-                panic!("ReferenceError: Cannot get binding value for {}", name);
-            }
+                .clone()
+        } else {
+            // TODO: change this when error handling comes into play
+            panic!("ReferenceError: Cannot get binding value for {}", name);
         }
     }
 
