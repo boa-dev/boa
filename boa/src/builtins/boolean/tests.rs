@@ -20,7 +20,7 @@ fn construct_and_call() {
         var one = new Boolean(1);
         var zero = Boolean(0);
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let one = forward_val(&mut engine, "one").unwrap();
     let zero = forward_val(&mut engine, "zero").unwrap();
 
@@ -39,7 +39,7 @@ fn constructor_gives_true_instance() {
         var trueBool = new Boolean(trueVal);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let true_val = forward_val(&mut engine, "trueVal").expect("value expected");
     let true_num = forward_val(&mut engine, "trueNum").expect("value expected");
     let true_string = forward_val(&mut engine, "trueString").expect("value expected");
@@ -67,7 +67,7 @@ fn instances_have_correct_proto_set() {
         var boolProto = Boolean.prototype;
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let bool_instance = forward_val(&mut engine, "boolInstance").expect("value expected");
     let bool_prototype = forward_val(&mut engine, "boolProto").expect("value expected");
 

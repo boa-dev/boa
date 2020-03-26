@@ -6,6 +6,7 @@ use crate::syntax::ast::{
     keyword::Keyword,
     node::{FormalParameter, FormalParameters, Node, PropertyDefinition},
     op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp},
+    pos::Position,
     punc::Punctuator,
     token::{Token, TokenKind},
 };
@@ -17,11 +18,11 @@ pub enum ParseError {
     /// When it expected a certain kind of token, but got another as part of something
     Expected(Vec<TokenKind>, Token, &'static str),
     /// When it expected a certain expression, but got another
-    ExpectedExpr(&'static str, Node),
+    ExpectedExpr(&'static str, Node, Position),
     /// When it didn't expect this keyword
-    UnexpectedKeyword(Keyword),
+    UnexpectedKeyword(Keyword, Position),
     /// When a token is unexpected
-    Unexpected(Token, &'static str),
+    Unexpected(Token, Option<&'static str>),
     /// When there is an abrupt end to the parsing
     AbruptEnd,
     /// Out of range error, attempting to set a position where there is no token
@@ -47,11 +48,28 @@ impl fmt::Display for ParseError {
                 actual.pos.line_number,
                 actual.pos.column_number
             ),
-            ParseError::ExpectedExpr(expected, actual) => {
-                write!(f, "Expected expression '{}', got '{}'", expected, actual)
-            }
-            ParseError::UnexpectedKeyword(keyword) => write!(f, "Unexpected keyword: {}", keyword),
-            ParseError::Unexpected(tok, msg) => write!(f, "Unexpected Token {} {}", tok, msg),
+            ParseError::ExpectedExpr(expected, actual, pos) => write!(
+                f,
+                "Expected expression '{}', got '{}' at line {}, col {}",
+                expected, actual, pos.line_number, pos.column_number
+            ),
+            ParseError::UnexpectedKeyword(keyword, pos) => write!(
+                f,
+                "Unexpected keyword: '{}' at line {}, col {}",
+                keyword, pos.line_number, pos.column_number
+            ),
+            ParseError::Unexpected(tok, msg) => write!(
+                f,
+                "Unexpected Token '{}'{} at line {}, col {}",
+                tok,
+                if let Some(m) = msg {
+                    format!(", {}", m)
+                } else {
+                    String::new()
+                },
+                tok.pos.line_number,
+                tok.pos.column_number
+            ),
             ParseError::AbruptEnd => write!(f, "Abrupt End"),
             ParseError::General(msg) => write!(f, "{}", msg),
             ParseError::NormalEOF => write!(f, "EOF"),
@@ -370,12 +388,16 @@ impl Parser {
                 _ => Ok(Node::Return(Some(Box::new(self.parse()?)))),
             },
             Keyword::New => {
+                let start_pos = self.pos;
                 let call = self.parse()?;
                 match call {
                     Node::Call(ref func, ref args) => {
                         Ok(Node::Construct(func.clone(), args.clone()))
                     }
-                    _ => Err(ParseError::ExpectedExpr("constructor", call)),
+                    _ => {
+                        let token = self.get_token(start_pos)?;
+                        Err(ParseError::ExpectedExpr("constructor", call, token.pos))
+                    }
                 }
             }
             Keyword::TypeOf => Ok(Node::TypeOf(Box::new(self.parse()?))),
@@ -490,7 +512,10 @@ impl Parser {
                 let block = self.parse()?;
                 Ok(Node::FunctionDecl(name, args, Box::new(block)))
             }
-            _ => Err(ParseError::UnexpectedKeyword(keyword)),
+            _ => {
+                let token = self.get_token(self.pos - 1)?; // Gets the offending token
+                Err(ParseError::UnexpectedKeyword(keyword, token.pos))
+            }
         }
     }
 
@@ -501,7 +526,7 @@ impl Parser {
         }
         let token = self.get_token(self.pos)?;
         self.pos += 1;
-        let expr: Node = match token.kind {
+        let node: Node = match token.kind {
             TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::Comment(_)
                 if self.pos < self.tokens.len() =>
             {
@@ -798,23 +823,23 @@ impl Parser {
             _ => return Err(ParseError::Expected(Vec::new(), token.clone(), "script")),
         };
         if self.pos >= self.tokens.len() {
-            Ok(expr)
+            Ok(node)
         } else {
-            self.parse_next(expr)
+            self.parse_next(node)
         }
     }
 
-    fn parse_next(&mut self, expr: Node) -> ParseResult {
+    fn parse_next(&mut self, node: Node) -> ParseResult {
         let next = self.get_token(self.pos)?;
         let mut carry_on = true;
-        let mut result = expr.clone();
+        let mut result = node.clone();
         match next.kind {
             TokenKind::Punctuator(Punctuator::Dot) => {
                 self.pos += 1;
                 let tk = self.get_token(self.pos)?;
                 match tk.kind {
                     TokenKind::Identifier(ref s) => {
-                        result = Node::GetConstField(Box::new(expr), s.to_string())
+                        result = Node::GetConstField(Box::new(node), s.to_string())
                     }
                     _ => {
                         return Err(ParseError::Expected(
@@ -858,14 +883,14 @@ impl Parser {
                         expect_comma_or_end = true;
                     }
                 }
-                result = Node::Call(Box::new(expr), args);
+                result = Node::Call(Box::new(node), args);
             }
             TokenKind::Punctuator(Punctuator::Question) => {
                 self.pos += 1;
                 let if_e = self.parse()?;
                 self.expect(TokenKind::Punctuator(Punctuator::Colon), "if expression")?;
                 let else_e = self.parse()?;
-                result = Node::If(Box::new(expr), Box::new(if_e), Some(Box::new(else_e)));
+                result = Node::If(Box::new(node), Box::new(if_e), Some(Box::new(else_e)));
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 self.pos += 1;
@@ -874,7 +899,7 @@ impl Parser {
                     TokenKind::Punctuator(Punctuator::CloseBracket),
                     "array index",
                 )?;
-                result = Node::GetField(Box::new(expr), Box::new(index));
+                result = Node::GetField(Box::new(node), Box::new(index));
             }
             TokenKind::Punctuator(Punctuator::Semicolon)
             | TokenKind::LineTerminator
@@ -884,42 +909,43 @@ impl Parser {
             TokenKind::Punctuator(Punctuator::Assign) => {
                 self.pos += 1;
                 let next = self.parse()?;
-                result = Node::Assign(Box::new(expr), Box::new(next));
+                result = Node::Assign(Box::new(node), Box::new(next));
             }
             TokenKind::Punctuator(Punctuator::AssignAdd) => {
-                result = self.binop(BinOp::Assign(AssignOp::Add), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Add), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignSub) => {
-                result = self.binop(BinOp::Assign(AssignOp::Sub), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Sub), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignMul) => {
-                result = self.binop(BinOp::Assign(AssignOp::Mul), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Mul), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignPow) => {
-                result = self.binop(BinOp::Assign(AssignOp::Exp), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Exp), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignDiv) => {
-                result = self.binop(BinOp::Assign(AssignOp::Div), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Div), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignAnd) => {
-                result = self.binop(BinOp::Assign(AssignOp::And), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::And), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignOr) => {
-                result = self.binop(BinOp::Assign(AssignOp::Or), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Or), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignXor) => {
-                result = self.binop(BinOp::Assign(AssignOp::Xor), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Xor), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignRightSh) => {
-                result = self.binop(BinOp::Assign(AssignOp::Shr), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Shr), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignLeftSh) => {
-                result = self.binop(BinOp::Assign(AssignOp::Shl), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Shl), node)?
             }
             TokenKind::Punctuator(Punctuator::AssignMod) => {
-                result = self.binop(BinOp::Assign(AssignOp::Mod), expr)?
+                result = self.binop(BinOp::Assign(AssignOp::Mod), node)?
             }
             TokenKind::Punctuator(Punctuator::Arrow) => {
+                let start_pos = self.pos;
                 self.pos += 1;
                 let mut args = Vec::with_capacity(1);
                 match result {
@@ -933,73 +959,76 @@ impl Parser {
                         Some(Box::new(result)),
                         true,
                     )),
-                    _ => return Err(ParseError::ExpectedExpr("identifier", result)),
+                    _ => {
+                        let token = self.get_token(start_pos)?;
+                        return Err(ParseError::ExpectedExpr("identifier", result, token.pos));
+                    }
                 }
                 let next = self.parse()?;
                 result = Node::ArrowFunctionDecl(args, Box::new(next));
             }
             TokenKind::Punctuator(Punctuator::Add) => {
-                result = self.binop(BinOp::Num(NumOp::Add), expr)?
+                result = self.binop(BinOp::Num(NumOp::Add), node)?
             }
             TokenKind::Punctuator(Punctuator::Sub) => {
-                result = self.binop(BinOp::Num(NumOp::Sub), expr)?
+                result = self.binop(BinOp::Num(NumOp::Sub), node)?
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
-                result = self.binop(BinOp::Num(NumOp::Mul), expr)?
+                result = self.binop(BinOp::Num(NumOp::Mul), node)?
             }
             TokenKind::Punctuator(Punctuator::Exp) => {
-                result = self.binop(BinOp::Num(NumOp::Exp), expr)?
+                result = self.binop(BinOp::Num(NumOp::Exp), node)?
             }
             TokenKind::Punctuator(Punctuator::Div) => {
-                result = self.binop(BinOp::Num(NumOp::Div), expr)?
+                result = self.binop(BinOp::Num(NumOp::Div), node)?
             }
             TokenKind::Punctuator(Punctuator::Mod) => {
-                result = self.binop(BinOp::Num(NumOp::Mod), expr)?
+                result = self.binop(BinOp::Num(NumOp::Mod), node)?
             }
             TokenKind::Punctuator(Punctuator::BoolAnd) => {
-                result = self.binop(BinOp::Log(LogOp::And), expr)?
+                result = self.binop(BinOp::Log(LogOp::And), node)?
             }
             TokenKind::Punctuator(Punctuator::BoolOr) => {
-                result = self.binop(BinOp::Log(LogOp::Or), expr)?
+                result = self.binop(BinOp::Log(LogOp::Or), node)?
             }
             TokenKind::Punctuator(Punctuator::And) => {
-                result = self.binop(BinOp::Bit(BitOp::And), expr)?
+                result = self.binop(BinOp::Bit(BitOp::And), node)?
             }
             TokenKind::Punctuator(Punctuator::Or) => {
-                result = self.binop(BinOp::Bit(BitOp::Or), expr)?
+                result = self.binop(BinOp::Bit(BitOp::Or), node)?
             }
             TokenKind::Punctuator(Punctuator::Xor) => {
-                result = self.binop(BinOp::Bit(BitOp::Xor), expr)?
+                result = self.binop(BinOp::Bit(BitOp::Xor), node)?
             }
             TokenKind::Punctuator(Punctuator::LeftSh) => {
-                result = self.binop(BinOp::Bit(BitOp::Shl), expr)?
+                result = self.binop(BinOp::Bit(BitOp::Shl), node)?
             }
             TokenKind::Punctuator(Punctuator::RightSh) => {
-                result = self.binop(BinOp::Bit(BitOp::Shr), expr)?
+                result = self.binop(BinOp::Bit(BitOp::Shr), node)?
             }
             TokenKind::Punctuator(Punctuator::Eq) => {
-                result = self.binop(BinOp::Comp(CompOp::Equal), expr)?
+                result = self.binop(BinOp::Comp(CompOp::Equal), node)?
             }
             TokenKind::Punctuator(Punctuator::NotEq) => {
-                result = self.binop(BinOp::Comp(CompOp::NotEqual), expr)?
+                result = self.binop(BinOp::Comp(CompOp::NotEqual), node)?
             }
             TokenKind::Punctuator(Punctuator::StrictEq) => {
-                result = self.binop(BinOp::Comp(CompOp::StrictEqual), expr)?
+                result = self.binop(BinOp::Comp(CompOp::StrictEqual), node)?
             }
             TokenKind::Punctuator(Punctuator::StrictNotEq) => {
-                result = self.binop(BinOp::Comp(CompOp::StrictNotEqual), expr)?
+                result = self.binop(BinOp::Comp(CompOp::StrictNotEqual), node)?
             }
             TokenKind::Punctuator(Punctuator::LessThan) => {
-                result = self.binop(BinOp::Comp(CompOp::LessThan), expr)?
+                result = self.binop(BinOp::Comp(CompOp::LessThan), node)?
             }
             TokenKind::Punctuator(Punctuator::LessThanOrEq) => {
-                result = self.binop(BinOp::Comp(CompOp::LessThanOrEqual), expr)?
+                result = self.binop(BinOp::Comp(CompOp::LessThanOrEqual), node)?
             }
             TokenKind::Punctuator(Punctuator::GreaterThan) => {
-                result = self.binop(BinOp::Comp(CompOp::GreaterThan), expr)?
+                result = self.binop(BinOp::Comp(CompOp::GreaterThan), node)?
             }
             TokenKind::Punctuator(Punctuator::GreaterThanOrEq) => {
-                result = self.binop(BinOp::Comp(CompOp::GreaterThanOrEqual), expr)?
+                result = self.binop(BinOp::Comp(CompOp::GreaterThanOrEqual), node)?
             }
             TokenKind::Punctuator(Punctuator::Inc) => {
                 result = Node::UnaryOp(UnaryOp::IncrementPost, Box::new(self.parse()?))
@@ -1100,7 +1129,7 @@ impl Parser {
                     } else {
                         return Err(ParseError::Unexpected(
                             self.peek_skip_lineterminator()?,
-                            "unexpected token '}'.",
+                            None,
                         ));
                     }
                 }
@@ -1113,7 +1142,7 @@ impl Parser {
                 if break_when_closingbrase {
                     return Err(ParseError::Unexpected(
                         self.get_current_token()?,
-                        "expected '}'.",
+                        Some("expected '}'"),
                     ));
                 } else {
                     break;
@@ -1274,10 +1303,7 @@ impl Parser {
                         TokenKind::LineTerminator
                         | TokenKind::Punctuator(Punctuator::CloseBlock) => {}
                         _ => {
-                            return Err(ParseError::Unexpected(
-                                self.get_current_token()?,
-                                "unexpected token.",
-                            ));
+                            return Err(ParseError::Unexpected(self.get_current_token()?, None));
                         }
                     }
                 }
@@ -1306,7 +1332,7 @@ impl Parser {
             TokenKind::Identifier(name) => Ok(Node::Break(Some(name))),
             _ => Err(ParseError::Unexpected(
                 tok,
-                "expected ';', identifier or line terminator",
+                Some("expected ';', identifier or line terminator"),
             )),
         }
     }
@@ -1324,12 +1350,12 @@ impl Parser {
             TokenKind::Identifier(name) => Ok(Node::Continue(Some(name))),
             _ => Err(ParseError::Unexpected(
                 tok,
-                "expected ';', identifier or line terminator",
+                Some("expected ';', identifier or line terminator"),
             )),
         }
     }
 
-    /// https://tc39.github.io/ecma262/#prod-ThrowStatement
+    /// <https://tc39.github.io/ecma262/#prod-ThrowStatement>
     fn read_throw_statement(&mut self) -> Result<Node, ParseError> {
         // no LineTerminator here
         if self.next_if(TokenKind::LineTerminator).is_some() {
@@ -1344,10 +1370,7 @@ impl Parser {
         }
 
         if self.peek(0)?.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
-            return Err(ParseError::Unexpected(
-                self.get_next_token()?,
-                "Unexpected token }",
-            ));
+            return Err(ParseError::Unexpected(self.get_next_token()?, None));
         }
 
         let expr = self.read_expression()?;
@@ -1451,7 +1474,7 @@ impl Parser {
             let catch_param = if let TokenKind::Identifier(s) = tok.kind {
                 Node::Local(s)
             } else {
-                return Err(ParseError::Unexpected(tok, "expected identifier."));
+                return Err(ParseError::Unexpected(tok, Some("expected identifier")));
             };
             self.expect_punc(Punctuator::CloseParen, "Expected )")?;
             self.expect_punc(Punctuator::OpenBlock, "Expected {")?;
@@ -1774,7 +1797,7 @@ impl Parser {
             if rest_param {
                 return Err(ParseError::Unexpected(
                     self.get_current_token()?,
-                    "rest parameter must be the last formal parameter",
+                    Some("rest parameter must be the last formal parameter"),
                 ));
             }
 
@@ -2141,7 +2164,7 @@ impl Parser {
                 Ok(ref tok) if tok.kind == TokenKind::Punctuator(Punctuator::CloseParen) => break,
                 Ok(ref tok) if tok.kind == TokenKind::Punctuator(Punctuator::Comma) => {
                     if args.is_empty() {
-                        return Err(ParseError::Unexpected(tok.clone(), "Unexpected token."));
+                        return Err(ParseError::Unexpected(tok.clone(), None));
                     }
                     if self.next_if_skip_lineterminator(TokenKind::Punctuator(
                         Punctuator::CloseParen,
@@ -2196,7 +2219,7 @@ impl Parser {
             TokenKind::Identifier(ident) => Ok(Node::Local(ident)),
             TokenKind::StringLiteral(s) => Ok(Node::Const(Const::String(s))),
             TokenKind::NumericLiteral(num) => Ok(Node::Const(Const::Num(num))),
-            _ => Err(ParseError::Unexpected(tok, "unexpected token.")),
+            _ => Err(ParseError::Unexpected(tok, None)),
         }
     }
 

@@ -7,9 +7,10 @@ use std::{collections::btree_map::BTreeMap, fmt};
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
+
+/// A Javascript AST Node.
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A Javascript AST Node.
 pub enum Node {
     /// Create an array with items inside.
     ArrayDecl(Vec<Node>),
@@ -37,9 +38,9 @@ pub enum Node {
     Continue(Option<String>),
     /// Create a function with the given name, arguments, and internal AST node.
     FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
-    /// Gets the constant field of a value
+    /// Gets the constant field of a value.
     GetConstField(Box<Node>, String),
-    /// Gets the [field] of a value
+    /// Gets the [field] of a value.
     GetField(Box<Node>, Box<Node>),
     /// [init], [cond], [step], body
     ForLoop(

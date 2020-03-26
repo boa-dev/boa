@@ -7,10 +7,11 @@ use std::{
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 
+/// A Javascript Keyword
+///
+/// As specificed by <https://www.ecma-international.org/ecma-262/#sec-keywords>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq, Debug)]
-/// A Javascript Keyword
-/// As specificed by <https://www.ecma-international.org/ecma-262/#sec-keywords>
 pub enum Keyword {
     /// The `await` keyword
     Await,

@@ -14,7 +14,7 @@ fn check_arguments_object() {
         var val = jason(100, 6);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let expected_return_val: f64 = 100.0;
     let return_val = forward_val(&mut engine, "val").expect("value expected");
     assert_eq!(return_val.is_double(), true);

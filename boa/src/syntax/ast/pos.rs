@@ -1,13 +1,14 @@
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, PartialEq, Debug)]
 /// A position in the Javascript source code
+///
 /// Stores both the column number and the line number
 ///
 /// ## Similar Implementations
 /// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&q=isValid+Location&g=0&l=216)
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Position {
     // Column number
     pub column_number: u64,

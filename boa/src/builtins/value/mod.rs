@@ -21,8 +21,8 @@ use std::{
     str::FromStr,
 };
 
-#[must_use]
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
+#[must_use]
 pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter
 pub type Value = Gc<ValueData>;
