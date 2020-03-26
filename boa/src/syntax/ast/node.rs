@@ -5,6 +5,9 @@ use crate::syntax::ast::{
 use gc_derive::{Finalize, Trace};
 use std::{collections::btree_map::BTreeMap, fmt};
 
+#[cfg(feature = "serde-ast")]
+use serde::{Deserialize, Serialize};
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A Javascript AST Node.
 pub enum Node {
@@ -320,6 +323,7 @@ fn join_nodes(f: &mut fmt::Formatter<'_>, nodes: &[Node]) -> fmt::Result {
 ///}
 ///```
 /// For more information, please check <https://tc39.es/ecma262/#prod-FormalParameter>
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
     pub name: String,
@@ -340,6 +344,7 @@ impl FormalParameter {
 }
 
 // TODO: Support all features: https://tc39.github.io/ecma262/#prod-PropertyDefinition
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum PropertyDefinition {
     IdentifierReference(String),
@@ -348,6 +353,7 @@ pub enum PropertyDefinition {
     SpreadObject(Node),
 }
 
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum MethodDefinitionKind {
     Get,
