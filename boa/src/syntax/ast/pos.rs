@@ -17,9 +17,9 @@ pub struct Position {
 }
 
 impl Position {
-    /// Creates a new position
+    /// Creates a new `Position`.
     ///
-    /// Positions are usually created by a [Token](struct.token/Token.html).
+    /// Positions are usually created by a [`Token`](struct.token/Token.html).
     ///
     /// # Arguments
     ///
