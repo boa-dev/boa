@@ -38,11 +38,34 @@ impl fmt::Display for ParseError {
         match self {
             ParseError::Expected(expected, actual, routine) => write!(
                 f,
-                "Expected token '{}', got '{}' in routine '{}' at line {}, col {}",
-                expected
-                    .first()
-                    .map(|t| t.to_string())
-                    .unwrap_or_else(String::new),
+                "Expected {}, got '{}' in routine '{}' at line {}, col {}",
+                if expected.len() == 1 {
+                    format!(
+                        "token '{}'",
+                        expected.first().map(TokenKind::to_string).unwrap()
+                    )
+                } else {
+                    format!(
+                        "one of {}",
+                        expected
+                            .into_iter()
+                            .enumerate()
+                            .map(|(i, t)| {
+                                format!(
+                                    "{}'{}'",
+                                    if i == 0 {
+                                        ""
+                                    } else if i == expected.len() - 1 {
+                                        " or "
+                                    } else {
+                                        ", "
+                                    },
+                                    t
+                                )
+                            })
+                            .collect::<String>()
+                    )
+                },
                 actual,
                 routine,
                 actual.pos.line_number,
@@ -203,9 +226,10 @@ impl Parser {
         }
     }
 
-    /// Peek the next token, and when token is kind:TokenKind, get the token
-    /// Otherwise None
-    /// Skipping line terminators.
+    /// Peek the next token, if it's of `kind` type.
+    ///
+    /// When the next token is a `kind` token, get the token, otherwise return `None`. This
+    /// function skips line terminators.
     fn next_if_skip_lineterminator(&mut self, kind: TokenKind) -> Result<bool, ParseError> {
         match self.peek_skip_lineterminator() {
             Ok(tok) => {
@@ -220,8 +244,9 @@ impl Parser {
         }
     }
 
-    /// Peek the next token and if it is ``kind``, get the next token, return true.
-    /// Otherwise, return false.
+    /// Peek the next token, if it's of `kind` type.
+    ///
+    /// When the next token is a `kind` token, get the token, otherwise return `None`.
     fn next_if(&mut self, kind: TokenKind) -> Option<Token> {
         match self.peek(0) {
             Ok(tok) => {
@@ -1149,13 +1174,14 @@ impl Parser {
                 }
             };
 
-            match self.read_statement_list_item() {
-                Ok(ok) => items.push(ok),
-                Err(ParseError::NormalEOF) => {
-                    return Err(ParseError::AbruptEnd);
+            let item = self.read_statement_list_item().map_err(|e| {
+                if let ParseError::NormalEOF = e {
+                    ParseError::AbruptEnd
+                } else {
+                    e
                 }
-                Err(e) => return Err(e),
-            }
+            })?;
+            items.push(item);
 
             while match self
                 .next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Semicolon))
@@ -1177,9 +1203,9 @@ impl Parser {
     fn read_statement_list_item(&mut self) -> Result<Node, ParseError> {
         if let Ok(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
-                TokenKind::Keyword(Keyword::Function) => self.read_declaration(),
-                TokenKind::Keyword(Keyword::Const) => self.read_declaration(),
-                TokenKind::Keyword(Keyword::Let) => self.read_declaration(),
+                TokenKind::Keyword(Keyword::Function)
+                | TokenKind::Keyword(Keyword::Const)
+                | TokenKind::Keyword(Keyword::Let) => self.read_declaration(),
                 _ => self.read_statement(),
             }
         } else {
@@ -1270,7 +1296,7 @@ impl Parser {
 
     /// <https://tc39.es/ecma262/#prod-Statement>
     fn read_statement(&mut self) -> Result<Node, ParseError> {
-        let tok = self.get_next_token()?;
+        let tok = self.next_skip_lineterminator()?;
 
         let mut is_expression_statement = false;
         let stmt = match tok.kind {
@@ -1559,7 +1585,7 @@ impl Parser {
 
     /// <https://tc39.es/ecma262/#prod-VariableDeclarationList>
     fn read_variable_declaration_list(&mut self) -> Result<Node, ParseError> {
-        let mut list = vec![];
+        let mut list = Vec::new();
 
         loop {
             list.push(self.read_variable_declaration()?);
@@ -1598,7 +1624,7 @@ impl Parser {
                 TokenKind::LineTerminator,
             ],
             self.get_current_token()?,
-            "expect ';' or line terminator",
+            "variable declaration",
         ))
     }
 

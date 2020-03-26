@@ -85,7 +85,7 @@ impl Display for TokenKind {
                 write!(f, "/{}/{}", body, flags)
             }
             TokenKind::Comment(ref comm) => write!(f, "/*{}*/", comm),
-            TokenKind::LineTerminator => write!(f, "\\n"),
+            TokenKind::LineTerminator => write!(f, "line terminator"),
         }
     }
 }
