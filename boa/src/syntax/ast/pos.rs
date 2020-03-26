@@ -1,7 +1,7 @@
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 
-/// A position in the Javascript source code
+/// A position in the Javascript source code.
 ///
 /// Stores both the column number and the line number
 ///
@@ -17,9 +17,9 @@ pub struct Position {
 }
 
 impl Position {
-    /// Create a new position, positions are usually created by Tokens..
+    /// Creates a new position
     ///
-    /// See [Token](struct.token/Token.html) for example usage
+    /// Positions are usually created by a [Token](struct.token/Token.html).
     ///
     /// # Arguments
     ///

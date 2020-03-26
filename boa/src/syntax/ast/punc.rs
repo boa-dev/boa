@@ -115,8 +115,9 @@ pub enum Punctuator {
 }
 
 impl Punctuator {
-    /// as_binop will attempt to convert a punctuator (+=) to a Binary Operator
-    /// If there is no match None will be returned
+    /// Attempts to convert a punctuator (`+`, `=`...) to a Binary Operator
+    ///
+    /// If there is no match, `None` will be returned.
     pub fn as_binop(self) -> Option<BinOp> {
         match self {
             Punctuator::Add => Some(BinOp::Num(NumOp::Add)),
