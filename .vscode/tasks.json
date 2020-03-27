@@ -19,6 +19,34 @@
     },
     {
       "type": "process",
+      "label": "Get Tokens",
+      "command": "cargo",
+      "args": ["run", "--", "-t=Debug", "./tests/js/test.js"],
+      "problemMatcher": ["$rustc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "clear": true
+      }
+    },
+    {
+      "type": "process",
+      "label": "Get AST",
+      "command": "cargo",
+      "args": ["run", "--", "-a=Debug", "./tests/js/test.js"],
+      "problemMatcher": ["$rustc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "clear": true
+      }
+    },
+    {
+      "type": "process",
       "label": "Cargo Test",
       "command": "cargo",
       "args": ["test"],
