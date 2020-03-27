@@ -244,11 +244,11 @@ impl Parser {
         }
     }
 
-    /// Peek the next token, if it's of `kind` type.
+    /// Gets the next token, if the current token is of `kind` type.
     ///
-    /// When the next token is a `kind` token, get the token, otherwise return `None`.
+    /// When the current token is a `kind` token, get the next token, otherwise return `None`.
     fn next_if(&mut self, kind: TokenKind) -> Option<Token> {
-        match self.peek(0) {
+        match self.get_current_token() {
             Ok(tok) => {
                 if tok.kind == kind {
                     Some(self.get_next_token().unwrap())
