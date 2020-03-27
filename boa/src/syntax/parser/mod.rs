@@ -178,7 +178,7 @@ impl Parser {
 
     /// peeks at the next token
     fn peek(&self, num: usize) -> Result<Token, ParseError> {
-        self.get_token(self.pos + 1 + num)
+        self.get_token(self.pos + num)
     }
 
     /// get_current_pos
