@@ -4,7 +4,7 @@ use std::fmt::{Debug, Display, Formatter, Result};
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 
-/// Represents a token
+/// Represents a token.
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
@@ -41,9 +41,10 @@ impl Debug for VecToken {
         write!(f, "{}", buffer)
     }
 }
+
+/// Represents the type of Token and the data it has inside.
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
-/// Represents the type of Token and the data it has inside.
 pub enum TokenKind {
     /// A boolean literal, which is either `true` or `false`
     BooleanLiteral(bool),
@@ -84,7 +85,7 @@ impl Display for TokenKind {
                 write!(f, "/{}/{}", body, flags)
             }
             TokenKind::Comment(ref comm) => write!(f, "/*{}*/", comm),
-            TokenKind::LineTerminator => write!(f, "\\n"),
+            TokenKind::LineTerminator => write!(f, "line terminator"),
         }
     }
 }

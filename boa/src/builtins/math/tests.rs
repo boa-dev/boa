@@ -10,7 +10,7 @@ fn abs() {
         var b = Math.abs(1.23456 - 7.89012);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -30,7 +30,7 @@ fn acos() {
         var d = Math.acos(2);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward(&mut engine, "b");
@@ -53,7 +53,7 @@ fn acosh() {
         var c = Math.acosh(0.5);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward(&mut engine, "b");
@@ -73,7 +73,7 @@ fn asin() {
         var b = Math.asin(5 / 3);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward(&mut engine, "b");
@@ -91,7 +91,7 @@ fn asinh() {
         var b = Math.asinh(0);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -110,7 +110,7 @@ fn atan() {
         var c = Math.atan(-0);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -130,7 +130,7 @@ fn atan2() {
         var b = Math.atan2(15, 90);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -149,7 +149,7 @@ fn cbrt() {
         var c = Math.cbrt(1);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -170,7 +170,7 @@ fn ceil() {
         var c = Math.ceil(-7.004);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -190,7 +190,7 @@ fn cos() {
         var b = Math.cos(1);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -209,7 +209,7 @@ fn cosh() {
         var c = Math.cosh(-1);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -230,7 +230,7 @@ fn exp() {
         var c = Math.exp(2);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -251,7 +251,7 @@ fn floor() {
         var c = Math.floor(3.01);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -272,7 +272,7 @@ fn log() {
         var c = Math.log(-1);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -293,7 +293,7 @@ fn log10() {
         var c = Math.log10(-2);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -314,7 +314,7 @@ fn log2() {
         var c = Math.log2(-2);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -335,7 +335,7 @@ fn max() {
         var c = Math.max(-10, 20); 
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -356,7 +356,7 @@ fn min() {
         var c = Math.min(-10, 20); 
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -378,7 +378,7 @@ fn pow() {
         var d = Math.pow(7, -2);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -400,7 +400,7 @@ fn round() {
         var b = Math.round(-20.3);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -419,7 +419,7 @@ fn sign() {
         var c = Math.sign(0); 
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -439,7 +439,7 @@ fn sin() {
         var b = Math.sin(1);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -457,7 +457,7 @@ fn sinh() {
         var b = Math.sinh(1);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -476,7 +476,7 @@ fn sqrt() {
         var c = Math.sqrt(9);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -497,7 +497,7 @@ fn sqrt() {
 //         var a = Math.tan(1.1);
 //         "#;
 
-//     forward(&mut engine, init);
+//     eprintln!("{}", forward(&mut engine, init));
 
 //     let a = forward_val(&mut engine, "a").unwrap();
 
@@ -513,7 +513,7 @@ fn tanh() {
         var b = Math.tanh(0);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
@@ -531,7 +531,7 @@ fn trunc() {
         var b = Math.trunc(0.123);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();

@@ -21,7 +21,7 @@ fn check_string_constructor_is_function() {
 //     const c = new String(' \b ');
 //     cosnt d = new String('中文长度')
 //     "#;
-//     forward(&mut engine, init);
+//     eprintln!("{}", forward(&mut engine, init));
 //     let a = forward(&mut engine, "a.length");
 //     assert_eq!(a, String::from("1"));
 //     let b = forward(&mut engine, "b.length");
@@ -44,7 +44,7 @@ fn concat() {
         var world = new String('world! ');
         var nice = new String('Have a nice day.');
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     // Todo: fix this
     let _a = forward(&mut engine, "hello.concat(world, nice)");
@@ -63,7 +63,7 @@ fn construct_and_call() {
         var hello = new String('Hello');
         var world = String('world');
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let hello = forward_val(&mut engine, "hello").unwrap();
     let world = forward_val(&mut engine, "world").unwrap();
 
@@ -80,7 +80,7 @@ fn repeat() {
         var en = new String('english');
         var zh = new String('中文');
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let empty = String::from("");
     assert_eq!(forward(&mut engine, "empty.repeat(0)"), empty);
@@ -108,7 +108,7 @@ fn replace() {
         a = a.replace("a", "2");
         a
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
 
     let empty = String::from("2bc");
     assert_eq!(forward(&mut engine, "a"), empty);
@@ -131,7 +131,7 @@ fn replace_with_function() {
         a = a.replace(/c(o)(o)(l)/, replacer);
         a;
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     assert_eq!(
         forward(&mut engine, "a"),
         String::from("ecmascript is awesome!")
@@ -155,7 +155,7 @@ fn starts_with() {
         var enLiteral = 'english';
         var zhLiteral = '中文';
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let pass = String::from("true");
     assert_eq!(forward(&mut engine, "empty.startsWith('')"), pass);
     assert_eq!(forward(&mut engine, "en.startsWith('e')"), pass);
@@ -179,7 +179,7 @@ fn ends_with() {
         var enLiteral = 'english';
         var zhLiteral = '中文';
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let pass = String::from("true");
     assert_eq!(forward(&mut engine, "empty.endsWith('')"), pass);
     assert_eq!(forward(&mut engine, "en.endsWith('h')"), pass);
@@ -250,7 +250,7 @@ fn match_all() {
         var str = 'table football, foosball';
         var matches = str.matchAll(regexp);
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     assert_eq!(
         forward(&mut engine, "matches[0][0]"),
         String::from("football")
@@ -275,7 +275,7 @@ fn test_match() {
         var result4 = str.match(RegExp("B", 'g'));
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     assert_eq!(forward(&mut engine, "result1[0]"), "Quick Brown Fox Jumps");
     assert_eq!(forward(&mut engine, "result1[1]"), "Brown");
     assert_eq!(forward(&mut engine, "result1[2]"), "Jumps");

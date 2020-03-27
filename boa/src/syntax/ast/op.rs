@@ -16,9 +16,9 @@ pub trait Operator {
     }
 }
 
+/// A numeric operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A numeric operation between 2 values
 pub enum NumOp {
     /// `a + b` - Addition
     Add,
@@ -51,11 +51,11 @@ impl Display for NumOp {
     }
 }
 
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 /// A unary operation on a single value
 ///
 /// For more information, please check: <https://tc39.es/ecma262/#prod-UnaryExpression>
+#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum UnaryOp {
     /// `a++` - increment the value
     IncrementPost,
@@ -126,9 +126,9 @@ impl Display for UnaryOp {
     }
 }
 
+/// A bitwise operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A bitwise operation between 2 values
 pub enum BitOp {
     /// `a & b` - Bitwise and
     And,
@@ -161,9 +161,9 @@ impl Display for BitOp {
     }
 }
 
+/// A comparitive operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A comparitive operation between 2 values
 pub enum CompOp {
     /// `a == b` - Equality
     Equal,
@@ -202,9 +202,9 @@ impl Display for CompOp {
     }
 }
 
+/// A logical operation between 2 boolean values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A logical operation between 2 boolean values
 pub enum LogOp {
     /// `a && b` - Logical and
     And,
@@ -225,9 +225,9 @@ impl Display for LogOp {
     }
 }
 
+/// A binary operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A binary operation between 2 values
 pub enum BinOp {
     /// Numeric operation
     Num(NumOp),
@@ -285,10 +285,11 @@ impl Display for BinOp {
     }
 }
 
+/// A binary operation between 2 values
+///
+/// <https://tc39.es/ecma262/#prod-AssignmentOperator>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A binary operation between 2 values
-/// https://tc39.es/ecma262/#prod-AssignmentOperator
 pub enum AssignOp {
     /// `a += b` - Add assign
     Add,

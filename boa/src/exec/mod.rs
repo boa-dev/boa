@@ -511,7 +511,7 @@ impl Executor for Interpreter {
                     ValueData::String(_) => "string",
                     ValueData::Function(_) => "function",
                 }))
-            },
+            }
             Node::StatementList(ref list) => {
                 for (i, item) in list.iter().enumerate() {
                     if i + 1 == list.len() {
@@ -521,7 +521,7 @@ impl Executor for Interpreter {
                 }
 
                 Ok(Gc::new(ValueData::Undefined))
-            },
+            }
             _ => unimplemented!(),
         }
     }
