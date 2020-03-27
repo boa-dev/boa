@@ -1227,7 +1227,10 @@ impl Parser {
 
     /// <https://tc39.es/ecma262/#prod-LexicalDeclaration>
     fn read_lexical_declaration(&mut self, is_const: bool) -> Result<Node, ParseError> {
-        let mut list = vec![];
+        // Create vectors to store the variable declarations
+        // Const and Let signatures are slightly different, Const needs definitions, Lets don't
+        let mut let_decls = vec![];
+        let mut const_decls = vec![];
 
         loop {
             let token = self.next_skip_lineterminator()?;
@@ -1243,13 +1246,11 @@ impl Parser {
 
             if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Assign))? {
                 let init = Some(self.read_initializer()?);
-                let decl = if is_const {
-                    Node::ConstDecl(vec![(name, init.unwrap())])
+                if is_const {
+                    const_decls.push((name, init.unwrap()));
                 } else {
-                    Node::LetDecl(vec![(name, init)])
+                    let_decls.push((name, init));
                 };
-
-                list.push(decl);
             } else if is_const {
                 return Err(ParseError::Expected(
                     vec![TokenKind::Identifier(String::from("Expression"))],
@@ -1257,7 +1258,7 @@ impl Parser {
                     "Expected Expression for Const!",
                 ));
             } else {
-                list.push(Node::LetDecl(vec![(name, None)]));
+                let_decls.push((name, None));
             }
 
             if !self.variable_declaration_continuation()? {
@@ -1265,7 +1266,11 @@ impl Parser {
             }
         }
 
-        Ok(Node::StatementList(list))
+        if is_const {
+            Ok(Node::ConstDecl(const_decls))
+        } else {
+            Ok(Node::LetDecl(let_decls))
+        }
     }
 
     /// <https://tc39.es/ecma262/#prod-FunctionDeclaration>
@@ -1609,7 +1614,7 @@ impl Parser {
                         return Ok(false);
                     }
                     TokenKind::Punctuator(Punctuator::Comma) => {
-                        // self.lexer.next()?; im not sure this needs to advance
+                        self.next_skip_lineterminator().unwrap();
                         return Ok(true);
                     }
                     _ if newline_found => return Ok(false),
@@ -1631,7 +1636,7 @@ impl Parser {
 
     /// <https://tc39.es/ecma262/#prod-VariableDeclaration>
     fn read_variable_declaration(&mut self) -> Result<(String, Option<Node>), ParseError> {
-        let tok = self.get_next_token()?;
+        let tok = self.next_skip_lineterminator()?;
         let name = if let TokenKind::Identifier(name) = tok.kind {
             name
         } else {

@@ -18,7 +18,7 @@ fn check_parser(js: &str, expr: &[Node]) {
 
     assert_eq!(
         Parser::new(lexer.tokens).parse_all().unwrap(),
-        Node::Block(expr.into())
+        Node::StatementList(expr.into())
     );
 }
 
