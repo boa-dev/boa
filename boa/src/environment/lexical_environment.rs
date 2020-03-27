@@ -208,12 +208,8 @@ impl LexicalEnvironment {
     }
 
     pub fn get_binding_value(&self, name: &str) -> Value {
-        dbg!(&name);
         self.environments()
-            .find(|env| {
-                dbg!(&env.borrow().has_binding(name));
-                env.borrow().has_binding(name)
-            })
+            .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
             .unwrap_or_else(|| Gc::new(ValueData::Undefined))
     }

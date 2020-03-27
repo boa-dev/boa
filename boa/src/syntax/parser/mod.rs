@@ -1133,8 +1133,9 @@ impl Parser {
         self.read_statements(true, true)
     }
 
-    /// Read a line of statements and stop after `}`   
-    /// Starts after `{`
+    /// Read a list of statements and stop after `}`
+    ///
+    /// Note: It starts after `{`.
     fn read_block(&mut self) -> Result<Node, ParseError> {
         self.read_statements(true, false)
     }
@@ -1286,7 +1287,7 @@ impl Parser {
 
         self.expect(
             TokenKind::Punctuator(Punctuator::OpenBracket),
-            "expected '{'",
+            "function declaration",
         )?;
 
         let body = self.read_block()?;
