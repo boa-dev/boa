@@ -1286,7 +1286,7 @@ impl Parser {
         let params = self.read_formal_parameters()?;
 
         self.expect(
-            TokenKind::Punctuator(Punctuator::OpenBracket),
+            TokenKind::Punctuator(Punctuator::OpenBlock),
             "function declaration",
         )?;
 
