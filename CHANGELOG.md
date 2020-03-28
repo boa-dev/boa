@@ -1,13 +1,17 @@
 # CHANGELOG
 
-# [# 0.7.0 (Master)](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
+# [# 0.7.0 (Master) - New Parser](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
 
-`v0.7.0` brings a REPL, thanks @JohnDoneth!  
+`v0.7.0` brings a REPL, Improved parser messages and a new parser!
 This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.  
 Tests have also been moved to their own files, we had a lot of tests in some modules so it was time to separate.
 
 Feature enhancements:
 
+- [FEATURE #281](https://github.com/jasonwilliams/boa/pull/281):
+  Rebuild the parser (@jasonwilliams, @Razican, @HalidOdat)
+- [FEATURE #278](https://github.com/jasonwilliams/boa/pull/278):
+  Added the ability to dump the token stream or ast in bin. (@HalidOdat)
 - [FEATURE #253](https://github.com/jasonwilliams/boa/pull/253):
   Implement Array.isArray (@cisen)
 - [FEATURE](https://github.com/jasonwilliams/boa/commit/edab5ca6cc10d13265f82fa4bc05d6b432a362fc)
@@ -20,6 +24,12 @@ Feature enhancements:
   Addition of forEach() (@jasonwilliams) (@xSke)
 - [FEATURE #262](https://github.com/jasonwilliams/boa/pull/262):
   Implement Array.prototype.filter (@Nickforall)
+- [FEATURE #261](https://github.com/jasonwilliams/boa/pull/261):
+  Improved parser error messages (@Razican)
+- [FEATURE #277](https://github.com/jasonwilliams/boa/pull/277):
+  Add a logo to the project (@HalidOdat)
+- [FEATURE #260](https://github.com/jasonwilliams/boa/pull/260):
+  Add methods with f64 std equivelant to Math object (@Nickforall)
 
 Bug fixes:
 
@@ -31,6 +41,8 @@ Bug fixes:
   Fixed comments lexing (@Razican)
 - [BUG #251](https://github.com/jasonwilliams/boa/issues/251):
   Fixed empty returns (@Razican)
+- [BUG #272](https://github.com/jasonwilliams/boa/pull/272):
+  Fix parsing of floats that start with a zero (@Nickforall)
 
 # [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...v0.6.0)
 
