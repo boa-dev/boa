@@ -1776,7 +1776,7 @@ impl Parser {
     /// <https://tc39.es/ecma262/#sec-arrow-function-definitions>
     fn read_arrow_function(&mut self, is_parenthesized_param: bool) -> Result<Node, ParseError> {
         let params = if is_parenthesized_param {
-            self.expect_punc(Punctuator::OpenParen, "exect '('")?;
+            self.expect_punc(Punctuator::OpenParen, "expect '('")?;
             self.read_formal_parameters()?
         } else {
             let param_name = match self.get_next_token()?.kind {
@@ -1790,7 +1790,9 @@ impl Parser {
             }]
         };
 
-        let body = if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Arrow))? {
+        self.expect_punc(Punctuator::Arrow, "arrow function declaration")?;
+
+        let body = if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenBlock))? {
             self.read_block()?
         } else {
             Node::Return(Some(Box::new(self.read_assignment_expression()?)))
@@ -1843,7 +1845,7 @@ impl Parser {
     fn read_function_rest_parameter(&mut self) -> Result<FormalParameter, ParseError> {
         let token = self.get_next_token()?;
         Ok(FormalParameter::new(
-            if let TokenKind::Identifier(name) = self.get_next_token()?.kind {
+            if let TokenKind::Identifier(name) = token.kind {
                 name
             } else {
                 return Err(ParseError::Expected(

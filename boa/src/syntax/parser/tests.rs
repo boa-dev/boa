@@ -588,11 +588,11 @@ fn check_function_declarations() {
         &[Node::FunctionDecl(
             Some(String::from("foo")),
             vec![FormalParameter::new(
-                String::from("foo"),
-                Some(Box::new(Node::Local(String::from("a")))),
+                String::from("a"),
+                None,
                 false,
             )],
-            Box::new(Node::Block(vec![Node::Return(Some(Box::new(
+            Box::new(Node::StatementList(vec![Node::Return(Some(Box::new(
                 Node::Local(String::from("a")),
             )))])),
         )],
@@ -603,11 +603,11 @@ fn check_function_declarations() {
         &[Node::FunctionDecl(
             Some(String::from("foo")),
             vec![FormalParameter::new(
-                String::from("foo"),
-                Some(Box::new(Node::Local(String::from("a")))),
+                String::from("a"),
+                None,
                 false,
             )],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 
@@ -616,34 +616,31 @@ fn check_function_declarations() {
         &[Node::FunctionDecl(
             Some(String::from("foo")),
             vec![FormalParameter::new(
-                String::from("foo"),
-                Some(Box::new(Node::Local(String::from("a")))),
+                String::from("a"),
+                None,
                 false,
             )],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 
     check_parser(
-        "function (a, ...b) {}",
+        "function foo(a, ...b) {}",
         &[Node::FunctionDecl(
-            None,
+            Some(String::from("foo")),
             vec![
                 FormalParameter::new(
-                    String::from("foo"),
-                    Some(Box::new(Node::Local(String::from("a")))),
+                    String::from("a"),
+                    None,
                     false,
                 ),
                 FormalParameter::new(
                     String::from("b"),
-                    Some(Box::new(Node::UnaryOp(
-                        UnaryOp::Spread,
-                        Box::new(Node::Local(String::from("b"))),
-                    ))),
+                    None,
                     true,
                 ),
             ],
-            Box::new(Node::ObjectDecl(Box::new(BTreeMap::new()))),
+            Box::new(Node::StatementList(Vec::new()))
         )],
     );
 
@@ -652,13 +649,10 @@ fn check_function_declarations() {
         &[Node::ArrowFunctionDecl(
             vec![FormalParameter::new(
                 String::from("a"),
-                Some(Box::new(Node::UnaryOp(
-                    UnaryOp::Spread,
-                    Box::new(Node::Local(String::from("a"))),
-                ))),
-                false,
+                None,
+                true,
             )],
-            Box::new(Node::ObjectDecl(Box::new(BTreeMap::new()))),
+            Box::new(Node::StatementList(Vec::new()))
         )],
     );
 
@@ -668,24 +662,21 @@ fn check_function_declarations() {
             vec![
                 FormalParameter::new(
                     String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
+                    None,
                     false,
                 ),
                 FormalParameter::new(
                     String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
+                    None,
                     false,
                 ),
                 FormalParameter::new(
-                    String::from("b"),
-                    Some(Box::new(Node::UnaryOp(
-                        UnaryOp::Spread,
-                        Box::new(Node::Local(String::from("c"))),
-                    ))),
-                    false,
+                    String::from("c"),
+                    None,
+                    true,
                 ),
             ],
-            Box::new(Node::ObjectDecl(Box::new(BTreeMap::new()))),
+            Box::new(Node::StatementList(Vec::new())),
         )],
     );
 
@@ -695,16 +686,16 @@ fn check_function_declarations() {
             vec![
                 FormalParameter::new(
                     String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
+                    None,
                     false,
                 ),
                 FormalParameter::new(
                     String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
+                    None,
                     false,
                 ),
             ],
-            Box::new(Node::Block(vec![Node::Return(Some(Box::new(
+            Box::new(Node::StatementList(vec![Node::Return(Some(Box::new(
                 create_bin_op(
                     BinOp::Num(NumOp::Add),
                     Node::Local(String::from("a")),
@@ -720,16 +711,16 @@ fn check_function_declarations() {
             vec![
                 FormalParameter::new(
                     String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
+                    None,
                     false,
                 ),
                 FormalParameter::new(
                     String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
+                    None,
                     false,
                 ),
             ],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 
@@ -739,16 +730,16 @@ fn check_function_declarations() {
             vec![
                 FormalParameter::new(
                     String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
+                    None,
                     false,
                 ),
                 FormalParameter::new(
                     String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
+                    None,
                     false,
                 ),
             ],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 }
