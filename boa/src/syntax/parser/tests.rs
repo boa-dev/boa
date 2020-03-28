@@ -42,51 +42,78 @@ fn check_string() {
         &[Node::Const(Const::String(String::from("hello")))],
     );
 }
+
+#[test]
+fn check_object_literal() {
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::Property(String::from("b"), Node::Const(Const::Bool(false))),
+    ];
+
+    check_parser(
+        "const x = {
+            a: true,
+            b: false,
+        };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
+    );
+}
+
 #[test]
 fn check_object_short_function() {
     // Testing short function syntax
-    let mut object_properties: BTreeMap<String, Node> = BTreeMap::new();
-    object_properties.insert(String::from("a"), Node::Const(Const::Bool(true)));
-    object_properties.insert(
-        String::from("b"),
-        Node::FunctionDecl(None, vec![], Box::new(Node::Block(vec![]))),
-    );
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::MethodDefinition(
+            MethodDefinitionKind::Ordinary,
+            String::from("b"),
+            Node::FunctionDecl(None, Vec::new(), Box::new(Node::StatementList(Vec::new()))),
+        ),
+    ];
 
     check_parser(
-        "{
-              a: true,
-              b() {}
-            };
-            ",
-        &[Node::ObjectDecl(Box::new(object_properties))],
+        "const x = {
+            a: true,
+            b() {},
+        };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
     );
 }
 
 #[test]
 fn check_object_short_function_arguments() {
     // Testing short function syntax
-    let mut object_properties: BTreeMap<String, Node> = BTreeMap::new();
-    object_properties.insert(String::from("a"), Node::Const(Const::Bool(true)));
-    object_properties.insert(
-        String::from("b"),
-        Node::FunctionDecl(
-            None,
-            vec![FormalParameter::new(
-                String::from("name"),
-                Some(Box::new(Node::Local(String::from("test")))),
-                false,
-            )],
-            Box::new(Node::Block(vec![])),
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::MethodDefinition(
+            MethodDefinitionKind::Ordinary,
+            String::from("b"),
+            Node::FunctionDecl(
+                None,
+                vec![FormalParameter::new(String::from("test"), None, false)],
+                Box::new(Node::StatementList(Vec::new())),
+            ),
         ),
-    );
+    ];
 
     check_parser(
-        "{
-              a: true,
-              b(test) {}
-            };
-            ",
-        &[Node::ObjectDecl(Box::new(object_properties))],
+        "const x = {
+            a: true,
+            b(test) {}
+         };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
     );
 }
 #[test]

@@ -4,7 +4,7 @@ mod tests;
 use crate::syntax::ast::{
     constant::Const,
     keyword::Keyword,
-    node::{FormalParameter, FormalParameters, Node, PropertyDefinition},
+    node::{FormalParameter, FormalParameters, MethodDefinitionKind, Node, PropertyDefinition},
     op::{AssignOp, BinOp, NumOp, UnaryOp},
     pos::Position,
     punc::Punctuator,
@@ -2079,10 +2079,10 @@ impl Parser {
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => self.read_array_literal(),
             TokenKind::Punctuator(Punctuator::OpenBlock) => self.read_object_literal(),
-            TokenKind::Identifier(ref i) if i == "true" => Ok(Node::Const(Const::Bool(true))),
-            TokenKind::Identifier(ref i) if i == "false" => Ok(Node::Const(Const::Bool(false))),
+            TokenKind::BooleanLiteral(boolean) => Ok(Node::Const(Const::Bool(boolean))),
+            // TODO: ADD TokenKind::UndefinedLiteral
             TokenKind::Identifier(ref i) if i == "undefined" => Ok(Node::Const(Const::Undefined)),
-            TokenKind::Identifier(ref i) if i == "null" => Ok(Node::Const(Const::Null)),
+            TokenKind::NullLiteral => Ok(Node::Const(Const::Null)),
             TokenKind::Identifier(ident) => Ok(Node::Local(ident)),
             TokenKind::StringLiteral(s) => Ok(Node::Const(Const::String(s))),
             TokenKind::NumericLiteral(num) => Ok(Node::Const(Const::Num(num))),
@@ -2148,7 +2148,7 @@ impl Parser {
 
     /// <https://tc39.github.io/ecma262/#prod-ObjectLiteral>
     fn read_object_literal(&mut self) -> Result<Node, ParseError> {
-        let mut elements = vec![];
+        let mut elements = Vec::new();
 
         loop {
             if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::CloseBlock))? {
@@ -2197,6 +2197,24 @@ impl Parser {
         if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Colon))? {
             let val = self.read_assignment_expression()?;
             return Ok(PropertyDefinition::Property(to_string(tok.kind), val));
+        }
+
+        // TODO: Slit into separate function: read_propery_method_definition
+        if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenParen))? {
+            let params = self.read_formal_parameters()?;
+
+            self.expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "property method definition",
+            )?;
+
+            let body = self.read_block()?;
+
+            return Ok(PropertyDefinition::MethodDefinition(
+                MethodDefinitionKind::Ordinary,
+                to_string(tok.kind),
+                Node::FunctionDecl(None, params, Box::new(body)),
+            ));
         }
 
         // TODO need to revisit this
