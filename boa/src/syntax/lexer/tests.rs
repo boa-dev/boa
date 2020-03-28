@@ -6,12 +6,12 @@ use crate::syntax::ast::keyword::Keyword;
 
 #[test]
 fn check_single_line_comment() {
-    let s1 = "var \n//=\nx";
+    let s1 = "var \n//This is a comment\ntrue";
     let mut lexer = Lexer::new(s1);
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));
-    assert_eq!(lexer.tokens[1].kind, TokenKind::Comment("//=".to_owned()));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::Identifier("x".to_string()));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::LineTerminator);
+    assert_eq!(lexer.tokens[2].kind, TokenKind::BooleanLiteral(true));
 }
 
 #[test]
@@ -20,11 +20,7 @@ fn check_multi_line_comment() {
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));
-    assert_eq!(
-        lexer.tokens[1].kind,
-        TokenKind::Comment("/* await \n break \n*/".to_owned())
-    );
-    assert_eq!(lexer.tokens[2].kind, TokenKind::Identifier("x".to_string()));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Identifier("x".to_string()));
 }
 
 #[test]

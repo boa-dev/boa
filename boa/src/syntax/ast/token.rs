@@ -64,8 +64,6 @@ pub enum TokenKind {
     StringLiteral(String),
     /// A regular expression, consisting of body and flags
     RegularExpressionLiteral(String, String),
-    /// A comment
-    Comment(String),
     /// Indicates the end of a line \n
     LineTerminator,
 }
@@ -84,7 +82,6 @@ impl Display for TokenKind {
             TokenKind::RegularExpressionLiteral(ref body, ref flags) => {
                 write!(f, "/{}/{}", body, flags)
             }
-            TokenKind::Comment(ref comm) => write!(f, "/*{}*/", comm),
             TokenKind::LineTerminator => write!(f, "line terminator"),
         }
     }

@@ -549,14 +549,6 @@ impl Parser {
         let token = self.get_token(self.pos)?;
         self.pos += 1;
         let node: Node = match token.kind {
-            TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::Comment(_)
-                if self.pos < self.tokens.len() =>
-            {
-                self.parse()?
-            }
-            TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::Comment(_) => {
-                Node::Const(Const::Undefined)
-            }
             TokenKind::NumericLiteral(num) => Node::Const(Const::Num(num)),
             TokenKind::NullLiteral => Node::Const(Const::Null),
             TokenKind::StringLiteral(text) => Node::Const(Const::String(text)),
@@ -804,8 +796,7 @@ impl Parser {
                 result = Node::GetField(Box::new(node), Box::new(index));
             }
             TokenKind::Punctuator(Punctuator::Semicolon)
-            | TokenKind::LineTerminator
-            | TokenKind::Comment(_) => {
+            | TokenKind::LineTerminator => {
                 self.pos += 1;
             }
             _ => carry_on = false,
