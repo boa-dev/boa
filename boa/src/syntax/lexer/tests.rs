@@ -328,10 +328,6 @@ fn check_positions() {
     // Semi Colon token starts on column 27
     assert_eq!(lexer.tokens[6].pos.column_number, 27);
     assert_eq!(lexer.tokens[6].pos.line_number, 1);
-    // Comment start on column 29
-    // Semi Colon token starts on column 27
-    assert_eq!(lexer.tokens[7].pos.column_number, 29);
-    assert_eq!(lexer.tokens[7].pos.line_number, 1);
 }
 
 #[test]
