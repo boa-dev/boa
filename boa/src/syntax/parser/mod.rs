@@ -931,44 +931,6 @@ impl Parser {
             | TokenKind::Comment(_) => {
                 self.pos += 1;
             }
-            TokenKind::Punctuator(Punctuator::Assign) => {
-                self.pos += 1;
-                let next = self.parse()?;
-                result = Node::Assign(Box::new(node), Box::new(next));
-            }
-            TokenKind::Punctuator(Punctuator::AssignAdd) => {
-                result = self.binop(BinOp::Assign(AssignOp::Add), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignSub) => {
-                result = self.binop(BinOp::Assign(AssignOp::Sub), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignMul) => {
-                result = self.binop(BinOp::Assign(AssignOp::Mul), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignPow) => {
-                result = self.binop(BinOp::Assign(AssignOp::Exp), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignDiv) => {
-                result = self.binop(BinOp::Assign(AssignOp::Div), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignAnd) => {
-                result = self.binop(BinOp::Assign(AssignOp::And), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignOr) => {
-                result = self.binop(BinOp::Assign(AssignOp::Or), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignXor) => {
-                result = self.binop(BinOp::Assign(AssignOp::Xor), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignRightSh) => {
-                result = self.binop(BinOp::Assign(AssignOp::Shr), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignLeftSh) => {
-                result = self.binop(BinOp::Assign(AssignOp::Shl), node)?
-            }
-            TokenKind::Punctuator(Punctuator::AssignMod) => {
-                result = self.binop(BinOp::Assign(AssignOp::Mod), node)?
-            }
             TokenKind::Punctuator(Punctuator::Arrow) => {
                 let start_pos = self.pos;
                 self.pos += 1;
@@ -1705,43 +1667,47 @@ impl Parser {
                 }
                 TokenKind::Punctuator(Punctuator::AssignAdd) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Add), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Add), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignSub) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Sub), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Sub), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignMul) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Mul), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Mul), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignDiv) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Div), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Div), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignAnd) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::And), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::And), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignOr) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Or), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Or), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignXor) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Xor), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Xor), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignRightSh) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Shr), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Shr), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignLeftSh) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Shl), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Shl), Box::new(lhs), Box::new(expr));
                 }
                 TokenKind::Punctuator(Punctuator::AssignMod) => {
                     let expr = self.read_assignment_expression()?;
-                    lhs = self.binop(BinOp::Assign(AssignOp::Mod), expr)?
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Mod), Box::new(lhs), Box::new(expr));
+                }
+                TokenKind::Punctuator(Punctuator::AssignPow) => {
+                    let expr = self.read_assignment_expression()?;
+                    lhs = Node::BinOp(BinOp::Assign(AssignOp::Exp), Box::new(lhs), Box::new(expr));
                 }
                 _ => self.step_back(),
             }
@@ -1792,11 +1758,12 @@ impl Parser {
 
         self.expect_punc(Punctuator::Arrow, "arrow function declaration")?;
 
-        let body = if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenBlock))? {
-            self.read_block()?
-        } else {
-            Node::Return(Some(Box::new(self.read_assignment_expression()?)))
-        };
+        let body =
+            if self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenBlock))? {
+                self.read_block()?
+            } else {
+                Node::Return(Some(Box::new(self.read_assignment_expression()?)))
+            };
 
         Ok(Node::ArrowFunctionDecl(params, Box::new(body)))
     }

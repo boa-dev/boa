@@ -374,11 +374,9 @@ fn check_operations() {
         "a + d*(b-3)+1",
         &[create_bin_op(
             BinOp::Num(NumOp::Add),
-            Node::Local(String::from("a")),
             create_bin_op(
                 BinOp::Num(NumOp::Add),
-                // FIXME: shouldn't the last addition be on the right?
-                Node::Const(Const::Num(1.0)),
+                Node::Local(String::from("a")),
                 create_bin_op(
                     BinOp::Num(NumOp::Mul),
                     Node::Local(String::from("d")),
@@ -389,6 +387,7 @@ fn check_operations() {
                     ),
                 ),
             ),
+            Node::Const(Const::Num(1.0)),
         )],
     );
 
@@ -587,11 +586,7 @@ fn check_function_declarations() {
         "function foo(a) { return a; }",
         &[Node::FunctionDecl(
             Some(String::from("foo")),
-            vec![FormalParameter::new(
-                String::from("a"),
-                None,
-                false,
-            )],
+            vec![FormalParameter::new(String::from("a"), None, false)],
             Box::new(Node::StatementList(vec![Node::Return(Some(Box::new(
                 Node::Local(String::from("a")),
             )))])),
@@ -602,11 +597,7 @@ fn check_function_declarations() {
         "function foo(a) { return; }",
         &[Node::FunctionDecl(
             Some(String::from("foo")),
-            vec![FormalParameter::new(
-                String::from("a"),
-                None,
-                false,
-            )],
+            vec![FormalParameter::new(String::from("a"), None, false)],
             Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
@@ -615,11 +606,7 @@ fn check_function_declarations() {
         "function foo(a) { return }",
         &[Node::FunctionDecl(
             Some(String::from("foo")),
-            vec![FormalParameter::new(
-                String::from("a"),
-                None,
-                false,
-            )],
+            vec![FormalParameter::new(String::from("a"), None, false)],
             Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
@@ -629,30 +616,18 @@ fn check_function_declarations() {
         &[Node::FunctionDecl(
             Some(String::from("foo")),
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    None,
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    None,
-                    true,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, true),
             ],
-            Box::new(Node::StatementList(Vec::new()))
+            Box::new(Node::StatementList(Vec::new())),
         )],
     );
 
     check_parser(
         "(...a) => {}",
         &[Node::ArrowFunctionDecl(
-            vec![FormalParameter::new(
-                String::from("a"),
-                None,
-                true,
-            )],
-            Box::new(Node::StatementList(Vec::new()))
+            vec![FormalParameter::new(String::from("a"), None, true)],
+            Box::new(Node::StatementList(Vec::new())),
         )],
     );
 
@@ -660,21 +635,9 @@ fn check_function_declarations() {
         "(a, b, ...c) => {}",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    None,
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    None,
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("c"),
-                    None,
-                    true,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
+                FormalParameter::new(String::from("c"), None, true),
             ],
             Box::new(Node::StatementList(Vec::new())),
         )],
@@ -684,16 +647,8 @@ fn check_function_declarations() {
         "(a, b) => { return a + b; }",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    None,
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    None,
-                    false,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
             ],
             Box::new(Node::StatementList(vec![Node::Return(Some(Box::new(
                 create_bin_op(
@@ -709,16 +664,8 @@ fn check_function_declarations() {
         "(a, b) => { return; }",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    None,
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    None,
-                    false,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
             ],
             Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
@@ -728,16 +675,8 @@ fn check_function_declarations() {
         "(a, b) => { return }",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    None,
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    None,
-                    false,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
             ],
             Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
