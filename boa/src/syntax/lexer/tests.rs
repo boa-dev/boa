@@ -336,29 +336,22 @@ fn check_positions() {
 
 #[test]
 fn check_line_numbers() {
-    let s = "// Copyright (C) 2017 Ecma International.  All rights reserved.\n\
-             // This code is governed by the BSD license found in the LICENSE file.\n\
-             /*---\n\
-             description: |\n    \
-             Collection of assertion functions used throughout test262\n\
-             defines: [assert]\n\
-             ---*/\n\n\n\
-             function assert(mustBeTrue, message) {";
+    let s = "x\ny\n";
 
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    // The first column is 1 (not zero indexed), first line is also 1
+
     assert_eq!(lexer.tokens[0].pos.column_number, 1);
     assert_eq!(lexer.tokens[0].pos.line_number, 1);
-    // Second comment starts on line 2
-    assert_eq!(lexer.tokens[1].pos.column_number, 1);
-    assert_eq!(lexer.tokens[1].pos.line_number, 2);
-    // Multiline comment starts on line 3
+
+    assert_eq!(lexer.tokens[1].pos.column_number, 2);
+    assert_eq!(lexer.tokens[1].pos.line_number, 1);
+
     assert_eq!(lexer.tokens[2].pos.column_number, 1);
-    assert_eq!(lexer.tokens[2].pos.line_number, 3);
-    // Function Token is on line 10
-    assert_eq!(lexer.tokens[3].pos.column_number, 1);
-    assert_eq!(lexer.tokens[3].pos.line_number, 10);
+    assert_eq!(lexer.tokens[2].pos.line_number, 2);
+
+    assert_eq!(lexer.tokens[3].pos.column_number, 2);
+    assert_eq!(lexer.tokens[3].pos.line_number, 2);
 }
 
 // Increment/Decrement
