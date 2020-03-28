@@ -5,7 +5,7 @@ use crate::syntax::ast::{
     constant::Const,
     keyword::Keyword,
     node::{FormalParameter, FormalParameters, Node, PropertyDefinition},
-    op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, Operator, UnaryOp},
+    op::{AssignOp, BinOp, BitOp, NumOp, UnaryOp},
     pos::Position,
     punc::Punctuator,
     token::{Token, TokenKind},
@@ -824,24 +824,6 @@ impl Parser {
             {
                 Node::Block(vec![])
             }
-            TokenKind::Punctuator(Punctuator::Sub) => {
-                Node::UnaryOp(UnaryOp::Minus, Box::new(self.parse()?))
-            }
-            TokenKind::Punctuator(Punctuator::Add) => {
-                Node::UnaryOp(UnaryOp::Plus, Box::new(self.parse()?))
-            }
-            TokenKind::Punctuator(Punctuator::Not) => {
-                Node::UnaryOp(UnaryOp::Not, Box::new(self.parse()?))
-            }
-            TokenKind::Punctuator(Punctuator::Neg) => {
-                Node::UnaryOp(UnaryOp::Tilde, Box::new(self.parse()?))
-            }
-            TokenKind::Punctuator(Punctuator::Inc) => {
-                Node::UnaryOp(UnaryOp::IncrementPre, Box::new(self.parse()?))
-            }
-            TokenKind::Punctuator(Punctuator::Dec) => {
-                Node::UnaryOp(UnaryOp::DecrementPre, Box::new(self.parse()?))
-            }
             TokenKind::Punctuator(Punctuator::Spread) => {
                 Node::UnaryOp(UnaryOp::Spread, Box::new(self.parse()?))
             }
@@ -931,98 +913,6 @@ impl Parser {
             | TokenKind::Comment(_) => {
                 self.pos += 1;
             }
-            TokenKind::Punctuator(Punctuator::Arrow) => {
-                let start_pos = self.pos;
-                self.pos += 1;
-                let mut args = Vec::with_capacity(1);
-                match result {
-                    Node::Local(ref name) => args.push(FormalParameter::new(
-                        name.clone(),
-                        Some(Box::new(result)),
-                        false,
-                    )),
-                    Node::UnaryOp(UnaryOp::Spread, _) => args.push(FormalParameter::new(
-                        String::new(),
-                        Some(Box::new(result)),
-                        true,
-                    )),
-                    _ => {
-                        let token = self.get_token(start_pos)?;
-                        return Err(ParseError::ExpectedExpr("identifier", result, token.pos));
-                    }
-                }
-                let next = self.parse()?;
-                result = Node::ArrowFunctionDecl(args, Box::new(next));
-            }
-            TokenKind::Punctuator(Punctuator::Add) => {
-                result = self.binop(BinOp::Num(NumOp::Add), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Sub) => {
-                result = self.binop(BinOp::Num(NumOp::Sub), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Mul) => {
-                result = self.binop(BinOp::Num(NumOp::Mul), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Exp) => {
-                result = self.binop(BinOp::Num(NumOp::Exp), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Div) => {
-                result = self.binop(BinOp::Num(NumOp::Div), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Mod) => {
-                result = self.binop(BinOp::Num(NumOp::Mod), node)?
-            }
-            TokenKind::Punctuator(Punctuator::BoolAnd) => {
-                result = self.binop(BinOp::Log(LogOp::And), node)?
-            }
-            TokenKind::Punctuator(Punctuator::BoolOr) => {
-                result = self.binop(BinOp::Log(LogOp::Or), node)?
-            }
-            TokenKind::Punctuator(Punctuator::And) => {
-                result = self.binop(BinOp::Bit(BitOp::And), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Or) => {
-                result = self.binop(BinOp::Bit(BitOp::Or), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Xor) => {
-                result = self.binop(BinOp::Bit(BitOp::Xor), node)?
-            }
-            TokenKind::Punctuator(Punctuator::LeftSh) => {
-                result = self.binop(BinOp::Bit(BitOp::Shl), node)?
-            }
-            TokenKind::Punctuator(Punctuator::RightSh) => {
-                result = self.binop(BinOp::Bit(BitOp::Shr), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Eq) => {
-                result = self.binop(BinOp::Comp(CompOp::Equal), node)?
-            }
-            TokenKind::Punctuator(Punctuator::NotEq) => {
-                result = self.binop(BinOp::Comp(CompOp::NotEqual), node)?
-            }
-            TokenKind::Punctuator(Punctuator::StrictEq) => {
-                result = self.binop(BinOp::Comp(CompOp::StrictEqual), node)?
-            }
-            TokenKind::Punctuator(Punctuator::StrictNotEq) => {
-                result = self.binop(BinOp::Comp(CompOp::StrictNotEqual), node)?
-            }
-            TokenKind::Punctuator(Punctuator::LessThan) => {
-                result = self.binop(BinOp::Comp(CompOp::LessThan), node)?
-            }
-            TokenKind::Punctuator(Punctuator::LessThanOrEq) => {
-                result = self.binop(BinOp::Comp(CompOp::LessThanOrEqual), node)?
-            }
-            TokenKind::Punctuator(Punctuator::GreaterThan) => {
-                result = self.binop(BinOp::Comp(CompOp::GreaterThan), node)?
-            }
-            TokenKind::Punctuator(Punctuator::GreaterThanOrEq) => {
-                result = self.binop(BinOp::Comp(CompOp::GreaterThanOrEqual), node)?
-            }
-            TokenKind::Punctuator(Punctuator::Inc) => {
-                result = Node::UnaryOp(UnaryOp::IncrementPost, Box::new(self.parse()?))
-            }
-            TokenKind::Punctuator(Punctuator::Dec) => {
-                result = Node::UnaryOp(UnaryOp::DecrementPost, Box::new(self.parse()?))
-            }
             _ => carry_on = false,
         };
         if carry_on && self.pos < self.tokens.len() {
@@ -1030,27 +920,6 @@ impl Parser {
         } else {
             Ok(result)
         }
-    }
-
-    fn binop(&mut self, op: BinOp, orig: Node) -> Result<Node, ParseError> {
-        let (precedence, assoc) = op.get_precedence_and_assoc();
-        self.pos += 1;
-        let next = self.parse()?;
-        Ok(match next {
-            Node::BinOp(ref op2, ref a, ref b) => {
-                let other_precedence = op2.get_precedence();
-                if precedence < other_precedence || (precedence == other_precedence && !assoc) {
-                    Node::BinOp(
-                        op2.clone(),
-                        b.clone(),
-                        Box::new(Node::BinOp(op, Box::new(orig), a.clone())),
-                    )
-                } else {
-                    Node::BinOp(op, Box::new(orig), Box::new(next.clone()))
-                }
-            }
-            _ => Node::BinOp(op, Box::new(orig), Box::new(next)),
-        })
     }
 
     /// Returns an error if the next Punctuator is not `tk`
