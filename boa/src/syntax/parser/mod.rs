@@ -5,7 +5,7 @@ use crate::syntax::ast::{
     constant::Const,
     keyword::Keyword,
     node::{FormalParameter, FormalParameters, Node, PropertyDefinition},
-    op::{AssignOp, BinOp, BitOp, NumOp, UnaryOp},
+    op::{AssignOp, BinOp, NumOp, UnaryOp},
     pos::Position,
     punc::Punctuator,
     token::{Token, TokenKind},
@@ -48,7 +48,7 @@ impl fmt::Display for ParseError {
                     format!(
                         "one of {}",
                         expected
-                            .into_iter()
+                            .iter()
                             .enumerate()
                             .map(|(i, t)| {
                                 format!(
@@ -415,14 +415,11 @@ impl Parser {
             Keyword::New => {
                 let start_pos = self.pos;
                 let call = self.parse()?;
-                match call {
-                    Node::Call(ref func, ref args) => {
-                        Ok(Node::Construct(func.clone(), args.clone()))
-                    }
-                    _ => {
-                        let token = self.get_token(start_pos)?;
-                        Err(ParseError::ExpectedExpr("constructor", call, token.pos))
-                    }
+                if let Node::Call(ref func, ref args) = call {
+                    Ok(Node::Construct(func.clone(), args.clone()))
+                } else {
+                    let token = self.get_token(start_pos)?;
+                    Err(ParseError::ExpectedExpr("constructor", call, token.pos))
                 }
             }
             Keyword::TypeOf => Ok(Node::TypeOf(Box::new(self.parse()?))),

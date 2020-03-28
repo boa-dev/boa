@@ -1,7 +1,7 @@
 //! Tests for the parser.
 
 use super::*;
-use crate::syntax::ast::{constant::Const, op::BinOp};
+use crate::syntax::ast::{constant::Const, op::BinOp, op::BitOp};
 use crate::syntax::{
     ast::node::{FormalParameter, Node},
     lexer::Lexer,

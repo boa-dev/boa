@@ -47,8 +47,8 @@ fn check_string() {
 fn check_punctuators() {
     // https://tc39.es/ecma262/#sec-punctuators
     let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
-                 + - * % -- << >> >>> & | ^ ! ~ && || ? : \
-                 = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
+             + - * % -- << >> >>> & | ^ ! ~ && || ? : \
+             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(
@@ -244,8 +244,8 @@ fn check_punctuators() {
 fn check_keywords() {
     // https://tc39.es/ecma262/#sec-keywords
     let s = "await break case catch class const continue debugger default delete \
-                 do else export extends finally for function if import in instanceof \
-                 new return super switch this throw try typeof var void while with yield";
+             do else export extends finally for function if import in instanceof \
+             new return super switch this throw try typeof var void while with yield";
 
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
@@ -341,13 +341,13 @@ fn check_positions() {
 #[test]
 fn check_line_numbers() {
     let s = "// Copyright (C) 2017 Ecma International.  All rights reserved.\n\
-                 // This code is governed by the BSD license found in the LICENSE file.\n\
-                 /*---\n\
-                 description: |\n    \
-                     Collection of assertion functions used throughout test262\n\
-                 defines: [assert]\n\
-                 ---*/\n\n\n\
-                 function assert(mustBeTrue, message) {";
+             // This code is governed by the BSD license found in the LICENSE file.\n\
+             /*---\n\
+             description: |\n    \
+             Collection of assertion functions used throughout test262\n\
+             defines: [assert]\n\
+             ---*/\n\n\n\
+             function assert(mustBeTrue, message) {";
 
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
