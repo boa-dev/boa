@@ -1295,7 +1295,7 @@ impl Parser {
                     self.expect_punc(Punctuator::CloseBracket, "Expected ]")?;
                     lhs = Node::GetField(Box::new(lhs), Box::new(idx));
                 }
-                _ => break
+                _ => break,
             }
         }
 
@@ -1345,7 +1345,7 @@ impl Parser {
                     self.expect_punc(Punctuator::CloseBracket, "expected ]")?;
                     lhs = Node::GetField(Box::new(lhs), Box::new(idx));
                 }
-                _ => break
+                _ => break,
             }
         }
 
