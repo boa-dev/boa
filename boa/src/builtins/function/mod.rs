@@ -13,6 +13,7 @@ use crate::{
 use gc::{custom_trace, Gc};
 use gc_derive::{Finalize, Trace};
 use std::fmt::{self, Debug};
+use std::ops::Deref;
 
 /// fn(this, arguments, ctx)
 pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> ResultValue;
@@ -48,7 +49,11 @@ impl RegularFunction {
     pub fn new(node: Node, f_args: Vec<FormalParameter>) -> Self {
         let mut args = vec![];
         for i in f_args {
-            let node = (i.init.as_deref().unwrap()).clone();
+            let node = if let Some(init) = &i.init {
+                init.deref().clone()
+            } else {
+                Node::Local(i.name.clone())
+            };
             args.push(node);
         }
 

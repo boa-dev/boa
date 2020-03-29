@@ -1,7 +1,7 @@
 //! Tests for the parser.
 
 use super::*;
-use crate::syntax::ast::{constant::Const, op::BinOp};
+use crate::syntax::ast::{constant::Const, op::BinOp, op::BitOp};
 use crate::syntax::{
     ast::node::{FormalParameter, Node},
     lexer::Lexer,
@@ -42,51 +42,78 @@ fn check_string() {
         &[Node::Const(Const::String(String::from("hello")))],
     );
 }
+
+#[test]
+fn check_object_literal() {
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::Property(String::from("b"), Node::Const(Const::Bool(false))),
+    ];
+
+    check_parser(
+        "const x = {
+            a: true,
+            b: false,
+        };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
+    );
+}
+
 #[test]
 fn check_object_short_function() {
     // Testing short function syntax
-    let mut object_properties: BTreeMap<String, Node> = BTreeMap::new();
-    object_properties.insert(String::from("a"), Node::Const(Const::Bool(true)));
-    object_properties.insert(
-        String::from("b"),
-        Node::FunctionDecl(None, vec![], Box::new(Node::Block(vec![]))),
-    );
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::MethodDefinition(
+            MethodDefinitionKind::Ordinary,
+            String::from("b"),
+            Node::FunctionDecl(None, Vec::new(), Box::new(Node::StatementList(Vec::new()))),
+        ),
+    ];
 
     check_parser(
-        "{
-              a: true,
-              b() {}
-            };
-            ",
-        &[Node::ObjectDecl(Box::new(object_properties))],
+        "const x = {
+            a: true,
+            b() {},
+        };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
     );
 }
 
 #[test]
 fn check_object_short_function_arguments() {
     // Testing short function syntax
-    let mut object_properties: BTreeMap<String, Node> = BTreeMap::new();
-    object_properties.insert(String::from("a"), Node::Const(Const::Bool(true)));
-    object_properties.insert(
-        String::from("b"),
-        Node::FunctionDecl(
-            None,
-            vec![FormalParameter::new(
-                String::from("name"),
-                Some(Box::new(Node::Local(String::from("test")))),
-                false,
-            )],
-            Box::new(Node::Block(vec![])),
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::MethodDefinition(
+            MethodDefinitionKind::Ordinary,
+            String::from("b"),
+            Node::FunctionDecl(
+                None,
+                vec![FormalParameter::new(String::from("test"), None, false)],
+                Box::new(Node::StatementList(Vec::new())),
+            ),
         ),
-    );
+    ];
 
     check_parser(
-        "{
-              a: true,
-              b(test) {}
-            };
-            ",
-        &[Node::ObjectDecl(Box::new(object_properties))],
+        "const x = {
+            a: true,
+            b(test) {}
+         };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
     );
 }
 #[test]
@@ -374,11 +401,9 @@ fn check_operations() {
         "a + d*(b-3)+1",
         &[create_bin_op(
             BinOp::Num(NumOp::Add),
-            Node::Local(String::from("a")),
             create_bin_op(
                 BinOp::Num(NumOp::Add),
-                // FIXME: shouldn't the last addition be on the right?
-                Node::Const(Const::Num(1.0)),
+                Node::Local(String::from("a")),
                 create_bin_op(
                     BinOp::Num(NumOp::Mul),
                     Node::Local(String::from("d")),
@@ -389,6 +414,7 @@ fn check_operations() {
                     ),
                 ),
             ),
+            Node::Const(Const::Num(1.0)),
         )],
     );
 
@@ -587,12 +613,8 @@ fn check_function_declarations() {
         "function foo(a) { return a; }",
         &[Node::FunctionDecl(
             Some(String::from("foo")),
-            vec![FormalParameter::new(
-                String::from("foo"),
-                Some(Box::new(Node::Local(String::from("a")))),
-                false,
-            )],
-            Box::new(Node::Block(vec![Node::Return(Some(Box::new(
+            vec![FormalParameter::new(String::from("a"), None, false)],
+            Box::new(Node::StatementList(vec![Node::Return(Some(Box::new(
                 Node::Local(String::from("a")),
             )))])),
         )],
@@ -602,12 +624,8 @@ fn check_function_declarations() {
         "function foo(a) { return; }",
         &[Node::FunctionDecl(
             Some(String::from("foo")),
-            vec![FormalParameter::new(
-                String::from("foo"),
-                Some(Box::new(Node::Local(String::from("a")))),
-                false,
-            )],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            vec![FormalParameter::new(String::from("a"), None, false)],
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 
@@ -615,50 +633,28 @@ fn check_function_declarations() {
         "function foo(a) { return }",
         &[Node::FunctionDecl(
             Some(String::from("foo")),
-            vec![FormalParameter::new(
-                String::from("foo"),
-                Some(Box::new(Node::Local(String::from("a")))),
-                false,
-            )],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            vec![FormalParameter::new(String::from("a"), None, false)],
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 
     check_parser(
-        "function (a, ...b) {}",
+        "function foo(a, ...b) {}",
         &[Node::FunctionDecl(
-            None,
+            Some(String::from("foo")),
             vec![
-                FormalParameter::new(
-                    String::from("foo"),
-                    Some(Box::new(Node::Local(String::from("a")))),
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    Some(Box::new(Node::UnaryOp(
-                        UnaryOp::Spread,
-                        Box::new(Node::Local(String::from("b"))),
-                    ))),
-                    true,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, true),
             ],
-            Box::new(Node::ObjectDecl(Box::new(BTreeMap::new()))),
+            Box::new(Node::StatementList(Vec::new())),
         )],
     );
 
     check_parser(
         "(...a) => {}",
         &[Node::ArrowFunctionDecl(
-            vec![FormalParameter::new(
-                String::from("a"),
-                Some(Box::new(Node::UnaryOp(
-                    UnaryOp::Spread,
-                    Box::new(Node::Local(String::from("a"))),
-                ))),
-                false,
-            )],
-            Box::new(Node::ObjectDecl(Box::new(BTreeMap::new()))),
+            vec![FormalParameter::new(String::from("a"), None, true)],
+            Box::new(Node::StatementList(Vec::new())),
         )],
     );
 
@@ -666,26 +662,11 @@ fn check_function_declarations() {
         "(a, b, ...c) => {}",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    Some(Box::new(Node::UnaryOp(
-                        UnaryOp::Spread,
-                        Box::new(Node::Local(String::from("c"))),
-                    ))),
-                    false,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
+                FormalParameter::new(String::from("c"), None, true),
             ],
-            Box::new(Node::ObjectDecl(Box::new(BTreeMap::new()))),
+            Box::new(Node::StatementList(Vec::new())),
         )],
     );
 
@@ -693,18 +674,10 @@ fn check_function_declarations() {
         "(a, b) => { return a + b; }",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
-                    false,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
             ],
-            Box::new(Node::Block(vec![Node::Return(Some(Box::new(
+            Box::new(Node::StatementList(vec![Node::Return(Some(Box::new(
                 create_bin_op(
                     BinOp::Num(NumOp::Add),
                     Node::Local(String::from("a")),
@@ -718,18 +691,10 @@ fn check_function_declarations() {
         "(a, b) => { return; }",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
-                    false,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
             ],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 
@@ -737,18 +702,10 @@ fn check_function_declarations() {
         "(a, b) => { return }",
         &[Node::ArrowFunctionDecl(
             vec![
-                FormalParameter::new(
-                    String::from("a"),
-                    Some(Box::new(Node::Local(String::from("a")))),
-                    false,
-                ),
-                FormalParameter::new(
-                    String::from("b"),
-                    Some(Box::new(Node::Local(String::from("b")))),
-                    false,
-                ),
+                FormalParameter::new(String::from("a"), None, false),
+                FormalParameter::new(String::from("b"), None, false),
             ],
-            Box::new(Node::Block(vec![Node::Return(None)])),
+            Box::new(Node::StatementList(vec![Node::Return(None)])),
         )],
     );
 }

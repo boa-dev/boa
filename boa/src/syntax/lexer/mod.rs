@@ -154,23 +154,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// read_line attempts to read until the end of the line and returns the String object or a LexerError
-    fn read_line(&mut self) -> Result<String, LexerError> {
-        let mut buf = String::new();
-        while self.preview_next().is_some() {
-            let ch = self.next();
-            match ch {
-                _ if ch.is_ascii_control() => {
-                    break;
-                }
-                _ => {
-                    buf.push(ch);
-                }
-            }
-        }
-        Ok(buf)
-    }
-
     /// Preview the next character but don't actually increment
     fn preview_next(&mut self) -> Option<char> {
         self.buffer.peek().copied()
@@ -540,14 +523,16 @@ impl<'a> Lexer<'a> {
                         match ch {
                             // line comment
                             '/' => {
-                                let comment = "/".to_owned() + &self.read_line()?;
-                                self.push_token(TokenKind::Comment(comment));
+                                while self.preview_next().is_some() {
+                                    if self.next() == '\n' {
+                                        break;
+                                    }
+                                }
                                 self.line_number += 1;
                                 self.column_number = 0;
                             }
                             // block comment
                             '*' => {
-                                let mut buf = "/".to_owned();
                                 let mut lines = 0;
                                 loop {
                                     if self.preview_next().is_none() {
@@ -555,9 +540,7 @@ impl<'a> Lexer<'a> {
                                     }
                                     match self.next() {
                                         '*' => {
-                                            buf.push('*');
                                             if self.next_is('/') {
-                                                buf.push('/');
                                                 break;
                                             }
                                         }
@@ -565,11 +548,9 @@ impl<'a> Lexer<'a> {
                                             if next_ch == '\n' {
                                                 lines += 1;
                                             }
-                                            buf.push(next_ch)
                                         },
                                     }
                                 }
-                                self.push_token(TokenKind::Comment(buf));
                                 self.line_number += lines;
                                 self.column_number = 0;
                             }

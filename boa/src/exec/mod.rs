@@ -513,14 +513,30 @@ impl Executor for Interpreter {
                 }))
             }
             Node::StatementList(ref list) => {
-                for (i, item) in list.iter().enumerate() {
-                    if i + 1 == list.len() {
-                        return self.run(item);
-                    }
-                    self.run(item)?;
+                {
+                    let env = &mut self.realm.environment;
+                    env.push(new_declarative_environment(Some(
+                        env.get_current_environment_ref().clone(),
+                    )));
                 }
 
-                Ok(Gc::new(ValueData::Undefined))
+                let mut obj = to_value(None::<()>);
+                for (i, item) in list.iter().enumerate() {
+                    let val = self.run(item)?;
+                    // early return
+                    if self.is_return {
+                        obj = val;
+                        break;
+                    }
+                    if i + 1 == list.len() {
+                        obj = val;
+                    }
+                }
+
+                // pop the block env
+                let _ = self.realm.environment.pop();
+
+                Ok(obj)
             }
             _ => unimplemented!(),
         }
@@ -777,7 +793,7 @@ impl Interpreter {
         }
     }
 
-    /// `extract_array_properties` converts an array object into a rust vector of Values.   
+    /// `extract_array_properties` converts an array object into a rust vector of Values.
     /// This is useful for the spread operator, for any other object an `Err` is returned
     fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Gc<ValueData>>, ()> {
         if let ValueData::Object(ref x) = *value.deref().borrow() {

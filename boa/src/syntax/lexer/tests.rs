@@ -6,12 +6,12 @@ use crate::syntax::ast::keyword::Keyword;
 
 #[test]
 fn check_single_line_comment() {
-    let s1 = "var \n//=\nx";
+    let s1 = "var \n//This is a comment\ntrue";
     let mut lexer = Lexer::new(s1);
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));
-    assert_eq!(lexer.tokens[1].kind, TokenKind::Comment("//=".to_owned()));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::Identifier("x".to_string()));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::LineTerminator);
+    assert_eq!(lexer.tokens[2].kind, TokenKind::BooleanLiteral(true));
 }
 
 #[test]
@@ -20,11 +20,7 @@ fn check_multi_line_comment() {
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));
-    assert_eq!(
-        lexer.tokens[1].kind,
-        TokenKind::Comment("/* await \n break \n*/".to_owned())
-    );
-    assert_eq!(lexer.tokens[2].kind, TokenKind::Identifier("x".to_string()));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Identifier("x".to_string()));
 }
 
 #[test]
@@ -47,8 +43,8 @@ fn check_string() {
 fn check_punctuators() {
     // https://tc39.es/ecma262/#sec-punctuators
     let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
-                 + - * % -- << >> >>> & | ^ ! ~ && || ? : \
-                 = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
+             + - * % -- << >> >>> & | ^ ! ~ && || ? : \
+             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(
@@ -244,8 +240,8 @@ fn check_punctuators() {
 fn check_keywords() {
     // https://tc39.es/ecma262/#sec-keywords
     let s = "await break case catch class const continue debugger default delete \
-                 do else export extends finally for function if import in instanceof \
-                 new return super switch this throw try typeof var void while with yield";
+             do else export extends finally for function if import in instanceof \
+             new return super switch this throw try typeof var void while with yield";
 
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
@@ -332,37 +328,26 @@ fn check_positions() {
     // Semi Colon token starts on column 27
     assert_eq!(lexer.tokens[6].pos.column_number, 27);
     assert_eq!(lexer.tokens[6].pos.line_number, 1);
-    // Comment start on column 29
-    // Semi Colon token starts on column 27
-    assert_eq!(lexer.tokens[7].pos.column_number, 29);
-    assert_eq!(lexer.tokens[7].pos.line_number, 1);
 }
 
 #[test]
 fn check_line_numbers() {
-    let s = "// Copyright (C) 2017 Ecma International.  All rights reserved.\n\
-                 // This code is governed by the BSD license found in the LICENSE file.\n\
-                 /*---\n\
-                 description: |\n    \
-                     Collection of assertion functions used throughout test262\n\
-                 defines: [assert]\n\
-                 ---*/\n\n\n\
-                 function assert(mustBeTrue, message) {";
+    let s = "x\ny\n";
 
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    // The first column is 1 (not zero indexed), first line is also 1
+
     assert_eq!(lexer.tokens[0].pos.column_number, 1);
     assert_eq!(lexer.tokens[0].pos.line_number, 1);
-    // Second comment starts on line 2
-    assert_eq!(lexer.tokens[1].pos.column_number, 1);
-    assert_eq!(lexer.tokens[1].pos.line_number, 2);
-    // Multiline comment starts on line 3
+
+    assert_eq!(lexer.tokens[1].pos.column_number, 2);
+    assert_eq!(lexer.tokens[1].pos.line_number, 1);
+
     assert_eq!(lexer.tokens[2].pos.column_number, 1);
-    assert_eq!(lexer.tokens[2].pos.line_number, 3);
-    // Function Token is on line 10
-    assert_eq!(lexer.tokens[3].pos.column_number, 1);
-    assert_eq!(lexer.tokens[3].pos.line_number, 10);
+    assert_eq!(lexer.tokens[2].pos.line_number, 2);
+
+    assert_eq!(lexer.tokens[3].pos.column_number, 2);
+    assert_eq!(lexer.tokens[3].pos.line_number, 2);
 }
 
 // Increment/Decrement
