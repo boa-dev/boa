@@ -1415,7 +1415,13 @@ impl Parser {
             TokenKind::Identifier(ident) => Ok(Node::Local(ident)),
             TokenKind::StringLiteral(s) => Ok(Node::Const(Const::String(s))),
             TokenKind::NumericLiteral(num) => Ok(Node::Const(Const::Num(num))),
-            // TODO: Implement Regex
+            TokenKind::RegularExpressionLiteral(body, flags) => Ok(Node::Construct(
+                Box::new(Node::Local("RegExp".to_string())),
+                vec![
+                    Node::Const(Const::String(body)),
+                    Node::Const(Const::String(flags)),
+                ],
+            )),
             _ => Err(ParseError::Unexpected(tok, None)),
         }
     }
