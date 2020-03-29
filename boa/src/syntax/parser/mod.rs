@@ -763,7 +763,7 @@ impl Parser {
     fn variable_declaration_continuation(&mut self) -> Result<bool, ParseError> {
         let mut newline_found = false;
 
-        for _ in 0.. {
+        loop {
             match self.peek(0) {
                 Ok(tok) => match tok.kind {
                     TokenKind::LineTerminator => newline_found = true,
@@ -779,6 +779,7 @@ impl Parser {
                 },
                 Err(_) => return Ok(false),
             }
+            self.pos += 1;
         }
 
         Err(ParseError::Expected(
@@ -1268,9 +1269,10 @@ impl Parser {
         } else {
             self.read_primary_expression()?
         };
-        while let Ok(tok) = self.next_skip_lineterminator() {
+        while let Ok(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::Dot) => {
+                    self.next_skip_lineterminator()?;
                     match self.next_skip_lineterminator()?.kind {
                         TokenKind::Identifier(name) => {
                             lhs = Node::GetConstField(Box::new(lhs), name)
@@ -1288,14 +1290,12 @@ impl Parser {
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                    self.next_skip_lineterminator()?;
                     let idx = self.read_expression()?;
                     self.expect_punc(Punctuator::CloseBracket, "Expected ]")?;
                     lhs = Node::GetField(Box::new(lhs), Box::new(idx));
                 }
-                _ => {
-                    self.step_back();
-                    break;
-                }
+                _ => break
             }
         }
 
@@ -1314,13 +1314,15 @@ impl Parser {
             panic!("CallExpression MUST start with MemberExpression.");
         }
 
-        while let Ok(tok) = self.next_skip_lineterminator() {
+        while let Ok(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
+                    self.next_skip_lineterminator()?;
                     let args = self.read_arguments()?;
                     lhs = Node::Call(Box::new(lhs), args);
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
+                    self.next_skip_lineterminator()?;
                     match self.next_skip_lineterminator()?.kind {
                         TokenKind::Identifier(name) => {
                             lhs = Node::GetConstField(Box::new(lhs), name);
@@ -1338,14 +1340,12 @@ impl Parser {
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                    self.next_skip_lineterminator()?;
                     let idx = self.read_expression()?;
                     self.expect_punc(Punctuator::CloseBracket, "expected ]")?;
                     lhs = Node::GetField(Box::new(lhs), Box::new(idx));
                 }
-                _ => {
-                    self.step_back();
-                    break;
-                }
+                _ => break
             }
         }
 
