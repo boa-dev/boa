@@ -112,7 +112,7 @@ pub struct Parser {
 }
 
 macro_rules! expression { ( $name:ident, $lower:ident, [ $( $op:path ),* ] ) => {
-    fn $name (&mut self) -> Result<Node, ParseError> {
+    fn $name (&mut self) -> ParseResult {
         let mut lhs = self. $lower ()?;
         while let Ok(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
@@ -179,11 +179,6 @@ impl Parser {
     /// peeks at the next token
     fn peek(&self, num: usize) -> Result<Token, ParseError> {
         self.get_token(self.pos + num)
-    }
-
-    /// get_current_pos
-    fn get_prev_pos(&self) -> usize {
-        self.pos - 1
     }
 
     /// get_current_pos
@@ -271,20 +266,6 @@ impl Parser {
         }
     }
 
-    /// Returns an error if the next symbol is not `tk`
-    fn expect_no_lineterminator(
-        &mut self,
-        tk: TokenKind,
-        routine: &'static str,
-    ) -> Result<(), ParseError> {
-        let curr_tk = self.next_skip_lineterminator()?;
-        if curr_tk.kind == tk {
-            Ok(())
-        } else {
-            Err(ParseError::Expected(vec![tk], curr_tk, routine))
-        }
-    }
-
     /// Returns an error if the next symbol is not the punctuator `p`
     /// Consumes the next symbol otherwise
     fn expect_punc(&mut self, p: Punctuator, routine: &'static str) -> Result<(), ParseError> {
@@ -293,19 +274,19 @@ impl Parser {
 
     // New Stuff
 
-    fn read_statement_list(&mut self) -> Result<Node, ParseError> {
+    fn read_statement_list(&mut self) -> ParseResult {
         self.read_statements(false, false)
     }
 
     /// Starts after `{`
-    fn read_block_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_block_statement(&mut self) -> ParseResult {
         self.read_statements(true, true)
     }
 
     /// Read a list of statements and stop after `}`
     ///
     /// Note: It starts after `{`.
-    fn read_block(&mut self) -> Result<Node, ParseError> {
+    fn read_block(&mut self) -> ParseResult {
         self.read_statements(true, false)
     }
 
@@ -313,7 +294,7 @@ impl Parser {
         &mut self,
         break_when_closingbrase: bool,
         is_block_statement: bool,
-    ) -> Result<Node, ParseError> {
+    ) -> ParseResult {
         let mut items = vec![];
 
         loop {
@@ -370,7 +351,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-StatementListItem>
-    fn read_statement_list_item(&mut self) -> Result<Node, ParseError> {
+    fn read_statement_list_item(&mut self) -> ParseResult {
         if let Ok(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
                 TokenKind::Keyword(Keyword::Function)
@@ -384,7 +365,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-Declaration>
-    fn read_declaration(&mut self) -> Result<Node, ParseError> {
+    fn read_declaration(&mut self) -> ParseResult {
         let tok = self.next_skip_lineterminator()?;
         match tok.kind {
             TokenKind::Keyword(Keyword::Function) => self.read_function_declaration(),
@@ -395,7 +376,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-LexicalDeclaration>
-    fn read_lexical_declaration(&mut self, is_const: bool) -> Result<Node, ParseError> {
+    fn read_lexical_declaration(&mut self, is_const: bool) -> ParseResult {
         // Create vectors to store the variable declarations
         // Const and Let signatures are slightly different, Const needs definitions, Lets don't
         let mut let_decls = vec![];
@@ -443,7 +424,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-FunctionDeclaration>
-    fn read_function_declaration(&mut self) -> Result<Node, ParseError> {
+    fn read_function_declaration(&mut self) -> ParseResult {
         let token = self.next_skip_lineterminator()?;
         let name = if let TokenKind::Identifier(name) = token.kind {
             name
@@ -470,7 +451,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-Statement>
-    fn read_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_statement(&mut self) -> ParseResult {
         let tok = self.next_skip_lineterminator()?;
 
         let mut is_expression_statement = false;
@@ -523,12 +504,12 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#sec-expression-statement>
-    fn read_expression_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_expression_statement(&mut self) -> ParseResult {
         self.read_expression()
     }
 
     /// <https://tc39.es/ecma262/#sec-break-statement>
-    fn read_break_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_break_statement(&mut self) -> ParseResult {
         let tok = self.get_next_token()?;
         match tok.kind {
             TokenKind::LineTerminator
@@ -546,7 +527,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#sec-continue-statement>
-    fn read_continue_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_continue_statement(&mut self) -> ParseResult {
         let tok = self.get_next_token()?;
         match tok.kind {
             TokenKind::LineTerminator
@@ -564,7 +545,7 @@ impl Parser {
     }
 
     /// <https://tc39.github.io/ecma262/#prod-ThrowStatement>
-    fn read_throw_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_throw_statement(&mut self) -> ParseResult {
         // no LineTerminator here
         if self.next_if(TokenKind::LineTerminator).is_some() {
             return Err(ParseError::General("Illegal new line after throw"));
@@ -588,7 +569,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-ReturnStatement>
-    fn read_return_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_return_statement(&mut self) -> ParseResult {
         if self.next_if(TokenKind::LineTerminator).is_some() {
             return Ok(Node::Return(None));
         }
@@ -612,7 +593,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#sec-if-statement>
-    fn read_if_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_if_statement(&mut self) -> ParseResult {
         let oparen = self.get_next_token()?;
         if oparen.kind != TokenKind::Punctuator(Punctuator::OpenParen) {
             return Err(ParseError::Expected(
@@ -650,7 +631,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#sec-while-statement>
-    fn read_while_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_while_statement(&mut self) -> ParseResult {
         self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('")?;
 
         let cond = self.read_expression()?;
@@ -666,7 +647,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#sec-try-statement>
-    fn read_try_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_try_statement(&mut self) -> ParseResult {
         // TRY
         self.expect_punc(Punctuator::OpenBlock, "Expected open brace {")?;
         let try_clause = self.read_block_statement()?;
@@ -709,7 +690,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#sec-for-statement>
-    fn read_for_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_for_statement(&mut self) -> ParseResult {
         self.expect(TokenKind::Punctuator(Punctuator::OpenParen), "expected '('")?;
 
         let init = match self.peek(0)?.kind {
@@ -761,12 +742,12 @@ impl Parser {
         Ok(Node::Block(vec![for_node]))
     }
     /// <https://tc39.es/ecma262/#prod-VariableStatement>
-    fn read_variable_statement(&mut self) -> Result<Node, ParseError> {
+    fn read_variable_statement(&mut self) -> ParseResult {
         self.read_variable_declaration_list()
     }
 
     /// <https://tc39.es/ecma262/#prod-VariableDeclarationList>
-    fn read_variable_declaration_list(&mut self) -> Result<Node, ParseError> {
+    fn read_variable_declaration_list(&mut self) -> ParseResult {
         let mut list = Vec::new();
 
         loop {
@@ -834,7 +815,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-Initializer>
-    fn read_initializer(&mut self) -> Result<Node, ParseError> {
+    fn read_initializer(&mut self) -> ParseResult {
         self.read_assignment_expression()
     }
 
@@ -846,7 +827,7 @@ impl Parser {
     );
 
     /// <https://tc39.es/ecma262/#prod-AssignmentExpression>
-    fn read_assignment_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_assignment_expression(&mut self) -> ParseResult {
         // Arrow function
         let next_token = self.peek(0)?;
         match next_token.kind {
@@ -931,7 +912,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-ConditionalExpression>
-    fn read_conditional_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_conditional_expression(&mut self) -> ParseResult {
         let lhs = self.read_logical_or_expression()?;
 
         if let Ok(tok) = self.get_next_token() {
@@ -954,7 +935,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#sec-arrow-function-definitions>
-    fn read_arrow_function(&mut self, is_parenthesized_param: bool) -> Result<Node, ParseError> {
+    fn read_arrow_function(&mut self, is_parenthesized_param: bool) -> ParseResult {
         let params = if is_parenthesized_param {
             self.expect_punc(Punctuator::OpenParen, "expect '('")?;
             self.read_formal_parameters()?
@@ -1142,7 +1123,7 @@ impl Parser {
     );
 
     /// <https://tc39.es/ecma262/#prod-MultiplicativeExpression>
-    fn read_exponentiation_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_exponentiation_expression(&mut self) -> ParseResult {
         if self.is_unary_expression() {
             return self.read_unary_expression();
         }
@@ -1180,7 +1161,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-UnaryExpression>
-    fn read_unary_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_unary_expression(&mut self) -> ParseResult {
         let tok = self.get_next_token()?;
         match tok.kind {
             TokenKind::Keyword(Keyword::Delete) => Ok(Node::UnaryOp(
@@ -1219,7 +1200,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-UpdateExpression>
-    fn read_update_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_update_expression(&mut self) -> ParseResult {
         let tok = self.peek_skip_lineterminator()?;
         match tok.kind {
             TokenKind::Punctuator(Punctuator::Inc) => {
@@ -1259,7 +1240,7 @@ impl Parser {
 
     /// <https://tc39.github.io/ecma262/#prod-LeftHandSideExpression>
     /// TODO: Implement NewExpression: new MemberExpression
-    fn read_left_hand_side_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_left_hand_side_expression(&mut self) -> ParseResult {
         let lhs = self.read_member_expression()?;
         match self.peek_skip_lineterminator() {
             Ok(ref tok) if tok.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1270,12 +1251,12 @@ impl Parser {
     }
 
     /// <https://tc39.github.io/ecma262/#prod-NewExpression>
-    fn read_new_expression(&mut self, first_member_expr: Node) -> Result<Node, ParseError> {
+    fn read_new_expression(&mut self, first_member_expr: Node) -> ParseResult {
         Ok(first_member_expr)
     }
 
     /// <https://tc39.es/ecma262/#prod-MemberExpression>
-    fn read_member_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_member_expression(&mut self) -> ParseResult {
         let mut lhs = if self.peek_skip_lineterminator()?.kind == TokenKind::Keyword(Keyword::New) {
             self.next_skip_lineterminator()?;
             let lhs = self.read_member_expression()?;
@@ -1322,7 +1303,7 @@ impl Parser {
     }
 
     /// <https://tc39.github.io/ecma262/#prod-CallExpression>
-    fn read_call_expression(&mut self, first_member_expr: Node) -> Result<Node, ParseError> {
+    fn read_call_expression(&mut self, first_member_expr: Node) -> ParseResult {
         let mut lhs = first_member_expr;
         if let Ok(true) =
             self.next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenParen))
@@ -1413,7 +1394,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-PrimaryExpression>
-    fn read_primary_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_primary_expression(&mut self) -> ParseResult {
         let tok = self.next_skip_lineterminator()?;
 
         match tok.kind {
@@ -1440,7 +1421,7 @@ impl Parser {
     }
 
     /// <https://tc39.es/ecma262/#prod-FunctionDeclaration>
-    fn read_function_expression(&mut self) -> Result<Node, ParseError> {
+    fn read_function_expression(&mut self) -> ParseResult {
         let name = if let TokenKind::Identifier(name) = self.peek(0)?.kind {
             self.get_next_token()?;
             Some(name)
@@ -1460,7 +1441,7 @@ impl Parser {
     }
 
     /// <https://tc39.github.io/ecma262/#prod-ArrayLiteral>
-    fn read_array_literal(&mut self) -> Result<Node, ParseError> {
+    fn read_array_literal(&mut self) -> ParseResult {
         let mut elements = vec![];
 
         loop {
@@ -1496,7 +1477,7 @@ impl Parser {
     }
 
     /// <https://tc39.github.io/ecma262/#prod-ObjectLiteral>
-    fn read_object_literal(&mut self) -> Result<Node, ParseError> {
+    fn read_object_literal(&mut self) -> ParseResult {
         let mut elements = Vec::new();
 
         loop {
