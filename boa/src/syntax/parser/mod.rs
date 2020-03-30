@@ -1386,8 +1386,14 @@ impl Parser {
                     return Err(ParseError::AbruptEnd);
                 }
             }
-
-            args.push(self.read_assignment_expression()?);
+            if self
+                .next_if(TokenKind::Punctuator(Punctuator::Spread))
+                .is_some()
+            {
+                args.push(Node::Spread(Box::new(self.read_assignment_expression()?)));
+            } else {
+                args.push(self.read_assignment_expression()?);
+            }
         }
 
         Ok(args)
@@ -1415,13 +1421,15 @@ impl Parser {
             TokenKind::Identifier(ident) => Ok(Node::Local(ident)),
             TokenKind::StringLiteral(s) => Ok(Node::Const(Const::String(s))),
             TokenKind::NumericLiteral(num) => Ok(Node::Const(Const::Num(num))),
-            TokenKind::RegularExpressionLiteral(body, flags) => Ok(Node::Construct(
-                Box::new(Node::Local("RegExp".to_string())),
-                vec![
-                    Node::Const(Const::String(body)),
-                    Node::Const(Const::String(flags)),
-                ],
-            )),
+            TokenKind::RegularExpressionLiteral(body, flags) => {
+                Ok(Node::New(Box::new(Node::Call(
+                    Box::new(Node::Local("RegExp".to_string())),
+                    vec![
+                        Node::Const(Const::String(body)),
+                        Node::Const(Const::String(flags)),
+                    ],
+                ))))
+            }
             _ => Err(ParseError::Unexpected(tok, None)),
         }
     }

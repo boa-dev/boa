@@ -3,7 +3,7 @@ use crate::syntax::ast::{
     op::{BinOp, Operator, UnaryOp},
 };
 use gc_derive::{Finalize, Trace};
-use std::{collections::btree_map::BTreeMap, fmt};
+use std::fmt;
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
@@ -32,8 +32,6 @@ pub enum Node {
     Const(Const),
     /// Const declaration.
     ConstDecl(Vec<(String, Node)>),
-    /// Construct an object from the function and arguments.
-    Construct(Box<Node>, Vec<Node>),
     /// Continue with an optional label.
     Continue(Option<String>),
     /// Create a function with the given name, arguments, and internal AST node.
@@ -57,15 +55,13 @@ pub enum Node {
     Local(String),
     /// New
     New(Box<Node>),
-    /// Create an object out of the binary tree given
-    ObjectDecl(Box<BTreeMap<String, Node>>),
-    /// Object Declaration (replaces ObjectDecl)
+    /// Object Declaration
     Object(Vec<PropertyDefinition>),
     /// Return the expression from a function
     Return(Option<Box<Node>>),
     /// Run blocks whose cases match the expression
     Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
-    /// Spread operator
+    /// `...a` - spread an iterable value
     Spread(Box<Node>),
     // Similar to Block but without the braces
     StatementList(Vec<Node>),
@@ -99,18 +95,14 @@ pub enum Node {
 impl Operator for Node {
     fn get_assoc(&self) -> bool {
         match *self {
-            Node::Construct(_, _)
-            | Node::UnaryOp(_, _)
-            | Node::TypeOf(_)
-            | Node::If(_, _, _)
-            | Node::Assign(_, _) => false,
+            Node::UnaryOp(_, _) | Node::TypeOf(_) | Node::If(_, _, _) | Node::Assign(_, _) => false,
             _ => true,
         }
     }
     fn get_precedence(&self) -> u64 {
         match self {
             Node::GetField(_, _) | Node::GetConstField(_, _) => 1,
-            Node::Call(_, _) | Node::Construct(_, _) => 2,
+            Node::Call(_, _) => 2,
             Node::UnaryOp(UnaryOp::IncrementPost, _)
             | Node::UnaryOp(UnaryOp::IncrementPre, _)
             | Node::UnaryOp(UnaryOp::DecrementPost, _)
@@ -148,12 +140,10 @@ impl Node {
             Self::ConditionalOp(_, _, _) => write!(f, "Conditional op"), // TODO
             Self::ForLoop(_, _, _, _) => write!(f, "for loop"),          // TODO
             Self::This => write!(f, "this"),                             // TODO
-            Self::Object(_) => write!(f, "object"),                      // TODO
-            Self::Spread(_) => write!(f, "spread"),                      // TODO
-            Self::New(_) => write!(f, "new"),                            // TODO
             Self::Try(_, _, _, _) => write!(f, "try/catch/finally"),     // TODO
             Self::Break(_) => write!(f, "break"), // TODO: add potential value
             Self::Continue(_) => write!(f, "continue"), // TODO: add potential value
+            Self::Spread(ref node) => write!(f, "...{}", node),
             Self::Block(ref block) => {
                 writeln!(f, "{{")?;
                 for node in block.iter() {
@@ -197,7 +187,12 @@ impl Node {
                 let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
                 write!(f, "{})", arg_strs.join(", "))
             }
-            Self::Construct(ref func, ref args) => {
+            Self::New(ref call) => {
+                let (func, args) = match call.as_ref() {
+                    Node::Call(func, args) => (func, args),
+                    _ => unreachable!("Node::New(ref call): 'call' must only be Node::Call type."),
+                };
+
                 write!(f, "new {}", func)?;
                 f.write_str("(")?;
                 let mut first = true;
@@ -242,10 +237,24 @@ impl Node {
                 def.display(f, indentation + 1)?;
                 write!(f, "{}}}", indent)
             }
-            Self::ObjectDecl(ref map) => {
+            Self::Object(ref properties) => {
                 f.write_str("{\n")?;
-                for (key, value) in map.iter() {
-                    write!(f, "{}    {}: {},", indent, key, value)?;
+                for property in properties {
+                    match property {
+                        PropertyDefinition::IdentifierReference(key) => {
+                            write!(f, "{}    {},", indent, key)?;
+                        }
+                        PropertyDefinition::Property(key, value) => {
+                            write!(f, "{}    {}: {},", indent, key, value)?;
+                        }
+                        PropertyDefinition::SpreadObject(key) => {
+                            write!(f, "{}    ...{},", indent, key)?;
+                        }
+                        PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
+                            // TODO: Implement display for PropertyDefinition::MethodDefinition.
+                            unimplemented!("Display for PropertyDefinition::MethodDefinition");
+                        }
+                    }
                 }
                 f.write_str("}")
             }

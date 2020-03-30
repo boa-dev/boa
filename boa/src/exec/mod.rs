@@ -17,7 +17,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::Node,
+        node::{MethodDefinitionKind, Node, PropertyDefinition},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
     },
 };
@@ -141,7 +141,7 @@ impl Executor for Interpreter {
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
-                    if let Node::UnaryOp(UnaryOp::Spread, ref x) = arg.deref() {
+                    if let Node::Spread(ref x) = arg.deref() {
                         let val = self.run(x)?;
                         let mut vals = self.extract_array_properties(&val).unwrap();
                         v_args.append(&mut vals);
@@ -205,23 +205,39 @@ impl Executor for Interpreter {
                 }
                 Ok(result)
             }
-            Node::ObjectDecl(ref map) => {
+            Node::Object(ref properties) => {
                 let global_val = &self
                     .realm
                     .environment
                     .get_global_object()
                     .expect("Could not get the global object");
                 let obj = ValueData::new_obj(Some(global_val));
-                for (key, val) in map.iter() {
-                    obj.borrow().set_field_slice(&key.clone(), self.run(val)?);
+
+                // TODO: Implement the rest of the property types.
+                for property in properties {
+                    match property {
+                        PropertyDefinition::Property(key, value) => {
+                            obj.borrow().set_field_slice(&key.clone(), self.run(value)?);
+                        }
+                        PropertyDefinition::MethodDefinition(kind, name, func) => {
+                            if let MethodDefinitionKind::Ordinary = kind {
+                                obj.borrow().set_field_slice(&name.clone(), self.run(func)?);
+                            } else {
+                                // TODO: Implement other types of MethodDefinitionKinds.
+                                unimplemented!("other types of property method definitions.");
+                            }
+                        }
+                        i => unimplemented!("{:?} type of property", i),
+                    }
                 }
+
                 Ok(obj)
             }
             Node::ArrayDecl(ref arr) => {
                 let array = array::new_array(self)?;
                 let mut elements: Vec<Value> = vec![];
                 for elem in arr.iter() {
-                    if let Node::UnaryOp(UnaryOp::Spread, ref x) = elem.deref() {
+                    if let Node::Spread(ref x) = elem.deref() {
                         let val = self.run(x)?;
                         let mut vals = self.extract_array_properties(&val).unwrap();
                         elements.append(&mut vals);
@@ -286,7 +302,6 @@ impl Executor for Interpreter {
                             !(num_v_a as i32)
                         })
                     }
-                    UnaryOp::Spread => Gc::new(v_a), // for now we can do nothing but return the value as-is
                     _ => unreachable!(),
                 })
             }
@@ -356,7 +371,12 @@ impl Executor for Interpreter {
                 }
                 _ => Ok(Gc::new(ValueData::Undefined)),
             },
-            Node::Construct(ref callee, ref args) => {
+            Node::New(ref call) => {
+                let (callee, args) = match call.as_ref() {
+                    Node::Call(callee, args) => (callee, args),
+                    _ => unreachable!("Node::New(ref call): 'call' must only be Node::Call type."),
+                };
+
                 let func_object = self.run(callee)?;
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
@@ -538,7 +558,11 @@ impl Executor for Interpreter {
 
                 Ok(obj)
             }
-            _ => unimplemented!(),
+            Node::Spread(ref node) => {
+                // TODO: for now we can do nothing but return the value as-is
+                Ok(Gc::new((*self.run(node)?).clone()))
+            }
+            ref i => unimplemented!("{}", i),
         }
     }
 }
@@ -591,7 +615,7 @@ impl Interpreter {
                                     .environment
                                     .initialize_binding(name, expr.clone());
                             }
-                            Node::UnaryOp(UnaryOp::Spread, ref expr) => {
+                            Node::Spread(ref expr) => {
                                 if let Node::Local(ref name) = expr.deref() {
                                     let array = array::new_array(self)?;
                                     array::add_to_array_object(&array, &arguments_list[i..])?;
