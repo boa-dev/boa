@@ -559,7 +559,8 @@ impl Executor for Interpreter {
                 Ok(obj)
             }
             Node::Spread(ref node) => {
-                Ok(Gc::new((*self.run(node)?).clone())) // for now we can do nothing but return the value as-is
+                // TODO: for now we can do nothing but return the value as-is
+                Ok(Gc::new((*self.run(node)?).clone()))
             }
             ref i => unimplemented!("{}", i),
         }
