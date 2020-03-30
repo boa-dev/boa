@@ -141,7 +141,7 @@ impl Executor for Interpreter {
                 };
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
-                    if let Node::UnaryOp(UnaryOp::Spread, ref x) = arg.deref() {
+                    if let Node::Spread(ref x) = arg.deref() {
                         let val = self.run(x)?;
                         let mut vals = self.extract_array_properties(&val).unwrap();
                         v_args.append(&mut vals);
@@ -237,7 +237,7 @@ impl Executor for Interpreter {
                 let array = array::new_array(self)?;
                 let mut elements: Vec<Value> = vec![];
                 for elem in arr.iter() {
-                    if let Node::UnaryOp(UnaryOp::Spread, ref x) = elem.deref() {
+                    if let Node::Spread(ref x) = elem.deref() {
                         let val = self.run(x)?;
                         let mut vals = self.extract_array_properties(&val).unwrap();
                         elements.append(&mut vals);
@@ -302,7 +302,6 @@ impl Executor for Interpreter {
                             !(num_v_a as i32)
                         })
                     }
-                    UnaryOp::Spread => Gc::new(v_a), // for now we can do nothing but return the value as-is
                     _ => unreachable!(),
                 })
             }
@@ -559,6 +558,9 @@ impl Executor for Interpreter {
 
                 Ok(obj)
             }
+            Node::Spread(ref node) => {
+                Ok(Gc::new((*self.run(node)?).clone())) // for now we can do nothing but return the value as-is
+            }
             ref i => unimplemented!("{}", i),
         }
     }
@@ -612,7 +614,7 @@ impl Interpreter {
                                     .environment
                                     .initialize_binding(name, expr.clone());
                             }
-                            Node::UnaryOp(UnaryOp::Spread, ref expr) => {
+                            Node::Spread(ref expr) => {
                                 if let Node::Local(ref name) = expr.deref() {
                                     let array = array::new_array(self)?;
                                     array::add_to_array_object(&array, &arguments_list[i..])?;

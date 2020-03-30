@@ -61,7 +61,7 @@ pub enum Node {
     Return(Option<Box<Node>>),
     /// Run blocks whose cases match the expression
     Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
-    /// Spread operator
+    /// `...a` - spread an iterable value
     Spread(Box<Node>),
     // Similar to Block but without the braces
     StatementList(Vec<Node>),
@@ -140,10 +140,10 @@ impl Node {
             Self::ConditionalOp(_, _, _) => write!(f, "Conditional op"), // TODO
             Self::ForLoop(_, _, _, _) => write!(f, "for loop"),          // TODO
             Self::This => write!(f, "this"),                             // TODO
-            Self::Spread(_) => write!(f, "spread"),                      // TODO
             Self::Try(_, _, _, _) => write!(f, "try/catch/finally"),     // TODO
-            Self::Break(_) => write!(f, "break"), // TODO: add potential value
-            Self::Continue(_) => write!(f, "continue"), // TODO: add potential value
+            Self::Break(_) => write!(f, "break"),                        // TODO: add potential value
+            Self::Continue(_) => write!(f, "continue"),                  // TODO: add potential value
+            Self::Spread(ref node) => write!(f, "...{}", node),
             Self::Block(ref block) => {
                 writeln!(f, "{{")?;
                 for node in block.iter() {

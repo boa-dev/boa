@@ -75,8 +75,6 @@ pub enum UnaryOp {
     Tilde,
     /// `typeof` - Get the type of object
     TypeOf,
-    /// `...a` - spread an iterable value
-    Spread,
     /// The JavaScript `delete` operator removes a property from an object.
     ///
     /// Unlike what common belief suggests, the delete operator has nothing to do with
@@ -117,7 +115,6 @@ impl Display for UnaryOp {
                 UnaryOp::Minus => "-",
                 UnaryOp::Not => "!",
                 UnaryOp::Tilde => "~",
-                UnaryOp::Spread => "...",
                 UnaryOp::Delete => "delete",
                 UnaryOp::TypeOf => "typeof",
                 UnaryOp::Void => "void",
