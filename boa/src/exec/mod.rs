@@ -17,7 +17,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::Node,
+        node::{MethodDefinitionKind, Node, PropertyDefinition},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
     },
 };
@@ -205,16 +205,32 @@ impl Executor for Interpreter {
                 }
                 Ok(result)
             }
-            Node::ObjectDecl(ref map) => {
+            Node::Object(ref properties) => {
                 let global_val = &self
                     .realm
                     .environment
                     .get_global_object()
                     .expect("Could not get the global object");
                 let obj = ValueData::new_obj(Some(global_val));
-                for (key, val) in map.iter() {
-                    obj.borrow().set_field_slice(&key.clone(), self.run(val)?);
+
+                // TODO: Implement the rest of the property types.
+                for property in properties {
+                    match property {
+                        PropertyDefinition::Property(key, value) => {
+                            obj.borrow().set_field_slice(&key.clone(), self.run(value)?);
+                        }
+                        PropertyDefinition::MethodDefinition(kind, name, func) => {
+                            if let MethodDefinitionKind::Ordinary = kind {
+                                obj.borrow().set_field_slice(&name.clone(), self.run(func)?);
+                            } else {
+                                // TODO: Implement other types of MethodDefinitionKinds.
+                                unimplemented!("other types of property method definitions.");
+                            }
+                        }
+                        i => unimplemented!("{:?} type of property", i),
+                    }
                 }
+
                 Ok(obj)
             }
             Node::ArrayDecl(ref arr) => {
@@ -543,7 +559,7 @@ impl Executor for Interpreter {
 
                 Ok(obj)
             }
-            _ => unimplemented!(),
+            ref i => unimplemented!("{}", i),
         }
     }
 }

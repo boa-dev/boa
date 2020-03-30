@@ -3,7 +3,7 @@ use crate::syntax::ast::{
     op::{BinOp, Operator, UnaryOp},
 };
 use gc_derive::{Finalize, Trace};
-use std::{collections::btree_map::BTreeMap, fmt};
+use std::fmt;
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
@@ -55,9 +55,7 @@ pub enum Node {
     Local(String),
     /// New
     New(Box<Node>),
-    /// Create an object out of the binary tree given
-    ObjectDecl(Box<BTreeMap<String, Node>>),
-    /// Object Declaration (replaces ObjectDecl)
+    /// Object Declaration
     Object(Vec<PropertyDefinition>),
     /// Return the expression from a function
     Return(Option<Box<Node>>),
@@ -142,7 +140,6 @@ impl Node {
             Self::ConditionalOp(_, _, _) => write!(f, "Conditional op"), // TODO
             Self::ForLoop(_, _, _, _) => write!(f, "for loop"),          // TODO
             Self::This => write!(f, "this"),                             // TODO
-            Self::Object(_) => write!(f, "object"),                      // TODO
             Self::Spread(_) => write!(f, "spread"),                      // TODO
             Self::Try(_, _, _, _) => write!(f, "try/catch/finally"),     // TODO
             Self::Break(_) => write!(f, "break"), // TODO: add potential value
@@ -240,10 +237,24 @@ impl Node {
                 def.display(f, indentation + 1)?;
                 write!(f, "{}}}", indent)
             }
-            Self::ObjectDecl(ref map) => {
+            Self::Object(ref properties) => {
                 f.write_str("{\n")?;
-                for (key, value) in map.iter() {
-                    write!(f, "{}    {}: {},", indent, key, value)?;
+                for property in properties {
+                    match property {
+                        PropertyDefinition::IdentifierReference(key) => {
+                            write!(f, "{}    {},", indent, key)?;
+                        }
+                        PropertyDefinition::Property(key, value) => {
+                            write!(f, "{}    {}: {},", indent, key, value)?;
+                        }
+                        PropertyDefinition::SpreadObject(key) => {
+                            write!(f, "{}    ...{},", indent, key)?;
+                        }
+                        PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
+                            // TODO: Implement display for PropertyDefinition::MethodDefinition.
+                            unimplemented!("Display for PropertyDefinition::MethodDefinition");
+                        }
+                    }
                 }
                 f.write_str("}")
             }
