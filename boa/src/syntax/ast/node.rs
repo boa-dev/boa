@@ -141,8 +141,8 @@ impl Node {
             Self::ForLoop(_, _, _, _) => write!(f, "for loop"),          // TODO
             Self::This => write!(f, "this"),                             // TODO
             Self::Try(_, _, _, _) => write!(f, "try/catch/finally"),     // TODO
-            Self::Break(_) => write!(f, "break"),                        // TODO: add potential value
-            Self::Continue(_) => write!(f, "continue"),                  // TODO: add potential value
+            Self::Break(_) => write!(f, "break"), // TODO: add potential value
+            Self::Continue(_) => write!(f, "continue"), // TODO: add potential value
             Self::Spread(ref node) => write!(f, "...{}", node),
             Self::Block(ref block) => {
                 writeln!(f, "{{")?;
