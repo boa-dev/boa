@@ -28,16 +28,8 @@ impl Cursor {
     }
 
     /// Moves the cursor to the given position.
-    ///
     /// This is intended to be used *always* with `Cursor::pos()`.
     ///
-    /// # Example:
-    /// ```
-    /// # let mut cursor = Cursor::new(Vec::new());
-    /// let pos_save = cursor.pos();
-    /// // Do some stuff that might change the cursor position...
-    /// cursor.seek(pos_save);
-    /// ```
     pub(super) fn seek(&mut self, pos: usize) {
         self.pos = pos
     }
