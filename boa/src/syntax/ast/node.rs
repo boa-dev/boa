@@ -32,8 +32,6 @@ pub enum Node {
     Const(Const),
     /// Const declaration.
     ConstDecl(Vec<(String, Node)>),
-    /// Construct an object from the function and arguments.
-    Construct(Box<Node>, Vec<Node>),
     /// Continue with an optional label.
     Continue(Option<String>),
     /// Create a function with the given name, arguments, and internal AST node.
@@ -99,18 +97,14 @@ pub enum Node {
 impl Operator for Node {
     fn get_assoc(&self) -> bool {
         match *self {
-            Node::Construct(_, _)
-            | Node::UnaryOp(_, _)
-            | Node::TypeOf(_)
-            | Node::If(_, _, _)
-            | Node::Assign(_, _) => false,
+            Node::UnaryOp(_, _) | Node::TypeOf(_) | Node::If(_, _, _) | Node::Assign(_, _) => false,
             _ => true,
         }
     }
     fn get_precedence(&self) -> u64 {
         match self {
             Node::GetField(_, _) | Node::GetConstField(_, _) => 1,
-            Node::Call(_, _) | Node::Construct(_, _) => 2,
+            Node::Call(_, _) => 2,
             Node::UnaryOp(UnaryOp::IncrementPost, _)
             | Node::UnaryOp(UnaryOp::IncrementPre, _)
             | Node::UnaryOp(UnaryOp::DecrementPost, _)
@@ -150,7 +144,6 @@ impl Node {
             Self::This => write!(f, "this"),                             // TODO
             Self::Object(_) => write!(f, "object"),                      // TODO
             Self::Spread(_) => write!(f, "spread"),                      // TODO
-            Self::New(_) => write!(f, "new"),                            // TODO
             Self::Try(_, _, _, _) => write!(f, "try/catch/finally"),     // TODO
             Self::Break(_) => write!(f, "break"), // TODO: add potential value
             Self::Continue(_) => write!(f, "continue"), // TODO: add potential value
@@ -197,7 +190,12 @@ impl Node {
                 let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
                 write!(f, "{})", arg_strs.join(", "))
             }
-            Self::Construct(ref func, ref args) => {
+            Self::New(ref call) => {
+                let (func, args) = match call.as_ref() {
+                    Node::Call(func, args) => (func, args),
+                    _ => unreachable!("Node::New(ref call): 'call' must only be Node::Call type."),
+                };
+
                 write!(f, "new {}", func)?;
                 f.write_str("(")?;
                 let mut first = true;

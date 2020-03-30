@@ -356,7 +356,12 @@ impl Executor for Interpreter {
                 }
                 _ => Ok(Gc::new(ValueData::Undefined)),
             },
-            Node::Construct(ref callee, ref args) => {
+            Node::New(ref call) => {
+                let (callee, args) = match call.as_ref() {
+                    Node::Call(callee, args) => (callee, args),
+                    _ => unreachable!("Node::New(ref call): 'call' must only be Node::Call type."),
+                };
+
                 let func_object = self.run(callee)?;
                 let mut v_args = Vec::with_capacity(args.len());
                 for arg in args.iter() {
