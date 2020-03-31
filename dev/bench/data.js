@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1585098334742,
+  "lastUpdate": 1585679700292,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2769,6 +2769,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.3159,
             "range": "+/- 0.010",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "936006+jasonwilliams@users.noreply.github.com",
+            "name": "Jason Williams",
+            "username": "jasonwilliams"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "48c6e886d4fc63324d1695192d8960ac3efe4c21",
+          "message": "Parser fixes #225 #240 #273 (#281)\n\nNew parser!\r\nPlus loads of tidy up in various places.\r\n\r\nCo-authored-by: Jason Williams <jwilliams720@bloomberg.net>\r\nCo-authored-by: HalidOdat <halidodat@gmail.com>\r\nCo-authored-by: Iban Eguia <iban.eguia@cern.ch>\r\nCo-authored-by: Iban Eguia <razican@protonmail.ch>",
+          "timestamp": "2020-03-31T19:29:21+01:00",
+          "tree_id": "4f1e824ab37b8d367f9b0a6c8a308c615454ba98",
+          "url": "https://github.com/jasonwilliams/boa/commit/48c6e886d4fc63324d1695192d8960ac3efe4c21"
+        },
+        "date": 1585679698194,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 439.55,
+            "range": "+/- 6.450",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 548.05,
+            "range": "+/- 6.780",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.8765,
+            "range": "+/- 0.041",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 3.3732,
+            "range": "+/- 0.064",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 454.1,
+            "range": "+/- 8.570",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0798,
+            "range": "+/- 0.012",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.1096,
+            "range": "+/- 0.022",
             "unit": "us"
           }
         ]
