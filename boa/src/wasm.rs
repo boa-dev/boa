@@ -27,7 +27,7 @@ pub fn evaluate(src: &str) -> String {
     // Setup executor
     let node: Node;
 
-    match Parser::new(tokens).parse_all() {
+    match Parser::new(&tokens).parse_all() {
         Ok(v) => {
             node = v;
         }

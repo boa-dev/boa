@@ -19,7 +19,7 @@ fn expression_parser(c: &mut Criterion) {
         "Expression (Parser)",
         move |b, tok| {
             b.iter(|| {
-                Parser::new(black_box(tok.to_vec())).parse_all().unwrap();
+                Parser::new(&black_box(tok.to_vec())).parse_all().unwrap();
             })
         },
         vec![tokens],

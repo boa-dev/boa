@@ -51,7 +51,7 @@ fn parser_expr(src: &str) -> Result<Node, String> {
     lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
     let tokens = lexer.tokens;
     // dbg!(&tokens);
-    Parser::new(tokens)
+    Parser::new(&tokens)
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }
