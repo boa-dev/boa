@@ -6,44 +6,24 @@ members = [
 
 # The release profile, used for `cargo build`.
 [profile.dev]
+# Enables thin local LTO and some optimizations.
 opt-level = 1
-debug = true
-debug-assertions = true
-overflow-checks = true
-lto = false
-panic = 'unwind'
-incremental = true
-rpath = false
 
 # The release profile, used for `cargo build --release`.
 [profile.release]
-opt-level = 3
-debug = false
-debug-assertions = false
-overflow-checks = false
-lto = true
-panic = 'unwind'
-incremental = false
+# Enables "fat" LTO, for faster release builds
+lto = "fat"
+# Makes sure that all code is compiled together, for LTO
 codegen-units = 1
-rpath = false
 
 # The test profile, used for `cargo test`.
 [profile.test]
+# Enables thin local LTO and some optimizations.
 opt-level = 1
-debug = true
-debug-assertions = true
-overflow-checks = true
-lto = false
-incremental = true
-rpath = false
 
 # The benchmark profile, used for `cargo bench`.
 [profile.bench]
-opt-level = 3
-debug = false
-debug-assertions = false
-overflow-checks = false
-lto = true
-incremental = false
+# Enables "fat" LTO, for faster benchmark builds
+lto = "fat"
+# Makes sure that all code is compiled together, for LTO
 codegen-units = 1
-rpath = false
