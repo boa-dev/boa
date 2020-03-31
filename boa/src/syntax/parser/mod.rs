@@ -1482,7 +1482,14 @@ impl Parser {
                 }
             }
 
-            args.push(self.read_assignment_expression()?);
+            if self
+                .next_if(TokenKind::Punctuator(Punctuator::Spread))
+                .is_some()
+            {
+                args.push(Node::Spread(Box::new(self.read_assignment_expression()?)));
+            } else {
+                args.push(self.read_assignment_expression()?);
+            }
         }
 
         Ok(args)
