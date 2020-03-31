@@ -1,13 +1,13 @@
 use crate::builtins::function::NativeFunctionData;
 use crate::builtins::object::{Object, ObjectKind, PROTOTYPE};
 /// The JSON Object
-/// <https://tc39.github.io/ecma262/#sec-json-object>
+/// <https://tc39.es/ecma262/#sec-json-object>
 use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
 use crate::exec::Interpreter;
 use serde_json::{self, to_string_pretty, Value as JSONValue};
 
 /// Parse a JSON string into a Javascript object
-/// <https://tc39.github.io/ecma262/#sec-json.parse>
+/// <https://tc39.es/ecma262/#sec-json.parse>
 pub fn parse(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     match serde_json::from_str::<JSONValue>(
         &args

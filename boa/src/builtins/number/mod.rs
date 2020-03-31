@@ -108,7 +108,6 @@ pub fn to_locale_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -
 ///
 /// https://tc39.es/ecma262/#sec-number.prototype.toprecision
 pub fn to_precision(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    println!("Number::to_precision()");
     let this_num = to_number(this);
     let _num_str_len = format!("{}", this_num.to_num()).len();
     let _precision = match args.get(0) {
@@ -119,7 +118,7 @@ pub fn to_precision(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Res
         None => 0,
     };
     // TODO: Implement toPrecision
-    unimplemented!();
+    unimplemented!("TODO: Implement toPrecision");
 }
 
 /// Number().toString()

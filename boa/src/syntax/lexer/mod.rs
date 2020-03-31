@@ -8,7 +8,7 @@ mod tests;
 
 use crate::syntax::ast::{
     punc::Punctuator,
-    token::{Token, TokenData},
+    token::{Token, TokenKind},
 };
 use std::{
     char::{decode_utf16, from_u32},
@@ -84,7 +84,7 @@ impl LexerError {
 }
 
 impl fmt::Display for LexerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.details)
     }
 }
@@ -136,14 +136,14 @@ impl<'a> Lexer<'a> {
         }
     }
     /// Push tokens onto the token queue
-    fn push_token(&mut self, tk: TokenData) {
+    fn push_token(&mut self, tk: TokenKind) {
         self.tokens
             .push(Token::new(tk, self.line_number, self.column_number))
     }
 
     /// Push a punctuation token
     fn push_punc(&mut self, punc: Punctuator) {
-        self.push_token(TokenData::Punctuator(punc));
+        self.push_token(TokenKind::Punctuator(punc));
     }
 
     /// next fetches the next token and return it, or a LexerError if there are no more.
@@ -152,23 +152,6 @@ impl<'a> Lexer<'a> {
             Some(ch) => ch,
             None => panic!("No more more characters to consume from input stream, use preview_next() first to check before calling next()"),
         }
-    }
-
-    /// read_line attempts to read until the end of the line and returns the String object or a LexerError
-    fn read_line(&mut self) -> Result<String, LexerError> {
-        let mut buf = String::new();
-        while self.preview_next().is_some() {
-            let ch = self.next();
-            match ch {
-                _ if ch.is_ascii_control() => {
-                    break;
-                }
-                _ => {
-                    buf.push(ch);
-                }
-            }
-        }
-        Ok(buf)
     }
 
     /// Preview the next character but don't actually increment
@@ -368,7 +351,7 @@ impl<'a> Lexer<'a> {
                         }
                     }
                     let str_length = buf.len() as u64;
-                    self.push_token(TokenData::StringLiteral(buf));
+                    self.push_token(TokenKind::StringLiteral(buf));
                     // Why +1? Quotation marks are not included,
                     // So technically it would be +2, (for both " ") but we want to be 1 less
                     // to compensate for the incrementing at the top
@@ -379,7 +362,7 @@ impl<'a> Lexer<'a> {
 
                     let num = match self.preview_next() {
                         None => {
-                            self.push_token(TokenData::NumericLiteral(0 as f64));
+                            self.push_token(TokenKind::NumericLiteral(0_f64));
                             return Ok(());
                         }
                         Some('x') | Some('X') => {
@@ -423,7 +406,7 @@ impl<'a> Lexer<'a> {
                         }
                     };
 
-                    self.push_token(TokenData::NumericLiteral(num));
+                    self.push_token(TokenKind::NumericLiteral(num));
 
                     //11.8.3
                     if let Err(e) = self.check_after_numeric_literal() {
@@ -481,7 +464,7 @@ impl<'a> Lexer<'a> {
                         }
                     }
                     // TODO make this a bit more safe -------------------------------VVVV
-                    self.push_token(TokenData::NumericLiteral(
+                    self.push_token(TokenKind::NumericLiteral(
                         f64::from_str(&buf).map_err(|_| LexerError::new("Could not convert value to f64"))?,
                     ))
                 }
@@ -497,14 +480,14 @@ impl<'a> Lexer<'a> {
                     // Match won't compare &String to &str so i need to convert it :(
                     let buf_compare: &str = &buf;
                     self.push_token(match buf_compare {
-                        "true" => TokenData::BooleanLiteral(true),
-                        "false" => TokenData::BooleanLiteral(false),
-                        "null" => TokenData::NullLiteral,
+                        "true" => TokenKind::BooleanLiteral(true),
+                        "false" => TokenKind::BooleanLiteral(false),
+                        "null" => TokenKind::NullLiteral,
                         slice => {
                             if let Ok(keyword) = FromStr::from_str(slice) {
-                                TokenData::Keyword(keyword)
+                                TokenKind::Keyword(keyword)
                             } else {
-                                TokenData::Identifier(buf.clone())
+                                TokenKind::Identifier(buf.clone())
                             }
                         }
                     });
@@ -540,14 +523,16 @@ impl<'a> Lexer<'a> {
                         match ch {
                             // line comment
                             '/' => {
-                                let comment = "/".to_owned() + &self.read_line()?;
-                                self.push_token(TokenData::Comment(comment));
+                                while self.preview_next().is_some() {
+                                    if self.next() == '\n' {
+                                        break;
+                                    }
+                                }
                                 self.line_number += 1;
                                 self.column_number = 0;
                             }
                             // block comment
                             '*' => {
-                                let mut buf = "/".to_owned();
                                 let mut lines = 0;
                                 loop {
                                     if self.preview_next().is_none() {
@@ -555,9 +540,7 @@ impl<'a> Lexer<'a> {
                                     }
                                     match self.next() {
                                         '*' => {
-                                            buf.push('*');
                                             if self.next_is('/') {
-                                                buf.push('/');
                                                 break;
                                             }
                                         }
@@ -565,11 +548,9 @@ impl<'a> Lexer<'a> {
                                             if next_ch == '\n' {
                                                 lines += 1;
                                             }
-                                            buf.push(next_ch)
                                         },
                                     }
                                 }
-                                self.push_token(TokenData::Comment(buf));
                                 self.line_number += lines;
                                 self.column_number = 0;
                             }
@@ -609,7 +590,7 @@ impl<'a> Lexer<'a> {
                                 if regex {
                                     // body was parsed, now look for flags
                                     let flags = self.take_char_while(char::is_alphabetic)?;
-                                    self.push_token(TokenData::RegularExpressionLiteral(
+                                    self.push_token(TokenKind::RegularExpressionLiteral(
                                         body, flags,
                                     ));
                                 } else {
@@ -617,11 +598,11 @@ impl<'a> Lexer<'a> {
                                     // parse either div or assigndiv
                                     self.buffer = original_buffer;
                                     if self.next_is('=') {
-                                        self.push_token(TokenData::Punctuator(
+                                        self.push_token(TokenKind::Punctuator(
                                             Punctuator::AssignDiv,
                                         ));
                                     } else {
-                                        self.push_token(TokenData::Punctuator(Punctuator::Div));
+                                        self.push_token(TokenKind::Punctuator(Punctuator::Div));
                                     }
                                 }
                             }
@@ -631,7 +612,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul, {
-                    '*' => vop!(self, Punctuator::AssignPow, Punctuator::Pow)
+                    '*' => vop!(self, Punctuator::AssignPow, Punctuator::Exp)
                 }),
                 '+' => op!(self, Punctuator::AssignAdd, Punctuator::Add, {
                     '+' => Punctuator::Inc
@@ -673,6 +654,7 @@ impl<'a> Lexer<'a> {
                 ),
                 '~' => self.push_punc(Punctuator::Neg),
                 '\n' | '\u{2028}' | '\u{2029}' => {
+                    self.push_token(TokenKind::LineTerminator);
                     self.line_number += 1;
                     self.column_number = 0;
                 }

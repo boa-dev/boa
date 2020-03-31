@@ -13,7 +13,7 @@ fn test_constructors() {
         var ctor_literal = new RegExp(/[0-9]+(\.[0-9]+)?/);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     assert_eq!(forward(&mut engine, "constructed.test('1.0')"), "true");
     assert_eq!(forward(&mut engine, "literal.test('1.0')"), "true");
     assert_eq!(forward(&mut engine, "ctor_literal.test('1.0')"), "true");
@@ -36,7 +36,7 @@ fn check_regexp_constructor_is_function() {
 //                var re_sm = /test/sm;
 //                "#;
 //
-//        forward(&mut engine, init);
+//        eprintln!("{}", forward(&mut engine, init));
 //        assert_eq!(forward(&mut engine, "re_gi.global"), "true");
 //        assert_eq!(forward(&mut engine, "re_gi.ignoreCase"), "true");
 //        assert_eq!(forward(&mut engine, "re_gi.multiline"), "false");
@@ -62,7 +62,7 @@ fn test_last_index() {
         var regex = /[0-9]+(\.[0-9]+)?/g;
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     assert_eq!(forward(&mut engine, "regex.lastIndex"), "0");
     assert_eq!(forward(&mut engine, "regex.test('1.0foo')"), "true");
     assert_eq!(forward(&mut engine, "regex.lastIndex"), "3");
@@ -79,7 +79,7 @@ fn test_exec() {
         var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     assert_eq!(forward(&mut engine, "result[0]"), "Quick Brown Fox Jumps");
     assert_eq!(forward(&mut engine, "result[1]"), "Brown");
     assert_eq!(forward(&mut engine, "result[2]"), "Jumps");

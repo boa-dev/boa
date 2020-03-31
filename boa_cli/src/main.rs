@@ -4,7 +4,7 @@
 
 use boa::builtins::console::log;
 use boa::serde_json;
-use boa::syntax::ast::{expr::Expr, token::Token};
+use boa::syntax::ast::{node::Node, token::Token};
 use boa::{exec::Executor, forward_val, realm::Realm};
 use std::io::{self, Write};
 use std::{fs::read_to_string, path::PathBuf};
@@ -91,10 +91,10 @@ fn lex_source(src: &str) -> Result<Vec<Token>, String> {
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens(tokens: Vec<Token>) -> Result<Expr, String> {
+fn parse_tokens(tokens: Vec<Token>) -> Result<Node, String> {
     use boa::syntax::parser::Parser;
 
-    Parser::new(tokens)
+    Parser::new(&tokens)
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }

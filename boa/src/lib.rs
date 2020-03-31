@@ -1,6 +1,30 @@
-#![deny(unused_qualifications, clippy::correctness, clippy::style)]
-#![warn(clippy::perf)]
-#![allow(clippy::cognitive_complexity)]
+#![deny(
+    unused_qualifications,
+    clippy::all,
+    unused_qualifications,
+    unused_import_braces,
+    unused_lifetimes,
+    unreachable_pub,
+    trivial_numeric_casts,
+    rustdoc,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    deprecated_in_future,
+    meta_variable_misuse,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style
+)]
+#![warn(clippy::perf, clippy::single_match_else, clippy::dbg_macro)]
+#![allow(
+    clippy::missing_inline_in_public_items,
+    clippy::cognitive_complexity,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::as_conversions
+)]
 
 pub mod builtins;
 pub mod environment;
@@ -16,17 +40,18 @@ use crate::{
     builtins::value::ResultValue,
     exec::{Executor, Interpreter},
     realm::Realm,
-    syntax::{ast::expr::Expr, lexer::Lexer, parser::Parser},
+    syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
 };
 
 #[cfg(feature = "serde-ast")]
 pub use serde_json;
 
-fn parser_expr(src: &str) -> Result<Expr, String> {
+fn parser_expr(src: &str) -> Result<Node, String> {
     let mut lexer = Lexer::new(src);
     lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
     let tokens = lexer.tokens;
-    Parser::new(tokens)
+    // dbg!(&tokens);
+    Parser::new(&tokens)
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }

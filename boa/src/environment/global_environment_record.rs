@@ -5,7 +5,7 @@
 //! A global Environment Record provides the bindings for built-in globals (clause 18),
 //! properties of the global object, and for all top-level declarations (13.2.8, 13.2.10)
 //! that occur within a Script.
-//! More info:  <https://tc39.github.io/ecma262/#sec-global-environment-records>
+//! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
 use crate::{
     builtins::value::{Value, ValueData},

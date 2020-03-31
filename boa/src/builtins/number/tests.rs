@@ -24,7 +24,7 @@ fn call_number() {
         var from_exp = Number("2.34e+2");
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let default_zero = forward_val(&mut engine, "default_zero").unwrap();
     let int_one = forward_val(&mut engine, "int_one").unwrap();
     let float_two = forward_val(&mut engine, "float_two").unwrap();
@@ -57,7 +57,7 @@ fn to_exponential() {
         var noop_exp = Number("1.23e+2").toExponential();
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let default_exp = forward(&mut engine, "default_exp");
     let int_exp = forward(&mut engine, "int_exp");
     let float_exp = forward(&mut engine, "float_exp");
@@ -85,7 +85,7 @@ fn to_fixed() {
         var nan_fixed = Number("I am not a number").toFixed();
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let default_fixed = forward(&mut engine, "default_fixed");
     let pos_fixed = forward(&mut engine, "pos_fixed");
     let neg_fixed = forward(&mut engine, "neg_fixed");
@@ -113,7 +113,7 @@ fn to_locale_string() {
     // TODO: We don't actually do any locale checking here
     // To honor the spec we should print numbers according to user locale.
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let default_locale = forward(&mut engine, "default_locale");
     let small_locale = forward(&mut engine, "small_locale");
     let big_locale = forward(&mut engine, "big_locale");
@@ -139,7 +139,7 @@ fn to_precision() {
         var neg_precision = Number(-123456789).toPrecision(4);
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let default_precision = forward(&mut engine, "default_precision");
     let low_precision = forward(&mut engine, "low_precision");
     let more_precision = forward(&mut engine, "more_precision");
@@ -170,7 +170,7 @@ fn to_string() {
         var neg_string = Number(-1.2).toString();
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let default_string = forward(&mut engine, "default_string");
     let int_string = forward(&mut engine, "int_string");
     let float_string = forward(&mut engine, "float_string");
@@ -198,7 +198,7 @@ fn value_of() {
         var neg_val = Number("-1.2e+4").valueOf()
         "#;
 
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let default_val = forward_val(&mut engine, "default_val").unwrap();
     let int_val = forward_val(&mut engine, "int_val").unwrap();
     let float_val = forward_val(&mut engine, "float_val").unwrap();

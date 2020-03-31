@@ -16,9 +16,9 @@ pub trait Operator {
     }
 }
 
+/// A numeric operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A numeric operation between 2 values
 pub enum NumOp {
     /// `a + b` - Addition
     Add,
@@ -29,13 +29,13 @@ pub enum NumOp {
     /// `a * b` - Multiplication
     Mul,
     /// `a ** b` - Exponentiation
-    Pow,
+    Exp,
     /// `a % b` - Modulus
     Mod,
 }
 
 impl Display for NumOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -44,16 +44,18 @@ impl Display for NumOp {
                 NumOp::Sub => "-",
                 NumOp::Div => "/",
                 NumOp::Mul => "*",
-                NumOp::Pow => "**",
+                NumOp::Exp => "**",
                 NumOp::Mod => "%",
             }
         )
     }
 }
 
+/// A unary operation on a single value
+///
+/// For more information, please check: <https://tc39.es/ecma262/#prod-UnaryExpression>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A unary operation on a single value
 pub enum UnaryOp {
     /// `a++` - increment the value
     IncrementPost,
@@ -71,12 +73,38 @@ pub enum UnaryOp {
     Not,
     /// `~a` - bitwise-not of the value
     Tilde,
-    /// `...a` - spread an iterable value
-    Spread,
+    /// `typeof` - Get the type of object
+    TypeOf,
+    /// The JavaScript `delete` operator removes a property from an object.
+    ///
+    /// Unlike what common belief suggests, the delete operator has nothing to do with
+    /// directly freeing memory. Memory management is done indirectly via breaking references.
+    /// If no more references to the same property are held, it is eventually released automatically.
+    ///
+    /// The `delete` operator returns `true` for all cases except when the property is an
+    /// [own](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty)
+    /// [non-configurable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_delete)
+    /// property, in which case, `false` is returned in non-strict mode.
+    ///
+    /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete>
+    Delete,
+
+    /// The `void` operator evaluates the given `expression` and then returns `undefined`.
+    ///
+    /// This operator allows evaluating expressions that produce a value into places where an
+    /// expression that evaluates to `undefined` is desired.
+    /// The `void` operator is often used merely to obtain the `undefined` primitive value, usually using `void(0)`
+    /// (which is equivalent to `void 0`). In these cases, the global variable undefined can be used.
+    ///
+    /// When using an [immediately-invoked function expression](https://developer.mozilla.org/en-US/docs/Glossary/IIFE),
+    /// `void` can be used to force the function keyword to be treated as an expression instead of a declaration.
+    ///
+    /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void>
+    Void,
 }
 
 impl Display for UnaryOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -87,15 +115,17 @@ impl Display for UnaryOp {
                 UnaryOp::Minus => "-",
                 UnaryOp::Not => "!",
                 UnaryOp::Tilde => "~",
-                UnaryOp::Spread => "...",
+                UnaryOp::Delete => "delete",
+                UnaryOp::TypeOf => "typeof",
+                UnaryOp::Void => "void",
             }
         )
     }
 }
 
+/// A bitwise operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A bitwise operation between 2 values
 pub enum BitOp {
     /// `a & b` - Bitwise and
     And,
@@ -107,10 +137,12 @@ pub enum BitOp {
     Shl,
     /// `a >> b` - Bit-shift rightrights
     Shr,
+    /// `a >>> b` - Zero-fill right shift
+    UShr,
 }
 
 impl Display for BitOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -120,14 +152,15 @@ impl Display for BitOp {
                 BitOp::Xor => "^",
                 BitOp::Shl => "<<",
                 BitOp::Shr => ">>",
+                BitOp::UShr => ">>>",
             }
         )
     }
 }
 
+/// A comparitive operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A comparitive operation between 2 values
 pub enum CompOp {
     /// `a == b` - Equality
     Equal,
@@ -148,7 +181,7 @@ pub enum CompOp {
 }
 
 impl Display for CompOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -166,9 +199,9 @@ impl Display for CompOp {
     }
 }
 
+/// A logical operation between 2 boolean values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A logical operation between 2 boolean values
 pub enum LogOp {
     /// `a && b` - Logical and
     And,
@@ -177,7 +210,7 @@ pub enum LogOp {
 }
 
 impl Display for LogOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -189,9 +222,9 @@ impl Display for LogOp {
     }
 }
 
+/// A binary operation between 2 values
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A binary operation between 2 values
 pub enum BinOp {
     /// Numeric operation
     Num(NumOp),
@@ -211,10 +244,10 @@ impl Operator for BinOp {
     }
     fn get_precedence(&self) -> u64 {
         match *self {
-            BinOp::Num(NumOp::Pow) => 4,
+            BinOp::Num(NumOp::Exp) => 4,
             BinOp::Num(NumOp::Mul) | BinOp::Num(NumOp::Div) | BinOp::Num(NumOp::Mod) => 5,
             BinOp::Num(NumOp::Add) | BinOp::Num(NumOp::Sub) => 6,
-            BinOp::Bit(BitOp::Shl) | BinOp::Bit(BitOp::Shr) => 7,
+            BinOp::Bit(BitOp::Shl) | BinOp::Bit(BitOp::Shr) | BinOp::Bit(BitOp::UShr) => 7,
             BinOp::Comp(CompOp::LessThan)
             | BinOp::Comp(CompOp::LessThanOrEqual)
             | BinOp::Comp(CompOp::GreaterThan)
@@ -234,7 +267,7 @@ impl Operator for BinOp {
 }
 
 impl Display for BinOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -249,9 +282,11 @@ impl Display for BinOp {
     }
 }
 
+/// A binary operation between 2 values
+///
+/// <https://tc39.es/ecma262/#prod-AssignmentOperator>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A binary operation between 2 values
 pub enum AssignOp {
     /// `a += b` - Add assign
     Add,
@@ -260,7 +295,7 @@ pub enum AssignOp {
     /// `a *= b` - Mul assign
     Mul,
     /// `a **= b` - Exponent assign
-    Pow,
+    Exp,
     /// `a /= b` - Div assign
     Div,
     /// `a %= b` - Modulus assign
@@ -278,7 +313,7 @@ pub enum AssignOp {
 }
 
 impl Display for AssignOp {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}",
@@ -286,7 +321,7 @@ impl Display for AssignOp {
                 AssignOp::Add => "+=",
                 AssignOp::Sub => "-=",
                 AssignOp::Mul => "*=",
-                AssignOp::Pow => "**=",
+                AssignOp::Exp => "**=",
                 AssignOp::Div => "/=",
                 AssignOp::Mod => "%=",
                 AssignOp::And => "&=",

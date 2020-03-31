@@ -8,18 +8,19 @@ use crate::{
         value::{to_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
-    syntax::ast::expr::Expr,
+    syntax::ast::node::{FormalParameter, Node},
 };
 use gc::{custom_trace, Gc};
 use gc_derive::{Finalize, Trace};
 use std::fmt::{self, Debug};
+use std::ops::Deref;
 
 /// fn(this, arguments, ctx)
 pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> ResultValue;
 
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
-/// <https://tc39.github.io/ecma262/#sec-terms-and-definitions-function>
+/// <https://tc39.es/ecma262/#sec-terms-and-definitions-function>
 /// In our implementation, Function is extending Object by holding an object field which some extra data
 
 /// A Javascript function
@@ -37,26 +38,36 @@ pub struct RegularFunction {
     /// The fields associated with the function
     pub object: Object,
     /// This function's expression
-    pub expr: Expr,
+    pub node: Node,
     /// The argument declarations of the function
-    pub args: Vec<Expr>,
+    pub args: Vec<Node>,
 }
 
 impl RegularFunction {
     /// Make a new regular function
     #[allow(clippy::cast_possible_wrap)]
-    pub fn new(expr: Expr, args: Vec<Expr>) -> Self {
+    pub fn new(node: Node, f_args: Vec<FormalParameter>) -> Self {
+        let mut args = vec![];
+        for i in f_args {
+            let node = if let Some(init) = &i.init {
+                init.deref().clone()
+            } else {
+                Node::Local(i.name.clone())
+            };
+            args.push(node);
+        }
+
         let mut object = Object::default();
         object.properties.insert(
             "arguments".to_string(),
             Property::default().value(Gc::new(ValueData::Integer(args.len() as i32))),
         );
-        Self { object, expr, args }
+        Self { object, node, args }
     }
 }
 
-#[derive(Finalize, Clone)]
 /// Represents a native javascript function in memory
+#[derive(Finalize, Clone)]
 pub struct NativeFunction {
     /// The fields associated with the function
     pub object: Object,

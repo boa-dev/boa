@@ -29,7 +29,7 @@ fn hello_world_parser(c: &mut Criterion) {
         "Hello World (Parser)",
         move |b, tok| {
             b.iter(|| {
-                Parser::new(black_box(tok.to_vec())).parse_all().unwrap();
+                Parser::new(&black_box(tok.to_vec())).parse_all().unwrap();
             })
         },
         vec![tokens],

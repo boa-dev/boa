@@ -3,10 +3,9 @@ use std::fmt::{Display, Formatter, Result};
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
-
+/// A Javascript Constant.
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-/// A Javascript Constant
 pub enum Const {
     /// A UTF-8 string, such as `"Hello, world"`
     String(String),
@@ -23,7 +22,7 @@ pub enum Const {
 }
 
 impl Display for Const {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match *self {
             Const::String(ref st) => write!(f, "\"{}\"", st),
             Const::Num(num) => write!(f, "{}", num),

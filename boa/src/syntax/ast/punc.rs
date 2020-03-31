@@ -1,11 +1,12 @@
+use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp};
 use std::fmt::{Display, Error, Formatter};
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 
+/// Punctuation
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Clone, Copy, Debug)]
-/// Punctuation
 pub enum Punctuator {
     /// `+`
     Add,
@@ -92,7 +93,7 @@ pub enum Punctuator {
     /// `|`
     Or,
     /// `**`
-    Pow,
+    Exp,
     /// `?`
     Question,
     /// `>>`
@@ -112,8 +113,41 @@ pub enum Punctuator {
     /// `^`
     Xor,
 }
+
+impl Punctuator {
+    /// Attempts to convert a punctuator (`+`, `=`...) to a Binary Operator
+    ///
+    /// If there is no match, `None` will be returned.
+    pub fn as_binop(self) -> Option<BinOp> {
+        match self {
+            Punctuator::Add => Some(BinOp::Num(NumOp::Add)),
+            Punctuator::Sub => Some(BinOp::Num(NumOp::Sub)),
+            Punctuator::Mul => Some(BinOp::Num(NumOp::Mul)),
+            Punctuator::Div => Some(BinOp::Num(NumOp::Div)),
+            Punctuator::Mod => Some(BinOp::Num(NumOp::Mod)),
+            Punctuator::And => Some(BinOp::Bit(BitOp::And)),
+            Punctuator::Or => Some(BinOp::Bit(BitOp::Or)),
+            Punctuator::Xor => Some(BinOp::Bit(BitOp::Xor)),
+            Punctuator::BoolAnd => Some(BinOp::Log(LogOp::And)),
+            Punctuator::BoolOr => Some(BinOp::Log(LogOp::Or)),
+            Punctuator::Eq => Some(BinOp::Comp(CompOp::Equal)),
+            Punctuator::NotEq => Some(BinOp::Comp(CompOp::NotEqual)),
+            Punctuator::StrictEq => Some(BinOp::Comp(CompOp::StrictEqual)),
+            Punctuator::StrictNotEq => Some(BinOp::Comp(CompOp::StrictNotEqual)),
+            Punctuator::LessThan => Some(BinOp::Comp(CompOp::LessThan)),
+            Punctuator::GreaterThan => Some(BinOp::Comp(CompOp::GreaterThan)),
+            Punctuator::GreaterThanOrEq => Some(BinOp::Comp(CompOp::GreaterThanOrEqual)),
+            Punctuator::LessThanOrEq => Some(BinOp::Comp(CompOp::LessThanOrEqual)),
+            Punctuator::LeftSh => Some(BinOp::Bit(BitOp::Shl)),
+            Punctuator::RightSh => Some(BinOp::Bit(BitOp::Shr)),
+            Punctuator::URightSh => Some(BinOp::Bit(BitOp::UShr)),
+            _ => None,
+        }
+    }
+}
+
 impl Display for Punctuator {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
             f,
             "{}",
@@ -160,7 +194,7 @@ impl Display for Punctuator {
                 Punctuator::OpenBracket => "[",
                 Punctuator::OpenParen => "(",
                 Punctuator::Or => "|",
-                Punctuator::Pow => "**",
+                Punctuator::Exp => "**",
                 Punctuator::Question => "?",
                 Punctuator::RightSh => ">>",
                 Punctuator::Semicolon => ";",

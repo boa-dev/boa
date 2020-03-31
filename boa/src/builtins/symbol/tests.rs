@@ -17,7 +17,7 @@ fn call_symbol_and_check_return_type() {
     let init = r#"
         var sym = Symbol();
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let sym = forward_val(&mut engine, "sym").unwrap();
     assert_eq!(sym.is_symbol(), true);
 }
@@ -29,7 +29,7 @@ fn print_symbol_expect_description() {
     let init = r#"
         var sym = Symbol("Hello");
         "#;
-    forward(&mut engine, init);
+    eprintln!("{}", forward(&mut engine, init));
     let sym = forward_val(&mut engine, "sym.toString()").unwrap();
     assert_eq!(sym.to_string(), "Symbol(Hello)");
 }

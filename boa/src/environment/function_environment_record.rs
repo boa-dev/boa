@@ -6,7 +6,7 @@
 //! If a function is not an `ArrowFunction` function and references super,
 //! its function Environment Record also contains the state that is used to perform super method invocations
 //! from within the function.
-//! More info: <https://tc39.github.io/ecma262/#sec-function-environment-records>
+//! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
 use crate::{
     builtins::value::{Value, ValueData},
@@ -32,7 +32,7 @@ pub enum BindingStatus {
     Uninitialized,
 }
 
-/// <https://tc39.github.io/ecma262/#table-16>
+/// <https://tc39.es/ecma262/#table-16>
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct FunctionEnvironmentRecord {
     pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
@@ -179,16 +179,15 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn get_binding_value(&self, name: &str, _strict: bool) -> Value {
-        match self.env_rec.get(name) {
-            Some(binding) => binding
+        if let Some(binding) = self.env_rec.get(name) {
+            binding
                 .value
                 .as_ref()
                 .expect("Could not get record as reference")
-                .clone(),
-            None => {
-                // TODO: change this when error handling comes into play
-                panic!("ReferenceError: Cannot get binding value for {}", name);
-            }
+                .clone()
+        } else {
+            // TODO: change this when error handling comes into play
+            panic!("ReferenceError: Cannot get binding value for {}", name);
         }
     }
 
