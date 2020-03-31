@@ -118,15 +118,15 @@ impl fmt::Display for ParseError {
 pub type ParseResult = Result<Node, ParseError>;
 
 #[derive(Debug)]
-pub struct Parser {
+pub struct Parser<'a> {
     /// Cursor in the parser, the internal structure used to read tokens.
-    cursor: Cursor,
+    cursor: Cursor<'a>,
 }
 
 macro_rules! expression { ( $name:ident, $lower:ident, [ $( $op:path ),* ] ) => {
     fn $name (&mut self) -> ParseResult {
         let mut lhs = self. $lower ()?;
-        while let Some(tok) = self.peek_skip_lineterminator().cloned() {
+        while let Some(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
                 // Parse assign expression
                 TokenKind::Punctuator(ref op) if op == &Punctuator::Assign => {
@@ -151,9 +151,9 @@ macro_rules! expression { ( $name:ident, $lower:ident, [ $( $op:path ),* ] ) => 
     }
 } }
 
-impl Parser {
+impl<'a> Parser<'a> {
     /// Create a new parser, using `tokens` as input
-    pub fn new(tokens: Vec<Token>) -> Self {
+    pub fn new(tokens: &'a [Token]) -> Self {
         Self {
             cursor: Cursor::new(tokens),
         }
@@ -170,13 +170,13 @@ impl Parser {
     }
 
     /// Peek the next token skipping line terminators.
-    pub fn peek_skip_lineterminator(&mut self) -> Option<&Token> {
+    pub fn peek_skip_lineterminator(&mut self) -> Option<&'a Token> {
         self.cursor
             .peek_skip(|tk| tk.kind == TokenKind::LineTerminator)
     }
 
     /// Consume the next token skipping line terminators.
-    pub fn next_skip_lineterminator(&mut self) -> Option<&Token> {
+    pub fn next_skip_lineterminator(&mut self) -> Option<&'a Token> {
         self.cursor
             .next_skip(|tk| tk.kind == TokenKind::LineTerminator)
     }
@@ -184,7 +184,7 @@ impl Parser {
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
     ///
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
-    fn next_if(&mut self, kind: TokenKind) -> Option<&Token> {
+    fn next_if(&mut self, kind: TokenKind) -> Option<&'a Token> {
         let next_token = self.cursor.peek(0)?;
 
         if next_token.kind == kind {
@@ -198,7 +198,7 @@ impl Parser {
     ///
     /// When the next token is a `kind` token, get the token, otherwise return `None`. This
     /// function skips line terminators.
-    fn next_if_skip_lineterminator(&mut self, kind: TokenKind) -> Option<&Token> {
+    fn next_if_skip_lineterminator(&mut self, kind: TokenKind) -> Option<&'a Token> {
         let next_token = self.peek_skip_lineterminator()?;
 
         if next_token.kind == kind {
@@ -1336,7 +1336,7 @@ impl Parser {
         } else {
             self.read_primary_expression()?
         };
-        while let Some(tok) = self.peek_skip_lineterminator().cloned() {
+        while let Some(tok) = self.peek_skip_lineterminator() {
             match &tok.kind {
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     let _ = self
@@ -1397,7 +1397,7 @@ impl Parser {
             ));
         }
 
-        while let Some(tok) = self.peek_skip_lineterminator().cloned() {
+        while let Some(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let _ = self
@@ -1424,7 +1424,7 @@ impl Parser {
                         _ => {
                             return Err(ParseError::Expected(
                                 vec![TokenKind::Identifier("identifier".to_owned())],
-                                tok,
+                                tok.clone(),
                                 Some("call expression"),
                             ));
                         }

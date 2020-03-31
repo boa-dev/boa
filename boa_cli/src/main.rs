@@ -94,7 +94,7 @@ fn lex_source(src: &str) -> Result<Vec<Token>, String> {
 fn parse_tokens(tokens: Vec<Token>) -> Result<Node, String> {
     use boa::syntax::parser::Parser;
 
-    Parser::new(tokens)
+    Parser::new(&tokens)
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }

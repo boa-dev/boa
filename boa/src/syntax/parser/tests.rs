@@ -17,7 +17,7 @@ fn check_parser(js: &str, expr: &[Node]) {
     lexer.lex().expect("failed to lex");
 
     assert_eq!(
-        Parser::new(lexer.tokens).parse_all().unwrap(),
+        Parser::new(&lexer.tokens).parse_all().unwrap(),
         Node::StatementList(expr.into())
     );
 }
@@ -26,7 +26,7 @@ fn check_invalid(js: &str) {
     let mut lexer = Lexer::new(js);
     lexer.lex().expect("failed to lex");
 
-    assert!(Parser::new(lexer.tokens).parse_all().is_err());
+    assert!(Parser::new(&lexer.tokens).parse_all().is_err());
 }
 
 #[test]

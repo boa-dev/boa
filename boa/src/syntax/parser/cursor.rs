@@ -6,16 +6,16 @@ use crate::syntax::ast::token::Token;
 ///
 /// This internal structure gives basic testable operations to the parser.
 #[derive(Debug, Clone, Default)]
-pub(super) struct Cursor {
+pub(super) struct Cursor<'a> {
     /// The tokens being input.
-    tokens: Vec<Token>,
+    tokens: &'a [Token],
     /// The current position within the tokens.
     pos: usize,
 }
 
-impl Cursor {
+impl<'a> Cursor<'a> {
     /// Creates a new cursor.
-    pub(super) fn new(tokens: Vec<Token>) -> Self {
+    pub(super) fn new(tokens: &'a [Token]) -> Self {
         Self {
             tokens,
             ..Self::default()
@@ -35,7 +35,7 @@ impl Cursor {
     }
 
     /// Moves the cursor to the next token and returns the token.
-    pub(super) fn next(&mut self) -> Option<&Token> {
+    pub(super) fn next(&mut self) -> Option<&'a Token> {
         let token = self.tokens.get(self.pos);
 
         if self.pos != self.tokens.len() {
@@ -46,7 +46,7 @@ impl Cursor {
     }
 
     /// Moves the cursor to the next token after skipping tokens based on the predicate.
-    pub(super) fn next_skip<P>(&mut self, mut skip: P) -> Option<&Token>
+    pub(super) fn next_skip<P>(&mut self, mut skip: P) -> Option<&'a Token>
     where
         P: FnMut(&Token) -> bool,
     {
@@ -61,12 +61,12 @@ impl Cursor {
     }
 
     /// Peeks the next token without moving the cursor.
-    pub(super) fn peek(&self, skip: usize) -> Option<&Token> {
+    pub(super) fn peek(&self, skip: usize) -> Option<&'a Token> {
         self.tokens.get(self.pos + skip)
     }
 
     /// Peeks the next token after skipping tokens based on the predicate.
-    pub(super) fn peek_skip<P>(&self, mut skip: P) -> Option<&Token>
+    pub(super) fn peek_skip<P>(&self, mut skip: P) -> Option<&'a Token>
     where
         P: FnMut(&Token) -> bool,
     {
@@ -92,7 +92,7 @@ impl Cursor {
     }
 
     /// Peeks the previous token without moving the cursor.
-    pub(super) fn peek_prev(&self) -> Option<&Token> {
+    pub(super) fn peek_prev(&self) -> Option<&'a Token> {
         if self.pos == 0 {
             None
         } else {
