@@ -362,7 +362,7 @@ impl<'a> Lexer<'a> {
 
                     let num = match self.preview_next() {
                         None => {
-                            self.push_token(TokenKind::NumericLiteral(0 as f64));
+                            self.push_token(TokenKind::NumericLiteral(0_f64));
                             return Ok(());
                         }
                         Some('x') | Some('X') => {
