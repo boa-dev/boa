@@ -1,6 +1,6 @@
 //! # Lexical Environment
 //!
-//! <https://tc39.github.io/ecma262/#sec-lexical-environment-operations>
+//! <https://tc39.es/ecma262/#sec-lexical-environment-operations>
 //!
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
@@ -237,7 +237,7 @@ pub fn new_function_environment(
         this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
         home_object: Gc::new(ValueData::Undefined),
         new_target,
-        outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.github.io/ecma262/#sec-ecmascript-function-objects
+        outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
         this_value: Gc::new(ValueData::Undefined), // TODO: this_value should start as an Option as its not always there to begin with
     })))
 }

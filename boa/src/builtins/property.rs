@@ -2,8 +2,8 @@ use crate::builtins::value::{from_value, to_value, FromValue, ToValue, Value, Va
 use gc_derive::{Finalize, Trace};
 
 /// A Javascript Property AKA The Property Descriptor   
-/// [[SPEC] - The Property Descriptor Specification Type](https://tc39.github.io/ecma262/#sec-property-descriptor-specification-type)   
-/// [[SPEC] - Default Attribute Values](https://tc39.github.io/ecma262/#table-4)
+/// [[SPEC] - The Property Descriptor Specification Type](https://tc39.es/ecma262/#sec-property-descriptor-specification-type)   
+/// [[SPEC] - Default Attribute Values](https://tc39.es/ecma262/#table-4)
 ///
 /// Any field in a JavaScript Property may be present or absent.
 #[derive(Trace, Finalize, Clone, Debug)]

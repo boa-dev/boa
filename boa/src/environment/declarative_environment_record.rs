@@ -3,7 +3,7 @@
 //! Each declarative Environment Record is associated with an ECMAScript program scope containing variable,
 //! `constant`, `let`, `class`, `module`, `import`, and/or function declarations.
 //! A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.
-//! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.github.io/ecma262/#sec-declarative-environment-records)
+//! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)
 
 use crate::{
     builtins::value::{Value, ValueData},

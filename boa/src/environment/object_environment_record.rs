@@ -4,7 +4,7 @@
 //! An object Environment Record binds the set of string identifier names that directly
 //! correspond to the property names of its binding object.
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
-//! More info:  [Object Records](https://tc39.github.io/ecma262/#sec-object-environment-records)
+//! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
 use crate::{
     builtins::{

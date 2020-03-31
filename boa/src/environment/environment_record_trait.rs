@@ -1,7 +1,7 @@
 //! # Environment Records
 //!
-//! <https://tc39.github.io/ecma262/#sec-environment-records>
-//! <https://tc39.github.io/ecma262/#sec-lexical-environments>
+//! <https://tc39.es/ecma262/#sec-environment-records>
+//! <https://tc39.es/ecma262/#sec-lexical-environments>
 //!
 //! Some environments are stored as `JSObjects`. This is for GC, i.e we want to keep an environment if a variable is closed-over (a closure is returned).
 //! All of the logic to handle scope/environment records are stored in here.
@@ -15,7 +15,7 @@ use crate::{
 use gc::{Finalize, Trace};
 use std::fmt::Debug;
 
-/// <https://tc39.github.io/ecma262/#sec-environment-records>
+/// <https://tc39.es/ecma262/#sec-environment-records>
 ///
 /// In the ECMAScript specification Environment Records are hierachical and have a base class with abstract methods.   
 /// In this implementation we have a trait which represents the behaviour of all `EnvironmentRecord` types.

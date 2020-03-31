@@ -568,7 +568,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// <https://tc39.github.io/ecma262/#prod-ThrowStatement>
+    /// <https://tc39.es/ecma262/#prod-ThrowStatement>
     fn read_throw_statement(&mut self) -> ParseResult {
         if let Some(tok) = self.cursor.peek(0) {
             match tok.kind {
@@ -857,7 +857,7 @@ impl<'a> Parser<'a> {
         self.read_assignment_expression()
     }
 
-    // https://tc39.github.io/ecma262/#prod-Expression
+    // https://tc39.es/ecma262/#prod-Expression
     expression!(
         read_expression,
         read_assignment_expression,
@@ -1299,7 +1299,7 @@ impl<'a> Parser<'a> {
         Ok(lhs)
     }
 
-    /// <https://tc39.github.io/ecma262/#prod-LeftHandSideExpression>
+    /// <https://tc39.es/ecma262/#prod-LeftHandSideExpression>
     fn read_left_hand_side_expression(&mut self) -> ParseResult {
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = self.read_member_expression()?;
@@ -1311,7 +1311,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// <https://tc39.github.io/ecma262/#prod-NewExpression>
+    /// <https://tc39.es/ecma262/#prod-NewExpression>
     fn read_new_expression(&mut self, first_member_expr: Node) -> ParseResult {
         Ok(first_member_expr)
     }
@@ -1377,7 +1377,7 @@ impl<'a> Parser<'a> {
         Ok(lhs)
     }
 
-    /// <https://tc39.github.io/ecma262/#prod-CallExpression>
+    /// <https://tc39.es/ecma262/#prod-CallExpression>
     fn read_call_expression(&mut self, first_member_expr: Node) -> ParseResult {
         let mut lhs = first_member_expr;
         if self
@@ -1560,7 +1560,7 @@ impl<'a> Parser<'a> {
         Ok(Node::FunctionDecl(name, params, Box::new(body)))
     }
 
-    /// <https://tc39.github.io/ecma262/#prod-ArrayLiteral>
+    /// <https://tc39.es/ecma262/#prod-ArrayLiteral>
     fn read_array_literal(&mut self) -> ParseResult {
         let mut elements = Vec::new();
 
@@ -1597,7 +1597,7 @@ impl<'a> Parser<'a> {
         Ok(Node::ArrayDecl(elements))
     }
 
-    /// <https://tc39.github.io/ecma262/#prod-ObjectLiteral>
+    /// <https://tc39.es/ecma262/#prod-ObjectLiteral>
     fn read_object_literal(&mut self) -> ParseResult {
         let mut elements = Vec::new();
 
@@ -1639,7 +1639,7 @@ impl<'a> Parser<'a> {
         Ok(Node::Object(elements))
     }
 
-    /// <https://tc39.github.io/ecma262/#prod-PropertyDefinition>
+    /// <https://tc39.es/ecma262/#prod-PropertyDefinition>
     fn read_property_definition(&mut self) -> Result<PropertyDefinition, ParseError> {
         fn to_string(kind: &TokenKind) -> String {
             match kind {

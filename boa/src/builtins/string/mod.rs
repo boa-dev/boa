@@ -65,7 +65,7 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 /// Returns a single element String containing the code unit at index pos within the String value
 /// resulting from converting this object to a String. If there is no element at that index, the
 /// result is the empty String. The result is a String value, not a String object.
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.charat>
+/// <https://tc39.es/ecma262/#sec-string.prototype.charat>
 pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -99,7 +99,7 @@ pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 /// Returns a Number (a nonnegative integer less than 216) that is the numeric value of the code
 /// unit at index pos within the String resulting from converting this object to a String. If there
 /// is no element at that index, the result is NaN.
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.charcodeat>
+/// <https://tc39.es/ecma262/#sec-string.prototype.charcodeat>
 pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -130,7 +130,7 @@ pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 
 /// Returns a String that is the result of concatenating this String and all strings provided as
 /// arguments
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.concat>
+/// <https://tc39.es/ecma262/#sec-string.prototype.concat>
 pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -146,7 +146,7 @@ pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 
 /// Returns a String that is the result of repeating this String the number of times given by the
 /// first argument
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.repeat>
+/// <https://tc39.es/ecma262/#sec-string.prototype.repeat>
 pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -163,7 +163,7 @@ pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
 
 /// Returns a String which contains the slice of the JS String from character at "start" index up
 /// to but not including character at "end" index
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.slice>
+/// <https://tc39.es/ecma262/#sec-string.prototype.slice>
 pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -214,7 +214,7 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
 /// Returns a Boolean indicating whether the sequence of code units of the
 /// "search string" is the same as the corresponding code units of this string
 /// starting at index "position"
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.startswith>
+/// <https://tc39.es/ecma262/#sec-string.prototype.startswith>
 pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -253,7 +253,7 @@ pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resul
 /// Returns a Boolean indicating whether the sequence of code units of the
 /// "search string"  is the same as the corresponding code units of this string
 /// starting at position "end position" - length
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.endswith>
+/// <https://tc39.es/ecma262/#sec-string.prototype.endswith>
 pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -295,7 +295,7 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 /// the result of converting this object to a String, at one or more indices
 /// that are greater than or equal to position. If position is undefined, 0 is
 /// assumed, so as to search all of the String.
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
+/// <https://tc39.es/ecma262/#sec-string.prototype.includes>
 pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -442,7 +442,7 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 /// position, then the smallest such index is returned; otherwise, -1 is
 /// returned. If position is undefined, 0 is assumed, so as to search all of the
 /// String.
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.includes>
+/// <https://tc39.es/ecma262/#sec-string.prototype.includes>
 pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -488,7 +488,7 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 /// position, then the greatest such index is returned; otherwise, -1 is
 /// returned. If position is undefined, the length of the String value is
 /// assumed, so as to search all of the String.
-/// <https://tc39.github.io/ecma262/#sec-string.prototype.lastindexof>
+/// <https://tc39.es/ecma262/#sec-string.prototype.lastindexof>
 pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value

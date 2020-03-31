@@ -353,7 +353,7 @@ impl FormalParameter {
     }
 }
 
-// TODO: Support all features: https://tc39.github.io/ecma262/#prod-PropertyDefinition
+// TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum PropertyDefinition {

@@ -20,7 +20,7 @@ pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> ResultVa
 
 /// A Javascript function
 /// A member of the Object type that may be invoked as a subroutine
-/// <https://tc39.github.io/ecma262/#sec-terms-and-definitions-function>
+/// <https://tc39.es/ecma262/#sec-terms-and-definitions-function>
 /// In our implementation, Function is extending Object by holding an object field which some extra data
 
 /// A Javascript function

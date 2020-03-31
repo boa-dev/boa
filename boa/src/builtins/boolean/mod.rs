@@ -66,7 +66,7 @@ pub fn create_constructor(global: &Value) -> Value {
 }
 
 // === Utility Functions ===
-/// [toBoolean](https://tc39.github.io/ecma262/#sec-toboolean)
+/// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
 /// Creates a new boolean value from the input
 pub fn to_boolean(value: &Value) -> Value {
     match *value.deref().borrow() {

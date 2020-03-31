@@ -6,7 +6,7 @@
 //! If a function is not an `ArrowFunction` function and references super,
 //! its function Environment Record also contains the state that is used to perform super method invocations
 //! from within the function.
-//! More info: <https://tc39.github.io/ecma262/#sec-function-environment-records>
+//! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
 use crate::{
     builtins::value::{Value, ValueData},
@@ -32,7 +32,7 @@ pub enum BindingStatus {
     Uninitialized,
 }
 
-/// <https://tc39.github.io/ecma262/#table-16>
+/// <https://tc39.es/ecma262/#table-16>
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct FunctionEnvironmentRecord {
     pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
