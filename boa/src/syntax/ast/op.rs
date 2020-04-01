@@ -278,7 +278,7 @@ pub enum UnaryOp {
 
     /// The `void` operator evaluates the given `expression` and then returns `undefined`.
     ///
-    /// Syntax: `void expression`
+    /// Syntax: `void x`
     ///
     /// This operator allows evaluating expressions that produce a value into places where an
     /// expression that evaluates to `undefined` is desired.
