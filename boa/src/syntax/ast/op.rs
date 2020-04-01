@@ -243,7 +243,7 @@ pub enum UnaryOp {
 
     /// The `typeof` operator returns a string indicating the type of the unevaluated operand.
     ///
-    /// Syntax: `typeof expression` or `typeof(expression)`
+    /// Syntax: `typeof x` or `typeof(x)`
     ///
     /// The `typeof` is a JavaScript keyword that will return the type of a variable when you call it.
     /// You can use this to validate function parameters or check if variables are defined.
