@@ -541,7 +541,7 @@ impl Display for CompOp {
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum LogOp {
-    /// The logical AND operator returns the value of the first operand if it can becoerced into `false`;
+    /// The logical AND operator returns the value of the first operand if it can be coerced into `false`;
     /// otherwise, it returns the second operand.
     ///
     /// Syntax: `x && y`
