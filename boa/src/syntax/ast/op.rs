@@ -636,34 +636,136 @@ impl Display for BinOp {
     }
 }
 
-/// A binary operation between 2 values
+/// An assignment operator assigns a value to its left operand based on the value of its right operand.
 ///
-/// <https://tc39.es/ecma262/#prod-AssignmentOperator>
+/// The simple assignment operator is equal (`=`), which assigns the value of its right operand to its
+/// left operand. That is, `x = y` assigns the value of `y to x`.
+///
+/// There are also compound assignment operators that are shorthand for the operations
+///
+/// More information:
+///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+///  - MDN documentation:
+/// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum AssignOp {
-    /// `a += b` - Add assign
+    /// The addition assignment operator adds the value of the right operand to a variable and assigns the result to the variable.
+    ///
+    /// Syntax: `x += y`
+    ///
+    /// The types of the two operands determine the behavior of the addition assignment operator. Addition or concatenation is possible.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Addition_assignment>
     Add,
-    /// `a -= b` - Sub assign
+
+    /// The subtraction assignment operator subtracts the value of the right operand from a variable and assigns the result to the variable.
+    ///
+    /// Syntax: `x -= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Subtraction_assignment>
     Sub,
-    /// `a *= b` - Mul assign
+
+    /// The multiplication assignment operator multiplies a variable by the value of the right operand and assigns the result to the variable.
+    ///
+    /// Syntax: `x *= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Multiplication_assignment>
     Mul,
-    /// `a **= b` - Exponent assign
-    Exp,
-    /// `a /= b` - Div assign
+
+    /// The division assignment operator divides a variable by the value of the right operand and assigns the result to the variable.
+    ///
+    /// Syntax: `x /= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Division_assignment>
     Div,
-    /// `a %= b` - Modulus assign
+
+    /// The remainder assignment operator divides a variable by the value of the right operand and assigns the remainder to the variable.
+    ///
+    /// Syntax: `x %= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Remainder_assignment>
     Mod,
-    /// `a &= b` - Bitwise and assign
+
+    /// The exponentiation assignment operator raises the value of a variable to the power of the right operand.
+    ///
+    /// Syntax: `x ** y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Exponentiation_assignment>
+    Exp,
+
+    /// The bitwise AND assignment operator uses the binary representation of both operands, does a bitwise AND operation on
+    /// them and assigns the result to the variable.
+    ///
+    /// Syntax: `x &= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_AND_assignment>
     And,
-    /// `a |= b` - Bitwise or assign
+
+    /// The bitwise OR assignment operator uses the binary representation of both operands, does a bitwise OR operation on
+    /// them and assigns the result to the variable.
+    ///
+    /// Syntax: `x |= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_OR_assignment>
     Or,
-    /// `a ^= b` - Bitwise xor assign
+
+    /// The bitwise XOR assignment operator uses the binary representation of both operands, does a bitwise XOR operation on
+    /// them and assigns the result to the variable.
+    ///
+    /// Syntax: `x ^= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_XOR_assignment>
     Xor,
-    /// `a <<= b` - Left shift assign
+
+    /// The left shift assignment operator moves the specified amount of bits to the left and assigns the result to the variable.
+    ///
+    /// Syntax: `x <<= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Left_shift_assignment>
     Shl,
-    /// `a >>= b` - Right shift assign
+
+    /// The right shift assignment operator moves the specified amount of bits to the right and assigns the result to the variable.
+    ///
+    /// Syntax: `x >>= y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-AssignmentOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Right_shift_assignment>
     Shr,
+
+    // TODO: Add UShl (unsigned shift left).
 }
 
 impl Display for AssignOp {
