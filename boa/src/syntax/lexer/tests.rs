@@ -331,6 +331,18 @@ fn check_positions() {
 }
 
 #[test]
+#[ignore]
+fn test_two_divisions_in_expression() {
+    let s = "    return a !== 0 || 1 / a === 1 / b;";
+    let mut lexer = Lexer::new(s);
+    lexer.lex().expect("failed to lex");
+    dbg!(&lexer.tokens);
+
+    assert_eq!(lexer.tokens[11].pos.column_number, 37);
+    assert_eq!(lexer.tokens[11].pos.line_number, 1);
+}
+
+#[test]
 fn check_line_numbers() {
     let s = "x\ny\n";
 
