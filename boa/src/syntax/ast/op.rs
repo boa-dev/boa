@@ -123,7 +123,7 @@ impl Display for NumOp {
 pub enum UnaryOp {
     /// The increment operator increments (adds one to) its operand and returns a value.
     ///
-    /// Syntax: `++expression`
+    /// Syntax: `++x`
     ///
     /// This operator increments and returns the value after incrementing.
     ///
@@ -135,7 +135,7 @@ pub enum UnaryOp {
 
     /// The increment operator increments (adds one to) its operand and returns a value.
     ///
-    /// Syntax: `expression++`
+    /// Syntax: `x++`
     ///
     /// This operator increments and returns the value before incrementing.
     ///
@@ -147,7 +147,7 @@ pub enum UnaryOp {
 
     /// The decrement operator decrements (subtracts one from) its operand and returns a value.
     ///
-    /// Syntax: `--expression`
+    /// Syntax: `--x`
     ///
     /// This operator decrements and returns the value before decrementing.
     ///
@@ -159,7 +159,7 @@ pub enum UnaryOp {
 
     /// The decrement operator decrements (subtracts one from) its operand and returns a value.
     ///
-    /// Syntax: `expression--`
+    /// Syntax: `x--`
     ///
     /// This operator decrements the operand and returns the value after decrementing.
     ///
@@ -171,7 +171,7 @@ pub enum UnaryOp {
 
     /// The unary negation operator precedes its operand and negates it.
     ///
-    /// Syntax: `-expression`
+    /// Syntax: `-x`
     ///
     /// Converts non-numbers data types to numbers like unary plus,
     /// however, it performs an additional operation, negation.
@@ -184,7 +184,7 @@ pub enum UnaryOp {
 
     /// The unary plus operator attempts to convert the operand into a number, if it isn't already.
     ///
-    /// Syntax: `+expression`
+    /// Syntax: `+x`
     ///
     /// Although unary negation (`-`) also can convert non-numbers, unary plus is the fastest and preferred
     /// way of converting something into a number, because it does not perform any other operations on the number.
@@ -198,7 +198,7 @@ pub enum UnaryOp {
 
     /// Returns `false` if its single operand can be converted to `true`; otherwise, returns `true`.
     ///
-    /// Syntax: `!expression`
+    /// Syntax: `!x`
     ///
     /// Boolean values simply get inverted: `!true === false` and `!false === true`.
     /// Non-boolean values get converted to boolean values first, then are negated.
@@ -213,7 +213,7 @@ pub enum UnaryOp {
 
     /// Performs the NOT operator on each bit.
     ///
-    /// Syntax: `~expression`
+    /// Syntax: `~x`
     ///
     /// NOT `a` yields the inverted value (or one's complement) of `a`.
     /// Bitwise NOTing any number x yields -(x + 1). For example, ~-5 yields 4.
@@ -307,7 +307,7 @@ impl Display for UnaryOp {
 pub enum BitOp {
     /// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
     ///
-    /// Syntax: `expression & expression`
+    /// Syntax: `x & y`
     ///
     /// More information:
     ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-BitwiseANDExpression>.
@@ -317,7 +317,7 @@ pub enum BitOp {
 
     /// Performs the OR operation on each pair of bits. a OR b yields 1 if either a or b is 1.
     ///
-    /// Syntax: `expression | expression`
+    /// Syntax: `x | y`
     ///
     /// More information:
     ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-BitwiseORExpression>.
@@ -327,7 +327,7 @@ pub enum BitOp {
 
     /// Performs the XOR operation on each pair of bits. a XOR b yields 1 if a and b are different.
     ///
-    /// Syntax: `expression ^ expression`
+    /// Syntax: `x ^ y`
     ///
     /// More information:
     ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-BitwiseXORExpression>.
@@ -337,7 +337,7 @@ pub enum BitOp {
 
     /// This operator shifts the first operand the specified number of bits to the left.
     ///
-    /// Syntax: `expression << expression`
+    /// Syntax: `x << y`
     ///
     /// Excess bits shifted off to the left are discarded. Zero bits are shifted in from the right.
     ///
@@ -349,7 +349,7 @@ pub enum BitOp {
 
     /// This operator shifts the first operand the specified number of bits to the right.
     ///
-    /// Syntax: `expression >> expression`
+    /// Syntax: `x >> y`
     ///
     /// Excess bits shifted off to the right are discarded. Copies of the leftmost bit
     /// are shifted in from the left. Since the new leftmost bit has the same value as
@@ -364,7 +364,7 @@ pub enum BitOp {
 
     /// This operator shifts the first operand the specified number of bits to the right.
     ///
-    /// Syntax: `expression >>> expression`
+    /// Syntax: `x >>> y`
     ///
     /// Excess bits shifted off to the right are discarded. Zero bits are shifted in
     /// from the left. The sign bit becomes 0, so the result is always non-negative.
@@ -394,25 +394,118 @@ impl Display for BitOp {
     }
 }
 
-/// A comparitive operation between 2 values
+/// A comparison operator compares its operands and returns a logical value based on whether the comparison is true.
+///
+/// The operands can be numerical, string, logical, or object values. Strings are compared based on standard
+/// lexicographical ordering, using Unicode values. In most cases, if the two operands are not of the same type,
+/// JavaScript attempts to convert them to an appropriate type for the comparison. This behavior generally results in
+/// comparing the operands numerically. The sole exceptions to type conversion within comparisons involve the `===` and `!==`
+/// operators, which perform strict equality and inequality comparisons. These operators do not attempt to convert the operands
+/// to compatible types before checking equality.
+///
+/// More information:
+///  - MDN documentation:
+/// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum CompOp {
-    /// `a == b` - Equality
+    /// The equality operator converts the operands if they are not of the same type, then applies strict comparison.
+    ///
+    /// Syntax: `y == y`
+    ///
+    /// If both operands are objects, then JavaScript compares internal references which are equal when operands
+    /// refer to the same object in memory.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-abstract-equality-comparison>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality>
     Equal,
-    /// `a != b` - Unequality
+
+    /// The inequality operator returns true if the operands are not equal.
+    ///
+    /// Syntax: `x != y`
+    ///
+    ///  If the two operands are not of the same type, JavaScript attempts to convert the operands to
+    /// an appropriate type for the comparison. If both operands are objects, then JavaScript compares
+    /// internal references which are not equal when operands refer to different objects in memory.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-EqualityExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality>
     NotEqual,
-    /// `a === b` - Strict equality
+
+    /// The identity operator returns true if the operands are strictly equal **with no type conversion**.
+    ///
+    /// Syntax: `x === y`
+    ///
+    /// Returns `true` if the operands are equal and of the same type.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-strict-equality-comparison>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity>
     StrictEqual,
-    /// `a !== b` - Strict unequality
+
+    /// The non-identity operator returns true if the operands **are not equal and/or not of the same type**.
+    ///
+    /// Syntax: `x !== y`
+    ///
+    /// Returns `true` if the operands are of the same type but not equal, or are of different type.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-EqualityExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity>
     StrictNotEqual,
-    /// `a > b` - If `a` is greater than `b`
+
+    /// The greater than operator returns true if the left operand is greater than the right operand.
+    ///
+    /// Syntax: `x > y`
+    ///
+    /// Returns `true` if the left operand is greater than the right operand.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-RelationalExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator>
     GreaterThan,
-    /// `a >= b` - If `a` is greater than or equal to `b`
+
+    /// The greater than or equal operator returns true if the left operand is greater than or equal to the right operand.
+    ///
+    /// Syntax: `x >= y`
+    ///
+    /// Returns `true` if the left operand is greater than the right operand.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-RelationalExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator>
     GreaterThanOrEqual,
-    /// `a < b` - If `a` is less than `b`
+
+    /// The less than operator returns true if the left operand is less than the right operand.
+    ///
+    /// Syntax: `x < y`
+    ///
+    /// Returns `true` if the left operand is less than the right operand.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-RelationalExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_operator>
     LessThan,
-    /// `a <= b` - If `a` is less than or equal to `b`
+
+    /// The less than or equal operator returns true if the left operand is less than or equal to the right operand.
+    ///
+    /// Syntax: `x <= y`
+    ///
+    /// Returns `true` if the left operand is less than or equal to the right operand.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-RelationalExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator>
     LessThanOrEqual,
 }
 
