@@ -809,6 +809,7 @@ pub fn some(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resu
         if result {
             return Ok(to_value(true));
         }
+        // the length of the array must be updated because the callback can mutate it.
         len = min(max_len, from_value(this.get_field_slice("length")).unwrap());
         i += 1;
     }
