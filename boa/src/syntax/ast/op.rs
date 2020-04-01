@@ -18,6 +18,7 @@ pub trait Operator {
 
 /// Arithmetic operators take numerical values (either literals or variables)
 /// as their operands and return a single numerical value.
+///
 /// More information:
 ///     - MDN documentation:
 /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic>
