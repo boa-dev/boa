@@ -16,21 +16,78 @@ pub trait Operator {
     }
 }
 
-/// A numeric operation between 2 values
+/// Arithmetic operators take numerical values (either literals or variables)
+/// as their operands and return a single numerical value.
+/// More information:
+///     - MDN documentation:
+/// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum NumOp {
-    /// `a + b` - Addition
+    /// The addition operator produces the sum of numeric operands or string concatenation.
+    ///
+    /// Syntax: `expression + expression`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-addition-operator-plus>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Addition>
     Add,
-    /// `a - b` - Subtraction
+
+    /// The subtraction operator subtracts the two operands, producing their difference.
+    ///
+    /// Syntax: `expression - expression`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-subtraction-operator-minus>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Subtraction>
     Sub,
-    /// `a / b` - Division
+
+    /// The division operator produces the quotient of its operands where the left operand
+    /// is the dividend and the right operand is the divisor.
+    ///
+    /// Syntax: `expression / expression`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-MultiplicativeOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division>
     Div,
-    /// `a * b` - Multiplication
+
+    /// The multiplication operator produces the product of the operands.
+    ///
+    /// Syntax: `expression * expression`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-MultiplicativeExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Multiplication>
     Mul,
-    /// `a ** b` - Exponentiation
+
+    /// The exponentiation operator returns the result of raising the first operand to
+    /// the power of the second operand.
+    ///
+    /// Syntax: `expression ** expression`
+    ///
+    /// The exponentiation operator is right-associative. a ** b ** c is equal to a ** (b ** c).
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-exp-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation>
     Exp,
-    /// `a % b` - Modulus
+
+    /// The remainder operator returns the remainder left over when one operand is divided by a second operand.
+    ///
+    /// Syntax: `expression % expression`
+    ///
+    /// The remainder operator always takes the sign of the dividend.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-MultiplicativeOperator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Remainder>
     Mod,
 }
 
@@ -51,31 +108,139 @@ impl Display for NumOp {
     }
 }
 
-/// A unary operation on a single value
+/// A unary operator is one that takes a single operand/argument and performs an operation.
 ///
-/// For more information, please check: <https://tc39.es/ecma262/#prod-UnaryExpression>
+/// A unary operation is an operation with only one operand. This operand comes either
+/// before or after the operator. Unary operators are more efficient than standard JavaScript
+/// function calls.
+///
+/// More information:
+///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-UnaryExpression>.
+///  - MDN documentation:
+/// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum UnaryOp {
-    /// `a++` - increment the value
+    /// The increment operator increments (adds one to) its operand and returns a value.
+    ///
+    /// Syntax: `++expression`
+    ///
+    /// This operator increments and returns the value after incrementing.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-postfix-increment-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment>
     IncrementPost,
-    /// `++a` - increment the value
+
+    /// The increment operator increments (adds one to) its operand and returns a value.
+    ///
+    /// Syntax: `expression++`
+    ///
+    /// This operator increments and returns the value before incrementing.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-prefix-increment-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment>
     IncrementPre,
-    /// `a--` - decrement the value
+
+    /// The decrement operator decrements (subtracts one from) its operand and returns a value.
+    ///
+    /// Syntax: `--expression`
+    ///
+    /// This operator decrements and returns the value before decrementing.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-postfix-decrement-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement>
     DecrementPost,
-    /// `--a` - decrement the value
+
+    /// The decrement operator decrements (subtracts one from) its operand and returns a value.
+    ///
+    /// Syntax: `expression--`
+    ///
+    /// This operator decrements the operand and returns the value after decrementing.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-prefix-decrement-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement>
     DecrementPre,
-    /// `-a` - negate the value
+
+    /// The unary negation operator precedes its operand and negates it.
+    ///
+    /// Syntax: `-expression`
+    ///
+    /// Converts non-numbers data types to numbers like unary plus,
+    /// however, it performs an additional operation, negation.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-unary-minus-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_negation>
     Minus,
-    /// `+a` - convert to a number
+
+    /// The unary plus operator attempts to convert the operand into a number, if it isn't already.
+    ///
+    /// Syntax: `+expression`
+    ///
+    /// Although unary negation (`-`) also can convert non-numbers, unary plus is the fastest and preferred
+    /// way of converting something into a number, because it does not perform any other operations on the number.
+    /// It can convert `string` representations of integers and floats, as well as the non-string values `true`, `false`, and `null`.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-unary-plus-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_plus>
     Plus,
-    /// `!a` - get the opposite of the boolean value
+
+    /// Returns `false` if its single operand can be converted to `true`; otherwise, returns `true`.
+    ///
+    /// Syntax: `!expression`
+    ///
+    /// Boolean values simply get inverted: `!true === false` and `!false === true`.
+    /// Non-boolean values get converted to boolean values first, then are negated.
+    /// This means that it is possible to use a couple of NOT operators in series to explicitly
+    /// force the conversion of any value to the corresponding boolean primitive.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-logical-not-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_NOT>
     Not,
-    /// `~a` - bitwise-not of the value
+
+    /// Performs the NOT operator on each bit.
+    ///
+    /// Syntax: `~expression`
+    ///
+    /// NOT `a` yields the inverted value (or one's complement) of `a`.
+    /// Bitwise NOTing any number x yields -(x + 1). For example, ~-5 yields 4.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-bitwise-not-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_NOT>
     Tilde,
-    /// `typeof` - Get the type of object
+
+    /// The `typeof` operator returns a string indicating the type of the unevaluated operand.
+    ///
+    /// Syntax: `typeof expression` or `typeof(expression)`
+    ///
+    /// The `typeof` is a JavaScript keyword that will return the type of a variable when you call it.
+    /// You can use this to validate function parameters or check if variables are defined.
+    /// There are other uses as well.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-typeof-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof>
     TypeOf,
+
     /// The JavaScript `delete` operator removes a property from an object.
+    ///
+    /// Syntax: `delete expression`
     ///
     /// Unlike what common belief suggests, the delete operator has nothing to do with
     /// directly freeing memory. Memory management is done indirectly via breaking references.
@@ -86,10 +251,15 @@ pub enum UnaryOp {
     /// [non-configurable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_delete)
     /// property, in which case, `false` is returned in non-strict mode.
     ///
-    /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete>
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-delete-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete>
     Delete,
 
     /// The `void` operator evaluates the given `expression` and then returns `undefined`.
+    ///
+    /// Syntax: `void expression`
     ///
     /// This operator allows evaluating expressions that produce a value into places where an
     /// expression that evaluates to `undefined` is desired.
@@ -99,7 +269,10 @@ pub enum UnaryOp {
     /// When using an [immediately-invoked function expression](https://developer.mozilla.org/en-US/docs/Glossary/IIFE),
     /// `void` can be used to force the function keyword to be treated as an expression instead of a declaration.
     ///
-    /// For more information, please check: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void>
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-void-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void>
     Void,
 }
 
@@ -123,21 +296,84 @@ impl Display for UnaryOp {
     }
 }
 
-/// A bitwise operation between 2 values
+/// A bitwise operator is an operator used to perform bitwise operations
+/// on bit patterns or binary numerals that involve the manipulation of individual bits.
+///
+/// More information:
+///     - MDN documentation:
+/// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BitOp {
-    /// `a & b` - Bitwise and
+    /// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
+    ///
+    /// Syntax: `expression & expression`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-BitwiseANDExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND>
     And,
-    /// `a | b` - Bitwise or
+
+    /// Performs the OR operation on each pair of bits. a OR b yields 1 if either a or b is 1.
+    ///
+    /// Syntax: `expression | expression`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-BitwiseORExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR>
     Or,
-    /// `a ^ b` - Bitwise xor
+
+    /// Performs the XOR operation on each pair of bits. a XOR b yields 1 if a and b are different.
+    ///
+    /// Syntax: `expression ^ expression`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-BitwiseXORExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR>
     Xor,
-    /// `a << b` - Bit-shift leftwards
+
+    /// This operator shifts the first operand the specified number of bits to the left.
+    ///
+    /// Syntax: `expression << expression`
+    ///
+    /// Excess bits shifted off to the left are discarded. Zero bits are shifted in from the right.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-left-shift-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Left_shift>
     Shl,
-    /// `a >> b` - Bit-shift rightrights
+
+    /// This operator shifts the first operand the specified number of bits to the right.
+    ///
+    /// Syntax: `expression >> expression`
+    ///
+    /// Excess bits shifted off to the right are discarded. Copies of the leftmost bit
+    /// are shifted in from the left. Since the new leftmost bit has the same value as
+    /// the previous leftmost bit, the sign bit (the leftmost bit) does not change.
+    /// Hence the name "sign-propagating".
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-signed-right-shift-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Right_shift>
     Shr,
-    /// `a >>> b` - Zero-fill right shift
+
+    /// This operator shifts the first operand the specified number of bits to the right.
+    ///
+    /// Syntax: `expression >>> expression`
+    ///
+    /// Excess bits shifted off to the right are discarded. Zero bits are shifted in
+    /// from the left. The sign bit becomes 0, so the result is always non-negative.
+    /// Unlike the other bitwise operators, zero-fill right shift returns an unsigned 32-bit integer.
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-unsigned-right-shift-operator>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift>
     UShr,
 }
 
