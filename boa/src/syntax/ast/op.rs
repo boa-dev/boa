@@ -765,7 +765,6 @@ pub enum AssignOp {
     ///  - MDN documentation:
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Right_shift_assignment>
     Shr,
-
     // TODO: Add UShl (unsigned shift left).
 }
 
