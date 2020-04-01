@@ -258,7 +258,7 @@ pub enum UnaryOp {
 
     /// The JavaScript `delete` operator removes a property from an object.
     ///
-    /// Syntax: `delete expression`
+    /// Syntax: `delete x`
     ///
     /// Unlike what common belief suggests, the delete operator has nothing to do with
     /// directly freeing memory. Memory management is done indirectly via breaking references.
