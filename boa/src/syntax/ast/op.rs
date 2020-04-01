@@ -20,8 +20,9 @@ pub trait Operator {
 /// as their operands and return a single numerical value.
 ///
 /// More information:
-///     - MDN documentation:
-/// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic>
+///     - [MDN documentation][mdn]
+/// 
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum NumOp {
