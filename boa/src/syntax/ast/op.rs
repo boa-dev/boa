@@ -528,13 +528,38 @@ impl Display for CompOp {
     }
 }
 
-/// A logical operation between 2 boolean values
+/// Logical operators are typically used with Boolean (logical) values; when they are, they return a Boolean value.
+///
+/// However, the && and || operators actually return the value of one of the specified operands,
+/// so if these operators are used with non-Boolean values, they may return a non-Boolean value.
+///
+/// More information:
+///  - ECMAScript reference: <https://tc39.es/ecma262/#sec-binary-logical-operators>.
+///  - MDN documentation:
+/// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical>
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum LogOp {
-    /// `a && b` - Logical and
+    /// The logical AND operator returns the value of the first operand if it can becoerced into `false`;
+    /// otherwise, it returns the second operand.
+    ///
+    /// Syntax: `x && y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-LogicalANDExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_AND>
     And,
-    /// `a || b` - Logical or
+
+    /// The logical OR operator returns the value the first operand if it can be coerced into `true`;
+    /// otherwise, it returns the second operand.
+    ///
+    /// Syntax: `x || y`
+    ///
+    /// More information:
+    ///  - ECMAScript reference: <https://tc39.es/ecma262/#prod-LogicalORExpression>.
+    ///  - MDN documentation:
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR>
     Or,
 }
 
