@@ -1,3 +1,5 @@
+//! This module implements the `Keyword` structure, which represents reserved words of The JavaScript language.
+
 use std::{
     error,
     fmt::{Display, Error, Formatter},
@@ -210,7 +212,7 @@ pub enum Keyword {
     /// until the test condition evaluates to `false`.
     ///
     /// Syntax:
-    /// ```javascript
+    /// ```text
     /// do
     ///    statement
     /// while (condition);
@@ -342,7 +344,7 @@ pub enum Keyword {
     /// The **`function` declaration** (function statement) defines a function with the specified parameters.
     ///
     /// Syntax:
-    /// ```
+    /// ```text
     /// function name([param[, param,[..., param]]]) {
     ///     [statements]
     /// }
@@ -373,7 +375,7 @@ pub enum Keyword {
     /// The **`if` statement** executes a statement if a specified condition is [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement can be executed.
     ///
     /// Syntax:
-    /// ```
+    /// ```text
     /// if (condition)
     ///     statement1
     /// [else
@@ -449,7 +451,7 @@ pub enum Keyword {
     /// The static **`import` statement** is used to import bindings which are exported by another module.
     ///
     /// Syntax:
-    /// ```
+    /// ```text
     /// import defaultExport from "module-name";
     /// import * as name from "module-name";
     /// import { export1 } from "module-name";
