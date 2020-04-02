@@ -1,3 +1,5 @@
+//! This module implements the `Pos` structure, which represents a position in the source code.
+
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 

@@ -1,3 +1,5 @@
+//! This module implements various structure for logic handling.
+
 use gc_derive::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
