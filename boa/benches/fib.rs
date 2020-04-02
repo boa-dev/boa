@@ -18,9 +18,9 @@ res;
 "#;
 
 fn fibonacci(c: &mut Criterion) {
-  c.bench_function("fibonacci (Execution)", move |b| {
-    b.iter(|| exec(black_box(SRC)))
-  });
+    c.bench_function("fibonacci (Execution)", move |b| {
+        b.iter(|| exec(black_box(SRC)))
+    });
 }
 
 criterion_group!(benches, fibonacci);
