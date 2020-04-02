@@ -1,10 +1,8 @@
-#[macro_use]
-extern crate criterion;
+use boa::syntax::{lexer::Lexer, parser::Parser};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-use boa::syntax::lexer::Lexer;
-use boa::syntax::parser::Parser;
-use criterion::black_box;
-use criterion::Criterion;
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 static EXPRESSION: &str = r#"
 1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;

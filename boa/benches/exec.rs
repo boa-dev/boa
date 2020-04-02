@@ -1,9 +1,8 @@
-#[macro_use]
-extern crate criterion;
+use boa::{exec, realm::Realm};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-use boa::exec;
-use boa::realm::Realm;
-use criterion::{black_box, Criterion};
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 static SRC: &str = r#"
 let a = Symbol();

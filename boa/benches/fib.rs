@@ -1,9 +1,8 @@
-#[macro_use]
-extern crate criterion;
-
 use boa::exec;
-use criterion::black_box;
-use criterion::Criterion;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 static SRC: &str = r#"
 let num = 12;
@@ -19,9 +18,9 @@ res;
 "#;
 
 fn fibonacci(c: &mut Criterion) {
-    c.bench_function("fibonacci (Execution)", move |b| {
-        b.iter(|| exec(black_box(SRC)))
-    });
+  c.bench_function("fibonacci (Execution)", move |b| {
+    b.iter(|| exec(black_box(SRC)))
+  });
 }
 
 criterion_group!(benches, fibonacci);
