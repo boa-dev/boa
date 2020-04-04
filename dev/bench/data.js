@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1585853803130,
+  "lastUpdate": 1586019551397,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -2967,6 +2967,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.2633,
             "range": "+/- 0.038",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "iban.eguia@cern.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ed712219970a9aee437a02fa7992f6fea9e23f4",
+          "message": "Fixed positions in regexes and strict operators. (#295)\n\nI also removed an unused function in the parser and added a test for #294, currently ignored.",
+          "timestamp": "2020-04-04T17:52:51+01:00",
+          "tree_id": "1fa31ebc9e7cafce4a9a331b7054410fadd567dd",
+          "url": "https://github.com/jasonwilliams/boa/commit/4ed712219970a9aee437a02fa7992f6fea9e23f4"
+        },
+        "date": 1586019548659,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 491.02,
+            "range": "+/- 8.910",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 614.57,
+            "range": "+/- 14.040",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 5.6218,
+            "range": "+/- 0.064",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 3.5819,
+            "range": "+/- 0.080",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 522.78,
+            "range": "+/- 14.880",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.1622,
+            "range": "+/- 0.021",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.2955,
+            "range": "+/- 0.022",
             "unit": "us"
           }
         ]
