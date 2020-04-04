@@ -23,6 +23,7 @@ macro_rules! vop {
         match preview {
             '=' => {
                 $this.next();
+                $this.column_number += 1;
                 $assign_op
             }
             _ => $op,
@@ -33,10 +34,12 @@ macro_rules! vop {
         match preview {
             '=' => {
                 $this.next();
+                $this.column_number += 1;
                 $assign_op
             },
             $($case => {
                 $this.next();
+                $this.column_number += 1;
                 $block
             })+,
             _ => $op
@@ -47,6 +50,7 @@ macro_rules! vop {
         match preview {
             $($case => {
                 $this.next()?;
+                $this.column_number += 1;
                 $block
             })+,
             _ => $op
@@ -135,6 +139,7 @@ impl<'a> Lexer<'a> {
             buffer: buffer.chars().peekable(),
         }
     }
+
     /// Push tokens onto the token queue
     fn push_token(&mut self, tk: TokenKind) {
         self.tokens
@@ -148,16 +153,17 @@ impl<'a> Lexer<'a> {
 
     /// next fetches the next token and return it, or a LexerError if there are no more.
     fn next(&mut self) -> char {
-        match self.buffer.next() {
-            Some(ch) => ch,
-            None => panic!("No more more characters to consume from input stream, use preview_next() first to check before calling next()"),
-        }
+        self.buffer.next().expect(
+            "No more more characters to consume from input stream, \
+             use preview_next() first to check before calling next()",
+        )
     }
 
     /// Preview the next character but don't actually increment
     fn preview_next(&mut self) -> Option<char> {
         self.buffer.peek().copied()
     }
+
     /// Preview a char x indexes further in buf, without incrementing
     fn preview_multiple_next(&mut self, nb_next: usize) -> Option<char> {
         let mut next_peek = None;
@@ -189,7 +195,7 @@ impl<'a> Lexer<'a> {
         Ok(s)
     }
 
-    /// next_is compares the character passed in to the next character, if they match true is returned and the buffer is incremented
+    /// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented
     fn next_is(&mut self, peek: char) -> bool {
         let result = self.preview_next() == Some(peek);
         if result {
@@ -563,6 +569,7 @@ impl<'a> Lexer<'a> {
                                 let mut body = String::new();
                                 let mut regex = false;
                                 loop {
+                                    self.column_number +=1;
                                     match self.buffer.next() {
                                         // end of body
                                         Some('/') => {
@@ -570,8 +577,18 @@ impl<'a> Lexer<'a> {
                                             break;
                                         }
                                         // newline/eof not allowed in regex literal
-                                        Some('\n') | Some('\r') | Some('\u{2028}')
-                                        | Some('\u{2029}') | None => break,
+                                        n @ Some('\n') | n @ Some('\r') | n @ Some('\u{2028}')
+                                        | n @ Some('\u{2029}') => {
+                                            self.column_number = 0;
+                                            if n != Some('\r') {
+                                                self.line_number += 1;
+                                            }
+                                            break
+                                        },
+                                        None => {
+                                            self.column_number -= 1;
+                                            break
+                                        }
                                         // escape sequence
                                         Some('\\') => {
                                             body.push('\\');

@@ -222,28 +222,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Returns an error if the next symbol is not `tk`
-    fn expect_no_lineterminator(
-        &mut self,
-        kind: TokenKind,
-        routine: Option<&'static str>,
-    ) -> Result<(), ParseError> {
-        let next_token = self
-            .cursor
-            .next_skip(|tk| tk.kind == TokenKind::LineTerminator)
-            .ok_or(ParseError::AbruptEnd)?;
-
-        if next_token.kind == kind {
-            Ok(())
-        } else {
-            Err(ParseError::Expected(
-                vec![kind],
-                next_token.clone(),
-                routine,
-            ))
-        }
-    }
-
     /// Returns an error if the next symbol is not the punctuator `p`
     /// Consumes the next symbol otherwise
     fn expect_punc(
