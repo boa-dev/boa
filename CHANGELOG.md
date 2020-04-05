@@ -1,10 +1,29 @@
 # CHANGELOG
 
-# [# 0.7.0 (Master) - New Parser](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
+# [# 0.7.0 (Master) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
 This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.  
 Tests have also been moved to their own files, we had a lot of tests in some modules so it was time to separate.
+
+## New Parser
+
+Most of the work in this release has been on rewriting the parser. A big task taken on by [HalidOdat](https://github.com/HalidOdat), [Razican](https://github.com/Razican) and [myself](https://github.com/jasonwilliams).
+
+The majority of the old parser was 1 big function (called [`parse`](https://github.com/jasonwilliams/boa/blob/019033eff066e8c6ba9456139690eb214a0bf61d/boa/src/syntax/parser.rs#L353)) which had some pattern matching on each token coming in.\
+The easy branches could generate expressions (which were basically AST Nodes), the more involved branches would recursively call into the same function, until eventually you had an expression generated.
+
+This only worked so far, eventually debugging parsing problems were difficult, also more bugs were being raised against the parser which couldn't be fixed.
+
+We decided to break the parser into more of a state-machine. The initial decision for this was inspired by [Fedor Indutny](https://github.com/indutny) who did a talk at (the last) JSConf EU about how he broke up the old node-parser to make it more maintanable. He goes into more detail here https://www.youtube.com/watch?v=x3k_5Mi66sY&feature=youtu.be&t=530
+
+The new parser has functions to match the states of parsing in the spec. For example https://tc39.es/ecma262/#prod-VariableDeclaration has a matching function `read_variable_declaration`. This not only makes it better to maintain but easier for new contributors to get involed, as following the parsing logic of the spec is easier than before.
+
+Once finished some optimisations were added by [HalidOdat](https://github.com/HalidOdat) to use references to the tokens instead of cloning them each time we take them from the lexer.\
+This works because the tokens live just as long as the parser operations do, so we don't need to copy the tokens.\
+What this brings is a huge performance boost, the parser is 67% faster than before!
+
+![Parser Improvement](./docs/img/parser-graph.png)
 
 Feature enhancements:
 
@@ -43,6 +62,13 @@ Bug fixes:
   Fixed empty returns (@Razican)
 - [BUG #272](https://github.com/jasonwilliams/boa/pull/272):
   Fix parsing of floats that start with a zero (@Nickforall)
+
+Documentation Updates:
+
+- [DOC #293](https://github.com/jasonwilliams/boa/pull/293):
+  Better overall documentation
+- [DOC #297](https://github.com/jasonwilliams/boa/pull/297):
+  Better user contributed documentation
 
 # [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...v0.6.0)
 
