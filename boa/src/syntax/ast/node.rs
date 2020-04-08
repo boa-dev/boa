@@ -15,7 +15,7 @@ pub enum Node {
     /// An array is an ordered collection of data (either primitive or object depending upon the language).
     ///
     /// Arrays are used to store multiple values in a single variable.
-    /// This is compared to a variable that can store only one value. 
+    /// This is compared to a variable that can store only one value.
     ///
     /// Each item in an array has a number attached to it, called a numeric index, that allows you to access it.
     /// In JavaScript, arrays start at index zero and can be manipulated with various methods.
@@ -28,7 +28,7 @@ pub enum Node {
     ArrayDecl(Vec<Node>),
 
     /// An arrow function expression is a syntactically compact alternative to a regular function expression.
-    /// 
+    ///
     /// Arrow function expressions are ill suited as methods, and they cannot be used as constructors.
     /// Arrow functions cannot be used as constructors and will throw an error when used with new.
     ///
@@ -88,7 +88,7 @@ pub enum Node {
     /// Calling the function actually performs the specified actions with the indicated parameters.
     ///
     /// Defining a function does not execute it. Defining it simply names the function and specifies what to do when the function is called.
-    /// Functions must be in scope when they are called, but the function declaration can be hoisted 
+    /// Functions must be in scope when they are called, but the function declaration can be hoisted
     /// The scope of a function is the function in which it is declared (or the entire program, if it is declared at the top level).
     ///
     /// More information:
@@ -113,7 +113,7 @@ pub enum Node {
 
     /// Literals represent values in JavaScript.
     ///
-    /// These are fixed values **not variables** that you literally provide in your script. 
+    /// These are fixed values **not variables** that you literally provide in your script.
     ///
     /// More information:
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-primary-expression-literals)
@@ -211,9 +211,9 @@ pub enum Node {
 
     /// The **`let` statement** declares a block scope local variable, optionally initializing it to a value.
     ///
-    /// 
+    ///
     /// `let` allows you to declare variables that are limited to a scope of a block statement, or expression on which
-    /// it is used, unlike the `var` keyword, which defines a variable globally, or locally to an entire function regardless of block scope. 
+    /// it is used, unlike the `var` keyword, which defines a variable globally, or locally to an entire function regardless of block scope.
     ///
     /// Just like const the `let` does not create properties of the window object when declared globally (in the top-most scope).
     ///
@@ -308,7 +308,7 @@ pub enum Node {
     ///
     /// It expands array expressions or strings in places where zero or more arguments (for function calls) or elements (for array literals)
     /// are expected, or an object expression to be expanded in places where zero or more key-value pairs (for object literals) are expected.
-    /// 
+    ///
     /// More information:
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-SpreadElement)
     ///  - [MDN documentation][mdn]
@@ -393,13 +393,13 @@ pub enum Node {
     ///
     /// var declarations, wherever they occur, are processed before any code is executed. This is called hoisting, and is discussed further below.
     ///
-	/// The scope of a variable declared with var is its current execution context, which is either the enclosing function or,
-	/// for variables declared outside any function, global. If you re-declare a JavaScript variable, it will not lose its value.
-	///
-	/// Assigning a value to an undeclared variable implicitly creates it as a global variable
-	/// (it becomes a property of the global object) when the assignment is executed.
-	///
-	/// More information:
+    /// The scope of a variable declared with var is its current execution context, which is either the enclosing function or,
+    /// for variables declared outside any function, global. If you re-declare a JavaScript variable, it will not lose its value.
+    ///
+    /// Assigning a value to an undeclared variable implicitly creates it as a global variable
+    /// (it becomes a property of the global object) when the assignment is executed.
+    ///
+    /// More information:
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-VariableStatement)
     ///  - [MDN documentation][mdn]
     ///

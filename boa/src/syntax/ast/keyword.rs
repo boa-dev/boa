@@ -49,7 +49,7 @@ pub enum Keyword {
     Case,
 
     /// The `catch` keyword.
-    /// 
+    ///
     /// More information:
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-Catch)
     ///  - [MDN documentation][mdn]
