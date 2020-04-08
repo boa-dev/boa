@@ -27,15 +27,8 @@ Then simply clone this project and `cargo build`
 
 ### Debugging
 
-You can see the output of tokens by adding a `dbg!(&tokens);` here:
-https://github.com/jasonwilliams/boa/blob/master/src/lib/lib.rs#L31
-
-This is useful to know if the tokens are in the right order, or any unexpected tokens are appearing.
-
-The parser's expression tree can be viewed by adding `dbg!(&expr)` here:
-https://github.com/jasonwilliams/boa/blob/master/src/lib/lib.rs#L34
-
-To get a full backtrace you will need to set the environment variable `RUST_BACKTRACE=1`
+Knowing how to debug the interpreter should help you resolve problems quite quickly.\
+See [Debugging](docs/debugging.md)
 
 
 ### Web Assembly
