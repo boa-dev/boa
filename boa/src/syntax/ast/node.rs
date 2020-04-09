@@ -176,7 +176,7 @@ pub enum Node {
     ///
     /// In the object.property syntax, the property must be a valid JavaScript identifier.
     /// (In the ECMAScript standard, the names of properties are technically "IdentifierNames", not "Identifiers",
-    /// so reserved words can be used but are not recommended). 
+    /// so reserved words can be used but are not recommended).
     ///
     /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup table).
     /// The keys in this array are the names of the object's properties.
@@ -729,10 +729,55 @@ pub enum PropertyDefinition {
     SpreadObject(Node),
 }
 
+/// Method definition kinds.
+///
+/// Starting with ECMAScript 2015, a shorter syntax for method definitions on objects initializers is introduced.
+/// It is a shorthand for a function assigned to the method's name.
+///
+/// More information:
+///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+///  - [MDN documentation][mdn]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum MethodDefinitionKind {
+    /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
+    ///
+    /// Sometimes it is desirable to allow access to a property that returns a dynamically computed value,
+    /// or you may want to reflect the status of an internal variable without requiring the use of explicit method calls.
+    /// In JavaScript, this can be accomplished with the use of a getter.
+    ///
+    /// It is not possible to simultaneously have a getter bound to a property and have that property actually hold a value,
+    /// although it is possible to use a getter and a setter in conjunction to create a type of pseudo-property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get
     Get,
+
+    /// The `set` syntax binds an object property to a function to be called when there is an attempt to set that property.
+    ///
+    /// In JavaScript, a setter can be used to execute a function whenever a specified property is attempted to be changed.
+    /// Setters are most often used in conjunction with getters to create a type of pseudo-property.
+    /// It is not possible to simultaneously have a setter on a property that holds an actual value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
     Set,
+
+    /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
     Ordinary,
+    // TODO: support other method definition kinds, like `Generator`.
 }
