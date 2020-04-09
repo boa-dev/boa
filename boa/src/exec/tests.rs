@@ -16,6 +16,19 @@ fn empty_let_decl_undefined() {
 }
 
 #[test]
+fn semicolon_expression_stop() {
+    let scenario = r#"
+        var a = 1;
+        + 1;
+        a
+        "#;
+
+    let pass = String::from("1");
+
+    assert_eq!(exec(scenario), pass);
+}
+
+#[test]
 fn empty_var_decl_undefined() {
     let scenario = r#"
         let b;
