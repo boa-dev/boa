@@ -67,9 +67,9 @@ the environment variable `RUST_BACKTRACE=1`.
 ## Execution
 
 Once the tree has been generated [exec](../boa/src/lib.rs#L92) will begin to
-run through each expression. If the tokens and tree looks fine, you can start
-looking here. We usually just add `dbg!()` in the relevent places to see what
-the output is at the time.
+run through each node. If the tokens and tree looks fine, you can start looking
+here. We usually just add `dbg!()` in the relevent places to see what the
+output is at the time.
 
 ## Debugger
 
