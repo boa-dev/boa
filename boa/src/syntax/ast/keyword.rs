@@ -33,32 +33,37 @@ pub enum Keyword {
     /// The `break` keyword.
     ///
     /// More information:
+    ///  - [break `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-BreakStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Break
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
     Break,
 
     /// The `case` keyword.
     ///
     /// More information:
+    ///  - [switch `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-CaseClause)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Switch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
     Case,
 
     /// The `catch` keyword.
     ///
     /// More information:
+    ///  - [try `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-Catch)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Try
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
     Catch,
 
     /// The `class` keyword.
-    ///
     ///
     /// More information:
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ClassDeclaration)
@@ -67,21 +72,25 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
     Class,
 
-    /// The continue keyword.
+    /// The `continue` keyword.
     ///
     /// More information:
+    ///  - [continue `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ContinueStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Continue
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
     Continue,
 
     /// The `const` keyword.
     ///
     /// More information:
+    ///  - [const `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-let-and-const-declarations)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.ConstDecl
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
     Const,
 
@@ -97,19 +106,23 @@ pub enum Keyword {
     /// The `default` keyword.
     ///
     /// More information:
+    ///  - [switch `Node` documentation][node]
     ///  - [ECMAScript reference default clause](https://tc39.es/ecma262/#prod-DefaultClause)
     ///  - [ECMAScript reference default export](https://tc39.es/ecma262/#prod-ImportedDefaultBinding)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Switch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/default
     Default,
 
     /// The `delete` keyword.
     ///
     /// More information:
+    ///  - [delete `UnaryOp` documentation][unary]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-delete-operator)
     ///  - [MDN documentation][mdn]
     ///
+    /// [unary]: ../op/enum.UnaryOp.html#variant.Delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
     Delete,
 
@@ -122,12 +135,20 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
     Do,
 
+    /// The `else` keyword.
     ///
+    /// More information:
+    ///  - [if `Node` documentation][node]
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-IfStatement)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [node]: ../node/enum.Node.html#variant.If
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
     Else,
 
-    /// The `enum` keyword
+    /// The `enum` keyword.
     ///
-    /// Future reserved keywords.
+    /// Future reserved keyword.
     Enum,
 
     /// The `export` keyword.
@@ -151,36 +172,44 @@ pub enum Keyword {
     /// The `finally` keyword.
     ///
     /// More information:
+    ///  - [try `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-Finally)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Try
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
     Finally,
 
     /// The `for` keyword.
     ///
     /// More information:
+    ///  - [for loop `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ForDeclaration)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.ForLoop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
     For,
 
     /// The `function` keyword.
     ///
     /// More information:
+    ///  - [function `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-terms-and-definitions-function)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.FunctionDecl
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
     Function,
 
     /// The `if` keyword.
     ///
     /// More information:
+    ///  - [if `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-IfStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.If
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
     If,
 
@@ -202,7 +231,7 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
     InstanceOf,
 
-    /// The`import` keyword.
+    /// The `import` keyword.
     ///
     /// More information:
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-imports)
@@ -214,27 +243,33 @@ pub enum Keyword {
     /// The `let` keyword.
     ///
     /// More information:
+    ///  - [let `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-let-and-const-declarations)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.LetDecl
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
     Let,
 
     /// The `new` keyword.
     ///
     /// More information:
+    ///  - [new `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-NewExpression)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.New
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
     New,
 
     /// The `return` keyword
     ///
     /// More information:
+    ///  - [return `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ReturnStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Return
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return,
 
@@ -250,72 +285,88 @@ pub enum Keyword {
     /// The `switch` keyword.
     ///
     /// More information:
+    ///  - [switch `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-SwitchStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Switch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
     Switch,
 
     /// The `this` keyword.
     ///
     /// More information:
+    ///  - [this `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-this-keyword)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.This
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
     This,
 
     /// The `throw` keyword.
     ///
     /// More information:
+    ///  - [throw `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ArrowFunction)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Throw
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
     Throw,
 
     /// The `try` keyword.
     ///
     /// More information:
+    ///  - [try `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-TryStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.Try
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
     Try,
 
     /// The `typeof` keyword.
     ///
     /// More information:
+    ///  - [typeof `UnaryOp` documentation][unary]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-typeof-operator)
     ///  - [MDN documentation][mdn]
     ///
+    /// [unary]: ../op/enum.UnaryOp.html#variant.TypeOf
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
     TypeOf,
 
     /// The `var` keyword.
     ///
     /// More information:
+    ///  - [var `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-VariableStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.VarDecl
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
     Var,
 
     /// The `void` keyword.
     ///
     /// More information:
+    ///  - [void `UnaryOp` documentation][unary]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-void-operator)
     ///  - [MDN documentation][mdn]
     ///
+    /// [unary]: ../op/enum.UnaryOp.html#variant.Void
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
     Void,
 
     /// The `while` keyword.
     ///
     /// More information:
+    ///  - [while `Node` documentation][node]
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement)
     ///  - [MDN documentation][mdn]
     ///
+    /// [node]: ../node/enum.Node.html#variant.While
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
     While,
 

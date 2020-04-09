@@ -1,3 +1,5 @@
+//! This module implements the `Node` structure, which composes the AST.
+
 use crate::syntax::ast::{
     constant::Const,
     op::{BinOp, Operator, UnaryOp},
