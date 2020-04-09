@@ -75,10 +75,8 @@ output is at the time.
 
 ### VS Code Debugger
 
-The quickest way to get debugging is to re-open the workspace in the container
-(using the Dockerfile provided). This is using the [Remote Containers][remote_containers]
-plugins. Once inside make sure you have the CodeLLDB extension installed and
-add breakpoints.
+The quickest way to get debugging is to use the CodeLLDB plugin and add breakpoints. You can get
+more information [here][blog_debugging].
 
 ### LLDB Manual debugging
 
@@ -90,3 +88,4 @@ rust-lldb ./target/debug/boa [arguments]
 ```
 
 [remote_containers]: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+[blog_debugging]: https://jason-williams.co.uk/debugging-rust-in-vscode
