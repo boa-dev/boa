@@ -172,10 +172,43 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
     FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
 
-    /// Gets the constant field of a value.
+    /// This property accessor provides access to an object's properties by using the **[dot notation][mdn]**.
+    ///
+    /// In the object.property syntax, the property must be a valid JavaScript identifier.
+    /// (In the ECMAScript standard, the names of properties are technically "IdentifierNames", not "Identifiers",
+    /// so reserved words can be used but are not recommended). 
+    ///
+    /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup table).
+    /// The keys in this array are the names of the object's properties.
+    ///
+    /// It's typical when speaking of an object's properties to make a distinction between properties and methods. However,
+    /// the property/method distinction is little more than a convention. A method is simply a property that can be called (for example,
+    /// if it has a reference to a Function instance as its value).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-property-accessors)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation
     GetConstField(Box<Node>, String),
 
-    /// Gets the [field] of a value.
+    /// This property accessor provides access to an object's properties by using the **[bracket notation][mdn]**.
+    ///
+    /// In the object[property_name] syntax, the property_name is just a string or [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a space).
+    ///
+    /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup table).
+    /// The keys in this array are the names of the object's properties.
+    ///
+    /// It's typical when speaking of an object's properties to make a distinction between properties and methods. However,
+    /// the property/method distinction is little more than a convention. A method is simply a property that can be called (for example,
+    /// if it has a reference to a Function instance as its value).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-property-accessors)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
     GetField(Box<Node>, Box<Node>),
 
     /// The **`for` statement** creates a loop that consists of three optional expressions.
