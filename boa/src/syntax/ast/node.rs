@@ -719,13 +719,58 @@ impl FormalParameter {
     }
 }
 
+/// A JavaScript property is a characteristic of an object, often describing attributes associated with a data structure.
+///
+/// A property has a name (a string) and a value (primitive, method, or object reference).
+/// Note that when we say that "a property holds an object", that is shorthand for "a property holds an object reference".
+/// This distinction matters because the original referenced object remains unchanged when you change the property's value.
+///
+/// More information:
+///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-PropertyDefinition)
+///  - [MDN documentation][mdn]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum PropertyDefinition {
+    /// Puts a variable into an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-IdentifierReference)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
     IdentifierReference(String),
+
+    /// Binds a property name to a JavaScript value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-PropertyDefinition)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions 
     Property(String, Node),
+    
+    /// A property of an object can also refer to a function or a getter or setter method.
+    /// 
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
     MethodDefinition(MethodDefinitionKind, String, Node),
+
+    /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
+    /// It copies own enumerable properties from a provided object onto a new object.
+    ///
+    /// Shallow-cloning (excluding `prototype`) or merging objects is now possible using a shorter syntax than `Object.assign()`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-PropertyDefinition)
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties
     SpreadObject(Node),
 }
 
