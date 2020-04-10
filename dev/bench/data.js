@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1586367876279,
+  "lastUpdate": 1586517681041,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -3099,6 +3099,72 @@ window.BENCHMARK_DATA = {
             "name": "Hello World (Parser)",
             "value": 1.2495,
             "range": "+/- 0.033",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "iban.eguia@cern.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "795a70ec8910070a7c48def29a4b10f5144eda64",
+          "message": "Use jemallocator (#298)\n\nAdded jemallocator as the global allocator for binary and benchmarks",
+          "timestamp": "2020-04-10T13:14:49+02:00",
+          "tree_id": "c5cd2377c8cd26b833f18b913e58e185e9fa614b",
+          "url": "https://github.com/jasonwilliams/boa/commit/795a70ec8910070a7c48def29a4b10f5144eda64"
+        },
+        "date": 1586517679051,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 393.77,
+            "range": "+/- 6.140",
+            "unit": "us"
+          },
+          {
+            "name": "Symbol Creation",
+            "value": 425.4,
+            "range": "+/- 3.870",
+            "unit": "us"
+          },
+          {
+            "name": "fibonacci (Execution)",
+            "value": 4.6612,
+            "range": "+/- 0.041",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 2.9229,
+            "range": "+/- 0.030",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Execution)",
+            "value": 405.26,
+            "range": "+/- 6.560",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0528,
+            "range": "+/- 0.008",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.2683,
+            "range": "+/- 0.010",
             "unit": "us"
           }
         ]
