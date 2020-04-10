@@ -121,7 +121,7 @@ pub enum Node {
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-primary-expression-literals)
     ///  - [MDN documentation][mdn]
     ///
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Data_types
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     Const(Const),
 
     /// The **`const` statements** are block-scoped, much like variables defined using the `let` keyword.
@@ -749,11 +749,11 @@ pub enum PropertyDefinition {
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-PropertyDefinition)
     ///  - [MDN documentation][mdn]
     ///
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions 
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
     Property(String, Node),
-    
+
     /// A property of an object can also refer to a function or a getter or setter method.
-    /// 
+    ///
     /// More information:
     ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
     ///  - [MDN documentation][mdn]
