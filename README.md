@@ -1,14 +1,15 @@
 # Boa
 
-<p align="center">
+<p style="text-align:center">
     <img
       alt="logo"
       src="./assets/logo.svg"
-      width="30%"
-    />
+      width="30%">
 </p>
 
-This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
+This is an experimental Javascript lexer, parser and compiler written in Rust.
+Currently, it has support for some of the language.
+
 [![Build Status](https://travis-ci.com/jasonwilliams/boa.svg?branch=master)](https://travis-ci.com/jasonwilliams/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
@@ -25,35 +26,13 @@ https://jasonwilliams.github.io/boa/dev/bench/
 
 ## Contributing
 
-If you don't already have Rust installed rustup is the recommended tool to use. It will install Rust and allow you to switch between nightly, stable and beta. You can also install additional components.
-
-```
-curl https://sh.rustup.rs -sSf | sh
-```
-
-Then simply clone this project and `cargo build` inside the directory.
-
-### VSCode
-
-#### Plugins
-
-Either the [Rust (RLS)](https://github.com/rust-lang/rls) or the [Rust Analyzer](https://github.com/rust-analyzer/rust-analyzer) extension is preferred. RLS is easier to set up but most of the development is moving towards Rust Analyzer.
-Both of these plugins will help you with your Rust Development
-
-#### Tasks
-
-There are some pre-defined tasks in [tasks.json](.vscode/tasks.json)
-
-- Build - shift+cmd/ctrl+b should build and run cargo. You should be able to make changes and run this task.
-- Test - (there is no shortcut, you'll need to make one) - Runs `Cargo Test`.
-  I personally set a shortcut of shift+cmd+option+T (or shift+ctrl+alt+T)
-
-If you don't want to install everything on your machine, you can use the Dockerfile.
-Start VSCode in container mode (you may need the docker container plugin) and use the Dockerfile.
+Please, check the [CONTRIBUTING.md](./Contributing.md) file to know how to
+contribute in the project. You will need Rust installed and an editor. We have
+some configurations ready for VSCode.
 
 ### Debugging
 
-See [Debugging](./docs/debugging.md)
+See [Debugging](./docs/debugging.md).
 
 ### Web Assembly
 
