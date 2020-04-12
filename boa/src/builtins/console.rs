@@ -1,4 +1,15 @@
 //! This module implements the global `console` object.
+//!
+//! The `console` object can be accessed from any global object.
+//!
+//! The specifics of how it works varies from browser to browser, but there is a de facto set of features that are typically provided.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [WHATWG `console` specification][spec]
+//!
+//! [spec]: https://console.spec.whatwg.org/
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
 #![allow(clippy::print_stdout)]
 
@@ -15,8 +26,8 @@ use std::{iter::FromIterator, ops::Deref};
 /// This `console` method prints the javascript values to stdout.
 ///
 /// More information:
-///  - [Whatwg reference][spec]
 ///  - [MDN documentation][mdn]
+///  - [WHATWG `log` specification][spec]
 ///
 /// [spec]: https://console.spec.whatwg.org/#log
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console/log
@@ -34,8 +45,8 @@ pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// This `console` method prints the javascript values to stderr.
 ///
 /// More information:
-///  - [Whatwg reference][spec]
 ///  - [MDN documentation][mdn]
+///  - [WHATWG `error` specification][spec]
 ///
 /// [spec]: https://console.spec.whatwg.org/#error
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console/error
