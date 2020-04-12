@@ -230,6 +230,15 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Runs the lexer until completion, returning a [LexerError] if there's a syntax issue, or an empty unit result
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// let buffer = std::fs::read_to_string("yourSourceCode.js").unwrap();
+    /// let lexer = boa::syntax::lexer::Lexer::new(&buffer);
+    /// lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?
+    /// ```
     pub fn lex(&mut self) -> Result<(), LexerError> {
         loop {
             // Check if we've reached the end
