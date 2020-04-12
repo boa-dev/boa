@@ -165,10 +165,10 @@ impl Executor for Interpreter {
                 }
                 Ok(result)
             }
-            Node::DoWhileLoop(ref expr, ref cond) => {
-                let mut result = self.run(expr)?;
+            Node::DoWhileLoop(ref body, ref cond) => {
+                let mut result = self.run(body)?;
                 while self.run(cond)?.borrow().is_true() {
-                    result = self.run(expr)?;
+                    result = self.run(body)?;
                 }
                 Ok(result)
             }
