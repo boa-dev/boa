@@ -444,6 +444,7 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(Keyword::If) => self.read_if_statement(),
             TokenKind::Keyword(Keyword::Var) => self.read_variable_statement(),
             TokenKind::Keyword(Keyword::While) => self.read_while_statement(),
+            TokenKind::Keyword(Keyword::Do) => self.read_do_while_statement(),
             TokenKind::Keyword(Keyword::For) => self.read_for_statement(),
             TokenKind::Keyword(Keyword::Return) => self.read_return_statement(),
             TokenKind::Keyword(Keyword::Break) => self.read_break_statement(),
@@ -631,6 +632,34 @@ impl<'a> Parser<'a> {
         let body = self.read_statement()?;
 
         Ok(Node::WhileLoop(Box::new(cond), Box::new(body)))
+    }
+
+    /// https://tc39.es/ecma262/#sec-do-while-statement
+    fn read_do_while_statement(&mut self) -> ParseResult {
+        let body = self.read_statement()?;
+
+        let next_token = self
+        .peek_skip_lineterminator()
+        .ok_or(ParseError::AbruptEnd)?;
+
+        if next_token.kind != TokenKind::Keyword(Keyword::While)
+        {
+            return Err(ParseError::Expected(
+                vec![TokenKind::Keyword(Keyword::While),],
+                next_token.clone(),
+                Some("do while statement"),
+            ));
+        }
+
+        let _ = self.next_skip_lineterminator(); // skip while token
+
+        self.expect_punc(Punctuator::OpenParen, Some("do while statement"))?;
+
+        let cond = self.read_expression()?;
+
+        self.expect_punc(Punctuator::CloseParen, Some("do while statement"))?;
+
+        Ok(Node::DoWhileLoop(Box::new(body), Box::new(cond)))
     }
 
     /// <https://tc39.es/ecma262/#sec-try-statement>
