@@ -208,9 +208,10 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Returns an error if the next Punctuator is not `tk`
+    /// Returns an error if the next Token is not of kind `kind`
+    /// Consumes the next symbol otherwise, skipping newlines
     fn expect(&mut self, kind: TokenKind, routine: Option<&'static str>) -> Result<(), ParseError> {
-        let next_token = self.cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let next_token = self.next_skip_lineterminator().ok_or(ParseError::AbruptEnd)?;
         if next_token.kind == kind {
             Ok(())
         } else {
@@ -223,7 +224,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Returns an error if the next symbol is not the punctuator `p`
-    /// Consumes the next symbol otherwise
+    /// Consumes the next symbol otherwise, skipping newlines
     fn expect_punc(
         &mut self,
         p: Punctuator,
@@ -638,19 +639,7 @@ impl<'a> Parser<'a> {
     fn read_do_while_statement(&mut self) -> ParseResult {
         let body = self.read_statement()?;
 
-        let next_token = self
-            .peek_skip_lineterminator()
-            .ok_or(ParseError::AbruptEnd)?;
-
-        if next_token.kind != TokenKind::Keyword(Keyword::While) {
-            return Err(ParseError::Expected(
-                vec![TokenKind::Keyword(Keyword::While)],
-                next_token.clone(),
-                Some("do while statement"),
-            ));
-        }
-
-        let _ = self.next_skip_lineterminator(); // skip while token
+        self.expect(TokenKind::Keyword(Keyword::While), Some("do while statement"))?;
 
         self.expect_punc(Punctuator::OpenParen, Some("do while statement"))?;
 
