@@ -131,7 +131,8 @@ impl error::Error for LexerError {
 /// A lexical analyzer for JavaScript source code
 #[derive(Debug)]
 pub struct Lexer<'a> {
-    /// The list of tokens generated so far.\
+    /// The list of tokens generated so far.
+    ///
     /// This field is public so you can use them once lexing has finished.
     pub tokens: Vec<Token>,
     /// The current line number in the script
