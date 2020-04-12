@@ -639,13 +639,12 @@ impl<'a> Parser<'a> {
         let body = self.read_statement()?;
 
         let next_token = self
-        .peek_skip_lineterminator()
-        .ok_or(ParseError::AbruptEnd)?;
+            .peek_skip_lineterminator()
+            .ok_or(ParseError::AbruptEnd)?;
 
-        if next_token.kind != TokenKind::Keyword(Keyword::While)
-        {
+        if next_token.kind != TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::Expected(
-                vec![TokenKind::Keyword(Keyword::While),],
+                vec![TokenKind::Keyword(Keyword::While)],
                 next_token.clone(),
                 Some("do while statement"),
             ));
