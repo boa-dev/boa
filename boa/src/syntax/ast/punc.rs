@@ -1,10 +1,13 @@
+//! This module implements all punctuators used in ECMAScript
 use crate::syntax::ast::op::{BinOp, BitOp, CompOp, LogOp, NumOp};
 use std::fmt::{Display, Error, Formatter};
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 
-/// Punctuation
+/// The Punctuator enum describes all of the punctuators we use.
+///
+/// For more information [ECMAScript Reference](https://tc39.es/ecma262/#prod-Punctuator)
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Punctuator {

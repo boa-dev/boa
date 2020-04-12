@@ -74,6 +74,8 @@ macro_rules! op {
 }
 
 /// An error that occurred during lexing or compiling of the source input.
+///
+/// [LexerError] implements [fmt::Display] so you just display this value as an error
 #[derive(Debug, Clone)]
 pub struct LexerError {
     details: String,

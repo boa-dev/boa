@@ -1,3 +1,4 @@
+//! This module implements all of the [Token]s we use.
 use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
 use std::fmt::{Debug, Display, Formatter, Result};
 
