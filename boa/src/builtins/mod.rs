@@ -1,3 +1,5 @@
+//! Builtins live here, such as Object, String, Math etc
+
 /// Macro to create a new member function of a prototype
 /// If no length is provided, the length will be set to 0.
 macro_rules! make_builtin_fn {
@@ -13,9 +15,7 @@ macro_rules! make_builtin_fn {
 
 /// The global `Array` object
 pub mod array;
-/// the global `Symbol` Object
-pub mod symbol;
-// The global `Boolean` object
+/// The global `Boolean` object
 pub mod boolean;
 pub mod console;
 /// The global `Error` object
@@ -36,5 +36,7 @@ pub mod property;
 pub mod regexp;
 /// The global `String` object
 pub mod string;
+/// the global `Symbol` Object
+pub mod symbol;
 /// Javascript values, utility methods and conversion between Javascript values and Rust values
 pub mod value;

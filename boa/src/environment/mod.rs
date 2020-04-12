@@ -1,3 +1,5 @@
+//! Environment handling, lexical, object, function and declaritive records
+
 pub mod declarative_environment_record;
 pub mod environment_record_trait;
 pub mod function_environment_record;
