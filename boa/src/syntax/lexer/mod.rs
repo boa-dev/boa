@@ -107,13 +107,14 @@ impl error::Error for LexerError {
 /// A lexical analyzer for JavaScript source code
 #[derive(Debug)]
 pub struct Lexer<'a> {
-    // The list fo tokens generated so far
+    /// The list of tokens generated so far.\
+    /// This field is public so you can use them once lexing has finished.
     pub tokens: Vec<Token>,
-    // The current line number in the script
+    /// The current line number in the script
     line_number: u64,
-    // the current column number in the script
+    /// the current column number in the script
     column_number: u64,
-    // The full string
+    /// The full string
     buffer: Peekable<Chars<'a>>,
 }
 

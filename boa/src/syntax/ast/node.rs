@@ -707,6 +707,7 @@ pub struct FormalParameter {
     pub is_rest_param: bool,
 }
 
+/// <https://tc39.es/ecma262/#prod-FormalParameters>
 pub type FormalParameters = Vec<FormalParameter>;
 
 impl FormalParameter {
