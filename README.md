@@ -1,10 +1,11 @@
 # Boa
 
-<p style="text-align:center">
+<p align="center">
     <img
       alt="logo"
       src="./assets/logo.svg"
-      width="30%">
+      width="30%"
+    />
 </p>
 
 This is an experimental Javascript lexer, parser and compiler written in Rust.
