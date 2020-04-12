@@ -17,7 +17,6 @@ pub mod array;
 pub mod symbol;
 // The global `Boolean` object
 pub mod boolean;
-/// The global `console` object
 pub mod console;
 /// The global `Error` object
 pub mod error;
