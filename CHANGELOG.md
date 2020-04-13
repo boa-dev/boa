@@ -65,8 +65,6 @@ Bug fixes:
 
 Documentation Updates:
 
-- [DOC #293](https://github.com/jasonwilliams/boa/pull/293):
-  Better overall documentation
 - [DOC #297](https://github.com/jasonwilliams/boa/pull/297):
   Better user contributed documentation
 
