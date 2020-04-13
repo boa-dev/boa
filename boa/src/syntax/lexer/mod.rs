@@ -81,10 +81,14 @@ macro_rules! op {
 /// [LexerError] implements [fmt::Display] so you just display this value as an error
 #[derive(Debug, Clone)]
 pub struct LexerError {
+    /// details will be displayed when a LexerError occurs
     details: String,
 }
 
 impl LexerError {
+    /// Create a new LexerError struct
+    ///
+    /// * `msg` - The message to show when LexerError is displayed
     fn new(msg: &str) -> Self {
         Self {
             details: msg.to_string(),
@@ -120,7 +124,7 @@ pub struct Lexer<'a> {
     line_number: u64,
     /// the current column number in the script
     column_number: u64,
-    /// The full string
+    /// The full Peekable buffer, an array of [Char]s
     buffer: Peekable<Chars<'a>>,
 }
 
@@ -141,7 +145,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Push tokens onto the token queue
+    /// Push a token onto the token queue
     fn push_token(&mut self, tk: TokenKind) {
         self.tokens
             .push(Token::new(tk, self.line_number, self.column_number))
