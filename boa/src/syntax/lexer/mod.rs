@@ -17,6 +17,12 @@ use std::{
     str::{Chars, FromStr},
 };
 
+/// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
+/// If the next value is not an assignment operation it call also check through the list of values passed in and use those.
+/// e.g
+///
+/// The origin of the name `vop` is unknown
+
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
         let preview = $this.preview_next().ok_or_else(|| LexerError::new("Could not preview next value"))?;
@@ -58,6 +64,22 @@ macro_rules! vop {
     }
 }
 
+/// The `op` macro handles binary operations or assignment operations and converts them into tokens.
+///
+/// # Example
+///
+/// ```ignore
+/// '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul, {
+///     '*' => vop!(self, Punctuator::AssignPow, Punctuator::Exp)
+/// }),
+/// ```
+/// In the above example:
+///
+/// If the next character is an equals [Punctuator::AssignMul] will be returned
+///
+/// If the next character is `*` then [Punctuator::AssignPow] is returned
+///
+/// If neither are true then [Punctuator::Mul] is returned
 macro_rules! op {
     ($this:ident, $assign_op:expr, $op:expr) => ({
         let punc = vop!($this, $assign_op, $op);
@@ -128,12 +150,6 @@ impl<'a> Lexer<'a> {
     /// * `buffer` - A string slice that holds the source code.
     /// The buffer needs to have a lifetime as long as the Lexer instance itself
     ///
-    /// # Example
-    ///
-    /// ```rust,no_run
-    /// let buffer = std::fs::read_to_string("yourSourceCode.js").unwrap();
-    /// let lexer = boa::syntax::lexer::Lexer::new(&buffer);
-    /// ```
     pub fn new(buffer: &'a str) -> Lexer<'a> {
         Lexer {
             tokens: Vec::new(),
@@ -207,6 +223,7 @@ impl<'a> Lexer<'a> {
         result
     }
 
+    /// Utility function for reading integers in different bases
     fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> Result<u64, LexerError> {
         self.next();
         while let Some(ch) = self.preview_next() {
@@ -236,10 +253,13 @@ impl<'a> Lexer<'a> {
     ///
     /// # Example
     ///
-    /// ```rust,no_run
-    /// let buffer = std::fs::read_to_string("yourSourceCode.js").unwrap();
-    /// let lexer = boa::syntax::lexer::Lexer::new(&buffer);
-    /// lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?
+    /// ```
+    /// # use boa::syntax::lexer::{LexerError, Lexer};
+    /// fn main() -> Result<(), LexerError> {
+    ///     let buffer = String::from("Hello World");
+    ///     let mut lexer = Lexer::new(&buffer);
+    ///     lexer.lex()
+    /// }
     /// ```
     pub fn lex(&mut self) -> Result<(), LexerError> {
         loop {
