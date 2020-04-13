@@ -710,6 +710,24 @@ fn check_function_declarations() {
     );
 }
 
+// Should be parsed as `new Class().method()` instead of `new (Class().method())`
+#[test]
+fn check_construct_call_precedence() {
+    check_parser(
+        "new Date().getTime()",
+        &[Node::Call(
+            Box::new(Node::GetConstField(
+                Box::new(Node::New(Box::new(Node::Call(
+                    Box::new(Node::Local(String::from("Date"))),
+                    vec![],
+                )))),
+                String::from("getTime"),
+            )),
+            vec![],
+        )],
+    );
+}
+
 #[test]
 fn assing_operator_precedence() {
     check_parser(
