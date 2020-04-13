@@ -1,6 +1,78 @@
 # CHANGELOG
 
-# [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...HEAD)
+# [# 0.7.0 (Master) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
+
+`v0.7.0` brings a REPL, Improved parser messages and a new parser!
+This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.  
+Tests have also been moved to their own files, we had a lot of tests in some modules so it was time to separate.
+
+## New Parser
+
+Most of the work in this release has been on rewriting the parser. A big task taken on by [HalidOdat](https://github.com/HalidOdat), [Razican](https://github.com/Razican) and [myself](https://github.com/jasonwilliams).
+
+The majority of the old parser was 1 big function (called [`parse`](https://github.com/jasonwilliams/boa/blob/019033eff066e8c6ba9456139690eb214a0bf61d/boa/src/syntax/parser.rs#L353)) which had some pattern matching on each token coming in.\
+The easy branches could generate expressions (which were basically AST Nodes), the more involved branches would recursively call into the same function, until eventually you had an expression generated.
+
+This only worked so far, eventually debugging parsing problems were difficult, also more bugs were being raised against the parser which couldn't be fixed.
+
+We decided to break the parser into more of a state-machine. The initial decision for this was inspired by [Fedor Indutny](https://github.com/indutny) who did a talk at (the last) JSConf EU about how he broke up the old node-parser to make it more maintanable. He goes into more detail here https://www.youtube.com/watch?v=x3k_5Mi66sY&feature=youtu.be&t=530
+
+The new parser has functions to match the states of parsing in the spec. For example https://tc39.es/ecma262/#prod-VariableDeclaration has a matching function `read_variable_declaration`. This not only makes it better to maintain but easier for new contributors to get involed, as following the parsing logic of the spec is easier than before.
+
+Once finished some optimisations were added by [HalidOdat](https://github.com/HalidOdat) to use references to the tokens instead of cloning them each time we take them from the lexer.\
+This works because the tokens live just as long as the parser operations do, so we don't need to copy the tokens.\
+What this brings is a huge performance boost, the parser is 67% faster than before!
+
+![Parser Improvement](./docs/img/parser-graph.png)
+
+Feature enhancements:
+
+- [FEATURE #281](https://github.com/jasonwilliams/boa/pull/281):
+  Rebuild the parser (@jasonwilliams, @Razican, @HalidOdat)
+- [FEATURE #278](https://github.com/jasonwilliams/boa/pull/278):
+  Added the ability to dump the token stream or ast in bin. (@HalidOdat)
+- [FEATURE #253](https://github.com/jasonwilliams/boa/pull/253):
+  Implement Array.isArray (@cisen)
+- [FEATURE](https://github.com/jasonwilliams/boa/commit/edab5ca6cc10d13265f82fa4bc05d6b432a362fc)
+  Switch to normal output instead of debugged output (stdout/stdout) (@jasonwilliams)
+- [FEATURE #258](https://github.com/jasonwilliams/boa/pull/258):
+  Moved test modules to their own files (@Razican)
+- [FEATURE #267](https://github.com/jasonwilliams/boa/pull/267):
+  Add print & REPL functionality to CLI (@JohnDoneth)
+- [FEATURE #268](https://github.com/jasonwilliams/boa/pull/268):
+  Addition of forEach() (@jasonwilliams) (@xSke)
+- [FEATURE #262](https://github.com/jasonwilliams/boa/pull/262):
+  Implement Array.prototype.filter (@Nickforall)
+- [FEATURE #261](https://github.com/jasonwilliams/boa/pull/261):
+  Improved parser error messages (@Razican)
+- [FEATURE #277](https://github.com/jasonwilliams/boa/pull/277):
+  Add a logo to the project (@HalidOdat)
+- [FEATURE #260](https://github.com/jasonwilliams/boa/pull/260):
+  Add methods with f64 std equivelant to Math object (@Nickforall)
+
+Bug fixes:
+
+- [BUG #249](https://github.com/jasonwilliams/boa/pull/249):
+  fix(parser): handle trailing comma in object literals (@gomesalexandre)
+- [BUG #244](https://github.com/jasonwilliams/boa/pull/244):
+  Fixed more Lexer Panics (@adumbidiot)
+- [BUG #256](https://github.com/jasonwilliams/boa/pull/256):
+  Fixed comments lexing (@Razican)
+- [BUG #251](https://github.com/jasonwilliams/boa/issues/251):
+  Fixed empty returns (@Razican)
+- [BUG #272](https://github.com/jasonwilliams/boa/pull/272):
+  Fix parsing of floats that start with a zero (@Nickforall)
+- [BUG #240](https://github.com/jasonwilliams/boa/issues/240):
+  Fix parser panic
+- [BUG #273](https://github.com/jasonwilliams/boa/issues/273):
+  new Class().method() has incorrect precedence
+
+Documentation Updates:
+
+- [DOC #297](https://github.com/jasonwilliams/boa/pull/297):
+  Better user contributed documentation
+
+# [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...v0.6.0)
 
 The lexer has had several fixes in this release, including how it parses numbers, scientific notation should be improved.  
 On top of that the lexer no longer panics on errors including Syntax Errors (thanks @adumbidiot), instead you get some output on where the error happened.
