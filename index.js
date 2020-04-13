@@ -3,7 +3,24 @@
 // will work here one day as well!
 const rust = import("./boa/pkg");
 import * as monaco from "monaco-editor";
-// const image = import("./assets/01_rust_loves_js.png");
+
+self.MonacoEnvironment = {
+  getWorkerUrl: function (moduleId, label) {
+    if (label === "json") {
+      return "./json.worker.bundle.js";
+    }
+    if (label === "css") {
+      return "./css.worker.bundle.js";
+    }
+    if (label === "html") {
+      return "./html.worker.bundle.js";
+    }
+    if (label === "typescript" || label === "javascript") {
+      return "./ts.worker.bundle.js";
+    }
+    return "./editor.worker.bundle.js";
+  },
+};
 
 const initialCode = `\
 function greet(targetName) {
@@ -14,13 +31,14 @@ greet('World')
 `;
 
 const editor = monaco.editor.create(
-  document.getElementsByClassName("textbox")[0], {
+  document.getElementsByClassName("textbox")[0],
+  {
     value: initialCode,
     language: "javascript",
     theme: "vs",
     minimap: {
-      enabled: false
-    }
+      enabled: false,
+    },
   }
 );
 
@@ -29,7 +47,7 @@ window.addEventListener("resize", () => {
   editor.layout();
 });
 
-rust.then(m => {
+rust.then((m) => {
   window.evaluate = m.evaluate;
 
   editor.getModel().onDidChangeContent(inputHandler);
