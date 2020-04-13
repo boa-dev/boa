@@ -19,9 +19,6 @@ use std::{
 
 /// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
 /// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
-///
-/// The origin of the name `vop` is unknown
-
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
         let preview = $this.preview_next().ok_or_else(|| LexerError::new("Could not preview next value"))?;
@@ -222,6 +219,9 @@ impl<'a> Lexer<'a> {
             .map_err(|_| LexerError::new("Could not convert value to u64"))
     }
 
+    /// Utility function for checkint the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character
+    ///
+    /// More info [ECMAScript Specification](https://tc39.es/ecma262/#sec-literals-numeric-literals)
     fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
         match self.preview_next() {
             Some(ch)
