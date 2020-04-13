@@ -709,3 +709,18 @@ fn check_function_declarations() {
         )],
     );
 }
+
+#[test]
+fn assing_operator_precedence() {
+    check_parser(
+        "a = a + 1",
+        &[Node::Assign(
+            Box::new(Node::Local(String::from("a"))),
+            Box::new(create_bin_op(
+                BinOp::Num(NumOp::Add),
+                Node::Local(String::from("a")),
+                Node::Const(Const::Num(1.0)),
+            )),
+        )],
+    );
+}

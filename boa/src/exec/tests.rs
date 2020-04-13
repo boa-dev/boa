@@ -60,7 +60,7 @@ fn spread_with_arguments() {
             function foo(...a) {
                 return arguments;
             }
-            
+
             var result = foo(...a);
         "#;
     forward(&mut engine, scenario);
@@ -246,4 +246,14 @@ fn test_short_circuit_evaluation() {
         counter.value
         "#;
     assert_eq!(exec(short_circuit_eval), String::from("1"));
+}
+
+#[test]
+fn assign_operator_precedence() {
+    let src = r#"
+        let a = 1;
+        a = a + 1;
+        a
+    "#;
+    assert_eq!(exec(src), String::from("2"));
 }

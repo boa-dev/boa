@@ -128,14 +128,6 @@ macro_rules! expression { ( $name:ident, $lower:ident, [ $( $op:path ),* ] ) => 
         let mut lhs = self. $lower ()?;
         while let Some(tok) = self.peek_skip_lineterminator() {
             match tok.kind {
-                // Parse assign expression
-                TokenKind::Punctuator(ref op) if op == &Punctuator::Assign => {
-                    let _ = self.next_skip_lineterminator().expect("token disappeared");
-                    lhs = Node::Assign(
-                        Box::new(lhs),
-                        Box::new(self. $lower ()?)
-                    )
-                }
                 TokenKind::Punctuator(ref op) if $( op == &$op )||* => {
                     let _ = self.next_skip_lineterminator().expect("token disappeared");
                     lhs = Node::BinOp(
