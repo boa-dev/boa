@@ -18,8 +18,7 @@ use std::{
 };
 
 /// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
-/// If the next value is not an assignment operation it call also check through the list of values passed in and use those.
-/// e.g
+/// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
 ///
 /// The origin of the name `vop` is unknown
 
@@ -65,21 +64,6 @@ macro_rules! vop {
 }
 
 /// The `op` macro handles binary operations or assignment operations and converts them into tokens.
-///
-/// # Example
-///
-/// ```ignore
-/// '*' => op!(self, Punctuator::AssignMul, Punctuator::Mul, {
-///     '*' => vop!(self, Punctuator::AssignPow, Punctuator::Exp)
-/// }),
-/// ```
-/// In the above example:
-///
-/// If the next character is an equals [Punctuator::AssignMul] will be returned
-///
-/// If the next character is `*` then [Punctuator::AssignPow] is returned
-///
-/// If neither are true then [Punctuator::Mul] is returned
 macro_rules! op {
     ($this:ident, $assign_op:expr, $op:expr) => ({
         let punc = vop!($this, $assign_op, $op);
