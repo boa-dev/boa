@@ -725,6 +725,7 @@ fn check_do_while() {
             Box::new(Node::Const(Const::Bool(true))),
         )],
     );
+}
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
 #[test]
