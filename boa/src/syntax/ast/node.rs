@@ -34,6 +34,8 @@ pub enum Node {
     ConstDecl(Vec<(String, Node)>),
     /// Continue with an optional label.
     Continue(Option<String>),
+    /// do [body] while [cond]
+    DoWhileLoop(Box<Node>, Box<Node>),
     /// Create a function with the given name, arguments, and internal AST node.
     FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
     /// Gets the constant field of a value.
@@ -208,6 +210,11 @@ impl Node {
             Self::WhileLoop(ref cond, ref node) => {
                 write!(f, "while ({}) ", cond)?;
                 node.display(f, indentation)
+            }
+            Self::DoWhileLoop(ref node, ref cond) => {
+                write!(f, "do")?;
+                node.display(f, indentation)?;
+                write!(f, "while ({})", cond)
             }
             Self::If(ref cond, ref node, None) => {
                 write!(f, "if ({}) ", cond)?;
