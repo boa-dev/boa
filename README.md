@@ -27,7 +27,7 @@ https://jasonwilliams.github.io/boa/dev/bench/
 
 ## Contributing
 
-Please, check the [CONTRIBUTING.md](./Contributing.md) file to know how to
+Please, check the [CONTRIBUTING.md](CONTRIBUTING.md) file to know how to
 contribute in the project. You will need Rust installed and an editor. We have
 some configurations ready for VSCode.
 
