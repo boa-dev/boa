@@ -35,11 +35,11 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Print a javascript value to the standard error only if first argument evaluates to false or
 /// there were no arguments
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let raw_args: Vec<Value> = FromIterator::from_iter(args.iter().cloned().map(|x| x));
-    let condition_false = !raw_args.is_empty()
+    let raw_args: Vec<Value> = FromIterator::from_iter(args.iter().cloned());
+    let condition_is_false = !raw_args.is_empty()
         && !from_value::<bool>(raw_args[0].clone()).expect("Could not convert to bool.");
 
-    if condition_false || raw_args.is_empty() {
+    if condition_is_false || raw_args.is_empty() {
         let msg = if raw_args.len() <= 1 {
             String::new()
         } else {
