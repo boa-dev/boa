@@ -62,6 +62,8 @@ Bug fixes:
   Fixed empty returns (@Razican)
 - [BUG #272](https://github.com/jasonwilliams/boa/pull/272):
   Fix parsing of floats that start with a zero (@Nickforall)
+- [BUG #240](https://github.com/jasonwilliams/boa/issues/240):
+  Fix parser panic
 
 Documentation Updates:
 
