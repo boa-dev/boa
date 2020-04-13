@@ -64,6 +64,8 @@ Bug fixes:
   Fix parsing of floats that start with a zero (@Nickforall)
 - [BUG #240](https://github.com/jasonwilliams/boa/issues/240):
   Fix parser panic
+- [BUG #273](https://github.com/jasonwilliams/boa/issues/273):
+  new Class().method() has incorrect precedence
 
 Documentation Updates:
 
