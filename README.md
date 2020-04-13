@@ -1,10 +1,11 @@
 # Boa
 
-<p style="text-align:center">
+<p align="center">
     <img
       alt="logo"
       src="./assets/logo.svg"
-      width="30%">
+      width="30%"
+    />
 </p>
 
 This is an experimental Javascript lexer, parser and compiler written in Rust.
@@ -26,7 +27,7 @@ https://jasonwilliams.github.io/boa/dev/bench/
 
 ## Contributing
 
-Please, check the [CONTRIBUTING.md](./Contributing.md) file to know how to
+Please, check the [CONTRIBUTING.md](CONTRIBUTING.md) file to know how to
 contribute in the project. You will need Rust installed and an editor. We have
 some configurations ready for VSCode.
 

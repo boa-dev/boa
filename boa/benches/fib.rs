@@ -1,8 +1,9 @@
-use boa::exec;
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+#[macro_use]
+extern crate criterion;
 
-#[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+use boa::exec;
+use criterion::black_box;
+use criterion::Criterion;
 
 static SRC: &str = r#"
 let num = 12;
