@@ -25,10 +25,12 @@
     clippy::missing_errors_doc,
     clippy::as_conversions
 )]
+#![feature(thread_id_value)]
 
 pub mod builtins;
 pub mod environment;
 pub mod exec;
+pub mod profiler;
 pub mod realm;
 pub mod syntax;
 #[cfg(feature = "wasm-bindgen")]
@@ -39,6 +41,7 @@ pub use crate::wasm::*;
 use crate::{
     builtins::value::ResultValue,
     exec::{Executor, Interpreter},
+    profiler::MyProfiler,
     realm::Realm,
     syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
 };
@@ -78,6 +81,10 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     // Setup executor
+    let profiler = MyProfiler::new();
+    profiler.start_event("Parser");
+    let res = parser_expr(src).unwrap();
+
     match parser_expr(src) {
         Ok(expr) => engine.run(&expr),
         Err(e) => {
