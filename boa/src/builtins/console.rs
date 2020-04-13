@@ -32,11 +32,34 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
+/// Print a javascript value to the standard error only if first argument evaluates to false or
+/// there were no arguments
+pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let raw_args: Vec<Value> = FromIterator::from_iter(args.iter().cloned().map(|x| x));
+    let condition_false = !raw_args.is_empty()
+        && !from_value::<bool>(raw_args[0].clone()).expect("Could not convert to bool.");
+
+    if condition_false || raw_args.is_empty() {
+        let msg = if raw_args.len() <= 1 {
+            String::new()
+        } else {
+            let msgs: Vec<String> = FromIterator::from_iter(raw_args[1..].iter().map(|x| {
+                from_value::<String>(x.clone()).expect("Could not convert value to string")
+            }));
+            msgs.join(" ")
+        };
+        eprintln!("Assertion failed: {}", msg);
+    }
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
     console.set_field_slice("log", to_value(log as NativeFunctionData));
     console.set_field_slice("error", to_value(error as NativeFunctionData));
     console.set_field_slice("exception", to_value(error as NativeFunctionData));
+    console.set_field_slice("assert", to_value(assert as NativeFunctionData));
     console
 }

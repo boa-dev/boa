@@ -247,3 +247,23 @@ fn test_short_circuit_evaluation() {
         "#;
     assert_eq!(exec(short_circuit_eval), String::from("1"));
 }
+
+#[test]
+fn test_console_assert() {
+    let multi_args = r#"
+        console.assert(12 > 13, "we should see that!", "that one too!", "that is not normal :/");
+    "#;
+    exec(multi_args);
+
+    let condition_only = "console.assert(12 > 13);";
+    exec(condition_only);
+
+    let false_string =
+        r#"console.assert("false", "if you can see that, assert's not working properly");"#;
+    exec(false_string);
+
+    let no_arguments = "console.assert();";
+    exec(no_arguments);
+
+    assert_eq!(true, true);
+}
