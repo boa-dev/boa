@@ -43,12 +43,9 @@ pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     };
 
     if !assertion {
-        eprint!("Assertion failed: ");
-        for (i, item) in args.iter().skip(1).enumerate() {
-            eprint!("{}", item);
-            if i + 1 != args.len() {
-                eprint!(" ");
-            }
+        eprint!("Assertion failed:");
+        for message in args.iter().skip(1) {
+            eprint!(" {}", message);
         }
         eprintln!();
     }
