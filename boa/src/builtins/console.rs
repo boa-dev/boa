@@ -36,10 +36,14 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there
 /// were no arguments.
-/// 
+///
 /// More information: <https://console.spec.whatwg.org/#assert>
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let assertion = args.get(0).cloned().map(|val| from_value::<bool>(val).expect("Could not convert to bool.")).unwrap_or_default();
+    let assertion = args
+        .get(0)
+        .cloned()
+        .map(|val| from_value::<bool>(val).expect("Could not convert to bool."))
+        .unwrap_or_default();
 
     if !assertion {
         eprint!("Assertion failed:");
