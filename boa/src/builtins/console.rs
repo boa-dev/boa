@@ -35,20 +35,21 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Print a javascript value to the standard error only if first argument evaluates to false or
 /// there were no arguments
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let raw_args: Vec<Value> = FromIterator::from_iter(args.iter().cloned());
-    let condition_is_false = !raw_args.is_empty()
-        && !from_value::<bool>(raw_args[0].clone()).expect("Could not convert to bool.");
+    let assertion = if !args.is_empty() {
+        from_value::<bool>(args[0].clone()).expect("Could not convert to bool.")
+    } else {
+        false
+    };
 
-    if condition_is_false || raw_args.is_empty() {
-        let msg = if raw_args.len() <= 1 {
-            String::new()
-        } else {
-            let msgs: Vec<String> = FromIterator::from_iter(raw_args[1..].iter().map(|x| {
-                from_value::<String>(x.clone()).expect("Could not convert value to string")
-            }));
-            msgs.join(" ")
-        };
-        eprintln!("Assertion failed: {}", msg);
+    if !assertion {
+        eprint!("Assertion failed: ");
+        for (i, item) in args.iter().skip(1).enumerate() {
+            eprint!("{}", item);
+            if i + 1 != args.len() {
+                eprint!(" ");
+            }
+        }
+        eprintln!();
     }
 
     Ok(Gc::new(ValueData::Undefined))
