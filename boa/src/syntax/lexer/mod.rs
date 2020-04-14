@@ -135,7 +135,6 @@ impl<'a> Lexer<'a> {
     ///
     /// * `buffer` - A string slice that holds the source code.
     /// The buffer needs to have a lifetime as long as the Lexer instance itself
-    ///
     pub fn new(buffer: &'a str) -> Lexer<'a> {
         Lexer {
             tokens: Vec::new(),
@@ -145,7 +144,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Push a token onto the token queue
+    /// Push a token onto the token queue.
     fn push_token(&mut self, tk: TokenKind) {
         self.tokens
             .push(Token::new(tk, self.line_number, self.column_number))

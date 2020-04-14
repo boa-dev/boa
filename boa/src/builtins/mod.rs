@@ -22,7 +22,6 @@ pub mod console;
 pub mod error;
 /// The global `Function` object and function value representations
 pub mod function;
-/// The global `JSON` object
 pub mod json;
 /// The global `Math` object
 pub mod math;
