@@ -32,8 +32,9 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// Print a javascript value to the standard error only if first argument evaluates to false or
-/// there were no arguments
+/// Print a javascript value to the standard error if first argument evaluates to false or there were no arguments
+/// 
+/// https://console.spec.whatwg.org/#assert
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let assertion = if !args.is_empty() {
         from_value::<bool>(args[0].clone()).expect("Could not convert to bool.")
