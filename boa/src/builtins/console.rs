@@ -32,23 +32,19 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// Print a javascript value to the standard error if first argument evaluates to false or there were no arguments
+/// `console.assert(condition, ...data)`
 ///
-/// https://console.spec.whatwg.org/#assert
+/// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there
+/// were no arguments.
+/// 
+/// More information: <https://console.spec.whatwg.org/#assert>
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let assertion = if !args.is_empty() {
-        from_value::<bool>(args[0].clone()).expect("Could not convert to bool.")
-    } else {
-        false
-    };
+    let assertion = args.get(0).cloned().map(|val| from_value::<bool>(val).expect("Could not convert to bool.")).unwrap_or_default();
 
     if !assertion {
-        eprint!("Assertion failed: ");
-        for (i, item) in args.iter().skip(1).enumerate() {
-            eprint!("{}", item);
-            if i + 1 != args.len() {
-                eprint!(" ");
-            }
+        eprint!("Assertion failed:");
+        for message in args.iter().skip(1) {
+            eprint!(" {}", message);
         }
         eprintln!();
     }
