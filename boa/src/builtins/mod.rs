@@ -13,7 +13,6 @@ macro_rules! make_builtin_fn {
     };
 }
 
-/// The global `Array` object
 pub mod array;
 /// The global `Boolean` object
 pub mod boolean;

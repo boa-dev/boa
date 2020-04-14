@@ -49,7 +49,7 @@ pub fn parse(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// optionally including only the specified properties if a replacer array is specified.
 ///
 /// An optional `space` argument can be supplied of type `String` or `Number` that's used to insert
-/// white space into the output JSON string for readability purposes. 
+/// white space into the output JSON string for readability purposes.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
