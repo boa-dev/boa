@@ -33,7 +33,7 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 }
 
 /// Print a javascript value to the standard error if first argument evaluates to false or there were no arguments
-/// 
+///
 /// https://console.spec.whatwg.org/#assert
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let assertion = if !args.is_empty() {
