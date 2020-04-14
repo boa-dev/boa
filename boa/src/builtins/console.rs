@@ -39,11 +39,7 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// 
 /// More information: <https://console.spec.whatwg.org/#assert>
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let assertion = if !args.is_empty() {
-        from_value::<bool>(args[0].clone()).expect("Could not convert to bool.")
-    } else {
-        false
-    };
+    let assertion = args.get(0).cloned().map(|val| from_value::<bool>(val).expect("Could not convert to bool.")).unwrap_or_default();
 
     if !assertion {
         eprint!("Assertion failed:");
