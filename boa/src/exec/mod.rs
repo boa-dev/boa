@@ -165,6 +165,13 @@ impl Executor for Interpreter {
                 }
                 Ok(result)
             }
+            Node::DoWhileLoop(ref body, ref cond) => {
+                let mut result = self.run(body)?;
+                while self.run(cond)?.borrow().is_true() {
+                    result = self.run(body)?;
+                }
+                Ok(result)
+            }
             Node::If(ref cond, ref expr, None) => Ok(if self.run(cond)?.borrow().is_true() {
                 self.run(expr)?
             } else {

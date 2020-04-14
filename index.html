@@ -7,10 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <style>
+    header {
+      display: flex;
+      align-items: center;
+    }
     .demo__img {
-      width: 400px;
+      width: 170px;
       display: block;
       margin-bottom: 16px;
+      margin-right: 3rem;
     }
 
     .textbox {
@@ -58,8 +63,10 @@
 
   <body>
     <div class="container">
-      <img class="demo__img" src="./assets/01_rust_loves_js.png" />
-
+      <header>
+        <img class="demo__img" src="./assets/logo.svg" />
+        <h1>Boa Playground</h1>
+      </header>
       <div class="demo__repl">
         <div class="textbox"></div>
         <p class="output"></p>

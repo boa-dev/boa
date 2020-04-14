@@ -60,7 +60,7 @@ fn spread_with_arguments() {
             function foo(...a) {
                 return arguments;
             }
-            
+
             var result = foo(...a);
         "#;
     forward(&mut engine, scenario);
@@ -246,6 +246,51 @@ fn test_short_circuit_evaluation() {
         counter.value
         "#;
     assert_eq!(exec(short_circuit_eval), String::from("1"));
+}
+
+#[test]
+fn assign_operator_precedence() {
+    let src = r#"
+        let a = 1;
+        a = a + 1;
+        a
+    "#;
+    assert_eq!(exec(src), String::from("2"));
+}
+
+#[test]
+fn test_do_while_loop() {
+    let simple_one = r#"
+        a = 0;
+        do {
+            a += 1;
+        } while (a < 10);
+
+        a
+         "#;
+    assert_eq!(exec(simple_one), String::from("10"));
+
+    let multiline_statement = r#"
+        pow = 0;
+        b = 1;
+        do {
+            pow += 1;
+            b *= 2;
+        } while (pow < 8);
+        b
+        "#;
+    assert_eq!(exec(multiline_statement), String::from("256"));
+
+    let body_is_executed_at_least_once = r#"
+        a = 0;
+        do
+        {
+            a += 1;
+        }
+        while (false);
+        a
+        "#;
+    assert_eq!(exec(body_is_executed_at_least_once), String::from("1"));
 }
 
 #[test]

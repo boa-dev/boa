@@ -710,8 +710,26 @@ fn check_function_declarations() {
     );
 }
 
+// Should be parsed as `new Class().method()` instead of `new (Class().method())`
 #[test]
+fn check_do_while() {
+    check_parser(
+        r#"do {
+            a += 1;
+        } while (true)"#,
+        &[Node::DoWhileLoop(
+            Box::new(Node::Block(vec![create_bin_op(
+                BinOp::Assign(AssignOp::Add),
+                Node::Local(String::from("a")),
+                Node::Const(Const::Num(1.0)),
+            )])),
+            Box::new(Node::Const(Const::Bool(true))),
+        )],
+    );
+}
+
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
+#[test]
 fn check_construct_call_precedence() {
     check_parser(
         "new Date().getTime()",
@@ -725,5 +743,20 @@ fn check_construct_call_precedence() {
             )),
             vec![],
         )],
-    )
+    );
+}
+
+#[test]
+fn assing_operator_precedence() {
+    check_parser(
+        "a = a + 1",
+        &[Node::Assign(
+            Box::new(Node::Local(String::from("a"))),
+            Box::new(create_bin_op(
+                BinOp::Num(NumOp::Add),
+                Node::Local(String::from("a")),
+                Node::Const(Const::Num(1.0)),
+            )),
+        )],
+    );
 }
