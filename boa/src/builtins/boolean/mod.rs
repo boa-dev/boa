@@ -1,3 +1,14 @@
+//! This module implements the global `Boolean` object.
+//!
+//! The Boolean object is an object wrapper for a boolean value.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-boolean-object
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
 #[cfg(test)]
 mod tests;
 
@@ -35,13 +46,27 @@ pub fn call_boolean(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultVal
     }
 }
 
-/// https://tc39.es/ecma262/#sec-boolean.prototype.tostring
+/// The `toString()` method returns a string representing the specified `Boolean` object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-boolean-object
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let b = this_boolean_value(this);
     Ok(to_value(b.to_string()))
 }
 
-/// https://tc39.es/ecma262/#sec-boolean.prototype.valueof
+/// The valueOf() method returns the primitive value of a `Boolean` object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+/// - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
 pub fn value_of(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(this_boolean_value(this))
 }
@@ -79,6 +104,12 @@ pub fn to_boolean(value: &Value) -> Value {
     }
 }
 
+/// An Utility function used to get the internal BooleanData.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
 pub fn this_boolean_value(value: &Value) -> Value {
     match *value.deref().borrow() {
         ValueData::Boolean(v) => to_value(v),

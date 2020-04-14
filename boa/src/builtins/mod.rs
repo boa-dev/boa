@@ -14,7 +14,6 @@ macro_rules! make_builtin_fn {
 }
 
 pub mod array;
-/// The global `Boolean` object
 pub mod boolean;
 pub mod console;
 /// The global `Error` object
