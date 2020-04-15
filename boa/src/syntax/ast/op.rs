@@ -618,19 +618,33 @@ impl Display for LogOp {
     }
 }
 
-/// A binary operation between 2 values
+/// This represents a binary operation between two values.
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BinOp {
-    /// Numeric operation
+    /// Numeric operation.
+    ///
+    /// see: [`NumOp`](enum.NumOp.html)
     Num(NumOp),
-    /// Bitwise operation
+
+    /// Bitwise operation.
+    ///
+    /// see: [`BitOp`](enum.BitOp.html).
     Bit(BitOp),
-    /// Comparitive operation
+
+    /// Comparitive operation.
+    ///
+    /// see: [`CompOp`](enum.CompOp.html).
     Comp(CompOp),
-    /// Logical operation
+
+    /// Logical operation.
+    ///
+    /// see: [`LogOp`](enum.LogOp.html).
     Log(LogOp),
-    /// Assign operation
+
+    /// Assign operation.
+    ///
+    /// see: [`AssignOp`](enum.AssignOp.html).
     Assign(AssignOp),
 }
 
