@@ -31,7 +31,6 @@ pub mod object;
 pub mod property;
 /// The global 'RegExp' object
 pub mod regexp;
-/// The global `String` object
 pub mod string;
 /// the global `Symbol` Object
 pub mod symbol;

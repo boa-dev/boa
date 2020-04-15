@@ -1,6 +1,6 @@
 //! This module implements the global `Boolean` object.
 //!
-//! The Boolean object is an object wrapper for a boolean value.
+//! The `Boolean` object is an object wrapper for a boolean value.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
