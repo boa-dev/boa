@@ -1,3 +1,14 @@
+//! This module implements the global `Function` object.
+//!
+//! `Every JavaScript `function` is actually a `Function` object.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-function-object
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
+
 #[cfg(test)]
 mod tests;
 
@@ -18,12 +29,11 @@ use std::ops::Deref;
 /// fn(this, arguments, ctx)
 pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> ResultValue;
 
-/// A Javascript function
+/// A Javascript `Function` object instance.
+///
 /// A member of the Object type that may be invoked as a subroutine
-/// <https://tc39.es/ecma262/#sec-terms-and-definitions-function>
+///
 /// In our implementation, Function is extending Object by holding an object field which some extra data
-
-/// A Javascript function
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum Function {
     /// A native javascript function
@@ -32,7 +42,7 @@ pub enum Function {
     RegularFunc(RegularFunction),
 }
 
-/// Represents a regular javascript function in memory
+/// Represents a regular javascript function in memory.
 #[derive(Trace, Finalize, Debug, Clone)]
 pub struct RegularFunction {
     /// The fields associated with the function

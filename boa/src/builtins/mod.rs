@@ -18,7 +18,6 @@ pub mod boolean;
 pub mod console;
 /// The global `Error` object
 pub mod error;
-/// The global `Function` object and function value representations
 pub mod function;
 pub mod json;
 pub mod math;
