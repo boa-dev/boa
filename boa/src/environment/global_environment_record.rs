@@ -28,10 +28,6 @@ pub struct GlobalEnvironmentRecord {
 }
 
 impl GlobalEnvironmentRecord {
-    pub fn get_this_binding(&self) -> Value {
-        self.global_this_binding.clone()
-    }
-
     pub fn has_var_declaration(&self, name: &str) -> bool {
         self.var_names.contains(name)
     }
@@ -96,6 +92,10 @@ impl GlobalEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
+    fn get_this_binding(&self) -> Value {
+        self.global_this_binding.clone()
+    }
+
     fn has_binding(&self, name: &str) -> bool {
         if self.declarative_record.has_binding(name) {
             return true;

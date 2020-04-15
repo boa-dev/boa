@@ -113,6 +113,11 @@ impl LexicalEnvironment {
             .get_global_object()
     }
 
+    pub fn get_this_binding(&self) -> Value {
+        let env = self.environment_stack.get(0).expect("").borrow();
+        env.get_this_binding()
+    }
+
     pub fn create_mutable_binding(&mut self, name: String, deletion: bool, scope: VariableScope) {
         match scope {
             VariableScope::Block => self
