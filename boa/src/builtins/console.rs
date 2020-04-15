@@ -56,6 +56,54 @@ pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
+/// `console.count(label)`
+///
+/// Prints number of times the function was called with that particular label.
+///
+/// More information: <https://console.spec.whatwg.org/#count>
+pub fn count(v: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let label = args
+        .get(0)
+        .cloned()
+        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
+        .unwrap_or_else(|| "default".to_string());
+
+    let count_map = v.get_internal_slot("countMap");
+
+    let c = match count_map.get_field_slice(&label) {
+        v if v.is_undefined() => 1,
+        v => from_value::<i32>(v).expect("Could not convert to i32.") + 1,
+    };
+
+    count_map.set_field_slice(&label, to_value(c));
+
+    println!("count {}: {}", label, c);
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.countReset(label)`
+///
+/// Resets the counter for label.
+///
+/// More information: <https://console.spec.whatwg.org/#countreset>
+pub fn count_reset(v: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let label = args
+        .get(0)
+        .cloned()
+        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
+        .unwrap_or_else(|| "default".to_string());
+
+    let count_map = v.get_internal_slot("countMap");
+
+    if count_map.has_field(&label) {
+        count_map.set_field_slice(&label, to_value(0));
+    }
+
+    println!("countReset {}", label);
+
+    Ok(Gc::new(ValueData::Undefined))
+}
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
@@ -63,5 +111,8 @@ pub fn create_constructor(global: &Value) -> Value {
     console.set_field_slice("error", to_value(error as NativeFunctionData));
     console.set_field_slice("exception", to_value(error as NativeFunctionData));
     console.set_field_slice("assert", to_value(assert as NativeFunctionData));
+    console.set_field_slice("count", to_value(count as NativeFunctionData));
+    console.set_field_slice("countReset", to_value(count_reset as NativeFunctionData));
+    console.set_internal_slot("countMap", to_value(ValueData::new_obj(Some(global))));
     console
 }
