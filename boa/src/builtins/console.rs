@@ -3,6 +3,7 @@
 use crate::{
     builtins::{
         function::NativeFunctionData,
+        object::InternalState,
         value::{from_value, log_string_from, to_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
@@ -11,19 +12,23 @@ use gc::Gc;
 use std::{collections::HashMap, iter::FromIterator, ops::Deref, time::SystemTime};
 
 #[derive(Debug, Default)]
-pub struct ConsoleState {
+struct ConsoleState {
     count_map: HashMap<String, u32>,
     timer_map: HashMap<String, u128>,
+    groups: Vec<String>,
 }
 
 impl ConsoleState {
-    pub fn new() -> Self {
+    fn new() -> Self {
         ConsoleState {
             count_map: HashMap::new(),
             timer_map: HashMap::new(),
+            groups: vec![],
         }
     }
 }
+
+impl InternalState for ConsoleState {}
 
 /// Print a javascript value to the standard output stream
 /// <https://console.spec.whatwg.org/#logger>
@@ -76,7 +81,7 @@ pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Prints number of times the function was called with that particular label.
 ///
 /// More information: <https://console.spec.whatwg.org/#count>
-pub fn count(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = args
         .get(0)
         .cloned()
@@ -85,10 +90,12 @@ pub fn count(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
 
     print!("count {}: ", &label);
 
-    let c = i.realm.console_state.count_map.entry(label).or_insert(0);
-    *c += 1;
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        let c = state.count_map.entry(label).or_insert(0);
+        *c += 1;
 
-    println!("{}", c);
+        println!("{}", c);
+    });
 
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -98,16 +105,18 @@ pub fn count(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
 /// Resets the counter for label.
 ///
 /// More information: <https://console.spec.whatwg.org/#countreset>
-pub fn count_reset(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+pub fn count_reset(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = args
         .get(0)
         .cloned()
         .map(|l| from_value::<String>(l).expect("Could not convert to string."))
         .unwrap_or_else(|| "default".to_string());
 
-    i.realm.console_state.count_map.remove(&label);
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        state.count_map.remove(&label);
 
-    println!("countReset {}", label);
+        println!("countReset {}", label);
+    });
 
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -125,19 +134,21 @@ fn system_time_in_ms() -> u128 {
 /// Starts the timer for given label.
 ///
 /// More information: <https://console.spec.whatwg.org/#time>
-pub fn time(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = args
         .get(0)
         .cloned()
         .map(|l| from_value::<String>(l).expect("Could not convert to string."))
         .unwrap_or_else(|| "default".to_string());
 
-    if i.realm.console_state.timer_map.get(&label).is_some() {
-        println!("Timer '{}' already exists", label)
-    } else {
-        let time = system_time_in_ms();
-        i.realm.console_state.timer_map.insert(label, time);
-    }
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        if state.timer_map.get(&label).is_some() {
+            println!("Timer '{}' already exists", label)
+        } else {
+            let time = system_time_in_ms();
+            state.timer_map.insert(label, time);
+        }
+    });
 
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -147,23 +158,25 @@ pub fn time(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
 /// Prints elapsed time for timer with given label.
 ///
 /// More information: <https://console.spec.whatwg.org/#timelog>
-pub fn time_log(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = args
         .get(0)
         .cloned()
         .map(|l| from_value::<String>(l).expect("Could not convert to string."))
         .unwrap_or_else(|| "default".to_string());
 
-    if let Some(t) = i.realm.console_state.timer_map.get(&label) {
-        let time = system_time_in_ms();
-        print!("{}: {} ms", label, time - t);
-        for message in args.iter().skip(1) {
-            print!(" {}", message);
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        if let Some(t) = state.timer_map.get(&label) {
+            let time = system_time_in_ms();
+            print!("{}: {} ms", label, time - t);
+            for message in args.iter().skip(1) {
+                print!(" {}", message);
+            }
+            println!()
+        } else {
+            println!("Timer '{}' doesn't exist", label)
         }
-        println!()
-    } else {
-        println!("Timer '{}' doesn't exist", label)
-    }
+    });
 
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -173,19 +186,21 @@ pub fn time_log(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
 /// Removes the timer with given label.
 ///
 /// More information: <https://console.spec.whatwg.org/#timeend>
-pub fn time_end(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = args
         .get(0)
         .cloned()
         .map(|l| from_value::<String>(l).expect("Could not convert to string."))
         .unwrap_or_else(|| "default".to_string());
 
-    if let Some(t) = i.realm.console_state.timer_map.remove(&label) {
-        let time = system_time_in_ms();
-        println!("{}: {} ms - timer removed", label, time - t)
-    } else {
-        println!("Timer '{}' doesn't exist", label)
-    }
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        if let Some(t) = state.timer_map.remove(&label) {
+            let time = system_time_in_ms();
+            println!("{}: {} ms - timer removed", label, time - t)
+        } else {
+            println!("Timer '{}' doesn't exist", label)
+        }
+    });
 
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -202,5 +217,6 @@ pub fn create_constructor(global: &Value) -> Value {
     console.set_field_slice("time", to_value(time as NativeFunctionData));
     console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
     console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
+    console.set_internal_state(ConsoleState::new());
     console
 }
