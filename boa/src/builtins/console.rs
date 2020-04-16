@@ -8,17 +8,19 @@ use crate::{
     exec::Interpreter,
 };
 use gc::Gc;
-use std::{iter::FromIterator, ops::Deref, collections::HashMap};
+use std::{collections::HashMap, iter::FromIterator, ops::Deref, time::SystemTime};
 
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct ConsoleState {
-    count_map: HashMap<String, i32>,
+    count_map: HashMap<String, u32>,
+    timer_map: HashMap<String, u128>,
 }
 
 impl ConsoleState {
     pub fn new() -> Self {
         ConsoleState {
-            count_map: HashMap::new()
+            count_map: HashMap::new(),
+            timer_map: HashMap::new(),
         }
     }
 }
@@ -109,6 +111,85 @@ pub fn count_reset(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValu
 
     Ok(Gc::new(ValueData::Undefined))
 }
+
+/// Returns current system time in ms.
+fn system_time_in_ms() -> u128 {
+    let now = SystemTime::now();
+    now.duration_since(SystemTime::UNIX_EPOCH)
+        .expect("negative duration")
+        .as_millis()
+}
+
+/// `console.time(label)`
+///
+/// Starts the timer for given label.
+///
+/// More information: <https://console.spec.whatwg.org/#time>
+pub fn time(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+    let label = args
+        .get(0)
+        .cloned()
+        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
+        .unwrap_or_else(|| "default".to_string());
+
+    if i.realm.console_state.timer_map.get(&label).is_some() {
+        println!("Timer '{}' already exists", label)
+    } else {
+        let time = system_time_in_ms();
+        i.realm.console_state.timer_map.insert(label, time);
+    }
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.timeLog(label, ...data)`
+///
+/// Prints elapsed time for timer with given label.
+///
+/// More information: <https://console.spec.whatwg.org/#timelog>
+pub fn time_log(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+    let label = args
+        .get(0)
+        .cloned()
+        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
+        .unwrap_or_else(|| "default".to_string());
+
+    if let Some(t) = i.realm.console_state.timer_map.get(&label) {
+        let time = system_time_in_ms();
+        print!("{}: {} ms", label, time - t);
+        for message in args.iter().skip(1) {
+            print!(" {}", message);
+        }
+        println!()
+    } else {
+        println!("Timer '{}' doesn't exist", label)
+    }
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.timeEnd(label)`
+///
+/// Removes the timer with given label.
+///
+/// More information: <https://console.spec.whatwg.org/#timeend>
+pub fn time_end(_: &Value, args: &[Value], i: &mut Interpreter) -> ResultValue {
+    let label = args
+        .get(0)
+        .cloned()
+        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
+        .unwrap_or_else(|| "default".to_string());
+
+    if let Some(t) = i.realm.console_state.timer_map.remove(&label) {
+        let time = system_time_in_ms();
+        println!("{}: {} ms - timer removed", label, time - t)
+    } else {
+        println!("Timer '{}' doesn't exist", label)
+    }
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
@@ -118,5 +199,8 @@ pub fn create_constructor(global: &Value) -> Value {
     console.set_field_slice("assert", to_value(assert as NativeFunctionData));
     console.set_field_slice("count", to_value(count as NativeFunctionData));
     console.set_field_slice("countReset", to_value(count_reset as NativeFunctionData));
+    console.set_field_slice("time", to_value(time as NativeFunctionData));
+    console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
+    console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
     console
 }
