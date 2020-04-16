@@ -34,17 +34,13 @@ name = "boa"
 bench = false
 
 [[bench]]
-name = "string"
-harness = false
-
-[[bench]]
-name = "fib"
-harness = false
-
-[[bench]]
-name = "exec"
+name = "lexer"
 harness = false
 
 [[bench]]
 name = "parser"
+harness = false
+
+[[bench]]
+name = "exec"
 harness = false
