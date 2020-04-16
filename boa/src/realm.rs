@@ -27,6 +27,7 @@ pub struct Realm {
     pub global_obj: Value,
     pub global_env: Gc<GcCell<Box<GlobalEnvironmentRecord>>>,
     pub environment: LexicalEnvironment,
+    pub console_state: console::ConsoleState,
 }
 
 impl Realm {
@@ -41,6 +42,7 @@ impl Realm {
             global_obj: global.clone(),
             global_env,
             environment: LexicalEnvironment::new(global),
+            console_state: console::ConsoleState::new(),
         };
 
         // Add new builtIns to Realm
