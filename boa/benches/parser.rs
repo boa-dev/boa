@@ -11,20 +11,60 @@ static EXPRESSION: &str = r#"
 "#;
 
 fn expression_parser(c: &mut Criterion) {
-    // Don't include lexing as part of the parser benchmark
-    let mut lexer = Lexer::new(EXPRESSION);
-    lexer.lex().expect("failed to lex");
-    let tokens = lexer.tokens;
-    c.bench_function_over_inputs(
-        "Expression (Parser)",
-        move |b, tok| {
-            b.iter(|| {
-                Parser::new(&black_box(tok.to_vec())).parse_all().unwrap();
-            })
-        },
-        vec![tokens],
-    );
+    // We include the lexing in the benchmarks, since they will get together soon, anyways.
+    c.bench_function("Expression (Parser)", move |b| {
+        b.iter(|| {
+            let mut lexer = Lexer::new(black_box(EXPRESSION));
+            lexer.lex().expect("failed to lex");
+
+            Parser::new(&black_box(lexer.tokens)).parse_all()
+        })
+    });
 }
 
-criterion_group!(benches, expression_parser);
+static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
+
+fn hello_world_parser(c: &mut Criterion) {
+    // We include the lexing in the benchmarks, since they will get together soon, anyways.
+    c.bench_function("Hello World (Parser)", move |b| {
+        b.iter(|| {
+            let mut lexer = Lexer::new(black_box(HELLO_WORLD));
+            lexer.lex().expect("failed to lex");
+
+            Parser::new(&black_box(lexer.tokens)).parse_all()
+        })
+    });
+}
+
+static FOR_LOOP: &str = r#"
+for (let a = 10; a < 100; a++) {
+    if (a < 10) {
+        console.log("impossible D:");
+    } else if (a < 50) {
+        console.log("starting");
+    } else {
+        console.log("finishing");
+    }
+}
+"#;
+
+fn for_loop_parser(c: &mut Criterion) {
+    // We include the lexing in the benchmarks, since they will get together soon, anyways.
+
+    c.bench_function("For loop (Parser)", move |b| {
+        b.iter(|| {
+            let mut lexer = Lexer::new(black_box(FOR_LOOP));
+            lexer.lex().expect("failed to lex");
+
+            Parser::new(&black_box(lexer.tokens)).parse_all()
+        })
+    });
+}
+
+criterion_group!(
+    benches,
+    expression_parser,
+    hello_world_parser,
+    for_loop_parser
+);
 criterion_main!(benches);
