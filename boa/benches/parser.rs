@@ -1,10 +1,7 @@
-#[macro_use]
-extern crate criterion;
+//! Benchmarks of the parsing process in Boa.
 
-use boa::syntax::lexer::Lexer;
-use boa::syntax::parser::Parser;
-use criterion::black_box;
-use criterion::Criterion;
+use boa::syntax::{lexer::Lexer, parser::Parser};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 static EXPRESSION: &str = r#"
 1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
@@ -12,6 +9,7 @@ static EXPRESSION: &str = r#"
 
 fn expression_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
+
     c.bench_function("Expression (Parser)", move |b| {
         b.iter(|| {
             let mut lexer = Lexer::new(black_box(EXPRESSION));
@@ -26,6 +24,7 @@ static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
 
 fn hello_world_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
+
     c.bench_function("Hello World (Parser)", move |b| {
         b.iter(|| {
             let mut lexer = Lexer::new(black_box(HELLO_WORLD));
@@ -62,9 +61,9 @@ fn for_loop_parser(c: &mut Criterion) {
 }
 
 criterion_group!(
-    benches,
+    parser,
     expression_parser,
     hello_world_parser,
     for_loop_parser
 );
-criterion_main!(benches);
+criterion_main!(parser);

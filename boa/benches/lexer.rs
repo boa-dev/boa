@@ -1,11 +1,7 @@
-#[macro_use]
-extern crate criterion;
+//! Benchmarks of the lexing process in Boa.
 
-use boa::exec;
 use boa::syntax::lexer::Lexer;
-use boa::syntax::parser::Parser;
-use criterion::black_box;
-use criterion::Criterion;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 static EXPRESSION: &str = r#"
 1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
@@ -56,5 +52,5 @@ fn for_loop_lexer(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, expression_lexer, hello_world_lexer, for_loop_lexer);
-criterion_main!(benches);
+criterion_group!(lexer, expression_lexer, hello_world_lexer, for_loop_lexer);
+criterion_main!(lexer);

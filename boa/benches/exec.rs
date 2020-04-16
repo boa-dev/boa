@@ -1,9 +1,7 @@
-#[macro_use]
-extern crate criterion;
+//! Benchmarks of the whole execution engine in Boa.
 
-use boa::exec;
-use boa::realm::Realm;
-use criterion::{black_box, Criterion};
+use boa::{exec, realm::Realm};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 static SYMBOL_CREATION: &str = r#"
 let a = Symbol();
@@ -65,10 +63,10 @@ fn fibonacci(c: &mut Criterion) {
 }
 
 criterion_group!(
-    benches,
+    execution,
     create_realm,
     symbol_creation,
     for_loop_execution,
-    fibonnaci
+    fibonacci
 );
-criterion_main!(benches);
+criterion_main!(execution);
