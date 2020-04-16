@@ -1,5 +1,4 @@
 use crate::builtins::function::NativeFunctionData;
-use crate::builtins::object::{Object, ObjectKind, PROTOTYPE};
 /// The JSON Object
 /// <https://tc39.es/ecma262/#sec-json-object>
 use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
@@ -29,14 +28,10 @@ pub fn stringify(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 
 /// Create a new `JSON` object
 pub fn create_constructor(global: &Value) -> Value {
-    let mut json = Object::default();
-    json.kind = ObjectKind::Ordinary;
+    let json = ValueData::new_obj(Some(global));
 
-    let prototype = ValueData::new_obj(Some(global));
-    make_builtin_fn!(parse, named "parse", with length 2, of prototype);
-    make_builtin_fn!(stringify, named "stringify", with length 3, of prototype);
+    make_builtin_fn!(parse, named "parse", with length 2, of json);
+    make_builtin_fn!(stringify, named "stringify", with length 3, of json);
 
-    let json_value = to_value(json);
-    json_value.set_field_slice(PROTOTYPE, prototype);
-    json_value
+    to_value(json)
 }
