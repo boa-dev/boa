@@ -14,7 +14,7 @@ fn create_realm(c: &mut Criterion) {
 }
 
 fn symbol_creation(c: &mut Criterion) {
-    c.bench_function("Symbol creation (Execution)", move |b| {
+    c.bench_function("Symbols (Execution)", move |b| {
         b.iter(|| exec(black_box(SYMBOL_CREATION)))
     });
 }
