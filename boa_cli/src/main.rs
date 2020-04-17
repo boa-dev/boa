@@ -18,7 +18,7 @@ use structopt::StructOpt;
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
 #[allow(clippy::option_option)]
 #[derive(Debug, StructOpt)]
-#[structopt(author, about)]
+#[structopt(author, about, name = "boa")]
 struct Opt {
     /// The JavaScript file(s) to be evaluated.
     #[structopt(name = "FILE", parse(from_os_str))]
@@ -27,7 +27,7 @@ struct Opt {
     /// Dump the token stream to stdout with the given format.
     #[structopt(
         long,
-        short = "-t",
+        short = "t",
         value_name = "FORMAT",
         possible_values = &DumpFormat::variants(),
         case_insensitive = true,
@@ -38,7 +38,7 @@ struct Opt {
     /// Dump the ast to stdout with the given format.
     #[structopt(
         long,
-        short = "-a",
+        short = "a",
         value_name = "FORMAT",
         possible_values = &DumpFormat::variants(),
         case_insensitive = true
