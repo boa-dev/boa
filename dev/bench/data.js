@@ -32,13 +32,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 522.82,
             "range": "+/- 10.790",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.2155,
             "range": "+/- 0.069",
             "unit": "ms"
@@ -98,13 +98,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 501.42,
             "range": "+/- 8.400",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.1035,
             "range": "+/- 0.067",
             "unit": "ms"
@@ -164,13 +164,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 464.32,
             "range": "+/- 6.890",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.6512,
             "range": "+/- 0.051",
             "unit": "ms"
@@ -230,13 +230,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 510.95,
             "range": "+/- 9.400",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.2585,
             "range": "+/- 0.089",
             "unit": "ms"
@@ -296,13 +296,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 451.89,
             "range": "+/- 8.360",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.4964,
             "range": "+/- 0.050",
             "unit": "ms"
@@ -362,13 +362,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 514.12,
             "range": "+/- 7.240",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.019,
             "range": "+/- 0.026",
             "unit": "ms"
@@ -428,13 +428,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 511.42,
             "range": "+/- 4.910",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.037,
             "range": "+/- 0.026",
             "unit": "ms"
@@ -494,13 +494,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 491.62,
             "range": "+/- 4.340",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.8759,
             "range": "+/- 0.019",
             "unit": "ms"
@@ -560,13 +560,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 485.76,
             "range": "+/- 5.980",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.9043,
             "range": "+/- 0.062",
             "unit": "ms"
@@ -626,13 +626,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 496.77,
             "range": "+/- 12.170",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.8743,
             "range": "+/- 0.081",
             "unit": "ms"
@@ -692,13 +692,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 469.89,
             "range": "+/- 6.150",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.8164,
             "range": "+/- 0.078",
             "unit": "ms"
@@ -758,13 +758,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 475.9,
             "range": "+/- 14.740",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.7477,
             "range": "+/- 0.104",
             "unit": "ms"
@@ -824,13 +824,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 388.25,
             "range": "+/- 10.910",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 3.942,
             "range": "+/- 0.098",
             "unit": "ms"
@@ -890,13 +890,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 514.56,
             "range": "+/- 5.700",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.2958,
             "range": "+/- 0.079",
             "unit": "ms"
@@ -954,13 +954,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 495.44,
             "range": "+/- 7.350",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.0911,
             "range": "+/- 0.047",
             "unit": "ms"
@@ -1020,13 +1020,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 456.58,
             "range": "+/- 4.580",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.5115,
             "range": "+/- 0.039",
             "unit": "ms"
@@ -1086,13 +1086,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 468.68,
             "range": "+/- 10.250",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.7231,
             "range": "+/- 0.075",
             "unit": "ms"
@@ -1152,13 +1152,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 499.75,
             "range": "+/- 9.590",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.0297,
             "range": "+/- 0.066",
             "unit": "ms"
@@ -1218,13 +1218,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 445.14,
             "range": "+/- 13.940",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.2843,
             "range": "+/- 0.082",
             "unit": "ms"
@@ -1284,13 +1284,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 379,
             "range": "+/- 10.550",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 3.8278,
             "range": "+/- 0.094",
             "unit": "ms"
@@ -1350,13 +1350,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 502.77,
             "range": "+/- 4.410",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.0174,
             "range": "+/- 0.044",
             "unit": "ms"
@@ -1416,13 +1416,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 451.49,
             "range": "+/- 7.690",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.5577,
             "range": "+/- 0.047",
             "unit": "ms"
@@ -1482,13 +1482,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 473.36,
             "range": "+/- 5.400",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.6101,
             "range": "+/- 0.047",
             "unit": "ms"
@@ -1548,13 +1548,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 460.45,
             "range": "+/- 6.340",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.4916,
             "range": "+/- 0.024",
             "unit": "ms"
@@ -1614,13 +1614,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 491.72,
             "range": "+/- 9.550",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.8164,
             "range": "+/- 0.038",
             "unit": "ms"
@@ -1680,13 +1680,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 462.62,
             "range": "+/- 9.990",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.5524,
             "range": "+/- 0.088",
             "unit": "ms"
@@ -1746,13 +1746,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 486.65,
             "range": "+/- 10.600",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.8165,
             "range": "+/- 0.074",
             "unit": "ms"
@@ -1812,13 +1812,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 406.13,
             "range": "+/- 10.670",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 3.7569,
             "range": "+/- 0.067",
             "unit": "ms"
@@ -1878,13 +1878,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 461.66,
             "range": "+/- 5.930",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.5279,
             "range": "+/- 0.046",
             "unit": "ms"
@@ -1944,13 +1944,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 494.48,
             "range": "+/- 7.400",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.7885,
             "range": "+/- 0.028",
             "unit": "ms"
@@ -2010,13 +2010,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 491.1,
             "range": "+/- 5.220",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.8435,
             "range": "+/- 0.044",
             "unit": "ms"
@@ -2076,13 +2076,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 416.6,
             "range": "+/- 10.270",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.1218,
             "range": "+/- 0.071",
             "unit": "ms"
@@ -2142,13 +2142,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 542.76,
             "range": "+/- 18.830",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.9277,
             "range": "+/- 0.155",
             "unit": "ms"
@@ -2208,13 +2208,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 515.29,
             "range": "+/- 10.640",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.091,
             "range": "+/- 0.065",
             "unit": "ms"
@@ -2274,13 +2274,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 577.42,
             "range": "+/- 16.740",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.7029,
             "range": "+/- 0.081",
             "unit": "ms"
@@ -2340,13 +2340,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 495.75,
             "range": "+/- 5.050",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.7891,
             "range": "+/- 0.034",
             "unit": "ms"
@@ -2406,13 +2406,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 495.34,
             "range": "+/- 5.160",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.7272,
             "range": "+/- 0.022",
             "unit": "ms"
@@ -2472,13 +2472,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 477.56,
             "range": "+/- 5.450",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.6292,
             "range": "+/- 0.036",
             "unit": "ms"
@@ -2538,13 +2538,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 446.86,
             "range": "+/- 6.750",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.6384,
             "range": "+/- 0.032",
             "unit": "ms"
@@ -2604,13 +2604,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 534.57,
             "range": "+/- 23.340",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.3335,
             "range": "+/- 0.049",
             "unit": "ms"
@@ -2670,13 +2670,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 505.87,
             "range": "+/- 7.880",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.5497,
             "range": "+/- 0.051",
             "unit": "ms"
@@ -2736,13 +2736,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 592.94,
             "range": "+/- 6.110",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.4599,
             "range": "+/- 0.035",
             "unit": "ms"
@@ -2802,13 +2802,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 548.05,
             "range": "+/- 6.780",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.8765,
             "range": "+/- 0.041",
             "unit": "ms"
@@ -2868,13 +2868,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 603.77,
             "range": "+/- 4.930",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.7132,
             "range": "+/- 0.029",
             "unit": "ms"
@@ -2934,13 +2934,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 583.44,
             "range": "+/- 16.330",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.5718,
             "range": "+/- 0.107",
             "unit": "ms"
@@ -3000,13 +3000,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 614.57,
             "range": "+/- 14.040",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.6218,
             "range": "+/- 0.064",
             "unit": "ms"
@@ -3066,13 +3066,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 592.06,
             "range": "+/- 16.490",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.723,
             "range": "+/- 0.107",
             "unit": "ms"
@@ -3132,13 +3132,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 425.4,
             "range": "+/- 3.870",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.6612,
             "range": "+/- 0.041",
             "unit": "ms"
@@ -3198,13 +3198,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 435.19,
             "range": "+/- 7.480",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.7824,
             "range": "+/- 0.076",
             "unit": "ms"
@@ -3264,13 +3264,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 432.67,
             "range": "+/- 11.200",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.3792,
             "range": "+/- 0.058",
             "unit": "ms"
@@ -3330,13 +3330,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 337.6,
             "range": "+/- 6.200",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 3.6389,
             "range": "+/- 0.034",
             "unit": "ms"
@@ -3396,13 +3396,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 599.1,
             "range": "+/- 10.310",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.4262,
             "range": "+/- 0.066",
             "unit": "ms"
@@ -3462,13 +3462,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 534.19,
             "range": "+/- 11.950",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.9211,
             "range": "+/- 0.054",
             "unit": "ms"
@@ -3528,13 +3528,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 497.63,
             "range": "+/- 18.380",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.7326,
             "range": "+/- 0.096",
             "unit": "ms"
@@ -3594,13 +3594,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 555.59,
             "range": "+/- 16.050",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 5.0294,
             "range": "+/- 0.052",
             "unit": "ms"
@@ -3660,13 +3660,13 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "Symbol Creation",
+            "name": "Symbols (Execution)",
             "value": 546.38,
             "range": "+/- 12.040",
             "unit": "us"
           },
           {
-            "name": "fibonacci (Execution)",
+            "name": "Fibonacci (Execution)",
             "value": 4.9991,
             "range": "+/- 0.063",
             "unit": "ms"
@@ -3726,7 +3726,7 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "",
+            "name": "Symbols (Execution)",
             "value": 471.71,
             "range": "+/- 5.790",
             "unit": "us"
@@ -3810,7 +3810,7 @@ window.BENCHMARK_DATA = {
             "unit": "us"
           },
           {
-            "name": "",
+            "name": "Symbols (Execution)",
             "value": 498.27,
             "range": "+/- 25.430",
             "unit": "us"
