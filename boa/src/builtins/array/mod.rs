@@ -101,15 +101,6 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     // Make a new Object which will internally represent the Array (mapping
     // between indices and values): this creates an Object with no prototype
 
-    // Create length
-    let length = Property::new()
-        .value(to_value(args.len() as i32))
-        .writable(true)
-        .configurable(false)
-        .enumerable(false);
-
-    this.set_prop("length".to_string(), length);
-
     // Set Prototype
     let array_prototype = ctx
         .realm
@@ -122,10 +113,35 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::Array);
 
-    // And finally add our arguments in
-    for (n, value) in args.iter().enumerate() {
-        this.set_field_slice(&n.to_string(), value.clone());
+    // add our arguments in
+    let mut length = args.len() as i32;
+    match args.len() {
+        1 if args[0].is_integer() => {
+            length = from_value::<i32>(args[0].clone()).expect("Could not convert argument to i32");
+            // TODO: It should not create an array of undefinds, but an empty array ("holy" array in V8) with length `n`.
+            for n in 0..length {
+                this.set_field_slice(&n.to_string(), Gc::new(ValueData::Undefined));
+            }
+        }
+        1 if args[0].is_double() => {
+            // TODO: throw `RangeError`.
+            unimplemented!("RangeError: invalid array length");
+        }
+        _ => {
+            for (n, value) in args.iter().enumerate() {
+                this.set_field_slice(&n.to_string(), value.clone());
+            }
+        }
     }
+
+    // finally create length property
+    let length = Property::new()
+        .value(to_value(length))
+        .writable(true)
+        .configurable(false)
+        .enumerable(false);
+
+    this.set_prop("length".to_string(), length);
 
     Ok(this.clone())
 }
