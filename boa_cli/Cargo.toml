@@ -13,3 +13,7 @@ edition = "2018"
 [dependencies]
 Boa = { path = "../boa", features = ["serde-ast"], default-features = false }
 structopt = "0.3.13"
+
+[[bin]]
+name = "boa"
+path = "src/main.rs"
