@@ -1,0 +1,78 @@
+name: Master workflows
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  benchmark:
+    name: Run Criterion benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run benchmark
+        run: cargo bench -p Boa | tee output.txt
+      - name: Store benchmark result
+        uses: jasonwilliams/github-action-benchmark@v1
+        with:
+          name: Boa Benchmarks
+          tool: "criterion"
+          output-file-path: output.txt
+          auto-push: true
+          github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+
+  doc-upload:
+    name: Upload documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      - name: Generate documentation
+        run: cargo doc
+      - run: echo "<meta http-equiv=refresh content=0;url=boa/index.html>" > target/doc/index.html
+      - name: Upload documentation
+        uses: appleboy/gh-pages-action@0.0.2
+        with:
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          remote_url: https://github.com/${{ env.GITHUB_REPOSITORY }}.git
+          target_directory: target/doc
