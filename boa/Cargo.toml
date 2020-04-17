@@ -17,13 +17,13 @@ default = ["wasm-bindgen"]
 [dependencies]
 gc = "0.3.3"
 gc_derive = "0.3.2"
-serde_json = "1.0.48"
+serde_json = "1.0.51"
 rand = "0.7.3"
 regex = "1.3.6"
 
 # Optional Dependencies
-wasm-bindgen = { version = "0.2.59", optional = true }
-serde = { version = "1.0.105", features = ["derive"], optional = true }
+wasm-bindgen = { version = "0.2.60", optional = true }
+serde = { version = "1.0.106", features = ["derive"], optional = true }
 
 [dev-dependencies]
 criterion = "0.3.1"
@@ -34,17 +34,13 @@ name = "boa"
 bench = false
 
 [[bench]]
-name = "string"
-harness = false
-
-[[bench]]
-name = "fib"
-harness = false
-
-[[bench]]
-name = "exec"
+name = "lexer"
 harness = false
 
 [[bench]]
 name = "parser"
+harness = false
+
+[[bench]]
+name = "exec"
 harness = false
