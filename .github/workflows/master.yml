@@ -76,3 +76,4 @@ jobs:
           password: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           remote_url: https://github.com/${{ env.GITHUB_REPOSITORY }}.git
           target_directory: target/doc
+          target_branch: gh-pages-test
