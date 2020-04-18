@@ -710,6 +710,7 @@ fn check_function_declarations() {
     );
 }
 
+// Should be parsed as `new Class().method()` instead of `new (Class().method())`
 #[test]
 fn check_do_while() {
     check_parser(
@@ -725,7 +726,6 @@ fn check_do_while() {
             Box::new(Node::Const(Const::Bool(true))),
         )],
     );
-}
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
