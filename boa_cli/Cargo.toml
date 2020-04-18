@@ -19,4 +19,5 @@ jemallocator = "0.3.2"
 
 [[bin]]
 name = "boa"
+doc = false
 path = "src/main.rs"
