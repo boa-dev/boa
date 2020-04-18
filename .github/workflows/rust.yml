@@ -171,7 +171,8 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
+      - name: Generate documentation
+        uses: actions-rs/cargo@v1
         with:
           command: doc
           args: -v --document-private-items

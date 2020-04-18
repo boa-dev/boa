@@ -67,7 +67,10 @@ jobs:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Generate documentation
-        run: cargo doc
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: -v --document-private-items
       - run: echo "<meta http-equiv=refresh content=0;url=boa/index.html>" > target/doc/index.html
       - name: Upload documentation
         uses: appleboy/gh-pages-action@0.0.2
