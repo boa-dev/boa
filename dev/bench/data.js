@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1587224355737,
+  "lastUpdate": 1587224633180,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -4113,6 +4113,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 12.66,
             "range": "+/- 0.314",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "HalidOdat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eb020d7f37f30983a0d2ea32a596e66c98d73e2f",
+          "message": "Fix #329 (#334)",
+          "timestamp": "2020-04-18T17:36:03+02:00",
+          "tree_id": "69f27f151d3649678bb38f7ce353a55eb6f2698e",
+          "url": "https://github.com/jasonwilliams/boa/commit/eb020d7f37f30983a0d2ea32a596e66c98d73e2f"
+        },
+        "date": 1587224630780,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 311.8,
+            "range": "+/- 11.260",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 322.11,
+            "range": "+/- 9.680",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 317.05,
+            "range": "+/- 6.830",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 3.308,
+            "range": "+/- 0.061",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 1.7894,
+            "range": "+/- 0.045",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 763.86,
+            "range": "+/- 16.700",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.3357,
+            "range": "+/- 0.116",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.1431,
+            "range": "+/- 0.116",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.7409,
+            "range": "+/- 0.039",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 11.048,
+            "range": "+/- 0.301",
             "unit": "us"
           }
         ]
