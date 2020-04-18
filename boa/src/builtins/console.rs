@@ -4,7 +4,7 @@ use crate::{
     builtins::{
         function::NativeFunctionData,
         object::InternalState,
-        value::{from_value, log_string_from, to_value, ResultValue, Value, ValueData},
+        value::{from_value, log_string_from, to_value, FromValue, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -29,6 +29,78 @@ impl ConsoleState {
 }
 
 impl InternalState for ConsoleState {}
+
+fn get_arg_at_index<T: FromValue + Default>(args: &[Value], index: usize) -> Option<T> {
+    args.get(index)
+        .cloned()
+        .map(|s| from_value::<T>(s).expect("Convert error"))
+}
+
+pub fn formatter(data: &[Value]) -> String {
+    let target = get_arg_at_index::<String>(data, 0).unwrap_or_default();
+    match data.len() {
+        0 => String::new(),
+        1 => target,
+        _ => {
+            let mut prev_index = 0;
+            let mut formatted = String::new();
+            let mut arg_index = 1;
+            target.match_indices('%').for_each(|(format_index, s)| {
+                if s.starts_with('%') {
+                    formatted.push_str(&target[prev_index..format_index]);
+                    let fmt = target.chars().nth(format_index + 1).unwrap_or('%');
+                    match fmt {
+                        /* integer */
+                        'd' | 'i' => {
+                            let arg = get_arg_at_index::<i32>(data, arg_index).unwrap_or_default();
+                            formatted.push_str(&format!("{}", arg));
+                            arg_index += 1;
+                        }
+                        /* float */
+                        'f' => {
+                            let arg = get_arg_at_index::<f64>(data, arg_index).unwrap_or_default();
+                            formatted.push_str(&format!("{number:.prec$}", number = arg, prec = 6));
+                            arg_index += 1
+                        }
+                        /* object, FIXME: how this should be rendered? */
+                        'o' | 'O' => {
+                            let arg = data.get(arg_index).cloned().unwrap_or_default();
+                            formatted.push_str(&format!("{}", arg));
+                            arg_index += 1
+                        }
+                        /* string */
+                        's' => {
+                            let arg =
+                                get_arg_at_index::<String>(data, arg_index).unwrap_or_default();
+                            formatted.push_str(&arg);
+                            arg_index += 1
+                        }
+                        '%' => formatted.push('%'),
+                        c => {
+                            formatted.push('%');
+                            formatted.push(c)
+                        }
+                    }
+                    prev_index = format_index + 2;
+                } else {
+                    formatted.push_str(s);
+                };
+            });
+
+            /* rest of target */
+            if prev_index < target.len() {
+                formatted.push_str(&target[prev_index..]);
+            }
+
+            /* unformatted data */
+            for rest in data.iter().skip(arg_index) {
+                formatted.push_str(&format!(" {}", rest))
+            }
+
+            formatted
+        }
+    }
+}
 
 /// Print a javascript value to the standard output stream
 /// <https://console.spec.whatwg.org/#logger>
@@ -59,11 +131,7 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// More information: <https://console.spec.whatwg.org/#assert>
 pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let assertion = args
-        .get(0)
-        .cloned()
-        .map(|val| from_value::<bool>(val).expect("Could not convert to bool."))
-        .unwrap_or_default();
+    let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
     if !assertion {
         eprint!("Assertion failed:");
@@ -82,11 +150,7 @@ pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// More information: <https://console.spec.whatwg.org/#count>
 pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let label = args
-        .get(0)
-        .cloned()
-        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
-        .unwrap_or_else(|| "default".to_string());
+    let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     print!("count {}: ", &label);
 
@@ -106,11 +170,7 @@ pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// More information: <https://console.spec.whatwg.org/#countreset>
 pub fn count_reset(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let label = args
-        .get(0)
-        .cloned()
-        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
-        .unwrap_or_else(|| "default".to_string());
+    let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.count_map.remove(&label);
@@ -135,11 +195,7 @@ fn system_time_in_ms() -> u128 {
 ///
 /// More information: <https://console.spec.whatwg.org/#time>
 pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let label = args
-        .get(0)
-        .cloned()
-        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
-        .unwrap_or_else(|| "default".to_string());
+    let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         if state.timer_map.get(&label).is_some() {
@@ -159,11 +215,7 @@ pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// More information: <https://console.spec.whatwg.org/#timelog>
 pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let label = args
-        .get(0)
-        .cloned()
-        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
-        .unwrap_or_else(|| "default".to_string());
+    let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         if let Some(t) = state.timer_map.get(&label) {
@@ -187,11 +239,7 @@ pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 ///
 /// More information: <https://console.spec.whatwg.org/#timeend>
 pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let label = args
-        .get(0)
-        .cloned()
-        .map(|l| from_value::<String>(l).expect("Could not convert to string."))
-        .unwrap_or_else(|| "default".to_string());
+    let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         if let Some(t) = state.timer_map.remove(&label) {
@@ -217,6 +265,7 @@ pub fn create_constructor(global: &Value) -> Value {
     console.set_field_slice("time", to_value(time as NativeFunctionData));
     console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
     console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
+    //   console.set_field_slice("group", to_value(group as NativeFunctionData));
     console.set_internal_state(ConsoleState::new());
     console
 }
