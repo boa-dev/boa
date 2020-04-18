@@ -62,7 +62,7 @@ pub fn formatter(data: &[Value]) -> String {
                             formatted.push_str(&format!("{number:.prec$}", number = arg, prec = 6));
                             arg_index += 1
                         }
-                        /* object, FIXME: how this should be rendered? */
+                        /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
                             let arg = data.get(arg_index).cloned().unwrap_or_default();
                             formatted.push_str(&format!("{}", arg));
@@ -76,6 +76,7 @@ pub fn formatter(data: &[Value]) -> String {
                             arg_index += 1
                         }
                         '%' => formatted.push('%'),
+                        /* TODO: %c is not implemented */
                         c => {
                             formatted.push('%');
                             formatted.push(c)
@@ -253,6 +254,48 @@ pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     Ok(Gc::new(ValueData::Undefined))
 }
 
+/// `console.group(...data)`
+///
+/// Adds new group with name from formatted data to stack.
+///
+/// More information: <https://console.spec.whatwg.org/#group>
+pub fn group(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let group_label = formatter(args);
+
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        println!("group: {}", &group_label);
+        state.groups.push(group_label);
+    });
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.groupEnd(label)`
+///
+/// Removes the last group from the stack.
+///
+/// More information: <https://console.spec.whatwg.org/#groupend>
+pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        state.groups.pop();
+    });
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.clear()`
+///
+/// Removes all groups and clears console if possible.
+///
+/// More information: <https://console.spec.whatwg.org/#clear>
+pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        state.groups.clear();
+    });
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
@@ -265,7 +308,10 @@ pub fn create_constructor(global: &Value) -> Value {
     console.set_field_slice("time", to_value(time as NativeFunctionData));
     console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
     console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
-    //   console.set_field_slice("group", to_value(group as NativeFunctionData));
+    console.set_field_slice("group", to_value(group as NativeFunctionData));
+    console.set_field_slice("groupCollapsed", to_value(group as NativeFunctionData));
+    console.set_field_slice("groupEnd", to_value(group_end as NativeFunctionData));
+    console.set_field_slice("clear", to_value(clear as NativeFunctionData));
     console.set_internal_state(ConsoleState::new());
     console
 }
