@@ -28,6 +28,9 @@ serde = { version = "1.0.106", features = ["derive"], optional = true }
 [dev-dependencies]
 criterion = "0.3.1"
 
+[target.x86_64-unknown-linux-gnu.dev-dependencies]
+jemallocator = "0.3.2"
+
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "boa"

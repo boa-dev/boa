@@ -3,6 +3,13 @@
 use boa::syntax::{lexer::Lexer, parser::Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
+#[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
+#[cfg_attr(
+    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
+    global_allocator
+)]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 static EXPRESSION: &str = r#"
 1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
 "#;

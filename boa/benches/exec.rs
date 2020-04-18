@@ -3,6 +3,13 @@
 use boa::{exec, realm::Realm};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
+#[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
+#[cfg_attr(
+    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
+    global_allocator
+)]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 static SYMBOL_CREATION: &str = r#"
 let a = Symbol();
 let b = Symbol();

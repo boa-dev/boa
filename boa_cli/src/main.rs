@@ -1,15 +1,51 @@
-#![deny(unused_qualifications, clippy::correctness, clippy::style)]
-#![warn(clippy::perf)]
-#![allow(clippy::cognitive_complexity)]
+#![deny(
+    unused_qualifications,
+    clippy::all,
+    unused_qualifications,
+    unused_import_braces,
+    unused_lifetimes,
+    unreachable_pub,
+    trivial_numeric_casts,
+    rustdoc,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    deprecated_in_future,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style
+)]
+#![warn(clippy::perf, clippy::single_match_else, clippy::dbg_macro)]
+#![allow(
+    clippy::missing_inline_in_public_items,
+    clippy::cognitive_complexity,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::as_conversions
+)]
 
-use boa::builtins::console::log;
-use boa::serde_json;
-use boa::syntax::ast::{node::Node, token::Token};
-use boa::{exec::Executor, forward_val, realm::Realm};
-use std::io::{self, Write};
-use std::{fs::read_to_string, path::PathBuf};
-use structopt::clap::arg_enum;
-use structopt::StructOpt;
+use boa::{
+    builtins::console::log,
+    exec::Executor,
+    forward_val,
+    realm::Realm,
+    serde_json,
+    syntax::ast::{node::Node, token::Token},
+};
+use std::{
+    fs::read_to_string,
+    io::{self, Write},
+    path::PathBuf,
+};
+use structopt::{clap::arg_enum, StructOpt};
+
+#[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
+#[cfg_attr(
+    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
+    global_allocator
+)]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
 //
