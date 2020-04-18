@@ -16,4 +16,5 @@ structopt = "0.3.13"
 
 [[bin]]
 name = "boa"
+doc = false
 path = "src/main.rs"
