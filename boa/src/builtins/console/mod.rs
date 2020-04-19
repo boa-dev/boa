@@ -1,5 +1,8 @@
 #![allow(clippy::print_stdout)]
 
+#[cfg(test)]
+mod tests;
+
 use crate::{
     builtins::{
         function::NativeFunctionData,
@@ -42,13 +45,12 @@ pub fn formatter(data: &[Value]) -> String {
         0 => String::new(),
         1 => target,
         _ => {
-            let mut prev_index = 0;
             let mut formatted = String::new();
             let mut arg_index = 1;
-            target.match_indices('%').for_each(|(format_index, s)| {
-                if s.starts_with('%') {
-                    formatted.push_str(&target[prev_index..format_index]);
-                    let fmt = target.chars().nth(format_index + 1).unwrap_or('%');
+            let mut chars = target.chars();
+            while let Some(c) = chars.next() {
+                if c == '%' {
+                    let fmt = chars.next().unwrap_or('%');
                     match fmt {
                         /* integer */
                         'd' | 'i' => {
@@ -79,18 +81,12 @@ pub fn formatter(data: &[Value]) -> String {
                         /* TODO: %c is not implemented */
                         c => {
                             formatted.push('%');
-                            formatted.push(c)
+                            formatted.push(c);
                         }
                     }
-                    prev_index = format_index + 2;
                 } else {
-                    formatted.push_str(s);
+                    formatted.push(c);
                 };
-            });
-
-            /* rest of target */
-            if prev_index < target.len() {
-                formatted.push_str(&target[prev_index..]);
             }
 
             /* unformatted data */
