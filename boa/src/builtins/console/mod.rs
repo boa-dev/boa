@@ -15,7 +15,7 @@ use gc::Gc;
 use std::{collections::HashMap, time::SystemTime};
 
 #[derive(Debug, Default)]
-struct ConsoleState {
+pub struct ConsoleState {
     count_map: HashMap<String, u32>,
     timer_map: HashMap<String, u128>,
     groups: Vec<String>,
@@ -33,10 +33,33 @@ impl ConsoleState {
 
 impl InternalState for ConsoleState {}
 
+#[derive(Debug)]
+pub enum LogMessage {
+    Log(String),
+    Info(String),
+    Warn(String),
+    Error(String),
+}
+
 fn get_arg_at_index<T: FromValue + Default>(args: &[Value], index: usize) -> Option<T> {
     args.get(index)
         .cloned()
         .map(|s| from_value::<T>(s).expect("Convert error"))
+}
+
+pub fn logger(msg: LogMessage, console_state: &ConsoleState) {
+    let indent = 2 * console_state.groups.len();
+
+    match msg {
+        LogMessage::Error(msg) => {
+            eprint!("{}", " ".repeat(indent));
+            eprintln!("{}", msg);
+        }
+        LogMessage::Log(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
+            print!("{}", " ".repeat(indent));
+            println!("{}", msg);
+        }
+    }
 }
 
 pub fn formatter(data: &[Value]) -> String {
@@ -105,12 +128,12 @@ pub fn formatter(data: &[Value]) -> String {
 /// were no arguments.
 ///
 /// More information: <https://console.spec.whatwg.org/#assert>
-pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn assert(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
     if !assertion {
         let mut args: Vec<Value> = args.iter().skip(1).cloned().collect();
-        let message = "Assertion failed".to_string(); 
+        let message = "Assertion failed".to_string();
         if args.is_empty() {
             args.push(to_value::<String>(message));
         } else if !args[0].is_string() {
@@ -120,7 +143,9 @@ pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
             args[0] = to_value::<String>(concat);
         }
 
-        eprintln!("{}", formatter(&args[..]));
+        this.with_internal_state_ref(|state| {
+            logger(LogMessage::Error(formatter(&args[..])), state)
+        });
     }
 
     Ok(Gc::new(ValueData::Undefined))
@@ -144,8 +169,8 @@ pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Prints a JavaScript values with "debug" logLevel.
 ///
 /// More information: <https://console.spec.whatwg.org/#debug>
-pub fn debug(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    println!("{}", formatter(args));
+pub fn debug(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -154,8 +179,8 @@ pub fn debug(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Prints a JavaScript values with "error" logLevel.
 ///
 /// More information: <https://console.spec.whatwg.org/#error>
-pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    eprintln!("{}", formatter(args));
+pub fn error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|state| logger(LogMessage::Error(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -164,8 +189,8 @@ pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Prints a JavaScript values with "info" logLevel.
 ///
 /// More information: <https://console.spec.whatwg.org/#info>
-pub fn info(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    println!("{}", formatter(args));
+pub fn info(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|state| logger(LogMessage::Info(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -174,11 +199,8 @@ pub fn info(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Prints a JavaScript values with "log" logLevel.
 ///
 /// More information: <https://console.spec.whatwg.org/#log>
-pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
-    // The input is a vector of Values, we generate a vector of strings then
-    // pass them to println!
-    println!("{}", formatter(args));
+pub fn log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -187,13 +209,19 @@ pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Prints a stack trace with "trace" logLevel, optionally labelled by data.
 ///
 /// More information: <https://console.spec.whatwg.org/#trace>
-pub fn trace(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn trace(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if !args.is_empty() {
-        println!("{}", formatter(args));
+        this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
+
+        /* TODO: get and print stack trace */
+        this.with_internal_state_ref(|state| {
+            logger(
+                LogMessage::Log("Not implemented: <stack trace>".to_string()),
+                state,
+            )
+        });
     }
 
-    /* TODO: get and print stack trace */
-    println!("Not implemented: <stack trace>");
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -202,8 +230,8 @@ pub fn trace(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Prints a JavaScript values with "warn" logLevel.
 ///
 /// More information: <https://console.spec.whatwg.org/#warn>
-pub fn warn(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    println!("{}", formatter(args));
+pub fn warn(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_ref(|state| logger(LogMessage::Warn(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -215,13 +243,12 @@ pub fn warn(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
-    print!("count {}: ", &label);
-
     this.with_internal_state_mut(|state: &mut ConsoleState| {
+        let msg = format!("count {}:", &label);
         let c = state.count_map.entry(label).or_insert(0);
         *c += 1;
 
-        println!("{}", c);
+        logger(LogMessage::Info(format!("{} {}", msg, c)), state);
     });
 
     Ok(Gc::new(ValueData::Undefined))
@@ -238,7 +265,7 @@ pub fn count_reset(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.count_map.remove(&label);
 
-        println!("countReset {}", label);
+        logger(LogMessage::Warn(format!("countReset {}", label)), state);
     });
 
     Ok(Gc::new(ValueData::Undefined))
@@ -262,7 +289,10 @@ pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         if state.timer_map.get(&label).is_some() {
-            println!("Timer '{}' already exists", label)
+            logger(
+                LogMessage::Warn(format!("Timer '{}' already exist", label)),
+                state,
+            );
         } else {
             let time = system_time_in_ms();
             state.timer_map.insert(label, time);
@@ -283,13 +313,16 @@ pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         if let Some(t) = state.timer_map.get(&label) {
             let time = system_time_in_ms();
-            print!("{}: {} ms", label, time - t);
-            for message in args.iter().skip(1) {
-                print!(" {}", message);
+            let mut concat = format!("{}: {} ms", label, time - t);
+            for msg in args.iter().skip(1) {
+                concat = concat + " " + &msg.to_string();
             }
-            println!()
+            logger(LogMessage::Log(concat), state);
         } else {
-            println!("Timer '{}' doesn't exist", label)
+            logger(
+                LogMessage::Warn(format!("Timer '{}' doesn't exist", label)),
+                state,
+            );
         }
     });
 
@@ -307,9 +340,15 @@ pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         if let Some(t) = state.timer_map.remove(&label) {
             let time = system_time_in_ms();
-            println!("{}: {} ms - timer removed", label, time - t)
+            logger(
+                LogMessage::Info(format!("{}: {} ms - timer removed", label, time - t)),
+                state,
+            );
         } else {
-            println!("Timer '{}' doesn't exist", label)
+            logger(
+                LogMessage::Warn(format!("Timer '{}' doesn't exist", label)),
+                state,
+            );
         }
     });
 
