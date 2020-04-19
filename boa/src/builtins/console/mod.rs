@@ -364,7 +364,7 @@ pub fn group(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let group_label = formatter(args);
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
-        println!("group: {}", &group_label);
+        logger(LogMessage::Info(format!("group: {}", &group_label)), state);
         state.groups.push(group_label);
     });
 
