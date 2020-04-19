@@ -7,12 +7,12 @@ use crate::{
     builtins::{
         function::NativeFunctionData,
         object::InternalState,
-        value::{from_value, log_string_from, to_value, FromValue, ResultValue, Value, ValueData},
+        value::{from_value, to_value, FromValue, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
 use gc::Gc;
-use std::{collections::HashMap, iter::FromIterator, ops::Deref, time::SystemTime};
+use std::{collections::HashMap, time::SystemTime};
 
 #[derive(Debug, Default)]
 struct ConsoleState {
@@ -99,28 +99,6 @@ pub fn formatter(data: &[Value]) -> String {
     }
 }
 
-/// Print a javascript value to the standard output stream
-/// <https://console.spec.whatwg.org/#logger>
-pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
-    // The input is a vector of Values, we generate a vector of strings then
-    // pass them to println!
-    let args: Vec<String> =
-        FromIterator::from_iter(args.iter().map(|x| log_string_from(x.deref(), false)));
-
-    println!("{}", args.join(" "));
-    Ok(Gc::new(ValueData::Undefined))
-}
-/// Print a javascript value to the standard error stream
-pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let args: Vec<String> = FromIterator::from_iter(
-        args.iter()
-            .map(|x| from_value::<String>(x.clone()).expect("Could not convert value to String")),
-    );
-    eprintln!("{}", args.join(" "));
-    Ok(Gc::new(ValueData::Undefined))
-}
-
 /// `console.assert(condition, ...data)`
 ///
 /// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there
@@ -131,13 +109,101 @@ pub fn assert(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
     if !assertion {
-        eprint!("Assertion failed:");
-        for message in args.iter().skip(1) {
-            eprint!(" {}", message);
+        let mut args: Vec<Value> = args.iter().skip(1).cloned().collect();
+        let message = "Assertion failed".to_string(); 
+        if args.is_empty() {
+            args.push(to_value::<String>(message));
+        } else if !args[0].is_string() {
+            args.insert(0, to_value::<String>(message));
+        } else {
+            let concat = format!("{}: {}", message, args[0]);
+            args[0] = to_value::<String>(concat);
         }
-        eprintln!();
+
+        eprintln!("{}", formatter(&args[..]));
     }
 
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.clear()`
+///
+/// Removes all groups and clears console if possible.
+///
+/// More information: <https://console.spec.whatwg.org/#clear>
+pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        state.groups.clear();
+    });
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.debug(...data)`
+///
+/// Prints a JavaScript values with "debug" logLevel.
+///
+/// More information: <https://console.spec.whatwg.org/#debug>
+pub fn debug(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    println!("{}", formatter(args));
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.error(...data)`
+///
+/// Prints a JavaScript values with "error" logLevel.
+///
+/// More information: <https://console.spec.whatwg.org/#error>
+pub fn error(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    eprintln!("{}", formatter(args));
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.info(...data)`
+///
+/// Prints a JavaScript values with "info" logLevel.
+///
+/// More information: <https://console.spec.whatwg.org/#info>
+pub fn info(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    println!("{}", formatter(args));
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.log(...data)`
+///
+/// Prints a JavaScript values with "log" logLevel.
+///
+/// More information: <https://console.spec.whatwg.org/#log>
+pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    // Welcome to console.log! The output here is what the developer sees, so its best matching through value types and stringifying to the correct output
+    // The input is a vector of Values, we generate a vector of strings then
+    // pass them to println!
+    println!("{}", formatter(args));
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.trace(...data)`
+///
+/// Prints a stack trace with "trace" logLevel, optionally labelled by data.
+///
+/// More information: <https://console.spec.whatwg.org/#trace>
+pub fn trace(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    if !args.is_empty() {
+        println!("{}", formatter(args));
+    }
+
+    /* TODO: get and print stack trace */
+    println!("Not implemented: <stack trace>");
+    Ok(Gc::new(ValueData::Undefined))
+}
+
+/// `console.warn(...data)`
+///
+/// Prints a JavaScript values with "warn" logLevel.
+///
+/// More information: <https://console.spec.whatwg.org/#warn>
+pub fn warn(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    println!("{}", formatter(args));
     Ok(Gc::new(ValueData::Undefined))
 }
 
@@ -279,35 +345,26 @@ pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// `console.clear()`
-///
-/// Removes all groups and clears console if possible.
-///
-/// More information: <https://console.spec.whatwg.org/#clear>
-pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_mut(|state: &mut ConsoleState| {
-        state.groups.clear();
-    });
-
-    Ok(Gc::new(ValueData::Undefined))
-}
-
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
-    console.set_field_slice("log", to_value(log as NativeFunctionData));
-    console.set_field_slice("error", to_value(error as NativeFunctionData));
-    console.set_field_slice("exception", to_value(error as NativeFunctionData));
     console.set_field_slice("assert", to_value(assert as NativeFunctionData));
+    console.set_field_slice("clear", to_value(clear as NativeFunctionData));
+    console.set_field_slice("debug", to_value(debug as NativeFunctionData));
+    console.set_field_slice("error", to_value(error as NativeFunctionData));
+    console.set_field_slice("info", to_value(info as NativeFunctionData));
+    console.set_field_slice("log", to_value(log as NativeFunctionData));
+    console.set_field_slice("trace", to_value(trace as NativeFunctionData));
+    console.set_field_slice("warn", to_value(warn as NativeFunctionData));
+    console.set_field_slice("exception", to_value(error as NativeFunctionData));
     console.set_field_slice("count", to_value(count as NativeFunctionData));
     console.set_field_slice("countReset", to_value(count_reset as NativeFunctionData));
-    console.set_field_slice("time", to_value(time as NativeFunctionData));
-    console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
-    console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
     console.set_field_slice("group", to_value(group as NativeFunctionData));
     console.set_field_slice("groupCollapsed", to_value(group as NativeFunctionData));
     console.set_field_slice("groupEnd", to_value(group_end as NativeFunctionData));
-    console.set_field_slice("clear", to_value(clear as NativeFunctionData));
+    console.set_field_slice("time", to_value(time as NativeFunctionData));
+    console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
+    console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
     console.set_internal_state(ConsoleState::new());
     console
 }
