@@ -7,7 +7,7 @@ use crate::{
     builtins::{
         function::NativeFunctionData,
         object::InternalState,
-        value::{from_value, to_value, FromValue, ResultValue, Value, ValueData},
+        value::{display_obj, from_value, to_value, FromValue, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -384,6 +384,25 @@ pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
     Ok(Gc::new(ValueData::Undefined))
 }
 
+/// `console.dir(item, options)`
+///
+/// Prints info about item
+///
+/// More information: <https://console.spec.whatwg.org/#dir>
+pub fn dir(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    this.with_internal_state_mut(|state: &mut ConsoleState| {
+        logger(
+            LogMessage::Info(display_obj(
+                args.get(0).unwrap_or(&Gc::new(ValueData::Undefined)),
+                true,
+            )),
+            state,
+        );
+    });
+
+    Ok(Gc::new(ValueData::Undefined))
+}
+
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
@@ -404,6 +423,8 @@ pub fn create_constructor(global: &Value) -> Value {
     console.set_field_slice("time", to_value(time as NativeFunctionData));
     console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
     console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
+    console.set_field_slice("dir", to_value(dir as NativeFunctionData));
+    console.set_field_slice("dirxml", to_value(dir as NativeFunctionData));
     console.set_internal_state(ConsoleState::new());
     console
 }
