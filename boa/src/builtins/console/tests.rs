@@ -38,7 +38,7 @@ fn formatter_utf_8_checks() {
             "Są takie chwile %dą %są tu%sów %привет%ź".to_string(),
         )),
         Gc::new(ValueData::Integer(123)),
-        Gc::new(ValueData::Number(1.23)),
+        Gc::new(ValueData::Rational(1.23)),
         Gc::new(ValueData::String("ł".to_string())),
     ];
     let res = formatter(&val);
@@ -60,7 +60,7 @@ fn formatter_trailing_format_leader_renders() {
 fn formatter_float_format_works() {
     let val = [
         Gc::new(ValueData::String("%f".to_string())),
-        Gc::new(ValueData::Number(3.1415)),
+        Gc::new(ValueData::Rational(3.1415)),
     ];
     let res = formatter(&val);
     assert_eq!(res, "3.141500")

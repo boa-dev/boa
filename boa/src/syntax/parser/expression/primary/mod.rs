@@ -19,7 +19,10 @@ use self::{
 };
 use super::Expression;
 use crate::syntax::{
-    ast::{constant::Const, keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{
+        constant::Const, keyword::Keyword, node::Node, punc::Punctuator, token::NumericLiteral,
+        token::TokenKind,
+    },
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 pub(in crate::syntax::parser) use object_initializer::Initializer;
@@ -80,7 +83,8 @@ impl TokenParser for PrimaryExpression {
             TokenKind::NullLiteral => Ok(Node::Const(Const::Null)),
             TokenKind::Identifier(ident) => Ok(Node::local(ident)),
             TokenKind::StringLiteral(s) => Ok(Node::const_node(s)),
-            TokenKind::NumericLiteral(num) => Ok(Node::const_node(*num)),
+            TokenKind::NumericLiteral(NumericLiteral::Integer(num)) => Ok(Node::const_node(*num)),
+            TokenKind::NumericLiteral(NumericLiteral::Rational(num)) => Ok(Node::const_node(*num)),
             TokenKind::RegularExpressionLiteral(body, flags) => Ok(Node::new(Node::call(
                 Node::local("RegExp"),
                 vec![Node::const_node(body), Node::const_node(flags)],

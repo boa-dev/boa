@@ -10,7 +10,7 @@ fn check_var_declaration() {
         "var a = 5;",
         &[Node::VarDecl(vec![(
             String::from("a"),
-            Some(Node::const_node(5.0)),
+            Some(Node::const_node(5)),
         )])],
     );
 }
@@ -22,7 +22,7 @@ fn check_var_declaration_no_spaces() {
         "var a=5;",
         &[Node::VarDecl(vec![(
             String::from("a"),
-            Some(Node::const_node(5.0)),
+            Some(Node::const_node(5)),
         )])],
     );
 }
@@ -39,9 +39,9 @@ fn check_multiple_var_declaration() {
     check_parser(
         "var a = 5, b, c = 6;",
         &[Node::VarDecl(vec![
-            (String::from("a"), Some(Node::const_node(5.0))),
+            (String::from("a"), Some(Node::const_node(5))),
             (String::from("b"), None),
-            (String::from("c"), Some(Node::const_node(6.0))),
+            (String::from("c"), Some(Node::const_node(6))),
         ])],
     );
 }
@@ -53,7 +53,7 @@ fn check_let_declaration() {
         "let a = 5;",
         &[Node::LetDecl(vec![(
             String::from("a"),
-            Some(Node::const_node(5.0)),
+            Some(Node::const_node(5)),
         )])],
     );
 }
@@ -65,7 +65,7 @@ fn check_let_declaration_no_spaces() {
         "let a=5;",
         &[Node::LetDecl(vec![(
             String::from("a"),
-            Some(Node::const_node(5.0)),
+            Some(Node::const_node(5)),
         )])],
     );
 }
@@ -82,9 +82,9 @@ fn check_multiple_let_declaration() {
     check_parser(
         "let a = 5, b, c = 6;",
         &[Node::LetDecl(vec![
-            (String::from("a"), Some(Node::const_node(5.0))),
+            (String::from("a"), Some(Node::const_node(5))),
             (String::from("b"), None),
-            (String::from("c"), Some(Node::const_node(6.0))),
+            (String::from("c"), Some(Node::const_node(6))),
         ])],
     );
 }
@@ -96,7 +96,7 @@ fn check_const_declaration() {
         "const a = 5;",
         &[Node::ConstDecl(vec![(
             String::from("a"),
-            Node::const_node(5.0),
+            Node::const_node(5),
         )])],
     );
 }
@@ -108,7 +108,7 @@ fn check_const_declaration_no_spaces() {
         "const a=5;",
         &[Node::ConstDecl(vec![(
             String::from("a"),
-            Node::const_node(5.0),
+            Node::const_node(5),
         )])],
     );
 }
@@ -125,8 +125,8 @@ fn check_multiple_const_declaration() {
     check_parser(
         "const a = 5, c = 6;",
         &[Node::ConstDecl(vec![
-            (String::from("a"), Node::const_node(5.0)),
-            (String::from("c"), Node::const_node(6.0)),
+            (String::from("a"), Node::const_node(5)),
+            (String::from("c"), Node::const_node(6)),
         ])],
     );
 }

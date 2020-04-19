@@ -407,7 +407,7 @@ impl Object {
     pub fn from(value: &Value) -> Result<Self, ()> {
         match *value.deref().borrow() {
             ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
-            ValueData::Number(_) => Ok(Self::from_number(value)),
+            ValueData::Rational(_) => Ok(Self::from_number(value)),
             ValueData::String(_) => Ok(Self::from_string(value)),
             ValueData::Object(ref obj) => Ok(obj.borrow().clone()),
             _ => Err(()),

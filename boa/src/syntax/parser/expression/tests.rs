@@ -16,7 +16,7 @@ fn check_numeric_operations() {
         &[Node::bin_op(
             NumOp::Add,
             Node::local("a"),
-            Node::const_node(1.0),
+            Node::const_node(1),
         )],
     );
     check_parser(
@@ -28,7 +28,7 @@ fn check_numeric_operations() {
         &[Node::bin_op(
             NumOp::Sub,
             Node::local("a"),
-            Node::const_node(1.0),
+            Node::const_node(1),
         )],
     );
     check_parser(
@@ -40,7 +40,7 @@ fn check_numeric_operations() {
         &[Node::bin_op(
             NumOp::Div,
             Node::local("a"),
-            Node::const_node(2.0),
+            Node::const_node(2),
         )],
     );
     check_parser(
@@ -52,7 +52,7 @@ fn check_numeric_operations() {
         &[Node::bin_op(
             NumOp::Mul,
             Node::local("a"),
-            Node::const_node(2.0),
+            Node::const_node(2),
         )],
     );
     check_parser(
@@ -64,7 +64,7 @@ fn check_numeric_operations() {
         &[Node::bin_op(
             NumOp::Exp,
             Node::local("a"),
-            Node::const_node(2.0),
+            Node::const_node(2),
         )],
     );
     check_parser(
@@ -76,7 +76,7 @@ fn check_numeric_operations() {
         &[Node::bin_op(
             NumOp::Mod,
             Node::local("a"),
-            Node::const_node(2.0),
+            Node::const_node(2),
         )],
     );
 }
@@ -94,10 +94,10 @@ fn check_complex_numeric_operations() {
                 Node::bin_op(
                     NumOp::Mul,
                     Node::local("d"),
-                    Node::bin_op(NumOp::Sub, Node::local("b"), Node::const_node(3.0)),
+                    Node::bin_op(NumOp::Sub, Node::local("b"), Node::const_node(3)),
                 ),
             ),
-            Node::const_node(1.0),
+            Node::const_node(1),
         )],
     );
 }
@@ -287,7 +287,7 @@ fn check_assign_operations() {
         &[Node::bin_op(
             BinOp::Assign(AssignOp::Mod),
             Node::local("a"),
-            Node::bin_op(NumOp::Div, Node::const_node(10.0), Node::const_node(2.0)),
+            Node::bin_op(NumOp::Div, Node::const_node(10), Node::const_node(2)),
         )],
     );
 }

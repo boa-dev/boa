@@ -15,11 +15,11 @@ fn check_arguments_object() {
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
-    let expected_return_val: f64 = 100.0;
+    let expected_return_val = 100;
     let return_val = forward_val(&mut engine, "val").expect("value expected");
-    assert_eq!(return_val.is_double(), true);
+    assert_eq!(return_val.is_integer(), true);
     assert_eq!(
-        from_value::<f64>(return_val).expect("Could not convert value to f64"),
+        from_value::<i32>(return_val).expect("Could not convert value to i32"),
         expected_return_val
     );
 }

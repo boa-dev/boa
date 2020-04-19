@@ -44,7 +44,7 @@ fn assing_operator_precedence() {
         "a = a + 1",
         &[Node::assign(
             Node::local("a"),
-            Node::bin_op(NumOp::Add, Node::local("a"), Node::const_node(1.0)),
+            Node::bin_op(NumOp::Add, Node::local("a"), Node::const_node(1)),
         )],
     );
 }

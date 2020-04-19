@@ -376,24 +376,51 @@ fn numbers() {
     );
 
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
-    assert_eq!(lexer.tokens[1].kind, TokenKind::NumericLiteral(2.0));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(52.0));
-    assert_eq!(lexer.tokens[3].kind, TokenKind::NumericLiteral(46.0));
-    assert_eq!(lexer.tokens[4].kind, TokenKind::NumericLiteral(7.89));
-    assert_eq!(lexer.tokens[5].kind, TokenKind::NumericLiteral(42.0));
-    assert_eq!(lexer.tokens[6].kind, TokenKind::NumericLiteral(5000.0));
-    assert_eq!(lexer.tokens[7].kind, TokenKind::NumericLiteral(5000.0));
-    assert_eq!(lexer.tokens[8].kind, TokenKind::NumericLiteral(0.005));
-    assert_eq!(lexer.tokens[9].kind, TokenKind::NumericLiteral(2.0));
-    assert_eq!(lexer.tokens[10].kind, TokenKind::NumericLiteral(83.0));
-    assert_eq!(lexer.tokens[11].kind, TokenKind::NumericLiteral(999.0));
-    assert_eq!(lexer.tokens[12].kind, TokenKind::NumericLiteral(10.0));
-    assert_eq!(lexer.tokens[13].kind, TokenKind::NumericLiteral(0.1));
-    assert_eq!(lexer.tokens[14].kind, TokenKind::NumericLiteral(10.0));
-    assert_eq!(lexer.tokens[15].kind, TokenKind::NumericLiteral(10.0));
-    assert_eq!(lexer.tokens[16].kind, TokenKind::NumericLiteral(0.0));
-    assert_eq!(lexer.tokens[17].kind, TokenKind::NumericLiteral(0.12));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::numeric_literal(2));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::numeric_literal(52));
+    assert_eq!(lexer.tokens[3].kind, TokenKind::numeric_literal(46));
+    assert_eq!(lexer.tokens[4].kind, TokenKind::numeric_literal(7.89));
+    assert_eq!(lexer.tokens[5].kind, TokenKind::numeric_literal(42.0));
+    assert_eq!(lexer.tokens[6].kind, TokenKind::numeric_literal(5000.0));
+    assert_eq!(lexer.tokens[7].kind, TokenKind::numeric_literal(5000.0));
+    assert_eq!(lexer.tokens[8].kind, TokenKind::numeric_literal(0.005));
+    assert_eq!(lexer.tokens[9].kind, TokenKind::numeric_literal(2));
+    assert_eq!(lexer.tokens[10].kind, TokenKind::numeric_literal(83));
+    assert_eq!(lexer.tokens[11].kind, TokenKind::numeric_literal(999));
+    assert_eq!(lexer.tokens[12].kind, TokenKind::numeric_literal(10.0));
+    assert_eq!(lexer.tokens[13].kind, TokenKind::numeric_literal(0.1));
+    assert_eq!(lexer.tokens[14].kind, TokenKind::numeric_literal(10.0));
+    assert_eq!(lexer.tokens[15].kind, TokenKind::numeric_literal(10.0));
+    assert_eq!(lexer.tokens[16].kind, TokenKind::numeric_literal(0.0));
+    assert_eq!(lexer.tokens[17].kind, TokenKind::numeric_literal(0.12));
+}
+
+#[test]
+fn implicit_octal_edge_case() {
+    let mut lexer = Lexer::new("044.5 094.5");
+
+    lexer.lex().expect("failed to lex");
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(36));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Dot));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::numeric_literal(5));
+
+    assert_eq!(lexer.tokens[3].kind, TokenKind::numeric_literal(94.5));
+}
+
+#[test]
+fn hexadecimal_edge_case() {
+    let mut lexer = Lexer::new("0xffff.ff 0xffffff");
+
+    lexer.lex().expect("failed to lex");
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(0xffff));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Dot));
+    assert_eq!(
+        lexer.tokens[2].kind,
+        TokenKind::Identifier(String::from("ff"))
+    );
+
+    assert_eq!(lexer.tokens[3].kind, TokenKind::numeric_literal(0xffffff));
 }
 
 #[test]
@@ -406,7 +433,7 @@ fn test_single_number_without_semicolon() {
 fn test_number_followed_by_dot() {
     let mut lexer = Lexer::new("1..");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1.0));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Dot));
 }
 
@@ -434,55 +461,55 @@ fn test_regex_literal_flags() {
 fn test_addition_no_spaces() {
     let mut lexer = Lexer::new("1+1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::numeric_literal(1));
 }
 
 #[test]
 fn test_addition_no_spaces_left_side() {
     let mut lexer = Lexer::new("1+ 1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::numeric_literal(1));
 }
 
 #[test]
 fn test_addition_no_spaces_right_side() {
     let mut lexer = Lexer::new("1 +1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::numeric_literal(1));
 }
 
 #[test]
 fn test_addition_no_spaces_e_number_left_side() {
     let mut lexer = Lexer::new("1e2+ 1");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(100.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(100.0));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::numeric_literal(1));
 }
 
 #[test]
 fn test_addition_no_spaces_e_number_right_side() {
     let mut lexer = Lexer::new("1 +1e3");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
-    assert_eq!(lexer.tokens[2].kind, TokenKind::NumericLiteral(1000.0));
+    assert_eq!(lexer.tokens[2].kind, TokenKind::numeric_literal(1000.0));
 }
 
 #[test]
 fn test_addition_no_spaces_e_number() {
     let mut lexer = Lexer::new("1e3+1e11");
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::NumericLiteral(1000.0));
+    assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1000.0));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Add));
     assert_eq!(
         lexer.tokens[2].kind,
-        TokenKind::NumericLiteral(100_000_000_000.0)
+        TokenKind::numeric_literal(100_000_000_000.0)
     );
 }

@@ -15,7 +15,7 @@ fn check_do_while() {
             Node::Block(vec![Node::bin_op(
                 BinOp::Assign(AssignOp::Add),
                 Node::local("a"),
-                Node::const_node(1.0),
+                Node::const_node(1),
             )]),
             Node::const_node(true),
         )],
@@ -29,7 +29,7 @@ fn check_do_while_semicolon_insertion() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
         &[
-            Node::VarDecl(vec![(String::from("i"), Some(Node::const_node(0.0)))]),
+            Node::VarDecl(vec![(String::from("i"), Some(Node::const_node(0)))]),
             Node::do_while_loop(
                 Node::Block(vec![Node::call(
                     Node::get_const_field(Node::local("console"), "log"),
@@ -38,7 +38,7 @@ fn check_do_while_semicolon_insertion() {
                 Node::bin_op(
                     BinOp::Comp(CompOp::LessThan),
                     Node::unary_op(UnaryOp::IncrementPost, Node::local("i")),
-                    Node::const_node(10.0),
+                    Node::const_node(10),
                 ),
             ),
             Node::call(
