@@ -1716,10 +1716,10 @@ impl<'a> Parser<'a> {
         )?;
         let body = self.read_block()?;
 
-        return Ok(PropertyDefinition::MethodDefinition(
+        Ok(PropertyDefinition::MethodDefinition(
             methodkind,
             prop_name,
             Node::FunctionDecl(None, params, Box::new(body)),
-        ));
+        ))
     }
 }
