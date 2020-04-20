@@ -1637,7 +1637,7 @@ impl<'a> Parser<'a> {
         Ok(Node::Object(elements))
     }
 
-    fn get_object_propert_name(&mut self) -> Result<String, ParseError> {
+    fn get_object_property_name(&mut self) -> Result<String, ParseError> {
         let to_string = |token: &Token| match &token.kind {
             TokenKind::Identifier(name) => name.clone(),
             TokenKind::NumericLiteral(n) => format!("{}", n),
@@ -1659,7 +1659,7 @@ impl<'a> Parser<'a> {
             return Ok(PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = self.get_object_propert_name()?;
+        let prop_name = self.get_object_property_name()?;
         if self
             .next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Colon))
             .is_some()
@@ -1695,7 +1695,7 @@ impl<'a> Parser<'a> {
     ) -> Result<PropertyDefinition, ParseError> {
         let (methodkind, prop_name) = match identifier {
             "get" | "set" => {
-                let prop_name = self.get_object_propert_name()?;
+                let prop_name = self.get_object_property_name()?;
                 self.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     Some("property method definition"),
