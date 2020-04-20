@@ -1599,7 +1599,6 @@ impl<'a> Parser<'a> {
     fn read_object_literal(&mut self) -> ParseResult {
         let mut elements = Vec::new();
 
-        // let mut count = 0;
         loop {
             if self
                 .next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::CloseBlock))
