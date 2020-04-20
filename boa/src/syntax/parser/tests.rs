@@ -119,7 +119,6 @@ fn check_object_short_function_arguments() {
 
 #[test]
 fn check_object_getter() {
-    // Testing short function syntax
     let object_properties = vec![
         PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
         PropertyDefinition::MethodDefinition(
@@ -144,7 +143,6 @@ fn check_object_getter() {
 
 #[test]
 fn check_object_setter() {
-    // Testing short function syntax
     let object_properties = vec![
         PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
         PropertyDefinition::MethodDefinition(

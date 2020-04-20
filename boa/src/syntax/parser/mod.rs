@@ -1693,23 +1693,36 @@ impl<'a> Parser<'a> {
         &mut self,
         identifier: &str,
     ) -> Result<PropertyDefinition, ParseError> {
-        let (methodkind, prop_name) = match identifier {
+        let (methodkind, prop_name, params) = match identifier {
             "get" | "set" => {
                 let prop_name = self.get_object_property_name()?;
                 self.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     Some("property method definition"),
                 )?;
+                let params = self.read_formal_parameters()?;
                 if identifier == "get" {
-                    (MethodDefinitionKind::Get, prop_name)
+                    if !params.is_empty() {
+                        return Err(ParseError::AbruptEnd);
+                    }
+                    (MethodDefinitionKind::Get, prop_name, params)
                 } else {
-                    (MethodDefinitionKind::Set, prop_name)
+                    if params.len() != 1 {
+                        return Err(ParseError::AbruptEnd);
+                    }
+                    (MethodDefinitionKind::Set, prop_name, params)
                 }
             }
-            prop_name => (MethodDefinitionKind::Ordinary, prop_name.to_string()),
+            prop_name => {
+                let params = self.read_formal_parameters()?;
+                (
+                    MethodDefinitionKind::Ordinary,
+                    prop_name.to_string(),
+                    params,
+                )
+            }
         };
 
-        let params = self.read_formal_parameters()?;
         self.expect(
             TokenKind::Punctuator(Punctuator::OpenBlock),
             Some("property method definition"),
