@@ -116,6 +116,61 @@ fn check_object_short_function_arguments() {
         )])],
     );
 }
+
+#[test]
+fn check_object_getter() {
+    // Testing short function syntax
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::MethodDefinition(
+            MethodDefinitionKind::Get,
+            String::from("b"),
+            Node::FunctionDecl(None, Vec::new(), Box::new(Node::StatementList(Vec::new()))),
+        ),
+    ];
+
+    check_parser(
+        "const x = {
+            a: true,
+            get b() {}
+        };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
+    );
+}
+
+#[test]
+fn check_object_setter() {
+    // Testing short function syntax
+    let object_properties = vec![
+        PropertyDefinition::Property(String::from("a"), Node::Const(Const::Bool(true))),
+        PropertyDefinition::MethodDefinition(
+            MethodDefinitionKind::Set,
+            String::from("b"),
+            Node::FunctionDecl(
+                None,
+                vec![FormalParameter::new(String::from("test"), None, false)],
+                Box::new(Node::StatementList(Vec::new())),
+            ),
+        ),
+    ];
+
+    check_parser(
+        "const x = {
+            a: true,
+            set b(test) {}
+        };
+        ",
+        &[Node::ConstDecl(vec![(
+            String::from("x"),
+            Node::Object(object_properties),
+        )])],
+    );
+}
+
 #[test]
 fn check_array() {
     use crate::syntax::ast::constant::Const;
