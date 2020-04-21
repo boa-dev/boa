@@ -52,8 +52,7 @@ pub fn logger(msg: LogMessage, console_state: &ConsoleState) {
 
     match msg {
         LogMessage::Error(msg) => {
-            eprint!("{}", " ".repeat(indent));
-            eprintln!("{}", msg);
+            eprintln!("{:>width$}", msg, width = indent);
         }
         LogMessage::Log(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
             print!("{}", " ".repeat(indent));
