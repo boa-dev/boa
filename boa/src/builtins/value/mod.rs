@@ -767,7 +767,7 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
 }
 
 /// A helper function for specifically printing object values
-pub fn display_obj(v: &ValueData, print_internals: bool) -> String {
+pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
     // A simple helper for getting the address of a value
     // TODO: Find a more general place for this, as it can be used in other situations as well
     fn address_of<T>(t: &T) -> usize {
