@@ -1637,17 +1637,20 @@ impl<'a> Parser<'a> {
         Ok(Node::Object(elements))
     }
 
+    fn get_object_property_name(&mut self) -> Result<String, ParseError> {
+        let to_string = |token: &Token| match &token.kind {
+            TokenKind::Identifier(name) => name.clone(),
+            TokenKind::NumericLiteral(n) => format!("{}", n),
+            TokenKind::StringLiteral(s) => s.clone(),
+            _ => unimplemented!("{:?}", token.kind),
+        };
+        self.next_skip_lineterminator()
+            .map(to_string)
+            .ok_or(ParseError::AbruptEnd)
+    }
+
     /// <https://tc39.es/ecma262/#prod-PropertyDefinition>
     fn read_property_definition(&mut self) -> Result<PropertyDefinition, ParseError> {
-        fn to_string(kind: &TokenKind) -> String {
-            match kind {
-                TokenKind::Identifier(name) => name.clone(),
-                TokenKind::NumericLiteral(n) => format!("{}", n),
-                TokenKind::StringLiteral(s) => s.clone(),
-                _ => unimplemented!("{:?}", kind),
-            }
-        }
-
         if self
             .next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Spread))
             .is_some()
@@ -1656,11 +1659,7 @@ impl<'a> Parser<'a> {
             return Ok(PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = self
-            .next_skip_lineterminator()
-            .map(|tok| to_string(&tok.kind))
-            .ok_or(ParseError::AbruptEnd)?;
-
+        let prop_name = self.get_object_property_name()?;
         if self
             .next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::Colon))
             .is_some()
@@ -1669,54 +1668,14 @@ impl<'a> Parser<'a> {
             return Ok(PropertyDefinition::Property(prop_name, val));
         }
 
-        // TODO: Split into separate function: read_property_method_definition
         if self
             .next_if_skip_lineterminator(TokenKind::Punctuator(Punctuator::OpenParen))
             .is_some()
+            || ["get", "set"].contains(&prop_name.as_str())
         {
-            let params = self.read_formal_parameters()?;
-
-            self.expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                Some("property method definition"),
-            )?;
-
-            let body = self.read_block()?;
-
-            return Ok(PropertyDefinition::MethodDefinition(
-                MethodDefinitionKind::Ordinary,
-                prop_name,
-                Node::FunctionDecl(None, params, Box::new(body)),
-            ));
+            let method_identifer = prop_name;
+            return self.read_property_method_definition(method_identifer.as_str());
         }
-
-        // TODO need to revisit this
-        // if let TokenKind::Identifier(name) = tok.kind {
-        //     if name == "get" || name == "set" {
-        //         let may_identifier = self.peek_skip_lineterminator();
-        //         if may_identifier.is_some()
-        //             && matches!(may_identifier.unwrap().kind, TokenKind::Identifier(_))
-        //         {
-        //             let f = self.read_function_expression()?;
-        //             let func_name = if let NodeBase::FunctionExpr(ref name, _, _) = f.base {
-        //                 name.clone().unwrap()
-        //             } else {
-        //                 panic!()
-        //             };
-        //             return Ok(PropertyDefinition::MethodDefinition(
-        //                 if name == "get" {
-        //                     MethodDefinitionKind::Get
-        //                 } else {
-        //                     MethodDefinitionKind::Set
-        //                 },
-        //                 func_name,
-        //                 f,
-        //             ));
-        //         }
-        //     }
-
-        //     return Ok(PropertyDefinition::IdentifierReference(name));
-        // }
 
         let pos = self
             .cursor
@@ -1726,6 +1685,64 @@ impl<'a> Parser<'a> {
         Err(ParseError::General(
             "expected property definition",
             Some(pos),
+        ))
+    }
+
+    /// <https://tc39.es/ecma262/#prod-MethodDefinition>
+    fn read_property_method_definition(
+        &mut self,
+        identifier: &str,
+    ) -> Result<PropertyDefinition, ParseError> {
+        let (methodkind, prop_name, params) = match identifier {
+            "get" | "set" => {
+                let prop_name = self.get_object_property_name()?;
+                self.expect(
+                    TokenKind::Punctuator(Punctuator::OpenParen),
+                    Some("property method definition"),
+                )?;
+                let first_param = self
+                    .peek_skip_lineterminator()
+                    .expect("current token disappeared")
+                    .clone();
+                let params = self.read_formal_parameters()?;
+                if identifier == "get" {
+                    if !params.is_empty() {
+                        return Err(ParseError::Unexpected(
+                            first_param,
+                            Some("getter functions must have no arguments"),
+                        ));
+                    }
+                    (MethodDefinitionKind::Get, prop_name, params)
+                } else {
+                    if params.len() != 1 {
+                        return Err(ParseError::Unexpected(
+                            first_param,
+                            Some("setter functions must have one argument"),
+                        ));
+                    }
+                    (MethodDefinitionKind::Set, prop_name, params)
+                }
+            }
+            prop_name => {
+                let params = self.read_formal_parameters()?;
+                (
+                    MethodDefinitionKind::Ordinary,
+                    prop_name.to_string(),
+                    params,
+                )
+            }
+        };
+
+        self.expect(
+            TokenKind::Punctuator(Punctuator::OpenBlock),
+            Some("property method definition"),
+        )?;
+        let body = self.read_block()?;
+
+        Ok(PropertyDefinition::MethodDefinition(
+            methodkind,
+            prop_name,
+            Node::FunctionDecl(None, params, Box::new(body)),
         ))
     }
 }
