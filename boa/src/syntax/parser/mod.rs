@@ -1700,15 +1700,25 @@ impl<'a> Parser<'a> {
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     Some("property method definition"),
                 )?;
+                let first_param = self
+                    .peek_skip_lineterminator()
+                    .expect("current token disappeared")
+                    .clone();
                 let params = self.read_formal_parameters()?;
                 if identifier == "get" {
                     if !params.is_empty() {
-                        return Err(ParseError::AbruptEnd);
+                        return Err(ParseError::Unexpected(
+                            first_param,
+                            Some("getter functions must have no arguments"),
+                        ));
                     }
                     (MethodDefinitionKind::Get, prop_name, params)
                 } else {
                     if params.len() != 1 {
-                        return Err(ParseError::AbruptEnd);
+                        return Err(ParseError::Unexpected(
+                            first_param,
+                            Some("setter functions must have one argument"),
+                        ));
                     }
                     (MethodDefinitionKind::Set, prop_name, params)
                 }
