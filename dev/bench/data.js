@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1587765640857,
+  "lastUpdate": 1587765680792,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -4449,6 +4449,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.094,
             "range": "+/- 0.143",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "radek@krahl.pl",
+            "name": "Radek Krahl",
+            "username": "ptasz3k"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7abb94abf5fbfa2359e3a96144f68ac0f03123f4",
+          "message": "console functions (#315)\n\n* Exec do..while tests.\n\n* Parser do..while test.\n\n* Do..while loop parser and exec implementation\n\n* rustfmt fixes\n\n* Update boa/src/exec/mod.rs\n\nCo-Authored-By: HalidOdat <halidodat@gmail.com>\n\n* Use expect(), make expect() skip newlines\n\n* rustmf fixes\n\n* Revert \"Use expect(), make expect() skip newlines\"\n\nThis reverts commit 517c4d0e065a3cd959e4aae65cc143c2a1019f1c.\n\n* Cargo Test Build task and Debug Test (Windows) launcher\n\n* First attempt at console.assert implementation. Tests are just for\ndebugging. Run `cargo test console_assert -- --nocapture` to see stderror\nmessages.\n\n* Refactoring - remove unnecessary map, variable rename.\n\n* Update boa/src/builtins/console.rs\r\n\r\nchanges from HalidOdat\n\nCo-Authored-By: HalidOdat <halidodat@gmail.com>\n\n* Documentation fixes\n\n* Remove space from documentation comment\n\n* Update boa/src/builtins/console.rs\r\n\r\nSimplify message printing.\n\nCo-Authored-By: Iban Eguia <razican@protonmail.ch>\n\n* Update boa/src/builtins/console.rs\r\n\r\nImprove docs.\n\nCo-Authored-By: Iban Eguia <razican@protonmail.ch>\n\n* Update boa/src/builtins/console.rs\r\n\r\nImprove getting of assertion result.\n\nCo-Authored-By: Iban Eguia <razican@protonmail.ch>\n\n* rustfmt\n\n* console.count() and console.countReset() implementation\n\n* Console state as native rust type, temporarily placed in Realm.\n\n* console.time[,Log,End] methods implementation\n\n* ConsoleState as internal state in console object.\n\n* Fix merge mess\n\n* Formatter function, get_arg_at_index moved out to function\n\n* Fix merge mess, pt. 2\n\n* console.group* functions\n\n* Moved console code to its own subdirectory, formatter tests, fixed utf-8\nhandling.\n\n* Most functions implemented.\n\n* Basic logger and logLevel implementation\n\n* console.group uses logger\n\n* console.dir (and at the same time dirxml) implementation\n\n* Make builtins::value::display_obj(...) public\n\n* Update boa/src/builtins/console/mod.rs\n\nCo-Authored-By: HalidOdat <halidodat@gmail.com>\n\n* Update boa/src/builtins/console/mod.rs\n\nCo-Authored-By: HalidOdat <halidodat@gmail.com>\n\n* Update boa/src/builtins/value/mod.rs\n\nCo-Authored-By: Iban Eguia <razican@protonmail.ch>\n\nCo-authored-by: HalidOdat <halidodat@gmail.com>\nCo-authored-by: Iban Eguia <razican@protonmail.ch>",
+          "timestamp": "2020-04-24T23:52:45+02:00",
+          "tree_id": "d1a61b05c80159275baf8fb7ce1ab4aec89a2227",
+          "url": "https://github.com/jasonwilliams/boa/commit/7abb94abf5fbfa2359e3a96144f68ac0f03123f4"
+        },
+        "date": 1587765678673,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 398.91,
+            "range": "+/- 6.810",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 419.99,
+            "range": "+/- 7.030",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 418.75,
+            "range": "+/- 6.850",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 4.0649,
+            "range": "+/- 0.062",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.2745,
+            "range": "+/- 0.057",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 993.1,
+            "range": "+/- -983.458",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.4571,
+            "range": "+/- 0.188",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.2158,
+            "range": "+/- 0.127",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.3019,
+            "range": "+/- 0.060",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.207,
+            "range": "+/- 0.227",
             "unit": "us"
           }
         ]
