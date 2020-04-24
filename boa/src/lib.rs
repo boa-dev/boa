@@ -1,3 +1,9 @@
+//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
+
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"
+)]
 #![deny(
     unused_qualifications,
     clippy::all,
