@@ -21,7 +21,6 @@ pub mod function;
 pub mod json;
 pub mod math;
 pub mod number;
-/// The global `Object` object
 pub mod object;
 pub mod property;
 pub mod regexp;

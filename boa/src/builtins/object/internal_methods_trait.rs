@@ -1,3 +1,10 @@
+//! This module defines the `ObjectInternalMethods` trait.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
+
 use crate::builtins::{
     object::{Object, PROTOTYPE},
     property::Property,
@@ -7,12 +14,22 @@ use gc::Gc;
 use std::borrow::Borrow;
 use std::ops::Deref;
 
-/// Here lies the internal methods for ordinary objects.   
-/// Most objects make use of these methods, including exotic objects like functions.   
+/// Here lies the internal methods for ordinary objects.
+///
+/// Most objects make use of these methods, including exotic objects like functions.
 /// So thats why this is a trait
-/// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 pub trait ObjectInternalMethods {
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+    /// Check if has property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
     fn has_property(&self, val: &Value) -> bool {
         debug_assert!(Property::is_property_key(val));
         let prop = self.get_own_property(val);
@@ -32,7 +49,12 @@ pub trait ObjectInternalMethods {
         true
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
+    /// Check if it is extensible.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
     fn is_extensible(&self) -> bool {
         let val = self.get_internal_slot("extensible");
         match *val.deref().borrow() {
@@ -41,13 +63,18 @@ pub trait ObjectInternalMethods {
         }
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
+    /// Disable extensibility.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     fn prevent_extensions(&mut self) -> bool {
         self.set_internal_slot("extensible", to_value(false));
         true
     }
 
-    // [[Delete]]
+    /// Delete property.
     fn delete(&mut self, prop_key: &Value) -> bool {
         debug_assert!(Property::is_property_key(prop_key));
         let desc = self.get_own_property(prop_key);
@@ -102,7 +129,7 @@ pub trait ObjectInternalMethods {
         Gc::new(ValueData::Undefined)
     }
 
-    /// [[Set]]   
+    /// [[Set]]
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
     fn set(&mut self, field: Value, val: Value) -> bool {
         // [1]
