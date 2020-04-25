@@ -40,7 +40,7 @@ jobs:
       - name: Upload documentation
         uses: crazy-max/ghaction-github-pages@v1
         with:
-          target_branch: gh-pages-test
+          target_branch: gh-pages
           keep_history: true
           build_dir: target/doc_upload
         env:
