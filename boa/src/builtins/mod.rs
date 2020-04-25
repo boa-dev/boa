@@ -26,7 +26,6 @@ pub mod object;
 pub mod property;
 pub mod regexp;
 pub mod string;
-/// the global `Symbol` Object
 pub mod symbol;
 /// Javascript values, utility methods and conversion between Javascript values and Rust values
 pub mod value;

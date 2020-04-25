@@ -1,3 +1,20 @@
+//! This module implements the global `Symbol` object.
+//!
+//! The data type symbol is a primitive data type.
+//! The `Symbol()` function returns a value of type symbol, has static properties that expose
+//! several members of built-in objects, has static methods that expose the global symbol registry,
+//! and resembles a built-in object class, but is incomplete as a constructor because it does not
+//! support the syntax "`new Symbol()`".
+//!
+//! Every symbol value returned from `Symbol()` is unique.
+//!
+//! More information:
+//! - [MDN documentation][mdn]
+//! - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-symbol-value
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
+
 #[cfg(test)]
 mod tests;
 
@@ -14,12 +31,16 @@ use crate::{
 use gc::{Gc, GcCell};
 use rand::random;
 
-/// https://tc39.es/ecma262/#sec-symbol-description
 /// Creates Symbol instances.
 ///
 /// Symbol instances are ordinary objects that inherit properties from the Symbol prototype object.
-/// Symbol instances have a [[SymbolData]] internal slot.
-/// The [[SymbolData]] internal slot is the Symbol value represented by this Symbol object.
+/// Symbol instances have a `[[SymbolData]]` internal slot.
+/// The `[[SymbolData]]` internal slot is the Symbol value represented by this Symbol object.
+///
+/// More information:
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-symbol-description
 pub fn call_symbol(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // From an implementation and specificaition perspective Symbols are similar to Objects.
     // They have internal slots to hold the SymbolData and Description, they also have methods and a prototype.
@@ -48,14 +69,32 @@ pub fn call_symbol(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     Ok(Gc::new(ValueData::Symbol(GcCell::new(sym_instance))))
 }
 
-/// <https://tc39.es/ecma262/#sec-symbol.prototype.tostring>
+/// `Symbol.prototype.toString()`
+///
+/// This method returns a string representing the specified `Symbol` object.
+///
+/// /// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let s: Value = this.get_internal_slot("Description");
     let full_string = format!(r#"Symbol({})"#, s.to_string());
     Ok(to_value(full_string))
 }
 
-/// <https://tc39.es/ecma262/#sec-symbol-constructor>
+/// The `Symbol()` constructor returns a value of type **symbol**.
+///
+/// It is incomplete as a constructor because it does not support the syntax "`new Symbol()`".
+///
+/// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-symbol-constructor
+/// [mdn]:
 pub fn create_constructor(global: &Value) -> Value {
     // Create Symbol constructor (or function in Symbol's case)
     let mut symbol_constructor = Object::default();
