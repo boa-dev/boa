@@ -19,7 +19,9 @@ use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
 use crate::exec::Interpreter;
 use serde_json::{self, Value as JSONValue};
 
-/// The `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.
+/// `JSON.parse( text[, reviver] )`
+///
+/// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.
 ///
 /// An optional `reviver` function can be provided to perform a transformation on the resulting object before it is returned.
 ///
@@ -43,7 +45,9 @@ pub fn parse(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     }
 }
 
-/// The `JSON` method converts a JavaScript object or value to a JSON string.
+/// `JSON.stringify( value[, replacer[, space]] )`
+///
+/// This `JSON` method converts a JavaScript object or value to a JSON string.
 ///
 /// This medhod optionally replaces values if a `replacer` function is specified or
 /// optionally including only the specified properties if a replacer array is specified.

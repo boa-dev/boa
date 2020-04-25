@@ -1,3 +1,14 @@
+//! This module implements the global `RegExp` object.
+//!
+//! `The `RegExp` object is used for matching text with a pattern.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
+
 use std::ops::Deref;
 
 use gc::Gc;
@@ -13,30 +24,40 @@ use crate::{
     exec::Interpreter,
 };
 
+/// The internal representation on a `RegExp` object.
 #[derive(Debug)]
 struct RegExp {
     /// Regex matcher.
     matcher: Regex,
+
     /// Update last_index, set if global or sticky flags are set.
     use_last_index: bool,
+
     /// String of parsed flags.
     flags: String,
+
     /// Flag 's' - dot matches newline characters.
     dot_all: bool,
+
     /// Flag 'g'
     global: bool,
+
     /// Flag 'i' - ignore case.
     ignore_case: bool,
+
     /// Flag 'm' - '^' and '$' match beginning/end of line.
     multiline: bool,
+
     /// Flag 'y'
     sticky: bool,
+
     /// Flag 'u' - Unicode.
     unicode: bool,
 }
 
 impl InternalState for RegExp {}
 
+/// Helper function for getting an argument.
 fn get_argument<T: FromValue>(args: &[Value], idx: usize) -> Result<T, Value> {
     match args.get(idx) {
         Some(arg) => from_value(arg.clone()).map_err(to_value),
@@ -150,43 +171,138 @@ pub fn make_regexp(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
     Ok(this.clone())
 }
 
+/// `RegExp.prototype.dotAll`
+///
+/// The `dotAll` property indicates whether or not the "`s`" flag is used with the regular expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
 fn get_dot_all(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.dot_all)))
 }
 
+/// `RegExp.prototype.flags`
+///
+/// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
+/// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
 fn get_flags(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.flags.clone())))
 }
 
+/// `RegExp.prototype.global`
+///
+/// The `global` property indicates whether or not the "`g`" flag is used with the regular expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
 fn get_global(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.global)))
 }
 
+/// `RegExp.prototype.ignoreCase`
+///
+/// The `ignoreCase` property indicates whether or not the "`i`" flag is used with the regular expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
 fn get_ignore_case(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.ignore_case)))
 }
 
+/// `RegExp.prototype.multiline`
+///
+/// The multiline property indicates whether or not the "m" flag is used with the regular expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
 fn get_multiline(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.multiline)))
 }
 
+/// `RegExp.prototype.source`
+///
+/// The `source` property returns a `String` containing the source text of the regexp object,
+/// and it doesn't contain the two forward slashes on both sides and any flags.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
 fn get_source(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(this.get_internal_slot("OriginalSource"))
 }
 
+/// `RegExp.prototype.sticky`
+///
+/// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
 fn get_sticky(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.sticky)))
 }
 
+/// `RegExp.prototype.unicode`
+///
+/// The unicode property indicates whether or not the "`u`" flag is used with a regular expression.
+/// unicode is a read-only property of an individual regular expression instance.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
 fn get_unicode(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.unicode)))
 }
 
+/// Helper function.
 fn _make_prop(getter: NativeFunctionData) -> Property {
     Property::default().get(to_value(getter))
 }
 
-/// Search for a match between this regex and a specified string
+/// `RegExp.prototype.test( string )`
+///
+/// The `test()` method executes a search for a match between a regular expression and a specified string.
+///
+/// Returns `true` or `false`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
 pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
     let mut last_index =
@@ -209,7 +325,18 @@ pub fn test(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     result
 }
 
-/// Search for a match between this regex and a specified string
+/// `RegExp.prototype.exec( string )`
+///
+/// The exec() method executes a search for a match in a specified string.
+///
+/// Returns a result array, or `null`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
 pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg_str = get_argument::<String>(args, 0)?;
     let mut last_index =
@@ -250,8 +377,16 @@ pub fn exec(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     result
 }
 
-/// RegExp.prototype[Symbol.match]
-/// Returns matches of the regular expression against a string
+/// `RegExp.prototype[ @@match ]( string )`
+///
+/// This method retrieves the matches when matching a string against a regular expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@match
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match
 pub fn r#match(this: &Value, arg: String, ctx: &mut Interpreter) -> ResultValue {
     let (matcher, flags) =
         this.with_internal_state_ref(|regex: &RegExp| (regex.matcher.clone(), regex.flags.clone()));
@@ -269,16 +404,33 @@ pub fn r#match(this: &Value, arg: String, ctx: &mut Interpreter) -> ResultValue 
     }
 }
 
-/// Return a string representing the regular expression
+/// `RegExp.prototype.toString()`
+///
+/// Return a string representing the regular expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let body = from_value::<String>(this.get_internal_slot("OriginalSource")).map_err(to_value)?;
     let flags = this.with_internal_state_ref(|regex: &RegExp| regex.flags.clone());
     Ok(to_value(format!("/{}/{}", body, flags)))
 }
 
-/// RegExp.prototype[Symbol.matchAll]
-/// Returns all matches of the regular expression against a string
-/// TODO: it's returning an array, it should return an iterator
+/// `RegExp.prototype[ @@matchAll ]( string )`
+///
+/// The `[@@matchAll]` method returns all matches of the regular expression against a string.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-regexp-prototype-matchall
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll
+// TODO: it's returning an array, it should return an iterator
 pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
     let matches: Vec<Value> = this.with_internal_state_ref(|regex: &RegExp| {
         let mut matches = Vec::new();
@@ -319,7 +471,7 @@ pub fn match_all(this: &Value, arg_str: String) -> ResultValue {
     Ok(result)
 }
 
-/// Create a new `RegExp` object
+/// Create a new `RegExp` object.
 pub fn create_constructor(global: &Value) -> Value {
     // Create constructor function
     let mut regexp_constructor = Object::default();

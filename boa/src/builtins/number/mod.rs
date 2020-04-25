@@ -117,7 +117,7 @@ pub fn to_fixed(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultV
 ///
 /// Note that while this technically conforms to the Ecma standard, it does no actual
 /// internationalization logic.
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
@@ -131,7 +131,7 @@ pub fn to_locale_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -
 }
 
 /// The `toPrecision()` method returns a string representing the Number object to the specified precision.
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
@@ -153,7 +153,7 @@ pub fn to_precision(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Res
 }
 
 /// The `toString()` method returns a string representing the specified Number object.
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
@@ -165,7 +165,7 @@ pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> Resul
 }
 
 /// The `valueOf()` method returns the wrapped primitive value of a Number object.
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]

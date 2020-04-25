@@ -48,8 +48,10 @@ pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
     Ok(array)
 }
 
-/// Utility function for creating array objects: `array_obj` can be any array with
-/// prototype already set (it will be wiped and recreated from `array_contents`)
+/// Utility function for creating array objects.
+///
+/// `array_obj` can be any array with prototype already set (it will be wiped and
+/// recreated from `array_contents`)
 pub fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
     let array_obj_ptr = array_obj.clone();
 
@@ -128,7 +130,7 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     Ok(this.clone())
 }
 
-/// Array.isArray ( arg )
+/// `Array.isArray( arg )`
 ///
 /// The isArray function takes one argument arg, and returns the Boolean value true
 /// if the argument is an object whose class internal property is "Array"; otherwise it returns false.
@@ -162,7 +164,7 @@ pub fn is_array(_this: &Value, args: &[Value], _interpreter: &mut Interpreter) -
     }
 }
 
-/// Array.prototype.concat(...arguments)
+/// `Array.prototype.concat(...arguments)`
 ///
 /// When the concat method is called with zero or more arguments, it returns an
 /// array containing the array elements of the object followed by the array
@@ -201,7 +203,7 @@ pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     construct_array(this, &new_values)
 }
 
-/// Array.prototype.push ( ...items )
+/// `Array.prototype.push( ...items )`
 ///
 /// The arguments are appended to the end of the array, in the order in which
 /// they appear. The new length of the array is returned as the result of the
@@ -218,7 +220,7 @@ pub fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(new_array.get_field_slice("length"))
 }
 
-/// Array.prototype.pop ( )
+/// `Array.prototype.pop()`
 ///
 /// The last element of the array is removed from the array and returned.
 ///
@@ -241,7 +243,7 @@ pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(pop_value)
 }
 
-/// Array.prototype.forEach ( callbackFn [ , thisArg ] )
+/// `Array.prototype.forEach( callbackFn [ , thisArg ] )`
 ///
 /// This method executes the provided callback function for each element in the array.
 ///
@@ -274,7 +276,7 @@ pub fn for_each(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> 
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// Array.prototype.join ( separator )
+/// `Array.prototype.join( separator )`
 ///
 /// The elements of the array are converted to Strings, and these Strings are
 /// then concatenated, separated by occurrences of the separator. If no
@@ -304,7 +306,7 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(elem_strs.join(&separator)))
 }
 
-/// Array.prototype.toString ( separator )
+/// `Array.prototype.toString( separator )`
 ///
 /// The toString function is intentionally generic; it does not require that
 /// its this value be an Array object. Therefore it can be transferred to
@@ -346,7 +348,7 @@ pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> Resul
     Ok(to_value(match_string))
 }
 
-/// Array.prototype.reverse ( )
+/// `Array.prototype.reverse()`
 ///
 /// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
@@ -387,7 +389,7 @@ pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(this.clone())
 }
 
-/// Array.prototype.shift ( )
+/// `Array.prototype.shift()`
 ///
 /// The first element of the array is removed from the array and returned.
 ///
@@ -428,7 +430,7 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(first)
 }
 
-/// Array.prototype.unshift ( ...items )
+/// `Array.prototype.unshift( ...items )`
 ///
 /// The arguments are prepended to the start of the array, such that their order
 /// within the array is the same as the order in which they appear in the
@@ -472,7 +474,7 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
     Ok(to_value(temp))
 }
 
-/// Array.prototype.every ( callback, [ thisArg ] )
+/// `Array.prototype.every( callback, [ thisArg ] )`
 ///
 /// The every method executes the provided callback function once for each
 /// element present in the array until it finds the one where callback returns
@@ -513,7 +515,7 @@ pub fn every(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     Ok(to_value(true))
 }
 
-/// Array.prototype.map ( callback, [ thisArg ] )
+/// `Array.prototype.map( callback, [ thisArg ] )`
 ///
 /// For each element in the array the callback function is called, and a new
 /// array is constructed from the return values of these calls.
@@ -554,7 +556,7 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
     construct_array(&new, &values)
 }
 
-/// Array.prototype.indexOf ( searchElement[, fromIndex ] )
+/// `Array.prototype.indexOf( searchElement[, fromIndex ] )`
 ///
 ///
 /// indexOf compares searchElement to the elements of the array, in ascending order,
@@ -610,7 +612,7 @@ pub fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     Ok(to_value(-1))
 }
 
-/// Array.prototype.lastIndexOf ( searchElement[, fromIndex ] )
+/// `Array.prototype.lastIndexOf( searchElement[, fromIndex ] )`
 ///
 ///
 /// lastIndexOf compares searchElement to the elements of the array in descending order
@@ -665,7 +667,7 @@ pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> Resul
     Ok(to_value(-1))
 }
 
-/// Array.prototype.find ( callback, [thisArg] )
+/// `Array.prototype.find( callback, [thisArg] )`
 ///
 /// The find method executes the callback function once for each index of the array
 /// until the callback returns a truthy value. If so, find immediately returns the value
@@ -701,7 +703,7 @@ pub fn find(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resu
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// Array.prototype.findIndex ( predicate [ , thisArg ] )
+/// `Array.prototype.findIndex( predicate [ , thisArg ] )`
 ///
 /// This method executes the provided predicate function for each element of the array.
 /// If the predicate function returns `true` for an element, this method returns the index of the element.
@@ -744,7 +746,7 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
     Ok(Gc::new(ValueData::Number(f64::from(-1))))
 }
 
-/// Array.prototype.fill ( value[, start[, end]] )
+/// `Array.prototype.fill( value[, start[, end]] )`
 ///
 /// The method fills (modifies) all the elements of an array from start index (default 0)
 /// to an end index (default array length) with a static value. It returns the modified array.
@@ -784,7 +786,7 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(this.clone())
 }
 
-/// Array.prototype.includes( valueToFind [, fromIndex] )
+/// `Array.prototype.includes( valueToFind [, fromIndex] )`
 ///
 /// Determines whether an array includes a certain value among its entries, returning `true` or `false` as appropriate.
 ///
@@ -814,7 +816,7 @@ pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> Resu
     Ok(to_value(false))
 }
 
-/// Array.prototype.slice ( [begin[, end]] )
+/// `Array.prototype.slice( [begin[, end]] )`
 ///
 /// The slice method takes two arguments, start and end, and returns an array containing the
 /// elements of the array from element start up to, but not including, element end (or through the
@@ -866,7 +868,7 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     Ok(new_array)
 }
 
-/// Array.prototype.filter ( callback, [ thisArg ] )
+/// `Array.prototype.filter( callback, [ thisArg ] )`
 ///
 /// For each element in the array the callback function is called, and a new
 /// array is constructed for every value whose callback returned a truthy value.

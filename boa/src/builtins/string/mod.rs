@@ -73,6 +73,8 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
     Ok(to_value(format!("{}", primitive_val)))
 }
 
+/// `String.prototype.charAt( index )`
+///
 /// The `String` object's `charAt()` method returns a new string consisting of the single UTF-16 code unit located at the specified offset into the string.
 ///
 /// Characters in a string are indexed from left to right. The index of the first character is `0`,
@@ -80,7 +82,7 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 /// If the `index` you supply is out of this range, JavaScript returns an empty string.
 ///
 /// If no index is provided to `charAt()`, the default is `0`.
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
@@ -117,6 +119,8 @@ pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     ))
 }
 
+/// `String.prototype.charCodeAt( index )`
+///
 /// The `charCodeAt()` method returns an integer between `0` and `65535` representing the UTF-16 code unit at the given index.
 ///
 /// Unicode code points range from `0` to `1114111` (`0x10FFFF`). The first 128 Unicode code points are a direct match of the ASCII character encoding.
@@ -157,12 +161,14 @@ pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     Ok(to_value(f64::from(utf16_val)))
 }
 
+/// `String.prototype.concat( str1[, ...strN] )`
+///
 /// The `concat()` method concatenates the string arguments to the calling string and returns a new string.
 ///
 /// Changes to the original string or the returned string don't affect the other.
-/// 
+///
 /// If the arguments are not of the type string, they are converted to string values before concatenating.
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
@@ -182,6 +188,8 @@ pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     Ok(to_value(new_str))
 }
 
+/// `String.prototype.repeat( count )`
+///
 /// The `repeat()` method constructs and returns a new string which contains the specified number of
 /// copies of the string on which it was called, concatenated together.
 ///
@@ -205,6 +213,8 @@ pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     Ok(to_value(primitive_val.repeat(repeat_times)))
 }
 
+/// `String.prototype.slice( beginIndex [, endIndex] )`
+///
 /// The `slice()` method extracts a section of a string and returns it as a new string, without modifying the original string.
 ///
 /// More information:
@@ -260,6 +270,8 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
     Ok(to_value(new_str))
 }
 
+/// `String.prototype.startWith( searchString[, position] )`
+///
 /// The `startsWith()` method determines whether a string begins with the characters of a specified string, returning `true` or `false` as appropriate.
 ///
 /// More information:
@@ -303,6 +315,8 @@ pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resul
     }
 }
 
+/// `String.prototype.endsWith( searchString[, length] )`
+///
 /// The `endsWith()` method determines whether a string ends with the characters of a specified string, returning `true` or `false` as appropriate.
 ///
 /// More information:
@@ -348,6 +362,8 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     }
 }
 
+/// `String.prototype.includes( searchString[, position] )`
+///
 /// The `includes()` method determines whether one string may be found within another string, returning `true` or `false` as appropriate.
 ///
 /// More information:
@@ -406,11 +422,13 @@ fn get_regex_string(value: &Value) -> String {
     }
 }
 
+/// `String.prototype.replace( regexp|substr, newSubstr|function )`
+///
 /// The `replace()` method returns a new string with some or all matches of a `pattern` replaced by a `replacement`.
 ///
 /// The `pattern` can be a string or a `RegExp`, and the `replacement` can be a string or a function to be called for each match.
 /// If `pattern` is a string, only the first occurrence will be replaced.
-/// 
+///
 /// The original string is left unchanged.
 ///
 /// More information:
@@ -509,6 +527,8 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     )))
 }
 
+/// `String.prototype.indexOf( searchValue[, fromIndex] )`
+///
 /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence of the specified value, starting the search at `fromIndex`.
 ///
 /// Returns -1 if the value is not found.
@@ -559,7 +579,9 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     Ok(to_value(-1))
 }
 
-//// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence of the specified value, searching backwards from `fromIndex`.
+/// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
+///
+/// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence of the specified value, searching backwards from `fromIndex`.
 ///
 /// Returns -1 if the value is not found.
 ///
@@ -610,6 +632,8 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     Ok(to_value(highest_index))
 }
 
+/// `String.prototype.match( regexp )`
+///
 /// The `match()` method retrieves the result of matching a **string** against a [`regular expression`][regex].
 ///
 /// More information:
@@ -624,7 +648,8 @@ pub fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     regexp_match(&re, ctx.value_to_rust_string(this), ctx)
 }
 
-/// Abstract method `StringPad`
+/// Abstract method `StringPad`.
+///
 /// Performs the actual string padding for padStart/End.
 /// <https://tc39.es/ecma262/#sec-stringpad/>
 fn string_pad(
@@ -664,6 +689,8 @@ fn string_pad(
     }
 }
 
+/// `String.prototype.padEnd( targetLength[, padString] )`
+///
 /// The `padEnd()` method pads the current string with a given string (repeated, if needed) so that the resulting string reaches a given length.
 ///
 /// The padding is applied from the end of the current string.
@@ -696,6 +723,8 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     string_pad(primitive_val, max_length, fill_string, false)
 }
 
+/// `String.prototype.padStart( targetLength [, padString] )`
+///
 /// The `padStart()` method pads the current string with another string (multiple times, if needed) until the resulting string reaches the given length.
 ///
 /// The padding is applied from the start of the current string.
@@ -728,6 +757,7 @@ pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     string_pad(primitive_val, max_length, fill_string, true)
 }
 
+/// Helper function to check if a `char` is trimmable.
 fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
@@ -746,6 +776,8 @@ fn is_trimmable_whitespace(c: char) -> bool {
     }
 }
 
+/// String.prototype.trim()
+///
 /// The `trim()` method removes whitespace from both ends of a string.
 ///
 /// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
@@ -761,6 +793,8 @@ pub fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
+/// `String.prototype.trimStart()`
+///
 /// The `trimStart()` method removes whitespace from the beginning of a string.
 ///
 /// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
@@ -778,6 +812,8 @@ pub fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultVal
     ))
 }
 
+/// String.prototype.trimEnd()
+///
 /// The `trimEnd()` method removes whitespace from the end of a string.
 ///
 /// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
@@ -793,6 +829,8 @@ pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 
+/// `String.prototype.toLowerCase()`
+///
 /// The `toLowerCase()` method returns the calling string value converted to lower case.
 ///
 /// More information:
@@ -810,6 +848,8 @@ pub fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultV
     Ok(to_value(this_str.to_lowercase()))
 }
 
+/// `String.prototype.toUpperCase()`
+///
 /// The `toUpperCase()` method returns the calling string value converted to uppercase.
 ///
 /// The value will be **converted** to a string if it isn't one
@@ -829,6 +869,8 @@ pub fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultV
     Ok(to_value(this_str.to_uppercase()))
 }
 
+/// `String.prototype.substring( indexStart[, indexEnd] )`
+///
 /// The `substring()` method returns the part of the `string` between the start and end indexes, or to the end of the string.
 ///
 /// More information:
@@ -877,6 +919,8 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     Ok(to_value(extracted_string))
 }
 
+/// `String.prototype.substr( start[, length] )`
+///
 /// The `substr()` method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.
 ///
 /// More information:
@@ -933,6 +977,8 @@ pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     }
 }
 
+/// String.prototype.valueOf()
+///
 /// The `valueOf()` method returns the primitive value of a `String` object.
 ///
 /// More information:
@@ -946,6 +992,8 @@ pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     to_string(this, args, ctx)
 }
 
+/// `String.prototype.matchAll( regexp )`
+///
 /// The `matchAll()` method returns an iterator of all results matching a string against a [`regular expression`][regex], including [capturing groups][cg].
 ///
 /// More information:
