@@ -16,7 +16,6 @@ macro_rules! make_builtin_fn {
 pub mod array;
 pub mod boolean;
 pub mod console;
-/// The global `Error` object
 pub mod error;
 pub mod function;
 pub mod json;
@@ -24,9 +23,7 @@ pub mod math;
 pub mod number;
 /// The global `Object` object
 pub mod object;
-/// Property, used by `Object`
 pub mod property;
-/// The global 'RegExp' object
 pub mod regexp;
 pub mod string;
 /// the global `Symbol` Object

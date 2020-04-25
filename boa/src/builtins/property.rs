@@ -1,11 +1,40 @@
+//! This module implements the Property Descriptor.
+//!
+//! The Property Descriptor type is used to explain the manipulation and reification of Object property attributes.
+//! Values of the Property Descriptor type are Records. Each field's name is an attribute name
+//! and its value is a corresponding attribute value as specified in [6.1.7.1][section].
+//! In addition, any field may be present or absent.
+//! The schema name used within this specification to tag literal descriptions of Property Descriptor records is “PropertyDescriptor”.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+//! [section]: https://tc39.es/ecma262/#sec-property-attributes
+
 use crate::builtins::value::{from_value, to_value, FromValue, ToValue, Value, ValueData};
 use gc_derive::{Finalize, Trace};
 
-/// A Javascript Property AKA The Property Descriptor   
-/// [[SPEC] - The Property Descriptor Specification Type](https://tc39.es/ecma262/#sec-property-descriptor-specification-type)   
-/// [[SPEC] - Default Attribute Values](https://tc39.es/ecma262/#table-4)
+/// This represents a Javascript Property AKA The Property Descriptor.
+///
+/// Property descriptors present in objects come in two main flavors:
+///  - data descriptors
+///  - accessor descriptors
+///
+/// A data descriptor is a property that has a value, which may or may not be writable.
+/// An accessor descriptor is a property described by a getter-setter pair of functions.
+/// A descriptor must be one of these two flavors; it cannot be both.
 ///
 /// Any field in a JavaScript Property may be present or absent.
+///
+/// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 #[derive(Trace, Finalize, Clone, Debug)]
 pub struct Property {
     /// If the type of this can be changed and this can be deleted
@@ -91,19 +120,32 @@ impl Property {
             && self.enumerable.is_none()
     }
 
-    /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].   
-    /// <https://tc39.es/ecma262/#sec-isaccessordescriptor>
+    /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor
     pub fn is_accessor_descriptor(&self) -> bool {
         self.get.is_some() || self.set.is_some()
     }
 
-    /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].   
-    /// https://tc39.es/ecma262/#sec-isdatadescriptor
+    /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor
     pub fn is_data_descriptor(&self) -> bool {
         self.value.is_some() || self.writable.is_some()
     }
 
-    /// https://tc39.es/ecma262/#sec-isgenericdescriptor
+    /// Check if a property is generic.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor
     pub fn is_generic_descriptor(&self) -> bool {
         !self.is_accessor_descriptor() && !self.is_data_descriptor()
     }
@@ -111,7 +153,11 @@ impl Property {
 
 impl Default for Property {
     /// Make a default property
-    /// https://tc39.es/ecma262/#table-default-attribute-values
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-default-attribute-values
     fn default() -> Self {
         Self {
             configurable: None,
