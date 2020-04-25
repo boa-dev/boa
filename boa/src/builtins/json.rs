@@ -1,8 +1,19 @@
-use crate::builtins::function::NativeFunctionData;
-//! The JSON Object
+//! This module implements the global `JSON` object.
 //!
-//! <https://tc39.es/ecma262/#sec-json-object>
+//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][json]
+//! and converting values to JSON. It can't be called or constructed, and aside from its
+//! two method properties, it has no interesting functionality of its own.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!  - [JSON specification][json]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-json
+//! [json]: https://www.json.org/json-en.html
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
+use crate::builtins::function::NativeFunctionData;
 use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
 use crate::exec::Interpreter;
 use serde_json::{self, Value as JSONValue};
@@ -21,6 +32,7 @@ pub fn parse(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         Err(err) => Err(to_value(err.to_string())),
     }
 }
+
 /// Process a Javascript object into a JSON string
 pub fn stringify(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("cannot get argument for JSON.stringify");
