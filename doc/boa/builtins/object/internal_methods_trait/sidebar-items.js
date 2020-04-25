@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["ObjectInternalMethods","Here lies the internal methods for ordinary objects.    Most objects make use of these methods, including exotic objects like functions.    So thats why this is a trait https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots"]]});

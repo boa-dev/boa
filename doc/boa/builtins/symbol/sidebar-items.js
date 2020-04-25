@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["call_symbol","https://tc39.es/ecma262/#sec-symbol-description Creates Symbol instances."],["create_constructor","https://tc39.es/ecma262/#sec-symbol-constructor"],["to_string","https://tc39.es/ecma262/#sec-symbol.prototype.tostring"]]});

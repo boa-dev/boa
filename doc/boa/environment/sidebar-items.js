@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["declarative_environment_record","Declarative Records"],["environment_record_trait","Environment Records"],["function_environment_record","Function Environment Records"],["global_environment_record","Global Environment Records"],["lexical_environment","Lexical Environment"],["object_environment_record","Object Records"]]});

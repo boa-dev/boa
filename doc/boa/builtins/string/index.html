@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `string` mod in crate `boa`."><meta name="keywords" content="rust, rustlang, rust-lang, string"><title>boa::builtins::string - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a><p class='location'>Module string</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../../index.html'>boa</a>::<wbr><a href='../index.html'>builtins</a></p><script>window.sidebarCurrent = {name: 'string', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../../src/boa/builtins/string/mod.rs.html#1-886' title='goto source code'>[src]</a></span><span class='in-band'>Module <a href='../../index.html'>boa</a>::<wbr><a href='../index.html'>builtins</a>::<wbr><a class="mod" href=''>string</a></span></h1><div class='docblock'><p>The global <code>String</code> object</p>
+</div><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table><tr class='module-item'><td><a class="fn" href="fn.call_string.html" title='boa::builtins::string::call_string fn'>call_string</a></td><td class='docblock-short'><p>Call new string [[Call]]
+https://tc39.es/ecma262/#sec-string-constructor-string-value</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.char_at.html" title='boa::builtins::string::char_at fn'>char_at</a></td><td class='docblock-short'><p>Returns a single element String containing the code unit at index pos within the String value
+resulting from converting this object to a String. If there is no element at that index, the
+result is the empty String. The result is a String value, not a String object.
+<a href="https://tc39.es/ecma262/#sec-string.prototype.charat">https://tc39.es/ecma262/#sec-string.prototype.charat</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.char_code_at.html" title='boa::builtins::string::char_code_at fn'>char_code_at</a></td><td class='docblock-short'><p>Returns a Number (a nonnegative integer less than 216) that is the numeric value of the code
+unit at index pos within the String resulting from converting this object to a String. If there
+is no element at that index, the result is NaN.
+<a href="https://tc39.es/ecma262/#sec-string.prototype.charcodeat">https://tc39.es/ecma262/#sec-string.prototype.charcodeat</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.concat.html" title='boa::builtins::string::concat fn'>concat</a></td><td class='docblock-short'><p>Returns a String that is the result of concatenating this String and all strings provided as
+arguments
+<a href="https://tc39.es/ecma262/#sec-string.prototype.concat">https://tc39.es/ecma262/#sec-string.prototype.concat</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.create_constructor.html" title='boa::builtins::string::create_constructor fn'>create_constructor</a></td><td class='docblock-short'><p>Create a new <code>String</code> object</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.ends_with.html" title='boa::builtins::string::ends_with fn'>ends_with</a></td><td class='docblock-short'><p>Returns a Boolean indicating whether the sequence of code units of the
+&quot;search string&quot;  is the same as the corresponding code units of this string
+starting at position &quot;end position&quot; - length
+<a href="https://tc39.es/ecma262/#sec-string.prototype.endswith">https://tc39.es/ecma262/#sec-string.prototype.endswith</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.get_regex_string.html" title='boa::builtins::string::get_regex_string fn'>get_regex_string</a></td><td class='docblock-short'><p>Return either the string itself or the string of the regex equivalent</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.includes.html" title='boa::builtins::string::includes fn'>includes</a></td><td class='docblock-short'><p>Returns a Boolean indicating whether searchString appears as a substring of
+the result of converting this object to a String, at one or more indices
+that are greater than or equal to position. If position is undefined, 0 is
+assumed, so as to search all of the String.
+<a href="https://tc39.es/ecma262/#sec-string.prototype.includes">https://tc39.es/ecma262/#sec-string.prototype.includes</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.index_of.html" title='boa::builtins::string::index_of fn'>index_of</a></td><td class='docblock-short'><p>If searchString appears as a substring of the result of converting this
+object to a String, at one or more indices that are greater than or equal to
+position, then the smallest such index is returned; otherwise, -1 is
+returned. If position is undefined, 0 is assumed, so as to search all of the
+String.
+<a href="https://tc39.es/ecma262/#sec-string.prototype.includes">https://tc39.es/ecma262/#sec-string.prototype.includes</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.init.html" title='boa::builtins::string::init fn'>init</a></td><td class='docblock-short'><p>Initialise the <code>String</code> object on the global object</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_trimmable_whitespace.html" title='boa::builtins::string::is_trimmable_whitespace fn'>is_trimmable_whitespace</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.last_index_of.html" title='boa::builtins::string::last_index_of fn'>last_index_of</a></td><td class='docblock-short'><p>object to a String at one or more indices that are smaller than or equal to
+position, then the greatest such index is returned; otherwise, -1 is
+returned. If position is undefined, the length of the String value is
+assumed, so as to search all of the String.
+<a href="https://tc39.es/ecma262/#sec-string.prototype.lastindexof">https://tc39.es/ecma262/#sec-string.prototype.lastindexof</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.make_string.html" title='boa::builtins::string::make_string fn'>make_string</a></td><td class='docblock-short'><p>Create new string [[Construct]]
+<a href="https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19">https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.match.html" title='boa::builtins::string::match fn'>match</a></td><td class='docblock-short'><p>Returns an array whose contents is all the results matching the regular expression, if the global (g) flag is present,
+in its absence, only the first complete match and its related capturing groups is returned,
+otherwise null is returned if no match is found.
+<a href="https://tc39.es/ecma262/#sec-string.prototype.match">https://tc39.es/ecma262/#sec-string.prototype.match</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.match_all.html" title='boa::builtins::string::match_all fn'>match_all</a></td><td class='docblock-short'><p>TODO: update this method to return iterator
+Returns an array* of all results matching a string against a regular expression, including capturing groups
+<a href="https://tc39.es/ecma262/#sec-string.prototype.matchall">https://tc39.es/ecma262/#sec-string.prototype.matchall</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.pad_end.html" title='boa::builtins::string::pad_end fn'>pad_end</a></td><td class='docblock-short'><p>String.prototype.padEnd ( maxLength [ , fillString ] )</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.pad_start.html" title='boa::builtins::string::pad_start fn'>pad_start</a></td><td class='docblock-short'><p>String.prototype.padStart ( maxLength [ , fillString ] )</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.repeat.html" title='boa::builtins::string::repeat fn'>repeat</a></td><td class='docblock-short'><p>Returns a String that is the result of repeating this String the number of times given by the
+first argument
+<a href="https://tc39.es/ecma262/#sec-string.prototype.repeat">https://tc39.es/ecma262/#sec-string.prototype.repeat</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.replace.html" title='boa::builtins::string::replace fn'>replace</a></td><td class='docblock-short'><p><a href="https://tc39.es/ecma262/#sec-string.prototype.replace">https://tc39.es/ecma262/#sec-string.prototype.replace</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.slice.html" title='boa::builtins::string::slice fn'>slice</a></td><td class='docblock-short'><p>Returns a String which contains the slice of the JS String from character at &quot;start&quot; index up
+to but not including character at &quot;end&quot; index
+<a href="https://tc39.es/ecma262/#sec-string.prototype.slice">https://tc39.es/ecma262/#sec-string.prototype.slice</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.starts_with.html" title='boa::builtins::string::starts_with fn'>starts_with</a></td><td class='docblock-short'><p>Returns a Boolean indicating whether the sequence of code units of the
+&quot;search string&quot; is the same as the corresponding code units of this string
+starting at index &quot;position&quot;
+<a href="https://tc39.es/ecma262/#sec-string.prototype.startswith">https://tc39.es/ecma262/#sec-string.prototype.startswith</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.string_pad.html" title='boa::builtins::string::string_pad fn'>string_pad</a></td><td class='docblock-short'><p>Abstract method <code>StringPad</code>
+Performs the actual string padding for padStart/End.
+<a href="https://tc39.es/ecma262/#sec-stringpad/">https://tc39.es/ecma262/#sec-stringpad/</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.substr.html" title='boa::builtins::string::substr fn'>substr</a></td><td class='docblock-short'><p>Return a String which is a subset of the String value resulting from converting this object to a String.
+The subset of the string starts at the start index and is at most length code units long, depending if the string is shorter.
+When only the start index is specified, the length become the length of the string.
+When the start index is negative, the start index become the number of code units from the end of the string.
+When no argument is specified, the returned String is the same as the original
+<a href="https://tc39.es/ecma262/#sec-string.prototype.substr">https://tc39.es/ecma262/#sec-string.prototype.substr</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.substring.html" title='boa::builtins::string::substring fn'>substring</a></td><td class='docblock-short'><p>Return a String which is a subset of the String value resulting from converting this object to a String.
+The subset of the string is contained between the start index and the end index.
+When both the start and end arguments are specified, the smaller one represent the index of the code unit
+from which the returned String will start and the larger one the index of the code unit just after the end.
+When only the start index is specified, the end index defaults to being the length of the string.
+When no argument is specified, the returned String is the same as the original
+<a href="https://tc39.es/ecma262/#sec-string.prototype.substring">https://tc39.es/ecma262/#sec-string.prototype.substring</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.to_lowercase.html" title='boa::builtins::string::to_lowercase fn'>to_lowercase</a></td><td class='docblock-short'><p>Return a String with every code point mapped to its corresponding lowercase equivalent.
+With the current implementation the string is always copied even if the resulting String is identical
+<a href="https://tc39.es/ecma262/#sec-string.prototype.tolowercase">https://tc39.es/ecma262/#sec-string.prototype.tolowercase</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.to_string.html" title='boa::builtins::string::to_string fn'>to_string</a></td><td class='docblock-short'><p>Get the string value to a primitive string</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.to_uppercase.html" title='boa::builtins::string::to_uppercase fn'>to_uppercase</a></td><td class='docblock-short'><p>Return a String with every code point mapped to its corresponding uppercase equivalent.
+With the current implementation the string is always copied even if the resulting String is identical
+<a href="https://tc39.es/ecma262/#sec-string.prototype.touppercase">https://tc39.es/ecma262/#sec-string.prototype.touppercase</a></p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.trim.html" title='boa::builtins::string::trim fn'>trim</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.trim_end.html" title='boa::builtins::string::trim_end fn'>trim_end</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.trim_start.html" title='boa::builtins::string::trim_start fn'>trim_start</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.value_of.html" title='boa::builtins::string::value_of fn'>value_of</a></td><td class='docblock-short'><p>Get the string value to a primitive string
+<a href="https://tc39.es/ecma262/#sec-string.prototype.valueof">https://tc39.es/ecma262/#sec-string.prototype.valueof</a></p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "boa";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script defer src="../../../search-index.js"></script></body></html>

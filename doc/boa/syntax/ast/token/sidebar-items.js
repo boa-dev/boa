@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["TokenKind","Represents the type of Token and the data it has inside."]],"struct":[["Token","Represents a token."],["VecToken",""]]});

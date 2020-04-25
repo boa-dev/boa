@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["MethodDefinitionKind",""],["Node","A Javascript AST Node."],["PropertyDefinition",""]],"fn":[["join_nodes","Utility to join multiple Nodes into a single string."]],"struct":[["FormalParameter","\"Formal parameter\" is a fancy way of saying \"function parameter\"."]],"type":[["FormalParameters",""]]});
