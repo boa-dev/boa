@@ -52,11 +52,7 @@ pub fn create_constructor(global: &Value) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-    	exec::Executor,
-    	forward,
-    	realm::Realm,
-    };
+    use crate::{exec::Executor, forward, realm::Realm};
 
     #[test]
     fn json_sanity() {
