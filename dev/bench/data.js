@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1587765680792,
+  "lastUpdate": 1587830170876,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -4533,6 +4533,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.207,
             "range": "+/- 0.227",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "iban.eguia@cern.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "19fcd2837dd583e38476f949a10b0ab5fc1cf3b9",
+          "message": "Fixing master build (#342)\n\n* Fixing master build\n\n* Using gh-pages as default branch",
+          "timestamp": "2020-04-25T17:45:53+02:00",
+          "tree_id": "d1651b62aa29d1e24899636838ef257e7fb43a66",
+          "url": "https://github.com/jasonwilliams/boa/commit/19fcd2837dd583e38476f949a10b0ab5fc1cf3b9"
+        },
+        "date": 1587830167380,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 372.82,
+            "range": "+/- 4.300",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 397.93,
+            "range": "+/- 4.720",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 380.29,
+            "range": "+/- 3.160",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 3.6521,
+            "range": "+/- 0.025",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.0997,
+            "range": "+/- 0.014",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 940.96,
+            "range": "+/- 8.410",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.2477,
+            "range": "+/- 0.070",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.9582,
+            "range": "+/- 0.091",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.1694,
+            "range": "+/- 0.020",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 12.997,
+            "range": "+/- 0.130",
             "unit": "us"
           }
         ]
