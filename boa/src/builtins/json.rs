@@ -1,6 +1,8 @@
 use crate::builtins::function::NativeFunctionData;
-/// The JSON Object
-/// <https://tc39.es/ecma262/#sec-json-object>
+//! The JSON Object
+//!
+//! <https://tc39.es/ecma262/#sec-json-object>
+
 use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
 use crate::exec::Interpreter;
 use serde_json::{self, Value as JSONValue};
