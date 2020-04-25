@@ -57,7 +57,7 @@ fn num_to_exponential(n: f64) -> String {
     }
 }
 
-/// Create a new number [[Construct]]
+/// Create a new number `[[Construct]]`
 pub fn make_number(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => to_number(value),
@@ -78,6 +78,8 @@ pub fn call_number(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Res
     Ok(data)
 }
 
+/// `Number.prototype.toExponential( [fractionDigits] )`
+///
 /// The `toExponential()` method returns a string representing the Number object in exponential notation.
 ///
 /// More information:
@@ -92,6 +94,8 @@ pub fn to_exponential(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> 
     Ok(to_value(this_str_num))
 }
 
+/// `Number.prototype.toFixed( [digits] )`
+///
 /// The `toFixed()` method formats a number using fixed-point notation
 ///
 /// More information:
@@ -113,6 +117,8 @@ pub fn to_fixed(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultV
     Ok(to_value(this_fixed_num))
 }
 
+/// `Number.prototype.toLocaleString( [locales [, options]] )`
+///
 /// The `toLocaleString()` method returns a string with a language-sensitive representation of this number.
 ///
 /// Note that while this technically conforms to the Ecma standard, it does no actual
@@ -130,6 +136,8 @@ pub fn to_locale_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -
     Ok(to_value(this_str_num))
 }
 
+/// `Number.prototype.toPrecision( [precision] )`
+///
 /// The `toPrecision()` method returns a string representing the Number object to the specified precision.
 ///
 /// More information:
@@ -152,6 +160,8 @@ pub fn to_precision(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Res
     unimplemented!("TODO: Implement toPrecision");
 }
 
+/// `Number.prototype.toString( [radix] )`
+///
 /// The `toString()` method returns a string representing the specified Number object.
 ///
 /// More information:
@@ -164,6 +174,8 @@ pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> Resul
     Ok(to_value(format!("{}", to_number(this).to_num())))
 }
 
+/// `Number.prototype.toString()`
+///
 /// The `valueOf()` method returns the wrapped primitive value of a Number object.
 ///
 /// More information:

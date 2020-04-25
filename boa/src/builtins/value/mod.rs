@@ -1,3 +1,7 @@
+//! This module implements the JavaScript Value.
+//!
+//! Javascript values, utility methods and conversion between Javascript values and Rust values.
+
 #[cfg(test)]
 mod tests;
 
@@ -24,7 +28,8 @@ use std::{
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
 pub type ResultValue = Result<Value, Value>;
-/// A Garbage-collected Javascript value as represented in the interpreter
+
+/// A Garbage-collected Javascript value as represented in the interpreter.
 pub type Value = Gc<ValueData>;
 
 pub fn undefined() -> Value {
@@ -80,8 +85,13 @@ impl ValueData {
         Gc::new(ValueData::Object(GcCell::new(obj)))
     }
 
-    /// This will tell us if we can exten an object or not, not properly implemented yet, for now always returns true
-    /// For scalar types it should be false, for objects check the private field for extensibilaty. By default true
+    /// This will tell us if we can exten an object or not, not properly implemented yet
+    ///
+    /// For now always returns true.
+    ///
+    /// For scalar types it should be false, for objects check the private field for extensibilaty.
+    /// By default true.
+    ///
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false/>
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/>
     pub fn is_extensible(&self) -> bool {
@@ -167,6 +177,7 @@ impl ValueData {
     }
 
     /// Returns true if the value is true
+    ///
     /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
     pub fn is_true(&self) -> bool {
         match *self {
@@ -217,6 +228,7 @@ impl ValueData {
     }
 
     /// remove_prop removes a property from a Value object.
+    ///
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
     pub fn remove_prop(&self, field: &str) {
         match *self {
@@ -230,8 +242,9 @@ impl ValueData {
         };
     }
 
-    /// Resolve the property in the object
-    /// Returns a copy of the Property
+    /// Resolve the property in the object.
+    ///
+    /// A copy of the Property is returned.
     pub fn get_prop(&self, field: &str) -> Option<Property> {
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
@@ -301,8 +314,9 @@ impl ValueData {
         }
     }
 
-    /// Resolve the property in the object
-    /// Returns a copy of the Property
+    /// Resolve the property in the object.
+    ///
+    /// Returns a copy of the Property.
     pub fn get_internal_slot(&self, field: &str) -> Value {
         let obj: Object = match *self {
             ValueData::Object(ref obj) => {
@@ -578,6 +592,7 @@ impl ValueData {
         }
     }
 
+    /// Conversts the `Value` to `JSON`.
     pub fn to_json(&self) -> JSONValue {
         match *self {
             ValueData::Null
@@ -603,6 +618,7 @@ impl ValueData {
     }
 
     /// Get the type of the value
+    ///
     /// https://tc39.es/ecma262/#sec-typeof-operator
     pub fn get_type(&self) -> &'static str {
         match *self {

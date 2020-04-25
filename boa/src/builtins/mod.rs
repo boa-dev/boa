@@ -1,6 +1,7 @@
 //! Builtins live here, such as Object, String, Math etc
 
-/// Macro to create a new member function of a prototype
+/// Macro to create a new member function of a prototype.
+///
 /// If no length is provided, the length will be set to 0.
 macro_rules! make_builtin_fn {
     ($fn:ident, named $name:expr, with length $l:tt, of $p:ident) => {
@@ -26,5 +27,4 @@ pub mod property;
 pub mod regexp;
 pub mod string;
 pub mod symbol;
-/// Javascript values, utility methods and conversion between Javascript values and Rust values
 pub mod value;
