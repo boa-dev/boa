@@ -22,7 +22,7 @@ pub fn parse(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Process a Javascript object into a JSON string
 pub fn stringify(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("cannot get argument for JSON.stringify");
-    let json: String = obj.to_json().to_string();
+    let json = obj.to_json().to_string();
     Ok(to_value(json))
 }
 
