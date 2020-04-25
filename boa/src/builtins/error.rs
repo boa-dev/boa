@@ -1,3 +1,15 @@
+//! This module implements the global `Error` object.
+//!
+//! Error objects are thrown when runtime errors occur.
+//! The Error object can also be used as a base object for user-defined exceptions.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-error-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+
 use crate::{
     builtins::{
         function::NativeFunctionData,
@@ -8,7 +20,7 @@ use crate::{
 };
 use gc::Gc;
 
-/// Create a new error
+/// Create a new error object.
 pub fn make_error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if !args.is_empty() {
         this.set_field_slice(
@@ -25,13 +37,24 @@ pub fn make_error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultVa
     this.set_kind(ObjectKind::Error);
     Ok(Gc::new(ValueData::Undefined))
 }
-/// Get the string representation of the error
+
+/// `Error.prototype.toString()`
+///
+/// The toString() method returns a string representing the specified Error object.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let name = this.get_field_slice("name");
     let message = this.get_field_slice("message");
     Ok(to_value(format!("{}: {}", name, message)))
 }
-/// Create a new `Error` object
+
+/// Create a new `Error` object.
 pub fn _create(global: &Value) -> Value {
     let prototype = ValueData::new_obj(Some(global));
     prototype.set_field_slice("message", to_value(""));
@@ -41,7 +64,8 @@ pub fn _create(global: &Value) -> Value {
     error.set_field_slice(PROTOTYPE, prototype);
     error
 }
-/// Initialise the global object with the `Error` object
+
+/// Initialise the global object with the `Error` object.
 pub fn init(global: &Value) {
     global.set_field_slice("Error", _create(global));
 }
