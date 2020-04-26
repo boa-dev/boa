@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1587830170876,
+  "lastUpdate": 1587884178876,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -4617,6 +4617,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 12.997,
             "range": "+/- 0.130",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "33094578+coolreader18@users.noreply.github.com",
+            "name": "Noah",
+            "username": "coolreader18"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "271e2b4da6563eebd8ee5469d643eb163adfa2df",
+          "message": "Put JSON functions on the object, not the prototype (#325)\n\n* Move JSON functions to the object, not the prototype\n\n* Fix Value.to_json and add JSON tests\n\n* Update boa/src/builtins/json.rs\n\n* Update boa/src/builtins/json.rs\n\n* Update boa/src/builtins/json.rs\n\n* Update json.rs\n\n* Fix fmt issues.\n\nCo-authored-by: Iban Eguia <razican@protonmail.ch>\nCo-authored-by: HalidOdat <halidodat@gmail.com>",
+          "timestamp": "2020-04-26T08:44:32+02:00",
+          "tree_id": "2763e01ad4374186428d0ad4cc6c725af62f9985",
+          "url": "https://github.com/jasonwilliams/boa/commit/271e2b4da6563eebd8ee5469d643eb163adfa2df"
+        },
+        "date": 1587884175673,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 334.01,
+            "range": "+/- 12.130",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 360.33,
+            "range": "+/- 11.020",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 368.93,
+            "range": "+/- 12.390",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 3.6156,
+            "range": "+/- 0.102",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.0059,
+            "range": "+/- 0.077",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 813.96,
+            "range": "+/- 21.670",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.5471,
+            "range": "+/- 0.124",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.2078,
+            "range": "+/- 0.121",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.8838,
+            "range": "+/- 0.063",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 11.901,
+            "range": "+/- 0.358",
             "unit": "us"
           }
         ]
