@@ -63,7 +63,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Operators
     BinOp(BinOp, Box<Node>, Box<Node>),
 
-    /// A **`block` statement** (or compound statement in other languages) is used to group zero or more statements.
+    /// A `block` statement (or compound statement in other languages) is used to group zero or more statements.
     ///
     /// The block statement is often called compound statement in other languages.
     /// It allows you to use multiple statements where JavaScript expects only one statement.
@@ -78,7 +78,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
     Block(Vec<Node>),
 
-    /// The **`break` statement** terminates the current loop, switch, or label statement and transfers program control to the statement following the terminated statement.
+    /// The `break` statement terminates the current loop, switch, or label statement and transfers program control to the statement following the terminated statement.
     ///
     /// The break statement includes an optional label that allows the program to break out of a labeled statement.
     /// The break statement needs to be nested within the referenced label. The labeled statement can be any block statement;
@@ -122,7 +122,7 @@ pub enum Node {
 
     /// Literals represent values in JavaScript.
     ///
-    /// These are fixed values **not variables** that you literally provide in your script.
+    /// These are fixed values not variables that you literally provide in your script.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -132,7 +132,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     Const(Const),
 
-    /// The **`const` statements** are block-scoped, much like variables defined using the `let` keyword.
+    /// The `const` statements are block-scoped, much like variables defined using the `let` keyword.
     ///
     /// This declaration creates a constant whose scope can be either global or local to the block in which it is declared.
     /// Global constants do not become properties of the window object, unlike var variables.
@@ -150,7 +150,7 @@ pub enum Node {
     /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
     ConstDecl(Vec<(String, Node)>),
 
-    /// The **`continue` statement** terminates execution of the statements in the current iteration of the current or labeled loop,
+    /// The `continue` statement terminates execution of the statements in the current iteration of the current or labeled loop,
     /// and continues execution of the loop with the next iteration.
     ///
     /// The continue statement can include an optional label that allows the program to jump to the next iteration of a labeled
@@ -164,7 +164,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
     Continue(Option<String>),
 
-    /// The **`do...while` statement** creates a loop that executes a specified statement until the test condition evaluates to false.
+    /// The `do...while` statement creates a loop that executes a specified statement until the test condition evaluates to false.
     ///
     /// The condition is evaluated after executing the statement, resulting in the specified statement executing at least once.
     ///
@@ -176,7 +176,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
     DoWhileLoop(Box<Node>, Box<Node>),
 
-    /// The **`function` declaration** (function statement) defines a function with the specified parameters.
+    /// The `function` declaration (function statement) defines a function with the specified parameters.
     ///
     /// A function created with a function declaration is a `Function` object and has all the properties, methods and behavior of `Function`.
     ///
@@ -192,7 +192,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
     FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
 
-    /// This property accessor provides access to an object's properties by using the **[dot notation][mdn]**.
+    /// This property accessor provides access to an object's properties by using the [dot notation][mdn].
     ///
     /// In the object.property syntax, the property must be a valid JavaScript identifier.
     /// (In the ECMAScript standard, the names of properties are technically "IdentifierNames", not "Identifiers",
@@ -213,7 +213,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation
     GetConstField(Box<Node>, String),
 
-    /// This property accessor provides access to an object's properties by using the **[bracket notation][mdn]**.
+    /// This property accessor provides access to an object's properties by using the [bracket notation][mdn].
     ///
     /// In the object[property_name] syntax, the property_name is just a string or [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a space).
     ///
@@ -233,7 +233,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
     GetField(Box<Node>, Box<Node>),
 
-    /// The **`for` statement** creates a loop that consists of three optional expressions.
+    /// The `for` statement creates a loop that consists of three optional expressions.
     ///
     /// A `for` loop repeats until a specified condition evaluates to `false`.
     /// The JavaScript for loop is similar to the Java and C for loop.
@@ -251,11 +251,11 @@ pub enum Node {
         Box<Node>,
     ),
 
-    /// The **`if` statement** executes a statement if a specified condition is [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement can be executed.
+    /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement can be executed.
     ///
     /// Multiple `if...else` statements can be nested to create an else if clause.
     ///
-    /// **Note** that there is no elseif (in one word) keyword in JavaScript.
+    /// Note that there is no elseif (in one word) keyword in JavaScript.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -268,7 +268,7 @@ pub enum Node {
     /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
     If(Box<Node>, Box<Node>, Option<Box<Node>>),
 
-    /// The **`let` statement** declares a block scope local variable, optionally initializing it to a value.
+    /// The `let` statement declares a block scope local variable, optionally initializing it to a value.
     ///
     ///
     /// `let` allows you to declare variables that are limited to a scope of a block statement, or expression on which
@@ -299,7 +299,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
     Local(String),
 
-    /// The **`new` operator** lets developers create an instance of a user-defined object type or of one of the built-in object types that has a constructor function.
+    /// The `new` operator lets developers create an instance of a user-defined object type or of one of the built-in object types that has a constructor function.
     ///
     /// The new keyword does the following things:
     ///  - Creates a blank, plain JavaScript object;
@@ -333,7 +333,7 @@ pub enum Node {
     /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
     Object(Vec<PropertyDefinition>),
 
-    /// The **`return` statement** ends function execution and specifies a value to be returned to the function caller.
+    /// The `return` statement ends function execution and specifies a value to be returned to the function caller.
     ///
     /// Syntax: `return [expression];`
     ///
@@ -351,7 +351,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return(Option<Box<Node>>),
 
-    /// The **`switch` statement evaluates** an expression, matching the expression's value to a case clause,
+    /// The `switch` statement evaluates an expression, matching the expression's value to a case clause,
     /// and executes statements associated with that case, as well as statements in cases that follow the matching case.
     ///
     /// A `switch` statement first evaluates its expression. It then looks for the first case clause whose expression evaluates
@@ -367,7 +367,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
     Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
 
-    /// The **`spread` operator** allows an iterable such as an array expression or string to be expanded.
+    /// The `spread` operator allows an iterable such as an array expression or string to be expanded.
     ///
     /// Syntax: `...x`
     ///
@@ -390,7 +390,7 @@ pub enum Node {
     /// [spec]: https://tc39.es/ecma262/#prod-StatementList
     StatementList(Vec<Node>),
 
-    /// The **`throw` statement** throws a user-defined exception.
+    /// The `throw` statement throws a user-defined exception.
     ///
     /// Syntax: `throw expression;`
     ///
@@ -406,7 +406,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
     Throw(Box<Node>),
 
-    /// The **`typeof` operator** returns a string indicating the type of the unevaluated operand.
+    /// The `typeof` operator returns a string indicating the type of the unevaluated operand.
     ///
     /// Syntax: `typeof operand`
     ///
@@ -420,7 +420,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
     TypeOf(Box<Node>),
 
-    /// The **`try...catch` statement** marks a block of statements to try and specifies a response should an exception be thrown.
+    /// The `try...catch` statement marks a block of statements to try and specifies a response should an exception be thrown.
     ///
     /// The `try` statement consists of a `try`-block, which contains one or more statements. `{}` must always be used,
     /// even for single statements. At least one `catch`-block, or a `finally`-block, must be present.
@@ -462,7 +462,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary_operators
     UnaryOp(UnaryOp, Box<Node>),
 
-    /// The **`var` statement** declares a variable, optionally initializing it to a value.
+    /// The `var` statement declares a variable, optionally initializing it to a value.
     ///
     /// var declarations, wherever they occur, are processed before any code is executed. This is called hoisting, and is discussed further below.
     ///
@@ -480,7 +480,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
     VarDecl(Vec<(String, Option<Node>)>),
 
-    /// The **`while` statement** creates a loop that executes a specified statement as long as the test condition evaluates to `true`.
+    /// The `while` statement creates a loop that executes a specified statement as long as the test condition evaluates to `true`.
     ///
     /// The condition is evaluated before executing the statement.
     ///
