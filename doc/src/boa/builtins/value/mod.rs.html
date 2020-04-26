@@ -1820,12 +1820,12 @@
             <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JSONValue</span>::<span class="ident">Null</span>,
             <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JSONValue</span>::<span class="ident">Bool</span>(<span class="ident">b</span>),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="ident">Map</span>::<span class="ident">new</span>();
-                <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">internal_slots</span>.<span class="ident">iter</span>() {
-                    <span class="kw">if</span> <span class="ident">k</span> <span class="op">!</span><span class="op">=</span> <span class="ident">INSTANCE_PROTOTYPE</span> {
-                        <span class="ident">new_obj</span>.<span class="ident">insert</span>(<span class="ident">k</span>.<span class="ident">clone</span>(), <span class="ident">v</span>.<span class="ident">to_json</span>());
-                    }
-                }
+                <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="ident">obj</span>
+                    .<span class="ident">borrow</span>()
+                    .<span class="ident">properties</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">k</span>.<span class="ident">clone</span>(), <span class="self">self</span>.<span class="ident">get_field_slice</span>(<span class="ident">k</span>).<span class="ident">to_json</span>()))
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Map</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">JSONValue</span><span class="op">&gt;</span><span class="op">&gt;</span>();
                 <span class="ident">JSONValue</span>::<span class="ident">Object</span>(<span class="ident">new_obj</span>)
             }
             <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JSONValue</span>::<span class="ident">String</span>(<span class="ident">str</span>.<span class="ident">clone</span>()),
