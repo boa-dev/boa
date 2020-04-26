@@ -13,7 +13,7 @@ use crate::builtins::{
     },
     property::Property,
 };
-use gc::{Gc, GcCell};
+use gc::{Gc, GcCell, GcCellRef};
 use gc_derive::{Finalize, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
@@ -221,6 +221,13 @@ impl ValueData {
             Self::Number(num) => num as i32,
             Self::Boolean(true) => 1,
             Self::Integer(num) => num,
+        }
+    }
+
+    pub fn as_object(&self) -> Option<GcCellRef<'_, Object>> {
+        match *self {
+            ValueData::Object(ref o) => Some(o.borrow()),
+            _ => None,
         }
     }
 

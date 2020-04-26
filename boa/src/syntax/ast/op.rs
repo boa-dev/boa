@@ -579,6 +579,8 @@ pub enum CompOp {
     /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator
     LessThanOrEqual,
+    /// `a in b` - If key `a` is in object `b`
+    In,
 }
 
 impl Display for CompOp {
@@ -595,6 +597,7 @@ impl Display for CompOp {
                 Self::GreaterThanOrEqual => ">=",
                 Self::LessThan => "<",
                 Self::LessThanOrEqual => "<=",
+                Self::In => "in",
             }
         )
     }
@@ -727,7 +730,8 @@ impl Operator for BinOp {
             Self::Comp(CompOp::LessThan)
             | Self::Comp(CompOp::LessThanOrEqual)
             | Self::Comp(CompOp::GreaterThan)
-            | Self::Comp(CompOp::GreaterThanOrEqual) => 8,
+            | Self::Comp(CompOp::GreaterThanOrEqual)
+            | Self::Comp(CompOp::In) => 8,
             Self::Comp(CompOp::Equal)
             | Self::Comp(CompOp::NotEqual)
             | Self::Comp(CompOp::StrictEqual)

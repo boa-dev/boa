@@ -11,6 +11,7 @@ use crate::{
             internal_methods_trait::ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE,
             PROTOTYPE,
         },
+        property::Property,
         value::{from_value, to_value, ResultValue, Value, ValueData},
     },
     environment::lexical_environment::{
@@ -347,6 +348,13 @@ impl Executor for Interpreter {
                     CompOp::GreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
                     CompOp::LessThan => v_a.to_num() < v_b.to_num(),
                     CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
+                    CompOp::In => {
+                        if !v_b.is_object() {
+                            panic!("TypeError: {} is not an Object.", v_b);
+                        }
+                        let key = self.to_property_key(v_a);
+                        self.has_property(v_b, &key)
+                    }
                 }))
             }
             Node::BinOp(BinOp::Log(ref op), ref a, ref b) => {
@@ -736,6 +744,31 @@ impl Interpreter {
                 self.to_string(&prim_value)
             }
             _ => to_value("function(){...}"),
+        }
+    }
+
+    /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
+    /// https://tc39.es/ecma262/#sec-topropertykey
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_property_key(&mut self, value: &Value) -> Value {
+        let key = self.to_primitive(value, Some("string"));
+        if key.is_symbol() {
+            key
+        } else {
+            self.to_string(&key)
+        }
+    }
+
+    /// https://tc39.es/ecma262/#sec-hasproperty
+    pub fn has_property(&self, obj: &Value, key: &Value) -> bool {
+        if let Some(obj) = obj.as_object() {
+            if !Property::is_property_key(key) {
+                false
+            } else {
+                obj.has_property(key)
+            }
+        } else {
+            false
         }
     }
 

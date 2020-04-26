@@ -18,7 +18,21 @@ mod update;
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
-use crate::syntax::ast::{node::Node, punc::Punctuator, token::TokenKind};
+use crate::syntax::ast::{
+    keyword::Keyword, node::Node, op::BinOp, punc::Punctuator, token::TokenKind,
+};
+
+impl PartialEq<Keyword> for Punctuator {
+    fn eq(&self, _other: &Keyword) -> bool {
+        false
+    }
+}
+
+impl PartialEq<Punctuator> for Keyword {
+    fn eq(&self, _other: &Punctuator) -> bool {
+        false
+    }
+}
 
 /// Generates an expression parser.
 ///
@@ -28,6 +42,22 @@ use crate::syntax::ast::{node::Node, punc::Punctuator, token::TokenKind};
 ///
 /// Those exressions are divided by the punctuators passed as the third parameter.
 macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*] ) => {
+    impl $name {
+        // Helper method to build a BinOp in the parse method
+        fn build_op<O, L>(&self, op: O, lhs: L, cursor: &mut Cursor<'_>) -> ParseResult
+        where
+            O: Into<BinOp>,
+            L: Into<Box<Node>>
+        {
+            let _ = cursor.next().expect("token disappeared");
+            Ok(Node::bin_op(
+                op,
+                lhs,
+                $lower::new($( self.$low_param ),*).parse(cursor)?
+            ))
+        }
+    }
+
     impl TokenParser for $name {
         type Output = Node;
 
@@ -36,12 +66,10 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
             while let Some(tok) = cursor.peek(0) {
                 match tok.kind {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
-                        let _ = cursor.next().expect("token disappeared");
-                        lhs = Node::bin_op(
-                            op.as_binop().expect("could not get binary operation"),
-                            lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
-                        )
+                        lhs = self.build_op(op, lhs, cursor)?;
+                    }
+                    TokenKind::Keyword(op) if $( op == $op )||* => {
+                        lhs = self.build_op(op, lhs, cursor)?;
                     }
                     _ => break
                 }
@@ -360,7 +388,8 @@ expression!(
         Punctuator::LessThan,
         Punctuator::GreaterThan,
         Punctuator::LessThanOrEq,
-        Punctuator::GreaterThanOrEq
+        Punctuator::GreaterThanOrEq,
+        Keyword::In
     ],
     [allow_yield, allow_await]
 );

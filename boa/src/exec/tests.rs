@@ -351,3 +351,62 @@ fn test_unary_post() {
     "#;
     assert_eq!(exec(execs_after), String::from("true"));
 }
+
+#[cfg(test)]
+mod in_operator {
+    use super::*;
+    #[test]
+    fn test_p_in_o() {
+        let p_in_o = r#"
+            var o = {a: 'a'};
+            var p = 'a';
+            p in o
+        "#;
+        assert_eq!(exec(p_in_o), String::from("true"));
+    }
+
+    #[test]
+    fn test_p_not_in_o() {
+        let p_not_in_o = r#"
+            var o = {a: 'a'};
+            var p = 'b';
+            p in o
+        "#;
+        assert_eq!(exec(p_not_in_o), String::from("false"));
+    }
+
+    #[test]
+    fn test_number_in_array() {
+        // Note: this is valid because the LHS is converted to a prop key with ToPropertyKey
+        // and arrays are just fancy objects like {'0': 'a'}
+        let num_in_array = r#"
+            var n = 0;
+            var a = ['a'];
+            n in a
+        "#;
+        assert_eq!(exec(num_in_array), String::from("true"));
+    }
+
+    #[test]
+    #[ignore]
+    fn test_symbol_in_object() {
+        // FIXME: this scenario works in Firefox's console, this is probably an issue
+        // with Symbol comparison.
+        let sym_in_object = r#"
+            var sym = Symbol('hi');
+            var o = {};
+            o[sym] = 'hello';
+            sym in o
+        "#;
+        assert_eq!(exec(sym_in_object), String::from("true"));
+    }
+
+    #[test]
+    #[should_panic(expected = "TypeError: undefined is not an Object.")]
+    fn test_should_type_error_when_rhs_not_object() {
+        let scenario = r#"
+            'fail' in undefined
+        "#;
+        exec(scenario);
+    }
+}

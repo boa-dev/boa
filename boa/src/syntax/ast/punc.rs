@@ -169,6 +169,12 @@ impl Punctuator {
     }
 }
 
+impl Into<BinOp> for Punctuator {
+    fn into(self) -> BinOp {
+        self.as_binop().expect("Could not get binary operation")
+    }
+}
+
 impl Display for Punctuator {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(
