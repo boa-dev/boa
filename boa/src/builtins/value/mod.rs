@@ -586,12 +586,12 @@ impl ValueData {
             | ValueData::Function(_) => JSONValue::Null,
             ValueData::Boolean(b) => JSONValue::Bool(b),
             ValueData::Object(ref obj) => {
-                let mut new_obj = Map::new();
-                for (k, v) in obj.borrow().internal_slots.iter() {
-                    if k != INSTANCE_PROTOTYPE {
-                        new_obj.insert(k.clone(), v.to_json());
-                    }
-                }
+                let new_obj = obj
+                    .borrow()
+                    .properties
+                    .iter()
+                    .map(|(k, _)| (k.clone(), self.get_field_slice(k).to_json()))
+                    .collect::<Map<String, JSONValue>>();
                 JSONValue::Object(new_obj)
             }
             ValueData::String(ref str) => JSONValue::String(str.clone()),
