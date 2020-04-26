@@ -33,9 +33,10 @@ pub enum NumOp {
     /// Syntax: `x + y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-addition-operator-plus).
+    ///  - [ECMAScript reference][spec].
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-addition-operator-plus
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Addition
     Add,
 
@@ -44,9 +45,10 @@ pub enum NumOp {
     /// Syntax: `x - y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-subtraction-operator-minus).
+    ///  - [ECMAScript reference][spec].
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-subtraction-operator-minus
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Subtraction
     Sub,
 
@@ -56,9 +58,10 @@ pub enum NumOp {
     /// Syntax: `x / y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MultiplicativeOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division
     Div,
 
@@ -67,9 +70,10 @@ pub enum NumOp {
     /// Syntax: `x * y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MultiplicativeExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Multiplication
     Mul,
 
@@ -81,9 +85,10 @@ pub enum NumOp {
     /// The exponentiation operator is right-associative. a ** b ** c is equal to a ** (b ** c).
     ///
     /// More information:
-    ///  - [ECMAScript reference]: <https://tc39.es/ecma262/#sec-exp-operator>.
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-exp-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
     Exp,
 
@@ -94,9 +99,10 @@ pub enum NumOp {
     /// The remainder operator always takes the sign of the dividend.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MultiplicativeOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MultiplicativeOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Remainder
     Mod,
 }
@@ -125,9 +131,10 @@ impl Display for NumOp {
 /// function calls.
 ///
 /// More information:
-///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-UnaryExpression)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
@@ -139,9 +146,10 @@ pub enum UnaryOp {
     /// This operator increments and returns the value after incrementing.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-postfix-increment-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-postfix-increment-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment
     IncrementPost,
 
@@ -152,9 +160,10 @@ pub enum UnaryOp {
     /// This operator increments and returns the value before incrementing.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-prefix-increment-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-prefix-increment-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment
     IncrementPre,
 
@@ -165,9 +174,10 @@ pub enum UnaryOp {
     /// This operator decrements and returns the value before decrementing.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-postfix-decrement-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-postfix-decrement-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement
     DecrementPost,
 
@@ -178,9 +188,10 @@ pub enum UnaryOp {
     /// This operator decrements the operand and returns the value after decrementing.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-prefix-decrement-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-prefix-decrement-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement
     DecrementPre,
 
@@ -192,9 +203,10 @@ pub enum UnaryOp {
     /// however, it performs an additional operation, negation.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-unary-minus-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-unary-minus-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_negation
     Minus,
 
@@ -207,9 +219,10 @@ pub enum UnaryOp {
     /// It can convert `string` representations of integers and floats, as well as the non-string values `true`, `false`, and `null`.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-unary-plus-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-unary-plus-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_plus
     Plus,
 
@@ -223,9 +236,10 @@ pub enum UnaryOp {
     /// force the conversion of any value to the corresponding boolean primitive.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-logical-not-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-logical-not-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_NOT
     Not,
 
@@ -237,9 +251,10 @@ pub enum UnaryOp {
     /// Bitwise NOTing any number x yields -(x + 1). For example, ~-5 yields 4.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-bitwise-not-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bitwise-not-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_NOT
     Tilde,
 
@@ -252,9 +267,10 @@ pub enum UnaryOp {
     /// There are other uses as well.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-typeof-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
     TypeOf,
 
@@ -272,9 +288,10 @@ pub enum UnaryOp {
     /// property, in which case, `false` is returned in non-strict mode.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-delete-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-delete-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
     Delete,
 
@@ -291,9 +308,10 @@ pub enum UnaryOp {
     /// `void` can be used to force the function keyword to be treated as an expression instead of a declaration.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-void-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-void-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
     Void,
 }
@@ -333,9 +351,10 @@ pub enum BitOp {
     /// Syntax: `x & y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-BitwiseANDExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND
     And,
 
@@ -344,9 +363,10 @@ pub enum BitOp {
     /// Syntax: `x | y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-BitwiseORExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR
     Or,
 
@@ -355,9 +375,10 @@ pub enum BitOp {
     /// Syntax: `x ^ y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-BitwiseXORExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR
     Xor,
 
@@ -368,9 +389,10 @@ pub enum BitOp {
     /// Excess bits shifted off to the left are discarded. Zero bits are shifted in from the right.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-left-shift-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-left-shift-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Left_shift
     Shl,
 
@@ -384,9 +406,10 @@ pub enum BitOp {
     /// Hence the name "sign-propagating".
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-signed-right-shift-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-signed-right-shift-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Right_shift
     Shr,
 
@@ -399,9 +422,10 @@ pub enum BitOp {
     /// Unlike the other bitwise operators, zero-fill right shift returns an unsigned 32-bit integer.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-unsigned-right-shift-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-unsigned-right-shift-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Unsigned_right_shift
     UShr,
 }
@@ -433,9 +457,10 @@ impl Display for BitOp {
 /// to compatible types before checking equality.
 ///
 /// More information:
-///  - [ECMAScript reference](tc39.es/ecma262/#sec-testing-and-comparison-operations)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
@@ -448,9 +473,10 @@ pub enum CompOp {
     /// refer to the same object in memory.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-abstract-equality-comparison)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-abstract-equality-comparison
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality
     Equal,
 
@@ -463,9 +489,10 @@ pub enum CompOp {
     /// internal references which are not equal when operands refer to different objects in memory.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-EqualityExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality
     NotEqual,
 
@@ -476,9 +503,10 @@ pub enum CompOp {
     /// Returns `true` if the operands are equal and of the same type.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-strict-equality-comparison)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-strict-equality-comparison
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity
     StrictEqual,
 
@@ -489,9 +517,10 @@ pub enum CompOp {
     /// Returns `true` if the operands are of the same type but not equal, or are of different type.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-EqualityExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity>
     StrictNotEqual,
 
@@ -502,9 +531,10 @@ pub enum CompOp {
     /// Returns `true` if the left operand is greater than the right operand.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-RelationalExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
     GreaterThan,
 
@@ -515,9 +545,10 @@ pub enum CompOp {
     /// Returns `true` if the left operand is greater than the right operand.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-RelationalExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
     GreaterThanOrEqual,
 
@@ -528,9 +559,10 @@ pub enum CompOp {
     /// Returns `true` if the left operand is less than the right operand.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-RelationalExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_operator
     LessThan,
 
@@ -541,9 +573,10 @@ pub enum CompOp {
     /// Returns `true` if the left operand is less than or equal to the right operand.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-RelationalExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator
     LessThanOrEqual,
 }
@@ -573,9 +606,10 @@ impl Display for CompOp {
 /// so if these operators are used with non-Boolean values, they may return a non-Boolean value.
 ///
 /// More information:
-///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-binary-logical-operators)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
@@ -586,9 +620,10 @@ pub enum LogOp {
     /// Syntax: `x && y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-LogicalANDExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LogicalANDExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_AND
     And,
 
@@ -598,9 +633,10 @@ pub enum LogOp {
     /// Syntax: `x || y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-LogicalORExpression)
+    ///  - [ECMAScript reference](
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LogicalORExpression)
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR
     Or,
 }
@@ -700,9 +736,10 @@ impl Display for BinOp {
 /// There are also compound assignment operators that are shorthand for the operations
 ///
 /// More information:
-///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
@@ -714,9 +751,10 @@ pub enum AssignOp {
     /// The types of the two operands determine the behavior of the addition assignment operator. Addition or concatenation is possible.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Addition_assignment
     Add,
 
@@ -725,9 +763,10 @@ pub enum AssignOp {
     /// Syntax: `x -= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation](mdn)
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Subtraction_assignment
     Sub,
 
@@ -736,9 +775,10 @@ pub enum AssignOp {
     /// Syntax: `x *= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Multiplication_assignment
     Mul,
 
@@ -747,9 +787,10 @@ pub enum AssignOp {
     /// Syntax: `x /= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Division_assignment
     Div,
 
@@ -758,9 +799,10 @@ pub enum AssignOp {
     /// Syntax: `x %= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Remainder_assignment
     Mod,
 
@@ -769,9 +811,10 @@ pub enum AssignOp {
     /// Syntax: `x ** y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Exponentiation_assignment
     Exp,
 
@@ -781,9 +824,10 @@ pub enum AssignOp {
     /// Syntax: `x &= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_AND_assignment
     And,
 
@@ -793,9 +837,10 @@ pub enum AssignOp {
     /// Syntax: `x |= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_OR_assignment
     Or,
 
@@ -805,9 +850,10 @@ pub enum AssignOp {
     /// Syntax: `x ^= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_XOR_assignment
     Xor,
 
@@ -816,9 +862,10 @@ pub enum AssignOp {
     /// Syntax: `x <<= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Left_shift_assignment
     Shl,
 
@@ -827,9 +874,10 @@ pub enum AssignOp {
     /// Syntax: `x >>= y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentOperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Right_shift_assignment
     Shr,
     // TODO: Add UShl (unsigned shift left).

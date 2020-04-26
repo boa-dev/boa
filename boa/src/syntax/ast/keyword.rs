@@ -1,4 +1,11 @@
 //! This module implements the `Keyword` structure, which represents reserved words of the JavaScript language.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
 use std::{
     error,
@@ -14,9 +21,10 @@ use serde::{Deserialize, Serialize};
 /// In JavaScript you cannot use these reserved words as variables, labels, or function names.
 ///
 /// More information:
-///  - [ECMAScript reference](https://www.ecma-international.org/ecma-262/#sec-keywords)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -24,9 +32,10 @@ pub enum Keyword {
     /// The `await` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AwaitExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
     Await,
 
@@ -34,9 +43,10 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [break `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-BreakStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
     /// [node]: ../node/enum.Node.html#variant.Break
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
     Break,
@@ -45,9 +55,10 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [switch `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-CaseClause)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-CaseClause
     /// [node]: ../node/enum.Node.html#variant.Switch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
     Case,
@@ -56,9 +67,10 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [try `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-Catch)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Catch
     /// [node]: ../node/enum.Node.html#variant.Try
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
     Catch,
@@ -66,9 +78,10 @@ pub enum Keyword {
     /// The `class` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ClassDeclaration)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ClassDeclaration
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
     Class,
 
@@ -76,9 +89,10 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [continue `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ContinueStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement
     /// [node]: ../node/enum.Node.html#variant.Continue
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
     Continue,
@@ -87,9 +101,10 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [const `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-let-and-const-declarations)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
     /// [node]: ../node/enum.Node.html#variant.ConstDecl
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
     Const,
@@ -97,9 +112,10 @@ pub enum Keyword {
     /// The `debugger` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-debugger-statement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-debugger-statement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger
     Debugger,
 
@@ -107,11 +123,13 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [switch `Node` documentation][node]
-    ///  - [ECMAScript reference default clause](https://tc39.es/ecma262/#prod-DefaultClause)
-    ///  - [ECMAScript reference default export](https://tc39.es/ecma262/#prod-ImportedDefaultBinding)
+    ///  - [ECMAScript reference default clause][spec-clause]
+    ///  - [ECMAScript reference default export][spec-export]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.Switch
+    /// [spec-clause]: https://tc39.es/ecma262/#prod-DefaultClause
+    /// [spec-export]: https://tc39.es/ecma262/#prod-ImportedDefaultBinding
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/default
     Default,
 
@@ -119,9 +137,10 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [delete `UnaryOp` documentation][unary]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-delete-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-delete-operator
     /// [unary]: ../op/enum.UnaryOp.html#variant.Delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
     Delete,
@@ -129,9 +148,10 @@ pub enum Keyword {
     /// The `do` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-do-while-statement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-do-while-statement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
     Do,
 
@@ -139,10 +159,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [if `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-IfStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.If
+    /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
     Else,
 
@@ -154,18 +175,20 @@ pub enum Keyword {
     /// The `export` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-exports)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-exports
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
     Export,
 
     /// The `extends` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ClassHeritage)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ClassHeritage
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/extends
     Extends,
 
@@ -173,10 +196,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [try `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-Finally)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.Try
+    /// [spec]: https://tc39.es/ecma262/#prod-Finally
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
     Finally,
 
@@ -184,10 +208,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [for loop `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ForDeclaration)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.ForLoop
+    /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
     For,
 
@@ -195,10 +220,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [function `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-terms-and-definitions-function)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.FunctionDecl
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
     Function,
 
@@ -206,37 +232,41 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [if `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-IfStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.If
+    /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
     If,
 
     /// The `in` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-RelationalExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
     In,
 
     /// The `instanceof` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-instanceofoperator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-instanceofoperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
     InstanceOf,
 
     /// The `import` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-imports)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-imports
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
     Import,
 
@@ -244,10 +274,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [let `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-let-and-const-declarations)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.LetDecl
+    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
     Let,
 
@@ -255,10 +286,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [new `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-NewExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.New
+    /// [spec]: https://tc39.es/ecma262/#prod-NewExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
     New,
 
@@ -266,19 +298,21 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [return `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ReturnStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.Return
+    /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return,
 
     /// The `super` keyword
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-super-keyword)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-super-keyword
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super
     Super,
 
@@ -286,10 +320,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [switch `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-SwitchStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.Switch
+    /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
     Switch,
 
@@ -297,10 +332,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [this `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-this-keyword)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.This
+    /// [spec]: https://tc39.es/ecma262/#sec-this-keyword
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
     This,
 
@@ -308,10 +344,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [throw `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ArrowFunction)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.Throw
+    /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
     Throw,
 
@@ -319,10 +356,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [try `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-TryStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.Try
+    /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
     Try,
 
@@ -330,10 +368,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [typeof `UnaryOp` documentation][unary]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-typeof-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [unary]: ../op/enum.UnaryOp.html#variant.TypeOf
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
     TypeOf,
 
@@ -341,10 +380,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [var `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-VariableStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.VarDecl
+    /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
     Var,
 
@@ -352,10 +392,11 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [void `UnaryOp` documentation][unary]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-void-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [unary]: ../op/enum.UnaryOp.html#variant.Void
+    /// [spec]: https://tc39.es/ecma262/#sec-void-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void
     Void,
 
@@ -363,28 +404,31 @@ pub enum Keyword {
     ///
     /// More information:
     ///  - [while `Node` documentation][node]
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
     /// [node]: ../node/enum.Node.html#variant.While
+    /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
     While,
 
     /// The `with` keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-WithStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-WithStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with
     With,
 
     /// The 'yield' keyword.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-YieldExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
     Yield,
 }

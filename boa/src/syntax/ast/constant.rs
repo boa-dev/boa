@@ -1,4 +1,11 @@
 //! This module implements the `Const` structure, which represents the primitive values in JavaScript.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
 use gc_derive::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
@@ -11,9 +18,10 @@ use serde::{Deserialize, Serialize};
 /// These are fixed values **not variables** that you literally provide in your script.
 ///
 /// More information:
-///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-primary-expression-literals)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
@@ -26,9 +34,10 @@ pub enum Const {
     /// calls the method, then discards the temporary String object.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-terms-and-definitions-string-value)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-string-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#String_literals
     String(String),
 
@@ -38,18 +47,20 @@ pub enum Const {
     /// A floating-point literal must have at least one digit, and either a decimal point or "`e`" (or "`E`").
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-terms-and-definitions-number-value)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Floating-point_literals
     Num(f64),
 
     /// Integer types can be expressed in decimal (base 10), hexadecimal (base 16), octal (base 8) and binary (base 2).
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-terms-and-definitions-number-value)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
     Int(i32),
 
@@ -58,9 +69,10 @@ pub enum Const {
     /// The Boolean object is a wrapper around the primitive Boolean data type.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-terms-and-definitions-boolean-value)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-boolean-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Boolean_literals
     Bool(bool),
 
@@ -71,18 +83,20 @@ pub enum Const {
     /// The meaning of a null reference varies among language implementations.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-null-value)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-null-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/null
     Null,
 
     /// The `undefined` is a primitive value automatically assigned to variables that have just been declared, or to formal arguments for which there are no actual arguments.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-undefined)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-undefined
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/undefined
     Undefined,
 }

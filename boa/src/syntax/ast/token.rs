@@ -1,4 +1,9 @@
 //! This module implements all of the [Token]s used in the JavaScript programing language.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-tokens
 
 use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
 use std::fmt::{Debug, Display, Formatter, Result};
@@ -7,6 +12,11 @@ use std::fmt::{Debug, Display, Formatter, Result};
 use serde::{Deserialize, Serialize};
 
 /// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-tokens
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {

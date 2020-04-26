@@ -23,9 +23,10 @@ pub enum Node {
     /// In JavaScript, arrays start at index zero and can be manipulated with various methods.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ArrayLiteral)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
     ArrayDecl(Vec<Node>),
 
@@ -35,9 +36,10 @@ pub enum Node {
     /// Arrow functions cannot be used as constructors and will throw an error when used with new.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ArrowFunction)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
     ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
 
@@ -46,9 +48,10 @@ pub enum Node {
     /// Assignment operator (`=`), assigns the value of its right operand to its left operand.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-AssignmentExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators
     Assign(Box<Node>, Box<Node>),
 
@@ -68,9 +71,10 @@ pub enum Node {
     /// where you provide no statement, although one is required.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-BlockStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
     Block(Vec<Node>),
 
@@ -81,9 +85,10 @@ pub enum Node {
     /// it does not have to be preceded by a loop statement.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-BreakStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
     Break(Option<String>),
 
@@ -94,9 +99,10 @@ pub enum Node {
     /// The scope of a function is the function in which it is declared (or the entire program, if it is declared at the top level).
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-CallExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions
     Call(Box<Node>, Vec<Node>),
 
@@ -107,9 +113,10 @@ pub enum Node {
     /// This operator is frequently used as a shortcut for the `if` statement.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ConditionalExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     ConditionalOp(Box<Node>, Box<Node>, Box<Node>),
 
@@ -118,9 +125,10 @@ pub enum Node {
     /// These are fixed values **not variables** that you literally provide in your script.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-primary-expression-literals)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     Const(Const),
 
@@ -133,9 +141,10 @@ pub enum Node {
     /// (This makes sense, given that it can't be changed later.)
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-let-and-const-declarations)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
     /// [identifier]: https://developer.mozilla.org/en-US/docs/Glossary/identifier
     /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
@@ -148,13 +157,23 @@ pub enum Node {
     /// loop statement instead of the current loop. In this case, the continue statement needs to be nested within this labeled statement.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ContinueStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
     Continue(Option<String>),
 
-    /// do [body] while [cond]
+    /// The **`do...while` statement** creates a loop that executes a specified statement until the test condition evaluates to false.
+    ///
+    /// The condition is evaluated after executing the statement, resulting in the specified statement executing at least once.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-do-while-statement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
     DoWhileLoop(Box<Node>, Box<Node>),
 
     /// The **`function` declaration** (function statement) defines a function with the specified parameters.
@@ -166,9 +185,10 @@ pub enum Node {
     /// By default, functions return undefined. To return any other value, the function must have a return statement that specifies the value to return.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-terms-and-definitions-function)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
     FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
 
@@ -186,9 +206,10 @@ pub enum Node {
     /// if it has a reference to a Function instance as its value).
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-property-accessors)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-property-accessors
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation
     GetConstField(Box<Node>, String),
 
@@ -204,9 +225,10 @@ pub enum Node {
     /// if it has a reference to a Function instance as its value).
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-property-accessors)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-property-accessors
     /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
     GetField(Box<Node>, Box<Node>),
@@ -217,9 +239,10 @@ pub enum Node {
     /// The JavaScript for loop is similar to the Java and C for loop.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ForDeclaration)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
     ForLoop(
         Option<Box<Node>>,
@@ -235,9 +258,10 @@ pub enum Node {
     /// **Note** that there is no elseif (in one word) keyword in JavaScript.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-IfStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
     /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/truthy
     /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
@@ -253,9 +277,10 @@ pub enum Node {
     /// Just like const the `let` does not create properties of the window object when declared globally (in the top-most scope).
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-let-and-const-declarations)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
     LetDecl(Vec<(String, Option<Node>)>),
 
@@ -267,9 +292,10 @@ pub enum Node {
     /// to convert identifiers to strings, but sometimes it is possible to parse strings into identifiers.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-Identifier)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Identifier
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
     Local(String),
 
@@ -282,9 +308,10 @@ pub enum Node {
     ///  - Returns this if the function doesn't return its own object.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-NewExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-NewExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
     New(Box<Node>),
 
@@ -297,9 +324,10 @@ pub enum Node {
     /// contain [`primitive`][primitive] data types or other objects.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ObjectLiteral)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ObjectLiteral
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
     /// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
     /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
@@ -316,9 +344,10 @@ pub enum Node {
     /// If specified, a given value is returned to the function caller.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ReturnStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return(Option<Box<Node>>),
 
@@ -331,9 +360,10 @@ pub enum Node {
     /// the cases are not equal to each other.)
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-SwitchStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
     Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
 
@@ -345,16 +375,19 @@ pub enum Node {
     /// are expected, or an object expression to be expanded in places where zero or more key-value pairs (for object literals) are expected.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-SpreadElement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-SpreadElement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
     Spread(Box<Node>),
 
     /// Similar to `Node::Block` but without the braces
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-StatementList)
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-StatementList
     StatementList(Vec<Node>),
 
     /// The **`throw` statement** throws a user-defined exception.
@@ -366,9 +399,10 @@ pub enum Node {
     /// caller functions, the program will terminate.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-ThrowStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
     Throw(Box<Node>),
 
@@ -379,9 +413,10 @@ pub enum Node {
     /// Returns a string indicating the type of the unevaluated operand.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-typeof-operator)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
     TypeOf(Box<Node>),
 
@@ -391,9 +426,10 @@ pub enum Node {
     /// even for single statements. At least one `catch`-block, or a `finally`-block, must be present.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-TryStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
     Try(
         Box<Node>,
@@ -409,18 +445,20 @@ pub enum Node {
     /// mode can be any value.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#sec-this-keyword)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#sec-this-keyword
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
     This,
 
     /// A unary operation is an operation with only one operand.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-UnaryExpression)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary_operators
     UnaryOp(UnaryOp, Box<Node>),
 
@@ -435,9 +473,10 @@ pub enum Node {
     /// (it becomes a property of the global object) when the assignment is executed.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-VariableStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
     VarDecl(Vec<(String, Option<Node>)>),
 
@@ -446,9 +485,10 @@ pub enum Node {
     /// The condition is evaluated before executing the statement.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
     WhileLoop(Box<Node>, Box<Node>),
 }
@@ -460,6 +500,7 @@ impl Operator for Node {
             _ => true,
         }
     }
+
     fn get_precedence(&self) -> u64 {
         match self {
             Node::GetField(_, _) | Node::GetConstField(_, _) => 1,
@@ -694,11 +735,17 @@ fn join_nodes(f: &mut fmt::Formatter<'_>, nodes: &[Node]) -> fmt::Result {
 ///
 /// In the declaration of a function, the parameters must be identifiers,
 /// not any value like numbers, strings, or objects.
-///```javascript
+///```text
 ///function foo(formalParametar1, formalParametar2) {
 ///}
 ///```
-/// For more information, please check <https://tc39.es/ecma262/#prod-FormalParameter>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
@@ -707,7 +754,13 @@ pub struct FormalParameter {
     pub is_rest_param: bool,
 }
 
-/// <https://tc39.es/ecma262/#prod-FormalParameters>
+/// A sequence of `FormalParameter`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FormalParameters
 pub type FormalParameters = Vec<FormalParameter>;
 
 impl FormalParameter {
@@ -727,9 +780,10 @@ impl FormalParameter {
 /// This distinction matters because the original referenced object remains unchanged when you change the property's value.
 ///
 /// More information:
-///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-PropertyDefinition)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
@@ -738,27 +792,30 @@ pub enum PropertyDefinition {
     /// Puts a variable into an object.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-IdentifierReference)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-IdentifierReference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
     IdentifierReference(String),
 
     /// Binds a property name to a JavaScript value.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-PropertyDefinition)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
     Property(String, Node),
 
     /// A property of an object can also refer to a function or a getter or setter method.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
     MethodDefinition(MethodDefinitionKind, String, Node),
 
@@ -768,9 +825,10 @@ pub enum PropertyDefinition {
     /// Shallow-cloning (excluding `prototype`) or merging objects is now possible using a shorter syntax than `Object.assign()`.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-PropertyDefinition)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties
     SpreadObject(Node),
 }
@@ -781,9 +839,10 @@ pub enum PropertyDefinition {
 /// It is a shorthand for a function assigned to the method's name.
 ///
 /// More information:
-///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
+/// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
@@ -798,9 +857,10 @@ pub enum MethodDefinitionKind {
     /// although it is possible to use a getter and a setter in conjunction to create a type of pseudo-property.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get
     Get,
 
@@ -811,18 +871,20 @@ pub enum MethodDefinitionKind {
     /// It is not possible to simultaneously have a setter on a property that holds an actual value.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
     Set,
 
     /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
     ///
     /// More information:
-    ///  - [ECMAScript reference](https://tc39.es/ecma262/#prod-MethodDefinition)
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
     Ordinary,
     // TODO: support other method definition kinds, like `Generator`.
