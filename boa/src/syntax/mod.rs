@@ -1,6 +1,5 @@
-/// The Javascript Abstract Syntax Tree
+//! Syntactical analysis, such as AST, Parsing and Lexing
+
 pub mod ast;
-/// Lexical analysis (tokenizing/lexing).
 pub mod lexer;
-// Parses a sequence of tokens into expressions
 pub mod parser;

@@ -1,16 +1,29 @@
+//! This module implements all of the [Token]s used in the JavaScript programing language.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-tokens
+
 use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
 use std::fmt::{Debug, Display, Formatter, Result};
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
 
-/// Represents a token.
+/// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-tokens
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
-    /// The token Data
+    /// The token kind, which contains the actual data of the token.
     pub kind: TokenKind,
-    /// Token position from original source code
+
+    /// The token position from origina source code.
     pub pos: Position,
 }
 
@@ -30,6 +43,7 @@ impl Display for Token {
     }
 }
 
+/// A continuous sequence of tokens.
 pub struct VecToken(Vec<Token>);
 
 impl Debug for VecToken {
@@ -46,25 +60,38 @@ impl Debug for VecToken {
 #[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
-    /// A boolean literal, which is either `true` or `false`
+    /// A boolean literal, which is either `true` or `false`.
     BooleanLiteral(bool),
-    /// The end of the file
+
+    /// The end of the file.
     EOF,
-    /// An identifier
+
+    /// An identifier.
     Identifier(String),
-    /// A keyword
+
+    /// A keyword.
+    ///
+    /// see: [`Keyword`](../keyword/enum.Keyword.html)
     Keyword(Keyword),
-    /// A `null` literal
+
+    /// A `null` literal.
     NullLiteral,
-    /// A numeric literal
+
+    /// A numeric literal.
     NumericLiteral(f64),
+
     /// A piece of punctuation
+    ///
+    /// see: [`Punctuator`](../punc/enum.Punctuator.html)
     Punctuator(Punctuator),
-    /// A string literal
+
+    /// A string literal.
     StringLiteral(String),
-    /// A regular expression, consisting of body and flags
+
+    /// A regular expression, consisting of body and flags.
     RegularExpressionLiteral(String, String),
-    /// Indicates the end of a line \n
+
+    /// Indicates the end of a line (`\n`).
     LineTerminator,
 }
 

@@ -1,3 +1,14 @@
+//! This module implements the global `String` object.
+//!
+//! The `String` global object is a constructor for strings or a sequence of characters.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-string-object
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+
 #[cfg(test)]
 mod tests;
 
@@ -20,7 +31,6 @@ use std::{
 };
 
 /// Create new string [[Construct]]
-/// <https://searchfox.org/mozilla-central/source/js/src/vm/StringObject.h#19>
 // This gets called when a new String() is created, it's called by exec:346
 pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // If we're constructing a string, we should set the initial length
@@ -41,7 +51,8 @@ pub fn make_string(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultV
 }
 
 /// Call new string [[Call]]
-/// https://tc39.es/ecma262/#sec-string-constructor-string-value
+///
+/// More information: [ECMAScript reference](https://tc39.es/ecma262/#sec-string-constructor-string-value)
 pub fn call_string(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg = match args.get(0) {
         Some(v) => v.clone(),
@@ -62,10 +73,22 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
     Ok(to_value(format!("{}", primitive_val)))
 }
 
-/// Returns a single element String containing the code unit at index pos within the String value
-/// resulting from converting this object to a String. If there is no element at that index, the
-/// result is the empty String. The result is a String value, not a String object.
-/// <https://tc39.es/ecma262/#sec-string.prototype.charat>
+/// `String.prototype.charAt( index )`
+///
+/// The `String` object's `charAt()` method returns a new string consisting of the single UTF-16 code unit located at the specified offset into the string.
+///
+/// Characters in a string are indexed from left to right. The index of the first character is `0`,
+/// and the index of the last character—in a string called `stringName`—is `stringName.length - 1`.
+/// If the `index` you supply is out of this range, JavaScript returns an empty string.
+///
+/// If no index is provided to `charAt()`, the default is `0`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charat
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt
 pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -96,10 +119,20 @@ pub fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     ))
 }
 
-/// Returns a Number (a nonnegative integer less than 216) that is the numeric value of the code
-/// unit at index pos within the String resulting from converting this object to a String. If there
-/// is no element at that index, the result is NaN.
-/// <https://tc39.es/ecma262/#sec-string.prototype.charcodeat>
+/// `String.prototype.charCodeAt( index )`
+///
+/// The `charCodeAt()` method returns an integer between `0` and `65535` representing the UTF-16 code unit at the given index.
+///
+/// Unicode code points range from `0` to `1114111` (`0x10FFFF`). The first 128 Unicode code points are a direct match of the ASCII character encoding.
+///
+/// `charCodeAt()` returns `NaN` if the given index is less than `0`, or if it is equal to or greater than the `length` of the string.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charcodeat
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt
 pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -128,9 +161,20 @@ pub fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     Ok(to_value(f64::from(utf16_val)))
 }
 
-/// Returns a String that is the result of concatenating this String and all strings provided as
-/// arguments
-/// <https://tc39.es/ecma262/#sec-string.prototype.concat>
+/// `String.prototype.concat( str1[, ...strN] )`
+///
+/// The `concat()` method concatenates the string arguments to the calling string and returns a new string.
+///
+/// Changes to the original string or the returned string don't affect the other.
+///
+/// If the arguments are not of the type string, they are converted to string values before concatenating.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat
 pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -144,9 +188,17 @@ pub fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     Ok(to_value(new_str))
 }
 
-/// Returns a String that is the result of repeating this String the number of times given by the
-/// first argument
-/// <https://tc39.es/ecma262/#sec-string.prototype.repeat>
+/// `String.prototype.repeat( count )`
+///
+/// The `repeat()` method constructs and returns a new string which contains the specified number of
+/// copies of the string on which it was called, concatenated together.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
 pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -161,9 +213,16 @@ pub fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     Ok(to_value(primitive_val.repeat(repeat_times)))
 }
 
-/// Returns a String which contains the slice of the JS String from character at "start" index up
-/// to but not including character at "end" index
-/// <https://tc39.es/ecma262/#sec-string.prototype.slice>
+/// `String.prototype.slice( beginIndex [, endIndex] )`
+///
+/// The `slice()` method extracts a section of a string and returns it as a new string, without modifying the original string.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.slice
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
 pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -211,10 +270,16 @@ pub fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue
     Ok(to_value(new_str))
 }
 
-/// Returns a Boolean indicating whether the sequence of code units of the
-/// "search string" is the same as the corresponding code units of this string
-/// starting at index "position"
-/// <https://tc39.es/ecma262/#sec-string.prototype.startswith>
+/// `String.prototype.startWith( searchString[, position] )`
+///
+/// The `startsWith()` method determines whether a string begins with the characters of a specified string, returning `true` or `false` as appropriate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.startswith
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
 pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -250,10 +315,16 @@ pub fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Resul
     }
 }
 
-/// Returns a Boolean indicating whether the sequence of code units of the
-/// "search string"  is the same as the corresponding code units of this string
-/// starting at position "end position" - length
-/// <https://tc39.es/ecma262/#sec-string.prototype.endswith>
+/// `String.prototype.endsWith( searchString[, length] )`
+///
+/// The `endsWith()` method determines whether a string ends with the characters of a specified string, returning `true` or `false` as appropriate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.endswith
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
 pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -291,11 +362,16 @@ pub fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     }
 }
 
-/// Returns a Boolean indicating whether searchString appears as a substring of
-/// the result of converting this object to a String, at one or more indices
-/// that are greater than or equal to position. If position is undefined, 0 is
-/// assumed, so as to search all of the String.
-/// <https://tc39.es/ecma262/#sec-string.prototype.includes>
+/// `String.prototype.includes( searchString[, position] )`
+///
+/// The `includes()` method determines whether one string may be found within another string, returning `true` or `false` as appropriate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.includes
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
 pub fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -346,7 +422,21 @@ fn get_regex_string(value: &Value) -> String {
     }
 }
 
-/// <https://tc39.es/ecma262/#sec-string.prototype.replace>
+/// `String.prototype.replace( regexp|substr, newSubstr|function )`
+///
+/// The `replace()` method returns a new string with some or all matches of a `pattern` replaced by a `replacement`.
+///
+/// The `pattern` can be a string or a `RegExp`, and the `replacement` can be a string or a function to be called for each match.
+/// If `pattern` is a string, only the first occurrence will be replaced.
+///
+/// The original string is left unchanged.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.replace
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
 pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // TODO: Support Symbol replacer
     let primitive_val: String = ctx.value_to_rust_string(this);
@@ -437,12 +527,18 @@ pub fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     )))
 }
 
-/// If searchString appears as a substring of the result of converting this
-/// object to a String, at one or more indices that are greater than or equal to
-/// position, then the smallest such index is returned; otherwise, -1 is
-/// returned. If position is undefined, 0 is assumed, so as to search all of the
-/// String.
-/// <https://tc39.es/ecma262/#sec-string.prototype.includes>
+/// `String.prototype.indexOf( searchValue[, fromIndex] )`
+///
+/// The `indexOf()` method returns the index within the calling `String` object of the first occurrence of the specified value, starting the search at `fromIndex`.
+///
+/// Returns -1 if the value is not found.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf
 pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -483,12 +579,18 @@ pub fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     Ok(to_value(-1))
 }
 
-//// If searchString appears as a substring of the result of converting this
-/// object to a String at one or more indices that are smaller than or equal to
-/// position, then the greatest such index is returned; otherwise, -1 is
-/// returned. If position is undefined, the length of the String value is
-/// assumed, so as to search all of the String.
-/// <https://tc39.es/ecma262/#sec-string.prototype.lastindexof>
+/// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
+///
+/// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence of the specified value, searching backwards from `fromIndex`.
+///
+/// Returns -1 if the value is not found.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.lastindexof
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf
 pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -530,16 +632,24 @@ pub fn last_index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Res
     Ok(to_value(highest_index))
 }
 
-/// Returns an array whose contents is all the results matching the regular expression, if the global (g) flag is present,
-/// in its absence, only the first complete match and its related capturing groups is returned,
-/// otherwise null is returned if no match is found.
-/// <https://tc39.es/ecma262/#sec-string.prototype.match>
+/// `String.prototype.match( regexp )`
+///
+/// The `match()` method retrieves the result of matching a **string** against a [`regular expression`][regex].
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.match
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
+/// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
 pub fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let re = make_regexp(&to_value(Object::default()), &[args[0].clone()], ctx)?;
     regexp_match(&re, ctx.value_to_rust_string(this), ctx)
 }
 
-/// Abstract method `StringPad`
+/// Abstract method `StringPad`.
+///
 /// Performs the actual string padding for padStart/End.
 /// <https://tc39.es/ecma262/#sec-stringpad/>
 fn string_pad(
@@ -579,11 +689,18 @@ fn string_pad(
     }
 }
 
-/// String.prototype.padEnd ( maxLength [ , fillString ] )
+/// `String.prototype.padEnd( targetLength[, padString] )`
 ///
-/// Pads the string with the given filler at the end of the string.
-/// Filler defaults to single space.
-/// <https://tc39.es/ecma262/#sec-string.prototype.padend/>
+/// The `padEnd()` method pads the current string with a given string (repeated, if needed) so that the resulting string reaches a given length.
+///
+/// The padding is applied from the end of the current string.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd
 pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
@@ -606,11 +723,18 @@ pub fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
     string_pad(primitive_val, max_length, fill_string, false)
 }
 
-/// String.prototype.padStart ( maxLength [ , fillString ] )
+/// `String.prototype.padStart( targetLength [, padString] )`
 ///
-/// Pads the string with the given filler at the start of the string.
-/// Filler defaults to single space.
-/// <https://tc39.es/ecma262/#sec-string.prototype.padstart/>
+/// The `padStart()` method pads the current string with another string (multiple times, if needed) until the resulting string reaches the given length.
+///
+/// The padding is applied from the start of the current string.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
 pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
@@ -633,6 +757,7 @@ pub fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     string_pad(primitive_val, max_length, fill_string, true)
 }
 
+/// Helper function to check if a `char` is trimmable.
 fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
@@ -651,11 +776,35 @@ fn is_trimmable_whitespace(c: char) -> bool {
     }
 }
 
+/// String.prototype.trim()
+///
+/// The `trim()` method removes whitespace from both ends of a string.
+///
+/// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
 pub fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
+/// `String.prototype.trimStart()`
+///
+/// The `trimStart()` method removes whitespace from the beginning of a string.
+///
+/// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
 pub fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(
@@ -663,14 +812,33 @@ pub fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultVal
     ))
 }
 
+/// String.prototype.trimEnd()
+///
+/// The `trimEnd()` method removes whitespace from the end of a string.
+///
+/// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
 pub fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
     Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
 }
 
-/// Return a String with every code point mapped to its corresponding lowercase equivalent.
-/// With the current implementation the string is always copied even if the resulting String is identical
-/// <https://tc39.es/ecma262/#sec-string.prototype.tolowercase>
+/// `String.prototype.toLowerCase()`
+///
+/// The `toLowerCase()` method returns the calling string value converted to lower case.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tolowercase
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
 pub fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -680,9 +848,18 @@ pub fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultV
     Ok(to_value(this_str.to_lowercase()))
 }
 
-/// Return a String with every code point mapped to its corresponding uppercase equivalent.
-/// With the current implementation the string is always copied even if the resulting String is identical
-/// <https://tc39.es/ecma262/#sec-string.prototype.touppercase>
+/// `String.prototype.toUpperCase()`
+///
+/// The `toUpperCase()` method returns the calling string value converted to uppercase.
+///
+/// The value will be **converted** to a string if it isn't one
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
 pub fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -692,13 +869,16 @@ pub fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultV
     Ok(to_value(this_str.to_uppercase()))
 }
 
-/// Return a String which is a subset of the String value resulting from converting this object to a String.
-/// The subset of the string is contained between the start index and the end index.
-/// When both the start and end arguments are specified, the smaller one represent the index of the code unit
-/// from which the returned String will start and the larger one the index of the code unit just after the end.
-/// When only the start index is specified, the end index defaults to being the length of the string.
-/// When no argument is specified, the returned String is the same as the original
-/// <https://tc39.es/ecma262/#sec-string.prototype.substring>
+/// `String.prototype.substring( indexStart[, indexEnd] )`
+///
+/// The `substring()` method returns the part of the `string` between the start and end indexes, or to the end of the string.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring
 pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
@@ -739,11 +919,16 @@ pub fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     Ok(to_value(extracted_string))
 }
 
-/// Return a String which is a subset of the String value resulting from converting this object to a String.
-/// The subset of the string starts at the start index and is at most length code units long, depending if the string is shorter.
-/// When only the start index is specified, the length become the length of the string.
-/// When the start index is negative, the start index become the number of code units from the end of the string.
-/// When no argument is specified, the returned String is the same as the original
+/// `String.prototype.substr( start[, length] )`
+///
+/// The `substr()` method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
 /// <https://tc39.es/ecma262/#sec-string.prototype.substr>
 pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // First we get it the actual string a private field stored on the object only the engine has access to.
@@ -792,16 +977,34 @@ pub fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
     }
 }
 
-/// Get the string value to a primitive string
-/// <https://tc39.es/ecma262/#sec-string.prototype.valueof>
+/// String.prototype.valueOf()
+///
+/// The `valueOf()` method returns the primitive value of a `String` object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.value_of
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf
 pub fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // Use the to_string method because it is specified to do the same thing in this case
     to_string(this, args, ctx)
 }
 
-/// TODO: update this method to return iterator
-/// Returns an array* of all results matching a string against a regular expression, including capturing groups
-/// <https://tc39.es/ecma262/#sec-string.prototype.matchall>
+/// `String.prototype.matchAll( regexp )`
+///
+/// The `matchAll()` method returns an iterator of all results matching a string against a [`regular expression`][regex], including [capturing groups][cg].
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.matchall
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/matchAll
+/// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+/// [cg]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges
+// TODO: update this method to return iterator
 pub fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let re: Value = match args.get(0) {
         Some(arg) => {

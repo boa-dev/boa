@@ -1,3 +1,5 @@
+//! The Javascript Abstract Syntax Tree.
+
 pub mod constant;
 pub mod keyword;
 pub mod node;

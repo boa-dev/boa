@@ -1,3 +1,18 @@
+//! This module implements the global `Object` object.
+//!
+//! The `Object` class represents one of JavaScript's data types.
+//!
+//! It is used to store various keyed collections and more complex entities.
+//! Objects can be created using the `Object()` constructor or the
+//! object initializer / literal syntax.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
+
 use crate::{
     builtins::{
         function::NativeFunctionData,
@@ -22,12 +37,12 @@ pub static PROTOTYPE: &str = "prototype";
 /// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.
 pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 
-/// `ObjectData` is the representation of an object in JavaScript
+/// The internal representation of an JavaScript object.
 #[derive(Trace, Finalize, Debug, Clone)]
 pub struct Object {
-    /// Kind
+    /// The type of the object.
     pub kind: ObjectKind,
-    /// Internal Slots
+    /// Intfiernal Slots
     pub internal_slots: Box<HashMap<String, Value>>,
     /// Properties
     pub properties: Box<HashMap<String, Property>>,
@@ -38,7 +53,17 @@ pub struct Object {
 }
 
 impl ObjectInternalMethods for Object {
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
+    /// `Object.setPropertyOf(obj, prototype)`
+    ///
+    /// This method sets the prototype (i.e., the internal `[[Prototype]]` property)
+    /// of a specified object to another object or `null`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
     fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.get_internal_slot(PROTOTYPE);
@@ -64,20 +89,22 @@ impl ObjectInternalMethods for Object {
         true
     }
 
+    /// Helper function for property insertion.
     fn insert_property(&mut self, name: String, p: Property) {
         self.properties.insert(name, p);
     }
 
+    /// Helper function for property removal.
     fn remove_property(&mut self, name: &str) {
         self.properties.remove(name);
     }
 
-    /// Utility function to set an internal slot
+    /// Helper function to set an internal slot
     fn set_internal_slot(&mut self, name: &str, val: Value) {
         self.internal_slots.insert(name.to_string(), val);
     }
 
-    /// Utility function to get an immutable internal slot or Null
+    /// Helper function to get an immutable internal slot or Null
     fn get_internal_slot(&self, name: &str) -> Value {
         match self.internal_slots.get(name) {
             Some(v) => v.clone(),
@@ -85,8 +112,14 @@ impl ObjectInternalMethods for Object {
         }
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
-    /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
+    /// The specification returns a Property Descriptor or Undefined.
+    ///
+    /// These are 2 separate types and we can't do that here.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     fn get_own_property(&self, prop: &Value) -> Property {
         debug_assert!(Property::is_property_key(prop));
         // Prop could either be a String or Symbol
@@ -143,6 +176,12 @@ impl ObjectInternalMethods for Object {
         }
     }
 
+    /// Define an own property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
     #[allow(clippy::option_unwrap_used)]
     fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
         let mut current = self.get_own_property(&to_value(property_key.to_string()));
@@ -285,9 +324,12 @@ impl Object {
         object
     }
 
-    /// ObjectCreate is used to specify the runtime creation of new ordinary objects
+    /// ObjectCreate is used to specify the runtime creation of new ordinary objects.
     ///
-    /// https://tc39.es/ecma262/#sec-objectcreate
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-objectcreate
     // TODO: proto should be a &Value here
     pub fn create(proto: Value) -> Object {
         let mut obj = Object::default();
@@ -298,19 +340,20 @@ impl Object {
         obj
     }
 
-    /// Utility function to set an internal slot which is a function
+    /// Utility function to set an internal slot which is a function.
     pub fn set_internal_method(&mut self, name: &str, val: NativeFunctionData) {
         self.internal_slots.insert(name.to_string(), to_value(val));
     }
 
-    /// Utility function to set a method on this object
-    /// The native function will live in the `properties` field of the Object
+    /// Utility function to set a method on this object.
+    ///
+    /// The native function will live in the `properties` field of the Object.
     pub fn set_method(&mut self, name: &str, val: NativeFunctionData) {
         self.properties
             .insert(name.to_string(), Property::default().value(to_value(val)));
     }
 
-    /// Return a new Boolean object whose [[BooleanData]] internal slot is set to argument.
+    /// Return a new Boolean object whose `[[BooleanData]]` internal slot is set to argument.
     fn from_boolean(argument: &Value) -> Self {
         let mut obj = Object {
             kind: ObjectKind::Boolean,
@@ -325,7 +368,7 @@ impl Object {
         obj
     }
 
-    /// Return a new Number object whose [[NumberData]] internal slot is set to argument.
+    /// Return a new `Number` object whose `[[NumberData]]` internal slot is set to argument.
     fn from_number(argument: &Value) -> Self {
         let mut obj = Object {
             kind: ObjectKind::Number,
@@ -340,7 +383,7 @@ impl Object {
         obj
     }
 
-    /// Return a new String object whose [[StringData]] internal slot is set to argument.
+    /// Return a new `String` object whose `[[StringData]]` internal slot is set to argument.
     fn from_string(argument: &Value) -> Self {
         let mut obj = Object {
             kind: ObjectKind::String,
@@ -355,7 +398,12 @@ impl Object {
         obj
     }
 
-    // https://tc39.es/ecma262/#sec-toobject
+    /// Converts the `Value` to an `Object` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toobject
     pub fn from(value: &Value) -> Result<Self, ()> {
         match *value.deref().borrow() {
             ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
@@ -367,6 +415,7 @@ impl Object {
     }
 }
 
+/// Defines the different types of objects.
 #[derive(Trace, Finalize, Clone, Debug, Eq, PartialEq)]
 pub enum ObjectKind {
     Function,
@@ -379,18 +428,18 @@ pub enum ObjectKind {
     Number,
 }
 
-/// Create a new object
+/// Create a new object.
 pub fn make_object(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// Get the prototype of an object
+/// Get the `prototype` of an object.
 pub fn get_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
     Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
 }
 
-/// Set the prototype of an object
+/// Set the `prototype` of an object.
 pub fn set_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
@@ -409,12 +458,31 @@ pub fn define_prop(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// To string
+/// `Object.prototype.toString()`
+///
+/// This method returns a string representing the object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(this.to_string()))
 }
 
-/// Check if it has a property
+/// `Object.prototype.hasOwnPrototype( property )`
+///
+/// The method returns a boolean indicating whether the object has the specified property
+/// as its own property (as opposed to inheriting it).
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
 pub fn has_own_prop(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let prop = if args.is_empty() {
         None
@@ -426,7 +494,7 @@ pub fn has_own_prop(this: &Value, args: &[Value], _: &mut Interpreter) -> Result
     ))
 }
 
-/// Create a new `Object` object
+/// Create a new `Object` object.
 pub fn create_constructor(_: &Value) -> Value {
     let object = to_value(make_object as NativeFunctionData);
     // Prototype chain ends here VV

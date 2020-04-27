@@ -1,3 +1,16 @@
+//! This module implements the global `console` object.
+//!
+//! The `console` object can be accessed from any global object.
+//!
+//! The specifics of how it works varies from browser to browser, but there is a de facto set of features that are typically provided.
+//!
+//! More information:
+//!  - [MDN documentation][mdn]
+//!  - [WHATWG `console` specification][spec]
+//!
+//! [spec]: https://console.spec.whatwg.org/
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
+
 #![allow(clippy::print_stdout)]
 
 #[cfg(test)]
@@ -14,6 +27,7 @@ use crate::{
 use gc::Gc;
 use std::{collections::HashMap, time::SystemTime};
 
+/// This is the internal console object state.
 #[derive(Debug, Default)]
 pub struct ConsoleState {
     count_map: HashMap<String, u32>,
@@ -33,6 +47,7 @@ impl ConsoleState {
 
 impl InternalState for ConsoleState {}
 
+/// This represents the different types of log messages.
 #[derive(Debug)]
 pub enum LogMessage {
     Log(String),
@@ -41,12 +56,14 @@ pub enum LogMessage {
     Error(String),
 }
 
+/// Helper function that returns the argument at a specified index.
 fn get_arg_at_index<T: FromValue + Default>(args: &[Value], index: usize) -> Option<T> {
     args.get(index)
         .cloned()
         .map(|s| from_value::<T>(s).expect("Convert error"))
 }
 
+/// Helper function for logging messages.
 pub fn logger(msg: LogMessage, console_state: &ConsoleState) {
     let indent = 2 * console_state.groups.len();
 
@@ -60,6 +77,7 @@ pub fn logger(msg: LogMessage, console_state: &ConsoleState) {
     }
 }
 
+/// This represents the `console` formatter.
 pub fn formatter(data: &[Value]) -> String {
     let target = get_arg_at_index::<String>(data, 0).unwrap_or_default();
     match data.len() {
@@ -125,7 +143,12 @@ pub fn formatter(data: &[Value]) -> String {
 /// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there
 /// were no arguments.
 ///
-/// More information: <https://console.spec.whatwg.org/#assert>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#assert
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
 pub fn assert(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
@@ -153,7 +176,12 @@ pub fn assert(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// Removes all groups and clears console if possible.
 ///
-/// More information: <https://console.spec.whatwg.org/#clear>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#clear
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
 pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.groups.clear();
@@ -166,7 +194,12 @@ pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints a JavaScript values with "debug" logLevel.
 ///
-/// More information: <https://console.spec.whatwg.org/#debug>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#debug
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
 pub fn debug(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
@@ -176,7 +209,12 @@ pub fn debug(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints a JavaScript values with "error" logLevel.
 ///
-/// More information: <https://console.spec.whatwg.org/#error>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#error
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
 pub fn error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Error(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
@@ -186,7 +224,12 @@ pub fn error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints a JavaScript values with "info" logLevel.
 ///
-/// More information: <https://console.spec.whatwg.org/#info>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#info
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
 pub fn info(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Info(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
@@ -196,7 +239,12 @@ pub fn info(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints a JavaScript values with "log" logLevel.
 ///
-/// More information: <https://console.spec.whatwg.org/#log>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#log
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
 pub fn log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
@@ -206,7 +254,12 @@ pub fn log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints a stack trace with "trace" logLevel, optionally labelled by data.
 ///
-/// More information: <https://console.spec.whatwg.org/#trace>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#trace
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
 pub fn trace(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if !args.is_empty() {
         this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
@@ -227,7 +280,12 @@ pub fn trace(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints a JavaScript values with "warn" logLevel.
 ///
-/// More information: <https://console.spec.whatwg.org/#warn>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#warn
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
 pub fn warn(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Warn(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
@@ -237,7 +295,12 @@ pub fn warn(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints number of times the function was called with that particular label.
 ///
-/// More information: <https://console.spec.whatwg.org/#count>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#count
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
 pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
@@ -256,7 +319,12 @@ pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Resets the counter for label.
 ///
-/// More information: <https://console.spec.whatwg.org/#countreset>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#countreset
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
 pub fn count_reset(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
@@ -281,7 +349,12 @@ fn system_time_in_ms() -> u128 {
 ///
 /// Starts the timer for given label.
 ///
-/// More information: <https://console.spec.whatwg.org/#time>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#time
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
 pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
@@ -304,7 +377,12 @@ pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Prints elapsed time for timer with given label.
 ///
-/// More information: <https://console.spec.whatwg.org/#timelog>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#timelog
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
 pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
@@ -331,7 +409,12 @@ pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 ///
 /// Removes the timer with given label.
 ///
-/// More information: <https://console.spec.whatwg.org/#timeend>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#timeend
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
 pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
@@ -357,7 +440,12 @@ pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 ///
 /// Adds new group with name from formatted data to stack.
 ///
-/// More information: <https://console.spec.whatwg.org/#group>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#group
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
 pub fn group(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let group_label = formatter(args);
 
@@ -373,7 +461,12 @@ pub fn group(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// Removes the last group from the stack.
 ///
-/// More information: <https://console.spec.whatwg.org/#groupend>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#groupend
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
 pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.groups.pop();
@@ -386,7 +479,12 @@ pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// Prints info about item
 ///
-/// More information: <https://console.spec.whatwg.org/#dir>
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [WHATWG `console` specification][spec]
+///
+/// [spec]: https://console.spec.whatwg.org/#dir
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
 pub fn dir(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         logger(

@@ -1,3 +1,14 @@
+//! This module implements the global `Array` object.
+//!
+//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-array-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+
 #[cfg(test)]
 mod tests;
 
@@ -14,6 +25,7 @@ use gc::Gc;
 use std::borrow::Borrow;
 use std::cmp::{max, min};
 
+/// Creates a new `Array` instance.
 pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
     let array = ValueData::new_obj(Some(
         &interpreter
@@ -36,8 +48,10 @@ pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
     Ok(array)
 }
 
-/// Utility function for creating array objects: `array_obj` can be any array with
-/// prototype already set (it will be wiped and recreated from `array_contents`)
+/// Utility function for creating array objects.
+///
+/// `array_obj` can be any array with prototype already set (it will be wiped and
+/// recreated from `array_contents`)
 pub fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
     let array_obj_ptr = array_obj.clone();
 
@@ -116,12 +130,17 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     Ok(this.clone())
 }
 
-/// Array.isArray ( arg )
+/// `Array.isArray( arg )`
 ///
 /// The isArray function takes one argument arg, and returns the Boolean value true
 /// if the argument is an object whose class internal property is "Array"; otherwise it returns false.
-/// <https://tc39.es/ecma262/#sec-array.isarray>
-/// ECMA-262 v5, 15.4.3.2
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.isarray
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
 pub fn is_array(_this: &Value, args: &[Value], _interpreter: &mut Interpreter) -> ResultValue {
     let value_true = Gc::new(ValueData::Boolean(true));
     let value_false = Gc::new(ValueData::Boolean(false));
@@ -145,12 +164,18 @@ pub fn is_array(_this: &Value, args: &[Value], _interpreter: &mut Interpreter) -
     }
 }
 
-/// Array.prototype.concat(...arguments)
+/// `Array.prototype.concat(...arguments)`
 ///
 /// When the concat method is called with zero or more arguments, it returns an
 /// array containing the array elements of the object followed by the array
 /// elements of each argument in order.
-/// <https://tc39.es/ecma262/#sec-array.prototype.concat>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat
 pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         // If concat is called with no arguments, it returns the original array
@@ -178,21 +203,33 @@ pub fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     construct_array(this, &new_values)
 }
 
-/// Array.prototype.push ( ...items )
+/// `Array.prototype.push( ...items )`
 ///
 /// The arguments are appended to the end of the array, in the order in which
 /// they appear. The new length of the array is returned as the result of the
 /// call.
-/// <https://tc39.es/ecma262/#sec-array.prototype.push>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
 pub fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let new_array = add_to_array_object(this, args)?;
     Ok(new_array.get_field_slice("length"))
 }
 
-/// Array.prototype.pop ( )
+/// `Array.prototype.pop()`
 ///
 /// The last element of the array is removed from the array and returned.
-/// <https://tc39.es/ecma262/#sec-array.prototype.pop>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
 pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let curr_length: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
@@ -206,10 +243,16 @@ pub fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(pop_value)
 }
 
-/// Array.prototype.forEach ( callbackFn [ , thisArg ] )
+/// `Array.prototype.forEach( callbackFn [ , thisArg ] )`
 ///
 /// This method executes the provided callback function for each element in the array.
-/// <https://tc39.es/ecma262/#sec-array.prototype.foreach>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.foreach
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
 pub fn for_each(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
@@ -233,12 +276,18 @@ pub fn for_each(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> 
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// Array.prototype.join ( separator )
+/// `Array.prototype.join( separator )`
 ///
 /// The elements of the array are converted to Strings, and these Strings are
 /// then concatenated, separated by occurrences of the separator. If no
 /// separator is provided, a single comma is used as the separator.
-/// <https://tc39.es/ecma262/#sec-array.prototype.join>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
 pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let separator = if args.is_empty() {
         String::from(",")
@@ -257,12 +306,18 @@ pub fn join(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(elem_strs.join(&separator)))
 }
 
-/// Array.prototype.toString ( separator )
+/// `Array.prototype.toString( separator )`
 ///
 /// The toString function is intentionally generic; it does not require that
 /// its this value be an Array object. Therefore it can be transferred to
 /// other kinds of objects for use as a method.
-/// <https://tc39.es/ecma262/#sec-array.prototype.tostring>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tostring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString
 pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let method_name = "join";
     let mut arguments = vec![to_value(",")];
@@ -293,11 +348,17 @@ pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> Resul
     Ok(to_value(match_string))
 }
 
-/// Array.prototype.reverse ( )
+/// `Array.prototype.reverse()`
 ///
 /// The elements of the array are rearranged so as to reverse their order.
 /// The object is returned as the result of the call.
-/// <https://tc39.es/ecma262/#sec-array.prototype.reverse/>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reverse
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
 #[allow(clippy::else_if_without_else)]
 pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 =
@@ -328,10 +389,16 @@ pub fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(this.clone())
 }
 
-/// Array.prototype.shift ( )
+/// `Array.prototype.shift()`
 ///
 /// The first element of the array is removed from the array and returned.
-/// <https://tc39.es/ecma262/#sec-array.prototype.shift/>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
 pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
@@ -363,12 +430,18 @@ pub fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(first)
 }
 
-/// Array.prototype.unshift ( ...items )
+/// `Array.prototype.unshift( ...items )`
 ///
 /// The arguments are prepended to the start of the array, such that their order
 /// within the array is the same as the order in which they appear in the
 /// argument list.
-/// <https://tc39.es/ecma262/#sec-array.prototype.unshift/>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift
 pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 =
         from_value(this.get_field_slice("length")).expect("Could not convert argument to i32");
@@ -401,13 +474,19 @@ pub fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue
     Ok(to_value(temp))
 }
 
-/// Array.prototype.every ( callback, [ thisArg ] )
+/// `Array.prototype.every( callback, [ thisArg ] )`
 ///
 /// The every method executes the provided callback function once for each
 /// element present in the array until it finds the one where callback returns
 /// a falsy value. It returns `false` if it finds such element, otherwise it
 /// returns `true`.
-/// <https://tc39.es/ecma262/#sec-array.prototype.every/>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.every
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
 pub fn every(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
@@ -436,11 +515,17 @@ pub fn every(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     Ok(to_value(true))
 }
 
-/// Array.prototype.map ( callback, [ thisArg ] )
+/// `Array.prototype.map( callback, [ thisArg ] )`
 ///
 /// For each element in the array the callback function is called, and a new
 /// array is constructed from the return values of these calls.
-/// <https://tc39.es/ecma262/#sec-array.prototype.map>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
 pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
@@ -471,7 +556,7 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
     construct_array(&new, &values)
 }
 
-/// Array.prototype.indexOf ( searchElement[, fromIndex ] )
+/// `Array.prototype.indexOf( searchElement[, fromIndex ] )`
 ///
 ///
 /// indexOf compares searchElement to the elements of the array, in ascending order,
@@ -483,7 +568,13 @@ pub fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
 /// i.e. the array will not be searched. If it is negative, it is used as the offset
 /// from the end of the array to compute fromIndex. If the computed index is less than 0,
 /// the whole array will be searched.
-/// <https://tc39.es/ecma262/#sec-array.prototype.indexof>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.indexof
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
 pub fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // If no arguments, return -1. Not described in spec, but is what chrome does.
     if args.is_empty() {
@@ -521,7 +612,7 @@ pub fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     Ok(to_value(-1))
 }
 
-/// Array.prototype.lastIndexOf ( searchElement[, fromIndex ] )
+/// `Array.prototype.lastIndexOf( searchElement[, fromIndex ] )`
 ///
 ///
 /// lastIndexOf compares searchElement to the elements of the array in descending order
@@ -532,7 +623,13 @@ pub fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 /// (i.e. the whole array is searched). If it is greater than or equal to the length of the array,
 /// the whole array will be searched. If it is negative, it is used as the offset from the end
 /// of the array to compute fromIndex. If the computed index is less than 0, -1 is returned.
-/// <https://tc39.es/ecma262/#sec-array.prototype.lastindexof>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.lastindexof
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf
 pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // If no arguments, return -1. Not described in spec, but is what chrome does.
     if args.is_empty() {
@@ -570,12 +667,18 @@ pub fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> Resul
     Ok(to_value(-1))
 }
 
-/// Array.prototype.find ( callback, [thisArg] )
+/// `Array.prototype.find( callback, [thisArg] )`
 ///
 /// The find method executes the callback function once for each index of the array
 /// until the callback returns a truthy value. If so, find immediately returns the value
 /// of that element. Otherwise, find returns undefined.
-/// <https://tc39.es/ecma262/#sec-array.prototype.find>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
 pub fn find(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
@@ -600,12 +703,18 @@ pub fn find(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resu
     Ok(Gc::new(ValueData::Undefined))
 }
 
-/// Array.prototype.findIndex ( predicate [ , thisArg ] )
+/// `Array.prototype.findIndex( predicate [ , thisArg ] )`
 ///
 /// This method executes the provided predicate function for each element of the array.
 /// If the predicate function returns `true` for an element, this method returns the index of the element.
 /// If all elements return `false`, the value `-1` is returned.
-/// <https://tc39.es/ecma262/#sec-array.prototype.findindex/>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.findindex
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
 pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
@@ -637,11 +746,17 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
     Ok(Gc::new(ValueData::Number(f64::from(-1))))
 }
 
-/// Array.prototype.fill ( value[, start[, end]] )
+/// `Array.prototype.fill( value[, start[, end]] )`
 ///
 /// The method fills (modifies) all the elements of an array from start index (default 0)
-/// to an end index (default array length) with a static value. It returns the modified array
-/// <https://tc39.es/ecma262/#sec-array.prototype.fill>
+/// to an end index (default array length) with a static value. It returns the modified array.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
 pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let len: i32 = from_value(this.get_field_slice("length")).expect("Could not get argument");
     let default_value = undefined();
@@ -671,6 +786,16 @@ pub fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(this.clone())
 }
 
+/// `Array.prototype.includes( valueToFind [, fromIndex] )`
+///
+/// Determines whether an array includes a certain value among its entries, returning `true` or `false` as appropriate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.includes
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
 pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let search_element = args
         .get(0)
@@ -691,14 +816,20 @@ pub fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> Resu
     Ok(to_value(false))
 }
 
-/// Array.prototype.slice ( [begin[, end]] )
+/// `Array.prototype.slice( [begin[, end]] )`
 ///
 /// The slice method takes two arguments, start and end, and returns an array containing the
 /// elements of the array from element start up to, but not including, element end (or through the
 /// end of the array if end is undefined). If start is negative, it is treated as length + start
 /// where length is the length of the array. If end is negative, it is treated as length + end where
 /// length is the length of the array.
-/// <https://tc39.es/ecma262/#sec-array.prototype.slice>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.slice
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
 pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     let new_array = new_array(interpreter)?;
     let len: i32 =
@@ -737,11 +868,17 @@ pub fn slice(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Res
     Ok(new_array)
 }
 
-/// Array.prototype.filter ( callback, [ thisArg ] )
+/// `Array.prototype.filter( callback, [ thisArg ] )`
 ///
 /// For each element in the array the callback function is called, and a new
-/// array is constructed for every value whose callback returned a truthy value
-/// <https://tc39.es/ecma262/#sec-array.prototype.filter>
+/// array is constructed for every value whose callback returned a truthy value.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
 pub fn filter(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
@@ -786,7 +923,13 @@ pub fn filter(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Re
 /// in the array. Otherwise, false.
 ///
 /// Caution: Calling this method on an empty array returns false for any condition!
-/// <https://tc39.es/ecma262/#sec-array.prototype.some/>
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
 pub fn some(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
         return Err(to_value(
@@ -816,7 +959,7 @@ pub fn some(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resu
     Ok(to_value(false))
 }
 
-/// Create a new `Array` object
+/// Create a new `Array` object.
 pub fn create_constructor(global: &Value) -> Value {
     // Create Constructor
     let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);

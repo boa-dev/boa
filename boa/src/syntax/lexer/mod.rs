@@ -17,6 +17,8 @@ use std::{
     str::{Chars, FromStr},
 };
 
+/// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
+/// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
         let preview = $this.preview_next().ok_or_else(|| LexerError::new("Could not preview next value"))?;
@@ -58,6 +60,7 @@ macro_rules! vop {
     }
 }
 
+/// The `op` macro handles binary operations or assignment operations and converts them into tokens.
 macro_rules! op {
     ($this:ident, $assign_op:expr, $op:expr) => ({
         let punc = vop!($this, $assign_op, $op);
@@ -74,12 +77,18 @@ macro_rules! op {
 }
 
 /// An error that occurred during lexing or compiling of the source input.
+///
+/// [LexerError] implements [fmt::Display] so you just display this value as an error
 #[derive(Debug, Clone)]
 pub struct LexerError {
+    /// details will be displayed when a LexerError occurs
     details: String,
 }
 
 impl LexerError {
+    /// Create a new LexerError struct
+    ///
+    /// * `msg` - The message to show when LexerError is displayed
     fn new(msg: &str) -> Self {
         Self {
             details: msg.to_string(),
@@ -107,13 +116,15 @@ impl error::Error for LexerError {
 /// A lexical analyzer for JavaScript source code
 #[derive(Debug)]
 pub struct Lexer<'a> {
-    // The list fo tokens generated so far
+    /// The list of tokens generated so far.
+    ///
+    /// This field is public so you can use them once lexing has finished.
     pub tokens: Vec<Token>,
-    // The current line number in the script
+    /// The current line number in the script
     line_number: u64,
-    // the current column number in the script
+    /// the current column number in the script
     column_number: u64,
-    // The full string
+    /// The full Peekable buffer, an array of [Char]s
     buffer: Peekable<Chars<'a>>,
 }
 
@@ -124,13 +135,6 @@ impl<'a> Lexer<'a> {
     ///
     /// * `buffer` - A string slice that holds the source code.
     /// The buffer needs to have a lifetime as long as the Lexer instance itself
-    ///
-    /// # Example
-    ///
-    /// ```rust,no_run
-    /// let buffer = std::fs::read_to_string("yourSourceCode.js").unwrap();
-    /// let lexer = boa::syntax::lexer::Lexer::new(&buffer);
-    /// ```
     pub fn new(buffer: &'a str) -> Lexer<'a> {
         Lexer {
             tokens: Vec::new(),
@@ -140,7 +144,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Push tokens onto the token queue
+    /// Push a token onto the token queue.
     fn push_token(&mut self, tk: TokenKind) {
         self.tokens
             .push(Token::new(tk, self.line_number, self.column_number))
@@ -204,6 +208,7 @@ impl<'a> Lexer<'a> {
         result
     }
 
+    /// Utility function for reading integers in different bases
     fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> Result<u64, LexerError> {
         self.next();
         while let Some(ch) = self.preview_next() {
@@ -217,6 +222,9 @@ impl<'a> Lexer<'a> {
             .map_err(|_| LexerError::new("Could not convert value to u64"))
     }
 
+    /// Utility function for checkint the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character
+    ///
+    /// More info [ECMAScript Specification](https://tc39.es/ecma262/#sec-literals-numeric-literals)
     fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
         match self.preview_next() {
             Some(ch)
@@ -229,6 +237,18 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Runs the lexer until completion, returning a [LexerError] if there's a syntax issue, or an empty unit result
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use boa::syntax::lexer::{LexerError, Lexer};
+    /// fn main() -> Result<(), LexerError> {
+    ///     let buffer = String::from("Hello World");
+    ///     let mut lexer = Lexer::new(&buffer);
+    ///     lexer.lex()
+    /// }
+    /// ```
     pub fn lex(&mut self) -> Result<(), LexerError> {
         loop {
             // Check if we've reached the end

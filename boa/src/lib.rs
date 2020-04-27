@@ -12,7 +12,7 @@
     unused_lifetimes,
     unreachable_pub,
     trivial_numeric_casts,
-    rustdoc,
+    // rustdoc,
     missing_debug_implementations,
     missing_copy_implementations,
     deprecated_in_future,
@@ -29,7 +29,8 @@
     clippy::cognitive_complexity,
     clippy::must_use_candidate,
     clippy::missing_errors_doc,
-    clippy::as_conversions
+    clippy::as_conversions,
+    missing_doc_code_examples
 )]
 
 pub mod builtins;

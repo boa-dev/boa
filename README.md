@@ -21,6 +21,10 @@ https://jasonwilliams.github.io/boa/
 
 You can get more verbose errors when running from the command line
 
+## Development documentation
+
+You can check the internal development docs at jasonwilliams.github.io/boa/doc
+
 ## Benchmarks
 
 https://jasonwilliams.github.io/boa/dev/bench/

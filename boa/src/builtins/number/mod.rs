@@ -1,3 +1,18 @@
+//! This module implements the global `Number` object.
+//!
+//! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.
+//! A `Number` object is created using the `Number()` constructor. A primitive type object number is created using the `Number()` **function**.
+//!
+//! The JavaScript `Number` type is double-precision 64-bit binary format IEEE 754 value. In more recent implementations,
+//! JavaScript also supports integers with arbitrary precision using the BigInt type.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-number-object
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+
 #[cfg(test)]
 mod tests;
 
@@ -11,9 +26,7 @@ use crate::{
 };
 use std::{borrow::Borrow, f64, ops::Deref};
 
-/// Helper function: to_number(value: &Value) -> Value
-///
-/// Converts a Value to a Number.
+/// Helper function that converts a Value to a Number.
 fn to_number(value: &Value) -> Value {
     match *value.deref().borrow() {
         ValueData::Boolean(b) => {
@@ -35,9 +48,7 @@ fn to_number(value: &Value) -> Value {
     }
 }
 
-/// Helper function: num_to_exponential(n: f64) -> String
-///
-/// Formats a float as a ES6-style exponential number string.
+/// Helper function that formats a float as a ES6-style exponential number string.
 fn num_to_exponential(n: f64) -> String {
     match n.abs() {
         x if x > 1.0 => format!("{:e}", n).replace("e", "e+"),
@@ -46,9 +57,7 @@ fn num_to_exponential(n: f64) -> String {
     }
 }
 
-/// Number(arg)
-///
-/// Create a new number [[Construct]]
+/// Create a new number `[[Construct]]`
 pub fn make_number(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => to_number(value),
@@ -58,9 +67,9 @@ pub fn make_number(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Resu
     Ok(this.clone())
 }
 
-/// Number()
+/// `Number()` function.
 ///
-/// https://tc39.es/ecma262/#sec-number-constructor-number-value
+/// More Information https://tc39.es/ecma262/#sec-number-constructor-number-value
 pub fn call_number(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => to_number(value),
@@ -69,16 +78,32 @@ pub fn call_number(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Res
     Ok(data)
 }
 
-/// Number().toExponential()
+/// `Number.prototype.toExponential( [fractionDigits] )`
 ///
-/// https://tc39.es/ecma262/#sec-number.prototype.toexponential
+/// The `toExponential()` method returns a string representing the Number object in exponential notation.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
 pub fn to_exponential(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let this_num = to_number(this).to_num();
     let this_str_num = num_to_exponential(this_num);
     Ok(to_value(this_str_num))
 }
 
-/// https://tc39.es/ecma262/#sec-number.prototype.tofixed
+/// `Number.prototype.toFixed( [digits] )`
+///
+/// The `toFixed()` method formats a number using fixed-point notation
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
 pub fn to_fixed(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let this_num = to_number(this).to_num();
     let precision = match args.get(0) {
@@ -92,21 +117,35 @@ pub fn to_fixed(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultV
     Ok(to_value(this_fixed_num))
 }
 
-/// Number().toLocaleString()
+/// `Number.prototype.toLocaleString( [locales [, options]] )`
 ///
-/// https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
+/// The `toLocaleString()` method returns a string with a language-sensitive representation of this number.
 ///
 /// Note that while this technically conforms to the Ecma standard, it does no actual
 /// internationalization logic.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
 pub fn to_locale_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let this_num = to_number(this).to_num();
     let this_str_num = format!("{}", this_num);
     Ok(to_value(this_str_num))
 }
 
-/// Number().toPrecision(p)
+/// `Number.prototype.toPrecision( [precision] )`
 ///
-/// https://tc39.es/ecma262/#sec-number.prototype.toprecision
+/// The `toPrecision()` method returns a string representing the Number object to the specified precision.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
 pub fn to_precision(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let this_num = to_number(this);
     let _num_str_len = format!("{}", this_num.to_num()).len();
@@ -121,16 +160,30 @@ pub fn to_precision(this: &Value, args: &[Value], _ctx: &mut Interpreter) -> Res
     unimplemented!("TODO: Implement toPrecision");
 }
 
-/// Number().toString()
+/// `Number.prototype.toString( [radix] )`
 ///
-/// https://tc39.es/ecma262/#sec-number.prototype.tostring
+/// The `toString()` method returns a string representing the specified Number object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
 pub fn to_string(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     Ok(to_value(format!("{}", to_number(this).to_num())))
 }
 
-/// Number().valueOf()
+/// `Number.prototype.toString()`
 ///
-/// https://tc39.es/ecma262/#sec-number.prototype.valueof
+/// The `valueOf()` method returns the wrapped primitive value of a Number object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
 pub fn value_of(this: &Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     Ok(to_number(this))
 }
