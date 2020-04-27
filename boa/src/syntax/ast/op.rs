@@ -113,12 +113,12 @@ impl Display for NumOp {
             f,
             "{}",
             match *self {
-                NumOp::Add => "+",
-                NumOp::Sub => "-",
-                NumOp::Div => "/",
-                NumOp::Mul => "*",
-                NumOp::Exp => "**",
-                NumOp::Mod => "%",
+                Self::Add => "+",
+                Self::Sub => "-",
+                Self::Div => "/",
+                Self::Mul => "*",
+                Self::Exp => "**",
+                Self::Mod => "%",
             }
         )
     }
@@ -322,15 +322,15 @@ impl Display for UnaryOp {
             f,
             "{}",
             match *self {
-                UnaryOp::IncrementPost | UnaryOp::IncrementPre => "++",
-                UnaryOp::DecrementPost | UnaryOp::DecrementPre => "--",
-                UnaryOp::Plus => "+",
-                UnaryOp::Minus => "-",
-                UnaryOp::Not => "!",
-                UnaryOp::Tilde => "~",
-                UnaryOp::Delete => "delete",
-                UnaryOp::TypeOf => "typeof",
-                UnaryOp::Void => "void",
+                Self::IncrementPost | Self::IncrementPre => "++",
+                Self::DecrementPost | Self::DecrementPre => "--",
+                Self::Plus => "+",
+                Self::Minus => "-",
+                Self::Not => "!",
+                Self::Tilde => "~",
+                Self::Delete => "delete",
+                Self::TypeOf => "typeof",
+                Self::Void => "void",
             }
         )
     }
@@ -436,12 +436,12 @@ impl Display for BitOp {
             f,
             "{}",
             match *self {
-                BitOp::And => "&",
-                BitOp::Or => "|",
-                BitOp::Xor => "^",
-                BitOp::Shl => "<<",
-                BitOp::Shr => ">>",
-                BitOp::UShr => ">>>",
+                Self::And => "&",
+                Self::Or => "|",
+                Self::Xor => "^",
+                Self::Shl => "<<",
+                Self::Shr => ">>",
+                Self::UShr => ">>>",
             }
         )
     }
@@ -587,14 +587,14 @@ impl Display for CompOp {
             f,
             "{}",
             match *self {
-                CompOp::Equal => "==",
-                CompOp::NotEqual => "!=",
-                CompOp::StrictEqual => "===",
-                CompOp::StrictNotEqual => "!==",
-                CompOp::GreaterThan => ">",
-                CompOp::GreaterThanOrEqual => ">=",
-                CompOp::LessThan => "<",
-                CompOp::LessThanOrEqual => "<=",
+                Self::Equal => "==",
+                Self::NotEqual => "!=",
+                Self::StrictEqual => "===",
+                Self::StrictNotEqual => "!==",
+                Self::GreaterThan => ">",
+                Self::GreaterThanOrEqual => ">=",
+                Self::LessThan => "<",
+                Self::LessThanOrEqual => "<=",
             }
         )
     }
@@ -647,8 +647,8 @@ impl Display for LogOp {
             f,
             "{}",
             match *self {
-                LogOp::And => "&&",
-                LogOp::Or => "||",
+                Self::And => "&&",
+                Self::Or => "||",
             }
         )
     }
@@ -684,30 +684,60 @@ pub enum BinOp {
     Assign(AssignOp),
 }
 
+impl From<NumOp> for BinOp {
+    fn from(op: NumOp) -> Self {
+        Self::Num(op)
+    }
+}
+
+impl From<BitOp> for BinOp {
+    fn from(op: BitOp) -> Self {
+        Self::Bit(op)
+    }
+}
+
+impl From<CompOp> for BinOp {
+    fn from(op: CompOp) -> Self {
+        Self::Comp(op)
+    }
+}
+
+impl From<LogOp> for BinOp {
+    fn from(op: LogOp) -> Self {
+        Self::Log(op)
+    }
+}
+
+impl From<AssignOp> for BinOp {
+    fn from(op: AssignOp) -> Self {
+        Self::Assign(op)
+    }
+}
+
 impl Operator for BinOp {
     fn get_assoc(&self) -> bool {
         true
     }
     fn get_precedence(&self) -> u64 {
         match *self {
-            BinOp::Num(NumOp::Exp) => 4,
-            BinOp::Num(NumOp::Mul) | BinOp::Num(NumOp::Div) | BinOp::Num(NumOp::Mod) => 5,
-            BinOp::Num(NumOp::Add) | BinOp::Num(NumOp::Sub) => 6,
-            BinOp::Bit(BitOp::Shl) | BinOp::Bit(BitOp::Shr) | BinOp::Bit(BitOp::UShr) => 7,
-            BinOp::Comp(CompOp::LessThan)
-            | BinOp::Comp(CompOp::LessThanOrEqual)
-            | BinOp::Comp(CompOp::GreaterThan)
-            | BinOp::Comp(CompOp::GreaterThanOrEqual) => 8,
-            BinOp::Comp(CompOp::Equal)
-            | BinOp::Comp(CompOp::NotEqual)
-            | BinOp::Comp(CompOp::StrictEqual)
-            | BinOp::Comp(CompOp::StrictNotEqual) => 9,
-            BinOp::Bit(BitOp::And) => 10,
-            BinOp::Bit(BitOp::Xor) => 11,
-            BinOp::Bit(BitOp::Or) => 12,
-            BinOp::Log(LogOp::And) => 13,
-            BinOp::Log(LogOp::Or) => 14,
-            BinOp::Assign(_) => 15,
+            Self::Num(NumOp::Exp) => 4,
+            Self::Num(NumOp::Mul) | Self::Num(NumOp::Div) | Self::Num(NumOp::Mod) => 5,
+            Self::Num(NumOp::Add) | Self::Num(NumOp::Sub) => 6,
+            Self::Bit(BitOp::Shl) | Self::Bit(BitOp::Shr) | Self::Bit(BitOp::UShr) => 7,
+            Self::Comp(CompOp::LessThan)
+            | Self::Comp(CompOp::LessThanOrEqual)
+            | Self::Comp(CompOp::GreaterThan)
+            | Self::Comp(CompOp::GreaterThanOrEqual) => 8,
+            Self::Comp(CompOp::Equal)
+            | Self::Comp(CompOp::NotEqual)
+            | Self::Comp(CompOp::StrictEqual)
+            | Self::Comp(CompOp::StrictNotEqual) => 9,
+            Self::Bit(BitOp::And) => 10,
+            Self::Bit(BitOp::Xor) => 11,
+            Self::Bit(BitOp::Or) => 12,
+            Self::Log(LogOp::And) => 13,
+            Self::Log(LogOp::Or) => 14,
+            Self::Assign(_) => 15,
         }
     }
 }
@@ -718,11 +748,11 @@ impl Display for BinOp {
             f,
             "{}",
             match *self {
-                BinOp::Num(ref op) => op.to_string(),
-                BinOp::Bit(ref op) => op.to_string(),
-                BinOp::Comp(ref op) => op.to_string(),
-                BinOp::Log(ref op) => op.to_string(),
-                BinOp::Assign(ref op) => op.to_string(),
+                Self::Num(ref op) => op.to_string(),
+                Self::Bit(ref op) => op.to_string(),
+                Self::Comp(ref op) => op.to_string(),
+                Self::Log(ref op) => op.to_string(),
+                Self::Assign(ref op) => op.to_string(),
             }
         )
     }
@@ -889,17 +919,17 @@ impl Display for AssignOp {
             f,
             "{}",
             match *self {
-                AssignOp::Add => "+=",
-                AssignOp::Sub => "-=",
-                AssignOp::Mul => "*=",
-                AssignOp::Exp => "**=",
-                AssignOp::Div => "/=",
-                AssignOp::Mod => "%=",
-                AssignOp::And => "&=",
-                AssignOp::Or => "|=",
-                AssignOp::Xor => "^=",
-                AssignOp::Shl => "<<=",
-                AssignOp::Shr => ">>=",
+                Self::Add => "+=",
+                Self::Sub => "-=",
+                Self::Mul => "*=",
+                Self::Exp => "**=",
+                Self::Div => "/=",
+                Self::Mod => "%=",
+                Self::And => "&=",
+                Self::Or => "|=",
+                Self::Xor => "^=",
+                Self::Shl => "<<=",
+                Self::Shr => ">>=",
             }
         )
     }

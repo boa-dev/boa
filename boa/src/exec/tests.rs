@@ -172,6 +172,7 @@ fn test_early_return() {
         early_return()
         "#;
     assert_eq!(exec(early_return), String::from("true"));
+
     let early_return = r#"
         function nested_fnct() {
             return "nested";
@@ -291,4 +292,62 @@ fn test_do_while_loop() {
         a
         "#;
     assert_eq!(exec(body_is_executed_at_least_once), String::from("1"));
+}
+
+#[test]
+#[ignore]
+fn test_do_while_post_inc() {
+    let with_post_incrementors = r#"
+        var i = 0;
+        do {} while(i++ < 10) i;
+    "#;
+    assert_eq!(exec(with_post_incrementors), String::from("11"));
+}
+
+#[test]
+#[ignore]
+fn test_unary_pre() {
+    let unary_inc = r#"
+        let a = 5;
+        ++a;
+        a;
+    "#;
+    assert_eq!(exec(unary_inc), String::from("6"));
+
+    let unary_dec = r#"
+        let a = 5;
+        --a;
+        a;
+    "#;
+    assert_eq!(exec(unary_dec), String::from("6"));
+
+    let execs_before = r#"
+        let a = 5;
+        ++a === 6;
+    "#;
+    assert_eq!(exec(execs_before), String::from("true"));
+}
+
+#[test]
+#[ignore]
+fn test_unary_post() {
+    let unary_inc = r#"
+        let a = 5;
+        a++;
+        a;
+    "#;
+    assert_eq!(exec(unary_inc), String::from("6"));
+
+    let unary_dec = r#"
+        let a = 5;
+        a--;
+        a;
+    "#;
+    assert_eq!(exec(unary_dec), String::from("6"));
+
+    let execs_after = r#"
+        let a = 5;
+        a++ === 5;
+    "#;
+    assert_eq!(exec(execs_after), String::from("true"));
 }

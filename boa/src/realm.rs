@@ -30,14 +30,14 @@ pub struct Realm {
 }
 
 impl Realm {
-    pub fn create() -> Realm {
+    pub fn create() -> Self {
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
         let global = ValueData::new_obj(None);
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = new_global_environment(global.clone(), global.clone());
 
-        let new_realm = Realm {
+        let new_realm = Self {
             global_obj: global.clone(),
             global_env,
             environment: LexicalEnvironment::new(global),
