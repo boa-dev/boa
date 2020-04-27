@@ -100,6 +100,7 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.</span>
 
@@ -115,7 +116,7 @@
     <span class="ident">unused_lifetimes</span>,
     <span class="ident">unreachable_pub</span>,
     <span class="ident">trivial_numeric_casts</span>,
-    <span class="ident">rustdoc</span>,
+    <span class="comment">// rustdoc,</span>
     <span class="ident">missing_debug_implementations</span>,
     <span class="ident">missing_copy_implementations</span>,
     <span class="ident">deprecated_in_future</span>,
@@ -132,7 +133,8 @@
     <span class="ident">clippy</span>::<span class="ident">cognitive_complexity</span>,
     <span class="ident">clippy</span>::<span class="ident">must_use_candidate</span>,
     <span class="ident">clippy</span>::<span class="ident">missing_errors_doc</span>,
-    <span class="ident">clippy</span>::<span class="ident">as_conversions</span>
+    <span class="ident">clippy</span>::<span class="ident">as_conversions</span>,
+    <span class="ident">missing_doc_code_examples</span>
 )]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">builtins</span>;

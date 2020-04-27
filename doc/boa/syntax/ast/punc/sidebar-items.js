@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Punctuator","Punctuation"]]});
+initSidebarItems({"enum":[["Punctuator","The Punctuator enum describes all of the punctuators used in JavaScript."]]});

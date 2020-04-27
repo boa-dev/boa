@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Keyword","A Javascript Keyword"]],"struct":[["KeywordError",""]]});
+initSidebarItems({"enum":[["Keyword","Keywords are tokens that have special meaning in JavaScript."]],"struct":[["KeywordError",""]]});

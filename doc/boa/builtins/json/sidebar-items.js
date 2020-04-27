@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["create_constructor","Create a new `JSON` object"],["parse","Parse a JSON string into a Javascript object https://tc39.es/ecma262/#sec-json.parse"],["stringify","Process a Javascript object into a JSON string"]]});
+initSidebarItems({"fn":[["create_constructor","Create a new `JSON` object."],["parse","`JSON.parse( text[, reviver] )`"],["stringify","`JSON.stringify( value[, replacer[, space]] )`"]]});

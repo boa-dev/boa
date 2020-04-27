@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["ast","The Javascript Abstract Syntax Tree"],["lexer","Lexical analysis (tokenizing/lexing). A lexical analyzer for JavaScript source code."],["parser","Boa parser implementation."]]});
+initSidebarItems({"mod":[["ast","The Javascript Abstract Syntax Tree."],["lexer","A lexical analyzer for JavaScript source code."],["parser","Boa parser implementation."]]});

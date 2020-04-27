@@ -695,6 +695,26 @@
 <span id="695">695</span>
 <span id="696">696</span>
 <span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -715,6 +735,8 @@
     <span class="ident">str</span>::{<span class="ident">Chars</span>, <span class="ident">FromStr</span>},
 };
 
+<span class="doccomment">/// `vop` tests the next token to see if we&#39;re on an assign operation of just a plain binary operation.</span>
+<span class="doccomment">/// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">vop</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
         <span class="kw">let</span> <span class="ident">preview</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">preview_next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Could not preview next value&quot;</span>))<span class="question-mark">?</span>;
@@ -756,6 +778,7 @@
     }
 }
 
+<span class="doccomment">/// The `op` macro handles binary operations or assignment operations and converts them into tokens.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">op</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
         <span class="kw">let</span> <span class="ident">punc</span> <span class="op">=</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>);
@@ -772,12 +795,18 @@
 }
 
 <span class="doccomment">/// An error that occurred during lexing or compiling of the source input.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [LexerError] implements [fmt::Display] so you just display this value as an error</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LexerError</span> {
+    <span class="doccomment">/// details will be displayed when a LexerError occurs</span>
     <span class="ident">details</span>: <span class="ident">String</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">LexerError</span> {
+    <span class="doccomment">/// Create a new LexerError struct</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// * `msg` - The message to show when LexerError is displayed</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">details</span>: <span class="ident">msg</span>.<span class="ident">to_string</span>(),
@@ -805,13 +834,15 @@
 <span class="doccomment">/// A lexical analyzer for JavaScript source code</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="comment">// The list fo tokens generated so far</span>
+    <span class="doccomment">/// The list of tokens generated so far.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This field is public so you can use them once lexing has finished.</span>
     <span class="kw">pub</span> <span class="ident">tokens</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-    <span class="comment">// The current line number in the script</span>
+    <span class="doccomment">/// The current line number in the script</span>
     <span class="ident">line_number</span>: <span class="ident">u64</span>,
-    <span class="comment">// the current column number in the script</span>
+    <span class="doccomment">/// the current column number in the script</span>
     <span class="ident">column_number</span>: <span class="ident">u64</span>,
-    <span class="comment">// The full string</span>
+    <span class="doccomment">/// The full Peekable buffer, an array of [Char]s</span>
     <span class="ident">buffer</span>: <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
@@ -822,13 +853,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `buffer` - A string slice that holds the source code.</span>
     <span class="doccomment">/// The buffer needs to have a lifetime as long as the Lexer instance itself</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// let buffer = std::fs::read_to_string(&quot;yourSourceCode.js&quot;).unwrap();</span>
-    <span class="doccomment">/// let lexer = boa::syntax::lexer::Lexer::new(&amp;buffer);</span>
-    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Lexer</span> {
             <span class="ident">tokens</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
@@ -838,7 +862,7 @@
         }
     }
 
-    <span class="doccomment">/// Push tokens onto the token queue</span>
+    <span class="doccomment">/// Push a token onto the token queue.</span>
     <span class="kw">fn</span> <span class="ident">push_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tk</span>: <span class="ident">TokenKind</span>) {
         <span class="self">self</span>.<span class="ident">tokens</span>
             .<span class="ident">push</span>(<span class="ident">Token</span>::<span class="ident">new</span>(<span class="ident">tk</span>, <span class="self">self</span>.<span class="ident">line_number</span>, <span class="self">self</span>.<span class="ident">column_number</span>))
@@ -902,6 +926,7 @@
         <span class="ident">result</span>
     }
 
+    <span class="doccomment">/// Utility function for reading integers in different bases</span>
     <span class="kw">fn</span> <span class="ident">read_integer_in_base</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">base</span>: <span class="ident">u32</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">LexerError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">next</span>();
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">preview_next</span>() {
@@ -915,6 +940,9 @@
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Could not convert value to u64&quot;</span>))
     }
 
+    <span class="doccomment">/// Utility function for checkint the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More info [ECMAScript Specification](https://tc39.es/ecma262/#sec-literals-numeric-literals)</span>
     <span class="kw">fn</span> <span class="ident">check_after_numeric_literal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LexerError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">preview_next</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">ch</span>)
@@ -927,6 +955,18 @@
         }
     }
 
+    <span class="doccomment">/// Runs the lexer until completion, returning a [LexerError] if there&#39;s a syntax issue, or an empty unit result</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use boa::syntax::lexer::{LexerError, Lexer};</span>
+    <span class="doccomment">/// fn main() -&gt; Result&lt;(), LexerError&gt; {</span>
+    <span class="doccomment">///     let buffer = String::from(&quot;Hello World&quot;);</span>
+    <span class="doccomment">///     let mut lexer = Lexer::new(&amp;buffer);</span>
+    <span class="doccomment">///     lexer.lex()</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LexerError</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="comment">// Check if we&#39;ve reached the end</span>

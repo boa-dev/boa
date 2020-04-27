@@ -159,7 +159,75 @@
 <span id="159">159</span>
 <span id="160">160</span>
 <span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! This module implements the global `Number` object.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.</span>
+<span class="doccomment">//! A `Number` object is created using the `Number()` constructor. A primitive type object number is created using the `Number()` **function**.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The JavaScript `Number` type is double-precision 64-bit binary format IEEE 754 value. In more recent implementations,</span>
+<span class="doccomment">//! JavaScript also supports integers with arbitrary precision using the BigInt type.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! More information:</span>
+<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
+<span class="doccomment">//!  - [MDN documentation][mdn]</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-number-object</span>
+<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number</span>
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -173,9 +241,7 @@
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Borrow</span>, <span class="ident">f64</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>};
 
-<span class="doccomment">/// Helper function: to_number(value: &amp;Value) -&gt; Value</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Converts a Value to a Number.</span>
+<span class="doccomment">/// Helper function that converts a Value to a Number.</span>
 <span class="kw">fn</span> <span class="ident">to_number</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
         <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -197,9 +263,7 @@
     }
 }
 
-<span class="doccomment">/// Helper function: num_to_exponential(n: f64) -&gt; String</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Formats a float as a ES6-style exponential number string.</span>
+<span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string.</span>
 <span class="kw">fn</span> <span class="ident">num_to_exponential</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">abs</span>() {
         <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">1.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
@@ -208,9 +272,7 @@
     }
 }
 
-<span class="doccomment">/// Number(arg)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Create a new number [[Construct]]</span>
+<span class="doccomment">/// Create a new number `[[Construct]]`</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_number</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="ident">value</span>),
@@ -220,9 +282,9 @@
     <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
 }
 
-<span class="doccomment">/// Number()</span>
+<span class="doccomment">/// `Number()` function.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-number-constructor-number-value</span>
+<span class="doccomment">/// More Information https://tc39.es/ecma262/#sec-number-constructor-number-value</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_number</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="ident">value</span>),
@@ -231,16 +293,32 @@
     <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
 }
 
-<span class="doccomment">/// Number().toExponential()</span>
+<span class="doccomment">/// `Number.prototype.toExponential( [fractionDigits] )`</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
+<span class="doccomment">/// The `toExponential()` method returns a string representing the Number object in exponential notation.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_exponential</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>();
     <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="ident">num_to_exponential</span>(<span class="ident">this_num</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str_num</span>))
 }
 
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-number.prototype.tofixed</span>
+<span class="doccomment">/// `Number.prototype.toFixed( [digits] )`</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The `toFixed()` method formats a number using fixed-point notation</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_fixed</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>();
     <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
@@ -254,21 +332,35 @@
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_fixed_num</span>))
 }
 
-<span class="doccomment">/// Number().toLocaleString()</span>
+<span class="doccomment">/// `Number.prototype.toLocaleString( [locales [, options]] )`</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-number.prototype.tolocalestring</span>
+<span class="doccomment">/// The `toLocaleString()` method returns a string with a language-sensitive representation of this number.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note that while this technically conforms to the Ecma standard, it does no actual</span>
 <span class="doccomment">/// internationalization logic.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_locale_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>();
     <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str_num</span>))
 }
 
-<span class="doccomment">/// Number().toPrecision(p)</span>
+<span class="doccomment">/// `Number.prototype.toPrecision( [precision] )`</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-number.prototype.toprecision</span>
+<span class="doccomment">/// The `toPrecision()` method returns a string representing the Number object to the specified precision.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_precision</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>);
     <span class="kw">let</span> <span class="ident">_num_str_len</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>.<span class="ident">to_num</span>()).<span class="ident">len</span>();
@@ -283,16 +375,30 @@
     <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;TODO: Implement toPrecision&quot;</span>);
 }
 
-<span class="doccomment">/// Number().toString()</span>
+<span class="doccomment">/// `Number.prototype.toString( [radix] )`</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-number.prototype.tostring</span>
+<span class="doccomment">/// The `toString()` method returns a string representing the specified Number object.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>())))
 }
 
-<span class="doccomment">/// Number().valueOf()</span>
+<span class="doccomment">/// `Number.prototype.toString()`</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-number.prototype.valueof</span>
+<span class="doccomment">/// The `valueOf()` method returns the wrapped primitive value of a Number object.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">to_number</span>(<span class="ident">this</span>))
 }

@@ -28,19 +28,11 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
-<span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
-<span id="39">39</span>
-<span id="40">40</span>
-<span id="41">41</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">/// Macro to create a new member function of a prototype</span>
+<span class="doccomment">//! Builtins live here, such as Object, String, Math etc</span>
+
+<span class="doccomment">/// Macro to create a new member function of a prototype.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// If no length is provided, the length will be set to 0.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">make_builtin_fn</span> {
     (<span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>, <span class="ident">named</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">expr</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">l</span>:<span class="ident">tt</span>, <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -53,33 +45,19 @@
     };
 }
 
-<span class="doccomment">/// The global `Array` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
-<span class="doccomment">/// the global `Symbol` Object</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
-<span class="comment">// The global `Boolean` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">boolean</span>;
-<span class="doccomment">/// The global `console` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">console</span>;
-<span class="doccomment">/// The global `Error` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="doccomment">/// The global `Function` object and function value representations</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
-<span class="doccomment">/// The global `JSON` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">json</span>;
-<span class="doccomment">/// The global `Math` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">math</span>;
-<span class="doccomment">/// The global `Number` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">number</span>;
-<span class="doccomment">/// The global `Object` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">object</span>;
-<span class="doccomment">/// Property, used by `Object`</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">property</span>;
-<span class="doccomment">/// The global &#39;RegExp&#39; object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regexp</span>;
-<span class="doccomment">/// The global `String` object</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">string</span>;
-<span class="doccomment">/// Javascript values, utility methods and conversion between Javascript values and Rust values</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">value</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "boa";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

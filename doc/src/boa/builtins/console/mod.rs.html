@@ -426,7 +426,118 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! This module implements the global `console` object.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The `console` object can be accessed from any global object.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The specifics of how it works varies from browser to browser, but there is a de facto set of features that are typically provided.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! More information:</span>
+<span class="doccomment">//!  - [MDN documentation][mdn]</span>
+<span class="doccomment">//!  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://console.spec.whatwg.org/</span>
+<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console</span>
+
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">print_stdout</span>)]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -443,6 +554,7 @@
 <span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">time</span>::<span class="ident">SystemTime</span>};
 
+<span class="doccomment">/// This is the internal console object state.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConsoleState</span> {
     <span class="ident">count_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
@@ -462,6 +574,7 @@
 
 <span class="kw">impl</span> <span class="ident">InternalState</span> <span class="kw">for</span> <span class="ident">ConsoleState</span> {}
 
+<span class="doccomment">/// This represents the different types of log messages.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LogMessage</span> {
     <span class="ident">Log</span>(<span class="ident">String</span>),
@@ -470,12 +583,14 @@
     <span class="ident">Error</span>(<span class="ident">String</span>),
 }
 
+<span class="doccomment">/// Helper function that returns the argument at a specified index.</span>
 <span class="kw">fn</span> <span class="ident">get_arg_at_index</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FromValue</span> <span class="op">+</span> <span class="ident">Default</span><span class="op">&gt;</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">args</span>.<span class="ident">get</span>(<span class="ident">index</span>)
         .<span class="ident">cloned</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">from_value</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">s</span>).<span class="ident">expect</span>(<span class="string">&quot;Convert error&quot;</span>))
 }
 
+<span class="doccomment">/// Helper function for logging messages.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">logger</span>(<span class="ident">msg</span>: <span class="ident">LogMessage</span>, <span class="ident">console_state</span>: <span class="kw-2">&amp;</span><span class="ident">ConsoleState</span>) {
     <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">console_state</span>.<span class="ident">groups</span>.<span class="ident">len</span>();
 
@@ -489,6 +604,7 @@
     }
 }
 
+<span class="doccomment">/// This represents the `console` formatter.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">formatter</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">get_arg_at_index</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">data</span>, <span class="number">0</span>).<span class="ident">unwrap_or_default</span>();
     <span class="kw">match</span> <span class="ident">data</span>.<span class="ident">len</span>() {
@@ -554,7 +670,12 @@
 <span class="doccomment">/// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there</span>
 <span class="doccomment">/// were no arguments.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#assert&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#assert</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assert</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">assertion</span> <span class="op">=</span> <span class="ident">get_arg_at_index</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="ident">args</span>, <span class="number">0</span>).<span class="ident">unwrap_or_default</span>();
 
@@ -582,7 +703,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Removes all groups and clears console if possible.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#clear&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#clear</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_mut</span>(<span class="op">|</span><span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ConsoleState</span><span class="op">|</span> {
         <span class="ident">state</span>.<span class="ident">groups</span>.<span class="ident">clear</span>();
@@ -595,7 +721,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints a JavaScript values with &quot;debug&quot; logLevel.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#debug&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#debug</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">logger</span>(<span class="ident">LogMessage</span>::<span class="ident">Log</span>(<span class="ident">formatter</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>[..])), <span class="ident">state</span>));
     <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
@@ -605,7 +736,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints a JavaScript values with &quot;error&quot; logLevel.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#error&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#error</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">logger</span>(<span class="ident">LogMessage</span>::<span class="ident">Error</span>(<span class="ident">formatter</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>[..])), <span class="ident">state</span>));
     <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
@@ -615,7 +751,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints a JavaScript values with &quot;info&quot; logLevel.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#info&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#info</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">info</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">logger</span>(<span class="ident">LogMessage</span>::<span class="ident">Info</span>(<span class="ident">formatter</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>[..])), <span class="ident">state</span>));
     <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
@@ -625,7 +766,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints a JavaScript values with &quot;log&quot; logLevel.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#log&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#log</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">logger</span>(<span class="ident">LogMessage</span>::<span class="ident">Log</span>(<span class="ident">formatter</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>[..])), <span class="ident">state</span>));
     <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
@@ -635,7 +781,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints a stack trace with &quot;trace&quot; logLevel, optionally labelled by data.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#trace&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#trace</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trace</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">if</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_empty</span>() {
         <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">logger</span>(<span class="ident">LogMessage</span>::<span class="ident">Log</span>(<span class="ident">formatter</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>[..])), <span class="ident">state</span>));
@@ -656,7 +807,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints a JavaScript values with &quot;warn&quot; logLevel.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#warn&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#warn</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">warn</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">logger</span>(<span class="ident">LogMessage</span>::<span class="ident">Warn</span>(<span class="ident">formatter</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>[..])), <span class="ident">state</span>));
     <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
@@ -666,7 +822,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints number of times the function was called with that particular label.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#count&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#count</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">get_arg_at_index</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">args</span>, <span class="number">0</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;default&quot;</span>.<span class="ident">to_string</span>());
 
@@ -685,7 +846,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Resets the counter for label.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#countreset&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#countreset</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_reset</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">get_arg_at_index</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">args</span>, <span class="number">0</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;default&quot;</span>.<span class="ident">to_string</span>());
 
@@ -710,7 +876,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Starts the timer for given label.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#time&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#time</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">time</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">get_arg_at_index</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">args</span>, <span class="number">0</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;default&quot;</span>.<span class="ident">to_string</span>());
 
@@ -733,7 +904,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints elapsed time for timer with given label.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#timelog&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#timelog</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">time_log</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">get_arg_at_index</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">args</span>, <span class="number">0</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;default&quot;</span>.<span class="ident">to_string</span>());
 
@@ -760,7 +936,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Removes the timer with given label.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#timeend&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#timeend</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">time_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">get_arg_at_index</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">args</span>, <span class="number">0</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;default&quot;</span>.<span class="ident">to_string</span>());
 
@@ -786,7 +967,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Adds new group with name from formatted data to stack.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#group&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#group</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">group_label</span> <span class="op">=</span> <span class="ident">formatter</span>(<span class="ident">args</span>);
 
@@ -802,7 +988,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Removes the last group from the stack.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#groupend&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#groupend</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">group_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_mut</span>(<span class="op">|</span><span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ConsoleState</span><span class="op">|</span> {
         <span class="ident">state</span>.<span class="ident">groups</span>.<span class="ident">pop</span>();
@@ -815,7 +1006,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Prints info about item</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information: &lt;https://console.spec.whatwg.org/#dir&gt;</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [WHATWG `console` specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://console.spec.whatwg.org/#dir</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dir</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="ident">this</span>.<span class="ident">with_internal_state_mut</span>(<span class="op">|</span><span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ConsoleState</span><span class="op">|</span> {
         <span class="ident">logger</span>(

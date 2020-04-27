@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Property","A Javascript Property AKA The Property Descriptor    [SPEC] - The Property Descriptor Specification Type    [SPEC] - Default Attribute Values"]]});
+initSidebarItems({"struct":[["Property","This represents a Javascript Property AKA The Property Descriptor."]]});
