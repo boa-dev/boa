@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BindingList","Parses a binding list."],["LexicalDeclaration","Parses a lexical declaration."]]});

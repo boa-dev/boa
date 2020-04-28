@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["array_initializer","Array initializer parsing."],["function_expression","Function expression parsing."],["object_initializer","Object initializer parsing."]],"struct":[["PrimaryExpression","Parses a primary expression."]]});

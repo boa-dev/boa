@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["FunctionDeclaration","Function declaration parsing."],["HoistableDeclaration","Hoistable declaration parsing."]]});

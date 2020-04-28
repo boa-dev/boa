@@ -1,6 +1,7 @@
 var ALIASES = {};
 ALIASES["aho_corasick"] = {};
 ALIASES["boa"] = {};
+ALIASES["boa_wasm"] = {};
 ALIASES["bumpalo"] = {};
 ALIASES["cfg_if"] = {};
 ALIASES["gc"] = {};
