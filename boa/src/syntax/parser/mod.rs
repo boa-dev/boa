@@ -77,8 +77,8 @@ impl From<bool> for AllowReturn {
         Self(allow)
     }
 }
-/// Boolean representing if the parser should allow a `default` keyword.
 
+/// Boolean representing if the parser should allow a `default` keyword.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct AllowDefault(bool);
 
@@ -108,7 +108,12 @@ impl<'a> Parser<'a> {
     }
 }
 
-/// <https://tc39.es/ecma262/#prod-Script>
+/// Parses a full script.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-Script
 #[derive(Debug, Clone, Copy)]
 pub struct Script;
 
@@ -124,7 +129,12 @@ impl TokenParser for Script {
     }
 }
 
-/// <https://tc39.es/ecma262/#prod-ScriptBody>
+/// Parses a script body.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ScriptBody
 #[derive(Debug, Clone, Copy)]
 pub struct ScriptBody;
 
