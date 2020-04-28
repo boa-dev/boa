@@ -739,11 +739,11 @@ pub fn find_index(this: &Value, args: &[Value], interpreter: &mut Interpreter) -
         let result = interpreter.call(predicate_arg, &this_arg, arguments)?;
 
         if result.is_true() {
-            return Ok(Gc::new(ValueData::Number(f64::from(i))));
+            return Ok(Gc::new(ValueData::Rational(f64::from(i))));
         }
     }
 
-    Ok(Gc::new(ValueData::Number(f64::from(-1))))
+    Ok(Gc::new(ValueData::Rational(f64::from(-1))))
 }
 
 /// `Array.prototype.fill( value[, start[, end]] )`

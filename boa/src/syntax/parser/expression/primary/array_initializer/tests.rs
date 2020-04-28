@@ -26,9 +26,9 @@ fn check_numeric_array() {
     check_parser(
         "[1, 2, 3]",
         &[Node::ArrayDecl(vec![
-            Node::const_node(1.0),
-            Node::const_node(2.0),
-            Node::const_node(3.0),
+            Node::const_node(1),
+            Node::const_node(2),
+            Node::const_node(3),
         ])],
     );
 }
@@ -39,9 +39,9 @@ fn check_numeric_array_trailing() {
     check_parser(
         "[1, 2, 3,]",
         &[Node::ArrayDecl(vec![
-            Node::const_node(1.0),
-            Node::const_node(2.0),
-            Node::const_node(3.0),
+            Node::const_node(1),
+            Node::const_node(2),
+            Node::const_node(3),
         ])],
     );
 }
@@ -52,10 +52,10 @@ fn check_numeric_array_elision() {
     check_parser(
         "[1, 2, , 3]",
         &[Node::ArrayDecl(vec![
-            Node::const_node(1.0),
-            Node::const_node(2.0),
+            Node::const_node(1),
+            Node::const_node(2),
             Node::Const(Const::Undefined),
-            Node::const_node(3.0),
+            Node::const_node(3),
         ])],
     );
 }
@@ -66,11 +66,11 @@ fn check_numeric_array_repeated_elision() {
     check_parser(
         "[1, 2, ,, 3]",
         &[Node::ArrayDecl(vec![
-            Node::const_node(1.0),
-            Node::const_node(2.0),
+            Node::const_node(1),
+            Node::const_node(2),
             Node::Const(Const::Undefined),
             Node::Const(Const::Undefined),
-            Node::const_node(3.0),
+            Node::const_node(3),
         ])],
     );
 }
@@ -81,9 +81,9 @@ fn check_combined() {
     check_parser(
         "[1, \"a\", 2]",
         &[Node::ArrayDecl(vec![
-            Node::const_node(1.0),
+            Node::const_node(1),
             Node::const_node("a"),
-            Node::const_node(2.0),
+            Node::const_node(2),
         ])],
     );
 }
@@ -94,9 +94,9 @@ fn check_combined_empty_str() {
     check_parser(
         "[1, \"\", 2]",
         &[Node::ArrayDecl(vec![
-            Node::const_node(1.0),
+            Node::const_node(1),
             Node::const_node(""),
-            Node::const_node(2.0),
+            Node::const_node(2),
         ])],
     );
 }

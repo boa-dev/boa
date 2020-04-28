@@ -97,7 +97,7 @@ pub fn to_boolean(value: &Value) -> Value {
     match *value.deref().borrow() {
         ValueData::Object(_) => to_value(true),
         ValueData::String(ref s) if !s.is_empty() => to_value(true),
-        ValueData::Number(n) if n != 0.0 && !n.is_nan() => to_value(true),
+        ValueData::Rational(n) if n != 0.0 && !n.is_nan() => to_value(true),
         ValueData::Integer(n) if n != 0 => to_value(true),
         ValueData::Boolean(v) => to_value(v),
         _ => to_value(false),

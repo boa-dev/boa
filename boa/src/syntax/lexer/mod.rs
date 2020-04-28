@@ -8,7 +8,7 @@ mod tests;
 
 use crate::syntax::ast::{
     punc::Punctuator,
-    token::{Token, TokenKind},
+    token::{NumericLiteral, Token, TokenKind},
 };
 use std::{
     char::{decode_utf16, from_u32},
@@ -18,6 +18,7 @@ use std::{
 };
 
 /// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
+///
 /// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
 macro_rules! vop {
     ($this:ident, $assign_op:expr, $op:expr) => ({
@@ -81,7 +82,7 @@ macro_rules! op {
 /// [LexerError] implements [fmt::Display] so you just display this value as an error
 #[derive(Debug, Clone)]
 pub struct LexerError {
-    /// details will be displayed when a LexerError occurs
+    /// details will be displayed when a LexerError occurs.
     details: String,
 }
 
@@ -113,7 +114,7 @@ impl error::Error for LexerError {
     }
 }
 
-/// A lexical analyzer for JavaScript source code
+/// A lexical analyzer for JavaScript source code.
 #[derive(Debug)]
 pub struct Lexer<'a> {
     /// The list of tokens generated so far.
@@ -131,9 +132,6 @@ pub struct Lexer<'a> {
 impl<'a> Lexer<'a> {
     /// Returns a Lexer with a buffer inside
     ///
-    /// # Arguments
-    ///
-    /// * `buffer` - A string slice that holds the source code.
     /// The buffer needs to have a lifetime as long as the Lexer instance itself
     pub fn new(buffer: &'a str) -> Lexer<'a> {
         Lexer {
@@ -208,23 +206,12 @@ impl<'a> Lexer<'a> {
         result
     }
 
-    /// Utility function for reading integers in different bases
-    fn read_integer_in_base(&mut self, base: u32, mut buf: String) -> Result<u64, LexerError> {
-        self.next();
-        while let Some(ch) = self.preview_next() {
-            if ch.is_digit(base) {
-                buf.push(self.next());
-            } else {
-                break;
-            }
-        }
-        u64::from_str_radix(&buf, base)
-            .map_err(|_| LexerError::new("Could not convert value to u64"))
-    }
-
-    /// Utility function for checkint the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character
+    /// Utility function for checkint the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character.
     ///
-    /// More info [ECMAScript Specification](https://tc39.es/ecma262/#sec-literals-numeric-literals)
+    /// More information:
+    ///  - [ECMAScript Specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
     fn check_after_numeric_literal(&mut self) -> Result<(), LexerError> {
         match self.preview_next() {
             Some(ch)
@@ -235,6 +222,213 @@ impl<'a> Lexer<'a> {
             Some(_) => Ok(()),
             None => Ok(())
         }
+    }
+
+    /// Lexes a numerical literal.
+    ///
+    /// More information:
+    ///  - [ECMAScript Specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
+    fn reed_numerical_literal(&mut self, ch: char) -> Result<(), LexerError> {
+        /// This is a helper structure
+        ///
+        /// This structure helps with identifying what numerical type it is and what base is it.
+        enum NumericKind {
+            Rational,
+            Integer(u32),
+            BigInt(u32),
+        }
+
+        impl NumericKind {
+            /// Get the base of the number kind.
+            fn base(&self) -> u32 {
+                match self {
+                    Self::Rational => 10,
+                    Self::Integer(ref base) => *base,
+                    Self::BigInt(ref base) => *base,
+                }
+            }
+
+            /// Converts `self` to BigInt kind.
+            fn convert_to_bigint(&mut self) {
+                *self = match *self {
+                    Self::Rational => unreachable!("can not convert rational number to BigInt"),
+                    Self::Integer(base) => Self::BigInt(base),
+                    Self::BigInt(base) => Self::BigInt(base),
+                };
+            }
+        }
+
+        // TODO: Setup strict mode.
+        let strict_mode = false;
+
+        let mut buf = ch.to_string();
+        let mut position_offset = 0;
+        let mut kind = NumericKind::Integer(10);
+        if ch == '0' {
+            match self.preview_next() {
+                None => {
+                    self.push_token(TokenKind::NumericLiteral(NumericLiteral::Integer(0)));
+                    self.column_number += 1;
+                    return Ok(());
+                }
+                Some('x') | Some('X') => {
+                    self.next();
+                    position_offset += 1;
+                    kind = NumericKind::Integer(16);
+                }
+                Some('o') | Some('O') => {
+                    self.next();
+                    position_offset += 1;
+                    kind = NumericKind::Integer(8);
+                }
+                Some('b') | Some('B') => {
+                    self.next();
+                    position_offset += 1;
+                    kind = NumericKind::Integer(2);
+                }
+                Some(ch) if ch.is_ascii_digit() => {
+                    let mut is_implicit_octal = true;
+                    while let Some(ch) = self.preview_next() {
+                        if !ch.is_ascii_digit() {
+                            break;
+                        } else if !ch.is_digit(8) {
+                            is_implicit_octal = false;
+                        }
+                        buf.push(self.next());
+                    }
+                    if !strict_mode {
+                        if is_implicit_octal {
+                            kind = NumericKind::Integer(8);
+                        }
+                    } else {
+                        return Err(if is_implicit_octal {
+                            LexerError::new(
+                                "Implicit octal literals are not allowed in strict mode.",
+                            )
+                        } else {
+                            LexerError::new(
+                                "Decimals with leading zeros are not allowed in strict mode.",
+                            )
+                        });
+                    }
+                }
+                Some(_) => {}
+            }
+        }
+
+        while let Some(ch) = self.preview_next() {
+            if !ch.is_digit(kind.base()) {
+                break;
+            }
+            buf.push(self.next());
+        }
+
+        if self.next_is('n') {
+            kind.convert_to_bigint()
+        }
+
+        if let NumericKind::Integer(10) = kind {
+            'digitloop: while let Some(ch) = self.preview_next() {
+                match ch {
+                    '.' => loop {
+                        kind = NumericKind::Rational;
+                        buf.push(self.next());
+
+                        let c = match self.preview_next() {
+                            Some(ch) => ch,
+                            None => break,
+                        };
+
+                        match c {
+                            'e' | 'E' => {
+                                match self
+                                    .preview_multiple_next(2)
+                                    .unwrap_or_default()
+                                    .to_digit(10)
+                                {
+                                    Some(0..=9) | None => {
+                                        buf.push(self.next());
+                                    }
+                                    _ => {
+                                        break 'digitloop;
+                                    }
+                                }
+                            }
+                            _ => {
+                                if !c.is_digit(10) {
+                                    break 'digitloop;
+                                }
+                            }
+                        }
+                    },
+                    'e' | 'E' => {
+                        kind = NumericKind::Rational;
+                        match self
+                            .preview_multiple_next(2)
+                            .unwrap_or_default()
+                            .to_digit(10)
+                        {
+                            Some(0..=9) | None => {
+                                buf.push(self.next());
+                            }
+                            _ => {
+                                break;
+                            }
+                        }
+                        buf.push(self.next());
+                    }
+                    '+' | '-' => {
+                        break;
+                    }
+                    _ if ch.is_digit(10) => {
+                        buf.push(self.next());
+                    }
+                    _ => break,
+                }
+            }
+        }
+
+        if let Err(e) = self.check_after_numeric_literal() {
+            return Err(e);
+        };
+
+        let num = match kind {
+                NumericKind::BigInt(_) => {
+                    // TODO: Implement bigint.
+                    // NOTE: implementation goes here.
+                    unimplemented!("BigInt");
+                }
+                NumericKind::Rational /* base: 10 */ => {
+                    NumericLiteral::Rational(
+                        f64::from_str(&buf)
+                            .map_err(|_| LexerError::new("Could not convert value to f64"))?,
+                    )
+                }
+                NumericKind::Integer(base) => {
+                    if let Ok(num) = i32::from_str_radix(&buf, base) {
+                        NumericLiteral::Integer(
+                            num
+                        )
+                    } else {
+                        let b = f64::from(base);
+                        let mut result = 0.0_f64;
+                        for c in buf.chars() {
+                            let digit = f64::from(c.to_digit(base).unwrap());
+                            result = result * b + digit;
+                        }
+
+                        NumericLiteral::Rational(result)
+                    }
+
+                }
+            };
+
+        self.push_token(TokenKind::NumericLiteral(num));
+        self.column_number += (buf.len() as u64) + position_offset - 1;
+
+        Ok(())
     }
 
     /// Runs the lexer until completion, returning a [LexerError] if there's a syntax issue, or an empty unit result
@@ -383,117 +577,7 @@ impl<'a> Lexer<'a> {
                     // to compensate for the incrementing at the top
                     self.column_number += str_length.wrapping_add(1);
                 }
-                '0' => {
-                    let mut buf = String::new();
-
-                    let num = match self.preview_next() {
-                        None => {
-                            self.push_token(TokenKind::NumericLiteral(0_f64));
-                            return Ok(());
-                        }
-                        Some('x') | Some('X') => {
-                            self.read_integer_in_base(16, buf)? as f64
-                        }
-                        Some('o') | Some('O') => {
-                            self.read_integer_in_base(8, buf)? as f64
-                        }
-                        Some('b') | Some('B') => {
-                            self.read_integer_in_base(2, buf)? as f64
-                        }
-                        Some(ch) if (ch.is_ascii_digit() || ch == '.') => {
-                            // LEGACY OCTAL (ONLY FOR NON-STRICT MODE)
-                            let mut gone_decimal = ch == '.';
-                            while let Some(next_ch) = self.preview_next() {
-                                match next_ch {
-                                    c if next_ch.is_digit(8) => {
-                                        buf.push(c);
-                                        self.next();
-                                    }
-                                    '8' | '9' | '.' => {
-                                        gone_decimal = true;
-                                        buf.push(next_ch);
-                                        self.next();
-                                    }
-                                    _ => {
-                                        break;
-                                    }
-                                }
-                            }
-                            if gone_decimal {
-                                f64::from_str(&buf).map_err(|_e| LexerError::new("Could not convert value to f64"))?
-                            } else if buf.is_empty() {
-                                0.0
-                            } else {
-                                (u64::from_str_radix(&buf, 8).map_err(|_e| LexerError::new("Could not convert value to u64"))?) as f64
-                            }
-                        }
-                        Some(_) => {
-                            0.0
-                        }
-                    };
-
-                    self.push_token(TokenKind::NumericLiteral(num));
-
-                    //11.8.3
-                    if let Err(e) = self.check_after_numeric_literal() {
-                        return Err(e)
-                    };
-                }
-                _ if ch.is_digit(10) => {
-                    let mut buf = ch.to_string();
-                    'digitloop: while let Some(ch) = self.preview_next() {
-                        match ch {
-                            '.' => loop {
-                                buf.push(self.next());
-
-                                let c = match self.preview_next() {
-                                    Some(ch) => ch,
-                                    None => break,
-                                };
-
-                                match c {
-                                    'e' | 'E' => {
-                                        match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
-                                            Some(0..=9) | None => {
-                                                buf.push(self.next());
-                                              }
-                                              _ => {
-                                                break 'digitloop;
-                                              }
-                                        }
-                                    }
-                                    _ => {
-                                        if !c.is_digit(10) {
-                                            break 'digitloop;
-                                        }
-                                    }
-                                }
-                            },
-                            'e' | 'E' => {
-                              match self.preview_multiple_next(2).unwrap_or_default().to_digit(10) {
-                                  Some(0..=9) | None => {
-                                    buf.push(self.next());
-                                  }
-                                  _ => {
-                                    break;
-                                  }
-                                }
-                            buf.push(self.next());
-                            }
-                            '+' | '-' => {
-                              break;
-                            }
-                            _ if ch.is_digit(10) => {
-                                buf.push(self.next());
-                            }
-                            _ => break,
-                        }
-                    }
-                    // TODO make this a bit more safe -------------------------------VVVV
-                    self.push_token(TokenKind::NumericLiteral(
-                        f64::from_str(&buf).map_err(|_| LexerError::new("Could not convert value to f64"))?,
-                    ))
-                }
+                _ if ch.is_digit(10) => self.reed_numerical_literal(ch)?,
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();
                     while let Some(ch) = self.preview_next() {

@@ -536,7 +536,7 @@ impl Executor for Interpreter {
                     ValueData::Symbol(_) => "symbol",
                     ValueData::Null | ValueData::Object(_) => "object",
                     ValueData::Boolean(_) => "boolean",
-                    ValueData::Number(_) | ValueData::Integer(_) => "number",
+                    ValueData::Rational(_) | ValueData::Integer(_) => "number",
                     ValueData::String(_) => "string",
                     ValueData::Function(_) => "function",
                 }))
@@ -728,7 +728,7 @@ impl Interpreter {
             ValueData::Undefined => to_value("undefined"),
             ValueData::Null => to_value("null"),
             ValueData::Boolean(ref boolean) => to_value(boolean.to_string()),
-            ValueData::Number(ref num) => to_value(num.to_string()),
+            ValueData::Rational(ref num) => to_value(num.to_string()),
             ValueData::Integer(ref num) => to_value(num.to_string()),
             ValueData::String(ref string) => to_value(string.clone()),
             ValueData::Object(_) => {
@@ -759,7 +759,7 @@ impl Interpreter {
                 bool_obj.set_internal_slot("BooleanData", value.clone());
                 Ok(bool_obj)
             }
-            ValueData::Number(_) => {
+            ValueData::Rational(_) => {
                 let proto = self
                     .realm
                     .environment
@@ -788,7 +788,7 @@ impl Interpreter {
         match *value.deref().borrow() {
             ValueData::Null => String::from("null"),
             ValueData::Boolean(ref boolean) => boolean.to_string(),
-            ValueData::Number(ref num) => num.to_string(),
+            ValueData::Rational(ref num) => num.to_string(),
             ValueData::Integer(ref num) => num.to_string(),
             ValueData::String(ref string) => string.clone(),
             ValueData::Object(_) => {
@@ -809,7 +809,7 @@ impl Interpreter {
                     f64::from(0)
                 }
             }
-            ValueData::Number(num) => num,
+            ValueData::Rational(num) => num,
             ValueData::Integer(num) => f64::from(num),
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
             ValueData::Object(_) => {

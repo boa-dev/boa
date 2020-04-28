@@ -56,6 +56,30 @@ impl Debug for VecToken {
     }
 }
 
+/// Represents the type differenct types of numeric literals.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum NumericLiteral {
+    /// A floating point number
+    Rational(f64),
+
+    /// An integer
+    Integer(i32),
+    // TODO: Add BigInt
+}
+
+impl From<f64> for NumericLiteral {
+    fn from(n: f64) -> Self {
+        Self::Rational(n)
+    }
+}
+
+impl From<i32> for NumericLiteral {
+    fn from(n: i32) -> Self {
+        Self::Integer(n)
+    }
+}
+
 /// Represents the type of Token and the data it has inside.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
@@ -78,7 +102,7 @@ pub enum TokenKind {
     NullLiteral,
 
     /// A numeric literal.
-    NumericLiteral(f64),
+    NumericLiteral(NumericLiteral),
 
     /// A piece of punctuation
     ///
@@ -138,8 +162,11 @@ impl TokenKind {
     }
 
     /// Creates a `NumericLiteral` token kind.
-    pub fn numeric_literal(lit: f64) -> Self {
-        Self::NumericLiteral(lit)
+    pub fn numeric_literal<L>(lit: L) -> Self
+    where
+        L: Into<NumericLiteral>,
+    {
+        Self::NumericLiteral(lit.into())
     }
 
     /// Creates a `Punctuator` token type.
@@ -178,7 +205,8 @@ impl Display for TokenKind {
             Self::Identifier(ref ident) => write!(f, "{}", ident),
             Self::Keyword(ref word) => write!(f, "{}", word),
             Self::NullLiteral => write!(f, "null"),
-            Self::NumericLiteral(ref num) => write!(f, "{}", num),
+            Self::NumericLiteral(NumericLiteral::Rational(num)) => write!(f, "{}", num),
+            Self::NumericLiteral(NumericLiteral::Integer(num)) => write!(f, "{}", num),
             Self::Punctuator(ref punc) => write!(f, "{}", punc),
             Self::StringLiteral(ref lit) => write!(f, "{}", lit),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
