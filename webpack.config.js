@@ -18,8 +18,8 @@ module.exports = {
       template: "index.html",
     }),
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, "./boa/"),
-      outDir: path.resolve(__dirname, "./boa/pkg/"),
+      crateDirectory: path.resolve(__dirname, "./boa_wasm/"),
+      outDir: path.resolve(__dirname, "./boa_wasm/pkg/"),
     }),
     new CopyWebpackPlugin([
       {
