@@ -1,6 +1,7 @@
+#![allow(clippy::float_cmp)]
+
 use super::*;
 use crate::{builtins::value::ValueData, exec::Executor, forward, forward_val, realm::Realm};
-use std::f64;
 
 #[test]
 fn check_number_constructor_is_function() {
@@ -34,14 +35,14 @@ fn call_number() {
     let invalid_nan = forward_val(&mut engine, "invalid_nan").unwrap();
     let from_exp = forward_val(&mut engine, "from_exp").unwrap();
 
-    assert_eq!(default_zero.to_num(), f64::from(0));
-    assert_eq!(int_one.to_num(), f64::from(1));
-    assert_eq!(float_two.to_num(), f64::from(2.1));
-    assert_eq!(str_three.to_num(), f64::from(3.2));
-    assert_eq!(bool_one.to_num(), f64::from(1));
+    assert_eq!(default_zero.to_num(), 0_f64);
+    assert_eq!(int_one.to_num(), 1_f64);
+    assert_eq!(float_two.to_num(), 2.1);
+    assert_eq!(str_three.to_num(), 3.2);
+    assert_eq!(bool_one.to_num(), 1_f64);
     assert!(invalid_nan.to_num().is_nan());
-    assert_eq!(bool_zero.to_num(), f64::from(0));
-    assert_eq!(from_exp.to_num(), f64::from(234));
+    assert_eq!(bool_zero.to_num(), 0_f64);
+    assert_eq!(from_exp.to_num(), 234_f64);
 }
 
 #[test]
@@ -205,9 +206,9 @@ fn value_of() {
     let exp_val = forward_val(&mut engine, "exp_val").unwrap();
     let neg_val = forward_val(&mut engine, "neg_val").unwrap();
 
-    assert_eq!(default_val.to_num(), f64::from(0));
-    assert_eq!(int_val.to_num(), f64::from(123));
-    assert_eq!(float_val.to_num(), f64::from(1.234));
-    assert_eq!(exp_val.to_num(), f64::from(12000));
-    assert_eq!(neg_val.to_num(), f64::from(-12000));
+    assert_eq!(default_val.to_num(), 0_f64);
+    assert_eq!(int_val.to_num(), 123_f64);
+    assert_eq!(float_val.to_num(), 1.234);
+    assert_eq!(exp_val.to_num(), 12_000_f64);
+    assert_eq!(neg_val.to_num(), -12_000_f64);
 }

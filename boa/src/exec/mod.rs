@@ -63,7 +63,7 @@ fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
 
 impl Executor for Interpreter {
     fn new(realm: Realm) -> Self {
-        Interpreter {
+        Self {
             realm,
             is_return: false,
         }
@@ -311,7 +311,7 @@ impl Executor for Interpreter {
                             !(num_v_a as i32)
                         })
                     }
-                    _ => unreachable!(),
+                    _ => unimplemented!(),
                 })
             }
             Node::BinOp(BinOp::Bit(ref op), ref a, ref b) => {

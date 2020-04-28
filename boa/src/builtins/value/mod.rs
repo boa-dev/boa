@@ -66,10 +66,10 @@ impl ValueData {
             let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
 
             let obj = Object::create(obj_proto);
-            Gc::new(ValueData::Object(GcCell::new(obj)))
+            Gc::new(Self::Object(GcCell::new(obj)))
         } else {
             let obj = Object::default();
-            Gc::new(ValueData::Object(GcCell::new(obj)))
+            Gc::new(Self::Object(GcCell::new(obj)))
         }
     }
 
@@ -82,7 +82,7 @@ impl ValueData {
         obj.internal_slots
             .insert(INSTANCE_PROTOTYPE.to_string(), proto);
 
-        Gc::new(ValueData::Object(GcCell::new(obj)))
+        Gc::new(Self::Object(GcCell::new(obj)))
     }
 
     /// This will tell us if we can exten an object or not, not properly implemented yet
@@ -101,7 +101,7 @@ impl ValueData {
     /// Returns true if the value is an object
     pub fn is_object(&self) -> bool {
         match *self {
-            ValueData::Object(_) => true,
+            Self::Object(_) => true,
             _ => false,
         }
     }
@@ -109,7 +109,7 @@ impl ValueData {
     /// Returns true if the value is a symbol
     pub fn is_symbol(&self) -> bool {
         match *self {
-            ValueData::Symbol(_) => true,
+            Self::Symbol(_) => true,
             _ => false,
         }
     }
@@ -117,8 +117,8 @@ impl ValueData {
     /// Returns true if the value is a function
     pub fn is_function(&self) -> bool {
         match *self {
-            ValueData::Function(_) => true,
-            ValueData::Object(ref o) => o.deref().borrow().get_internal_slot("call").is_function(),
+            Self::Function(_) => true,
+            Self::Object(ref o) => o.deref().borrow().get_internal_slot("call").is_function(),
             _ => false,
         }
     }
@@ -126,7 +126,7 @@ impl ValueData {
     /// Returns true if the value is undefined
     pub fn is_undefined(&self) -> bool {
         match *self {
-            ValueData::Undefined => true,
+            Self::Undefined => true,
             _ => false,
         }
     }
@@ -134,7 +134,7 @@ impl ValueData {
     /// Returns true if the value is null
     pub fn is_null(&self) -> bool {
         match *self {
-            ValueData::Null => true,
+            Self::Null => true,
             _ => false,
         }
     }
@@ -142,7 +142,7 @@ impl ValueData {
     /// Returns true if the value is null or undefined
     pub fn is_null_or_undefined(&self) -> bool {
         match *self {
-            ValueData::Null | ValueData::Undefined => true,
+            Self::Null | Self::Undefined => true,
             _ => false,
         }
     }
@@ -150,7 +150,7 @@ impl ValueData {
     /// Returns true if the value is a 64-bit floating-point number
     pub fn is_double(&self) -> bool {
         match *self {
-            ValueData::Number(_) => true,
+            Self::Number(_) => true,
             _ => false,
         }
     }
@@ -163,7 +163,7 @@ impl ValueData {
     /// Returns true if the value is a string
     pub fn is_string(&self) -> bool {
         match *self {
-            ValueData::String(_) => true,
+            Self::String(_) => true,
             _ => false,
         }
     }
@@ -171,7 +171,7 @@ impl ValueData {
     /// Returns true if the value is a boolean
     pub fn is_boolean(&self) -> bool {
         match *self {
-            ValueData::Boolean(_) => true,
+            Self::Boolean(_) => true,
             _ => false,
         }
     }
@@ -181,11 +181,11 @@ impl ValueData {
     /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
     pub fn is_true(&self) -> bool {
         match *self {
-            ValueData::Object(_) => true,
-            ValueData::String(ref s) if !s.is_empty() => true,
-            ValueData::Number(n) if n != 0.0 && !n.is_nan() => true,
-            ValueData::Integer(n) if n != 0 => true,
-            ValueData::Boolean(v) => v,
+            Self::Object(_) => true,
+            Self::String(ref s) if !s.is_empty() => true,
+            Self::Number(n) if n != 0.0 && !n.is_nan() => true,
+            Self::Integer(n) if n != 0 => true,
+            Self::Boolean(v) => v,
             _ => false,
         }
     }
@@ -193,37 +193,34 @@ impl ValueData {
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
         match *self {
-            ValueData::Object(_)
-            | ValueData::Symbol(_)
-            | ValueData::Undefined
-            | ValueData::Function(_) => NAN,
-            ValueData::String(ref str) => match FromStr::from_str(str) {
+            Self::Object(_) | Self::Symbol(_) | Self::Undefined | Self::Function(_) => NAN,
+            Self::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => NAN,
             },
-            ValueData::Number(num) => num,
-            ValueData::Boolean(true) => 1.0,
-            ValueData::Boolean(false) | ValueData::Null => 0.0,
-            ValueData::Integer(num) => f64::from(num),
+            Self::Number(num) => num,
+            Self::Boolean(true) => 1.0,
+            Self::Boolean(false) | Self::Null => 0.0,
+            Self::Integer(num) => f64::from(num),
         }
     }
 
     /// Converts the value into a 32-bit integer
     pub fn to_int(&self) -> i32 {
         match *self {
-            ValueData::Object(_)
-            | ValueData::Undefined
-            | ValueData::Symbol(_)
-            | ValueData::Null
-            | ValueData::Boolean(false)
-            | ValueData::Function(_) => 0,
-            ValueData::String(ref str) => match FromStr::from_str(str) {
+            Self::Object(_)
+            | Self::Undefined
+            | Self::Symbol(_)
+            | Self::Null
+            | Self::Boolean(false)
+            | Self::Function(_) => 0,
+            Self::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => 0,
             },
-            ValueData::Number(num) => num as i32,
-            ValueData::Boolean(true) => 1,
-            ValueData::Integer(num) => num,
+            Self::Number(num) => num as i32,
+            Self::Boolean(true) => 1,
+            Self::Integer(num) => num,
         }
     }
 
@@ -232,9 +229,9 @@ impl ValueData {
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
     pub fn remove_prop(&self, field: &str) {
         match *self {
-            ValueData::Object(ref obj) => obj.borrow_mut().deref_mut().properties.remove(field),
+            Self::Object(ref obj) => obj.borrow_mut().deref_mut().properties.remove(field),
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
+            Self::Function(ref func) => match func.borrow_mut().deref_mut() {
                 Function::NativeFunc(ref mut func) => func.object.properties.remove(field),
                 Function::RegularFunc(ref mut func) => func.object.properties.remove(field),
             },
@@ -249,24 +246,24 @@ impl ValueData {
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
-            if let ValueData::String(ref s) = *self {
+            if let Self::String(ref s) = *self {
                 return Some(Property::default().value(to_value(s.len() as i32)));
             }
         }
 
         let obj: Object = match *self {
-            ValueData::Object(ref obj) => {
+            Self::Object(ref obj) => {
                 let hash = obj.clone();
                 // TODO: This will break, we should return a GcCellRefMut instead
                 // into_inner will consume the wrapped value and remove it from the hashmap
                 hash.into_inner()
             }
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            ValueData::Function(ref func) => match func.clone().into_inner() {
+            Self::Function(ref func) => match func.clone().into_inner() {
                 Function::NativeFunc(ref func) => func.object.clone(),
                 Function::RegularFunc(ref func) => func.object.clone(),
             },
-            ValueData::Symbol(ref obj) => {
+            Self::Symbol(ref obj) => {
                 let hash = obj.clone();
                 hash.into_inner()
             }
@@ -294,9 +291,9 @@ impl ValueData {
         configurable: Option<bool>,
     ) {
         let obj: Option<Object> = match self {
-            ValueData::Object(ref obj) => Some(obj.borrow_mut().deref_mut().clone()),
+            Self::Object(ref obj) => Some(obj.borrow_mut().deref_mut().clone()),
             // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            ValueData::Function(ref func) => match func.borrow_mut().deref_mut() {
+            Self::Function(ref func) => match func.borrow_mut().deref_mut() {
                 Function::NativeFunc(ref mut func) => Some(func.object.clone()),
                 Function::RegularFunc(ref mut func) => Some(func.object.clone()),
             },
@@ -319,20 +316,20 @@ impl ValueData {
     /// Returns a copy of the Property.
     pub fn get_internal_slot(&self, field: &str) -> Value {
         let obj: Object = match *self {
-            ValueData::Object(ref obj) => {
+            Self::Object(ref obj) => {
                 let hash = obj.clone();
                 hash.into_inner()
             }
-            ValueData::Symbol(ref obj) => {
+            Self::Symbol(ref obj) => {
                 let hash = obj.clone();
                 hash.into_inner()
             }
-            _ => return Gc::new(ValueData::Undefined),
+            _ => return Gc::new(Self::Undefined),
         };
 
         match obj.internal_slots.get(field) {
             Some(val) => val.clone(),
-            None => Gc::new(ValueData::Undefined),
+            None => Gc::new(Self::Undefined),
         }
     }
 
@@ -342,7 +339,7 @@ impl ValueData {
     pub fn get_field(&self, field: Value) -> Value {
         match *field {
             // Our field will either be a String or a Symbol
-            ValueData::String(ref s) => {
+            Self::String(ref s) => {
                 match self.get_prop(s) {
                     Some(prop) => {
                         // If the Property has [[Get]] set to a function, we should run that and return the Value
@@ -362,17 +359,17 @@ impl ValueData {
                             val.clone()
                         }
                     }
-                    None => Gc::new(ValueData::Undefined),
+                    None => Gc::new(Self::Undefined),
                 }
             }
-            ValueData::Symbol(_) => unimplemented!(),
-            _ => Gc::new(ValueData::Undefined),
+            Self::Symbol(_) => unimplemented!(),
+            _ => Gc::new(Self::Undefined),
         }
     }
 
     /// Check whether an object has an internal state set.
     pub fn has_internal_state(&self) -> bool {
-        if let ValueData::Object(ref obj) = *self {
+        if let Self::Object(ref obj) = *self {
             obj.borrow().state.is_some()
         } else {
             false
@@ -381,7 +378,7 @@ impl ValueData {
 
     /// Get the internal state of an object.
     pub fn get_internal_state(&self) -> Option<InternalStateCell> {
-        if let ValueData::Object(ref obj) = *self {
+        if let Self::Object(ref obj) = *self {
             obj.borrow()
                 .state
                 .as_ref()
@@ -401,7 +398,7 @@ impl ValueData {
         &self,
         f: F,
     ) -> R {
-        if let ValueData::Object(ref obj) = *self {
+        if let Self::Object(ref obj) = *self {
             let o = obj.borrow();
             let state = o
                 .state
@@ -425,7 +422,7 @@ impl ValueData {
         &self,
         f: F,
     ) -> R {
-        if let ValueData::Object(ref obj) = *self {
+        if let Self::Object(ref obj) = *self {
             let mut o = obj.borrow_mut();
             let state = o
                 .state
@@ -448,7 +445,7 @@ impl ValueData {
     pub fn get_field_slice(&self, field: &str) -> Value {
         // get_field used to accept strings, but now Symbols accept it needs to accept a value
         // So this function will now need to Box strings back into values (at least for now)
-        let f = Gc::new(ValueData::String(field.to_string()));
+        let f = Gc::new(Self::String(field.to_string()));
         self.get_field(f)
     }
 
@@ -456,7 +453,7 @@ impl ValueData {
     /// Field could be a Symbol, so we need to accept a Value (not a string)
     pub fn set_field(&self, field: Value, val: Value) -> Value {
         match *self {
-            ValueData::Object(ref obj) => {
+            Self::Object(ref obj) => {
                 if obj.borrow().kind == ObjectKind::Array {
                     if let Ok(num) = field.to_string().parse::<usize>() {
                         if num > 0 {
@@ -477,7 +474,7 @@ impl ValueData {
                         .set(to_value(field.to_string()), val.clone());
                 }
             }
-            ValueData::Function(ref func) => {
+            Self::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => f
                         .object
@@ -498,13 +495,13 @@ impl ValueData {
     pub fn set_field_slice<'a>(&self, field: &'a str, val: Value) -> Value {
         // set_field used to accept strings, but now Symbols accept it needs to accept a value
         // So this function will now need to Box strings back into values (at least for now)
-        let f = Gc::new(ValueData::String(field.to_string()));
+        let f = Gc::new(Self::String(field.to_string()));
         self.set_field(f, val)
     }
 
     /// Set the private field in the value
     pub fn set_internal_slot(&self, field: &str, val: Value) -> Value {
-        if let ValueData::Object(ref obj) = *self {
+        if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .internal_slots
                 .insert(field.to_string(), val.clone());
@@ -514,7 +511,7 @@ impl ValueData {
 
     /// Set the kind of an object
     pub fn set_kind(&self, kind: ObjectKind) -> ObjectKind {
-        if let ValueData::Object(ref obj) = *self {
+        if let Self::Object(ref obj) = *self {
             obj.borrow_mut().kind = kind.clone();
         }
         kind
@@ -523,10 +520,10 @@ impl ValueData {
     /// Set the property in the value
     pub fn set_prop(&self, field: String, prop: Property) -> Property {
         match *self {
-            ValueData::Object(ref obj) => {
+            Self::Object(ref obj) => {
                 obj.borrow_mut().properties.insert(field, prop.clone());
             }
-            ValueData::Function(ref func) => {
+            Self::Function(ref func) => {
                 match *func.borrow_mut().deref_mut() {
                     Function::NativeFunc(ref mut f) => {
                         f.object.properties.insert(field, prop.clone())
@@ -548,7 +545,7 @@ impl ValueData {
 
     /// Set internal state of an Object. Discards the previous state if it was set.
     pub fn set_internal_state<T: Any + InternalState>(&self, state: T) {
-        if let ValueData::Object(ref obj) = *self {
+        if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .state
                 .replace(Box::new(InternalStateCell::new(state)));
@@ -559,10 +556,10 @@ impl ValueData {
     pub fn from_json(json: JSONValue) -> Self {
         match json {
             JSONValue::Number(v) => {
-                ValueData::Number(v.as_f64().expect("Could not convert value to f64"))
+                Self::Number(v.as_f64().expect("Could not convert value to f64"))
             }
-            JSONValue::String(v) => ValueData::String(v),
-            JSONValue::Bool(v) => ValueData::Boolean(v),
+            JSONValue::String(v) => Self::String(v),
+            JSONValue::Bool(v) => Self::Boolean(v),
             JSONValue::Array(vs) => {
                 let mut new_obj = Object::default();
                 for (idx, json) in vs.iter().enumerate() {
@@ -575,7 +572,7 @@ impl ValueData {
                     "length".to_string(),
                     Property::default().value(to_value(vs.len() as i32)),
                 );
-                ValueData::Object(GcCell::new(new_obj))
+                Self::Object(GcCell::new(new_obj))
             }
             JSONValue::Object(obj) => {
                 let mut new_obj = Object::default();
@@ -586,9 +583,9 @@ impl ValueData {
                     );
                 }
 
-                ValueData::Object(GcCell::new(new_obj))
+                Self::Object(GcCell::new(new_obj))
             }
-            JSONValue::Null => ValueData::Null,
+            JSONValue::Null => Self::Null,
         }
     }
 
@@ -609,11 +606,11 @@ impl ValueData {
                     .collect::<Map<String, JSONValue>>();
                 JSONValue::Object(new_obj)
             }
-            ValueData::String(ref str) => JSONValue::String(str.clone()),
-            ValueData::Number(num) => JSONValue::Number(
+            Self::String(ref str) => JSONValue::String(str.clone()),
+            Self::Number(num) => JSONValue::Number(
                 JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
             ),
-            ValueData::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
+            Self::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
         }
     }
 
@@ -622,14 +619,14 @@ impl ValueData {
     /// https://tc39.es/ecma262/#sec-typeof-operator
     pub fn get_type(&self) -> &'static str {
         match *self {
-            ValueData::Number(_) | ValueData::Integer(_) => "number",
-            ValueData::String(_) => "string",
-            ValueData::Boolean(_) => "boolean",
-            ValueData::Symbol(_) => "symbol",
-            ValueData::Null => "null",
-            ValueData::Undefined => "undefined",
-            ValueData::Function(_) => "function",
-            ValueData::Object(ref o) => {
+            Self::Number(_) | Self::Integer(_) => "number",
+            Self::String(_) => "string",
+            Self::Boolean(_) => "boolean",
+            Self::Symbol(_) => "symbol",
+            Self::Null => "null",
+            Self::Undefined => "undefined",
+            Self::Function(_) => "function",
+            Self::Object(ref o) => {
                 if o.deref().borrow().get_internal_slot("call").is_null() {
                     "object"
                 } else {
@@ -639,14 +636,14 @@ impl ValueData {
         }
     }
 
-    pub fn as_num_to_power(&self, other: ValueData) -> ValueData {
-        ValueData::Number(self.to_num().powf(other.to_num()))
+    pub fn as_num_to_power(&self, other: Self) -> Self {
+        Self::Number(self.to_num().powf(other.to_num()))
     }
 }
 
 impl Default for ValueData {
     fn default() -> Self {
-        ValueData::Undefined
+        Self::Undefined
     }
 }
 
@@ -841,16 +838,16 @@ pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
 impl Display for ValueData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ValueData::Null => write!(f, "null"),
-            ValueData::Undefined => write!(f, "undefined"),
-            ValueData::Boolean(v) => write!(f, "{}", v),
-            ValueData::Symbol(ref v) => match *v.borrow().get_internal_slot("Description") {
+            Self::Null => write!(f, "null"),
+            Self::Undefined => write!(f, "undefined"),
+            Self::Boolean(v) => write!(f, "{}", v),
+            Self::Symbol(ref v) => match *v.borrow().get_internal_slot("Description") {
                 // If a description exists use it
-                ValueData::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
+                Self::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
                 _ => write!(f, "Symbol()"),
             },
-            ValueData::String(ref v) => write!(f, "{}", v),
-            ValueData::Number(v) => write!(
+            Self::String(ref v) => write!(f, "{}", v),
+            Self::Number(v) => write!(
                 f,
                 "{}",
                 match v {
@@ -860,9 +857,9 @@ impl Display for ValueData {
                     _ => v.to_string(),
                 }
             ),
-            ValueData::Object(_) => write!(f, "{}", log_string_from(self, true)),
-            ValueData::Integer(v) => write!(f, "{}", v),
-            ValueData::Function(ref v) => match *v.borrow() {
+            Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
+            Self::Integer(v) => write!(f, "{}", v),
+            Self::Function(ref v) => match *v.borrow() {
                 Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
                 Function::RegularFunc(ref rf) => {
                     write!(f, "function{}(", if rf.args.is_empty() { "" } else { " " })?;
@@ -885,18 +882,12 @@ impl PartialEq for ValueData {
             // TODO: fix this
             // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
             _ if self.is_null_or_undefined() && other.is_null_or_undefined() => true,
-            (ValueData::String(_), _) | (_, ValueData::String(_)) => {
-                self.to_string() == other.to_string()
-            }
-            (ValueData::Boolean(a), ValueData::Boolean(b)) if a == b => true,
-            (ValueData::Number(a), ValueData::Number(b))
-                if a == b && !a.is_nan() && !b.is_nan() =>
-            {
-                true
-            }
-            (ValueData::Number(a), _) if a == other.to_num() => true,
-            (_, ValueData::Number(a)) if a == self.to_num() => true,
-            (ValueData::Integer(a), ValueData::Integer(b)) if a == b => true,
+            (Self::String(_), _) | (_, Self::String(_)) => self.to_string() == other.to_string(),
+            (Self::Boolean(a), Self::Boolean(b)) if a == b => true,
+            (Self::Number(a), Self::Number(b)) if a == b && !a.is_nan() && !b.is_nan() => true,
+            (Self::Number(a), _) if a == other.to_num() => true,
+            (_, Self::Number(a)) if a == self.to_num() => true,
+            (Self::Integer(a), Self::Integer(b)) if a == b => true,
             _ => false,
         }
     }
@@ -906,74 +897,72 @@ impl Add for ValueData {
     type Output = Self;
     fn add(self, other: Self) -> Self {
         match (self, other) {
-            (ValueData::String(ref s), ref o) => {
-                ValueData::String(format!("{}{}", s.clone(), &o.to_string()))
+            (Self::String(ref s), ref o) => {
+                Self::String(format!("{}{}", s.clone(), &o.to_string()))
             }
-            (ref s, ValueData::String(ref o)) => {
-                ValueData::String(format!("{}{}", s.to_string(), o))
-            }
-            (ref s, ref o) => ValueData::Number(s.to_num() + o.to_num()),
+            (ref s, Self::String(ref o)) => Self::String(format!("{}{}", s.to_string(), o)),
+            (ref s, ref o) => Self::Number(s.to_num() + o.to_num()),
         }
     }
 }
 impl Sub for ValueData {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
-        ValueData::Number(self.to_num() - other.to_num())
+        Self::Number(self.to_num() - other.to_num())
     }
 }
 impl Mul for ValueData {
     type Output = Self;
     fn mul(self, other: Self) -> Self {
-        ValueData::Number(self.to_num() * other.to_num())
+        Self::Number(self.to_num() * other.to_num())
     }
 }
 impl Div for ValueData {
     type Output = Self;
     fn div(self, other: Self) -> Self {
-        ValueData::Number(self.to_num() / other.to_num())
+        Self::Number(self.to_num() / other.to_num())
     }
 }
 impl Rem for ValueData {
     type Output = Self;
     fn rem(self, other: Self) -> Self {
-        ValueData::Number(self.to_num() % other.to_num())
+        Self::Number(self.to_num() % other.to_num())
     }
 }
 impl BitAnd for ValueData {
     type Output = Self;
     fn bitand(self, other: Self) -> Self {
-        ValueData::Integer(self.to_int() & other.to_int())
+        Self::Integer(self.to_int() & other.to_int())
     }
 }
 impl BitOr for ValueData {
     type Output = Self;
     fn bitor(self, other: Self) -> Self {
-        ValueData::Integer(self.to_int() | other.to_int())
+        Self::Integer(self.to_int() | other.to_int())
     }
 }
 impl BitXor for ValueData {
     type Output = Self;
     fn bitxor(self, other: Self) -> Self {
-        ValueData::Integer(self.to_int() ^ other.to_int())
+        Self::Integer(self.to_int() ^ other.to_int())
     }
 }
 impl Shl for ValueData {
     type Output = Self;
     fn shl(self, other: Self) -> Self {
-        ValueData::Integer(self.to_int() << other.to_int())
+        Self::Integer(self.to_int() << other.to_int())
     }
 }
 impl Shr for ValueData {
     type Output = Self;
     fn shr(self, other: Self) -> Self {
-        ValueData::Integer(self.to_int() >> other.to_int())
+        Self::Integer(self.to_int() >> other.to_int())
     }
 }
 impl Not for ValueData {
     type Output = Self;
     fn not(self) -> Self {
-        ValueData::Boolean(!self.is_true())
+        Self::Boolean(!self.is_true())
     }
 }
 
@@ -1065,7 +1054,7 @@ impl ToValue for usize {
 }
 impl FromValue for usize {
     fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_int() as usize)
+        Ok(v.to_int() as Self)
     }
 }
 

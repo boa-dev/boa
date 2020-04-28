@@ -101,15 +101,51 @@ pub enum Const {
     Undefined,
 }
 
+impl From<&str> for Const {
+    fn from(s: &str) -> Self {
+        Const::String(s.into())
+    }
+}
+
+impl From<&String> for Const {
+    fn from(s: &String) -> Self {
+        Const::String(s.clone())
+    }
+}
+
+impl From<String> for Const {
+    fn from(s: String) -> Self {
+        Const::String(s)
+    }
+}
+
+impl From<f64> for Const {
+    fn from(num: f64) -> Self {
+        Self::Num(num)
+    }
+}
+
+impl From<i32> for Const {
+    fn from(i: i32) -> Self {
+        Self::Int(i)
+    }
+}
+
+impl From<bool> for Const {
+    fn from(b: bool) -> Self {
+        Self::Bool(b)
+    }
+}
+
 impl Display for Const {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match *self {
-            Const::String(ref st) => write!(f, "\"{}\"", st),
-            Const::Num(num) => write!(f, "{}", num),
-            Const::Int(num) => write!(f, "{}", num),
-            Const::Bool(v) => write!(f, "{}", v),
-            Const::Null => write!(f, "null"),
-            Const::Undefined => write!(f, "undefined"),
+            Self::String(ref st) => write!(f, "\"{}\"", st),
+            Self::Num(num) => write!(f, "{}", num),
+            Self::Int(num) => write!(f, "{}", num),
+            Self::Bool(v) => write!(f, "{}", v),
+            Self::Null => write!(f, "null"),
+            Self::Undefined => write!(f, "undefined"),
         }
     }
 }

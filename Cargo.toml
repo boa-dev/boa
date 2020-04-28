@@ -5,11 +5,6 @@ members = [
     "boa_wasm",
 ]
 
-# The release profile, used for `cargo build`.
-[profile.dev]
-# Enables thin local LTO and some optimizations.
-opt-level = 1
-
 # The release profile, used for `cargo build --release`.
 [profile.release]
 # Enables "fat" LTO, for faster release builds

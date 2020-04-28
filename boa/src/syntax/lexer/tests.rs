@@ -20,7 +20,7 @@ fn check_multi_line_comment() {
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));
-    assert_eq!(lexer.tokens[1].kind, TokenKind::Identifier("x".to_string()));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::identifier("x"));
 }
 
 #[test]
@@ -28,15 +28,9 @@ fn check_string() {
     let s = "'aaa' \"bbb\"";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    assert_eq!(
-        lexer.tokens[0].kind,
-        TokenKind::StringLiteral("aaa".to_string())
-    );
+    assert_eq!(lexer.tokens[0].kind, TokenKind::string_literal("aaa"));
 
-    assert_eq!(
-        lexer.tokens[1].kind,
-        TokenKind::StringLiteral("bbb".to_string())
-    );
+    assert_eq!(lexer.tokens[1].kind, TokenKind::string_literal("bbb"));
 }
 
 #[test]
@@ -290,15 +284,12 @@ fn check_variable_definition_tokens() {
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Let));
-    assert_eq!(lexer.tokens[1].kind, TokenKind::Identifier("a".to_string()));
+    assert_eq!(lexer.tokens[1].kind, TokenKind::identifier("a"));
     assert_eq!(
         lexer.tokens[2].kind,
         TokenKind::Punctuator(Punctuator::Assign)
     );
-    assert_eq!(
-        lexer.tokens[3].kind,
-        TokenKind::StringLiteral("hello".to_string())
-    );
+    assert_eq!(lexer.tokens[3].kind, TokenKind::string_literal("hello"));
 }
 
 #[test]
@@ -336,7 +327,7 @@ fn test_two_divisions_in_expression() {
     let s = "    return a !== 0 || 1 / a === 1 / b;";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    dbg!(&lexer.tokens);
+    // dbg!(&lexer.tokens);
 
     assert_eq!(lexer.tokens[11].pos.column_number, 37);
     assert_eq!(lexer.tokens[11].pos.line_number, 1);
@@ -425,7 +416,7 @@ fn test_regex_literal() {
     lexer.lex().expect("failed to lex");
     assert_eq!(
         lexer.tokens[0].kind,
-        TokenKind::RegularExpressionLiteral("(?:)".to_string(), "".to_string())
+        TokenKind::regular_expression_literal("(?:)", "")
     );
 }
 
@@ -435,7 +426,7 @@ fn test_regex_literal_flags() {
     lexer.lex().expect("failed to lex");
     assert_eq!(
         lexer.tokens[0].kind,
-        TokenKind::RegularExpressionLiteral("\\/[^\\/]*\\/*".to_string(), "gmi".to_string())
+        TokenKind::regular_expression_literal("\\/[^\\/]*\\/*", "gmi")
     );
 }
 

@@ -10,18 +10,24 @@
       "request": "launch",
       "name": "Launch",
       "windows": {
-        "program": "${workspaceFolder}/target/debug/boa_cli.exe"
+        "program": "${workspaceFolder}/target/debug/boa.exe"
       },
-      "program": "${workspaceFolder}/target/debug/boa_cli",
-      "args": ["${workspaceFolder}/tests/js/test.js"],
-      "sourceLanguages": ["rust"]
+      "program": "${workspaceFolder}/target/debug/boa",
+      "args": [
+        "${workspaceFolder}/tests/js/test.js"
+      ],
+      "sourceLanguages": [
+        "rust"
+      ]
     },
     {
       "name": "(Windows) Launch",
       "type": "cppvsdbg",
       "request": "launch",
-      "args": ["${workspaceFolder}/tests/js/test.js"],
-      "program": "${workspaceFolder}/target/debug/boa_cli.exe",
+      "args": [
+        "${workspaceFolder}/tests/js/test.js"
+      ],
+      "program": "${workspaceFolder}/target/debug/boa.exe",
       "cwd": "${workspaceFolder}",
       "sourceFileMap": {
         "/rustc/5e1a799842ba6ed4a57e91f7ab9435947482f7d8": "${env:USERPROFILE}/.rustup/toolchains/stable-x86_64-pc-windows-msvc/lib/rustlib/src/rust",

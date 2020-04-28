@@ -56,6 +56,7 @@ fn formatter_trailing_format_leader_renders() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn formatter_float_format_works() {
     let val = [
         Gc::new(ValueData::String("%f".to_string())),

@@ -503,9 +503,8 @@ impl<'a> Lexer<'a> {
                             break;
                         }
                     }
-                    // Match won't compare &String to &str so i need to convert it :(
-                    let buf_compare: &str = &buf;
-                    self.push_token(match buf_compare {
+
+                    self.push_token(match buf.as_str() {
                         "true" => TokenKind::BooleanLiteral(true),
                         "false" => TokenKind::BooleanLiteral(false),
                         "null" => TokenKind::NullLiteral,
@@ -513,12 +512,12 @@ impl<'a> Lexer<'a> {
                             if let Ok(keyword) = FromStr::from_str(slice) {
                                 TokenKind::Keyword(keyword)
                             } else {
-                                TokenKind::Identifier(buf.clone())
+                                TokenKind::identifier(slice)
                             }
                         }
                     });
                     // Move position forward the length of keyword
-                    self.column_number += (buf_compare.len().wrapping_sub(1)) as u64;
+                    self.column_number += (buf.len().wrapping_sub(1)) as u64;
                 }
                 ';' => self.push_punc(Punctuator::Semicolon),
                 ':' => self.push_punc(Punctuator::Colon),
