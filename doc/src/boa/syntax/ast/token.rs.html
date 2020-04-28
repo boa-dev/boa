@@ -186,6 +186,34 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
@@ -245,6 +273,30 @@
     }
 }
 
+<span class="doccomment">/// Represents the type differenct types of numeric literals.</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NumericLiteral</span> {
+    <span class="doccomment">/// A floating point number</span>
+    <span class="ident">Rational</span>(<span class="ident">f64</span>),
+
+    <span class="doccomment">/// An integer</span>
+    <span class="ident">Integer</span>(<span class="ident">i32</span>),
+    <span class="comment">// TODO: Add BigInt</span>
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumericLiteral</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">n</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumericLiteral</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">n</span>)
+    }
+}
+
 <span class="doccomment">/// Represents the type of Token and the data it has inside.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
@@ -267,7 +319,7 @@
     <span class="ident">NullLiteral</span>,
 
     <span class="doccomment">/// A numeric literal.</span>
-    <span class="ident">NumericLiteral</span>(<span class="ident">f64</span>),
+    <span class="ident">NumericLiteral</span>(<span class="ident">NumericLiteral</span>),
 
     <span class="doccomment">/// A piece of punctuation</span>
     <span class="doccomment">///</span>
@@ -327,8 +379,11 @@
     }
 
     <span class="doccomment">/// Creates a `NumericLiteral` token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">numeric_literal</span>(<span class="ident">lit</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">NumericLiteral</span>(<span class="ident">lit</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">numeric_literal</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span>(<span class="ident">lit</span>: <span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">NumericLiteral</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>::<span class="ident">NumericLiteral</span>(<span class="ident">lit</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Creates a `Punctuator` token type.</span>
@@ -367,7 +422,8 @@
             <span class="self">Self</span>::<span class="ident">Identifier</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">ident</span>),
             <span class="self">Self</span>::<span class="ident">Keyword</span>(<span class="kw-2">ref</span> <span class="ident">word</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">word</span>),
             <span class="self">Self</span>::<span class="ident">NullLiteral</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),
-            <span class="self">Self</span>::<span class="ident">NumericLiteral</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">num</span>),
+            <span class="self">Self</span>::<span class="ident">NumericLiteral</span>(<span class="ident">NumericLiteral</span>::<span class="ident">Rational</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">num</span>),
+            <span class="self">Self</span>::<span class="ident">NumericLiteral</span>(<span class="ident">NumericLiteral</span>::<span class="ident">Integer</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">num</span>),
             <span class="self">Self</span>::<span class="ident">Punctuator</span>(<span class="kw-2">ref</span> <span class="ident">punc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">punc</span>),
             <span class="self">Self</span>::<span class="ident">StringLiteral</span>(<span class="kw-2">ref</span> <span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">lit</span>),
             <span class="self">Self</span>::<span class="ident">RegularExpressionLiteral</span>(<span class="kw-2">ref</span> <span class="ident">body</span>, <span class="kw-2">ref</span> <span class="ident">flags</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>),
