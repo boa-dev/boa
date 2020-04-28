@@ -714,6 +714,7 @@
 <span id="714">714</span>
 <span id="715">715</span>
 <span id="716">716</span>
+<span id="717">717</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -1220,8 +1221,9 @@
                             <span class="kw">break</span>;
                         }
                     }
-
-                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="kw">match</span> <span class="ident">buf</span>.<span class="ident">as_str</span>() {
+                    <span class="comment">// Match won&#39;t compare &amp;String to &amp;str so i need to convert it :(</span>
+                    <span class="kw">let</span> <span class="ident">buf_compare</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">buf</span>;
+                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="kw">match</span> <span class="ident">buf_compare</span> {
                         <span class="string">&quot;true&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">BooleanLiteral</span>(<span class="bool-val">true</span>),
                         <span class="string">&quot;false&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">BooleanLiteral</span>(<span class="bool-val">false</span>),
                         <span class="string">&quot;null&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">NullLiteral</span>,
@@ -1229,12 +1231,12 @@
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">keyword</span>) <span class="op">=</span> <span class="ident">FromStr</span>::<span class="ident">from_str</span>(<span class="ident">slice</span>) {
                                 <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">keyword</span>)
                             } <span class="kw">else</span> {
-                                <span class="ident">TokenKind</span>::<span class="ident">identifier</span>(<span class="ident">slice</span>)
+                                <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="ident">buf</span>.<span class="ident">clone</span>())
                             }
                         }
                     });
                     <span class="comment">// Move position forward the length of keyword</span>
-                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">buf</span>.<span class="ident">len</span>().<span class="ident">wrapping_sub</span>(<span class="number">1</span>)) <span class="kw">as</span> <span class="ident">u64</span>;
+                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">buf_compare</span>.<span class="ident">len</span>().<span class="ident">wrapping_sub</span>(<span class="number">1</span>)) <span class="kw">as</span> <span class="ident">u64</span>;
                 }
                 <span class="string">&#39;;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>),
                 <span class="string">&#39;:&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Colon</span>),
