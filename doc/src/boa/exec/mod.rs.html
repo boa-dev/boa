@@ -912,7 +912,7 @@
 
 <span class="kw">impl</span> <span class="ident">Executor</span> <span class="kw">for</span> <span class="ident">Interpreter</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">realm</span>: <span class="ident">Realm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Interpreter</span> {
+        <span class="self">Self</span> {
             <span class="ident">realm</span>,
             <span class="ident">is_return</span>: <span class="bool-val">false</span>,
         }
@@ -1160,7 +1160,7 @@
                             <span class="op">!</span>(<span class="ident">num_v_a</span> <span class="kw">as</span> <span class="ident">i32</span>)
                         })
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
                 })
             }
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>), <span class="kw-2">ref</span> <span class="ident">a</span>, <span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {

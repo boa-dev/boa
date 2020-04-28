@@ -12,7 +12,7 @@ generate useful errors. That said, it is often the only way to parse
 syntax of the form <code>A* B*</code> for arbitrary syntax <code>A</code> and <code>B</code>. The problem
 is that when the fork fails to parse an <code>A</code>, it's impossible to tell
 whether that was because of a syntax error and the user meant to provide
-an <code>A</code>, or that the <code>A</code>s are finished and its time to start parsing
+an <code>A</code>, or that the <code>A</code>s are finished and it's time to start parsing
 <code>B</code>s. Use with care.</p>
 <p>Also note that if <code>A</code> is a subset of <code>B</code>, <code>A* B*</code> can be parsed by
 parsing <code>B*</code> and removing the leading members of <code>A</code> from the

@@ -138,14 +138,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Realm</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Realm</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// Create brand new global object</span>
         <span class="comment">// Global has no prototype to pass None to new_obj</span>
         <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">None</span>);
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>.<span class="ident">clone</span>());
 
-        <span class="kw">let</span> <span class="ident">new_realm</span> <span class="op">=</span> <span class="ident">Realm</span> {
+        <span class="kw">let</span> <span class="ident">new_realm</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">global_obj</span>: <span class="ident">global</span>.<span class="ident">clone</span>(),
             <span class="ident">global_env</span>,
             <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>::<span class="ident">new</span>(<span class="ident">global</span>),
