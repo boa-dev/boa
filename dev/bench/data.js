@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1588108272837,
+  "lastUpdate": 1588108394855,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -5037,6 +5037,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.879,
             "range": "+/- 0.263",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "iban.eguia@cern.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e0e17a8f7605b1a6d14f1d0e73c6a940273d42b8",
+          "message": "Removed the `serde-ast` feature and the `serde_json` export (#353)",
+          "timestamp": "2020-04-28T23:03:12+02:00",
+          "tree_id": "c31b59f37320af6c9ef876e9b4cce9ce0e82111c",
+          "url": "https://github.com/jasonwilliams/boa/commit/e0e17a8f7605b1a6d14f1d0e73c6a940273d42b8"
+        },
+        "date": 1588108391233,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 390.02,
+            "range": "+/- 10.040",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 420.44,
+            "range": "+/- 10.680",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 406.02,
+            "range": "+/- 8.390",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 3.9727,
+            "range": "+/- 0.070",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.2927,
+            "range": "+/- 0.073",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0168,
+            "range": "+/- 0.023",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.6246,
+            "range": "+/- 0.152",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.2631,
+            "range": "+/- 0.171",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.4424,
+            "range": "+/- 0.067",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 15.449,
+            "range": "+/- 0.432",
             "unit": "us"
           }
         ]
