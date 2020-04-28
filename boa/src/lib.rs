@@ -45,9 +45,6 @@ use crate::{
     syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
 };
 
-#[cfg(feature = "serde-ast")]
-pub use serde_json;
-
 fn parser_expr(src: &str) -> Result<Node, String> {
     let mut lexer = Lexer::new(src);
     lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;

@@ -8,7 +8,7 @@
 use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
 use std::fmt::{Debug, Display, Formatter, Result};
 
-#[cfg(feature = "serde-ast")]
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-tokens
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token kind, which contains the actual data of the token.
@@ -57,7 +57,7 @@ impl Debug for VecToken {
 }
 
 /// Represents the type of Token and the data it has inside.
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
     /// A boolean literal, which is either `true` or `false`.

@@ -30,7 +30,6 @@ use boa::{
     exec::Executor,
     forward_val,
     realm::Realm,
-    serde_json,
     syntax::ast::{node::Node, token::Token},
 };
 use std::{

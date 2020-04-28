@@ -10,7 +10,7 @@
 use gc_derive::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
-#[cfg(feature = "serde-ast")]
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// Literals represent values in JavaScript.
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Const {
     /// A string literal is zero or more characters enclosed in double (`"`) or single (`'`) quotation marks.

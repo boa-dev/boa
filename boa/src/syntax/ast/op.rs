@@ -3,7 +3,7 @@
 use gc_derive::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
-#[cfg(feature = "serde-ast")]
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// Represents an operator
@@ -25,7 +25,7 @@ pub trait Operator {
 ///  - [MDN documentation][mdn]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum NumOp {
     /// The addition operator produces the sum of numeric operands or string concatenation.
@@ -136,7 +136,7 @@ impl Display for NumOp {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum UnaryOp {
     /// The increment operator increments (adds one to) its operand and returns a value.
@@ -343,7 +343,7 @@ impl Display for UnaryOp {
 ///  - [MDN documentation][mdn]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BitOp {
     /// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
@@ -462,7 +462,7 @@ impl Display for BitOp {
 ///
 /// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum CompOp {
     /// The equality operator converts the operands if they are not of the same type, then applies strict comparison.
@@ -611,7 +611,7 @@ impl Display for CompOp {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum LogOp {
     /// The logical AND operator returns the value of the first operand if it can be coerced into `false`;
@@ -655,7 +655,7 @@ impl Display for LogOp {
 }
 
 /// This represents a binary operation between two values.
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BinOp {
     /// Numeric operation.
@@ -771,7 +771,7 @@ impl Display for BinOp {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum AssignOp {
     /// The addition assignment operator adds the value of the right operand to a variable and assigns the result to the variable.
