@@ -38,11 +38,6 @@ pub mod environment;
 pub mod exec;
 pub mod realm;
 pub mod syntax;
-#[cfg(feature = "wasm-bindgen")]
-mod wasm;
-
-#[cfg(feature = "wasm-bindgen")]
-pub use crate::wasm::*;
 use crate::{
     builtins::value::ResultValue,
     exec::{Executor, Interpreter},

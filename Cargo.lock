@@ -12,7 +12,6 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -63,6 +62,14 @@ dependencies = [
  "Boa",
  "jemallocator",
  "structopt",
+]
+
+[[package]]
+name = "boa_wasm"
+version = "0.1.0"
+dependencies = [
+ "Boa",
+ "wasm-bindgen",
 ]
 
 [[package]]

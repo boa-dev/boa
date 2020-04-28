@@ -1,4 +1,4 @@
-use crate::{
+use boa::{
     exec::{Executor, Interpreter},
     realm::Realm,
     syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
