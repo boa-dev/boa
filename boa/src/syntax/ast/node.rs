@@ -7,11 +7,11 @@ use crate::syntax::ast::{
 use gc_derive::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde-ast")]
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// A Javascript AST Node.
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Node {
     /// An array is an ordered collection of data (either primitive or object depending upon the language).
@@ -1065,7 +1065,7 @@ fn join_nodes(f: &mut fmt::Formatter<'_>, nodes: &[Node]) -> fmt::Result {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
     pub name: String,
@@ -1099,7 +1099,7 @@ impl FormalParameter {
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum PropertyDefinition {
     /// Puts a variable into an object.
@@ -1193,7 +1193,7 @@ impl PropertyDefinition {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
-#[cfg_attr(feature = "serde-ast", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum MethodDefinitionKind {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
