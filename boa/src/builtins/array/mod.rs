@@ -125,7 +125,7 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
         }
         1 if args[0].is_double() => {
             // TODO: throw `RangeError`.
-            unimplemented!("RangeError: invalid array length");
+            panic!("RangeError: invalid array length");
         }
         _ => {
             for (n, value) in args.iter().enumerate() {
