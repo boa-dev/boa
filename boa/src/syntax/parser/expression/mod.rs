@@ -22,12 +22,16 @@ use crate::syntax::ast::{
     keyword::Keyword, node::Node, op::BinOp, punc::Punctuator, token::TokenKind,
 };
 
+// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
+// Always returns false.
 impl PartialEq<Keyword> for Punctuator {
     fn eq(&self, _other: &Keyword) -> bool {
         false
     }
 }
 
+// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
+// Always returns false.
 impl PartialEq<Punctuator> for Keyword {
     fn eq(&self, _other: &Punctuator) -> bool {
         false

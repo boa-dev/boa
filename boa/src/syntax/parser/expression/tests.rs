@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::node::Node,
-    ast::op::{AssignOp, BinOp, BitOp, NumOp, CompOp},
+    ast::op::{AssignOp, BinOp, BitOp, CompOp, NumOp},
     parser::tests::check_parser,
 };
 
@@ -326,7 +326,7 @@ fn check_relational_operations() {
             Node::Local(String::from("b")),
         )],
     );
-     check_parser(
+    check_parser(
         "p in o",
         &[Node::bin_op(
             BinOp::Comp(CompOp::In),
