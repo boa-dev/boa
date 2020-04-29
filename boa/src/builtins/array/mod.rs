@@ -118,7 +118,7 @@ pub fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result
     match args.len() {
         1 if args[0].is_integer() => {
             length = from_value::<i32>(args[0].clone()).expect("Could not convert argument to i32");
-            // TODO: It should not create an array of undefinds, but an empty array ("holy" array in V8) with length `n`.
+            // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
             for n in 0..length {
                 this.set_field_slice(&n.to_string(), Gc::new(ValueData::Undefined));
             }
