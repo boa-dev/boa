@@ -791,3 +791,25 @@ fn some() {
     assert_eq!(del_array_length, "3");
     assert_eq!(result, "true");
 }
+
+#[test]
+fn call_array_constructor_with_one_argument() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        var empty = new Array(0);
+
+        var five = new Array(5);
+
+        var one = new Array("Hello, world!");
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "empty.length");
+    assert_eq!(result, "0");
+
+    let result = forward(&mut engine, "five.length");
+    assert_eq!(result, "5");
+
+    let result = forward(&mut engine, "one.length");
+    assert_eq!(result, "1");
+}
