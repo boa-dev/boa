@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1588117564458,
+  "lastUpdate": 1588197725492,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -5205,6 +5205,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.254,
             "range": "+/- 0.151",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "HalidOdat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dd0f9678eeca93958f02e907821bab8f379c778a",
+          "message": "fix #209 \"Calling Array with one argument\" (#328)\n\n* fix issue 209 \"Calling Array with one argument\"\n\n* Update boa/src/builtins/array/mod.rs\n\nCo-Authored-By: Iban Eguia <razican@protonmail.ch>\n\n* Changed from unimplemented to panic in array\n\nCo-authored-by: Iban Eguia <razican@protonmail.ch>",
+          "timestamp": "2020-04-29T23:53:13+02:00",
+          "tree_id": "312b74d77f972c3aa8d6081ff4b73f69420f40cb",
+          "url": "https://github.com/jasonwilliams/boa/commit/dd0f9678eeca93958f02e907821bab8f379c778a"
+        },
+        "date": 1588197721855,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 377.63,
+            "range": "+/- 5.880",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 401.03,
+            "range": "+/- 3.050",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 399.83,
+            "range": "+/- 6.950",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 3.8183,
+            "range": "+/- 0.037",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.0011,
+            "range": "+/- 0.023",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 949.11,
+            "range": "+/- 7.760",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.2422,
+            "range": "+/- 0.083",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.9786,
+            "range": "+/- 0.045",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.346,
+            "range": "+/- 0.027",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.665,
+            "range": "+/- 0.163",
             "unit": "us"
           }
         ]
