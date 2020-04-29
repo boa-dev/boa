@@ -9,6 +9,7 @@
 
 use crate::syntax::ast::op::{BinOp, CompOp};
 use std::{
+    convert::TryInto,
     error,
     fmt::{Display, Error, Formatter},
     str::FromStr,
@@ -443,9 +444,11 @@ impl Keyword {
     }
 }
 
-impl Into<BinOp> for Keyword {
-    fn into(self) -> BinOp {
-        self.as_binop().expect("Could not get binary operation")
+impl TryInto<BinOp> for Keyword {
+    type Error = String;
+    fn try_into(self) -> Result<BinOp, Self::Error> {
+        self.as_binop()
+            .ok_or_else(|| format!("No binary operation for {}", self))
     }
 }
 

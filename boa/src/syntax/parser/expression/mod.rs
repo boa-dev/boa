@@ -21,6 +21,7 @@ use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
 use crate::syntax::ast::{
     keyword::Keyword, node::Node, op::BinOp, punc::Punctuator, token::TokenKind,
 };
+use std::{convert::TryInto, fmt::Debug};
 
 // For use in the expression! macro to allow for both Punctuator and Keyword parameters.
 // Always returns false.
@@ -50,12 +51,13 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
         // Helper method to build a BinOp in the parse method
         fn build_op<O, L>(&self, op: O, lhs: L, cursor: &mut Cursor<'_>) -> ParseResult
         where
-            O: Into<BinOp>,
+            O: TryInto<BinOp>,
+            <O as TryInto<BinOp>>::Error: Debug, // for call to `expect`
             L: Into<Box<Node>>
         {
             let _ = cursor.next().expect("token disappeared");
             Ok(Node::bin_op(
-                op,
+                op.try_into().expect("Could not get binary operation."),
                 lhs,
                 $lower::new($( self.$low_param ),*).parse(cursor)?
             ))

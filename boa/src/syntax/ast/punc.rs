@@ -6,7 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Punctuator
 
 use crate::syntax::ast::op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp};
-use std::fmt::{Display, Error, Formatter};
+use std::{
+    convert::TryInto,
+    fmt::{Display, Error, Formatter},
+};
 
 #[cfg(feature = "serde-ast")]
 use serde::{Deserialize, Serialize};
@@ -169,9 +172,11 @@ impl Punctuator {
     }
 }
 
-impl Into<BinOp> for Punctuator {
-    fn into(self) -> BinOp {
-        self.as_binop().expect("Could not get binary operation")
+impl TryInto<BinOp> for Punctuator {
+    type Error = String;
+    fn try_into(self) -> Result<BinOp, Self::Error> {
+        self.as_binop()
+            .ok_or_else(|| format!("No binary operation for {}", self))
     }
 }
 

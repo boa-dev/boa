@@ -579,7 +579,18 @@ pub enum CompOp {
     /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator
     LessThanOrEqual,
-    /// `a in b` - If key `a` is in object `b`
+    /// The `in` operator returns true if the specified property is in the specified object or its prototype chain.
+    ///
+    /// Syntax: `prop in object`
+    ///
+    /// Returns `true` the specified property is in the specified object or its prototype chain.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
     In,
 }
 
