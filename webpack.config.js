@@ -4,13 +4,19 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
-const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 module.exports = {
-  entry: "./index.js",
+  entry: {
+    app: "./index.js",
+    "editor.worker": 'monaco-editor/esm/vs/editor/editor.worker.js',
+    "json.worker": 'monaco-editor/esm/vs/language/json/json.worker',
+    "css.worker": 'monaco-editor/esm/vs/language/css/css.worker',
+    "html.worker": 'monaco-editor/esm/vs/language/html/html.worker',
+    "ts.worker": 'monaco-editor/esm/vs/language/typescript/ts.worker',
+  },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "index.js",
+    filename: "[name].js",
   },
   plugins: [
     new CleanWebpackPlugin(),
@@ -36,9 +42,6 @@ module.exports = {
     new webpack.ProvidePlugin({
       TextDecoder: ["text-encoding", "TextDecoder"],
       TextEncoder: ["text-encoding", "TextEncoder"],
-    }),
-    new MonacoWebpackPlugin({
-      languages: ["javascript"],
     }),
   ],
   module: {
