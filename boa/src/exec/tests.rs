@@ -366,6 +366,16 @@ mod in_operator {
     }
 
     #[test]
+    fn test_p_in_property_chain() {
+        let p_in_o = r#"
+            var o = {};
+            var p = 'toString';
+            p in o
+        "#;
+        assert_eq!(exec(p_in_o), String::from("true"));
+    }
+
+    #[test]
     fn test_p_not_in_o() {
         let p_not_in_o = r#"
             var o = {a: 'a'};
