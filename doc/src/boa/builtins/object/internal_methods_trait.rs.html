@@ -201,7 +201,7 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
-    <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>},
+    <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">INSTANCE_PROTOTYPE</span>},
     <span class="ident">property</span>::<span class="ident">Property</span>,
     <span class="ident">value</span>::{<span class="ident">to_value</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
 };
@@ -373,7 +373,7 @@
     <span class="doccomment">/// Returns either the prototype or null</span>
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof</span>
     <span class="kw">fn</span> <span class="ident">get_prototype_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="self">self</span>.<span class="ident">get_internal_slot</span>(<span class="ident">PROTOTYPE</span>)
+        <span class="self">self</span>.<span class="ident">get_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">define_own_property</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">property_key</span>: <span class="ident">String</span>, <span class="ident">desc</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;

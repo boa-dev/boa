@@ -934,6 +934,21 @@
 <span id="934">934</span>
 <span id="935">935</span>
 <span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements various structure for logic handling.</span>
 
@@ -1516,6 +1531,19 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator</span>
     <span class="ident">LessThanOrEqual</span>,
+    <span class="doccomment">/// The `in` operator returns true if the specified property is in the specified object or its prototype chain.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Syntax: `prop in object`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `true` the specified property is in the specified object or its prototype chain.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in</span>
+    <span class="ident">In</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CompOp</span> {
@@ -1532,6 +1560,7 @@
                 <span class="self">Self</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;=&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;in&quot;</span>,
             }
         )
     }
@@ -1664,7 +1693,8 @@
             <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">LessThan</span>)
             <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">LessThanOrEqual</span>)
             <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">GreaterThan</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">GreaterThanOrEqual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
+            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">GreaterThanOrEqual</span>)
+            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">In</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
             <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">Equal</span>)
             <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">NotEqual</span>)
             <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">StrictEqual</span>)
