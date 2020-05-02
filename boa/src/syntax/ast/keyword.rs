@@ -7,7 +7,9 @@
 //! [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
+use crate::syntax::ast::op::{BinOp, CompOp};
 use std::{
+    convert::TryInto,
     error,
     fmt::{Display, Error, Formatter},
     str::FromStr,
@@ -431,6 +433,23 @@ pub enum Keyword {
     /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
     Yield,
+}
+
+impl Keyword {
+    pub fn as_binop(self) -> Option<BinOp> {
+        match self {
+            Keyword::In => Some(BinOp::Comp(CompOp::In)),
+            _ => None,
+        }
+    }
+}
+
+impl TryInto<BinOp> for Keyword {
+    type Error = String;
+    fn try_into(self) -> Result<BinOp, Self::Error> {
+        self.as_binop()
+            .ok_or_else(|| format!("No binary operation for {}", self))
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

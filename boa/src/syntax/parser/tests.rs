@@ -39,7 +39,7 @@ fn check_construct_call_precedence() {
 }
 
 #[test]
-fn assing_operator_precedence() {
+fn assign_operator_precedence() {
     check_parser(
         "a = a + 1",
         &[Node::assign(

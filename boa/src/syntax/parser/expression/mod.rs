@@ -18,7 +18,23 @@ mod update;
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
-use crate::syntax::ast::{node::Node, punc::Punctuator, token::TokenKind};
+use crate::syntax::ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind};
+
+// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
+// Always returns false.
+impl PartialEq<Keyword> for Punctuator {
+    fn eq(&self, _other: &Keyword) -> bool {
+        false
+    }
+}
+
+// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
+// Always returns false.
+impl PartialEq<Punctuator> for Keyword {
+    fn eq(&self, _other: &Punctuator) -> bool {
+        false
+    }
+}
 
 /// Generates an expression parser.
 ///
@@ -38,7 +54,15 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
                         let _ = cursor.next().expect("token disappeared");
                         lhs = Node::bin_op(
-                            op.as_binop().expect("could not get binary operation"),
+                            op.as_binop().expect("Could not get binary operation."),
+                            lhs,
+                            $lower::new($( self.$low_param ),*).parse(cursor)?
+                        )
+                    }
+                    TokenKind::Keyword(op) if $( op == $op )||* => {
+                        let _ = cursor.next().expect("token disappeared");
+                        lhs = Node::bin_op(
+                            op.as_binop().expect("Could not get binary operation."),
                             lhs,
                             $lower::new($( self.$low_param ),*).parse(cursor)?
                         )
@@ -360,7 +384,8 @@ expression!(
         Punctuator::LessThan,
         Punctuator::GreaterThan,
         Punctuator::LessThanOrEq,
-        Punctuator::GreaterThanOrEq
+        Punctuator::GreaterThanOrEq,
+        Keyword::In
     ],
     [allow_yield, allow_await]
 );

@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::node::Node,
-    ast::op::{AssignOp, BinOp, BitOp, NumOp},
+    ast::op::{AssignOp, BinOp, BitOp, CompOp, NumOp},
     parser::tests::check_parser,
 };
 
@@ -288,6 +288,50 @@ fn check_assign_operations() {
             BinOp::Assign(AssignOp::Mod),
             Node::local("a"),
             Node::bin_op(NumOp::Div, Node::const_node(10), Node::const_node(2)),
+        )],
+    );
+}
+
+#[test]
+fn check_relational_operations() {
+    check_parser(
+        "a < b",
+        &[Node::bin_op(
+            BinOp::Comp(CompOp::LessThan),
+            Node::Local(String::from("a")),
+            Node::Local(String::from("b")),
+        )],
+    );
+    check_parser(
+        "a > b",
+        &[Node::bin_op(
+            BinOp::Comp(CompOp::GreaterThan),
+            Node::Local(String::from("a")),
+            Node::Local(String::from("b")),
+        )],
+    );
+    check_parser(
+        "a <= b",
+        &[Node::bin_op(
+            BinOp::Comp(CompOp::LessThanOrEqual),
+            Node::Local(String::from("a")),
+            Node::Local(String::from("b")),
+        )],
+    );
+    check_parser(
+        "a >= b",
+        &[Node::bin_op(
+            BinOp::Comp(CompOp::GreaterThanOrEqual),
+            Node::Local(String::from("a")),
+            Node::Local(String::from("b")),
+        )],
+    );
+    check_parser(
+        "p in o",
+        &[Node::bin_op(
+            BinOp::Comp(CompOp::In),
+            Node::Local(String::from("p")),
+            Node::Local(String::from("o")),
         )],
     );
 }
