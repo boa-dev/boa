@@ -6,7 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::builtins::{
-    object::{Object, PROTOTYPE},
+    object::{Object, INSTANCE_PROTOTYPE},
     property::Property,
     value::{to_value, Value, ValueData},
 };
@@ -178,7 +178,7 @@ pub trait ObjectInternalMethods {
     /// Returns either the prototype or null
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     fn get_prototype_of(&self) -> Value {
-        self.get_internal_slot(PROTOTYPE)
+        self.get_internal_slot(INSTANCE_PROTOTYPE)
     }
 
     fn define_own_property(&mut self, property_key: String, desc: Property) -> bool;
