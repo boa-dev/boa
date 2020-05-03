@@ -12,10 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 use crate::{
-    builtins::{
-        function::NativeFunctionData,
-        value::{from_value, to_value, ResultValue, Value, ValueData},
-    },
+    builtins::value::{from_value, to_value, ResultValue, Value, ValueData},
     exec::Interpreter,
 };
 use rand::random;
@@ -32,7 +29,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.abs
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
-pub fn abs(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn abs(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -50,7 +47,7 @@ pub fn abs(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.acos
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
-pub fn acos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn acos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -68,7 +65,7 @@ pub fn acos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
-pub fn acosh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn acosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -86,7 +83,7 @@ pub fn acosh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.asin
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
-pub fn asin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn asin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -104,7 +101,7 @@ pub fn asin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
-pub fn asinh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn asinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -122,7 +119,7 @@ pub fn asinh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.atan
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
-pub fn atan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn atan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -140,7 +137,7 @@ pub fn atan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
-pub fn atanh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn atanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -158,7 +155,7 @@ pub fn atanh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
-pub fn atan2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn atan2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -176,7 +173,7 @@ pub fn atan2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.cbrt
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
-pub fn cbrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn cbrt(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -194,7 +191,7 @@ pub fn cbrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.ceil
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
-pub fn ceil(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn ceil(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -212,7 +209,7 @@ pub fn ceil(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.cos
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
-pub fn cos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn cos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -230,7 +227,7 @@ pub fn cos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.cosh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
-pub fn cosh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn cosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -248,7 +245,7 @@ pub fn cosh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.exp
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
-pub fn exp(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn exp(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -266,7 +263,7 @@ pub fn exp(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.floor
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
-pub fn floor(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn floor(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -284,7 +281,7 @@ pub fn floor(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.log
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
-pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn log(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -307,7 +304,7 @@ pub fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.log10
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
-pub fn log10(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn log10(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -330,7 +327,7 @@ pub fn log10(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.log2
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
-pub fn log2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn log2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -353,7 +350,7 @@ pub fn log2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.max
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
-pub fn max(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn max(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let mut max = f64::NEG_INFINITY;
     for arg in args {
         let num = arg.to_num();
@@ -370,7 +367,7 @@ pub fn max(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.min
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
-pub fn min(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn min(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let mut max = f64::INFINITY;
     for arg in args {
         let num = arg.to_num();
@@ -387,7 +384,7 @@ pub fn min(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.pow
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
-pub fn pow(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn pow(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.len() >= 2 {
         let num: f64 = from_value(args.get(0).expect("Could not get argument").clone())
             .expect("Could not convert argument to f64");
@@ -407,7 +404,7 @@ pub fn pow(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.random
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
-pub fn _random(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn _random(_: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(random::<f64>()))
 }
 
@@ -419,7 +416,7 @@ pub fn _random(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.round
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
-pub fn round(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn round(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -437,7 +434,7 @@ pub fn round(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.sign
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
-pub fn sign(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn sign(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -460,7 +457,7 @@ pub fn sign(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.sin
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
-pub fn sin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn sin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -478,7 +475,7 @@ pub fn sin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.sinh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
-pub fn sinh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn sinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -496,7 +493,7 @@ pub fn sinh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.sqrt
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
-pub fn sqrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn sqrt(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -506,7 +503,7 @@ pub fn sqrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     }))
 }
 /// Get the tangent of a number
-pub fn tan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn tan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -524,7 +521,7 @@ pub fn tan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.tanh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
-pub fn tanh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn tanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {
@@ -542,7 +539,7 @@ pub fn tanh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-math.trunc
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
-pub fn trunc(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     Ok(to_value(if args.is_empty() {
         f64::NAN
     } else {

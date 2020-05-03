@@ -21,7 +21,7 @@
     rust_2018_compatibility,
     rust_2018_idioms,
     future_incompatible,
-    nonstandard_style
+    nonstandard_style,
 )]
 #![warn(clippy::perf, clippy::single_match_else, clippy::dbg_macro)]
 #![allow(

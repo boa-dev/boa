@@ -103,19 +103,19 @@ pub enum Const {
 
 impl From<&str> for Const {
     fn from(s: &str) -> Self {
-        Const::String(s.into())
+        Self::String(s.into())
     }
 }
 
 impl From<&String> for Const {
     fn from(s: &String) -> Self {
-        Const::String(s.clone())
+        Self::String(s.clone())
     }
 }
 
 impl From<String> for Const {
     fn from(s: String) -> Self {
-        Const::String(s)
+        Self::String(s)
     }
 }
 

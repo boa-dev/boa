@@ -26,29 +26,30 @@ fn symbol_creation(c: &mut Criterion) {
     });
 }
 
-static FOR_LOOP: &str = r#"
-let a = 10;
-let b = "hello";
-for (;;) {
-    a += 5;
+// TODO: implement for loops.
+// static FOR_LOOP: &str = r#"
+// let a = 10;
+// let b = "hello";
+// for (;;) {
+//     a += 5;
 
-    if a < 50 {
-        b += "world";
-    }
+//     if (a < 50) {
+//         b += "world";
+//     }
 
-    if (a > 100) {
-        break;
-    }
-}
-let c = a;
-let d = b;
-"#;
+//     if (a > 100) {
+//         break;
+//     }
+// }
+// let c = a;
+// let d = b;
+// "#;
 
-fn for_loop_execution(c: &mut Criterion) {
-    c.bench_function("For loop (Execution)", move |b| {
-        b.iter(|| exec(black_box(FOR_LOOP)))
-    });
-}
+// fn for_loop_execution(c: &mut Criterion) {
+//     c.bench_function("For loop (Execution)", move |b| {
+//         b.iter(|| exec(black_box(FOR_LOOP)))
+//     });
+// }
 
 static FIBONACCI: &str = r#"
 let num = 12;
@@ -73,7 +74,7 @@ criterion_group!(
     execution,
     create_realm,
     symbol_creation,
-    for_loop_execution,
+    // for_loop_execution,
     fibonacci
 );
 criterion_main!(execution);

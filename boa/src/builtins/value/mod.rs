@@ -6,7 +6,7 @@
 mod tests;
 
 use crate::builtins::{
-    function::{Function, NativeFunction, NativeFunctionData},
+    function::Function,
     object::{
         internal_methods_trait::ObjectInternalMethods, InternalState, InternalStateCell, Object,
         ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE,
@@ -52,11 +52,9 @@ pub enum ValueData {
     /// `Number` - A 32-bit integer, such as `42`
     Integer(i32),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
-    Object(GcCell<Object>),
-    /// `Function` - A runnable block of code, such as `Math.sqrt`, which can take some variables and return a useful value or act upon an object
-    Function(Box<GcCell<Function>>),
+    Object(Box<GcCell<Object>>),
     /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots
-    Symbol(GcCell<Object>),
+    Symbol(Box<GcCell<Object>>),
 }
 
 impl ValueData {
@@ -66,10 +64,10 @@ impl ValueData {
             let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
 
             let obj = Object::create(obj_proto);
-            Gc::new(Self::Object(GcCell::new(obj)))
+            Gc::new(Self::Object(Box::new(GcCell::new(obj))))
         } else {
             let obj = Object::default();
-            Gc::new(Self::Object(GcCell::new(obj)))
+            Gc::new(Self::Object(Box::new(GcCell::new(obj))))
         }
     }
 
@@ -82,7 +80,7 @@ impl ValueData {
         obj.internal_slots
             .insert(INSTANCE_PROTOTYPE.to_string(), proto);
 
-        Gc::new(Self::Object(GcCell::new(obj)))
+        Gc::new(Self::Object(Box::new(GcCell::new(obj))))
     }
 
     /// This will tell us if we can exten an object or not, not properly implemented yet
@@ -117,8 +115,10 @@ impl ValueData {
     /// Returns true if the value is a function
     pub fn is_function(&self) -> bool {
         match *self {
-            Self::Function(_) => true,
-            Self::Object(ref o) => o.deref().borrow().get_internal_slot("call").is_function(),
+            Self::Object(ref o) => {
+                let borrowed_obj = o.borrow();
+                borrowed_obj.is_callable() || borrowed_obj.is_constructor()
+            }
             _ => false,
         }
     }
@@ -207,14 +207,14 @@ impl ValueData {
     /// Converts the value into a 64-bit floating point number
     pub fn to_num(&self) -> f64 {
         match *self {
-            Self::Object(_) | Self::Symbol(_) | Self::Undefined | Self::Function(_) => NAN,
+            Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
             Self::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => NAN,
             },
             Self::Rational(num) => num,
             Self::Boolean(true) => 1.0,
-            Self::Boolean(false) | ValueData::Null => 0.0,
+            Self::Boolean(false) | Self::Null => 0.0,
             Self::Integer(num) => f64::from(num),
         }
     }
@@ -226,8 +226,7 @@ impl ValueData {
             | Self::Undefined
             | Self::Symbol(_)
             | Self::Null
-            | Self::Boolean(false)
-            | Self::Function(_) => 0,
+            | Self::Boolean(false) => 0,
             Self::String(ref str) => match FromStr::from_str(str) {
                 Ok(num) => num,
                 Err(_) => 0,
@@ -251,11 +250,6 @@ impl ValueData {
     pub fn remove_prop(&self, field: &str) {
         match *self {
             Self::Object(ref obj) => obj.borrow_mut().deref_mut().properties.remove(field),
-            // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            Self::Function(ref func) => match func.borrow_mut().deref_mut() {
-                Function::NativeFunc(ref mut func) => func.object.properties.remove(field),
-                Function::RegularFunc(ref mut func) => func.object.properties.remove(field),
-            },
             _ => None,
         };
     }
@@ -272,6 +266,10 @@ impl ValueData {
             }
         }
 
+        if self.is_undefined() {
+            return None;
+        }
+
         let obj: Object = match *self {
             Self::Object(ref obj) => {
                 let hash = obj.clone();
@@ -279,11 +277,6 @@ impl ValueData {
                 // into_inner will consume the wrapped value and remove it from the hashmap
                 hash.into_inner()
             }
-            // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            Self::Function(ref func) => match func.clone().into_inner() {
-                Function::NativeFunc(ref func) => func.object.clone(),
-                Function::RegularFunc(ref func) => func.object.clone(),
-            },
             Self::Symbol(ref obj) => {
                 let hash = obj.clone();
                 hash.into_inner()
@@ -313,11 +306,6 @@ impl ValueData {
     ) {
         let obj: Option<Object> = match self {
             Self::Object(ref obj) => Some(obj.borrow_mut().deref_mut().clone()),
-            // Accesing .object on borrow() seems to automatically dereference it, so we don't need the *
-            Self::Function(ref func) => match func.borrow_mut().deref_mut() {
-                Function::NativeFunc(ref mut func) => Some(func.object.clone()),
-                Function::RegularFunc(ref mut func) => Some(func.object.clone()),
-            },
             _ => None,
         };
 
@@ -473,47 +461,33 @@ impl ValueData {
     /// Set the field in the value
     /// Field could be a Symbol, so we need to accept a Value (not a string)
     pub fn set_field(&self, field: Value, val: Value) -> Value {
-        match *self {
-            Self::Object(ref obj) => {
-                if obj.borrow().kind == ObjectKind::Array {
-                    if let Ok(num) = field.to_string().parse::<usize>() {
-                        if num > 0 {
-                            let len: i32 = from_value(self.get_field_slice("length"))
-                                .expect("Could not convert argument to i32");
-                            if len < (num + 1) as i32 {
-                                self.set_field_slice("length", to_value(num + 1));
-                            }
+        if let Self::Object(ref obj) = *self {
+            if obj.borrow().kind == ObjectKind::Array {
+                if let Ok(num) = field.to_string().parse::<usize>() {
+                    if num > 0 {
+                        let len: i32 = from_value(self.get_field_slice("length"))
+                            .expect("Could not convert argument to i32");
+                        if len < (num + 1) as i32 {
+                            self.set_field_slice("length", to_value(num + 1));
                         }
                     }
                 }
+            }
 
-                // Symbols get saved into a different bucket to general properties
-                if field.is_symbol() {
-                    obj.borrow_mut().set(field, val.clone());
-                } else {
-                    obj.borrow_mut()
-                        .set(to_value(field.to_string()), val.clone());
-                }
+            // Symbols get saved into a different bucket to general properties
+            if field.is_symbol() {
+                obj.borrow_mut().set(field, val.clone());
+            } else {
+                obj.borrow_mut()
+                    .set(to_value(field.to_string()), val.clone());
             }
-            Self::Function(ref func) => {
-                match *func.borrow_mut().deref_mut() {
-                    Function::NativeFunc(ref mut f) => f
-                        .object
-                        .properties
-                        .insert(field.to_string(), Property::default().value(val.clone())),
-                    Function::RegularFunc(ref mut f) => f
-                        .object
-                        .properties
-                        .insert(field.to_string(), Property::default().value(val.clone())),
-                };
-            }
-            _ => (),
         }
+
         val
     }
 
     /// Set the field in the value
-    pub fn set_field_slice<'a>(&self, field: &'a str, val: Value) -> Value {
+    pub fn set_field_slice(&self, field: &str, val: Value) -> Value {
         // set_field used to accept strings, but now Symbols accept it needs to accept a value
         // So this function will now need to Box strings back into values (at least for now)
         let f = Gc::new(Self::String(field.to_string()));
@@ -531,36 +505,22 @@ impl ValueData {
     }
 
     /// Set the kind of an object
-    pub fn set_kind(&self, kind: ObjectKind) -> ObjectKind {
+    pub fn set_kind(&self, kind: ObjectKind) {
         if let Self::Object(ref obj) = *self {
-            obj.borrow_mut().kind = kind.clone();
+            (*obj.deref().borrow_mut()).kind = kind;
         }
-        kind
     }
 
     /// Set the property in the value
     pub fn set_prop(&self, field: String, prop: Property) -> Property {
-        match *self {
-            Self::Object(ref obj) => {
-                obj.borrow_mut().properties.insert(field, prop.clone());
-            }
-            Self::Function(ref func) => {
-                match *func.borrow_mut().deref_mut() {
-                    Function::NativeFunc(ref mut f) => {
-                        f.object.properties.insert(field, prop.clone())
-                    }
-                    Function::RegularFunc(ref mut f) => {
-                        f.object.properties.insert(field, prop.clone())
-                    }
-                };
-            }
-            _ => (),
+        if let Self::Object(ref obj) = *self {
+            obj.borrow_mut().properties.insert(field, prop.clone());
         }
         prop
     }
 
     /// Set the property in the value
-    pub fn set_prop_slice<'t>(&self, field: &'t str, prop: Property) -> Property {
+    pub fn set_prop_slice(&self, field: &str, prop: Property) -> Property {
         self.set_prop(field.to_string(), prop)
     }
 
@@ -571,6 +531,21 @@ impl ValueData {
                 .state
                 .replace(Box::new(InternalStateCell::new(state)));
         }
+    }
+
+    /// Consume the function and return a Value
+    pub fn from_func(native_func: Function) -> Value {
+        // Object with Kind set to function
+        let mut new_func = crate::builtins::object::Object::function();
+        // Get Length
+        let length = native_func.params.len();
+        // Set [[Call]] internal slot
+        new_func.set_call(native_func);
+        // Wrap Object in GC'd Value
+        let new_func_val = to_value(new_func);
+        // Set length to parameters
+        new_func_val.set_field_slice("length", to_value(length));
+        new_func_val
     }
 
     /// Convert from a JSON value to a JS value
@@ -593,7 +568,7 @@ impl ValueData {
                     "length".to_string(),
                     Property::default().value(to_value(vs.len() as i32)),
                 );
-                Self::Object(GcCell::new(new_obj))
+                Self::Object(Box::new(GcCell::new(new_obj)))
             }
             JSONValue::Object(obj) => {
                 let mut new_obj = Object::default();
@@ -604,7 +579,7 @@ impl ValueData {
                     );
                 }
 
-                Self::Object(GcCell::new(new_obj))
+                Self::Object(Box::new(GcCell::new(new_obj)))
             }
             JSONValue::Null => Self::Null,
         }
@@ -613,12 +588,9 @@ impl ValueData {
     /// Conversts the `Value` to `JSON`.
     pub fn to_json(&self) -> JSONValue {
         match *self {
-            ValueData::Null
-            | ValueData::Symbol(_)
-            | ValueData::Undefined
-            | ValueData::Function(_) => JSONValue::Null,
-            ValueData::Boolean(b) => JSONValue::Bool(b),
-            ValueData::Object(ref obj) => {
+            Self::Null | Self::Symbol(_) | Self::Undefined => JSONValue::Null,
+            Self::Boolean(b) => JSONValue::Bool(b),
+            Self::Object(ref obj) => {
                 let new_obj = obj
                     .borrow()
                     .properties
@@ -646,12 +618,11 @@ impl ValueData {
             Self::Symbol(_) => "symbol",
             Self::Null => "null",
             Self::Undefined => "undefined",
-            Self::Function(_) => "function",
             Self::Object(ref o) => {
-                if o.deref().borrow().get_internal_slot("call").is_null() {
-                    "object"
-                } else {
+                if o.deref().borrow().is_callable() {
                     "function"
+                } else {
+                    "object"
                 }
             }
         }
@@ -880,19 +851,6 @@ impl Display for ValueData {
             ),
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
-            Self::Function(ref v) => match *v.borrow() {
-                Function::NativeFunc(_) => write!(f, "function() {{ [native code] }}"),
-                Function::RegularFunc(ref rf) => {
-                    write!(f, "function{}(", if rf.args.is_empty() { "" } else { " " })?;
-                    for (index, arg) in rf.args.iter().enumerate() {
-                        write!(f, "{}", arg)?;
-                        if index + 1 != rf.args.len() {
-                            write!(f, ", ")?;
-                        }
-                    }
-                    write!(f, ") {}", rf.node)
-                }
-            },
         }
     }
 }
@@ -1124,7 +1082,7 @@ impl<T: FromValue> FromValue for Vec<T> {
 
 impl ToValue for Object {
     fn to_value(&self) -> Value {
-        Gc::new(ValueData::Object(GcCell::new(self.clone())))
+        Gc::new(ValueData::Object(Box::new(GcCell::new(self.clone()))))
     }
 }
 
@@ -1132,10 +1090,6 @@ impl FromValue for Object {
     fn from_value(v: Value) -> Result<Self, &'static str> {
         match *v {
             ValueData::Object(ref obj) => Ok(obj.clone().into_inner()),
-            ValueData::Function(ref func) => Ok(match *func.borrow().deref() {
-                Function::NativeFunc(ref data) => data.object.clone(),
-                Function::RegularFunc(ref data) => data.object.clone(),
-            }),
             _ => Err("Value is not a valid object"),
         }
     }
@@ -1179,25 +1133,6 @@ impl<T: FromValue> FromValue for Option<T> {
         } else {
             Some(FromValue::from_value(value)?)
         })
-    }
-}
-
-impl ToValue for NativeFunctionData {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Function(Box::new(GcCell::new(
-            Function::NativeFunc(NativeFunction::new(*self)),
-        ))))
-    }
-}
-impl FromValue for NativeFunctionData {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        match *v {
-            ValueData::Function(ref func) => match *func.borrow() {
-                Function::NativeFunc(ref data) => Ok(data.data),
-                _ => Err("Value is not a native function"),
-            },
-            _ => Err("Value is not a function"),
-        }
     }
 }
 

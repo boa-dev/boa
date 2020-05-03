@@ -10,7 +10,7 @@ fn check_string_constructor_is_function() {
     assert_eq!(string_constructor.is_function(), true);
 }
 
-#[test]
+// #[test]
 // TODO: re-enable when getProperty() is finished;
 // fn length() {
 //     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
@@ -35,6 +35,7 @@ fn check_string_constructor_is_function() {
 //     let d = forward(&mut engine, "d.length");
 //     assert_eq!(d, String::from("4"));
 // }
+
 #[test]
 fn concat() {
     let realm = Realm::create();

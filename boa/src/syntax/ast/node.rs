@@ -532,7 +532,7 @@ impl Node {
     /// Creates an `ArrayDecl` AST node.
     pub fn array_decl<N>(nodes: N) -> Self
     where
-        N: Into<Vec<Node>>,
+        N: Into<Vec<Self>>,
     {
         Self::ArrayDecl(nodes.into())
     }
@@ -541,7 +541,7 @@ impl Node {
     pub fn arrow_function_decl<P, B>(params: P, body: B) -> Self
     where
         P: Into<Vec<FormalParameter>>,
-        B: Into<Box<Node>>,
+        B: Into<Box<Self>>,
     {
         Self::ArrowFunctionDecl(params.into(), body.into())
     }
@@ -549,8 +549,8 @@ impl Node {
     /// Creates an `Assign` AST node.
     pub fn assign<L, R>(lhs: L, rhs: R) -> Self
     where
-        L: Into<Box<Node>>,
-        R: Into<Box<Node>>,
+        L: Into<Box<Self>>,
+        R: Into<Box<Self>>,
     {
         Self::Assign(lhs.into(), rhs.into())
     }
@@ -559,8 +559,8 @@ impl Node {
     pub fn bin_op<O, L, R>(op: O, lhs: L, rhs: R) -> Self
     where
         O: Into<BinOp>,
-        L: Into<Box<Node>>,
-        R: Into<Box<Node>>,
+        L: Into<Box<Self>>,
+        R: Into<Box<Self>>,
     {
         Self::BinOp(op.into(), lhs.into(), rhs.into())
     }
@@ -568,7 +568,7 @@ impl Node {
     /// Creates a `Block` AST node.
     pub fn block<N>(nodes: N) -> Self
     where
-        N: Into<Vec<Node>>,
+        N: Into<Vec<Self>>,
     {
         Self::Block(nodes.into())
     }
@@ -585,8 +585,8 @@ impl Node {
     /// Creates a `Call` AST node.
     pub fn call<F, P>(function: F, params: P) -> Self
     where
-        F: Into<Box<Node>>,
-        P: Into<Vec<Node>>,
+        F: Into<Box<Self>>,
+        P: Into<Vec<Self>>,
     {
         Self::Call(function.into(), params.into())
     }
@@ -594,9 +594,9 @@ impl Node {
     /// Creates a `ConditionalOp` AST node.
     pub fn conditional_op<C, T, F>(condition: C, if_true: T, if_false: F) -> Self
     where
-        C: Into<Box<Node>>,
-        T: Into<Box<Node>>,
-        F: Into<Box<Node>>,
+        C: Into<Box<Self>>,
+        T: Into<Box<Self>>,
+        F: Into<Box<Self>>,
     {
         Self::ConditionalOp(condition.into(), if_true.into(), if_false.into())
     }
@@ -612,7 +612,7 @@ impl Node {
     /// Creates a `ConstDecl` AST node.
     pub fn const_decl<D>(decl: D) -> Self
     where
-        D: Into<Vec<(String, Node)>>,
+        D: Into<Vec<(String, Self)>>,
     {
         Self::ConstDecl(decl.into())
     }
@@ -629,8 +629,8 @@ impl Node {
     /// Creates a `DoWhileLoop` AST node.
     pub fn do_while_loop<B, C>(body: B, condition: C) -> Self
     where
-        B: Into<Box<Node>>,
-        C: Into<Box<Node>>,
+        B: Into<Box<Self>>,
+        C: Into<Box<Self>>,
     {
         Self::DoWhileLoop(body.into(), condition.into())
     }
@@ -641,7 +641,7 @@ impl Node {
         N: Into<String>,
         ON: Into<Option<N>>,
         P: Into<Vec<FormalParameter>>,
-        B: Into<Box<Node>>,
+        B: Into<Box<Self>>,
     {
         Self::FunctionDecl(name.into().map(N::into), params.into(), body.into())
     }
@@ -649,7 +649,7 @@ impl Node {
     /// Creates a `GetConstField` AST node.
     pub fn get_const_field<V, L>(value: V, label: L) -> Self
     where
-        V: Into<Box<Node>>,
+        V: Into<Box<Self>>,
         L: Into<String>,
     {
         Self::GetConstField(value.into(), label.into())
@@ -658,8 +658,8 @@ impl Node {
     /// Creates a `GetField` AST node.
     pub fn get_field<V, F>(value: V, field: F) -> Self
     where
-        V: Into<Box<Node>>,
-        F: Into<Box<Node>>,
+        V: Into<Box<Self>>,
+        F: Into<Box<Self>>,
     {
         Self::GetField(value.into(), field.into())
     }
@@ -670,10 +670,10 @@ impl Node {
         OI: Into<Option<I>>,
         OC: Into<Option<C>>,
         OS: Into<Option<S>>,
-        I: Into<Box<Node>>,
-        C: Into<Box<Node>>,
-        S: Into<Box<Node>>,
-        B: Into<Box<Node>>,
+        I: Into<Box<Self>>,
+        C: Into<Box<Self>>,
+        S: Into<Box<Self>>,
+        B: Into<Box<Self>>,
     {
         Self::ForLoop(
             init.into().map(I::into),
@@ -686,9 +686,9 @@ impl Node {
     /// Creates an `If` AST node.
     pub fn if_node<C, B, E, OE>(condition: C, body: B, else_node: OE) -> Self
     where
-        C: Into<Box<Node>>,
-        B: Into<Box<Node>>,
-        E: Into<Box<Node>>,
+        C: Into<Box<Self>>,
+        B: Into<Box<Self>>,
+        E: Into<Box<Self>>,
         OE: Into<Option<E>>,
     {
         Self::If(condition.into(), body.into(), else_node.into().map(E::into))
@@ -697,7 +697,7 @@ impl Node {
     /// Creates a `LetDecl` AST node.
     pub fn let_decl<I>(init: I) -> Self
     where
-        I: Into<Vec<(String, Option<Node>)>>,
+        I: Into<Vec<(String, Option<Self>)>>,
     {
         Self::LetDecl(init.into())
     }
@@ -713,7 +713,7 @@ impl Node {
     /// Creates a `New` AST node.
     pub fn new<N>(node: N) -> Self
     where
-        N: Into<Box<Node>>,
+        N: Into<Box<Self>>,
     {
         Self::New(node.into())
     }
@@ -729,7 +729,7 @@ impl Node {
     /// Creates a `Return` AST node.
     pub fn return_node<E, OE>(expr: OE) -> Self
     where
-        E: Into<Box<Node>>,
+        E: Into<Box<Self>>,
         OE: Into<Option<E>>,
     {
         Self::Return(expr.into().map(E::into))
@@ -738,10 +738,10 @@ impl Node {
     /// Creates a `Switch` AST node.
     pub fn switch<V, C, OD, D>(val: V, cases: C, default: OD) -> Self
     where
-        V: Into<Box<Node>>,
-        C: Into<Vec<(Node, Vec<Node>)>>,
+        V: Into<Box<Self>>,
+        C: Into<Vec<(Self, Vec<Self>)>>,
         OD: Into<Option<D>>,
-        D: Into<Box<Node>>,
+        D: Into<Box<Self>>,
     {
         Self::Switch(val.into(), cases.into(), default.into().map(D::into))
     }
@@ -749,7 +749,7 @@ impl Node {
     /// Creates a `Spread` AST node.
     pub fn spread<V>(val: V) -> Self
     where
-        V: Into<Box<Node>>,
+        V: Into<Box<Self>>,
     {
         Self::Spread(val.into())
     }
@@ -757,7 +757,7 @@ impl Node {
     /// Creates a `StatementList` AST node.
     pub fn statement_list<L>(list: L) -> Self
     where
-        L: Into<Vec<Node>>,
+        L: Into<Vec<Self>>,
     {
         Self::StatementList(list.into())
     }
@@ -765,7 +765,7 @@ impl Node {
     /// Creates a `Throw` AST node.
     pub fn throw<V>(val: V) -> Self
     where
-        V: Into<Box<Node>>,
+        V: Into<Box<Self>>,
     {
         Self::Throw(val.into())
     }
@@ -773,7 +773,7 @@ impl Node {
     /// Creates a `TypeOf` AST node.
     pub fn type_of<E>(expr: E) -> Self
     where
-        E: Into<Box<Node>>,
+        E: Into<Box<Self>>,
     {
         Self::TypeOf(expr.into())
     }
@@ -781,13 +781,13 @@ impl Node {
     /// Creates a `Try` AST node.
     pub fn try_node<T, OC, OP, OF, C, P, F>(try_node: T, catch: OC, param: OP, finally: OF) -> Self
     where
-        T: Into<Box<Node>>,
+        T: Into<Box<Self>>,
         OC: Into<Option<C>>,
         OP: Into<Option<P>>,
         OF: Into<Option<F>>,
-        C: Into<Box<Node>>,
-        P: Into<Box<Node>>,
-        F: Into<Box<Node>>,
+        C: Into<Box<Self>>,
+        P: Into<Box<Self>>,
+        F: Into<Box<Self>>,
     {
         let catch = catch.into().map(C::into);
         let finally = finally.into().map(F::into);
@@ -808,7 +808,7 @@ impl Node {
     /// Creates a `UnaryOp` AST node.
     pub fn unary_op<V>(op: UnaryOp, val: V) -> Self
     where
-        V: Into<Box<Node>>,
+        V: Into<Box<Self>>,
     {
         Self::UnaryOp(op, val.into())
     }
@@ -816,7 +816,7 @@ impl Node {
     /// Creates a `VarDecl` AST node.
     pub fn var_decl<I>(init: I) -> Self
     where
-        I: Into<Vec<(String, Option<Node>)>>,
+        I: Into<Vec<(String, Option<Self>)>>,
     {
         Self::VarDecl(init.into())
     }
@@ -824,8 +824,8 @@ impl Node {
     /// Creates a `WhileLoop` AST node.
     pub fn while_loop<C, B>(condition: C, body: B) -> Self
     where
-        C: Into<Box<Node>>,
-        B: Into<Box<Node>>,
+        C: Into<Box<Self>>,
+        B: Into<Box<Self>>,
     {
         Self::WhileLoop(condition.into(), body.into())
     }

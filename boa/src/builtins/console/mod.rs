@@ -18,7 +18,6 @@ mod tests;
 
 use crate::{
     builtins::{
-        function::NativeFunctionData,
         object::InternalState,
         value::{display_obj, from_value, to_value, FromValue, ResultValue, Value, ValueData},
     },
@@ -37,7 +36,7 @@ pub struct ConsoleState {
 
 impl ConsoleState {
     fn new() -> Self {
-        ConsoleState {
+        Self {
             count_map: HashMap::new(),
             timer_map: HashMap::new(),
             groups: vec![],
@@ -149,7 +148,7 @@ pub fn formatter(data: &[Value]) -> String {
 ///
 /// [spec]: https://console.spec.whatwg.org/#assert
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
-pub fn assert(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn assert(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
     if !assertion {
@@ -182,7 +181,7 @@ pub fn assert(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://console.spec.whatwg.org/#clear
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
-pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn clear(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.groups.clear();
     });
@@ -200,7 +199,7 @@ pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#debug
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
-pub fn debug(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn debug(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -215,7 +214,7 @@ pub fn debug(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#error
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
-pub fn error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Error(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -230,7 +229,7 @@ pub fn error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#info
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
-pub fn info(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn info(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Info(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -245,7 +244,7 @@ pub fn info(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#log
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
-pub fn log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn log(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -260,7 +259,7 @@ pub fn log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#trace
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
-pub fn trace(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn trace(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if !args.is_empty() {
         this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
 
@@ -286,7 +285,7 @@ pub fn trace(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#warn
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
-pub fn warn(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn warn(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Warn(formatter(&args[..])), state));
     Ok(Gc::new(ValueData::Undefined))
 }
@@ -301,7 +300,7 @@ pub fn warn(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#count
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
-pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn count(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -325,7 +324,7 @@ pub fn count(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#countreset
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
-pub fn count_reset(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn count_reset(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -355,7 +354,7 @@ fn system_time_in_ms() -> u128 {
 ///
 /// [spec]: https://console.spec.whatwg.org/#time
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
-pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn time(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -383,7 +382,7 @@ pub fn time(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#timelog
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
-pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn time_log(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -415,7 +414,7 @@ pub fn time_log(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 ///
 /// [spec]: https://console.spec.whatwg.org/#timeend
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
-pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn time_end(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let label = get_arg_at_index::<String>(args, 0).unwrap_or_else(|| "default".to_string());
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -446,7 +445,7 @@ pub fn time_end(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 ///
 /// [spec]: https://console.spec.whatwg.org/#group
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
-pub fn group(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn group(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let group_label = formatter(args);
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -467,7 +466,7 @@ pub fn group(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 ///
 /// [spec]: https://console.spec.whatwg.org/#groupend
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
-pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn group_end(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.groups.pop();
     });
@@ -485,7 +484,7 @@ pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://console.spec.whatwg.org/#dir
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
-pub fn dir(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn dir(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         logger(
             LogMessage::Info(display_obj(
@@ -502,25 +501,25 @@ pub fn dir(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Create a new `console` object
 pub fn create_constructor(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
-    console.set_field_slice("assert", to_value(assert as NativeFunctionData));
-    console.set_field_slice("clear", to_value(clear as NativeFunctionData));
-    console.set_field_slice("debug", to_value(debug as NativeFunctionData));
-    console.set_field_slice("error", to_value(error as NativeFunctionData));
-    console.set_field_slice("info", to_value(info as NativeFunctionData));
-    console.set_field_slice("log", to_value(log as NativeFunctionData));
-    console.set_field_slice("trace", to_value(trace as NativeFunctionData));
-    console.set_field_slice("warn", to_value(warn as NativeFunctionData));
-    console.set_field_slice("exception", to_value(error as NativeFunctionData));
-    console.set_field_slice("count", to_value(count as NativeFunctionData));
-    console.set_field_slice("countReset", to_value(count_reset as NativeFunctionData));
-    console.set_field_slice("group", to_value(group as NativeFunctionData));
-    console.set_field_slice("groupCollapsed", to_value(group as NativeFunctionData));
-    console.set_field_slice("groupEnd", to_value(group_end as NativeFunctionData));
-    console.set_field_slice("time", to_value(time as NativeFunctionData));
-    console.set_field_slice("timeLog", to_value(time_log as NativeFunctionData));
-    console.set_field_slice("timeEnd", to_value(time_end as NativeFunctionData));
-    console.set_field_slice("dir", to_value(dir as NativeFunctionData));
-    console.set_field_slice("dirxml", to_value(dir as NativeFunctionData));
+    make_builtin_fn!(assert, named "assert", of console);
+    make_builtin_fn!(clear, named "clear", of console);
+    make_builtin_fn!(debug, named "debug", of console);
+    make_builtin_fn!(error, named "error", of console);
+    make_builtin_fn!(info, named "info", of console);
+    make_builtin_fn!(log, named "log", of console);
+    make_builtin_fn!(trace, named "trace", of console);
+    make_builtin_fn!(warn, named "warn", of console);
+    make_builtin_fn!(error, named "exception", of console);
+    make_builtin_fn!(count, named "count", of console);
+    make_builtin_fn!(count_reset, named "countReset", of console);
+    make_builtin_fn!(group, named "group", of console);
+    make_builtin_fn!(group, named "groupCollapsed", of console);
+    make_builtin_fn!(group_end , named "groupEnd", of console);
+    make_builtin_fn!(time, named "time", of console);
+    make_builtin_fn!(time_log, named "timeLog", of console);
+    make_builtin_fn!(time_end, named "timeEnd", of console);
+    make_builtin_fn!(dir, named "dir", of console);
+    make_builtin_fn!(dir, named "dirxml", of console);
     console.set_internal_state(ConsoleState::new());
     console
 }
