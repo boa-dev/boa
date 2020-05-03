@@ -105,6 +105,10 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,</span>
 <span class="doccomment">//! all of the ECMAScript code that is loaded within the scope of that global environment,</span>
@@ -128,7 +132,8 @@
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">hash_map</span>::<span class="ident">HashMap</span>, <span class="ident">hash_set</span>::<span class="ident">HashSet</span>};
 
-<span class="doccomment">/// Representation of a Realm.   </span>
+<span class="doccomment">/// Representation of a Realm.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// In the specification these are called Realm Records.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Realm</span> {
@@ -162,14 +167,13 @@
     <span class="kw">fn</span> <span class="ident">create_instrinsics</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">global_obj</span>;
         <span class="comment">// Create intrinsics, add global objects here</span>
-        <span class="ident">function</span>::<span class="ident">init</span>(<span class="ident">global</span>);
-
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Array&quot;</span>, <span class="ident">array</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Boolean&quot;</span>, <span class="ident">boolean</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;JSON&quot;</span>, <span class="ident">json</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Math&quot;</span>, <span class="ident">math</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Number&quot;</span>, <span class="ident">number</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Object&quot;</span>, <span class="ident">object</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
+        <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Function&quot;</span>, <span class="ident">function</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;RegExp&quot;</span>, <span class="ident">regexp</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;String&quot;</span>, <span class="ident">string</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
         <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Symbol&quot;</span>, <span class="ident">symbol</span>::<span class="ident">create_constructor</span>(<span class="ident">global</span>));
@@ -178,8 +182,12 @@
 
     <span class="doccomment">/// Utility to add a function to the global object</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_func</span>(<span class="self">self</span>, <span class="ident">func_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">func</span>: <span class="ident">NativeFunctionData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">Function</span>::<span class="ident">create_builtin</span>(
+            <span class="macro">vec</span><span class="macro">!</span>[],
+            <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>),
+        );
         <span class="self">self</span>.<span class="ident">global_obj</span>
-            .<span class="ident">set_field</span>(<span class="ident">func_name</span>.<span class="ident">to_value</span>(), <span class="ident">func</span>.<span class="ident">to_value</span>());
+            .<span class="ident">set_field</span>(<span class="ident">func_name</span>.<span class="ident">to_value</span>(), <span class="ident">ValueData</span>::<span class="ident">from_func</span>(<span class="ident">func</span>));
 
         <span class="self">self</span>
     }

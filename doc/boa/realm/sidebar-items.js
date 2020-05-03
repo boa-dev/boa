@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["new_global_environment",""]],"struct":[["Realm","Representation of a Realm.    In the specification these are called Realm Records."]]});
+initSidebarItems({"fn":[["new_global_environment",""]],"struct":[["Realm","Representation of a Realm."]]});

@@ -1074,19 +1074,6 @@
 <span id="1074">1074</span>
 <span id="1075">1075</span>
 <span id="1076">1076</span>
-<span id="1077">1077</span>
-<span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
-<span id="1089">1089</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1104,8 +1091,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">function</span>::<span class="ident">NativeFunctionData</span>,
-        <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectKind</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>, <span class="ident">Object</span>, <span class="ident">ObjectKind</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">regexp</span>::{<span class="ident">make_regexp</span>, <span class="ident">match_all</span> <span class="kw">as</span> <span class="ident">regexp_match_all</span>, <span class="ident">r#match</span> <span class="kw">as</span> <span class="ident">regexp_match</span>},
         <span class="ident">value</span>::{<span class="ident">from_value</span>, <span class="ident">to_value</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
@@ -1122,7 +1108,7 @@
 
 <span class="doccomment">/// Create new string [[Construct]]</span>
 <span class="comment">// This gets called when a new String() is created, it&#39;s called by exec:346</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// If we&#39;re constructing a string, we should set the initial length</span>
     <span class="comment">// To do this we need to convert the string back to a Rust String, then get the .len()</span>
     <span class="comment">// let a: String = from_value(args.get(0).expect(&quot;failed to get argument for String method&quot;).clone()).unwrap();</span>
@@ -1143,7 +1129,7 @@
 <span class="doccomment">/// Call new string [[Call]]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information: [ECMAScript reference](https://tc39.es/ecma262/#sec-string-constructor-string-value)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_string</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_string</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">clone</span>(),
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>),
@@ -1157,7 +1143,7 @@
 }
 
 <span class="doccomment">/// Get the string value to a primitive string</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// Get String from String Object and send it back as a new value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;StringData&quot;</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">primitive_val</span>)))
@@ -1179,7 +1165,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charat</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">char_at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">char_at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1223,7 +1209,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charcodeat</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">char_code_at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">char_code_at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1265,7 +1251,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1289,7 +1275,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">repeat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">repeat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1313,7 +1299,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.slice</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1370,7 +1356,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.startswith</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starts_with</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starts_with</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1415,7 +1401,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.endswith</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ends_with</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ends_with</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1462,7 +1448,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.includes</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">includes</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">includes</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1527,7 +1513,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.replace</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// TODO: Support Symbol replacer</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
@@ -1584,7 +1570,7 @@
 
                 <span class="ident">result</span>
             }
-            <span class="ident">ValueData</span>::<span class="ident">Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// This will return the matched substring first, then captured parenthesized groups later</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">caps</span>
                     .<span class="ident">iter</span>()
@@ -1600,7 +1586,7 @@
                 <span class="comment">// Push the whole string being examined</span>
                 <span class="ident">results</span>.<span class="ident">push</span>(<span class="ident">to_value</span>(<span class="ident">primitive_val</span>.<span class="ident">to_string</span>()));
 
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replace_object</span>, <span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="ident">results</span>).<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replace_object</span>, <span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">results</span>).<span class="ident">unwrap</span>();
 
                 <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)
             }
@@ -1629,7 +1615,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1681,7 +1667,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.lastindexof</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1733,9 +1719,9 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.match</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match</span>
 <span class="doccomment">/// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">make_regexp</span>(<span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()), <span class="kw-2">&amp;</span>[<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>()], <span class="ident">ctx</span>)<span class="question-mark">?</span>;
-    <span class="ident">regexp_match</span>(<span class="kw-2">&amp;</span><span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>), <span class="ident">ctx</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">make_regexp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()), <span class="kw-2">&amp;</span>[<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>()], <span class="ident">ctx</span>)<span class="question-mark">?</span>;
+    <span class="ident">regexp_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>), <span class="ident">ctx</span>)
 }
 
 <span class="doccomment">/// Abstract method `StringPad`.</span>
@@ -1791,7 +1777,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pad_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pad_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">to_value</span>(<span class="string">&quot;padEnd requires maxLength argument&quot;</span>));
@@ -1825,7 +1811,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pad_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pad_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">to_value</span>(<span class="string">&quot;padStart requires maxLength argument&quot;</span>));
@@ -1878,7 +1864,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
 }
@@ -1895,7 +1881,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(
         <span class="ident">this_str</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
@@ -1914,7 +1900,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str</span>.<span class="ident">trim_end_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
 }
@@ -1929,7 +1915,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tolowercase</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_lowercase</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_lowercase</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1950,7 +1936,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_uppercase</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_uppercase</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -1969,7 +1955,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substring</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substring</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substring</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -2020,7 +2006,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr</span>
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-string.prototype.substr&gt;</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substr</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">substr</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
@@ -2077,7 +2063,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.value_of</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// Use the to_string method because it is specified to do the same thing in this case</span>
     <span class="ident">to_string</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">ctx</span>)
 }
@@ -2095,12 +2081,12 @@
 <span class="doccomment">/// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions</span>
 <span class="doccomment">/// [cg]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges</span>
 <span class="comment">// TODO: update this method to return iterator</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">re</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">re</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">arg</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Null</span>) {
                 <span class="ident">make_regexp</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
                     <span class="kw-2">&amp;</span>[
                         <span class="ident">to_value</span>(<span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">arg</span>)),
                         <span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>)),
@@ -2109,7 +2095,7 @@
                 )
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arg</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>) {
                 <span class="ident">make_regexp</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
                     <span class="kw-2">&amp;</span>[<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>), <span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>))],
                     <span class="ident">ctx</span>,
                 )
@@ -2118,26 +2104,17 @@
             }
         }
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">make_regexp</span>(
-            <span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
             <span class="kw-2">&amp;</span>[<span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">new</span>()), <span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>))],
             <span class="ident">ctx</span>,
         ),
     }<span class="question-mark">?</span>;
 
-    <span class="ident">regexp_match_all</span>(<span class="kw-2">&amp;</span><span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>))
+    <span class="ident">regexp_match_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>))
 }
 
 <span class="doccomment">/// Create a new `String` object</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_constructor</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="comment">// Create constructor function object</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string_constructor</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
-    <span class="ident">string_constructor</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">ObjectKind</span>::<span class="ident">Function</span>;
-
-    <span class="ident">string_constructor</span>.<span class="ident">set_internal_method</span>(<span class="string">&quot;construct&quot;</span>, <span class="ident">make_string</span>);
-    <span class="comment">// Todo: add call internal method (should be easy)</span>
-    <span class="comment">// Currently call points to the constructor function, this is wrong</span>
-    <span class="ident">string_constructor</span>.<span class="ident">set_internal_method</span>(<span class="string">&quot;call&quot;</span>, <span class="ident">call_string</span>);
-
     <span class="comment">// Create prototype</span>
     <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
     <span class="kw">let</span> <span class="ident">prop</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">to_value</span>(<span class="number">0_i32</span>));
@@ -2167,10 +2144,7 @@
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">match_all</span>, <span class="ident">named</span> <span class="string">&quot;matchAll&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">proto</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">replace</span>, <span class="ident">named</span> <span class="string">&quot;replace&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">2</span>, <span class="ident">of</span> <span class="ident">proto</span>);
 
-    <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="ident">string_constructor</span>);
-    <span class="ident">proto</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">string</span>.<span class="ident">clone</span>());
-    <span class="ident">string</span>.<span class="ident">set_field_slice</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">proto</span>);
-    <span class="ident">string</span>
+    <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_string</span>, <span class="ident">call_string</span>, <span class="ident">global</span>, <span class="ident">proto</span>)
 }
 
 <span class="doccomment">/// Initialise the `String` object on the global object</span>

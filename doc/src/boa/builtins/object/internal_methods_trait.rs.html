@@ -192,6 +192,114 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the `ObjectInternalMethods` trait.</span>
 <span class="doccomment">//!</span>
@@ -203,7 +311,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
     <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">INSTANCE_PROTOTYPE</span>},
     <span class="ident">property</span>::<span class="ident">Property</span>,
-    <span class="ident">value</span>::{<span class="ident">to_value</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+    <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">to_value</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
 };
 <span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span>;
@@ -234,7 +342,7 @@
                 <span class="comment">// the parent value variant should be an object</span>
                 <span class="comment">// In the unlikely event it isn&#39;t return false</span>
                 <span class="kw">return</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">parent</span> {
-                    <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">has_property</span>(<span class="ident">val</span>),
+                    <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">*</span><span class="ident">obj</span>).<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">has_property</span>(<span class="ident">val</span>),
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
                 };
             }
@@ -363,6 +471,116 @@
         }
     }
 
+    <span class="kw">fn</span> <span class="ident">define_own_property</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">property_key</span>: <span class="ident">String</span>, <span class="ident">desc</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="ident">property_key</span>.<span class="ident">to_string</span>()));
+        <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_extensible</span>();
+
+        <span class="comment">// https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor</span>
+        <span class="comment">// There currently isn&#39;t a property, lets create a new one</span>
+        <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">value</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">current</span>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;failed&quot;</span>).<span class="ident">is_undefined</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">extensible</span> {
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            }
+
+            <span class="self">self</span>.<span class="ident">insert_property</span>(<span class="ident">property_key</span>, <span class="ident">desc</span>);
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+        <span class="comment">// If every field is absent we don&#39;t need to set anything</span>
+        <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">is_none</span>() {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+
+        <span class="comment">// 4</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>) {
+            <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">configurable</span>.<span class="ident">is_some</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">desc</span>.<span class="ident">configurable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>) {
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            }
+
+            <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">enumerable</span>.<span class="ident">is_some</span>()
+                <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">desc</span>.<span class="ident">enumerable</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>)
+                    <span class="op">!</span><span class="op">=</span> <span class="ident">current</span>
+                        .<span class="ident">enumerable</span>
+                        .<span class="ident">as_ref</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>))
+            {
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            }
+        }
+
+        <span class="comment">// 5</span>
+        <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">is_generic_descriptor</span>() {
+            <span class="comment">// 6</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">desc</span>.<span class="ident">is_data_descriptor</span>() {
+            <span class="comment">// a</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>) {
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            }
+            <span class="comment">// b</span>
+            <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() {
+                <span class="comment">// Convert to accessor</span>
+                <span class="ident">current</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <span class="ident">current</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+            } <span class="kw">else</span> {
+                <span class="comment">// c</span>
+                <span class="comment">// convert to data</span>
+                <span class="ident">current</span>.<span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <span class="ident">current</span>.<span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+            }
+
+            <span class="self">self</span>.<span class="ident">insert_property</span>(<span class="ident">property_key</span>.<span class="ident">clone</span>(), <span class="ident">current</span>);
+        <span class="comment">// 7</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">desc</span>.<span class="ident">is_data_descriptor</span>() {
+            <span class="comment">// a</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>)
+                <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">writable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>)
+            {
+                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">writable</span>.<span class="ident">is_some</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">desc</span>.<span class="ident">writable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>) {
+                    <span class="kw">return</span> <span class="bool-val">false</span>;
+                }
+
+                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">value</span>.<span class="ident">is_some</span>()
+                    <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">same_value</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">desc</span>.<span class="ident">value</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">current</span>.<span class="ident">value</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(),
+                        <span class="bool-val">false</span>,
+                    )
+                {
+                    <span class="kw">return</span> <span class="bool-val">false</span>;
+                }
+
+                <span class="kw">return</span> <span class="bool-val">true</span>;
+            }
+        <span class="comment">// 8</span>
+        } <span class="kw">else</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">unwrap</span>() {
+                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">set</span>.<span class="ident">is_some</span>()
+                    <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">same_value</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">desc</span>.<span class="ident">set</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">current</span>.<span class="ident">set</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(),
+                        <span class="bool-val">false</span>,
+                    )
+                {
+                    <span class="kw">return</span> <span class="bool-val">false</span>;
+                }
+
+                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">get</span>.<span class="ident">is_some</span>()
+                    <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">same_value</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">desc</span>.<span class="ident">get</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">current</span>.<span class="ident">get</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(),
+                        <span class="bool-val">false</span>,
+                    )
+                {
+                    <span class="kw">return</span> <span class="bool-val">false</span>;
+                }
+            }
+
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+        <span class="comment">// 9</span>
+        <span class="self">self</span>.<span class="ident">insert_property</span>(<span class="ident">property_key</span>, <span class="ident">desc</span>);
+        <span class="bool-val">true</span>
+    }
+
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p</span>
     <span class="doccomment">/// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can&#39;t do that here.</span>
     <span class="kw">fn</span> <span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prop</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Property</span>;
@@ -375,8 +593,6 @@
     <span class="kw">fn</span> <span class="ident">get_prototype_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="self">self</span>.<span class="ident">get_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>)
     }
-
-    <span class="kw">fn</span> <span class="ident">define_own_property</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">property_key</span>: <span class="ident">String</span>, <span class="ident">desc</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Utility function to get an immutable internal slot or Null</span>
     <span class="kw">fn</span> <span class="ident">get_internal_slot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span>;

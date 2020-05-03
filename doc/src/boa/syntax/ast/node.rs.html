@@ -1773,7 +1773,7 @@
     <span class="doccomment">/// Creates an `ArrayDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_decl</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">nodes</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ArrayDecl</span>(<span class="ident">nodes</span>.<span class="ident">into</span>())
     }
@@ -1782,7 +1782,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arrow_function_decl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">params</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="ident">params</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
     }
@@ -1790,8 +1790,8 @@
     <span class="doccomment">/// Creates an `Assign` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assign</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">lhs</span>: <span class="ident">L</span>, <span class="ident">rhs</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="ident">lhs</span>.<span class="ident">into</span>(), <span class="ident">rhs</span>.<span class="ident">into</span>())
     }
@@ -1800,8 +1800,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bin_op</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">O</span>, <span class="ident">lhs</span>: <span class="ident">L</span>, <span class="ident">rhs</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span>,
-        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">BinOp</span>(<span class="ident">op</span>.<span class="ident">into</span>(), <span class="ident">lhs</span>.<span class="ident">into</span>(), <span class="ident">rhs</span>.<span class="ident">into</span>())
     }
@@ -1809,7 +1809,7 @@
     <span class="doccomment">/// Creates a `Block` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">nodes</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Block</span>(<span class="ident">nodes</span>.<span class="ident">into</span>())
     }
@@ -1826,8 +1826,8 @@
     <span class="doccomment">/// Creates a `Call` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">function</span>: <span class="ident">F</span>, <span class="ident">params</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Call</span>(<span class="ident">function</span>.<span class="ident">into</span>(), <span class="ident">params</span>.<span class="ident">into</span>())
     }
@@ -1835,9 +1835,9 @@
     <span class="doccomment">/// Creates a `ConditionalOp` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conditional_op</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">if_true</span>: <span class="ident">T</span>, <span class="ident">if_false</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ConditionalOp</span>(<span class="ident">condition</span>.<span class="ident">into</span>(), <span class="ident">if_true</span>.<span class="ident">into</span>(), <span class="ident">if_false</span>.<span class="ident">into</span>())
     }
@@ -1853,7 +1853,7 @@
     <span class="doccomment">/// Creates a `ConstDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_decl</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">decl</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Node</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="self">Self</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ConstDecl</span>(<span class="ident">decl</span>.<span class="ident">into</span>())
     }
@@ -1870,8 +1870,8 @@
     <span class="doccomment">/// Creates a `DoWhileLoop` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">do_while_loop</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">B</span>, <span class="ident">condition</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">DoWhileLoop</span>(<span class="ident">body</span>.<span class="ident">into</span>(), <span class="ident">condition</span>.<span class="ident">into</span>())
     }
@@ -1882,7 +1882,7 @@
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">ON</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">FunctionDecl</span>(<span class="ident">name</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">N</span>::<span class="ident">into</span>), <span class="ident">params</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
     }
@@ -1890,7 +1890,7 @@
     <span class="doccomment">/// Creates a `GetConstField` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_const_field</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">L</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">label</span>: <span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">GetConstField</span>(<span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">label</span>.<span class="ident">into</span>())
@@ -1899,8 +1899,8 @@
     <span class="doccomment">/// Creates a `GetField` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">field</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">GetField</span>(<span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">field</span>.<span class="ident">into</span>())
     }
@@ -1911,10 +1911,10 @@
         <span class="ident">OI</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OC</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OS</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ForLoop</span>(
             <span class="ident">init</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">I</span>::<span class="ident">into</span>),
@@ -1927,9 +1927,9 @@
     <span class="doccomment">/// Creates an `If` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">if_node</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span>, <span class="ident">E</span>, <span class="ident">OE</span><span class="op">&gt;</span>(<span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">body</span>: <span class="ident">B</span>, <span class="ident">else_node</span>: <span class="ident">OE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">If</span>(<span class="ident">condition</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>(), <span class="ident">else_node</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">E</span>::<span class="ident">into</span>))
@@ -1938,7 +1938,7 @@
     <span class="doccomment">/// Creates a `LetDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">let_decl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">LetDecl</span>(<span class="ident">init</span>.<span class="ident">into</span>())
     }
@@ -1954,7 +1954,7 @@
     <span class="doccomment">/// Creates a `New` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">node</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">New</span>(<span class="ident">node</span>.<span class="ident">into</span>())
     }
@@ -1970,7 +1970,7 @@
     <span class="doccomment">/// Creates a `Return` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_node</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">OE</span><span class="op">&gt;</span>(<span class="ident">expr</span>: <span class="ident">OE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Return</span>(<span class="ident">expr</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">E</span>::<span class="ident">into</span>))
@@ -1979,10 +1979,10 @@
     <span class="doccomment">/// Creates a `Switch` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">switch</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">C</span>, <span class="ident">OD</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>, <span class="ident">cases</span>: <span class="ident">C</span>, <span class="ident">default</span>: <span class="ident">OD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Node</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OD</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Switch</span>(<span class="ident">val</span>.<span class="ident">into</span>(), <span class="ident">cases</span>.<span class="ident">into</span>(), <span class="ident">default</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">D</span>::<span class="ident">into</span>))
     }
@@ -1990,7 +1990,7 @@
     <span class="doccomment">/// Creates a `Spread` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spread</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Spread</span>(<span class="ident">val</span>.<span class="ident">into</span>())
     }
@@ -1998,7 +1998,7 @@
     <span class="doccomment">/// Creates a `StatementList` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statement_list</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span>(<span class="ident">list</span>: <span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">StatementList</span>(<span class="ident">list</span>.<span class="ident">into</span>())
     }
@@ -2006,7 +2006,7 @@
     <span class="doccomment">/// Creates a `Throw` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Throw</span>(<span class="ident">val</span>.<span class="ident">into</span>())
     }
@@ -2014,7 +2014,7 @@
     <span class="doccomment">/// Creates a `TypeOf` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_of</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">expr</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">TypeOf</span>(<span class="ident">expr</span>.<span class="ident">into</span>())
     }
@@ -2022,13 +2022,13 @@
     <span class="doccomment">/// Creates a `Try` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_node</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">OC</span>, <span class="ident">OP</span>, <span class="ident">OF</span>, <span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">try_node</span>: <span class="ident">T</span>, <span class="ident">catch</span>: <span class="ident">OC</span>, <span class="ident">param</span>: <span class="ident">OP</span>, <span class="ident">finally</span>: <span class="ident">OF</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OC</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OP</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OF</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">catch</span> <span class="op">=</span> <span class="ident">catch</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">C</span>::<span class="ident">into</span>);
         <span class="kw">let</span> <span class="ident">finally</span> <span class="op">=</span> <span class="ident">finally</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">F</span>::<span class="ident">into</span>);
@@ -2049,7 +2049,7 @@
     <span class="doccomment">/// Creates a `UnaryOp` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unary_op</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">UnaryOp</span>, <span class="ident">val</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">UnaryOp</span>(<span class="ident">op</span>, <span class="ident">val</span>.<span class="ident">into</span>())
     }
@@ -2057,7 +2057,7 @@
     <span class="doccomment">/// Creates a `VarDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">var_decl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">VarDecl</span>(<span class="ident">init</span>.<span class="ident">into</span>())
     }
@@ -2065,8 +2065,8 @@
     <span class="doccomment">/// Creates a `WhileLoop` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">while_loop</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">WhileLoop</span>(<span class="ident">condition</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
     }
