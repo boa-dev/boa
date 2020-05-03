@@ -24,24 +24,15 @@ use crate::{
     exec::Interpreter,
 };
 use gc::Gc;
-use std::{collections::HashMap, time::SystemTime};
+use rustc_hash::FxHashMap;
+use std::time::SystemTime;
 
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub struct ConsoleState {
-    count_map: HashMap<String, u32>,
-    timer_map: HashMap<String, u128>,
+    count_map: FxHashMap<String, u32>,
+    timer_map: FxHashMap<String, u128>,
     groups: Vec<String>,
-}
-
-impl ConsoleState {
-    fn new() -> Self {
-        Self {
-            count_map: HashMap::new(),
-            timer_map: HashMap::new(),
-            groups: vec![],
-        }
-    }
 }
 
 impl InternalState for ConsoleState {}
@@ -520,6 +511,6 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(time_end, named "timeEnd", of console);
     make_builtin_fn!(dir, named "dir", of console);
     make_builtin_fn!(dir, named "dirxml", of console);
-    console.set_internal_state(ConsoleState::new());
+    console.set_internal_state(ConsoleState::default());
     console
 }

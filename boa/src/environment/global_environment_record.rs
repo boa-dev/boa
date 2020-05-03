@@ -18,14 +18,14 @@ use crate::{
 };
 use gc::Gc;
 use gc_derive::{Finalize, Trace};
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: Box<ObjectEnvironmentRecord>,
     pub global_this_binding: Value,
     pub declarative_record: Box<DeclarativeEnvironmentRecord>,
-    pub var_names: HashSet<String>,
+    pub var_names: FxHashSet<String>,
 }
 
 impl GlobalEnvironmentRecord {
