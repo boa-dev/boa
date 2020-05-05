@@ -16,8 +16,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Gc, Trace};
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {

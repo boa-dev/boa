@@ -16,8 +16,7 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Gc, Trace};
 use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]

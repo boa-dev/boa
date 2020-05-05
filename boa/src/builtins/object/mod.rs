@@ -21,8 +21,7 @@ use crate::{
     },
     exec::Interpreter,
 };
-use gc::{unsafe_empty_trace, Gc, Trace};
-use gc_derive::{Finalize, Trace};
+use gc::{unsafe_empty_trace, Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
 use std::fmt::{self, Debug};
 use std::fmt::{Display, Error, Formatter};

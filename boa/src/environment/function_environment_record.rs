@@ -16,8 +16,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
 
 /// Different binding status for `this`.

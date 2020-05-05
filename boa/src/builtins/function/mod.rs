@@ -23,8 +23,7 @@ use crate::{
     syntax::ast::node::{FormalParameter, Node},
     Interpreter,
 };
-use gc::{unsafe_empty_trace, Gc, Trace};
-use gc_derive::{Finalize, Trace};
+use gc::{unsafe_empty_trace, Finalize, Gc, Trace};
 use std::fmt::{self, Debug};
 
 /// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
