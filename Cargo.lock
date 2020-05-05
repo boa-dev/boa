@@ -252,8 +252,8 @@ checksum = "5f2a4a2034423744d2cc7ca2068453168dcdb82c438419e639a26bd87839c674"
 
 [[package]]
 name = "gc"
-version = "0.3.3"
-source = "git+https://github.com/Manishearth/rust-gc.git#87bb44e0e3b5824df1669415a2766b9ee34dc9a4"
+version = "0.3.4"
+source = "git+https://github.com/Manishearth/rust-gc.git#8d9fe40510e417a18cd7f172e6dabdbad2663e2b"
 
 [[package]]
 name = "gc_derive"
@@ -409,9 +409,9 @@ checksum = "94af325bc33c7f60191be4e2c984d48aaa21e2854f473b85398344b60c9b6358"
 
 [[package]]
 name = "plotters"
-version = "0.2.12"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e3bb8da247d27ae212529352020f3e5ee16e83c0c258061d27b08ab92675eeb"
+checksum = "f9b1d9ca091d370ea3a78d5619145d1b59426ab0c9eedbad2514a4cee08bf389"
 dependencies = [
  "js-sys",
  "num-traits",
