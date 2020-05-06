@@ -305,6 +305,44 @@ fn test_do_while_post_inc() {
 }
 
 #[test]
+fn test_for_loop() {
+    let simple = r#"
+        let a = 0;
+        for (let i = 0; i < 10; i = i + 1) {
+            a = a + i;
+        }
+
+        a
+        "#;
+    assert_eq!(exec(simple), String::from("45"));
+
+    let without_init_and_inc_step = r#"
+        let a = 0;
+        let i = 0;
+        for (;i < 10;) {
+            a = a + i;
+            i = i + 1;
+        }
+
+        a
+        "#;
+    assert_eq!(exec(without_init_and_inc_step), String::from("45"));
+
+    let body_should_not_execute_on_false_condition = r#"
+        let a = 0
+        for (;false;) {
+            a = a + 1;
+        }
+
+        a
+        "#;
+    assert_eq!(
+        exec(body_should_not_execute_on_false_condition),
+        String::from("0")
+    );
+}
+
+#[test]
 #[ignore]
 fn test_unary_pre() {
     let unary_inc = r#"
