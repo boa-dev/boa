@@ -838,7 +838,7 @@ impl Display for ValueData {
                 Self::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
                 _ => write!(f, "Symbol()"),
             },
-            Self::String(ref v) => write!(f, "{}", v),
+            Self::String(ref v) => write!(f, "\"{}\"", v),
             Self::Rational(v) => write!(
                 f,
                 "{}",
