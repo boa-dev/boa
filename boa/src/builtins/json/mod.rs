@@ -69,11 +69,17 @@ pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
 }
 
 /// Create a new `JSON` object.
-pub fn create_constructor(global: &Value) -> Value {
+pub fn create(global: &Value) -> Value {
     let json = ValueData::new_obj(Some(global));
 
     make_builtin_fn!(parse, named "parse", with length 2, of json);
     make_builtin_fn!(stringify, named "stringify", with length 3, of json);
 
     to_value(json)
+}
+
+/// Initialise the `JSON` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("JSON", create(global));
 }

@@ -18,10 +18,13 @@ use crate::{
     builtins::{
         object::{InternalState, Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{from_value, to_value, FromValue, ResultValue, Value, ValueData},
+        value::{from_value, to_value, undefined, FromValue, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
+
+#[cfg(test)]
+mod tests;
 
 /// The internal representation on a `RegExp` object.
 #[derive(Debug)]
@@ -67,7 +70,7 @@ fn get_argument<T: FromValue>(args: &[Value], idx: usize) -> Result<T, Value> {
 /// Create a new `RegExp`
 pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
-        return Err(Gc::new(ValueData::Undefined));
+        return Err(undefined());
     }
     let mut regex_body = String::new();
     let mut regex_flags = String::new();
@@ -91,7 +94,7 @@ pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
                 }
             }
         }
-        _ => return Err(Gc::new(ValueData::Undefined)),
+        _ => return Err(undefined()),
     }
     // if a second argument is given and it's a string, use it as flags
     match args.get(1) {
@@ -162,7 +165,7 @@ pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::Ordinary);
-    this.set_internal_slot("RegExpMatcher", Gc::new(ValueData::Undefined));
+    this.set_internal_slot("RegExpMatcher", undefined());
     this.set_internal_slot("OriginalSource", to_value(regex_body));
     this.set_internal_slot("OriginalFlags", to_value(regex_flags));
 
@@ -352,7 +355,7 @@ pub fn exec(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
                         arg_str.get(start..end).expect("Could not get slice"),
                     ));
                 } else {
-                    result.push(Gc::new(ValueData::Undefined));
+                    result.push(undefined());
                 }
             }
             let result = to_value(result);
@@ -435,7 +438,7 @@ pub fn match_all(this: &mut Value, arg_str: String) -> ResultValue {
                     .iter()
                     .map(|group| match group {
                         Some(g) => to_value(g.as_str()),
-                        None => Gc::new(ValueData::Undefined),
+                        None => undefined(),
                     })
                     .collect::<Vec<Value>>();
 
@@ -466,25 +469,28 @@ pub fn match_all(this: &mut Value, arg_str: String) -> ResultValue {
 }
 
 /// Create a new `RegExp` object.
-pub fn create_constructor(global: &Value) -> Value {
+pub fn create(global: &Value) -> Value {
     // Create prototype
-    let proto = ValueData::new_obj(Some(global));
-    proto.set_field_slice("lastIndex", to_value(0));
+    let prototype = ValueData::new_obj(Some(global));
+    prototype.set_field_slice("lastIndex", to_value(0));
 
-    make_builtin_fn!(test, named "test", with length 1, of proto);
-    make_builtin_fn!(exec, named "exec", with length 1, of proto);
-    make_builtin_fn!(to_string, named "toString", of proto);
-    make_builtin_fn!(get_dot_all, named "dotAll", of proto);
-    make_builtin_fn!(get_flags, named "flags", of proto);
-    make_builtin_fn!(get_global, named "global", of proto);
-    make_builtin_fn!(get_ignore_case, named "ignoreCase", of proto);
-    make_builtin_fn!(get_multiline, named "multiline", of proto);
-    make_builtin_fn!(get_source, named "source", of proto);
-    make_builtin_fn!(get_sticky, named "sticky", of proto);
-    make_builtin_fn!(get_unicode, named "unicode", of proto);
+    make_builtin_fn!(test, named "test", with length 1, of prototype);
+    make_builtin_fn!(exec, named "exec", with length 1, of prototype);
+    make_builtin_fn!(to_string, named "toString", of prototype);
+    make_builtin_fn!(get_dot_all, named "dotAll", of prototype);
+    make_builtin_fn!(get_flags, named "flags", of prototype);
+    make_builtin_fn!(get_global, named "global", of prototype);
+    make_builtin_fn!(get_ignore_case, named "ignoreCase", of prototype);
+    make_builtin_fn!(get_multiline, named "multiline", of prototype);
+    make_builtin_fn!(get_source, named "source", of prototype);
+    make_builtin_fn!(get_sticky, named "sticky", of prototype);
+    make_builtin_fn!(get_unicode, named "unicode", of prototype);
 
-    make_constructor_fn!(make_regexp, make_regexp, global, proto)
+    make_constructor_fn!(make_regexp, make_regexp, global, prototype)
 }
 
-#[cfg(test)]
-mod tests;
+/// Initialise the `RegExp` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("RegExp", create(global));
+}

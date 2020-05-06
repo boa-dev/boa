@@ -161,7 +161,7 @@ pub fn atan2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
     } else {
         from_value::<f64>(args.get(0).expect("Could not get argument").clone())
             .expect("Could not convert argument to f64")
-            .atan2(args.get(1).expect("Could not get argument").to_num())
+            .atan2(args.get(1).expect("Could not get argument").to_number())
     }))
 }
 
@@ -353,7 +353,7 @@ pub fn log2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 pub fn max(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let mut max = f64::NEG_INFINITY;
     for arg in args {
-        let num = arg.to_num();
+        let num = arg.to_number();
         max = max.max(num);
     }
     Ok(to_value(max))
@@ -370,7 +370,7 @@ pub fn max(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 pub fn min(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let mut max = f64::INFINITY;
     for arg in args {
-        let num = arg.to_num();
+        let num = arg.to_number();
         max = max.min(num);
     }
     Ok(to_value(max))
@@ -550,8 +550,9 @@ pub fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 }
 
 /// Create a new `Math` object
-pub fn create_constructor(global: &Value) -> Value {
+pub fn create(global: &Value) -> Value {
     let math = ValueData::new_obj(Some(global));
+
     math.set_field_slice("E", to_value(f64::consts::E));
     math.set_field_slice("LN2", to_value(f64::consts::LN_2));
     math.set_field_slice("LN10", to_value(f64::consts::LN_10));
@@ -589,5 +590,12 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(tan, named "tan", with length 1, of math);
     make_builtin_fn!(tanh, named "tanh", with length 1, of math);
     make_builtin_fn!(trunc, named "trunc", with length 1, of math);
+
     math
+}
+
+/// Initialise the `Math` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Math", create(global));
 }

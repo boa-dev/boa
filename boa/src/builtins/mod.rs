@@ -95,3 +95,21 @@ pub mod regexp;
 pub mod string;
 pub mod symbol;
 pub mod value;
+
+use value::Value;
+
+/// Initializes builtin objects and functions
+#[inline]
+pub fn init(global: &Value) {
+    array::init(global);
+    boolean::init(global);
+    json::init(global);
+    math::init(global);
+    number::init(global);
+    object::init(global);
+    function::init(global);
+    regexp::init(global);
+    string::init(global);
+    symbol::init(global);
+    console::init(global);
+}

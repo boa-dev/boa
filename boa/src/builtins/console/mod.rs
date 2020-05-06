@@ -19,11 +19,12 @@ mod tests;
 use crate::{
     builtins::{
         object::InternalState,
-        value::{display_obj, from_value, to_value, FromValue, ResultValue, Value, ValueData},
+        value::{
+            display_obj, from_value, to_value, undefined, FromValue, ResultValue, Value, ValueData,
+        },
     },
     exec::Interpreter,
 };
-use gc::Gc;
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
 
@@ -159,7 +160,7 @@ pub fn assert(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
         });
     }
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.clear()`
@@ -177,7 +178,7 @@ pub fn clear(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
         state.groups.clear();
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.debug(...data)`
@@ -192,7 +193,7 @@ pub fn clear(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
 pub fn debug(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.error(...data)`
@@ -207,7 +208,7 @@ pub fn debug(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
 pub fn error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Error(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.info(...data)`
@@ -222,7 +223,7 @@ pub fn error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
 pub fn info(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Info(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.log(...data)`
@@ -237,7 +238,7 @@ pub fn info(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
 pub fn log(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.trace(...data)`
@@ -263,7 +264,7 @@ pub fn trace(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
         });
     }
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.warn(...data)`
@@ -278,7 +279,7 @@ pub fn trace(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
 pub fn warn(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Warn(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.count(label)`
@@ -302,7 +303,7 @@ pub fn count(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
         logger(LogMessage::Info(format!("{} {}", msg, c)), state);
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.countReset(label)`
@@ -324,7 +325,7 @@ pub fn count_reset(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
         logger(LogMessage::Warn(format!("countReset {}", label)), state);
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// Returns current system time in ms.
@@ -360,7 +361,7 @@ pub fn time(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
         }
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.timeLog(label, ...data)`
@@ -392,7 +393,7 @@ pub fn time_log(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Result
         }
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.timeEnd(label)`
@@ -423,7 +424,7 @@ pub fn time_end(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Result
         }
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.group(...data)`
@@ -444,7 +445,7 @@ pub fn group(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
         state.groups.push(group_label);
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.groupEnd(label)`
@@ -462,7 +463,7 @@ pub fn group_end(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
         state.groups.pop();
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `console.dir(item, options)`
@@ -478,20 +479,18 @@ pub fn group_end(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
 pub fn dir(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         logger(
-            LogMessage::Info(display_obj(
-                args.get(0).unwrap_or(&Gc::new(ValueData::Undefined)),
-                true,
-            )),
+            LogMessage::Info(display_obj(args.get(0).unwrap_or(&undefined()), true)),
             state,
         );
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// Create a new `console` object
-pub fn create_constructor(global: &Value) -> Value {
+pub fn create(global: &Value) -> Value {
     let console = ValueData::new_obj(Some(global));
+
     make_builtin_fn!(assert, named "assert", of console);
     make_builtin_fn!(clear, named "clear", of console);
     make_builtin_fn!(debug, named "debug", of console);
@@ -511,6 +510,14 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(time_end, named "timeEnd", of console);
     make_builtin_fn!(dir, named "dir", of console);
     make_builtin_fn!(dir, named "dirxml", of console);
+
     console.set_internal_state(ConsoleState::default());
+
     console
+}
+
+/// Initialise the `console` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("console", create(global));
 }
