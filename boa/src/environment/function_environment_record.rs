@@ -16,9 +16,8 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
-use std::collections::hash_map::HashMap;
+use gc::{Finalize, Gc, Trace};
+use rustc_hash::FxHashMap;
 
 /// Different binding status for `this`.
 /// Usually set on a function environment record
@@ -35,7 +34,7 @@ pub enum BindingStatus {
 /// <https://tc39.es/ecma262/#table-16>
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct FunctionEnvironmentRecord {
-    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
     /// This is the this value used for this invocation of the function.
     pub this_value: Value,
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.

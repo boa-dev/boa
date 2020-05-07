@@ -15,7 +15,7 @@
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
 use crate::builtins::value::{from_value, to_value, FromValue, ToValue, Value, ValueData};
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Trace};
 
 /// This represents a Javascript Property AKA The Property Descriptor.
 ///

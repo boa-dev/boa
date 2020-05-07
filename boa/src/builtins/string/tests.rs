@@ -6,7 +6,7 @@ use crate::{forward, forward_val};
 #[test]
 fn check_string_constructor_is_function() {
     let global = ValueData::new_obj(None);
-    let string_constructor = create_constructor(&global);
+    let string_constructor = create(&global);
     assert_eq!(string_constructor.is_function(), true);
 }
 

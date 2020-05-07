@@ -13,11 +13,10 @@
 use crate::{
     builtins::{
         object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
-        value::{to_value, ResultValue, Value, ValueData},
+        value::{to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
-use gc::Gc;
 
 /// Create a new error object.
 pub fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
@@ -34,7 +33,7 @@ pub fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Resu
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::Error);
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `Error.prototype.toString()`
@@ -54,7 +53,7 @@ pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
 }
 
 /// Create a new `Error` object.
-pub fn _create(global: &Value) -> Value {
+pub fn create(global: &Value) -> Value {
     let prototype = ValueData::new_obj(Some(global));
     prototype.set_field_slice("message", to_value(""));
     prototype.set_field_slice("name", to_value("Error"));
@@ -64,5 +63,5 @@ pub fn _create(global: &Value) -> Value {
 
 /// Initialise the global object with the `Error` object.
 pub fn init(global: &Value) {
-    global.set_field_slice("Error", _create(global));
+    global.set_field_slice("Error", create(global));
 }

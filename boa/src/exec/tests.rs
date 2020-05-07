@@ -123,7 +123,7 @@ fn array_field_set() {
 }
 
 #[test]
-fn test_tilde_operator() {
+fn tilde_operator() {
     let float = r#"
         let f = -1.2;
         ~f
@@ -161,7 +161,7 @@ fn test_tilde_operator() {
 }
 
 #[test]
-fn test_early_return() {
+fn early_return() {
     let early_return = r#"
         function early_return() {
             if (true) {
@@ -187,7 +187,7 @@ fn test_early_return() {
 }
 
 #[test]
-fn test_short_circuit_evaluation() {
+fn short_circuit_evaluation() {
     // OR operation
     assert_eq!(exec("true || true"), String::from("true"));
     assert_eq!(exec("true || false"), String::from("true"));
@@ -260,7 +260,7 @@ fn assign_operator_precedence() {
 }
 
 #[test]
-fn test_do_while_loop() {
+fn do_while_loop() {
     let simple_one = r#"
         a = 0;
         do {
@@ -295,7 +295,7 @@ fn test_do_while_loop() {
 }
 
 #[test]
-fn test_do_while_post_inc() {
+fn do_while_post_inc() {
     let with_post_incrementors = r#"
         var i = 0;
         do {} while(i++ < 10) i;
@@ -349,7 +349,7 @@ fn test_for_loop() {
 }
 
 #[test]
-fn test_unary_pre() {
+fn unary_pre() {
     let unary_inc = r#"
         let a = 5;
         ++a;
@@ -392,7 +392,7 @@ fn test_unary_pre() {
 }
 
 #[test]
-fn test_unary_post() {
+fn unary_post() {
     let unary_inc = r#"
         let a = 5;
         a++;
@@ -438,7 +438,7 @@ fn test_unary_post() {
 mod in_operator {
     use super::*;
     #[test]
-    fn test_p_in_o() {
+    fn propery_in_object() {
         let p_in_o = r#"
             var o = {a: 'a'};
             var p = 'a';
@@ -448,7 +448,7 @@ mod in_operator {
     }
 
     #[test]
-    fn test_p_in_property_chain() {
+    fn property_in_property_chain() {
         let p_in_o = r#"
             var o = {};
             var p = 'toString';
@@ -458,7 +458,7 @@ mod in_operator {
     }
 
     #[test]
-    fn test_p_not_in_o() {
+    fn property_not_in_object() {
         let p_not_in_o = r#"
             var o = {a: 'a'};
             var p = 'b';
@@ -468,7 +468,7 @@ mod in_operator {
     }
 
     #[test]
-    fn test_number_in_array() {
+    fn number_in_array() {
         // Note: this is valid because the LHS is converted to a prop key with ToPropertyKey
         // and arrays are just fancy objects like {'0': 'a'}
         let num_in_array = r#"
@@ -481,7 +481,7 @@ mod in_operator {
 
     #[test]
     #[ignore]
-    fn test_symbol_in_object() {
+    fn symbol_in_object() {
         // FIXME: this scenario works in Firefox's console, this is probably an issue
         // with Symbol comparison.
         let sym_in_object = r#"
@@ -495,7 +495,7 @@ mod in_operator {
 
     #[test]
     #[should_panic(expected = "TypeError: undefined is not an Object.")]
-    fn test_should_type_error_when_rhs_not_object() {
+    fn should_type_error_when_rhs_not_object() {
         let scenario = r#"
             'fail' in undefined
         "#;

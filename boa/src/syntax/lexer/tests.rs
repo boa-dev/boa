@@ -323,7 +323,7 @@ fn check_positions() {
 
 #[test]
 #[ignore]
-fn test_two_divisions_in_expression() {
+fn two_divisions_in_expression() {
     let s = "    return a !== 0 || 1 / a === 1 / b;";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
@@ -427,13 +427,13 @@ fn hexadecimal_edge_case() {
 }
 
 #[test]
-fn test_single_number_without_semicolon() {
+fn single_number_without_semicolon() {
     let mut lexer = Lexer::new("1");
     lexer.lex().expect("failed to lex");
 }
 
 #[test]
-fn test_number_followed_by_dot() {
+fn number_followed_by_dot() {
     let mut lexer = Lexer::new("1..");
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1.0));
@@ -441,7 +441,7 @@ fn test_number_followed_by_dot() {
 }
 
 #[test]
-fn test_regex_literal() {
+fn regex_literal() {
     let mut lexer = Lexer::new("/(?:)/");
     lexer.lex().expect("failed to lex");
     assert_eq!(
@@ -451,7 +451,7 @@ fn test_regex_literal() {
 }
 
 #[test]
-fn test_regex_literal_flags() {
+fn regex_literal_flags() {
     let mut lexer = Lexer::new(r"/\/[^\/]*\/*/gmi");
     lexer.lex().expect("failed to lex");
     assert_eq!(
@@ -461,7 +461,7 @@ fn test_regex_literal_flags() {
 }
 
 #[test]
-fn test_addition_no_spaces() {
+fn addition_no_spaces() {
     let mut lexer = Lexer::new("1+1");
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
@@ -470,7 +470,7 @@ fn test_addition_no_spaces() {
 }
 
 #[test]
-fn test_addition_no_spaces_left_side() {
+fn addition_no_spaces_left_side() {
     let mut lexer = Lexer::new("1+ 1");
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
@@ -479,7 +479,7 @@ fn test_addition_no_spaces_left_side() {
 }
 
 #[test]
-fn test_addition_no_spaces_right_side() {
+fn addition_no_spaces_right_side() {
     let mut lexer = Lexer::new("1 +1");
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
@@ -488,7 +488,7 @@ fn test_addition_no_spaces_right_side() {
 }
 
 #[test]
-fn test_addition_no_spaces_e_number_left_side() {
+fn addition_no_spaces_e_number_left_side() {
     let mut lexer = Lexer::new("1e2+ 1");
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(100.0));
@@ -497,7 +497,7 @@ fn test_addition_no_spaces_e_number_left_side() {
 }
 
 #[test]
-fn test_addition_no_spaces_e_number_right_side() {
+fn addition_no_spaces_e_number_right_side() {
     let mut lexer = Lexer::new("1 +1e3");
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1));
@@ -506,7 +506,7 @@ fn test_addition_no_spaces_e_number_right_side() {
 }
 
 #[test]
-fn test_addition_no_spaces_e_number() {
+fn addition_no_spaces_e_number() {
     let mut lexer = Lexer::new("1e3+1e11");
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(1000.0));

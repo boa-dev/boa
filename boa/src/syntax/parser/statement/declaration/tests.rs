@@ -8,7 +8,7 @@ use crate::syntax::{
 fn check_var_declaration() {
     check_parser(
         "var a = 5;",
-        &[Node::VarDecl(vec![(
+        vec![Node::var_decl(vec![(
             String::from("a"),
             Some(Node::const_node(5)),
         )])],
@@ -20,7 +20,7 @@ fn check_var_declaration() {
 fn check_var_declaration_no_spaces() {
     check_parser(
         "var a=5;",
-        &[Node::VarDecl(vec![(
+        vec![Node::var_decl(vec![(
             String::from("a"),
             Some(Node::const_node(5)),
         )])],
@@ -30,7 +30,10 @@ fn check_var_declaration_no_spaces() {
 /// Checks empty `var` declaration parsing.
 #[test]
 fn check_empty_var_declaration() {
-    check_parser("var a;", &[Node::VarDecl(vec![(String::from("a"), None)])]);
+    check_parser(
+        "var a;",
+        vec![Node::var_decl(vec![(String::from("a"), None)])],
+    );
 }
 
 /// Checks multiple `var` declarations.
@@ -38,7 +41,7 @@ fn check_empty_var_declaration() {
 fn check_multiple_var_declaration() {
     check_parser(
         "var a = 5, b, c = 6;",
-        &[Node::VarDecl(vec![
+        vec![Node::var_decl(vec![
             (String::from("a"), Some(Node::const_node(5))),
             (String::from("b"), None),
             (String::from("c"), Some(Node::const_node(6))),
@@ -51,7 +54,7 @@ fn check_multiple_var_declaration() {
 fn check_let_declaration() {
     check_parser(
         "let a = 5;",
-        &[Node::LetDecl(vec![(
+        vec![Node::let_decl(vec![(
             String::from("a"),
             Some(Node::const_node(5)),
         )])],
@@ -63,7 +66,7 @@ fn check_let_declaration() {
 fn check_let_declaration_no_spaces() {
     check_parser(
         "let a=5;",
-        &[Node::LetDecl(vec![(
+        vec![Node::let_decl(vec![(
             String::from("a"),
             Some(Node::const_node(5)),
         )])],
@@ -73,7 +76,10 @@ fn check_let_declaration_no_spaces() {
 /// Checks empty `let` declaration parsing.
 #[test]
 fn check_empty_let_declaration() {
-    check_parser("let a;", &[Node::LetDecl(vec![(String::from("a"), None)])]);
+    check_parser(
+        "let a;",
+        vec![Node::let_decl(vec![(String::from("a"), None)])],
+    );
 }
 
 /// Checks multiple `let` declarations.
@@ -81,7 +87,7 @@ fn check_empty_let_declaration() {
 fn check_multiple_let_declaration() {
     check_parser(
         "let a = 5, b, c = 6;",
-        &[Node::LetDecl(vec![
+        vec![Node::let_decl(vec![
             (String::from("a"), Some(Node::const_node(5))),
             (String::from("b"), None),
             (String::from("c"), Some(Node::const_node(6))),
@@ -94,7 +100,7 @@ fn check_multiple_let_declaration() {
 fn check_const_declaration() {
     check_parser(
         "const a = 5;",
-        &[Node::ConstDecl(vec![(
+        vec![Node::const_decl(vec![(
             String::from("a"),
             Node::const_node(5),
         )])],
@@ -106,7 +112,7 @@ fn check_const_declaration() {
 fn check_const_declaration_no_spaces() {
     check_parser(
         "const a=5;",
-        &[Node::ConstDecl(vec![(
+        vec![Node::const_decl(vec![(
             String::from("a"),
             Node::const_node(5),
         )])],
@@ -124,7 +130,7 @@ fn check_empty_const_declaration() {
 fn check_multiple_const_declaration() {
     check_parser(
         "const a = 5, c = 6;",
-        &[Node::ConstDecl(vec![
+        vec![Node::const_decl(vec![
             (String::from("a"), Node::const_node(5)),
             (String::from("c"), Node::const_node(6)),
         ])],

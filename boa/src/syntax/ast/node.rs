@@ -4,7 +4,7 @@ use crate::syntax::ast::{
     constant::Const,
     op::{BinOp, Operator, UnaryOp},
 };
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -28,7 +28,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
-    ArrayDecl(Vec<Node>),
+    ArrayDecl(Box<[Node]>),
 
     /// An arrow function expression is a syntactically compact alternative to a regular function expression.
     ///
@@ -41,7 +41,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
-    ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
+    ArrowFunctionDecl(Box<[FormalParameter]>, Box<Node>),
 
     /// An assignment operator assigns a value to its left operand based on the value of its right operand.
     ///
@@ -76,7 +76,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
-    Block(Vec<Node>),
+    Block(Box<[Node]>),
 
     /// The `break` statement terminates the current loop, switch, or label statement and transfers program control to the statement following the terminated statement.
     ///
@@ -104,7 +104,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions
-    Call(Box<Node>, Vec<Node>),
+    Call(Box<Node>, Box<[Node]>),
 
     /// The `conditional` (ternary) operator is the only JavaScript operator that takes three operands.
     ///
@@ -148,7 +148,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
     /// [identifier]: https://developer.mozilla.org/en-US/docs/Glossary/identifier
     /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
-    ConstDecl(Vec<(String, Node)>),
+    ConstDecl(Box<[(String, Node)]>),
 
     /// The `continue` statement terminates execution of the statements in the current iteration of the current or labeled loop,
     /// and continues execution of the loop with the next iteration.
@@ -190,7 +190,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
-    FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
+    FunctionDecl(Option<String>, Box<[FormalParameter]>, Box<Node>),
 
     /// This property accessor provides access to an object's properties by using the [dot notation][mdn].
     ///
@@ -282,7 +282,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
-    LetDecl(Vec<(String, Option<Node>)>),
+    LetDecl(Box<[(String, Option<Node>)]>),
 
     /// An `identifier` is a sequence of characters in the code that identifies a variable, function, or property.
     ///
@@ -331,7 +331,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
     /// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
     /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
-    Object(Vec<PropertyDefinition>),
+    Object(Box<[PropertyDefinition]>),
 
     /// The `return` statement ends function execution and specifies a value to be returned to the function caller.
     ///
@@ -365,7 +365,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
-    Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
+    Switch(Box<Node>, Box<[(Node, Box<[Node]>)]>, Option<Box<Node>>),
 
     /// The `spread` operator allows an iterable such as an array expression or string to be expanded.
     ///
@@ -388,7 +388,7 @@ pub enum Node {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-StatementList
-    StatementList(Vec<Node>),
+    StatementList(Box<[Node]>),
 
     /// The `throw` statement throws a user-defined exception.
     ///
@@ -478,7 +478,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
-    VarDecl(Vec<(String, Option<Node>)>),
+    VarDecl(Box<[(String, Option<Node>)]>),
 
     /// The `while` statement creates a loop that executes a specified statement as long as the test condition evaluates to `true`.
     ///
@@ -532,7 +532,7 @@ impl Node {
     /// Creates an `ArrayDecl` AST node.
     pub fn array_decl<N>(nodes: N) -> Self
     where
-        N: Into<Vec<Self>>,
+        N: Into<Box<[Self]>>,
     {
         Self::ArrayDecl(nodes.into())
     }
@@ -540,7 +540,7 @@ impl Node {
     /// Creates an `ArraowFunctionDecl` AST node.
     pub fn arrow_function_decl<P, B>(params: P, body: B) -> Self
     where
-        P: Into<Vec<FormalParameter>>,
+        P: Into<Box<[FormalParameter]>>,
         B: Into<Box<Self>>,
     {
         Self::ArrowFunctionDecl(params.into(), body.into())
@@ -568,7 +568,7 @@ impl Node {
     /// Creates a `Block` AST node.
     pub fn block<N>(nodes: N) -> Self
     where
-        N: Into<Vec<Self>>,
+        N: Into<Box<[Self]>>,
     {
         Self::Block(nodes.into())
     }
@@ -586,7 +586,7 @@ impl Node {
     pub fn call<F, P>(function: F, params: P) -> Self
     where
         F: Into<Box<Self>>,
-        P: Into<Vec<Self>>,
+        P: Into<Box<[Self]>>,
     {
         Self::Call(function.into(), params.into())
     }
@@ -612,7 +612,7 @@ impl Node {
     /// Creates a `ConstDecl` AST node.
     pub fn const_decl<D>(decl: D) -> Self
     where
-        D: Into<Vec<(String, Self)>>,
+        D: Into<Box<[(String, Self)]>>,
     {
         Self::ConstDecl(decl.into())
     }
@@ -640,7 +640,7 @@ impl Node {
     where
         N: Into<String>,
         ON: Into<Option<N>>,
-        P: Into<Vec<FormalParameter>>,
+        P: Into<Box<[FormalParameter]>>,
         B: Into<Box<Self>>,
     {
         Self::FunctionDecl(name.into().map(N::into), params.into(), body.into())
@@ -697,7 +697,7 @@ impl Node {
     /// Creates a `LetDecl` AST node.
     pub fn let_decl<I>(init: I) -> Self
     where
-        I: Into<Vec<(String, Option<Self>)>>,
+        I: Into<Box<[(String, Option<Self>)]>>,
     {
         Self::LetDecl(init.into())
     }
@@ -721,7 +721,7 @@ impl Node {
     /// Creates an `Object` AST node.
     pub fn object<D>(def: D) -> Self
     where
-        D: Into<Vec<PropertyDefinition>>,
+        D: Into<Box<[PropertyDefinition]>>,
     {
         Self::Object(def.into())
     }
@@ -739,7 +739,7 @@ impl Node {
     pub fn switch<V, C, OD, D>(val: V, cases: C, default: OD) -> Self
     where
         V: Into<Box<Self>>,
-        C: Into<Vec<(Self, Vec<Self>)>>,
+        C: Into<Box<[(Self, Box<[Self]>)]>>,
         OD: Into<Option<D>>,
         D: Into<Box<Self>>,
     {
@@ -757,7 +757,7 @@ impl Node {
     /// Creates a `StatementList` AST node.
     pub fn statement_list<L>(list: L) -> Self
     where
-        L: Into<Vec<Self>>,
+        L: Into<Box<[Self]>>,
     {
         Self::StatementList(list.into())
     }
@@ -816,7 +816,7 @@ impl Node {
     /// Creates a `VarDecl` AST node.
     pub fn var_decl<I>(init: I) -> Self
     where
-        I: Into<Vec<(String, Option<Self>)>>,
+        I: Into<Box<[(String, Option<Self>)]>>,
     {
         Self::VarDecl(init.into())
     }
@@ -905,7 +905,7 @@ impl Node {
             Self::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
             Self::Call(ref ex, ref args) => {
                 write!(f, "{}(", ex)?;
-                let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
+                let arg_strs: Box<[String]> = args.iter().map(ToString::to_string).collect();
                 write!(f, "{})", arg_strs.join(", "))
             }
             Self::New(ref call) => {
@@ -965,7 +965,7 @@ impl Node {
             }
             Self::Object(ref properties) => {
                 f.write_str("{\n")?;
-                for property in properties {
+                for property in properties.iter() {
                     match property {
                         PropertyDefinition::IdentifierReference(key) => {
                             write!(f, "{}    {},", indent, key)?;

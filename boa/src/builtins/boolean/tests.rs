@@ -6,7 +6,7 @@ use crate::{builtins::value::same_value, forward, forward_val};
 #[test]
 fn check_boolean_constructor_is_function() {
     let global = ValueData::new_obj(None);
-    let boolean_constructor = create_constructor(&global);
+    let boolean_constructor = create(&global);
     assert_eq!(boolean_constructor.is_function(), true);
 }
 

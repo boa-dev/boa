@@ -104,7 +104,7 @@ impl<'a> Parser<'a> {
 
     /// Parse all expressions in the token array
     pub fn parse_all(&mut self) -> ParseResult {
-        Script.parse(&mut self.cursor).map(Node::StatementList)
+        Script.parse(&mut self.cursor).map(Node::statement_list)
     }
 }
 

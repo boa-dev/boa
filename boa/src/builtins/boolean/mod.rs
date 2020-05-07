@@ -70,18 +70,6 @@ pub fn value_of(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVal
     Ok(this_boolean_value(this))
 }
 
-/// Create a new `Boolean` object
-pub fn create_constructor(global: &Value) -> Value {
-    // Create Prototype
-    // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
-    let boolean_prototype = ValueData::new_obj(Some(global));
-    boolean_prototype.set_internal_slot("BooleanData", to_boolean(&to_value(false)));
-    make_builtin_fn!(to_string, named "toString", of boolean_prototype);
-    make_builtin_fn!(value_of, named "valueOf", of boolean_prototype);
-
-    make_constructor_fn!(construct_boolean, call_boolean, global, boolean_prototype)
-}
-
 // === Utility Functions ===
 /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
 /// Creates a new boolean value from the input
@@ -108,4 +96,23 @@ pub fn this_boolean_value(value: &Value) -> Value {
         ValueData::Object(ref v) => (v).deref().borrow().get_internal_slot("BooleanData"),
         _ => to_value(false),
     }
+}
+
+/// Create a new `Boolean` object.
+pub fn create(global: &Value) -> Value {
+    // Create Prototype
+    // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
+    let prototype = ValueData::new_obj(Some(global));
+    prototype.set_internal_slot("BooleanData", to_boolean(&to_value(false)));
+
+    make_builtin_fn!(to_string, named "toString", of prototype);
+    make_builtin_fn!(value_of, named "valueOf", of prototype);
+
+    make_constructor_fn!(construct_boolean, call_boolean, global, prototype)
+}
+
+/// Initialise the `Boolean` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Boolean", create(global));
 }

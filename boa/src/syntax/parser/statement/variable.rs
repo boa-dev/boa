@@ -117,7 +117,7 @@ impl TokenParser for VariableDeclarationList {
             }
         }
 
-        Ok(Node::VarDecl(list))
+        Ok(Node::var_decl(list))
     }
 }
 

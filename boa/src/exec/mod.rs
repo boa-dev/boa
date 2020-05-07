@@ -208,7 +208,6 @@ impl Executor for Interpreter {
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
                 for tup in vals.iter() {
-                    let tup: &(Node, Vec<Node>) = tup;
                     let cond = &tup.0;
                     let block = &tup.1;
                     if val == self.run(cond)? {
@@ -240,7 +239,7 @@ impl Executor for Interpreter {
                 let obj = ValueData::new_obj(Some(global_val));
 
                 // TODO: Implement the rest of the property types.
-                for property in properties {
+                for property in properties.iter() {
                     match property {
                         PropertyDefinition::Property(key, value) => {
                             obj.borrow().set_field_slice(&key.clone(), self.run(value)?);
@@ -355,25 +354,25 @@ impl Executor for Interpreter {
                 let v_r_a = self.run(a)?;
                 let v_a = (*v_r_a).clone();
                 Ok(match op {
-                    UnaryOp::Minus => to_value(-v_a.to_num()),
-                    UnaryOp::Plus => to_value(v_a.to_num()),
+                    UnaryOp::Minus => to_value(-v_a.to_number()),
+                    UnaryOp::Plus => to_value(v_a.to_number()),
                     UnaryOp::IncrementPost => {
-                        self.set_value(a.deref(), to_value(v_a.to_num() + 1.0))?;
+                        self.set_value(a.deref(), to_value(v_a.to_number() + 1.0))?;
                         v_r_a
                     }
                     UnaryOp::IncrementPre => {
-                        self.set_value(a.deref(), to_value(v_a.to_num() + 1.0))?
+                        self.set_value(a.deref(), to_value(v_a.to_number() + 1.0))?
                     }
                     UnaryOp::DecrementPost => {
-                        self.set_value(a.deref(), to_value(v_a.to_num() - 1.0))?;
+                        self.set_value(a.deref(), to_value(v_a.to_number() - 1.0))?;
                         v_r_a
                     }
                     UnaryOp::DecrementPre => {
-                        self.set_value(a.deref(), to_value(v_a.to_num() - 1.0))?
+                        self.set_value(a.deref(), to_value(v_a.to_number() - 1.0))?
                     }
                     UnaryOp::Not => Gc::new(!v_a),
                     UnaryOp::Tilde => {
-                        let num_v_a = v_a.to_num();
+                        let num_v_a = v_a.to_number();
                         // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
                         to_value(if num_v_a.is_nan() {
                             -1
@@ -413,10 +412,10 @@ impl Executor for Interpreter {
                     CompOp::StrictEqual => v_a == v_b,
                     CompOp::StrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
                     CompOp::StrictNotEqual => v_a != v_b,
-                    CompOp::GreaterThan => v_a.to_num() > v_b.to_num(),
-                    CompOp::GreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
-                    CompOp::LessThan => v_a.to_num() < v_b.to_num(),
-                    CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
+                    CompOp::GreaterThan => v_a.to_number() > v_b.to_number(),
+                    CompOp::GreaterThanOrEqual => v_a.to_number() >= v_b.to_number(),
+                    CompOp::LessThan => v_a.to_number() < v_b.to_number(),
+                    CompOp::LessThanOrEqual => v_a.to_number() <= v_b.to_number(),
                     CompOp::In => {
                         if !v_b.is_object() {
                             panic!("TypeError: {} is not an Object.", v_b);

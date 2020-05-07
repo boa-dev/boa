@@ -82,7 +82,7 @@ impl TokenParser for ObjectLiteral {
             }
         }
 
-        Ok(Node::Object(elements))
+        Ok(Node::object(elements))
     }
 }
 
@@ -233,7 +233,7 @@ impl TokenParser for MethodDefinition {
         )?;
         let body = FunctionBody::new(false, false)
             .parse(cursor)
-            .map(Node::StatementList)?;
+            .map(Node::statement_list)?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "property method definition",
@@ -242,7 +242,7 @@ impl TokenParser for MethodDefinition {
         Ok(node::PropertyDefinition::MethodDefinition(
             methodkind,
             prop_name,
-            Node::FunctionDecl(None, params, Box::new(body)),
+            Node::function_decl::<_, String, _, _>(None, params, body),
         ))
     }
 }

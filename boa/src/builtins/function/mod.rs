@@ -16,15 +16,14 @@ use crate::{
         array,
         object::{Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{to_value, ResultValue, Value, ValueData},
+        value::{to_value, undefined, ResultValue, Value, ValueData},
     },
     environment::lexical_environment::{new_function_environment, Environment},
     exec::Executor,
     syntax::ast::node::{FormalParameter, Node},
     Interpreter,
 };
-use gc::{unsafe_empty_trace, Gc, Trace};
-use gc_derive::{Finalize, Trace};
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
 /// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
@@ -93,7 +92,7 @@ pub struct Function {
     /// Call/Construct Function body
     pub body: FunctionBody,
     /// Formal Paramaters
-    pub params: Vec<FormalParameter>,
+    pub params: Box<[FormalParameter]>,
     /// This Mode
     pub this_mode: ThisMode,
     /// Function kind
@@ -106,16 +105,19 @@ impl Function {
     /// This will create an ordinary function object
     ///
     /// <https://tc39.es/ecma262/#sec-ordinaryfunctioncreate>
-    pub fn create_ordinary(
-        parameter_list: Vec<FormalParameter>,
+    pub fn create_ordinary<P>(
+        parameter_list: P,
         scope: Environment,
         body: FunctionBody,
         this_mode: ThisMode,
-    ) -> Self {
+    ) -> Self
+    where
+        P: Into<Box<[FormalParameter]>>,
+    {
         Self {
             body,
             environment: Some(scope),
-            params: parameter_list,
+            params: parameter_list.into(),
             kind: FunctionKind::Ordinary,
             this_mode,
         }
@@ -124,10 +126,13 @@ impl Function {
     /// This will create a built-in function object
     ///
     /// <https://tc39.es/ecma262/#sec-createbuiltinfunction>
-    pub fn create_builtin(parameter_list: Vec<FormalParameter>, body: FunctionBody) -> Self {
+    pub fn create_builtin<P>(parameter_list: P, body: FunctionBody) -> Self
+    where
+        P: Into<Box<[FormalParameter]>>,
+    {
         Self {
             body,
-            params: parameter_list,
+            params: parameter_list.into(),
             this_mode: ThisMode::NonLexical,
             kind: FunctionKind::BuiltIn,
             environment: None,
@@ -324,7 +329,7 @@ pub fn create_function_prototype() {
 pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
     let mut obj = Object::default();
-    obj.set_internal_slot("ParameterMap", Gc::new(ValueData::Undefined));
+    obj.set_internal_slot("ParameterMap", undefined());
     // Set length
     let mut length = Property::default();
     length = length.writable(true).value(to_value(len));
@@ -355,7 +360,14 @@ pub fn make_function(this: &mut Value, _: &[Value], _: &mut Interpreter) -> Resu
     Ok(this.clone())
 }
 
-pub fn create_constructor(global: &Value) -> Value {
-    let proto = ValueData::new_obj(Some(global));
-    make_constructor_fn!(make_function, make_function, global, proto)
+pub fn create(global: &Value) -> Value {
+    let prototype = ValueData::new_obj(Some(global));
+
+    make_constructor_fn!(make_function, make_function, global, prototype)
+}
+
+/// Initialise the `Function` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Function", create(global));
 }

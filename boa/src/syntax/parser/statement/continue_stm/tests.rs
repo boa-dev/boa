@@ -4,7 +4,7 @@ use crate::syntax::{ast::node::Node, parser::tests::check_parser};
 fn check_inline() {
     check_parser(
         "while (true) continue;",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
             Node::Continue(None),
         )],
@@ -16,7 +16,7 @@ fn check_new_line() {
     check_parser(
         "while (true)
             continue;",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
             Node::Continue(None),
         )],
@@ -27,9 +27,9 @@ fn check_new_line() {
 fn check_inline_block_semicolon_insertion() {
     check_parser(
         "while (true) {continue}",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
-            Node::Block(vec![Node::Continue(None)]),
+            Node::block(vec![Node::Continue(None)]),
         )],
     );
 }
@@ -40,9 +40,9 @@ fn check_new_line_semicolon_insertion() {
         "while (true) {
             continue test
         }",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
-            Node::Block(vec![Node::continue_node("test")]),
+            Node::block(vec![Node::continue_node("test")]),
         )],
     );
 }
@@ -51,9 +51,9 @@ fn check_new_line_semicolon_insertion() {
 fn check_inline_block() {
     check_parser(
         "while (true) {continue;}",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
-            Node::Block(vec![Node::Continue(None)]),
+            Node::block(vec![Node::Continue(None)]),
         )],
     );
 }
@@ -64,9 +64,9 @@ fn check_new_line_block() {
         "while (true) {
             continue test;
         }",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
-            Node::Block(vec![Node::continue_node("test")]),
+            Node::block(vec![Node::continue_node("test")]),
         )],
     );
 }
@@ -77,9 +77,9 @@ fn check_new_line_block_empty() {
         "while (true) {
             continue;
         }",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
-            Node::Block(vec![Node::Continue(None)]),
+            Node::block(vec![Node::Continue(None)]),
         )],
     );
 }
@@ -90,9 +90,9 @@ fn check_new_line_block_empty_semicolon_insertion() {
         "while (true) {
             continue
         }",
-        &[Node::while_loop(
+        vec![Node::while_loop(
             Node::const_node(true),
-            Node::Block(vec![Node::Continue(None)]),
+            Node::block(vec![Node::Continue(None)]),
         )],
     );
 }
