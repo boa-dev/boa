@@ -16,14 +16,14 @@ use crate::{
         array,
         object::{Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{to_value, ResultValue, Value, ValueData},
+        value::{to_value, undefined, ResultValue, Value, ValueData},
     },
     environment::lexical_environment::{new_function_environment, Environment},
     exec::Executor,
     syntax::ast::node::{FormalParameter, Node},
     Interpreter,
 };
-use gc::{unsafe_empty_trace, Finalize, Gc, Trace};
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
 /// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
@@ -329,7 +329,7 @@ pub fn create_function_prototype() {
 pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
     let mut obj = Object::default();
-    obj.set_internal_slot("ParameterMap", Gc::new(ValueData::Undefined));
+    obj.set_internal_slot("ParameterMap", undefined());
     // Set length
     let mut length = Property::default();
     length = length.writable(true).value(to_value(len));
@@ -360,7 +360,14 @@ pub fn make_function(this: &mut Value, _: &[Value], _: &mut Interpreter) -> Resu
     Ok(this.clone())
 }
 
-pub fn create_constructor(global: &Value) -> Value {
-    let proto = ValueData::new_obj(Some(global));
-    make_constructor_fn!(make_function, make_function, global, proto)
+pub fn create(global: &Value) -> Value {
+    let prototype = ValueData::new_obj(Some(global));
+
+    make_constructor_fn!(make_function, make_function, global, prototype)
+}
+
+/// Initialise the `Function` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Function", create(global));
 }

@@ -24,6 +24,11 @@ use std::{
     str::FromStr,
 };
 
+pub mod conversions;
+pub mod operations;
+pub use conversions::*;
+pub use operations::*;
+
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
 pub type ResultValue = Result<Value, Value>;
@@ -31,6 +36,7 @@ pub type ResultValue = Result<Value, Value>;
 /// A Garbage-collected Javascript value as represented in the interpreter.
 pub type Value = Gc<ValueData>;
 
+#[inline]
 pub fn undefined() -> Value {
     Gc::new(ValueData::Undefined)
 }
@@ -169,7 +175,7 @@ impl ValueData {
     }
 
     /// Returns true if the value is a number
-    pub fn is_num(&self) -> bool {
+    pub fn is_number(&self) -> bool {
         self.is_double()
     }
 
@@ -204,7 +210,7 @@ impl ValueData {
     }
 
     /// Converts the value into a 64-bit floating point number
-    pub fn to_num(&self) -> f64 {
+    pub fn to_number(&self) -> f64 {
         match *self {
             Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
             Self::String(ref str) => match FromStr::from_str(str) {
@@ -219,7 +225,7 @@ impl ValueData {
     }
 
     /// Converts the value into a 32-bit integer
-    pub fn to_int(&self) -> i32 {
+    pub fn to_integer(&self) -> i32 {
         match *self {
             Self::Object(_)
             | Self::Undefined
@@ -628,7 +634,7 @@ impl ValueData {
     }
 
     pub fn as_num_to_power(&self, other: Self) -> Self {
-        Self::Rational(self.to_num().powf(other.to_num()))
+        Self::Rational(self.to_number().powf(other.to_number()))
     }
 }
 
@@ -851,343 +857,5 @@ impl Display for ValueData {
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
         }
-    }
-}
-
-impl PartialEq for ValueData {
-    fn eq(&self, other: &Self) -> bool {
-        match (self.clone(), other.clone()) {
-            // TODO: fix this
-            // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
-            _ if self.is_null_or_undefined() && other.is_null_or_undefined() => true,
-            (Self::String(_), _) | (_, Self::String(_)) => self.to_string() == other.to_string(),
-            (Self::Boolean(a), Self::Boolean(b)) if a == b => true,
-            (Self::Rational(a), Self::Rational(b)) if a == b && !a.is_nan() && !b.is_nan() => true,
-            (Self::Rational(a), _) if a == other.to_num() => true,
-            (_, Self::Rational(a)) if a == self.to_num() => true,
-            (Self::Integer(a), Self::Integer(b)) if a == b => true,
-            _ => false,
-        }
-    }
-}
-
-impl Add for ValueData {
-    type Output = Self;
-    fn add(self, other: Self) -> Self {
-        match (self, other) {
-            (Self::String(ref s), ref o) => {
-                Self::String(format!("{}{}", s.clone(), &o.to_string()))
-            }
-            (ref s, Self::String(ref o)) => Self::String(format!("{}{}", s.to_string(), o)),
-            (ref s, ref o) => Self::Rational(s.to_num() + o.to_num()),
-        }
-    }
-}
-impl Sub for ValueData {
-    type Output = Self;
-    fn sub(self, other: Self) -> Self {
-        Self::Rational(self.to_num() - other.to_num())
-    }
-}
-impl Mul for ValueData {
-    type Output = Self;
-    fn mul(self, other: Self) -> Self {
-        Self::Rational(self.to_num() * other.to_num())
-    }
-}
-impl Div for ValueData {
-    type Output = Self;
-    fn div(self, other: Self) -> Self {
-        Self::Rational(self.to_num() / other.to_num())
-    }
-}
-impl Rem for ValueData {
-    type Output = Self;
-    fn rem(self, other: Self) -> Self {
-        Self::Rational(self.to_num() % other.to_num())
-    }
-}
-impl BitAnd for ValueData {
-    type Output = Self;
-    fn bitand(self, other: Self) -> Self {
-        Self::Integer(self.to_int() & other.to_int())
-    }
-}
-impl BitOr for ValueData {
-    type Output = Self;
-    fn bitor(self, other: Self) -> Self {
-        Self::Integer(self.to_int() | other.to_int())
-    }
-}
-impl BitXor for ValueData {
-    type Output = Self;
-    fn bitxor(self, other: Self) -> Self {
-        Self::Integer(self.to_int() ^ other.to_int())
-    }
-}
-impl Shl for ValueData {
-    type Output = Self;
-    fn shl(self, other: Self) -> Self {
-        Self::Integer(self.to_int() << other.to_int())
-    }
-}
-impl Shr for ValueData {
-    type Output = Self;
-    fn shr(self, other: Self) -> Self {
-        Self::Integer(self.to_int() >> other.to_int())
-    }
-}
-impl Not for ValueData {
-    type Output = Self;
-    fn not(self) -> Self {
-        Self::Boolean(!self.is_true())
-    }
-}
-
-/// Conversion to Javascript values from Rust values
-pub trait ToValue {
-    /// Convert this value to a Rust value
-    fn to_value(&self) -> Value;
-}
-/// Conversion to Rust values from Javascript values
-pub trait FromValue {
-    /// Convert this value to a Javascript value
-    fn from_value(value: Value) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-}
-
-impl ToValue for Value {
-    fn to_value(&self) -> Value {
-        self.clone()
-    }
-}
-
-impl FromValue for Value {
-    fn from_value(value: Value) -> Result<Self, &'static str> {
-        Ok(value)
-    }
-}
-
-impl ToValue for String {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.clone()))
-    }
-}
-
-impl FromValue for String {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_string())
-    }
-}
-
-impl<'s> ToValue for &'s str {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(
-            String::from_str(*self).expect("Could not convert string to self to String"),
-        ))
-    }
-}
-
-impl ToValue for char {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.to_string()))
-    }
-}
-impl FromValue for char {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_string()
-            .chars()
-            .next()
-            .expect("Could not get next char"))
-    }
-}
-
-impl ToValue for f64 {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Rational(*self))
-    }
-}
-impl FromValue for f64 {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_num())
-    }
-}
-
-impl ToValue for i32 {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Integer(*self))
-    }
-}
-impl FromValue for i32 {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_int())
-    }
-}
-
-impl ToValue for usize {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Integer(*self as i32))
-    }
-}
-impl FromValue for usize {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_int() as Self)
-    }
-}
-
-impl ToValue for bool {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Boolean(*self))
-    }
-}
-impl FromValue for bool {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.is_true())
-    }
-}
-
-impl<'s, T: ToValue> ToValue for &'s [T] {
-    fn to_value(&self) -> Value {
-        let mut arr = Object::default();
-        for (i, item) in self.iter().enumerate() {
-            arr.properties
-                .insert(i.to_string(), Property::default().value(item.to_value()));
-        }
-        to_value(arr)
-    }
-}
-impl<T: ToValue> ToValue for Vec<T> {
-    fn to_value(&self) -> Value {
-        let mut arr = Object::default();
-        for (i, item) in self.iter().enumerate() {
-            arr.properties
-                .insert(i.to_string(), Property::default().value(item.to_value()));
-        }
-        to_value(arr)
-    }
-}
-
-impl<T: FromValue> FromValue for Vec<T> {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        let len = v.get_field_slice("length").to_int();
-        let mut vec = Self::with_capacity(len as usize);
-        for i in 0..len {
-            vec.push(from_value(v.get_field_slice(&i.to_string()))?)
-        }
-        Ok(vec)
-    }
-}
-
-impl ToValue for Object {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Object(Box::new(GcCell::new(self.clone()))))
-    }
-}
-
-impl FromValue for Object {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        match *v {
-            ValueData::Object(ref obj) => Ok(obj.clone().into_inner()),
-            _ => Err("Value is not a valid object"),
-        }
-    }
-}
-
-impl ToValue for JSONValue {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::from_json(self.clone()))
-    }
-}
-
-impl FromValue for JSONValue {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_json())
-    }
-}
-
-impl ToValue for () {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Null)
-    }
-}
-impl FromValue for () {
-    fn from_value(_: Value) -> Result<(), &'static str> {
-        Ok(())
-    }
-}
-
-impl<T: ToValue> ToValue for Option<T> {
-    fn to_value(&self) -> Value {
-        match *self {
-            Some(ref v) => v.to_value(),
-            None => Gc::new(ValueData::Null),
-        }
-    }
-}
-impl<T: FromValue> FromValue for Option<T> {
-    fn from_value(value: Value) -> Result<Self, &'static str> {
-        Ok(if value.is_null_or_undefined() {
-            None
-        } else {
-            Some(FromValue::from_value(value)?)
-        })
-    }
-}
-
-/// A utility function that just calls `FromValue::from_value`
-pub fn from_value<A: FromValue>(v: Value) -> Result<A, &'static str> {
-    FromValue::from_value(v)
-}
-
-/// A utility function that just calls `ToValue::to_value`
-pub fn to_value<A: ToValue>(v: A) -> Value {
-    v.to_value()
-}
-
-/// The internal comparison abstract operation SameValue(x, y),
-/// where x and y are ECMAScript language values, produces true or false.
-/// Such a comparison is performed as follows:
-///
-/// https://tc39.es/ecma262/#sec-samevalue
-/// strict mode currently compares the pointers
-pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
-    if strict {
-        // Do both Values point to the same underlying valueData?
-        let x_ptr = Gc::into_raw(x.clone());
-        let y_ptr = Gc::into_raw(y.clone());
-        return x_ptr == y_ptr;
-    }
-
-    if x.get_type() != y.get_type() {
-        return false;
-    }
-
-    if x.get_type() == "number" {
-        let native_x: f64 = from_value(x.clone()).expect("failed to get value");
-        let native_y: f64 = from_value(y.clone()).expect("failed to get value");
-        return native_x.abs() - native_y.abs() == 0.0;
-    }
-
-    same_value_non_number(x, y)
-}
-
-pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
-    debug_assert!(x.get_type() == y.get_type());
-    match x.get_type() {
-        "undefined" => true,
-        "null" => true,
-        "string" => {
-            if x.to_string() == y.to_string() {
-                return true;
-            }
-            false
-        }
-        "boolean" => {
-            from_value::<bool>(x.clone()).expect("failed to get value")
-                == from_value::<bool>(y.clone()).expect("failed to get value")
-        }
-        "object" => *x == *y,
-        _ => false,
     }
 }

@@ -17,7 +17,7 @@ use crate::{
         object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
         property::Property,
         regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
-        value::{from_value, to_value, ResultValue, Value, ValueData},
+        value::{from_value, to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -55,7 +55,7 @@ pub fn make_string(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
 pub fn call_string(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg = match args.get(0) {
         Some(v) => v.clone(),
-        None => Gc::new(ValueData::Undefined),
+        None => undefined(),
     };
 
     if arg.is_undefined() {
@@ -1016,10 +1016,10 @@ pub fn match_all(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
                     ],
                     ctx,
                 )
-            } else if arg == &Gc::new(ValueData::Undefined) {
+            } else if arg == &undefined() {
                 make_regexp(
                     &mut to_value(Object::default()),
-                    &[Gc::new(ValueData::Undefined), to_value(String::from("g"))],
+                    &[undefined(), to_value(String::from("g"))],
                     ctx,
                 )
             } else {
@@ -1036,41 +1036,42 @@ pub fn match_all(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
     regexp_match_all(&mut re, ctx.value_to_rust_string(this))
 }
 
-/// Create a new `String` object
-pub fn create_constructor(global: &Value) -> Value {
+/// Create a new `String` object.
+pub fn create(global: &Value) -> Value {
     // Create prototype
-    let proto = ValueData::new_obj(Some(global));
-    let prop = Property::default().value(to_value(0_i32));
+    let prototype = ValueData::new_obj(Some(global));
+    let length = Property::default().value(to_value(0_i32));
 
-    proto.set_prop_slice("length", prop);
-    make_builtin_fn!(char_at, named "charAt", with length 1, of proto);
-    make_builtin_fn!(char_code_at, named "charCodeAt", with length 1, of proto);
-    make_builtin_fn!(to_string, named "toString", of proto);
-    make_builtin_fn!(concat, named "concat", with length 1, of proto);
-    make_builtin_fn!(repeat, named "repeat", with length 1, of proto);
-    make_builtin_fn!(slice, named "slice", with length 2, of proto);
-    make_builtin_fn!(starts_with, named "startsWith", with length 1, of proto);
-    make_builtin_fn!(ends_with, named "endsWith", with length 1, of proto);
-    make_builtin_fn!(includes, named "includes", with length 1, of proto);
-    make_builtin_fn!(index_of, named "indexOf", with length 1, of proto);
-    make_builtin_fn!(last_index_of, named "lastIndexOf", with length 1, of proto);
-    make_builtin_fn!(r#match, named "match", with length 1, of proto);
-    make_builtin_fn!(pad_end, named "padEnd", with length 1, of proto);
-    make_builtin_fn!(pad_start, named "padStart", with length 1, of proto);
-    make_builtin_fn!(trim, named "trim", of proto);
-    make_builtin_fn!(trim_start, named "trimStart", of proto);
-    make_builtin_fn!(to_lowercase, named "toLowerCase", of proto);
-    make_builtin_fn!(to_uppercase, named "toUpperCase", of proto);
-    make_builtin_fn!(substring, named "substring", with length 2, of proto);
-    make_builtin_fn!(substr, named "substr", with length 2, of proto);
-    make_builtin_fn!(value_of, named "valueOf", of proto);
-    make_builtin_fn!(match_all, named "matchAll", with length 1, of proto);
-    make_builtin_fn!(replace, named "replace", with length 2, of proto);
+    prototype.set_prop_slice("length", length);
+    make_builtin_fn!(char_at, named "charAt", with length 1, of prototype);
+    make_builtin_fn!(char_code_at, named "charCodeAt", with length 1, of prototype);
+    make_builtin_fn!(to_string, named "toString", of prototype);
+    make_builtin_fn!(concat, named "concat", with length 1, of prototype);
+    make_builtin_fn!(repeat, named "repeat", with length 1, of prototype);
+    make_builtin_fn!(slice, named "slice", with length 2, of prototype);
+    make_builtin_fn!(starts_with, named "startsWith", with length 1, of prototype);
+    make_builtin_fn!(ends_with, named "endsWith", with length 1, of prototype);
+    make_builtin_fn!(includes, named "includes", with length 1, of prototype);
+    make_builtin_fn!(index_of, named "indexOf", with length 1, of prototype);
+    make_builtin_fn!(last_index_of, named "lastIndexOf", with length 1, of prototype);
+    make_builtin_fn!(r#match, named "match", with length 1, of prototype);
+    make_builtin_fn!(pad_end, named "padEnd", with length 1, of prototype);
+    make_builtin_fn!(pad_start, named "padStart", with length 1, of prototype);
+    make_builtin_fn!(trim, named "trim", of prototype);
+    make_builtin_fn!(trim_start, named "trimStart", of prototype);
+    make_builtin_fn!(to_lowercase, named "toLowerCase", of prototype);
+    make_builtin_fn!(to_uppercase, named "toUpperCase", of prototype);
+    make_builtin_fn!(substring, named "substring", with length 2, of prototype);
+    make_builtin_fn!(substr, named "substr", with length 2, of prototype);
+    make_builtin_fn!(value_of, named "valueOf", of prototype);
+    make_builtin_fn!(match_all, named "matchAll", with length 1, of prototype);
+    make_builtin_fn!(replace, named "replace", with length 2, of prototype);
 
-    make_constructor_fn!(make_string, call_string, global, proto)
+    make_constructor_fn!(make_string, call_string, global, prototype)
 }
 
-/// Initialise the `String` object on the global object
+/// Initialise the `String` object on the global object.
+#[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("String", create_constructor(global));
+    global.set_field_slice("String", create(global));
 }

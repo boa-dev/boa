@@ -102,13 +102,13 @@ pub fn make_array(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Re
     // between indices and values): this creates an Object with no prototype
 
     // Set Prototype
-    let array_prototype = ctx
+    let prototype = ctx
         .realm
         .global_obj
         .get_field_slice("Array")
         .get_field_slice(PROTOTYPE);
 
-    this.set_internal_slot(INSTANCE_PROTOTYPE, array_prototype);
+    this.set_internal_slot(INSTANCE_PROTOTYPE, prototype);
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::Array);
@@ -778,12 +778,12 @@ pub fn fill(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
     let len: i32 = from_value(this.get_field_slice("length")).expect("Could not get argument");
     let default_value = undefined();
     let value = args.get(0).unwrap_or(&default_value);
-    let relative_start = args.get(1).unwrap_or(&default_value).to_num() as i32;
+    let relative_start = args.get(1).unwrap_or(&default_value).to_number() as i32;
     let relative_end_val = args.get(2).unwrap_or(&default_value);
     let relative_end = if relative_end_val.is_undefined() {
         len
     } else {
-        relative_end_val.to_num() as i32
+        relative_end_val.to_number() as i32
     };
     let start = if relative_start < 0 {
         max(len + relative_start, 0)
@@ -979,36 +979,44 @@ pub fn some(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> 
 }
 
 /// Create a new `Array` object.
-pub fn create_constructor(global: &Value) -> Value {
+pub fn create(global: &Value) -> Value {
     // Create prototype
-    let array_prototype = ValueData::new_obj(None);
+    let prototype = ValueData::new_obj(None);
     let length = Property::default().value(to_value(0_i32));
-    array_prototype.set_prop_slice("length", length);
 
-    make_builtin_fn!(concat, named "concat", with length 1, of array_prototype);
-    make_builtin_fn!(push, named "push", with length 1, of array_prototype);
-    make_builtin_fn!(index_of, named "indexOf", with length 1, of array_prototype);
-    make_builtin_fn!(last_index_of, named "lastIndexOf", with length 1, of array_prototype);
-    make_builtin_fn!(includes_value, named "includes", with length 1, of array_prototype);
-    make_builtin_fn!(map, named "map", with length 1, of array_prototype);
-    make_builtin_fn!(fill, named "fill", with length 1, of array_prototype);
-    make_builtin_fn!(for_each, named "forEach", with length 1, of array_prototype);
-    make_builtin_fn!(filter, named "filter", with length 1, of array_prototype);
-    make_builtin_fn!(pop, named "pop", of array_prototype);
-    make_builtin_fn!(join, named "join", with length 1, of array_prototype);
-    make_builtin_fn!(to_string, named "toString", of array_prototype);
-    make_builtin_fn!(reverse, named "reverse", of array_prototype);
-    make_builtin_fn!(shift, named "shift", of array_prototype);
-    make_builtin_fn!(unshift, named "unshift", with length 1, of array_prototype);
-    make_builtin_fn!(every, named "every", with length 1, of array_prototype);
-    make_builtin_fn!(find, named "find", with length 1, of array_prototype);
-    make_builtin_fn!(find_index, named "findIndex", with length 1, of array_prototype);
-    make_builtin_fn!(slice, named "slice", with length 2, of array_prototype);
-    make_builtin_fn!(some, named "some", with length 2, of array_prototype);
+    prototype.set_prop_slice("length", length);
 
-    let array = make_constructor_fn!(make_array, make_array, global, array_prototype);
+    make_builtin_fn!(concat, named "concat", with length 1, of prototype);
+    make_builtin_fn!(push, named "push", with length 1, of prototype);
+    make_builtin_fn!(index_of, named "indexOf", with length 1, of prototype);
+    make_builtin_fn!(last_index_of, named "lastIndexOf", with length 1, of prototype);
+    make_builtin_fn!(includes_value, named "includes", with length 1, of prototype);
+    make_builtin_fn!(map, named "map", with length 1, of prototype);
+    make_builtin_fn!(fill, named "fill", with length 1, of prototype);
+    make_builtin_fn!(for_each, named "forEach", with length 1, of prototype);
+    make_builtin_fn!(filter, named "filter", with length 1, of prototype);
+    make_builtin_fn!(pop, named "pop", of prototype);
+    make_builtin_fn!(join, named "join", with length 1, of prototype);
+    make_builtin_fn!(to_string, named "toString", of prototype);
+    make_builtin_fn!(reverse, named "reverse", of prototype);
+    make_builtin_fn!(shift, named "shift", of prototype);
+    make_builtin_fn!(unshift, named "unshift", with length 1, of prototype);
+    make_builtin_fn!(every, named "every", with length 1, of prototype);
+    make_builtin_fn!(find, named "find", with length 1, of prototype);
+    make_builtin_fn!(find_index, named "findIndex", with length 1, of prototype);
+    make_builtin_fn!(slice, named "slice", with length 2, of prototype);
+    make_builtin_fn!(some, named "some", with length 2, of prototype);
+
+    let array = make_constructor_fn!(make_array, make_array, global, prototype);
+
     // Static Methods
     make_builtin_fn!(is_array, named "isArray", with length 1, of array);
 
     array
+}
+
+/// Initialise the `Array` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Array", create(global));
 }

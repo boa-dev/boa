@@ -24,7 +24,7 @@ use crate::{
             internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
             PROTOTYPE,
         },
-        value::{to_value, ResultValue, Value, ValueData},
+        value::{to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -52,7 +52,7 @@ pub fn call_symbol(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     // Set description which should either be undefined or a string
     let desc_string = match args.get(0) {
         Some(value) => to_value(value.to_string()),
-        None => Gc::new(ValueData::Undefined),
+        None => undefined(),
     };
 
     sym_instance.set_internal_slot("Description", desc_string);
@@ -87,19 +87,16 @@ pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
     Ok(to_value(full_string))
 }
 
-/// The `Symbol()` constructor returns a value of type **symbol**.
-///
-/// It is incomplete as a constructor because it does not support the syntax "`new Symbol()`".
-///
-/// More information:
-/// - [MDN documentation][mdn]
-/// - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-symbol-constructor
-/// [mdn]:
-pub fn create_constructor(global: &Value) -> Value {
+/// Create a new `Symbol` object.
+pub fn create(global: &Value) -> Value {
     // Create prototype object
-    let proto = ValueData::new_obj(Some(global));
-    make_builtin_fn!(to_string, named "toString", of proto);
-    make_constructor_fn!(call_symbol, call_symbol, global, proto)
+    let prototype = ValueData::new_obj(Some(global));
+    make_builtin_fn!(to_string, named "toString", of prototype);
+    make_constructor_fn!(call_symbol, call_symbol, global, prototype)
+}
+
+/// Initialise the `Symbol` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Symbol", create(global));
 }

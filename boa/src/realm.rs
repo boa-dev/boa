@@ -2,12 +2,12 @@
 //! all of the ECMAScript code that is loaded within the scope of that global environment,
 //! and other associated state and resources.
 //!
-//!A realm is represented in this implementation as a Realm struct with the fields specified from the spec
+//! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
+
 use crate::{
     builtins::{
-        array, boolean, console, function,
+        self,
         function::NativeFunctionData,
-        json, math, number, object, regexp, string, symbol,
         value::{ToValue, Value, ValueData},
     },
     environment::{
@@ -55,17 +55,7 @@ impl Realm {
     fn create_instrinsics(&self) {
         let global = &self.global_obj;
         // Create intrinsics, add global objects here
-        global.set_field_slice("Array", array::create_constructor(global));
-        global.set_field_slice("Boolean", boolean::create_constructor(global));
-        global.set_field_slice("JSON", json::create_constructor(global));
-        global.set_field_slice("Math", math::create_constructor(global));
-        global.set_field_slice("Number", number::create_constructor(global));
-        global.set_field_slice("Object", object::create_constructor(global));
-        global.set_field_slice("Function", function::create_constructor(global));
-        global.set_field_slice("RegExp", regexp::create_constructor(global));
-        global.set_field_slice("String", string::create_constructor(global));
-        global.set_field_slice("Symbol", symbol::create_constructor(global));
-        global.set_field_slice("console", console::create_constructor(global));
+        builtins::init(global);
     }
 
     /// Utility to add a function to the global object

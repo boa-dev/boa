@@ -17,11 +17,11 @@ use crate::{
     builtins::{
         function::Function,
         property::Property,
-        value::{from_value, same_value, to_value, ResultValue, Value, ValueData},
+        value::{from_value, same_value, to_value, undefined, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
-use gc::{unsafe_empty_trace, Finalize, Gc, Trace};
+use gc::{unsafe_empty_trace, Finalize, Gc, GcCell, Trace};
 use rustc_hash::FxHashMap;
 use std::{
     borrow::Borrow,
@@ -525,18 +525,29 @@ unsafe impl Trace for ObjectKind {
 }
 
 /// Create a new object.
-pub fn make_object(_: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Gc::new(ValueData::Undefined))
+pub fn make_object(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    if let Some(arg) = args.get(0) {
+        if !arg.is_null_or_undefined() {
+            return Ok(Gc::new(ValueData::Object(Box::new(GcCell::new(
+                Object::from(arg).unwrap(),
+            )))));
+        }
+    }
+    let global = &ctx.realm.global_obj;
+
+    let object = ValueData::new_obj(Some(global));
+
+    Ok(object)
 }
 
 /// Get the `prototype` of an object.
-pub fn get_proto_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn get_prototype_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
     Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
 }
 
 /// Set the `prototype` of an object.
-pub fn set_proto_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn set_prototype_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
     obj.set_internal_slot(INSTANCE_PROTOTYPE, proto);
@@ -544,14 +555,14 @@ pub fn set_proto_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> Resul
 }
 
 /// Define a property in an object
-pub fn define_prop(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn define_property(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
     let prop = from_value::<String>(args.get(1).expect("Cannot get object").clone())
         .expect("Cannot get object");
     let desc = from_value::<Property>(args.get(2).expect("Cannot get object").clone())
         .expect("Cannot get object");
     obj.set_prop(prop, desc);
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(undefined())
 }
 
 /// `Object.prototype.toString()`
@@ -579,7 +590,7 @@ pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
-pub fn has_own_prop(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn has_own_property(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let prop = if args.is_empty() {
         None
     } else {
@@ -591,25 +602,24 @@ pub fn has_own_prop(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Re
 }
 
 /// Create a new `Object` object.
-pub fn create_constructor(_: &Value) -> Value {
-    let mut constructor_obj = Object::function();
-    // Create the native function
-    let constructor_fn = crate::builtins::function::Function::create_builtin(
-        vec![],
-        crate::builtins::function::FunctionBody::BuiltIn(make_object),
-    );
-    constructor_obj.set_construct(constructor_fn);
-    let object = to_value(constructor_obj);
-    // Prototype chain ends here VV
-    let prototype = to_value(Object::default());
-    object.set_field_slice(PROTOTYPE, prototype.clone());
+pub fn create(global: &Value) -> Value {
+    let prototype = ValueData::new_obj(None);
 
-    make_builtin_fn!(has_own_prop, named "hasOwnProperty", of prototype);
+    make_builtin_fn!(has_own_property, named "hasOwnProperty", of prototype);
     make_builtin_fn!(to_string, named "toString", of prototype);
 
+    let object = make_constructor_fn!(make_object, make_object, global, prototype);
+
     object.set_field_slice("length", to_value(1_i32));
-    make_builtin_fn!(set_proto_of, named "setPrototypeOf", with length 2, of object);
-    make_builtin_fn!(get_proto_of, named "getPrototypeOf", with length 1, of object);
-    make_builtin_fn!(define_prop, named "defineProperty", with length 3, of object);
+    make_builtin_fn!(set_prototype_of, named "setPrototypeOf", with length 2, of object);
+    make_builtin_fn!(get_prototype_of, named "getPrototypeOf", with length 1, of object);
+    make_builtin_fn!(define_property, named "defineProperty", with length 3, of object);
+
     object
+}
+
+/// Initialise the `Object` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Object", create(global));
 }
