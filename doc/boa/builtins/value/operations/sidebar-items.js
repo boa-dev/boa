@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["same_value","The internal comparison abstract operation SameValue(x, y), where x and y are ECMAScript language values, produces true or false. Such a comparison is performed as follows:"],["same_value_non_number",""]]});

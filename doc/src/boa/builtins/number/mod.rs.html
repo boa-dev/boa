@@ -201,6 +201,12 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -292,7 +298,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_exponential</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>();
+    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
     <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="ident">num_to_exponential</span>(<span class="ident">this_num</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str_num</span>))
 }
@@ -308,10 +314,10 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_fixed</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>();
+    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
     <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_int</span>() {
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_int</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
         },
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
@@ -334,7 +340,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_locale_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>();
+    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
     <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str_num</span>))
 }
@@ -351,10 +357,10 @@
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_precision</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>);
-    <span class="kw">let</span> <span class="ident">_num_str_len</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>.<span class="ident">to_num</span>()).<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="ident">_num_str_len</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>.<span class="ident">to_number</span>()).<span class="ident">len</span>();
     <span class="kw">let</span> <span class="ident">_precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_int</span>() {
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_int</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
         },
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
@@ -374,7 +380,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_num</span>())))
+    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>())))
 }
 
 <span class="doccomment">/// `Number.prototype.toString()`</span>
@@ -392,18 +398,24 @@
 }
 
 <span class="doccomment">/// Create a new `Number` object</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_constructor</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">let</span> <span class="ident">number_prototype</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
-    <span class="ident">number_prototype</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">to_value</span>(<span class="number">0</span>));
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+    <span class="ident">prototype</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">to_value</span>(<span class="number">0</span>));
 
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_exponential</span>, <span class="ident">named</span> <span class="string">&quot;toExponential&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">number_prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_fixed</span>, <span class="ident">named</span> <span class="string">&quot;toFixed&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">number_prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_locale_string</span>, <span class="ident">named</span> <span class="string">&quot;toLocaleString&quot;</span>, <span class="ident">of</span> <span class="ident">number_prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_precision</span>, <span class="ident">named</span> <span class="string">&quot;toPrecision&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">number_prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">number_prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">value_of</span>, <span class="ident">named</span> <span class="string">&quot;valueOf&quot;</span>, <span class="ident">of</span> <span class="ident">number_prototype</span>);
+    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_exponential</span>, <span class="ident">named</span> <span class="string">&quot;toExponential&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
+    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_fixed</span>, <span class="ident">named</span> <span class="string">&quot;toFixed&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
+    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_locale_string</span>, <span class="ident">named</span> <span class="string">&quot;toLocaleString&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
+    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_precision</span>, <span class="ident">named</span> <span class="string">&quot;toPrecision&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
+    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
+    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">value_of</span>, <span class="ident">named</span> <span class="string">&quot;valueOf&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
 
-    <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_number</span>, <span class="ident">call_number</span>, <span class="ident">global</span>, <span class="ident">number_prototype</span>)
+    <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_number</span>, <span class="ident">call_number</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
+}
+
+<span class="doccomment">/// Initialise the `Number` object on the global object.</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+    <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Number&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

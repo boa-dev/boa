@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["_create","Create a new `Error` object."],["init","Initialise the global object with the `Error` object."],["make_error","Create a new error object."],["to_string","`Error.prototype.toString()`"]]});
+initSidebarItems({"fn":[["create","Create a new `Error` object."],["init","Initialise the global object with the `Error` object."],["make_error","Create a new error object."],["to_string","`Error.prototype.toString()`"]]});

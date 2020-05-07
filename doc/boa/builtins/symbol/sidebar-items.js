@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["call_symbol","Creates Symbol instances."],["create_constructor","The `Symbol()` constructor returns a value of type symbol."],["to_string","`Symbol.prototype.toString()`"]]});
+initSidebarItems({"fn":[["call_symbol","Creates Symbol instances."],["create","Create a new `Symbol` object."],["init","Initialise the `Symbol` object on the global object."],["to_string","`Symbol.prototype.toString()`"]]});
