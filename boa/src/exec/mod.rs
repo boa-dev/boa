@@ -173,6 +173,24 @@ impl Executor for Interpreter {
                 }
                 Ok(result)
             }
+            Node::ForLoop(ref init, ref cond, ref step, ref body) => {
+                if let Some(init) = init {
+                    self.run(init)?;
+                }
+
+                while match cond {
+                    Some(cond) => self.run(cond)?.borrow().is_true(),
+                    None => true,
+                } {
+                    self.run(body)?;
+
+                    if let Some(step) = step {
+                        self.run(step)?;
+                    }
+                }
+
+                Ok(Gc::new(ValueData::Undefined))
+            }
             Node::If(ref cond, ref expr, None) => Ok(if self.run(cond)?.borrow().is_true() {
                 self.run(expr)?
             } else {

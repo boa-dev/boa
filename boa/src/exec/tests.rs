@@ -305,6 +305,51 @@ fn test_do_while_post_inc() {
 }
 
 #[test]
+fn test_for_loop() {
+    let simple = r#"
+        const a = ['h', 'e', 'l', 'l', 'o'];
+        let b = '';
+        for (let i = 0; i < a.length; i = i + 1) {
+            b = b + a[i];
+        }
+        b
+        "#;
+    assert_eq!(exec(simple), String::from("hello"));
+
+    let without_init_and_inc_step = r#"
+        let a = 0;
+        let i = 0;
+        for (;i < 10;) {
+            a = a + i;
+            i = i + 1;
+        }
+
+        a
+        "#;
+    assert_eq!(exec(without_init_and_inc_step), String::from("45"));
+
+    let body_should_not_execute_on_false_condition = r#"
+        let a = 0
+        for (;false;) {
+            a = a + 1;
+        }
+
+        a
+        "#;
+    assert_eq!(
+        exec(body_should_not_execute_on_false_condition),
+        String::from("0")
+    );
+
+    let inner_scope = r#"
+        for (let i = 0;false;) {}
+
+        i
+        "#;
+    assert_eq!(exec(inner_scope), String::from("undefined"));
+}
+
+#[test]
 #[ignore]
 fn test_unary_pre() {
     let unary_inc = r#"
