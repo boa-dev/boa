@@ -92,7 +92,7 @@ pub struct Function {
     /// Call/Construct Function body
     pub body: FunctionBody,
     /// Formal Paramaters
-    pub params: Vec<FormalParameter>,
+    pub params: Box<[FormalParameter]>,
     /// This Mode
     pub this_mode: ThisMode,
     /// Function kind
@@ -105,16 +105,19 @@ impl Function {
     /// This will create an ordinary function object
     ///
     /// <https://tc39.es/ecma262/#sec-ordinaryfunctioncreate>
-    pub fn create_ordinary(
-        parameter_list: Vec<FormalParameter>,
+    pub fn create_ordinary<P>(
+        parameter_list: P,
         scope: Environment,
         body: FunctionBody,
         this_mode: ThisMode,
-    ) -> Self {
+    ) -> Self
+    where
+        P: Into<Box<[FormalParameter]>>,
+    {
         Self {
             body,
             environment: Some(scope),
-            params: parameter_list,
+            params: parameter_list.into(),
             kind: FunctionKind::Ordinary,
             this_mode,
         }
@@ -123,10 +126,13 @@ impl Function {
     /// This will create a built-in function object
     ///
     /// <https://tc39.es/ecma262/#sec-createbuiltinfunction>
-    pub fn create_builtin(parameter_list: Vec<FormalParameter>, body: FunctionBody) -> Self {
+    pub fn create_builtin<P>(parameter_list: P, body: FunctionBody) -> Self
+    where
+        P: Into<Box<[FormalParameter]>>,
+    {
         Self {
             body,
-            params: parameter_list,
+            params: parameter_list.into(),
             this_mode: ThisMode::NonLexical,
             kind: FunctionKind::BuiltIn,
             environment: None,

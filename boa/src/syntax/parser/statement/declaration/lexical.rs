@@ -164,9 +164,9 @@ impl TokenParser for BindingList {
         }
 
         if self.is_const {
-            Ok(Node::ConstDecl(const_decls))
+            Ok(Node::const_decl(const_decls))
         } else {
-            Ok(Node::LetDecl(let_decls))
+            Ok(Node::let_decl(let_decls))
         }
     }
 }

@@ -11,8 +11,8 @@ fn check_do_while() {
         r#"do {
             a += 1;
         } while (true)"#,
-        &[Node::do_while_loop(
-            Node::Block(vec![Node::bin_op(
+        vec![Node::do_while_loop(
+            Node::block(vec![Node::bin_op(
                 BinOp::Assign(AssignOp::Add),
                 Node::local("a"),
                 Node::const_node(1),
@@ -28,10 +28,10 @@ fn check_do_while_semicolon_insertion() {
     check_parser(
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
-        &[
-            Node::VarDecl(vec![(String::from("i"), Some(Node::const_node(0)))]),
+        vec![
+            Node::var_decl(vec![(String::from("i"), Some(Node::const_node(0)))]),
             Node::do_while_loop(
-                Node::Block(vec![Node::call(
+                Node::block(vec![Node::call(
                     Node::get_const_field(Node::local("console"), "log"),
                     vec![Node::const_node("hello")],
                 )]),

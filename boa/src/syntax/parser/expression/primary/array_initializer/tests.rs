@@ -8,7 +8,7 @@ use crate::syntax::{
 /// Checks an empty array.
 #[test]
 fn check_empty() {
-    check_parser("[]", &[Node::ArrayDecl(Vec::new())]);
+    check_parser("[]", vec![Node::array_decl(Vec::new())]);
 }
 
 /// Checks an array with empty slot.
@@ -16,7 +16,7 @@ fn check_empty() {
 fn check_empty_slot() {
     check_parser(
         "[,]",
-        &[Node::ArrayDecl(vec![Node::Const(Const::Undefined)])],
+        vec![Node::array_decl(vec![Node::Const(Const::Undefined)])],
     );
 }
 
@@ -25,7 +25,7 @@ fn check_empty_slot() {
 fn check_numeric_array() {
     check_parser(
         "[1, 2, 3]",
-        &[Node::ArrayDecl(vec![
+        vec![Node::array_decl(vec![
             Node::const_node(1),
             Node::const_node(2),
             Node::const_node(3),
@@ -38,7 +38,7 @@ fn check_numeric_array() {
 fn check_numeric_array_trailing() {
     check_parser(
         "[1, 2, 3,]",
-        &[Node::ArrayDecl(vec![
+        vec![Node::array_decl(vec![
             Node::const_node(1),
             Node::const_node(2),
             Node::const_node(3),
@@ -51,7 +51,7 @@ fn check_numeric_array_trailing() {
 fn check_numeric_array_elision() {
     check_parser(
         "[1, 2, , 3]",
-        &[Node::ArrayDecl(vec![
+        vec![Node::array_decl(vec![
             Node::const_node(1),
             Node::const_node(2),
             Node::Const(Const::Undefined),
@@ -65,7 +65,7 @@ fn check_numeric_array_elision() {
 fn check_numeric_array_repeated_elision() {
     check_parser(
         "[1, 2, ,, 3]",
-        &[Node::ArrayDecl(vec![
+        vec![Node::array_decl(vec![
             Node::const_node(1),
             Node::const_node(2),
             Node::Const(Const::Undefined),
@@ -80,7 +80,7 @@ fn check_numeric_array_repeated_elision() {
 fn check_combined() {
     check_parser(
         "[1, \"a\", 2]",
-        &[Node::ArrayDecl(vec![
+        vec![Node::array_decl(vec![
             Node::const_node(1),
             Node::const_node("a"),
             Node::const_node(2),
@@ -93,7 +93,7 @@ fn check_combined() {
 fn check_combined_empty_str() {
     check_parser(
         "[1, \"\", 2]",
-        &[Node::ArrayDecl(vec![
+        vec![Node::array_decl(vec![
             Node::const_node(1),
             Node::const_node(""),
             Node::const_node(2),
