@@ -312,7 +312,6 @@ fn test_for_loop() {
         for (let i = 0; i < a.length; i = i + 1) {
             b = b + a[i];
         }
-        
         b
         "#;
     assert_eq!(exec(simple), String::from("hello"));
