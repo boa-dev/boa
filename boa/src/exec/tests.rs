@@ -295,7 +295,6 @@ fn test_do_while_loop() {
 }
 
 #[test]
-#[ignore]
 fn test_do_while_post_inc() {
     let with_post_incrementors = r#"
         var i = 0;
@@ -309,7 +308,7 @@ fn test_for_loop() {
     let simple = r#"
         const a = ['h', 'e', 'l', 'l', 'o'];
         let b = '';
-        for (let i = 0; i < a.length; i = i + 1) {
+        for (let i = 0; i < a.length; i++) {
             b = b + a[i];
         }
         b
@@ -321,7 +320,7 @@ fn test_for_loop() {
         let i = 0;
         for (;i < 10;) {
             a = a + i;
-            i = i + 1;
+            i++;
         }
 
         a
@@ -331,7 +330,7 @@ fn test_for_loop() {
     let body_should_not_execute_on_false_condition = r#"
         let a = 0
         for (;false;) {
-            a = a + 1;
+            a++;
         }
 
         a
@@ -350,7 +349,6 @@ fn test_for_loop() {
 }
 
 #[test]
-#[ignore]
 fn test_unary_pre() {
     let unary_inc = r#"
         let a = 5;
@@ -364,17 +362,36 @@ fn test_unary_pre() {
         --a;
         a;
     "#;
-    assert_eq!(exec(unary_dec), String::from("6"));
+    assert_eq!(exec(unary_dec), String::from("4"));
 
-    let execs_before = r#"
+    let inc_obj_prop = r#"
+        const a = { b: 5 };
+        ++a.b;
+        a['b'];
+    "#;
+    assert_eq!(exec(inc_obj_prop), String::from("6"));
+
+    let inc_obj_field = r#"
+        const a = { b: 5 };
+        ++a['b'];
+        a.b;
+    "#;
+    assert_eq!(exec(inc_obj_field), String::from("6"));
+
+    let execs_before_inc = r#"
         let a = 5;
         ++a === 6;
     "#;
-    assert_eq!(exec(execs_before), String::from("true"));
+    assert_eq!(exec(execs_before_inc), String::from("true"));
+
+    let execs_before_dec = r#"
+        let a = 5;
+        --a === 4;
+    "#;
+    assert_eq!(exec(execs_before_dec), String::from("true"));
 }
 
 #[test]
-#[ignore]
 fn test_unary_post() {
     let unary_inc = r#"
         let a = 5;
@@ -388,13 +405,33 @@ fn test_unary_post() {
         a--;
         a;
     "#;
-    assert_eq!(exec(unary_dec), String::from("6"));
+    assert_eq!(exec(unary_dec), String::from("4"));
 
-    let execs_after = r#"
+    let inc_obj_prop = r#"
+        const a = { b: 5 };
+        a.b++;
+        a['b'];
+    "#;
+    assert_eq!(exec(inc_obj_prop), String::from("6"));
+
+    let inc_obj_field = r#"
+        const a = { b: 5 };
+        a['b']++;
+        a.b;
+    "#;
+    assert_eq!(exec(inc_obj_field), String::from("6"));
+
+    let execs_after_inc = r#"
         let a = 5;
         a++ === 5;
     "#;
-    assert_eq!(exec(execs_after), String::from("true"));
+    assert_eq!(exec(execs_after_inc), String::from("true"));
+
+    let execs_after_dec = r#"
+        let a = 5;
+        a-- === 5;
+    "#;
+    assert_eq!(exec(execs_after_dec), String::from("true"));
 }
 
 #[cfg(test)]
