@@ -252,7 +252,8 @@ checksum = "5f2a4a2034423744d2cc7ca2068453168dcdb82c438419e639a26bd87839c674"
 [[package]]
 name = "gc"
 version = "0.3.4"
-source = "git+https://github.com/Manishearth/rust-gc.git#8d9fe40510e417a18cd7f172e6dabdbad2663e2b"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4917b7233397091baf9136eec3c669c8551b097d69ca2b00a2606e5f07641d1"
 dependencies = [
  "gc_derive",
 ]
@@ -260,7 +261,8 @@ dependencies = [
 [[package]]
 name = "gc_derive"
 version = "0.3.4"
-source = "git+https://github.com/Manishearth/rust-gc.git#8d9fe40510e417a18cd7f172e6dabdbad2663e2b"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a5b968c8044a119af2671a52de57689cbf502d6686847abd9e6252ee4c39313"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -677,9 +679,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "410a7488c0a728c7ceb4ad59b9567eb4053d02e8cc7f5c0e0eeeb39518369213"
+checksum = "e8e5aa70697bb26ee62214ae3288465ecec0000f05182f039b477001f08f5ae7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -757,9 +759,9 @@ checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 
 [[package]]
 name = "vec_map"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05c78687fb1a80548ae3250346c3db86a80a7cdd77bda190189f2d0a0987c81a"
+checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
 name = "version_check"
