@@ -353,9 +353,23 @@ impl Executor for Interpreter {
             Node::UnaryOp(ref op, ref a) => {
                 let v_r_a = self.run(a)?;
                 let v_a = (*v_r_a).clone();
-                Ok(match *op {
+                Ok(match op {
                     UnaryOp::Minus => to_value(-v_a.to_number()),
                     UnaryOp::Plus => to_value(v_a.to_number()),
+                    UnaryOp::IncrementPost => {
+                        self.set_value(a.deref(), to_value(v_a.to_number() + 1.0))?;
+                        v_r_a
+                    }
+                    UnaryOp::IncrementPre => {
+                        self.set_value(a.deref(), to_value(v_a.to_number() + 1.0))?
+                    }
+                    UnaryOp::DecrementPost => {
+                        self.set_value(a.deref(), to_value(v_a.to_number() - 1.0))?;
+                        v_r_a
+                    }
+                    UnaryOp::DecrementPre => {
+                        self.set_value(a.deref(), to_value(v_a.to_number() - 1.0))?
+                    }
                     UnaryOp::Not => Gc::new(!v_a),
                     UnaryOp::Tilde => {
                         let num_v_a = v_a.to_number();
@@ -838,5 +852,23 @@ impl Interpreter {
         }
 
         Err(())
+    }
+
+    fn set_value(&mut self, node: &Node, value: Value) -> ResultValue {
+        match node {
+            Node::Local(ref name) => {
+                self.realm
+                    .environment
+                    .set_mutable_binding(name, value.clone(), true);
+                Ok(value)
+            }
+            Node::GetConstField(ref obj, ref field) => {
+                Ok(self.run(obj)?.set_field_slice(field, value))
+            }
+            Node::GetField(ref obj, ref field) => {
+                Ok(self.run(obj)?.set_field(self.run(field)?, value))
+            }
+            _ => panic!("TypeError: invalid assignment to {}", node),
+        }
     }
 }
