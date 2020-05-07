@@ -18,7 +18,7 @@ use crate::{
     },
 };
 use gc::{Gc, GcCell};
-use std::collections::{hash_map::HashMap, hash_set::HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 /// Representation of a Realm.
 ///
@@ -98,7 +98,7 @@ fn new_global_environment(
     });
 
     let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: FxHashMap::default(),
         outer_env: None,
     });
 
@@ -106,6 +106,6 @@ fn new_global_environment(
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
-        var_names: HashSet::new(),
+        var_names: FxHashSet::default(),
     })))
 }

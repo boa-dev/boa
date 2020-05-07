@@ -4,20 +4,20 @@
 //!
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
-//!
 
-use crate::builtins::value::{Value, ValueData};
-use crate::environment::declarative_environment_record::DeclarativeEnvironmentRecord;
-use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord};
-use crate::environment::global_environment_record::GlobalEnvironmentRecord;
-use crate::environment::object_environment_record::ObjectEnvironmentRecord;
+use crate::{
+    builtins::value::{Value, ValueData},
+    environment::{
+        declarative_environment_record::DeclarativeEnvironmentRecord,
+        environment_record_trait::EnvironmentRecordTrait,
+        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
+        global_environment_record::GlobalEnvironmentRecord,
+        object_environment_record::ObjectEnvironmentRecord,
+    },
+};
 use gc::{Gc, GcCell};
-use std::collections::hash_map::HashMap;
-use std::collections::{HashSet, VecDeque};
-use std::debug_assert;
-use std::error;
-use std::fmt;
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::{collections::VecDeque, error, fmt};
 
 /// Environments are wrapped in a Box and then in a GC wrapper
 pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
@@ -217,7 +217,7 @@ impl LexicalEnvironment {
 
 pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
     let boxed_env = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: FxHashMap::default(),
         outer_env: env,
     });
 
@@ -231,7 +231,7 @@ pub fn new_function_environment(
 ) -> Environment {
     debug_assert!(new_target.is_object() || new_target.is_undefined());
     Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: FxHashMap::default(),
         function: f,
         this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
         home_object: Gc::new(ValueData::Undefined),
@@ -267,7 +267,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
     });
 
     let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: FxHashMap::default(),
         outer_env: None,
     });
 
@@ -275,7 +275,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
-        var_names: HashSet::new(),
+        var_names: FxHashSet::default(),
     })))
 }
 

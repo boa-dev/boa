@@ -13,8 +13,7 @@ use crate::builtins::{
     },
     property::Property,
 };
-use gc::{Gc, GcCell, GcCellRef};
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
