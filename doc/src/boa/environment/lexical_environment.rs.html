@@ -352,20 +352,20 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The following operations are used to operate upon lexical environments</span>
 <span class="doccomment">//! This is the entrypoint to lexical environments.</span>
-<span class="doccomment">//!</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">Value</span>, <span class="ident">ValueData</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">global_environment_record</span>::<span class="ident">GlobalEnvironmentRecord</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">Value</span>, <span class="ident">ValueData</span>},
+    <span class="ident">environment</span>::{
+        <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
+        <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
+        <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
+        <span class="ident">global_environment_record</span>::<span class="ident">GlobalEnvironmentRecord</span>,
+        <span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>,
+    },
+};
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">HashSet</span>, <span class="ident">VecDeque</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">debug_assert</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">VecDeque</span>, <span class="ident">error</span>, <span class="ident">fmt</span>};
 
 <span class="doccomment">/// Environments are wrapped in a Box and then in a GC wrapper</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Environment</span> <span class="op">=</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EnvironmentRecordTrait</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
@@ -565,7 +565,7 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_declarative_environment</span>(<span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
     <span class="kw">let</span> <span class="ident">boxed_env</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">DeclarativeEnvironmentRecord</span> {
-        <span class="ident">env_rec</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+        <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">outer_env</span>: <span class="ident">env</span>,
     });
 
@@ -579,7 +579,7 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
     <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">new_target</span>.<span class="ident">is_object</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>());
     <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FunctionEnvironmentRecord</span> {
-        <span class="ident">env_rec</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+        <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">function</span>: <span class="ident">f</span>,
         <span class="ident">this_binding_status</span>: <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>, <span class="comment">// hardcoding to unitialized for now until short functions are properly supported</span>
         <span class="ident">home_object</span>: <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>),
@@ -615,7 +615,7 @@
     });
 
     <span class="kw">let</span> <span class="ident">dcl_rec</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">DeclarativeEnvironmentRecord</span> {
-        <span class="ident">env_rec</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+        <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
     });
 
@@ -623,7 +623,7 @@
         <span class="ident">object_record</span>: <span class="ident">obj_rec</span>,
         <span class="ident">global_this_binding</span>: <span class="ident">this_value</span>,
         <span class="ident">declarative_record</span>: <span class="ident">dcl_rec</span>,
-        <span class="ident">var_names</span>: <span class="ident">HashSet</span>::<span class="ident">new</span>(),
+        <span class="ident">var_names</span>: <span class="ident">FxHashSet</span>::<span class="ident">default</span>(),
     })))
 }
 

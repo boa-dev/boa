@@ -245,7 +245,6 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-<span id="248">248</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Function Environment Records</span>
 <span class="doccomment">//!</span>
@@ -265,9 +264,8 @@
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
 };
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
-<span class="kw">use</span> <span class="ident">gc_derive</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
 <span class="doccomment">/// Different binding status for `this`.</span>
 <span class="doccomment">/// Usually set on a function environment record</span>
@@ -284,7 +282,7 @@
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#table-16&gt;</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionEnvironmentRecord</span> {
-    <span class="kw">pub</span> <span class="ident">env_rec</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">DeclarativeEnvironmentRecordBinding</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">DeclarativeEnvironmentRecordBinding</span><span class="op">&gt;</span>,
     <span class="doccomment">/// This is the this value used for this invocation of the function.</span>
     <span class="kw">pub</span> <span class="ident">this_value</span>: <span class="ident">Value</span>,
     <span class="doccomment">/// If the value is &quot;lexical&quot;, this is an ArrowFunction and does not have a local this value.</span>

@@ -176,7 +176,6 @@
 <span id="176">176</span>
 <span id="177">177</span>
 <span id="178">178</span>
-<span id="179">179</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Declarative Records</span>
 <span class="doccomment">//!</span>
@@ -192,9 +191,8 @@
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
 };
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
-<span class="kw">use</span> <span class="ident">gc_derive</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
 <span class="doccomment">/// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).</span>
 <span class="doccomment">/// Can it be deleted? and strict mode.</span>
@@ -213,7 +211,7 @@
 <span class="doccomment">/// declarations contained within its scope.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
-    <span class="kw">pub</span> <span class="ident">env_rec</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">DeclarativeEnvironmentRecordBinding</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">DeclarativeEnvironmentRecordBinding</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">outer_env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
 }
 

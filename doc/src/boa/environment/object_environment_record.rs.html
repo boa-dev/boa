@@ -127,7 +127,6 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
-<span id="130">130</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Object Records</span>
 <span class="doccomment">//!</span>
@@ -147,8 +146,7 @@
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
 };
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
-<span class="kw">use</span> <span class="ident">gc_derive</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectEnvironmentRecord</span> {

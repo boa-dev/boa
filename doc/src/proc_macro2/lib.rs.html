@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.10/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1197,6 +1197,13 @@
 <span id="1197">1197</span>
 <span id="1198">1198</span>
 <span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A wrapper around the procedural macro API of the compiler&#39;s [`proc_macro`]</span>
 <span class="doccomment">//! crate. This library serves two purposes:</span>
@@ -1278,7 +1285,7 @@
 <span class="doccomment">//! a different thread.</span>
 
 <span class="comment">// Proc-macro2 types in rustdoc of other crates get linked to here.</span>
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/proc-macro2/1.0.10&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/proc-macro2/1.0.12&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">proc_macro_span</span>, <span class="ident">super_unstable</span>), <span class="ident">feature</span>(<span class="ident">proc_macro_span</span>))]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">super_unstable</span>, <span class="ident">feature</span>(<span class="ident">proc_macro_raw_ident</span>, <span class="ident">proc_macro_def_site</span>))]</span>
 
@@ -1298,7 +1305,14 @@
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">strnom</span>;
-<span class="kw">mod</span> <span class="ident">fallback</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
+<span class="kw">mod</span> <span class="ident">detection</span>;
+
+<span class="comment">// Public for proc_macro2::fallback::force() and unforce(), but those are quite</span>
+<span class="comment">// a niche use case so we omit it from rustdoc.</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">fallback</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">wrap_proc_macro</span>))]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">fallback</span> <span class="kw">as</span> <span class="ident">imp</span>;
@@ -2354,12 +2368,12 @@
 
 <span class="doccomment">/// Public implementation details for the `TokenStream` type, such as iterators.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">token_stream</span> {
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">imp</span>, <span class="ident">TokenTree</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
     <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TokenStream</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">imp</span>, <span class="ident">TokenTree</span>};
 
     <span class="doccomment">/// An iterator over `TokenStream`&#39;s `TokenTree`s.</span>
     <span class="doccomment">///</span>

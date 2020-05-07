@@ -1191,7 +1191,6 @@
 <span id="1191">1191</span>
 <span id="1192">1192</span>
 <span id="1193">1193</span>
-<span id="1194">1194</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1208,8 +1207,7 @@
     },
     <span class="ident">property</span>::<span class="ident">Property</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>, <span class="ident">GcCellRef</span>};
-<span class="kw">use</span> <span class="ident">gc_derive</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">GcCell</span>, <span class="ident">GcCellRef</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">map</span>::<span class="ident">Map</span>, <span class="ident">Number</span> <span class="kw">as</span> <span class="ident">JSONNumber</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">any</span>::<span class="ident">Any</span>,

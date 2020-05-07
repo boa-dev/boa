@@ -358,7 +358,6 @@
 <span id="358">358</span>
 <span id="359">359</span>
 <span id="360">360</span>
-<span id="361">361</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -385,8 +384,7 @@
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">Node</span>},
     <span class="ident">Interpreter</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">gc_derive</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
 
 <span class="doccomment">/// _fn(this, arguments, ctx) -&gt; ResultValue_ - The signature of a built-in function</span>

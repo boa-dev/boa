@@ -514,15 +514,6 @@
 <span id="514">514</span>
 <span id="515">515</span>
 <span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
@@ -550,24 +541,15 @@
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">time</span>::<span class="ident">SystemTime</span>};
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">SystemTime</span>;
 
 <span class="doccomment">/// This is the internal console object state.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConsoleState</span> {
-    <span class="ident">count_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="ident">timer_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">u128</span><span class="op">&gt;</span>,
+    <span class="ident">count_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="ident">timer_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">u128</span><span class="op">&gt;</span>,
     <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">ConsoleState</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">count_map</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
-            <span class="ident">timer_map</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
-            <span class="ident">groups</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-        }
-    }
 }
 
 <span class="kw">impl</span> <span class="ident">InternalState</span> <span class="kw">for</span> <span class="ident">ConsoleState</span> {}
@@ -1046,7 +1028,7 @@
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">time_end</span>, <span class="ident">named</span> <span class="string">&quot;timeEnd&quot;</span>, <span class="ident">of</span> <span class="ident">console</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">dir</span>, <span class="ident">named</span> <span class="string">&quot;dir&quot;</span>, <span class="ident">of</span> <span class="ident">console</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">dir</span>, <span class="ident">named</span> <span class="string">&quot;dirxml&quot;</span>, <span class="ident">of</span> <span class="ident">console</span>);
-    <span class="ident">console</span>.<span class="ident">set_internal_state</span>(<span class="ident">ConsoleState</span>::<span class="ident">new</span>());
+    <span class="ident">console</span>.<span class="ident">set_internal_state</span>(<span class="ident">ConsoleState</span>::<span class="ident">default</span>());
     <span class="ident">console</span>
 }
 </pre></div>

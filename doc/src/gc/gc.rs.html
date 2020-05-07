@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gc-0.3.3/src/gc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gc.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../gc/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gc-0.3.4/src/gc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gc.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../gc/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -219,12 +219,12 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
+<span id="222">222</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">trace</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">NonNull</span>;
-<span class="kw">use</span> <span class="ident">trace</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-
 
 <span class="kw">const</span> <span class="ident">INITIAL_THRESHOLD</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">100</span>;
 
@@ -237,7 +237,7 @@
 <span class="kw">struct</span> <span class="ident">GcState</span> {
     <span class="ident">bytes_allocated</span>: <span class="ident">usize</span>,
     <span class="ident">threshold</span>: <span class="ident">usize</span>,
-    <span class="ident">boxes_start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">boxes_start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">GcState</span> {
@@ -260,8 +260,8 @@
     }
 }
 
-<span class="doccomment">/// Whether or not the thread is currently in the sweep phase of garbage collection.</span>
-<span class="doccomment">/// During this phase, attempts to dereference a `Gc&lt;T&gt;` pointer will trigger a panic.</span>
+<span class="comment">// Whether or not the thread is currently in the sweep phase of garbage collection.</span>
+<span class="comment">// During this phase, attempts to dereference a `Gc&lt;T&gt;` pointer will trigger a panic.</span>
 <span class="macro">thread_local</span><span class="macro">!</span>(<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">GC_DROPPING</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="bool-val">false</span>));
 <span class="kw">struct</span> <span class="ident">DropGuard</span>;
 <span class="kw">impl</span> <span class="ident">DropGuard</span> {
@@ -279,23 +279,23 @@
     <span class="ident">GC_DROPPING</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">dropping</span><span class="op">|</span> <span class="op">!</span><span class="ident">dropping</span>.<span class="ident">get</span>())
 }
 
-<span class="doccomment">/// The garbage collector&#39;s internal state.</span>
+<span class="comment">// The garbage collector&#39;s internal state.</span>
 <span class="macro">thread_local</span><span class="macro">!</span>(<span class="kw">static</span> <span class="ident">GC_STATE</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">GcState</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">GcState</span> {
     <span class="ident">bytes_allocated</span>: <span class="number">0</span>,
     <span class="ident">threshold</span>: <span class="ident">INITIAL_THRESHOLD</span>,
     <span class="ident">boxes_start</span>: <span class="prelude-val">None</span>,
 }));
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GcBoxHeader</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">GcBoxHeader</span> {
     <span class="comment">// XXX This is horribly space inefficient - not sure if we care</span>
     <span class="comment">// We are using a word word bool - there is a full 63 bits of unused data :(</span>
     <span class="comment">// XXX: Should be able to store marked in the high bit of roots?</span>
     <span class="ident">roots</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">next</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">next</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">marked</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="ident">header</span>: <span class="ident">GcBoxHeader</span>,
     <span class="ident">data</span>: <span class="ident">T</span>,
 }
@@ -305,7 +305,7 @@
     <span class="doccomment">/// and appends it to the thread-local `GcBox` chain.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A `GcBox` allocated this way starts its life rooted.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">GC_STATE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">st</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">st</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">borrow_mut</span>();
 
@@ -343,7 +343,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Marks this `GcBox` and marks through its data.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">trace_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">trace_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">marked</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">marked</span>.<span class="ident">get</span>();
         <span class="kw">if</span> <span class="op">!</span><span class="ident">marked</span> {
             <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">marked</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
@@ -353,20 +353,22 @@
 
     <span class="doccomment">/// Increases the root count on this `GcBox`.</span>
     <span class="doccomment">/// Roots prevent the `GcBox` from being destroyed by the garbage collector.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">root_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">root_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// abort if the count overflows to prevent `mem::forget` loops that could otherwise lead to</span>
         <span class="comment">// erroneous drops</span>
-        <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">roots</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">roots</span>.<span class="ident">get</span>().<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">unwrap</span>());
+        <span class="self">self</span>.<span class="ident">header</span>
+            .<span class="ident">roots</span>
+            .<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">roots</span>.<span class="ident">get</span>().<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">unwrap</span>());
     }
 
     <span class="doccomment">/// Decreases the root count on this `GcBox`.</span>
     <span class="doccomment">/// Roots prevent the `GcBox` from being destroyed by the garbage collector.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unroot_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unroot_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">roots</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">roots</span>.<span class="ident">get</span>() <span class="op">-</span> <span class="number">1</span>);
     }
 
     <span class="doccomment">/// Returns a reference to the `GcBox`&#39;s value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>
     }
 }
@@ -374,10 +376,10 @@
 <span class="doccomment">/// Collects garbage.</span>
 <span class="kw">fn</span> <span class="ident">collect_garbage</span>(<span class="ident">st</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">GcState</span>) {
     <span class="kw">struct</span> <span class="ident">Unmarked</span> {
-        <span class="ident">incoming</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">this</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">incoming</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">this</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     }
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mark</span>(<span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Unmarked</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">mark</span>(<span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Trace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Unmarked</span><span class="op">&gt;</span> {
         <span class="comment">// Walk the tree, tracing and marking the nodes</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mark_head</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">head</span>;
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">mark_head</span> {

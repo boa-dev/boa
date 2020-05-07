@@ -190,7 +190,6 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
-<span id="193">193</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Global Environment Records</span>
 <span class="doccomment">//!</span>
@@ -210,16 +209,15 @@
         <span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
-<span class="kw">use</span> <span class="ident">gc_derive</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashSet</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GlobalEnvironmentRecord</span> {
     <span class="kw">pub</span> <span class="ident">object_record</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ObjectEnvironmentRecord</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">global_this_binding</span>: <span class="ident">Value</span>,
     <span class="kw">pub</span> <span class="ident">declarative_record</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">DeclarativeEnvironmentRecord</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">var_names</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">var_names</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">GlobalEnvironmentRecord</span> {

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/synstructure-0.6.1/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/synstructure-0.12.3/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -248,174 +248,168 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module provides two utility macros for testing custom derives. They can</span>
 <span class="doccomment">//! be used together to eliminate some of the boilerplate required in order to</span>
 <span class="doccomment">//! declare and test custom derive implementations.</span>
 
-<span class="comment">// XXX: Stop using `ignore` blocks for examples in this module.</span>
-
 <span class="comment">// Re-exports used by the decl_derive! and test_derive!</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syn</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">syn</span>::<span class="kw-2">*</span>; <span class="comment">// For syn::parse_derive_input</span>
-}
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">proc_macro2</span>::<span class="ident">TokenStream</span> <span class="kw">as</span> <span class="ident">TokenStream2</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_str</span>, <span class="ident">DeriveInput</span>};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">quote</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">quote</span>::<span class="kw-2">*</span>; <span class="comment">// For quote::Tokens</span>
-}
-
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">proc_macro</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">proc_macro</span>::<span class="kw-2">*</span>; <span class="comment">// For proc_macro::TokenStream</span>
-}
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
+    <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))),
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
+))]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
+    <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))),
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
+))]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">syn</span>::<span class="ident">parse</span>;
 
 <span class="doccomment">/// The `decl_derive!` macro declares a custom derive wrapper. It will parse the</span>
-<span class="doccomment">/// incoming TokenStream into a `synstructure::Structure` object, and pass it</span>
+<span class="doccomment">/// incoming `TokenStream` into a `synstructure::Structure` object, and pass it</span>
 <span class="doccomment">/// into the inner function.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Your inner function should have the following type:</span>
+<span class="doccomment">/// Your inner function should take a `synstructure::Structure` by value, and</span>
+<span class="doccomment">/// return a type implementing `synstructure::MacroResult`, for example:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// # extern crate quote;</span>
-<span class="doccomment">/// # extern crate synstructure;</span>
-<span class="doccomment">/// fn derive(input: synstructure::Structure) -&gt; quote::Tokens {</span>
-<span class="doccomment">///     // Your body here</span>
-<span class="doccomment">/// # unimplemented!()</span>
+<span class="doccomment">/// fn derive_simple(input: synstructure::Structure) -&gt; proc_macro2::TokenStream {</span>
+<span class="doccomment">///     unimplemented!()</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// fn derive_result(input: synstructure::Structure)</span>
+<span class="doccomment">///     -&gt; syn::Result&lt;proc_macro2::TokenStream&gt;</span>
+<span class="doccomment">/// {</span>
+<span class="doccomment">///     unimplemented!()</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Usage</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// fn derive_interesting(mut input: synstructure::Structure) -&gt; quote::Tokens {</span>
-<span class="doccomment">///     // Your body here</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// decl_derive!([Interesting, attributes(interesting_ignore)] =&gt; derive_interesting);</span>
+<span class="doccomment">/// ### Without Attributes</span>
 <span class="doccomment">/// ```</span>
+<span class="doccomment">/// fn derive_interesting(_input: synstructure::Structure) -&gt; proc_macro2::TokenStream {</span>
+<span class="doccomment">///     quote::quote! { ... }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # const _IGNORE: &amp;&#39;static str = stringify! {</span>
+<span class="doccomment">/// decl_derive!([Interesting] =&gt; derive_interesting);</span>
+<span class="doccomment">/// # };</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ### With Attributes</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # fn main() {}</span>
+<span class="doccomment">/// fn derive_interesting(_input: synstructure::Structure) -&gt; proc_macro2::TokenStream {</span>
+<span class="doccomment">///     quote::quote! { ... }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # const _IGNORE: &amp;&#39;static str = stringify! {</span>
+<span class="doccomment">/// decl_derive!([Interesting, attributes(interesting_ignore)] =&gt; derive_interesting);</span>
+<span class="doccomment">/// # };</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ### Decl Attributes &amp; Doc Comments</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # fn main() {}</span>
+<span class="doccomment">/// fn derive_interesting(_input: synstructure::Structure) -&gt; proc_macro2::TokenStream {</span>
+<span class="doccomment">///     quote::quote! { ... }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # const _IGNORE: &amp;&#39;static str = stringify! {</span>
+<span class="doccomment">/// decl_derive! {</span>
+<span class="doccomment">///     [Interesting] =&gt;</span>
+<span class="doccomment">///     #[allow(some_lint)]</span>
+<span class="doccomment">///     /// Documentation Comments</span>
+<span class="doccomment">///     derive_interesting</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// # };</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *This macro is available if `synstructure` is built with the `&quot;proc-macro&quot;`</span>
+<span class="doccomment">/// feature.*</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
+    <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))),
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
+))]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">decl_derive</span> {
     <span class="comment">// XXX: Switch to using this variant everywhere?</span>
-    ([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derives</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derive_t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derives</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derive_t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] <span class="op">=</span><span class="op">&gt;</span> $(<span class="attribute">#[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">proc_macro_derive</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derives</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derive_t</span>)<span class="kw-2">*</span>)]</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
+        $(<span class="attribute">#[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">derives</span>(
-            <span class="ident">i</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">proc_macro</span>::<span class="ident">TokenStream</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">proc_macro</span>::<span class="ident">TokenStream</span>
-        {
-            <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">syn</span>::<span class="ident">parse_derive_input</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">to_string</span>())
-                .<span class="ident">expect</span>(<span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse input to `#[derive(&quot;</span>,
-                                <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derives</span>),
-                                <span class="string">&quot;)]`&quot;</span>));
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>(<span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Structure</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">parsed</span>)).<span class="ident">parse</span>()
-                .<span class="ident">expect</span>(<span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse output from `#[derive(&quot;</span>,
-                                <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">derives</span>),
-                                <span class="string">&quot;)]`&quot;</span>))
+            <span class="ident">i</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">TokenStream</span>
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">TokenStream</span> {
+            <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">DeriveInput</span><span class="op">&gt;</span>(<span class="ident">i</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Structure</span>::<span class="ident">try_new</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>) {
+                        <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">MacroResult</span>::<span class="ident">into_stream</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>(<span class="ident">s</span>)),
+                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">to_compile_error</span>().<span class="ident">into</span>(),
+                    }
+                }
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">to_compile_error</span>().<span class="ident">into</span>(),
+            }
+        }
+    };
+}
+
+<span class="doccomment">/// The `decl_attribute!` macro declares a custom attribute wrapper. It will</span>
+<span class="doccomment">/// parse the incoming `TokenStream` into a `synstructure::Structure` object,</span>
+<span class="doccomment">/// and pass it into the inner function.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Your inner function should have the following type:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// fn attribute(</span>
+<span class="doccomment">///     attr: proc_macro2::TokenStream,</span>
+<span class="doccomment">///     structure: synstructure::Structure,</span>
+<span class="doccomment">/// ) -&gt; proc_macro2::TokenStream {</span>
+<span class="doccomment">///     unimplemented!()</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Usage</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// fn attribute_interesting(</span>
+<span class="doccomment">///     _attr: proc_macro2::TokenStream,</span>
+<span class="doccomment">///     _structure: synstructure::Structure,</span>
+<span class="doccomment">/// ) -&gt; proc_macro2::TokenStream {</span>
+<span class="doccomment">///     quote::quote! { ... }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # const _IGNORE: &amp;&#39;static str = stringify! {</span>
+<span class="doccomment">/// decl_attribute!([interesting] =&gt; attribute_interesting);</span>
+<span class="doccomment">/// # };</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *This macro is available if `synstructure` is built with the `&quot;proc-macro&quot;`</span>
+<span class="doccomment">/// feature.*</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
+    <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))),
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
+))]</span>
+<span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">decl_attribute</span> {
+    ([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attribute</span>:<span class="ident">ident</span>] <span class="op">=</span><span class="op">&gt;</span> $(<span class="attribute">#[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">proc_macro_attribute</span>]</span>
+        $(<span class="attribute">#[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">attribute</span>(
+            <span class="ident">attr</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">TokenStream</span>,
+            <span class="ident">i</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">TokenStream</span>,
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">TokenStream</span> {
+            <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">DeriveInput</span><span class="op">&gt;</span>(<span class="ident">i</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Structure</span>::<span class="ident">try_new</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">MacroResult</span>::<span class="ident">into_stream</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>(<span class="ident">attr</span>.<span class="ident">into</span>(), <span class="ident">s</span>)),
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">to_compile_error</span>().<span class="ident">into</span>(),
+                },
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">to_compile_error</span>().<span class="ident">into</span>(),
+            }
         }
     };
 }
@@ -432,25 +426,20 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Usage</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// test_derive!{</span>
-<span class="doccomment">///     super::derive_interesting {</span>
-<span class="doccomment">///         struct A {</span>
-<span class="doccomment">///             a: i32,</span>
-<span class="doccomment">///             b: i32,</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// fn test_derive_example(_s: synstructure::Structure)</span>
+<span class="doccomment">///     -&gt; Result&lt;proc_macro2::TokenStream, syn::Error&gt;</span>
+<span class="doccomment">/// {</span>
+<span class="doccomment">///     Ok(quote::quote! { const YOUR_OUTPUT: &amp;&#39;static str = &quot;here&quot;; })</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// fn main() {</span>
+<span class="doccomment">///     synstructure::test_derive!{</span>
+<span class="doccomment">///         test_derive_example {</span>
+<span class="doccomment">///             struct A;</span>
 <span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///     expands to {</span>
-<span class="doccomment">///         impl ::Interesting for A {</span>
-<span class="doccomment">///             fn is_interesting(&amp;self) -&gt; bool {</span>
-<span class="doccomment">///                 match *self {</span>
-<span class="doccomment">///                     A { a: ref __binding_0, b: ref __binding_1, } =&gt; {</span>
-<span class="doccomment">///                         false ||</span>
-<span class="doccomment">///                             ::Interesting::is_interesting(__binding_0) ||</span>
-<span class="doccomment">///                             ::Interesting::is_interesting(__binding_1)</span>
-<span class="doccomment">///                     }</span>
-<span class="doccomment">///                 }</span>
-<span class="doccomment">///             }</span>
+<span class="doccomment">///         expands to {</span>
+<span class="doccomment">///             const YOUR_OUTPUT: &amp;&#39;static str = &quot;here&quot;;</span>
 <span class="doccomment">///         }</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
@@ -465,253 +454,50 @@
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>)<span class="op">*</span>
             }
 
-            <span class="macro">test_derive</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)<span class="op">*</span> } <span class="ident">expands</span> <span class="ident">to</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>)<span class="op">*</span> } <span class="ident">no_build</span>);
+            <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">test_derive</span><span class="op">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)<span class="op">*</span> } <span class="ident">expands</span> <span class="ident">to</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>)<span class="op">*</span> } <span class="ident">no_build</span>);
         }
     };
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">path</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">tt</span>)<span class="op">*</span> } <span class="ident">expands</span> <span class="ident">to</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>:<span class="ident">tt</span>)<span class="op">*</span> } <span class="ident">no_build</span>) <span class="op">=</span><span class="op">&gt;</span> {
         {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="macro">stringify</span><span class="macro">!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)<span class="op">*</span> );
-            <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">syn</span>::<span class="ident">parse_derive_input</span>(<span class="ident">i</span>)
-                .<span class="ident">expect</span>(<span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse input to `#[derive(&quot;</span>,
-                                <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>),
-                                <span class="string">&quot;)]`&quot;</span>));
+            <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">parse_str</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">DeriveInput</span><span class="op">&gt;</span>(<span class="ident">i</span>)
+                .<span class="ident">expect</span>(<span class="macro">concat</span><span class="macro">!</span>(
+                    <span class="string">&quot;Failed to parse input to `#[derive(&quot;</span>,
+                    <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>),
+                    <span class="string">&quot;)]`&quot;</span>,
+                ));
 
-            <span class="comment">// NOTE: These outputs can get quite long, so we&#39;d like to avoid</span>
-            <span class="comment">// recursive macros like `quote!` for parsing them. Instead, we use</span>
-            <span class="comment">// stringify (which is inconsistent with whitespace), split on</span>
-            <span class="comment">// whitespace, and compare the lists of tokens.</span>
+            <span class="kw">let</span> <span class="ident">raw_res</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Structure</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">parsed</span>));
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">MacroResult</span>::<span class="ident">into_result</span>(<span class="ident">raw_res</span>)
+                .<span class="ident">expect</span>(<span class="macro">concat</span><span class="macro">!</span>(
+                    <span class="string">&quot;Procedural macro failed for `#[derive(&quot;</span>,
+                    <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>),
+                    <span class="string">&quot;)]`&quot;</span>,
+                ));
 
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Structure</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">parsed</span>));
-            <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">stringify</span><span class="macro">!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>)<span class="op">*</span> );
+            <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">stringify</span><span class="macro">!</span>( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">o</span>)<span class="op">*</span> )
+                .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">TokenStream2</span><span class="op">&gt;</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;output should be a valid TokenStream&quot;</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_toks</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">TokenStream2</span>::<span class="ident">from</span>(<span class="ident">expected</span>);
+            <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">to_string</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">expected_toks</span>.<span class="ident">to_string</span>() {
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;\
+test_derive failed:
+expected:
+```
+{}
+```
 
-            <span class="kw">let</span> <span class="ident">res_toks</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">as_str</span>()
-                .<span class="ident">split</span>(<span class="op">|</span><span class="ident">ch</span>: <span class="ident">char</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_whitespace</span>())
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">|</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>())
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
-            <span class="kw">let</span> <span class="ident">exp_toks</span> <span class="op">=</span> <span class="ident">expected</span>
-                .<span class="ident">split</span>(<span class="op">|</span><span class="ident">ch</span>: <span class="ident">char</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_whitespace</span>())
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">|</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>())
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">res_toks</span>,
-                <span class="ident">exp_toks</span>
-            )
+got:
+```
+{}
+```\n&quot;</span>,
+                    <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">unpretty_print</span>(<span class="kw-2">&amp;</span><span class="ident">expected_toks</span>),
+                    <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">unpretty_print</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>),
+                );
+            }
         }
     };
-}
-
-<span class="doccomment">/// A helper macro for declaring relatively straightforward derive</span>
-<span class="doccomment">/// implementations. It provides mechanisms for operating over structures</span>
-<span class="doccomment">/// performing modifications on each field etc.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This macro is a helper wrapper over decl_derive!.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is an unstable experimental macro API, which may be changed or removed</span>
-<span class="doccomment">/// in a future version. I&#39;m not yet confident enough that this API is useful</span>
-<span class="doccomment">/// enough to warrant its complexity and inclusion in synstructure.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This feature is implemented behind the `simple-derive` feature, and is only</span>
-<span class="doccomment">/// avaliable when that feature is enabled.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// simple_derive! {</span>
-<span class="doccomment">///     // This macro implements the `Interesting` method exported by the `aa`</span>
-<span class="doccomment">///     // crate. It will explicitly add an `extern crate` invocation to import the</span>
-<span class="doccomment">///     // crate into the expanded context.</span>
-<span class="doccomment">///     derive(Interesting) impl ::aa::Interesting {</span>
-<span class="doccomment">///         // A &quot;filter&quot; block can be added. It evaluates its body with the (s)</span>
-<span class="doccomment">///         // variable bound to a mutable reference to the input `Structure`</span>
-<span class="doccomment">///         // object.</span>
-<span class="doccomment">///         //</span>
-<span class="doccomment">///         // This block can be used to perform general transformations, such as</span>
-<span class="doccomment">///         // filtering out fields which should be ignored by all methods and for</span>
-<span class="doccomment">///         // the purposes of binding type parameters.</span>
-<span class="doccomment">///         filter(s) {</span>
-<span class="doccomment">///             s.filter(|bi| bi.ast().ident != Some(&quot;a&quot;.into()));</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         // This is an implementation of a method in the implemented crate. The</span>
-<span class="doccomment">///         // return value should be the series of match patterns to destructure</span>
-<span class="doccomment">///         // the `self` argument with.</span>
-<span class="doccomment">///         fn is_interesting(&amp;self as s) -&gt; bool {</span>
-<span class="doccomment">///             s.fold(false, |acc, bi| {</span>
-<span class="doccomment">///                 quote!(#acc || ::aa::Interesting::is_interesting(#bi))</span>
-<span class="doccomment">///             })</span>
-<span class="doccomment">///         }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simple-derive&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">simple_derive</span> {
-    <span class="comment">// entry point</span>
-    (
-        <span class="ident">derive</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iname</span>:<span class="ident">ident</span> <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>:<span class="ident">path</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">*</span> }
-    ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">simple_derive</span><span class="macro">!</span>(@<span class="ident">I</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>] { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">*</span> } [] []);
-    };
-
-    <span class="comment">// Adding a filter block</span>
-    (
-        @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span>:<span class="ident">tt</span> {
-            <span class="ident">filter</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">ident</span>) {
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>)<span class="op">*</span>
-            }
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">*</span>
-        } [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">simple_derive</span><span class="macro">!</span>(
-            @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">*</span> } [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>)<span class="kw-2">*</span>] [
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>)<span class="op">*</span>
-                [
-                    <span class="ident">st_name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>,
-                    <span class="ident">body</span> <span class="op">=</span> {
-                        $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>)<span class="op">*</span>
-                    },
-                ]
-            ]
-        );
-    };
-
-    <span class="comment">// &amp;self bound method</span>
-    (
-        @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span>:<span class="ident">tt</span> {
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span> (<span class="kw-2">&amp;</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">params</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="op">*</span> {
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>)<span class="op">*</span>
-            }
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">*</span>
-        } [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">simple_derive</span><span class="macro">!</span>(
-            @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">*</span> } [
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>)<span class="op">*</span>
-                [
-                    <span class="ident">st_name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>,
-                    <span class="ident">bind_style</span> <span class="op">=</span> <span class="ident">Ref</span>,
-                    <span class="ident">body</span> <span class="op">=</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>)<span class="op">*</span> },
-                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span>,
-                    <span class="ident">expanded</span> <span class="op">=</span> {
-                        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">params</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>)<span class="op">*</span> {
-                            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> { #<span class="ident">result</span> }
-                        }
-                    },
-                ]
-            ] [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>)<span class="kw-2">*</span>]
-        );
-    };
-
-    <span class="comment">// &amp;mut self bound method</span>
-    (
-        @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span>:<span class="ident">tt</span> {
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">params</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="op">*</span> {
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>)<span class="op">*</span>
-            }
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">*</span>
-        } [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">simple_derive</span><span class="macro">!</span>(
-            @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">*</span> } [
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>)<span class="op">*</span>
-                [
-                    <span class="ident">st_name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>,
-                    <span class="ident">bind_style</span> <span class="op">=</span> <span class="ident">RefMut</span>,
-                    <span class="ident">body</span> <span class="op">=</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>)<span class="op">*</span> },
-                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span>,
-                    <span class="ident">expanded</span> <span class="op">=</span> {
-                        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">params</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>)<span class="op">*</span> {
-                            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> { #<span class="ident">result</span> }
-                        }
-                    },
-                ]
-            ] [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>)<span class="kw-2">*</span>]
-        );
-    };
-
-    <span class="comment">// self bound method</span>
-    (
-        @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span>:<span class="ident">tt</span> {
-            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span> (<span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">params</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>)<span class="op">*</span> {
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>)<span class="op">*</span>
-            }
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">*</span>
-        } [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">simple_derive</span><span class="macro">!</span>(
-            @<span class="ident">I</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">*</span> } [
-                $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">done</span>)<span class="op">*</span>
-                [
-                    <span class="ident">st_name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>,
-                    <span class="ident">bind_style</span> <span class="op">=</span> <span class="ident">Move</span>,
-                    <span class="ident">body</span> <span class="op">=</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>)<span class="op">*</span> },
-                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span>,
-                    <span class="ident">expanded</span> <span class="op">=</span> {
-                        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="self">self</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">params</span>)<span class="kw-2">*</span>) $(<span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>)<span class="op">*</span> {
-                            <span class="kw">match</span> <span class="self">self</span> { #<span class="ident">result</span> }
-                        }
-                    },
-                ]
-            ] [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter</span>)<span class="kw-2">*</span>]
-        );
-    };
-
-    <span class="comment">// XXX: Static methods?</span>
-
-    <span class="comment">// codegen after data collection</span>
-    (
-        @<span class="ident">I</span> [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>:<span class="ident">path</span>] {} [$(
-            [
-                <span class="ident">st_name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">st_name</span>:<span class="ident">ident</span>,
-                <span class="ident">bind_style</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bind_style</span>:<span class="ident">ident</span>,
-                <span class="ident">body</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">tt</span>,
-                <span class="ident">result</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>:<span class="ident">ident</span>,
-                <span class="ident">expanded</span> <span class="op">=</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expanded</span>:<span class="ident">tt</span>)<span class="op">*</span> },
-            ]
-        )<span class="kw-2">*</span>] [$(
-            [
-                <span class="ident">st_name</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter_st_name</span>:<span class="ident">ident</span>,
-                <span class="ident">body</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter_body</span>:<span class="ident">tt</span>,
-            ]
-        )<span class="kw-2">*</span>]
-    ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">decl_derive</span><span class="macro">!</span>([<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iname</span>);
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iname</span>(<span class="kw-2">mut</span> <span class="ident">st</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Structure</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">macros</span>::<span class="ident">quote</span>::<span class="ident">Tokens</span> {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">st</span>; <span class="comment">// Silence the unused mut warning</span>
-
-            <span class="comment">// Filter/transform the `Structure` object before cloning it for</span>
-            <span class="comment">// individual methods.</span>
-            $(
-                {
-                    <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter_st_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">st</span>;
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">filter_body</span>
-                }
-            )<span class="op">*</span>
-
-            <span class="comment">// Clone the `Structure` object and set the correct binding style,</span>
-            <span class="comment">// then perform method specific expansion.</span>
-            $(
-                <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">st_name</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">clone</span>();
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">st_name</span>.<span class="ident">bind_with</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ::<span class="ident">synstructure</span>::<span class="ident">BindStyle</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bind_style</span>);
-                    <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span> <span class="op">=</span> {
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>
-                    };
-                    <span class="macro">quote</span><span class="macro">!</span>{ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expanded</span>)<span class="op">*</span> }
-                };
-            )<span class="op">*</span>
-
-            <span class="ident">st</span>.<span class="ident">bound_impl</span>(<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>), <span class="macro">quote</span><span class="macro">!</span>{
-                $(#<span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>)<span class="op">*</span>
-            })
-        }
-    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "synstructure";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
