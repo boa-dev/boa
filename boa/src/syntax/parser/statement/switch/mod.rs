@@ -87,8 +87,11 @@ impl CaseBlock {
     }
 }
 
+/// Type used for case definition in a switch.
+type Case = (Node, Box<[Node]>);
+
 impl TokenParser for CaseBlock {
-    type Output = (Vec<(Node, Vec<Node>)>, Option<Node>);
+    type Output = (Box<[Case]>, Option<Node>);
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::OpenBlock, "switch case block")?;

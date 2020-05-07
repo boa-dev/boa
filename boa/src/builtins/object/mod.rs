@@ -23,9 +23,11 @@ use crate::{
 };
 use gc::{unsafe_empty_trace, Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
-use std::fmt::{self, Debug};
-use std::fmt::{Display, Error, Formatter};
-use std::{borrow::Borrow, ops::Deref};
+use std::{
+    borrow::Borrow,
+    fmt::{self, Debug, Display, Error, Formatter},
+    ops::Deref,
+};
 
 pub use internal_methods_trait::ObjectInternalMethods;
 pub use internal_state::{InternalState, InternalStateCell};

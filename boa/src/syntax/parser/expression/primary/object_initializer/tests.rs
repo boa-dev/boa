@@ -17,9 +17,9 @@ fn check_object_literal() {
             b: false,
         };
         ",
-        &[Node::const_decl(vec![(
+        vec![Node::const_decl(vec![(
             String::from("x"),
-            Node::Object(object_properties),
+            Node::object(object_properties),
         )])],
     );
 }
@@ -32,7 +32,7 @@ fn check_object_short_function() {
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Ordinary,
             "b",
-            Node::function_decl::<_, String, _, _>(None, Vec::new(), Node::StatementList(vec![])),
+            Node::function_decl::<_, String, _, _>(None, Vec::new(), Node::statement_list(vec![])),
         ),
     ];
 
@@ -42,9 +42,9 @@ fn check_object_short_function() {
             b() {},
         };
         ",
-        &[Node::ConstDecl(vec![(
+        vec![Node::const_decl(vec![(
             String::from("x"),
-            Node::Object(object_properties),
+            Node::object(object_properties),
         )])],
     );
 }
@@ -57,10 +57,10 @@ fn check_object_short_function_arguments() {
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Ordinary,
             "b",
-            Node::function_decl::<_, String, _, _>(
+            Node::FunctionDecl(
                 None,
-                vec![FormalParameter::new("test", None, false)],
-                Node::StatementList(Vec::new()),
+                Box::new([FormalParameter::new("test", None, false)]),
+                Box::new(Node::StatementList(Box::new([]))),
             ),
         ),
     ];
@@ -71,9 +71,9 @@ fn check_object_short_function_arguments() {
             b(test) {}
          };
         ",
-        &[Node::ConstDecl(vec![(
+        vec![Node::const_decl(vec![(
             String::from("x"),
-            Node::Object(object_properties),
+            Node::object(object_properties),
         )])],
     );
 }
@@ -85,7 +85,11 @@ fn check_object_getter() {
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Get,
             "b",
-            Node::FunctionDecl(None, Vec::new(), Box::new(Node::StatementList(Vec::new()))),
+            Node::FunctionDecl(
+                None,
+                Box::new([]),
+                Box::new(Node::statement_list(Vec::new())),
+            ),
         ),
     ];
 
@@ -95,9 +99,9 @@ fn check_object_getter() {
             get b() {}
         };
         ",
-        &[Node::ConstDecl(vec![(
+        vec![Node::const_decl(vec![(
             String::from("x"),
-            Node::Object(object_properties),
+            Node::object(object_properties),
         )])],
     );
 }
@@ -109,10 +113,10 @@ fn check_object_setter() {
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Set,
             "b",
-            Node::FunctionDecl(
+            Node::function_decl::<_, String, _, _>(
                 None,
                 vec![FormalParameter::new("test", None, false)],
-                Box::new(Node::StatementList(Vec::new())),
+                Node::statement_list(Vec::new()),
             ),
         ),
     ];
@@ -123,9 +127,9 @@ fn check_object_setter() {
             set b(test) {}
         };
         ",
-        &[Node::ConstDecl(vec![(
+        vec![Node::const_decl(vec![(
             String::from("x"),
-            Node::Object(object_properties),
+            Node::object(object_properties),
         )])],
     );
 }

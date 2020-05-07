@@ -120,7 +120,7 @@ impl TokenParser for ConciseBody {
                 let _ = cursor.next();
                 let body = FunctionBody::new(false, false)
                     .parse(cursor)
-                    .map(Node::StatementList)?;
+                    .map(Node::statement_list)?;
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }

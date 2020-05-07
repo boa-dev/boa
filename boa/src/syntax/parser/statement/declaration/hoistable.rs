@@ -109,7 +109,7 @@ impl TokenParser for FunctionDeclaration {
 
         let body = FunctionBody::new(self.allow_yield, self.allow_await)
             .parse(cursor)
-            .map(Node::StatementList)?;
+            .map(Node::statement_list)?;
 
         cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 

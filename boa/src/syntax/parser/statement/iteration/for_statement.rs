@@ -97,6 +97,6 @@ impl TokenParser for ForStatement {
 
         let for_node = Node::for_loop::<_, _, _, Node, Node, Node, _>(init, cond, step, body);
 
-        Ok(Node::Block(vec![for_node]))
+        Ok(Node::Block(Box::new([for_node])))
     }
 }

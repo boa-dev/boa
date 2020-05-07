@@ -60,14 +60,14 @@ impl TokenParser for Block {
         if let Some(tk) = cursor.peek(0) {
             if tk.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
                 cursor.next();
-                return Ok(Node::Block(Vec::new()));
+                return Ok(Node::Block(Box::new([])));
             }
         }
 
         let statement_list =
             StatementList::new(self.allow_yield, self.allow_await, self.allow_return, true)
                 .parse(cursor)
-                .map(Node::Block)?;
+                .map(Node::block)?;
         cursor.expect(Punctuator::CloseBlock, "block")?;
 
         Ok(statement_list)

@@ -208,7 +208,6 @@ impl Executor for Interpreter {
                 let mut result = Gc::new(ValueData::Null);
                 let mut matched = false;
                 for tup in vals.iter() {
-                    let tup: &(Node, Vec<Node>) = tup;
                     let cond = &tup.0;
                     let block = &tup.1;
                     if val == self.run(cond)? {
@@ -240,7 +239,7 @@ impl Executor for Interpreter {
                 let obj = ValueData::new_obj(Some(global_val));
 
                 // TODO: Implement the rest of the property types.
-                for property in properties {
+                for property in properties.iter() {
                     match property {
                         PropertyDefinition::Property(key, value) => {
                             obj.borrow().set_field_slice(&key.clone(), self.run(value)?);
