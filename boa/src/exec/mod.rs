@@ -354,7 +354,7 @@ impl Executor for Interpreter {
             Node::UnaryOp(ref op, ref a) => {
                 let v_r_a = self.run(a)?;
                 let v_a = (*v_r_a).clone();
-                Ok(match *op {
+                Ok(match op {
                     UnaryOp::Minus => to_value(-v_a.to_num()),
                     UnaryOp::Plus => to_value(v_a.to_num()),
                     UnaryOp::IncrementPost => {
@@ -864,10 +864,10 @@ impl Interpreter {
                 Ok(value)
             }
             Node::GetConstField(ref obj, ref field) => {
-                Ok(self.run(obj)?.borrow().set_field_slice(field, value))
+                Ok(self.run(obj)?.set_field_slice(field, value))
             }
             Node::GetField(ref obj, ref field) => {
-                Ok(self.run(obj)?.borrow().set_field(self.run(field)?, value))
+                Ok(self.run(obj)?.set_field(self.run(field)?, value))
             }
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
