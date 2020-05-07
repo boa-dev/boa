@@ -1269,7 +1269,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array</span>
-    <span class="ident">ArrayDecl</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+    <span class="ident">ArrayDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// An arrow function expression is a syntactically compact alternative to a regular function expression.</span>
     <span class="doccomment">///</span>
@@ -1282,7 +1282,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions</span>
-    <span class="ident">ArrowFunctionDecl</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+    <span class="ident">ArrowFunctionDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// An assignment operator assigns a value to its left operand based on the value of its right operand.</span>
     <span class="doccomment">///</span>
@@ -1317,7 +1317,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BlockStatement</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block</span>
-    <span class="ident">Block</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+    <span class="ident">Block</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The `break` statement terminates the current loop, switch, or label statement and transfers program control to the statement following the terminated statement.</span>
     <span class="doccomment">///</span>
@@ -1345,7 +1345,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-CallExpression</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions</span>
-    <span class="ident">Call</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+    <span class="ident">Call</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The `conditional` (ternary) operator is the only JavaScript operator that takes three operands.</span>
     <span class="doccomment">///</span>
@@ -1389,7 +1389,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const</span>
     <span class="doccomment">/// [identifier]: https://developer.mozilla.org/en-US/docs/Glossary/identifier</span>
     <span class="doccomment">/// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions</span>
-    <span class="ident">ConstDecl</span>(<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Node</span>)<span class="op">&gt;</span>),
+    <span class="ident">ConstDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="ident">Node</span>)]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The `continue` statement terminates execution of the statements in the current iteration of the current or labeled loop,</span>
     <span class="doccomment">/// and continues execution of the loop with the next iteration.</span>
@@ -1431,7 +1431,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function</span>
-    <span class="ident">FunctionDecl</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+    <span class="ident">FunctionDecl</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// This property accessor provides access to an object&#39;s properties by using the [dot notation][mdn].</span>
     <span class="doccomment">///</span>
@@ -1523,7 +1523,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let</span>
-    <span class="ident">LetDecl</span>(<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
+    <span class="ident">LetDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// An `identifier` is a sequence of characters in the code that identifies a variable, function, or property.</span>
     <span class="doccomment">///</span>
@@ -1572,7 +1572,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer</span>
     <span class="doccomment">/// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object</span>
     <span class="doccomment">/// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive</span>
-    <span class="ident">Object</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyDefinition</span><span class="op">&gt;</span>),
+    <span class="ident">Object</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PropertyDefinition</span>]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The `return` statement ends function execution and specifies a value to be returned to the function caller.</span>
     <span class="doccomment">///</span>
@@ -1606,7 +1606,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch</span>
-    <span class="ident">Switch</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Node</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)<span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Switch</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">Node</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>)]<span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// The `spread` operator allows an iterable such as an array expression or string to be expanded.</span>
     <span class="doccomment">///</span>
@@ -1629,7 +1629,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-StatementList</span>
-    <span class="ident">StatementList</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+    <span class="ident">StatementList</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The `throw` statement throws a user-defined exception.</span>
     <span class="doccomment">///</span>
@@ -1719,7 +1719,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-VariableStatement</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var</span>
-    <span class="ident">VarDecl</span>(<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
+    <span class="ident">VarDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)]<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The `while` statement creates a loop that executes a specified statement as long as the test condition evaluates to `true`.</span>
     <span class="doccomment">///</span>
@@ -1773,7 +1773,7 @@
     <span class="doccomment">/// Creates an `ArrayDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_decl</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">nodes</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="self">Self</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ArrayDecl</span>(<span class="ident">nodes</span>.<span class="ident">into</span>())
     }
@@ -1781,7 +1781,7 @@
     <span class="doccomment">/// Creates an `ArraowFunctionDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arrow_function_decl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">params</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="ident">params</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
@@ -1809,7 +1809,7 @@
     <span class="doccomment">/// Creates a `Block` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">nodes</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="self">Self</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Block</span>(<span class="ident">nodes</span>.<span class="ident">into</span>())
     }
@@ -1827,7 +1827,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">function</span>: <span class="ident">F</span>, <span class="ident">params</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="self">Self</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Call</span>(<span class="ident">function</span>.<span class="ident">into</span>(), <span class="ident">params</span>.<span class="ident">into</span>())
     }
@@ -1853,7 +1853,7 @@
     <span class="doccomment">/// Creates a `ConstDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_decl</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">decl</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="self">Self</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="self">Self</span>)]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">ConstDecl</span>(<span class="ident">decl</span>.<span class="ident">into</span>())
     }
@@ -1881,7 +1881,7 @@
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">ON</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">FunctionDecl</span>(<span class="ident">name</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">N</span>::<span class="ident">into</span>), <span class="ident">params</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
@@ -1938,7 +1938,7 @@
     <span class="doccomment">/// Creates a `LetDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">let_decl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">LetDecl</span>(<span class="ident">init</span>.<span class="ident">into</span>())
     }
@@ -1962,7 +1962,7 @@
     <span class="doccomment">/// Creates an `Object` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">object</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">def</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyDefinition</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PropertyDefinition</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">def</span>.<span class="ident">into</span>())
     }
@@ -1980,7 +1980,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">switch</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">C</span>, <span class="ident">OD</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>, <span class="ident">cases</span>: <span class="ident">C</span>, <span class="ident">default</span>: <span class="ident">OD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[(<span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="self">Self</span>]<span class="op">&gt;</span>)]<span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">OD</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
@@ -1998,7 +1998,7 @@
     <span class="doccomment">/// Creates a `StatementList` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statement_list</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span>(<span class="ident">list</span>: <span class="ident">L</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="self">Self</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">StatementList</span>(<span class="ident">list</span>.<span class="ident">into</span>())
     }
@@ -2057,7 +2057,7 @@
     <span class="doccomment">/// Creates a `VarDecl` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">var_decl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">VarDecl</span>(<span class="ident">init</span>.<span class="ident">into</span>())
     }
@@ -2146,7 +2146,7 @@
             <span class="self">Self</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">ex</span>, <span class="kw-2">ref</span> <span class="ident">field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}[{}]&quot;</span>, <span class="ident">ex</span>, <span class="ident">field</span>),
             <span class="self">Self</span>::<span class="ident">Call</span>(<span class="kw-2">ref</span> <span class="ident">ex</span>, <span class="kw-2">ref</span> <span class="ident">args</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}(&quot;</span>, <span class="ident">ex</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">arg_strs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">ToString</span>::<span class="ident">to_string</span>).<span class="ident">collect</span>();
+                <span class="kw">let</span> <span class="ident">arg_strs</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">String</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">ToString</span>::<span class="ident">to_string</span>).<span class="ident">collect</span>();
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{})&quot;</span>, <span class="ident">arg_strs</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))
             }
             <span class="self">Self</span>::<span class="ident">New</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -2206,7 +2206,7 @@
             }
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">properties</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;{\n&quot;</span>)<span class="question-mark">?</span>;
-                <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">properties</span> {
+                <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">properties</span>.<span class="ident">iter</span>() {
                     <span class="kw">match</span> <span class="ident">property</span> {
                         <span class="ident">PropertyDefinition</span>::<span class="ident">IdentifierReference</span>(<span class="ident">key</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}    {},&quot;</span>, <span class="ident">indent</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;

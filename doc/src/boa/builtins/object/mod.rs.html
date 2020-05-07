@@ -611,6 +611,8 @@
 <span id="611">611</span>
 <span id="612">612</span>
 <span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -637,9 +639,11 @@
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Error</span>, <span class="ident">Formatter</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Borrow</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">borrow</span>::<span class="ident">Borrow</span>,
+    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Error</span>, <span class="ident">Formatter</span>},
+    <span class="ident">ops</span>::<span class="ident">Deref</span>,
+};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">internal_state</span>::{<span class="ident">InternalState</span>, <span class="ident">InternalStateCell</span>};

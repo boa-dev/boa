@@ -373,7 +373,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">Object</span>(<span class="ident">elements</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">object</span>(<span class="ident">elements</span>))
     }
 }
 
@@ -524,7 +524,7 @@
         )<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">FunctionBody</span>::<span class="ident">new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>)
-            .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">StatementList</span>)<span class="question-mark">?</span>;
+            .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">statement_list</span>)<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
             <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>),
             <span class="string">&quot;property method definition&quot;</span>,
@@ -533,7 +533,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">node</span>::<span class="ident">PropertyDefinition</span>::<span class="ident">MethodDefinition</span>(
             <span class="ident">methodkind</span>,
             <span class="ident">prop_name</span>,
-            <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">body</span>)),
+            <span class="ident">Node</span>::<span class="ident">function_decl</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">String</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>),
         ))
     }
 }

@@ -252,7 +252,7 @@
 
     <span class="doccomment">/// Parse all expressions in the token array</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
-        <span class="ident">Script</span>.<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">StatementList</span>)
+        <span class="ident">Script</span>.<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">statement_list</span>)
     }
 }
 

@@ -358,6 +358,12 @@
 <span id="358">358</span>
 <span id="359">359</span>
 <span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -453,7 +459,7 @@
     <span class="doccomment">/// Call/Construct Function body</span>
     <span class="kw">pub</span> <span class="ident">body</span>: <span class="ident">FunctionBody</span>,
     <span class="doccomment">/// Formal Paramaters</span>
-    <span class="kw">pub</span> <span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">params</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>,
     <span class="doccomment">/// This Mode</span>
     <span class="kw">pub</span> <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
     <span class="doccomment">/// Function kind</span>
@@ -466,16 +472,19 @@
     <span class="doccomment">/// This will create an ordinary function object</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinaryfunctioncreate&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_ordinary</span>(
-        <span class="ident">parameter_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_ordinary</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(
+        <span class="ident">parameter_list</span>: <span class="ident">P</span>,
         <span class="ident">scope</span>: <span class="ident">Environment</span>,
         <span class="ident">body</span>: <span class="ident">FunctionBody</span>,
         <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
         <span class="self">Self</span> {
             <span class="ident">body</span>,
             <span class="ident">environment</span>: <span class="prelude-val">Some</span>(<span class="ident">scope</span>),
-            <span class="ident">params</span>: <span class="ident">parameter_list</span>,
+            <span class="ident">params</span>: <span class="ident">parameter_list</span>.<span class="ident">into</span>(),
             <span class="ident">kind</span>: <span class="ident">FunctionKind</span>::<span class="ident">Ordinary</span>,
             <span class="ident">this_mode</span>,
         }
@@ -484,10 +493,13 @@
     <span class="doccomment">/// This will create a built-in function object</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-createbuiltinfunction&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_builtin</span>(<span class="ident">parameter_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FormalParameter</span><span class="op">&gt;</span>, <span class="ident">body</span>: <span class="ident">FunctionBody</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_builtin</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">parameter_list</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">FunctionBody</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
         <span class="self">Self</span> {
             <span class="ident">body</span>,
-            <span class="ident">params</span>: <span class="ident">parameter_list</span>,
+            <span class="ident">params</span>: <span class="ident">parameter_list</span>.<span class="ident">into</span>(),
             <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
             <span class="ident">kind</span>: <span class="ident">FunctionKind</span>::<span class="ident">BuiltIn</span>,
             <span class="ident">environment</span>: <span class="prelude-val">None</span>,

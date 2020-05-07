@@ -337,9 +337,9 @@
         }
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_const</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">ConstDecl</span>(<span class="ident">const_decls</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">const_decl</span>(<span class="ident">const_decls</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">LetDecl</span>(<span class="ident">let_decls</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">let_decl</span>(<span class="ident">let_decls</span>))
         }
     }
 }
