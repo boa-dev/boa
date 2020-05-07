@@ -307,14 +307,15 @@ fn test_do_while_post_inc() {
 #[test]
 fn test_for_loop() {
     let simple = r#"
-        let a = 0;
-        for (let i = 0; i < 10; i = i + 1) {
-            a = a + i;
+        const a = ['h', 'e', 'l', 'l', 'o'];
+        let b = '';
+        for (let i = 0; i < a.length; i = i + 1) {
+            b = b + a[i];
         }
-
-        a
+        
+        b
         "#;
-    assert_eq!(exec(simple), String::from("45"));
+    assert_eq!(exec(simple), String::from("hello"));
 
     let without_init_and_inc_step = r#"
         let a = 0;
@@ -340,6 +341,13 @@ fn test_for_loop() {
         exec(body_should_not_execute_on_false_condition),
         String::from("0")
     );
+
+    let inner_scope = r#"
+        for (let i = 0;false;) {}
+
+        i
+        "#;
+    assert_eq!(exec(inner_scope), String::from("undefined"));
 }
 
 #[test]
