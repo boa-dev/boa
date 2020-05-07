@@ -297,17 +297,42 @@ impl Executor for Interpreter {
                 val.set_field_slice("length", to_value(args.len()));
 
                 // Set the name and assign it in the current environment
-                if name.is_some() {
-                    self.realm.environment.create_mutable_binding(
-                        name.clone().expect("No name was supplied"),
-                        false,
-                        VariableScope::Function,
-                    );
+                val.set_field_slice("name", to_value(name.clone()));
+                self.realm.environment.create_mutable_binding(
+                    name.clone(),
+                    false,
+                    VariableScope::Function,
+                );
 
-                    self.realm.environment.initialize_binding(
-                        name.as_ref().expect("Could not get name as reference"),
-                        val.clone(),
-                    )
+                self.realm.environment.initialize_binding(name, val.clone());
+
+                Ok(val)
+            }
+            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
+            Node::FunctionExpr(ref name, ref args, ref expr) => {
+                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
+                // let proto = &self
+                //     .realm
+                //     .environment
+                //     .get_global_object()
+                //     .expect("Could not get the global object")
+                //     .get_field_slice("Object")
+                //     .get_field_slice("Prototype");
+
+                let func = FunctionObject::create_ordinary(
+                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
+                    self.realm.environment.get_current_environment().clone(),
+                    FunctionBody::Ordinary(*expr.clone()),
+                    ThisMode::NonLexical,
+                );
+
+                let mut new_func = Object::function();
+                new_func.set_call(func);
+                let val = to_value(new_func);
+                val.set_field_slice("length", to_value(args.len()));
+
+                if let Some(name) = name {
+                    val.set_field_slice("name", to_value(name.clone()));
                 }
 
                 Ok(val)

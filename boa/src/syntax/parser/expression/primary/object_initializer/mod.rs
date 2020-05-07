@@ -242,7 +242,7 @@ impl TokenParser for MethodDefinition {
         Ok(node::PropertyDefinition::MethodDefinition(
             methodkind,
             prop_name,
-            Node::function_decl::<_, String, _, _>(None, params, body),
+            Node::function_expr::<_, String, _, _>(None, params, body),
         ))
     }
 }
