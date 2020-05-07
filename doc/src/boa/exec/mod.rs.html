@@ -840,6 +840,38 @@
 <span id="840">840</span>
 <span id="841">841</span>
 <span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -1196,9 +1228,23 @@
             <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v_r_a</span>).<span class="ident">clone</span>();
-                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {
                     <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="op">-</span><span class="ident">v_a</span>.<span class="ident">to_number</span>()),
                     <span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>()),
+                    <span class="ident">UnaryOp</span>::<span class="ident">IncrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                        <span class="ident">v_r_a</span>
+                    }
+                    <span class="ident">UnaryOp</span>::<span class="ident">IncrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                    }
+                    <span class="ident">UnaryOp</span>::<span class="ident">DecrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                        <span class="ident">v_r_a</span>
+                    }
+                    <span class="ident">UnaryOp</span>::<span class="ident">DecrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                    }
                     <span class="ident">UnaryOp</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="op">!</span><span class="ident">v_a</span>),
                     <span class="ident">UnaryOp</span>::<span class="ident">Tilde</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">num_v_a</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">to_number</span>();
@@ -1681,6 +1727,24 @@
         }
 
         <span class="prelude-val">Err</span>(())
+    }
+
+    <span class="kw">fn</span> <span class="ident">set_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">match</span> <span class="ident">node</span> {
+            <span class="ident">Node</span>::<span class="ident">Local</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">realm</span>
+                    .<span class="ident">environment</span>
+                    .<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="bool-val">true</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
+            }
+            <span class="ident">Node</span>::<span class="ident">GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>, <span class="kw-2">ref</span> <span class="ident">field</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">obj</span>)<span class="question-mark">?</span>.<span class="ident">set_field_slice</span>(<span class="ident">field</span>, <span class="ident">value</span>))
+            }
+            <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>, <span class="kw-2">ref</span> <span class="ident">field</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">obj</span>)<span class="question-mark">?</span>.<span class="ident">set_field</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">field</span>)<span class="question-mark">?</span>, <span class="ident">value</span>))
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;TypeError: invalid assignment to {}&quot;</span>, <span class="ident">node</span>),
+        }
     }
 }
 </pre></div>
