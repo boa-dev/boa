@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1588491821027,
+  "lastUpdate": 1588857632938,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -5451,6 +5451,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.466,
             "range": "+/- 0.158",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "akryvomaz@users.noreply.github.com",
+            "name": "Alexander Kryvomaz",
+            "username": "akryvomaz"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "75cf44a08aa62c3352cfa3d04313303c00868e48",
+          "message": "Implement for loop (#374)\n\n* implement for loop execution\r\n\r\n* for loop benchmark\r\n\r\n* add more for loop tests\r\n\r\n* Update boa/src/exec/tests.rs\r\n\r\nCo-authored-by: Iban Eguia <razican@protonmail.ch>",
+          "timestamp": "2020-05-07T15:11:48+02:00",
+          "tree_id": "9d10433c5917cdbdbe1ace45000aaead597beab1",
+          "url": "https://github.com/jasonwilliams/boa/commit/75cf44a08aa62c3352cfa3d04313303c00868e48"
+        },
+        "date": 1588857629328,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 569.1,
+            "range": "+/- 24.270",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 585.44,
+            "range": "+/- 16.630",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 561.83,
+            "range": "+/- 10.960",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 4.0323,
+            "range": "+/- 0.070",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.0298,
+            "range": "+/- 0.042",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 992.19,
+            "range": "+/- 12.770",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.3514,
+            "range": "+/- 0.077",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.9851,
+            "range": "+/- 0.083",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.3301,
+            "range": "+/- 0.033",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.964,
+            "range": "+/- 0.257",
             "unit": "us"
           }
         ]
