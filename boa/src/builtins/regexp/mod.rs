@@ -11,14 +11,13 @@
 
 use std::ops::Deref;
 
-use gc::Gc;
 use regex::Regex;
 
 use crate::{
     builtins::{
         object::{InternalState, Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
         property::Property,
-        value::{from_value, to_value, undefined, FromValue, ResultValue, Value, ValueData},
+        value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -59,18 +58,10 @@ struct RegExp {
 
 impl InternalState for RegExp {}
 
-/// Helper function for getting an argument.
-fn get_argument<T: FromValue>(args: &[Value], idx: usize) -> Result<T, Value> {
-    match args.get(idx) {
-        Some(arg) => from_value(arg.clone()).map_err(to_value),
-        None => Err(to_value(format!("expected argument at index {}", idx))),
-    }
-}
-
 /// Create a new `RegExp`
 pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     if args.is_empty() {
-        return Err(undefined());
+        return Err(Value::undefined());
     }
     let mut regex_body = String::new();
     let mut regex_flags = String::new();
@@ -85,16 +76,14 @@ pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {
-                    regex_body =
-                        from_value(body.clone()).expect("Could not convert value to String");
+                    regex_body = String::from(body);
                 }
                 if let Some(flags) = slots.get("OriginalFlags") {
-                    regex_flags =
-                        from_value(flags.clone()).expect("Could not convert value to String");
+                    regex_flags = String::from(flags);
                 }
             }
         }
-        _ => return Err(undefined()),
+        _ => return Err(Value::undefined()),
     }
     // if a second argument is given and it's a string, use it as flags
     match args.get(1) {
@@ -165,9 +154,9 @@ pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
     // This value is used by console.log and other routines to match Object type
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::Ordinary);
-    this.set_internal_slot("RegExpMatcher", undefined());
-    this.set_internal_slot("OriginalSource", to_value(regex_body));
-    this.set_internal_slot("OriginalFlags", to_value(regex_flags));
+    this.set_internal_slot("RegExpMatcher", Value::undefined());
+    this.set_internal_slot("OriginalSource", Value::from(regex_body));
+    this.set_internal_slot("OriginalFlags", Value::from(regex_flags));
 
     this.set_internal_state(regexp);
     Ok(this.clone())
@@ -184,7 +173,7 @@ pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
 fn get_dot_all(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.dot_all)))
+    this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.dot_all)))
 }
 
 /// `RegExp.prototype.flags`
@@ -199,7 +188,7 @@ fn get_dot_all(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValu
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
 /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
 fn get_flags(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.flags.clone())))
+    this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.flags.clone())))
 }
 
 /// `RegExp.prototype.global`
@@ -213,7 +202,7 @@ fn get_flags(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
 fn get_global(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.global)))
+    this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.global)))
 }
 
 /// `RegExp.prototype.ignoreCase`
@@ -227,7 +216,7 @@ fn get_global(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
 fn get_ignore_case(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.ignore_case)))
+    this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.ignore_case)))
 }
 
 /// `RegExp.prototype.multiline`
@@ -241,7 +230,7 @@ fn get_ignore_case(this: &mut Value, _: &[Value], _: &mut Interpreter) -> Result
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
 fn get_multiline(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.multiline)))
+    this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.multiline)))
 }
 
 /// `RegExp.prototype.source`
@@ -270,7 +259,7 @@ fn get_source(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
 fn get_sticky(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.sticky)))
+    this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.sticky)))
 }
 
 /// `RegExp.prototype.unicode`
@@ -285,7 +274,7 @@ fn get_sticky(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue
 /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
 fn get_unicode(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    this.with_internal_state_ref(|regex: &RegExp| Ok(to_value(regex.unicode)))
+    this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.unicode)))
 }
 
 /// `RegExp.prototype.test( string )`
@@ -301,9 +290,8 @@ fn get_unicode(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValu
 /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
 pub fn test(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let arg_str = get_argument::<String>(args, 0)?;
-    let mut last_index =
-        from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
+    let arg_str = String::from(args.get(0).expect("could not get argument"));
+    let mut last_index = usize::from(&this.get_field_slice("lastIndex"));
     let result = this.with_internal_state_ref(|regex: &RegExp| {
         let result = if let Some(m) = regex.matcher.find_at(arg_str.as_str(), last_index) {
             if regex.use_last_index {
@@ -316,9 +304,9 @@ pub fn test(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
             }
             false
         };
-        Ok(Gc::new(ValueData::Boolean(result)))
+        Ok(Value::boolean(result))
     });
-    this.set_field_slice("lastIndex", to_value(last_index));
+    this.set_field_slice("lastIndex", Value::from(last_index));
     result
 }
 
@@ -335,9 +323,8 @@ pub fn test(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
 pub fn exec(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let arg_str = get_argument::<String>(args, 0)?;
-    let mut last_index =
-        from_value::<usize>(this.get_field_slice("lastIndex")).map_err(to_value)?;
+    let arg_str = String::from(args.get(0).expect("could not get argument"));
+    let mut last_index = usize::from(&this.get_field_slice("lastIndex"));
     let result = this.with_internal_state_ref(|regex: &RegExp| {
         let mut locations = regex.matcher.capture_locations();
         let result = if let Some(m) =
@@ -351,26 +338,27 @@ pub fn exec(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
             let mut result = Vec::with_capacity(locations.len());
             for i in 0..locations.len() {
                 if let Some((start, end)) = locations.get(i) {
-                    result.push(to_value(
+                    result.push(Value::from(
                         arg_str.get(start..end).expect("Could not get slice"),
                     ));
                 } else {
-                    result.push(undefined());
+                    result.push(Value::undefined());
                 }
             }
-            let result = to_value(result);
-            result.set_prop_slice("index", Property::default().value(to_value(m.start())));
-            result.set_prop_slice("input", Property::default().value(to_value(arg_str)));
+
+            let result = Value::from(result);
+            result.set_property_slice("index", Property::default().value(Value::from(m.start())));
+            result.set_property_slice("input", Property::default().value(Value::from(arg_str)));
             result
         } else {
             if regex.use_last_index {
                 last_index = 0;
             }
-            Gc::new(ValueData::Null)
+            Value::null()
         };
         Ok(result)
     });
-    this.set_field_slice("lastIndex", to_value(last_index));
+    this.set_field_slice("lastIndex", Value::from(last_index));
     result
 }
 
@@ -390,14 +378,14 @@ pub fn r#match(this: &mut Value, arg: String, ctx: &mut Interpreter) -> ResultVa
     if flags.contains('g') {
         let mut matches = Vec::new();
         for mat in matcher.find_iter(&arg) {
-            matches.push(to_value(mat.as_str()));
+            matches.push(Value::from(mat.as_str()));
         }
         if matches.is_empty() {
-            return Ok(Gc::new(ValueData::Null));
+            return Ok(Value::null());
         }
-        Ok(to_value(matches))
+        Ok(Value::from(matches))
     } else {
-        exec(this, &[to_value(arg)], ctx)
+        exec(this, &[Value::from(arg)], ctx)
     }
 }
 
@@ -412,9 +400,9 @@ pub fn r#match(this: &mut Value, arg: String, ctx: &mut Interpreter) -> ResultVa
 /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
 pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    let body = from_value::<String>(this.get_internal_slot("OriginalSource")).map_err(to_value)?;
+    let body = String::from(&this.get_internal_slot("OriginalSource"));
     let flags = this.with_internal_state_ref(|regex: &RegExp| regex.flags.clone());
-    Ok(to_value(format!("/{}/{}", body, flags)))
+    Ok(Value::from(format!("/{}/{}", body, flags)))
 }
 
 /// `RegExp.prototype[ @@matchAll ]( string )`
@@ -437,17 +425,18 @@ pub fn match_all(this: &mut Value, arg_str: String) -> ResultValue {
                 let match_vec = caps
                     .iter()
                     .map(|group| match group {
-                        Some(g) => to_value(g.as_str()),
-                        None => undefined(),
+                        Some(g) => Value::from(g.as_str()),
+                        None => Value::undefined(),
                     })
                     .collect::<Vec<Value>>();
 
-                let match_val = to_value(match_vec);
+                let match_val = Value::from(match_vec);
 
-                match_val.set_prop_slice("index", Property::default().value(to_value(m.start())));
-                match_val.set_prop_slice(
+                match_val
+                    .set_property_slice("index", Property::default().value(Value::from(m.start())));
+                match_val.set_property_slice(
                     "input",
-                    Property::default().value(to_value(arg_str.clone())),
+                    Property::default().value(Value::from(arg_str.clone())),
                 );
                 matches.push(match_val);
 
@@ -461,8 +450,8 @@ pub fn match_all(this: &mut Value, arg_str: String) -> ResultValue {
     });
 
     let length = matches.len();
-    let result = to_value(matches);
-    result.set_field_slice("length", to_value(length));
+    let result = Value::from(matches);
+    result.set_field_slice("length", Value::from(length));
     result.set_kind(ObjectKind::Array);
 
     Ok(result)
@@ -471,8 +460,8 @@ pub fn match_all(this: &mut Value, arg_str: String) -> ResultValue {
 /// Create a new `RegExp` object.
 pub fn create(global: &Value) -> Value {
     // Create prototype
-    let prototype = ValueData::new_obj(Some(global));
-    prototype.set_field_slice("lastIndex", to_value(0));
+    let prototype = Value::new_object(Some(global));
+    prototype.set_field_slice("lastIndex", Value::from(0));
 
     make_builtin_fn!(test, named "test", with length 1, of prototype);
     make_builtin_fn!(exec, named "exec", with length 1, of prototype);

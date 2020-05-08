@@ -6,7 +6,7 @@
 //! This is the entrypoint to lexical environments.
 
 use crate::{
-    builtins::value::{Value, ValueData},
+    builtins::value::Value,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
@@ -211,7 +211,7 @@ impl LexicalEnvironment {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or_else(|| Gc::new(ValueData::Undefined))
+            .unwrap_or_else(Value::undefined)
     }
 }
 
@@ -234,10 +234,10 @@ pub fn new_function_environment(
         env_rec: FxHashMap::default(),
         function: f,
         this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
-        home_object: Gc::new(ValueData::Undefined),
+        home_object: Value::undefined(),
         new_target,
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-        this_value: Gc::new(ValueData::Undefined), // TODO: this_value should start as an Option as its not always there to begin with
+        this_value: Value::undefined(), // TODO: this_value should start as an Option as its not always there to begin with
     })))
 }
 

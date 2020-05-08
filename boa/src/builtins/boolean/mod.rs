@@ -15,7 +15,7 @@ mod tests;
 use crate::{
     builtins::{
         object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
-        value::{to_value, ResultValue, Value, ValueData},
+        value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -29,7 +29,7 @@ pub fn construct_boolean(this: &mut Value, args: &[Value], _: &mut Interpreter) 
     if let Some(ref value) = args.get(0) {
         this.set_internal_slot("BooleanData", to_boolean(value));
     } else {
-        this.set_internal_slot("BooleanData", to_boolean(&to_value(false)));
+        this.set_internal_slot("BooleanData", to_boolean(&Value::from(false)));
     }
 
     // no need to return `this` as its passed by reference
@@ -41,7 +41,7 @@ pub fn call_boolean(_: &mut Value, args: &[Value], _: &mut Interpreter) -> Resul
     // Get the argument, if any
     match args.get(0) {
         Some(ref value) => Ok(to_boolean(value)),
-        None => Ok(to_boolean(&to_value(false))),
+        None => Ok(to_boolean(&Value::from(false))),
     }
 }
 
@@ -55,7 +55,7 @@ pub fn call_boolean(_: &mut Value, args: &[Value], _: &mut Interpreter) -> Resul
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
 pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let b = this_boolean_value(this);
-    Ok(to_value(b.to_string()))
+    Ok(Value::from(b.to_string()))
 }
 
 /// The valueOf() method returns the primitive value of a `Boolean` object.
@@ -75,12 +75,12 @@ pub fn value_of(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVal
 /// Creates a new boolean value from the input
 pub fn to_boolean(value: &Value) -> Value {
     match *value.deref().borrow() {
-        ValueData::Object(_) => to_value(true),
-        ValueData::String(ref s) if !s.is_empty() => to_value(true),
-        ValueData::Rational(n) if n != 0.0 && !n.is_nan() => to_value(true),
-        ValueData::Integer(n) if n != 0 => to_value(true),
-        ValueData::Boolean(v) => to_value(v),
-        _ => to_value(false),
+        ValueData::Object(_) => Value::from(true),
+        ValueData::String(ref s) if !s.is_empty() => Value::from(true),
+        ValueData::Rational(n) if n != 0.0 && !n.is_nan() => Value::from(true),
+        ValueData::Integer(n) if n != 0 => Value::from(true),
+        ValueData::Boolean(v) => Value::from(v),
+        _ => Value::from(false),
     }
 }
 
@@ -92,9 +92,9 @@ pub fn to_boolean(value: &Value) -> Value {
 /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
 pub fn this_boolean_value(value: &Value) -> Value {
     match *value.deref().borrow() {
-        ValueData::Boolean(v) => to_value(v),
+        ValueData::Boolean(v) => Value::from(v),
         ValueData::Object(ref v) => (v).deref().borrow().get_internal_slot("BooleanData"),
-        _ => to_value(false),
+        _ => Value::from(false),
     }
 }
 
@@ -102,8 +102,8 @@ pub fn this_boolean_value(value: &Value) -> Value {
 pub fn create(global: &Value) -> Value {
     // Create Prototype
     // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
-    let prototype = ValueData::new_obj(Some(global));
-    prototype.set_internal_slot("BooleanData", to_boolean(&to_value(false)));
+    let prototype = Value::new_object(Some(global));
+    prototype.set_internal_slot("BooleanData", to_boolean(&Value::from(false)));
 
     make_builtin_fn!(to_string, named "toString", of prototype);
     make_builtin_fn!(value_of, named "valueOf", of prototype);

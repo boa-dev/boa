@@ -8,7 +8,7 @@ use crate::{
     builtins::{
         self,
         function::NativeFunctionData,
-        value::{ToValue, Value, ValueData},
+        value::{Value, ValueData},
     },
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -34,7 +34,7 @@ impl Realm {
     pub fn create() -> Self {
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
-        let global = ValueData::new_obj(None);
+        let global = Value::new_object(None);
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = new_global_environment(global.clone(), global.clone());
 
@@ -65,7 +65,7 @@ impl Realm {
             crate::builtins::function::FunctionBody::BuiltIn(func),
         );
         self.global_obj
-            .set_field(func_name.to_value(), ValueData::from_func(func));
+            .set_field(Value::from(func_name), ValueData::from_func(func));
 
         self
     }

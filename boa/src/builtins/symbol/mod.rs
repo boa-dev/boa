@@ -24,7 +24,7 @@ use crate::{
             internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
             PROTOTYPE,
         },
-        value::{to_value, undefined, ResultValue, Value, ValueData},
+        value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -51,12 +51,12 @@ pub fn call_symbol(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 
     // Set description which should either be undefined or a string
     let desc_string = match args.get(0) {
-        Some(value) => to_value(value.to_string()),
-        None => undefined(),
+        Some(value) => Value::from(value.to_string()),
+        None => Value::undefined(),
     };
 
     sym_instance.set_internal_slot("Description", desc_string);
-    sym_instance.set_internal_slot("SymbolData", to_value(random::<i32>()));
+    sym_instance.set_internal_slot("SymbolData", Value::from(random::<i32>()));
 
     // Set __proto__ internal slot
     let proto = ctx
@@ -66,9 +66,9 @@ pub fn call_symbol(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
         .get_field_slice(PROTOTYPE);
     sym_instance.set_internal_slot(INSTANCE_PROTOTYPE, proto);
 
-    Ok(Gc::new(ValueData::Symbol(Box::new(GcCell::new(
+    Ok(Value(Gc::new(ValueData::Symbol(Box::new(GcCell::new(
         sym_instance,
-    )))))
+    ))))))
 }
 
 /// `Symbol.prototype.toString()`
@@ -84,13 +84,13 @@ pub fn call_symbol(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let s: Value = this.get_internal_slot("Description");
     let full_string = format!(r#"Symbol({})"#, s.to_string());
-    Ok(to_value(full_string))
+    Ok(Value::from(full_string))
 }
 
 /// Create a new `Symbol` object.
 pub fn create(global: &Value) -> Value {
     // Create prototype object
-    let prototype = ValueData::new_obj(Some(global));
+    let prototype = Value::new_object(Some(global));
     make_builtin_fn!(to_string, named "toString", of prototype);
     make_constructor_fn!(call_symbol, call_symbol, global, prototype)
 }
