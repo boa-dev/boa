@@ -212,21 +212,57 @@ fn to_string_with_radix() {
     assert_eq!(num_with_radix, String::from("5a"));
     assert_eq!(fraction_with_radix, String::from("5a.e66666666668"));
 
-    assert_eq!(String::from("NaN"), forward(&mut engine, "Number(NaN).toString()"));
-    assert_eq!(String::from("Infinity"), forward(&mut engine, "Number(1/0).toString()"));
-    assert_eq!(String::from("-Infinity"), forward(&mut engine, "Number(-1/0).toString()"));
-    assert_eq!(String::from("0"), forward(&mut engine, "Number(0).toString()"));
-    assert_eq!(String::from("9"), forward(&mut engine, "Number(9).toString()"));
-    assert_eq!(String::from("90"), forward(&mut engine, "Number(90).toString()"));
-    assert_eq!(String::from("90.12"), forward(&mut engine, "Number(90.12).toString()"));
-    assert_eq!(String::from("0.1"), forward(&mut engine, "Number(0.1).toString()"));
-    assert_eq!(String::from("0.01"), forward(&mut engine, "Number(0.01).toString()"));
-    assert_eq!(String::from("0.0123"), forward(&mut engine, "Number(0.0123).toString()"));
+    assert_eq!(
+        String::from("NaN"),
+        forward(&mut engine, "Number(NaN).toString()")
+    );
+    assert_eq!(
+        String::from("Infinity"),
+        forward(&mut engine, "Number(1/0).toString()")
+    );
+    assert_eq!(
+        String::from("-Infinity"),
+        forward(&mut engine, "Number(-1/0).toString()")
+    );
+    assert_eq!(
+        String::from("0"),
+        forward(&mut engine, "Number(0).toString()")
+    );
+    assert_eq!(
+        String::from("9"),
+        forward(&mut engine, "Number(9).toString()")
+    );
+    assert_eq!(
+        String::from("90"),
+        forward(&mut engine, "Number(90).toString()")
+    );
+    assert_eq!(
+        String::from("90.12"),
+        forward(&mut engine, "Number(90.12).toString()")
+    );
+    assert_eq!(
+        String::from("0.1"),
+        forward(&mut engine, "Number(0.1).toString()")
+    );
+    assert_eq!(
+        String::from("0.01"),
+        forward(&mut engine, "Number(0.01).toString()")
+    );
+    assert_eq!(
+        String::from("0.0123"),
+        forward(&mut engine, "Number(0.0123).toString()")
+    );
     // assert_eq!(String::from("111111111111111110000"), forward(&mut engine, "Number(111111111111111111111).toString()"));
     // assert_eq!(String::from("1.1111111111111111e+21"), forward(&mut engine, "Number(1111111111111111111111).toString()"));
     // assert_eq!(String::from("1.1111111111111111e+22"), forward(&mut engine, "Number(11111111111111111111111).toString()"));
-    assert_eq!(String::from("0.00001"), forward(&mut engine, "Number(0.00001).toString()"));
-    assert_eq!(String::from("0.000001"), forward(&mut engine, "Number(0.000001).toString()"));
+    assert_eq!(
+        String::from("0.00001"),
+        forward(&mut engine, "Number(0.00001).toString()")
+    );
+    assert_eq!(
+        String::from("0.000001"),
+        forward(&mut engine, "Number(0.000001).toString()")
+    );
     // assert_eq!(String::from("1e-7"), forward(&mut engine, "Number(0.0000001).toString()"));
     // assert_eq!(String::from("1.2e-7"), forward(&mut engine, "Number(0.00000012).toString()"));
     // assert_eq!(String::from("1.23e-7"), forward(&mut engine, "Number(0.000000123).toString()"));
@@ -234,46 +270,163 @@ fn to_string_with_radix() {
     // assert_eq!(String::from("1.2e-8"), forward(&mut engine, "Number(0.000000012).toString()"));
     // assert_eq!(String::from("1.23e-8"), forward(&mut engine, "Number(0.0000000123).toString()"));
 
-    assert_eq!(String::from("NaN"), forward(&mut engine, "Number(NaN).toString(16)"));
-    assert_eq!(String::from("Infinity"), forward(&mut engine, "Number(1/0).toString(16)"));
-    assert_eq!(String::from("-Infinity"), forward(&mut engine, "Number(-1/0).toString(16)"));
-    assert_eq!(String::from("0"), forward(&mut engine, "Number(0).toString(16)"));
-    assert_eq!(String::from("9"), forward(&mut engine, "Number(9).toString(16)"));
-    assert_eq!(String::from("5a"), forward(&mut engine, "Number(90).toString(16)"));
-    assert_eq!(String::from("5a.1eb851eb852"), forward(&mut engine, "Number(90.12).toString(16)"));
-    assert_eq!(String::from("0.1999999999999a"), forward(&mut engine, "Number(0.1).toString(16)"));
-    assert_eq!(String::from("0.028f5c28f5c28f6"), forward(&mut engine, "Number(0.01).toString(16)"));
-    assert_eq!(String::from("0.032617c1bda511a"), forward(&mut engine, "Number(0.0123).toString(16)"));
-    assert_eq!(String::from("605f9f6dd18bc8000"), forward(&mut engine, "Number(111111111111111111111).toString(16)"));
-    assert_eq!(String::from("3c3bc3a4a2f75c0000"), forward(&mut engine, "Number(1111111111111111111111).toString(16)"));
-    assert_eq!(String::from("25a55a46e5da9a00000"), forward(&mut engine, "Number(11111111111111111111111).toString(16)"));
-    assert_eq!(String::from("0.0000a7c5ac471b4788"), forward(&mut engine, "Number(0.00001).toString(16)"));
-    assert_eq!(String::from("0.000010c6f7a0b5ed8d"), forward(&mut engine, "Number(0.000001).toString(16)"));
-    assert_eq!(String::from("0.000001ad7f29abcaf48"), forward(&mut engine, "Number(0.0000001).toString(16)"));
-    assert_eq!(String::from("0.000002036565348d256"), forward(&mut engine, "Number(0.00000012).toString(16)"));
-    assert_eq!(String::from("0.0000021047ee22aa466"), forward(&mut engine, "Number(0.000000123).toString(16)"));
-    assert_eq!(String::from("0.0000002af31dc4611874"), forward(&mut engine, "Number(0.00000001).toString(16)"));
-    assert_eq!(String::from("0.000000338a23b87483be"), forward(&mut engine, "Number(0.000000012).toString(16)"));
-    assert_eq!(String::from("0.00000034d3fe36aaa0a2"), forward(&mut engine, "Number(0.0000000123).toString(16)"));
+    assert_eq!(
+        String::from("NaN"),
+        forward(&mut engine, "Number(NaN).toString(16)")
+    );
+    assert_eq!(
+        String::from("Infinity"),
+        forward(&mut engine, "Number(1/0).toString(16)")
+    );
+    assert_eq!(
+        String::from("-Infinity"),
+        forward(&mut engine, "Number(-1/0).toString(16)")
+    );
+    assert_eq!(
+        String::from("0"),
+        forward(&mut engine, "Number(0).toString(16)")
+    );
+    assert_eq!(
+        String::from("9"),
+        forward(&mut engine, "Number(9).toString(16)")
+    );
+    assert_eq!(
+        String::from("5a"),
+        forward(&mut engine, "Number(90).toString(16)")
+    );
+    assert_eq!(
+        String::from("5a.1eb851eb852"),
+        forward(&mut engine, "Number(90.12).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.1999999999999a"),
+        forward(&mut engine, "Number(0.1).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.028f5c28f5c28f6"),
+        forward(&mut engine, "Number(0.01).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.032617c1bda511a"),
+        forward(&mut engine, "Number(0.0123).toString(16)")
+    );
+    assert_eq!(
+        String::from("605f9f6dd18bc8000"),
+        forward(&mut engine, "Number(111111111111111111111).toString(16)")
+    );
+    assert_eq!(
+        String::from("3c3bc3a4a2f75c0000"),
+        forward(&mut engine, "Number(1111111111111111111111).toString(16)")
+    );
+    assert_eq!(
+        String::from("25a55a46e5da9a00000"),
+        forward(&mut engine, "Number(11111111111111111111111).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.0000a7c5ac471b4788"),
+        forward(&mut engine, "Number(0.00001).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.000010c6f7a0b5ed8d"),
+        forward(&mut engine, "Number(0.000001).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.000001ad7f29abcaf48"),
+        forward(&mut engine, "Number(0.0000001).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.000002036565348d256"),
+        forward(&mut engine, "Number(0.00000012).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.0000021047ee22aa466"),
+        forward(&mut engine, "Number(0.000000123).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.0000002af31dc4611874"),
+        forward(&mut engine, "Number(0.00000001).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.000000338a23b87483be"),
+        forward(&mut engine, "Number(0.000000012).toString(16)")
+    );
+    assert_eq!(
+        String::from("0.00000034d3fe36aaa0a2"),
+        forward(&mut engine, "Number(0.0000000123).toString(16)")
+    );
 
-    assert_eq!(String::from("0"), forward(&mut engine, "Number(-0).toString(16)"));
-    assert_eq!(String::from("-9"), forward(&mut engine, "Number(-9).toString(16)"));
-    assert_eq!(String::from("-5a"), forward(&mut engine, "Number(-90).toString(16)"));
-    assert_eq!(String::from("-5a.1eb851eb852"), forward(&mut engine, "Number(-90.12).toString(16)"));
-    assert_eq!(String::from("-0.1999999999999a"), forward(&mut engine, "Number(-0.1).toString(16)"));
-    assert_eq!(String::from("-0.028f5c28f5c28f6"), forward(&mut engine, "Number(-0.01).toString(16)"));
-    assert_eq!(String::from("-0.032617c1bda511a"), forward(&mut engine, "Number(-0.0123).toString(16)"));
-    assert_eq!(String::from("-605f9f6dd18bc8000"), forward(&mut engine, "Number(-111111111111111111111).toString(16)"));
-    assert_eq!(String::from("-3c3bc3a4a2f75c0000"), forward(&mut engine, "Number(-1111111111111111111111).toString(16)"));
-    assert_eq!(String::from("-25a55a46e5da9a00000"), forward(&mut engine, "Number(-11111111111111111111111).toString(16)"));
-    assert_eq!(String::from("-0.0000a7c5ac471b4788"), forward(&mut engine, "Number(-0.00001).toString(16)"));
-    assert_eq!(String::from("-0.000010c6f7a0b5ed8d"), forward(&mut engine, "Number(-0.000001).toString(16)"));
-    assert_eq!(String::from("-0.000001ad7f29abcaf48"), forward(&mut engine, "Number(-0.0000001).toString(16)"));
-    assert_eq!(String::from("-0.000002036565348d256"), forward(&mut engine, "Number(-0.00000012).toString(16)"));
-    assert_eq!(String::from("-0.0000021047ee22aa466"), forward(&mut engine, "Number(-0.000000123).toString(16)"));
-    assert_eq!(String::from("-0.0000002af31dc4611874"), forward(&mut engine, "Number(-0.00000001).toString(16)"));
-    assert_eq!(String::from("-0.000000338a23b87483be"), forward(&mut engine, "Number(-0.000000012).toString(16)"));
-    assert_eq!(String::from("-0.00000034d3fe36aaa0a2"), forward(&mut engine, "Number(-0.0000000123).toString(16)"));
+    assert_eq!(
+        String::from("0"),
+        forward(&mut engine, "Number(-0).toString(16)")
+    );
+    assert_eq!(
+        String::from("-9"),
+        forward(&mut engine, "Number(-9).toString(16)")
+    );
+    assert_eq!(
+        String::from("-5a"),
+        forward(&mut engine, "Number(-90).toString(16)")
+    );
+    assert_eq!(
+        String::from("-5a.1eb851eb852"),
+        forward(&mut engine, "Number(-90.12).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.1999999999999a"),
+        forward(&mut engine, "Number(-0.1).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.028f5c28f5c28f6"),
+        forward(&mut engine, "Number(-0.01).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.032617c1bda511a"),
+        forward(&mut engine, "Number(-0.0123).toString(16)")
+    );
+    assert_eq!(
+        String::from("-605f9f6dd18bc8000"),
+        forward(&mut engine, "Number(-111111111111111111111).toString(16)")
+    );
+    assert_eq!(
+        String::from("-3c3bc3a4a2f75c0000"),
+        forward(&mut engine, "Number(-1111111111111111111111).toString(16)")
+    );
+    assert_eq!(
+        String::from("-25a55a46e5da9a00000"),
+        forward(&mut engine, "Number(-11111111111111111111111).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.0000a7c5ac471b4788"),
+        forward(&mut engine, "Number(-0.00001).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.000010c6f7a0b5ed8d"),
+        forward(&mut engine, "Number(-0.000001).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.000001ad7f29abcaf48"),
+        forward(&mut engine, "Number(-0.0000001).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.000002036565348d256"),
+        forward(&mut engine, "Number(-0.00000012).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.0000021047ee22aa466"),
+        forward(&mut engine, "Number(-0.000000123).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.0000002af31dc4611874"),
+        forward(&mut engine, "Number(-0.00000001).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.000000338a23b87483be"),
+        forward(&mut engine, "Number(-0.000000012).toString(16)")
+    );
+    assert_eq!(
+        String::from("-0.00000034d3fe36aaa0a2"),
+        forward(&mut engine, "Number(-0.0000000123).toString(16)")
+    );
 }
 
 #[test]

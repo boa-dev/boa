@@ -192,9 +192,8 @@ pub fn num_to_string(mut value: f64, radix: u8) -> String {
     // either way, with additional space for sign, decimal point and string
     // termination should be sufficient.
     let mut buffer: [u8; BUF_SIZE] = [0; BUF_SIZE];
-    let mut integer_cursor = BUF_SIZE / 2;
-    let mut fraction_cursor = integer_cursor;
-    // let negative: bool = value < 0f64;
+    let (int_buf, frac_buf) = buffer.split_at_mut(BUF_SIZE / 2);
+    let mut fraction_cursor = 0;
     let negative = value.is_sign_negative();
     if negative {
         value = -value
@@ -211,61 +210,61 @@ pub fn num_to_string(mut value: f64, radix: u8) -> String {
     assert!(delta > 0.0);
     if fraction >= delta {
         // Insert decimal point.
-        let fresh0 = fraction_cursor;
+        frac_buf[fraction_cursor] = b'.';
         fraction_cursor += 1;
-        buffer[fresh0] = b'.';
         loop {
             // Shift up by one digit.
             fraction *= radix as f64;
             delta *= radix as f64;
             // Write digit.
             let digit = fraction as u32;
-            buffer[fraction_cursor] = std::char::from_digit(digit, radix as u32).unwrap() as u8;
+            frac_buf[fraction_cursor] = std::char::from_digit(digit, radix as u32).unwrap() as u8;
             fraction_cursor += 1;
             // Calculate remainder.
             fraction -= digit as f64;
             // Round to even.
-            if fraction + delta > 1.0 && (fraction > 0.5 || fraction == 0.5 && digit & 1 != 0) {
-                    loop {
+            if fraction + delta > 1.0
+                && (fraction > 0.5 || (fraction - 0.5) < f64::EPSILON && digit & 1 != 0)
+            {
+                loop {
                     // We need to back trace already written digits in case of carry-over.
-                        fraction_cursor -= 1;
-                        if fraction_cursor == BUF_SIZE / 2 {
-                            //              CHECK_EQ('.', buffer[fraction_cursor]);
-                            // Carry over to the integer part.
+                    fraction_cursor -= 1;
+                    if fraction_cursor == 0 {
+                        //              CHECK_EQ('.', buffer[fraction_cursor]);
+                        // Carry over to the integer part.
                         integer += 1.;
-                            break;
-                        } else {
-                            let c: u8 = buffer[fraction_cursor];
-                            // Reconstruct digit.
-                            let digit_0 = (c as char).to_digit(10).unwrap();
+                        break;
+                    } else {
+                        let c: u8 = frac_buf[fraction_cursor];
+                        // Reconstruct digit.
+                        let digit_0 = (c as char).to_digit(10).unwrap();
                         if digit_0 + 1 >= radix as u32 {
-                                continue;
-                            }
-                            buffer[fraction_cursor] =
-                                std::char::from_digit(digit_0 + 1, radix as u32).unwrap() as u8;
-                            fraction_cursor += 1;
-                            break;
+                            continue;
                         }
+                        frac_buf[fraction_cursor] =
+                            std::char::from_digit(digit_0 + 1, radix as u32).unwrap() as u8;
+                        fraction_cursor += 1;
+                        break;
                     }
-                    break;
+                }
+                break;
             }
             if fraction < delta {
                 break;
             }
         }
     }
+
     // Compute integer digits. Fill unrepresented digits with zero.
+    let mut int_iter = int_buf.iter_mut().enumerate().rev(); //.rev();
     while FloatCore::integer_decode(integer / f64::from(radix)).1 > 0 {
         integer /= radix as f64;
-        integer_cursor -= 1;
-        buffer[integer_cursor] = b'0';
+        *int_iter.next().unwrap().1 = b'0';
     }
 
     loop {
         let remainder = integer % (radix as f64);
-        integer_cursor -= 1;
-        // buffer[integer_cursor as usize] = chars[remainder as libc::c_int as usize];
-        buffer[integer_cursor] =
+        *int_iter.next().unwrap().1 =
             std::char::from_digit(remainder as u32, radix as u32).unwrap() as u8;
         integer = (integer - remainder) / radix as f64;
         if integer <= 0f64 {
@@ -274,11 +273,13 @@ pub fn num_to_string(mut value: f64, radix: u8) -> String {
     }
     // Add sign and terminate string.
     if negative {
-        integer_cursor -= 1;
-        buffer[integer_cursor] = b'-';
+        *int_iter.next().unwrap().1 = b'-';
     }
     assert!(fraction_cursor < BUF_SIZE);
 
+    let integer_cursor = int_iter.next().unwrap().0 + 1;
+    let fraction_cursor = fraction_cursor + BUF_SIZE / 2;
+    // dbg!("Number: {}, Radix: {}, Cursors: {}, {}", value, radix, integer_cursor, fraction_cursor);
     String::from_utf8_lossy(&buffer[integer_cursor..fraction_cursor]).into()
 }
 
