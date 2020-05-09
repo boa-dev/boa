@@ -4,7 +4,7 @@ use crate::syntax::ast::{
     constant::Const,
     op::{BinOp, Operator, UnaryOp},
 };
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -14,13 +14,15 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Node {
-    /// An array is an ordered collection of data (either primitive or object depending upon the language).
+    /// An array is an ordered collection of data (either primitive or object depending upon the
+    /// language).
     ///
     /// Arrays are used to store multiple values in a single variable.
     /// This is compared to a variable that can store only one value.
     ///
-    /// Each item in an array has a number attached to it, called a numeric index, that allows you to access it.
-    /// In JavaScript, arrays start at index zero and can be manipulated with various methods.
+    /// Each item in an array has a number attached to it, called a numeric index, that allows you
+    /// to access it. In JavaScript, arrays start at index zero and can be manipulated with various
+    /// methods.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -28,12 +30,14 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
-    ArrayDecl(Vec<Node>),
+    ArrayDecl(Box<[Node]>),
 
-    /// An arrow function expression is a syntactically compact alternative to a regular function expression.
+    /// An arrow function expression is a syntactically compact alternative to a regular function
+    /// expression.
     ///
-    /// Arrow function expressions are ill suited as methods, and they cannot be used as constructors.
-    /// Arrow functions cannot be used as constructors and will throw an error when used with new.
+    /// Arrow function expressions are ill suited as methods, and they cannot be used as
+    /// constructors. Arrow functions cannot be used as constructors and will throw an error when
+    /// used with new.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -41,9 +45,10 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
-    ArrowFunctionDecl(Vec<FormalParameter>, Box<Node>),
+    ArrowFunctionDecl(Box<[FormalParameter]>, Box<Node>),
 
-    /// An assignment operator assigns a value to its left operand based on the value of its right operand.
+    /// An assignment operator assigns a value to its left operand based on the value of its right
+    /// operand.
     ///
     /// Assignment operator (`=`), assigns the value of its right operand to its left operand.
     ///
@@ -63,12 +68,14 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Operators
     BinOp(BinOp, Box<Node>, Box<Node>),
 
-    /// A `block` statement (or compound statement in other languages) is used to group zero or more statements.
+    /// A `block` statement (or compound statement in other languages) is used to group zero or
+    /// more statements.
     ///
     /// The block statement is often called compound statement in other languages.
     /// It allows you to use multiple statements where JavaScript expects only one statement.
-    /// Combining statements into blocks is a common practice in JavaScript. The opposite behavior is possible using an empty statement,
-    /// where you provide no statement, although one is required.
+    /// Combining statements into blocks is a common practice in JavaScript. The opposite behavior
+    /// is possible using an empty statement, where you provide no statement, although one is
+    /// required.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -76,13 +83,15 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
-    Block(Vec<Node>),
+    Block(Box<[Node]>),
 
-    /// The `break` statement terminates the current loop, switch, or label statement and transfers program control to the statement following the terminated statement.
+    /// The `break` statement terminates the current loop, switch, or label statement and transfers
+    /// program control to the statement following the terminated statement.
     ///
-    /// The break statement includes an optional label that allows the program to break out of a labeled statement.
-    /// The break statement needs to be nested within the referenced label. The labeled statement can be any block statement;
-    /// it does not have to be preceded by a loop statement.
+    /// The break statement includes an optional label that allows the program to break out of a
+    /// labeled statement. The break statement needs to be nested within the referenced label. The
+    /// labeled statement can be any block statement; it does not have to be preceded by a loop
+    /// statement.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -94,9 +103,11 @@ pub enum Node {
 
     /// Calling the function actually performs the specified actions with the indicated parameters.
     ///
-    /// Defining a function does not execute it. Defining it simply names the function and specifies what to do when the function is called.
-    /// Functions must be in scope when they are called, but the function declaration can be hoisted
-    /// The scope of a function is the function in which it is declared (or the entire program, if it is declared at the top level).
+    /// Defining a function does not execute it. Defining it simply names the function and
+    /// specifies what to do when the function is called. Functions must be in scope when they are
+    /// called, but the function declaration can be hoisted. The scope of a function is the
+    /// function in which it is declared (or the entire program, if it is declared at the top
+    /// level).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -104,13 +115,15 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions
-    Call(Box<Node>, Vec<Node>),
+    Call(Box<Node>, Box<[Node]>),
 
-    /// The `conditional` (ternary) operator is the only JavaScript operator that takes three operands.
+    /// The `conditional` (ternary) operator is the only JavaScript operator that takes three
+    /// operands.
     ///
-    /// This operator is the only JavaScript operator that takes three operands: a condition followed by a question mark (`?`),
-    /// then an expression to execute `if` the condition is truthy followed by a colon (`:`), and finally the expression to execute if the condition is `falsy`.
-    /// This operator is frequently used as a shortcut for the `if` statement.
+    /// This operator is the only JavaScript operator that takes three operands: a condition
+    /// followed by a question mark (`?`), then an expression to execute `if` the condition is
+    /// truthy followed by a colon (`:`), and finally the expression to execute if the condition
+    /// is `false`. This operator is frequently used as a shortcut for the `if` statement.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -132,13 +145,15 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     Const(Const),
 
-    /// The `const` statements are block-scoped, much like variables defined using the `let` keyword.
+    /// The `const` statements are block-scoped, much like variables defined using the `let`
+    /// keyword.
     ///
-    /// This declaration creates a constant whose scope can be either global or local to the block in which it is declared.
-    /// Global constants do not become properties of the window object, unlike var variables.
+    /// This declaration creates a constant whose scope can be either global or local to the block
+    /// in which it is declared. Global constants do not become properties of the window object,
+    /// unlike var variables.
     ///
-    /// An initializer for a constant is required. You must specify its value in the same statement in which it's declared.
-    /// (This makes sense, given that it can't be changed later.)
+    /// An initializer for a constant is required. You must specify its value in the same statement
+    /// in which it's declared. (This makes sense, given that it can't be changed later.)
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -148,13 +163,14 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
     /// [identifier]: https://developer.mozilla.org/en-US/docs/Glossary/identifier
     /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
-    ConstDecl(Vec<(String, Node)>),
+    ConstDecl(Box<[(String, Node)]>),
 
-    /// The `continue` statement terminates execution of the statements in the current iteration of the current or labeled loop,
-    /// and continues execution of the loop with the next iteration.
+    /// The `continue` statement terminates execution of the statements in the current iteration of
+    /// the current or labeled loop, and continues execution of the loop with the next iteration.
     ///
-    /// The continue statement can include an optional label that allows the program to jump to the next iteration of a labeled
-    /// loop statement instead of the current loop. In this case, the continue statement needs to be nested within this labeled statement.
+    /// The continue statement can include an optional label that allows the program to jump to the
+    /// next iteration of a labeled loop statement instead of the current loop. In this case, the
+    /// continue statement needs to be nested within this labeled statement.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -164,9 +180,11 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
     Continue(Option<String>),
 
-    /// The `do...while` statement creates a loop that executes a specified statement until the test condition evaluates to false.
+    /// The `do...while` statement creates a loop that executes a specified statement until the
+    /// test condition evaluates to false.
     ///
-    /// The condition is evaluated after executing the statement, resulting in the specified statement executing at least once.
+    /// The condition is evaluated after executing the statement, resulting in the specified
+    /// statement executing at least once.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -176,13 +194,16 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
     DoWhileLoop(Box<Node>, Box<Node>),
 
-    /// The `function` declaration (function statement) defines a function with the specified parameters.
+    /// The `function` declaration (function statement) defines a function with the specified
+    /// parameters.
     ///
-    /// A function created with a function declaration is a `Function` object and has all the properties, methods and behavior of `Function`.
+    /// A function created with a function declaration is a `Function` object and has all the
+    /// properties, methods and behavior of `Function`.
     ///
     /// A function can also be created using an expression (see function expression).
     ///
-    /// By default, functions return undefined. To return any other value, the function must have a return statement that specifies the value to return.
+    /// By default, functions return `undefined`. To return any other value, the function must have
+    /// a return statement that specifies the value to return.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -190,20 +211,40 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
-    FunctionDecl(Option<String>, Vec<FormalParameter>, Box<Node>),
+    FunctionDecl(String, Box<[FormalParameter]>, Box<Node>),
 
-    /// This property accessor provides access to an object's properties by using the [dot notation][mdn].
+    /// The `function` expression defines a function with the specified parameters.
+    ///
+    /// A function created with a function expression is a `Function` object and has all the
+    /// properties, methods and behavior of `Function`.
+    ///
+    /// A function can also be created using a declaration (see function expression).
+    ///
+    /// By default, functions return `undefined`. To return any other value, the function must have
+    /// a return statement that specifies the value to return.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
+    FunctionExpr(Option<String>, Box<[FormalParameter]>, Box<Node>),
+
+    /// This property accessor provides access to an object's properties by using the
+    /// [dot notation][mdn].
     ///
     /// In the object.property syntax, the property must be a valid JavaScript identifier.
-    /// (In the ECMAScript standard, the names of properties are technically "IdentifierNames", not "Identifiers",
-    /// so reserved words can be used but are not recommended).
+    /// (In the ECMAScript standard, the names of properties are technically "IdentifierNames", not
+    /// "Identifiers", so reserved words can be used but are not recommended).
     ///
-    /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup table).
-    /// The keys in this array are the names of the object's properties.
+    /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup
+    /// table). The keys in this array are the names of the object's properties.
     ///
-    /// It's typical when speaking of an object's properties to make a distinction between properties and methods. However,
-    /// the property/method distinction is little more than a convention. A method is simply a property that can be called (for example,
-    /// if it has a reference to a Function instance as its value).
+    /// It's typical when speaking of an object's properties to make a distinction between
+    /// properties and methods. However, the property/method distinction is little more than a
+    /// convention. A method is simply a property that can be called (for example, if it has a
+    /// reference to a Function instance as its value).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -213,16 +254,20 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation
     GetConstField(Box<Node>, String),
 
-    /// This property accessor provides access to an object's properties by using the [bracket notation][mdn].
+    /// This property accessor provides access to an object's properties by using the
+    /// [bracket notation][mdn].
     ///
-    /// In the object[property_name] syntax, the property_name is just a string or [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a space).
+    /// In the object[property_name] syntax, the property_name is just a string or
+    /// [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a
+    /// space).
     ///
-    /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup table).
-    /// The keys in this array are the names of the object's properties.
+    /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup
+    /// table). The keys in this array are the names of the object's properties.
     ///
-    /// It's typical when speaking of an object's properties to make a distinction between properties and methods. However,
-    /// the property/method distinction is little more than a convention. A method is simply a property that can be called (for example,
-    /// if it has a reference to a Function instance as its value).
+    /// It's typical when speaking of an object's properties to make a distinction between
+    /// properties and methods. However, the property/method distinction is little more than a
+    /// convention. A method is simply a property that can be called (for example, if it has a
+    /// reference to a Function instance as its value).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -251,7 +296,8 @@ pub enum Node {
         Box<Node>,
     ),
 
-    /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement can be executed.
+    /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
+    /// the condition is [`falsy`][falsy], another statement can be executed.
     ///
     /// Multiple `if...else` statements can be nested to create an else if clause.
     ///
@@ -268,13 +314,16 @@ pub enum Node {
     /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
     If(Box<Node>, Box<Node>, Option<Box<Node>>),
 
-    /// The `let` statement declares a block scope local variable, optionally initializing it to a value.
+    /// The `let` statement declares a block scope local variable, optionally initializing it to a
+    /// value.
     ///
     ///
-    /// `let` allows you to declare variables that are limited to a scope of a block statement, or expression on which
-    /// it is used, unlike the `var` keyword, which defines a variable globally, or locally to an entire function regardless of block scope.
+    /// `let` allows you to declare variables that are limited to a scope of a block statement, or
+    /// expression on which it is used, unlike the `var` keyword, which defines a variable
+    /// globally, or locally to an entire function regardless of block scope.
     ///
-    /// Just like const the `let` does not create properties of the window object when declared globally (in the top-most scope).
+    /// Just like const the `let` does not create properties of the window object when declared
+    /// globally (in the top-most scope).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -282,14 +331,17 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
-    LetDecl(Vec<(String, Option<Node>)>),
+    LetDecl(Box<[(String, Option<Node>)]>),
 
-    /// An `identifier` is a sequence of characters in the code that identifies a variable, function, or property.
+    /// An `identifier` is a sequence of characters in the code that identifies a variable,
+    /// function, or property.
     ///
-    /// In JavaScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and digits (0-9), but may not start with a digit.
+    /// In JavaScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and
+    /// digits (0-9), but may not start with a digit.
     ///
-    /// An identifier differs from a string in that a string is data, while an identifier is part of the code. In JavaScript, there is no way
-    /// to convert identifiers to strings, but sometimes it is possible to parse strings into identifiers.
+    /// An identifier differs from a string in that a string is data, while an identifier is part
+    /// of the code. In JavaScript, there is no way to convert identifiers to strings, but
+    /// sometimes it is possible to parse strings into identifiers.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -299,7 +351,8 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
     Local(String),
 
-    /// The `new` operator lets developers create an instance of a user-defined object type or of one of the built-in object types that has a constructor function.
+    /// The `new` operator lets developers create an instance of a user-defined object type or of
+    /// one of the built-in object types that has a constructor function.
     ///
     /// The new keyword does the following things:
     ///  - Creates a blank, plain JavaScript object;
@@ -315,13 +368,16 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
     New(Box<Node>),
 
-    /// Objects in JavaScript may be defined as an unordered collection of related data, of primitive or reference types, in the form of “key: value” pairs.
+    /// Objects in JavaScript may be defined as an unordered collection of related data, of
+    /// primitive or reference types, in the form of “key: value” pairs.
     ///
-    /// Objects can be initialized using `new Object()`, `Object.create()`, or using the literal notation.
+    /// Objects can be initialized using `new Object()`, `Object.create()`, or using the literal
+    /// notation.
     ///
-    /// An object initializer is an expression that describes the initialization of an [`Object`][object].
-    /// Objects consist of properties, which are used to describe an object. Values of object properties can either
-    /// contain [`primitive`][primitive] data types or other objects.
+    /// An object initializer is an expression that describes the initialization of an
+    /// [`Object`][object]. Objects consist of properties, which are used to describe an object.
+    /// Values of object properties can either contain [`primitive`][primitive] data types or other
+    /// objects.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -331,17 +387,19 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
     /// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
     /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
-    Object(Vec<PropertyDefinition>),
+    Object(Box<[PropertyDefinition]>),
 
-    /// The `return` statement ends function execution and specifies a value to be returned to the function caller.
+    /// The `return` statement ends function execution and specifies a value to be returned to the
+    /// function caller.
     ///
     /// Syntax: `return [expression];`
     ///
     /// `expression`:
-    ///  > The expression whose value is to be returned. If omitted, `undefined` is returned instead.
+    ///  > The expression whose value is to be returned. If omitted, `undefined` is returned
+    ///  > nstead.
     ///
-    /// When a `return` statement is used in a function body, the execution of the function is stopped.
-    /// If specified, a given value is returned to the function caller.
+    /// When a `return` statement is used in a function body, the execution of the function is
+    /// stopped. If specified, a given value is returned to the function caller.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -351,13 +409,15 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return(Option<Box<Node>>),
 
-    /// The `switch` statement evaluates an expression, matching the expression's value to a case clause,
-    /// and executes statements associated with that case, as well as statements in cases that follow the matching case.
+    /// The `switch` statement evaluates an expression, matching the expression's value to a case
+    /// clause, and executes statements associated with that case, as well as statements in cases
+    /// that follow the matching case.
     ///
-    /// A `switch` statement first evaluates its expression. It then looks for the first case clause whose expression evaluates
-    /// to the same value as the result of the input expression (using the strict comparison, `===`) and transfers control to that clause,
-    /// executing the associated statements. (If multiple cases match the provided value, the first case that matches is selected, even if
-    /// the cases are not equal to each other.)
+    /// A `switch` statement first evaluates its expression. It then looks for the first case
+    /// clause whose expression evaluates to the same value as the result of the input expression
+    /// (using the strict comparison, `===`) and transfers control to that clause, executing the
+    /// associated statements. (If multiple cases match the provided value, the first case that
+    /// matches is selected, even if the cases are not equal to each other.)
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -365,14 +425,17 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
-    Switch(Box<Node>, Vec<(Node, Vec<Node>)>, Option<Box<Node>>),
+    Switch(Box<Node>, Box<[(Node, Box<[Node]>)]>, Option<Box<Node>>),
 
-    /// The `spread` operator allows an iterable such as an array expression or string to be expanded.
+    /// The `spread` operator allows an iterable such as an array expression or string to be
+    /// expanded.
     ///
     /// Syntax: `...x`
     ///
-    /// It expands array expressions or strings in places where zero or more arguments (for function calls) or elements (for array literals)
-    /// are expected, or an object expression to be expanded in places where zero or more key-value pairs (for object literals) are expected.
+    /// It expands array expressions or strings in places where zero or more arguments (for
+    /// function calls) or elements (for array literals)
+    /// are expected, or an object expression to be expanded in places where zero or more key-value
+    /// pairs (for object literals) are expected.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -388,15 +451,15 @@ pub enum Node {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-StatementList
-    StatementList(Vec<Node>),
+    StatementList(Box<[Node]>),
 
     /// The `throw` statement throws a user-defined exception.
     ///
     /// Syntax: `throw expression;`
     ///
     /// Execution of the current function will stop (the statements after throw won't be executed),
-    /// and control will be passed to the first catch block in the call stack. If no catch block exists among
-    /// caller functions, the program will terminate.
+    /// and control will be passed to the first catch block in the call stack. If no catch block
+    /// exists among caller functions, the program will terminate.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -420,10 +483,12 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
     TypeOf(Box<Node>),
 
-    /// The `try...catch` statement marks a block of statements to try and specifies a response should an exception be thrown.
+    /// The `try...catch` statement marks a block of statements to try and specifies a response
+    /// should an exception be thrown.
     ///
-    /// The `try` statement consists of a `try`-block, which contains one or more statements. `{}` must always be used,
-    /// even for single statements. At least one `catch`-block, or a `finally`-block, must be present.
+    /// The `try` statement consists of a `try`-block, which contains one or more statements. `{}`
+    /// must always be used, even for single statements. At least one `catch`-block, or a
+    /// `finally`-block, must be present.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -464,13 +529,15 @@ pub enum Node {
 
     /// The `var` statement declares a variable, optionally initializing it to a value.
     ///
-    /// var declarations, wherever they occur, are processed before any code is executed. This is called hoisting, and is discussed further below.
+    /// var declarations, wherever they occur, are processed before any code is executed. This is
+    /// called hoisting, and is discussed further below.
     ///
-    /// The scope of a variable declared with var is its current execution context, which is either the enclosing function or,
-    /// for variables declared outside any function, global. If you re-declare a JavaScript variable, it will not lose its value.
+    /// The scope of a variable declared with var is its current execution context, which is either
+    /// the enclosing function or, for variables declared outside any function, global. If you
+    /// re-declare a JavaScript variable, it will not lose its value.
     ///
-    /// Assigning a value to an undeclared variable implicitly creates it as a global variable
-    /// (it becomes a property of the global object) when the assignment is executed.
+    /// Assigning a value to an undeclared variable implicitly creates it as a global variable (it
+    /// becomes a property of the global object) when the assignment is executed.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -478,9 +545,10 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
-    VarDecl(Vec<(String, Option<Node>)>),
+    VarDecl(Box<[(String, Option<Node>)]>),
 
-    /// The `while` statement creates a loop that executes a specified statement as long as the test condition evaluates to `true`.
+    /// The `while` statement creates a loop that executes a specified statement as long as the
+    /// test condition evaluates to `true`.
     ///
     /// The condition is evaluated before executing the statement.
     ///
@@ -532,7 +600,7 @@ impl Node {
     /// Creates an `ArrayDecl` AST node.
     pub fn array_decl<N>(nodes: N) -> Self
     where
-        N: Into<Vec<Self>>,
+        N: Into<Box<[Self]>>,
     {
         Self::ArrayDecl(nodes.into())
     }
@@ -540,7 +608,7 @@ impl Node {
     /// Creates an `ArraowFunctionDecl` AST node.
     pub fn arrow_function_decl<P, B>(params: P, body: B) -> Self
     where
-        P: Into<Vec<FormalParameter>>,
+        P: Into<Box<[FormalParameter]>>,
         B: Into<Box<Self>>,
     {
         Self::ArrowFunctionDecl(params.into(), body.into())
@@ -568,7 +636,7 @@ impl Node {
     /// Creates a `Block` AST node.
     pub fn block<N>(nodes: N) -> Self
     where
-        N: Into<Vec<Self>>,
+        N: Into<Box<[Self]>>,
     {
         Self::Block(nodes.into())
     }
@@ -586,7 +654,7 @@ impl Node {
     pub fn call<F, P>(function: F, params: P) -> Self
     where
         F: Into<Box<Self>>,
-        P: Into<Vec<Self>>,
+        P: Into<Box<[Self]>>,
     {
         Self::Call(function.into(), params.into())
     }
@@ -612,7 +680,7 @@ impl Node {
     /// Creates a `ConstDecl` AST node.
     pub fn const_decl<D>(decl: D) -> Self
     where
-        D: Into<Vec<(String, Self)>>,
+        D: Into<Box<[(String, Self)]>>,
     {
         Self::ConstDecl(decl.into())
     }
@@ -636,14 +704,24 @@ impl Node {
     }
 
     /// Creates a `FunctionDecl` AST node.
-    pub fn function_decl<ON, N, P, B>(name: ON, params: P, body: B) -> Self
+    pub fn function_decl<N, P, B>(name: N, params: P, body: B) -> Self
+    where
+        N: Into<String>,
+        P: Into<Box<[FormalParameter]>>,
+        B: Into<Box<Self>>,
+    {
+        Self::FunctionDecl(name.into(), params.into(), body.into())
+    }
+
+    /// Creates a `FunctionDecl` AST node.
+    pub fn function_expr<ON, N, P, B>(name: ON, params: P, body: B) -> Self
     where
         N: Into<String>,
         ON: Into<Option<N>>,
-        P: Into<Vec<FormalParameter>>,
+        P: Into<Box<[FormalParameter]>>,
         B: Into<Box<Self>>,
     {
-        Self::FunctionDecl(name.into().map(N::into), params.into(), body.into())
+        Self::FunctionExpr(name.into().map(N::into), params.into(), body.into())
     }
 
     /// Creates a `GetConstField` AST node.
@@ -697,7 +775,7 @@ impl Node {
     /// Creates a `LetDecl` AST node.
     pub fn let_decl<I>(init: I) -> Self
     where
-        I: Into<Vec<(String, Option<Self>)>>,
+        I: Into<Box<[(String, Option<Self>)]>>,
     {
         Self::LetDecl(init.into())
     }
@@ -721,7 +799,7 @@ impl Node {
     /// Creates an `Object` AST node.
     pub fn object<D>(def: D) -> Self
     where
-        D: Into<Vec<PropertyDefinition>>,
+        D: Into<Box<[PropertyDefinition]>>,
     {
         Self::Object(def.into())
     }
@@ -739,7 +817,7 @@ impl Node {
     pub fn switch<V, C, OD, D>(val: V, cases: C, default: OD) -> Self
     where
         V: Into<Box<Self>>,
-        C: Into<Vec<(Self, Vec<Self>)>>,
+        C: Into<Box<[(Self, Box<[Self]>)]>>,
         OD: Into<Option<D>>,
         D: Into<Box<Self>>,
     {
@@ -757,7 +835,7 @@ impl Node {
     /// Creates a `StatementList` AST node.
     pub fn statement_list<L>(list: L) -> Self
     where
-        L: Into<Vec<Self>>,
+        L: Into<Box<[Self]>>,
     {
         Self::StatementList(list.into())
     }
@@ -816,7 +894,7 @@ impl Node {
     /// Creates a `VarDecl` AST node.
     pub fn var_decl<I>(init: I) -> Self
     where
-        I: Into<Vec<(String, Option<Self>)>>,
+        I: Into<Box<[(String, Option<Self>)]>>,
     {
         Self::VarDecl(init.into())
     }
@@ -905,7 +983,7 @@ impl Node {
             Self::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
             Self::Call(ref ex, ref args) => {
                 write!(f, "{}(", ex)?;
-                let arg_strs: Vec<String> = args.iter().map(ToString::to_string).collect();
+                let arg_strs: Box<[String]> = args.iter().map(ToString::to_string).collect();
                 write!(f, "{})", arg_strs.join(", "))
             }
             Self::New(ref call) => {
@@ -965,7 +1043,7 @@ impl Node {
             }
             Self::Object(ref properties) => {
                 f.write_str("{\n")?;
-                for property in properties {
+                for property in properties.iter() {
                     match property {
                         PropertyDefinition::IdentifierReference(key) => {
                             write!(f, "{}    {},", indent, key)?;
@@ -990,18 +1068,24 @@ impl Node {
                 f.write_str("]")
             }
             Self::FunctionDecl(ref name, ref _args, ref node) => {
+                write!(f, "function {} {{", name)?;
+                //join_nodes(f, args)?; TODO: port
+                f.write_str("} ")?;
+                node.display(f, indentation + 1)
+            }
+            Self::FunctionExpr(ref name, ref args, ref node) => {
                 write!(f, "function ")?;
                 if let Some(func_name) = name {
                     write!(f, "{}", func_name)?;
                 }
                 write!(f, "{{")?;
-                //join_nodes(f, args)?; TODO: port
+                join_nodes(f, args)?;
                 f.write_str("} ")?;
                 node.display(f, indentation + 1)
             }
-            Self::ArrowFunctionDecl(ref _args, ref node) => {
+            Self::ArrowFunctionDecl(ref args, ref node) => {
                 write!(f, "(")?;
-                //join_nodes(f, args)?; TODO: port
+                join_nodes(f, args)?;
                 f.write_str(") => ")?;
                 node.display(f, indentation)
             }
@@ -1038,7 +1122,10 @@ impl Node {
 }
 
 /// Utility to join multiple Nodes into a single string.
-fn join_nodes(f: &mut fmt::Formatter<'_>, nodes: &[Node]) -> fmt::Result {
+fn join_nodes<N>(f: &mut fmt::Formatter<'_>, nodes: &[N]) -> fmt::Result
+where
+    N: fmt::Display,
+{
     let mut first = true;
     for e in nodes {
         if !first {
@@ -1083,6 +1170,19 @@ impl FormalParameter {
             init,
             is_rest_param,
         }
+    }
+}
+
+impl fmt::Display for FormalParameter {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.is_rest_param {
+            write!(f, "...")?;
+        }
+        write!(f, "{}", self.name)?;
+        if let Some(n) = self.init.as_ref() {
+            write!(f, " = {}", n)?;
+        }
+        Ok(())
     }
 }
 

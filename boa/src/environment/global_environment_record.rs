@@ -8,7 +8,7 @@
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
 use crate::{
-    builtins::value::{Value, ValueData},
+    builtins::value::Value,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
@@ -16,16 +16,15 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
-use std::collections::HashSet;
+use gc::{Finalize, Trace};
+use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: Box<ObjectEnvironmentRecord>,
     pub global_this_binding: Value,
     pub declarative_record: Box<DeclarativeEnvironmentRecord>,
-    pub var_names: HashSet<String>,
+    pub var_names: FxHashSet<String>,
 }
 
 impl GlobalEnvironmentRecord {
@@ -43,7 +42,7 @@ impl GlobalEnvironmentRecord {
 
     pub fn has_restricted_global_property(&self, name: &str) -> bool {
         let global_object = &self.object_record.bindings;
-        let existing_prop = global_object.get_prop(name);
+        let existing_prop = global_object.get_property(name);
         match existing_prop {
             Some(prop) => {
                 if prop.value.is_none() || prop.configurable.unwrap_or(false) {
@@ -62,7 +61,7 @@ impl GlobalEnvironmentRecord {
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
             obj_rec.create_mutable_binding(name.clone(), deletion);
-            obj_rec.initialize_binding(&name, Gc::new(ValueData::Undefined));
+            obj_rec.initialize_binding(&name, Value::undefined());
         }
 
         let var_declared_names = &mut self.var_names;
@@ -73,10 +72,10 @@ impl GlobalEnvironmentRecord {
 
     pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {
         let global_object = &mut self.object_record.bindings;
-        let existing_prop = global_object.get_prop(&name);
+        let existing_prop = global_object.get_property(&name);
         if let Some(prop) = existing_prop {
             if prop.value.is_none() || prop.configurable.unwrap_or(false) {
-                global_object.update_prop(
+                global_object.update_property(
                     name,
                     Some(value),
                     Some(true),
@@ -85,7 +84,13 @@ impl GlobalEnvironmentRecord {
                 );
             }
         } else {
-            global_object.update_prop(name, Some(value), Some(true), Some(true), Some(deletion));
+            global_object.update_property(
+                name,
+                Some(value),
+                Some(true),
+                Some(true),
+                Some(deletion),
+            );
         }
     }
 }
@@ -171,7 +176,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn with_base_object(&self) -> Value {
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {

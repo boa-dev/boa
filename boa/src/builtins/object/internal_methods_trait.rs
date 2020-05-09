@@ -8,9 +8,8 @@
 use crate::builtins::{
     object::{Object, INSTANCE_PROTOTYPE},
     property::Property,
-    value::{same_value, to_value, Value, ValueData},
+    value::{same_value, Value, ValueData},
 };
-use gc::Gc;
 use std::borrow::Borrow;
 use std::ops::Deref;
 
@@ -70,7 +69,7 @@ pub trait ObjectInternalMethods {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     fn prevent_extensions(&mut self) -> bool {
-        self.set_internal_slot("extensible", to_value(false));
+        self.set_internal_slot("extensible", Value::from(false));
         true
     }
 
@@ -108,7 +107,7 @@ pub trait ObjectInternalMethods {
             // parent will either be null or an Object
             let parent = self.get_prototype_of();
             if parent.is_null() {
-                return Gc::new(ValueData::Undefined);
+                return Value::undefined();
             }
 
             let parent_obj = Object::from(&parent).expect("Failed to get object");
@@ -122,11 +121,11 @@ pub trait ObjectInternalMethods {
 
         let getter = desc.get.clone();
         if getter.is_none() || getter.expect("Failed to get object").is_undefined() {
-            return Gc::new(ValueData::Undefined);
+            return Value::undefined();
         }
 
         // TODO!!!!! Call getter from here
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     /// [[Set]]
@@ -169,7 +168,7 @@ pub trait ObjectInternalMethods {
     }
 
     fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
-        let mut current = self.get_own_property(&to_value(property_key.to_string()));
+        let mut current = self.get_own_property(&Value::from(property_key.to_string()));
         let extensible = self.is_extensible();
 
         // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor

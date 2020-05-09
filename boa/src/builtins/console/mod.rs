@@ -19,29 +19,19 @@ mod tests;
 use crate::{
     builtins::{
         object::InternalState,
-        value::{display_obj, from_value, to_value, FromValue, ResultValue, Value, ValueData},
+        value::{display_obj, ResultValue, Value},
     },
     exec::Interpreter,
 };
-use gc::Gc;
-use std::{collections::HashMap, time::SystemTime};
+use rustc_hash::FxHashMap;
+use std::time::SystemTime;
 
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub struct ConsoleState {
-    count_map: HashMap<String, u32>,
-    timer_map: HashMap<String, u128>,
+    count_map: FxHashMap<String, u32>,
+    timer_map: FxHashMap<String, u128>,
     groups: Vec<String>,
-}
-
-impl ConsoleState {
-    fn new() -> Self {
-        Self {
-            count_map: HashMap::new(),
-            timer_map: HashMap::new(),
-            groups: vec![],
-        }
-    }
 }
 
 impl InternalState for ConsoleState {}
@@ -56,10 +46,11 @@ pub enum LogMessage {
 }
 
 /// Helper function that returns the argument at a specified index.
-fn get_arg_at_index<T: FromValue + Default>(args: &[Value], index: usize) -> Option<T> {
-    args.get(index)
-        .cloned()
-        .map(|s| from_value::<T>(s).expect("Convert error"))
+fn get_arg_at_index<'a, T>(args: &'a [Value], index: usize) -> Option<T>
+where
+    T: From<&'a Value> + Default,
+{
+    args.get(index).map(|s| T::from(s))
 }
 
 /// Helper function for logging messages.
@@ -155,12 +146,12 @@ pub fn assert(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
         let mut args: Vec<Value> = args.iter().skip(1).cloned().collect();
         let message = "Assertion failed".to_string();
         if args.is_empty() {
-            args.push(to_value::<String>(message));
+            args.push(Value::from(message));
         } else if !args[0].is_string() {
-            args.insert(0, to_value::<String>(message));
+            args.insert(0, Value::from(message));
         } else {
             let concat = format!("{}: {}", message, args[0]);
-            args[0] = to_value::<String>(concat);
+            args[0] = Value::from(concat);
         }
 
         this.with_internal_state_ref(|state| {
@@ -168,7 +159,7 @@ pub fn assert(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
         });
     }
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.clear()`
@@ -186,7 +177,7 @@ pub fn clear(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
         state.groups.clear();
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.debug(...data)`
@@ -201,7 +192,7 @@ pub fn clear(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
 pub fn debug(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.error(...data)`
@@ -216,7 +207,7 @@ pub fn debug(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
 pub fn error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Error(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.info(...data)`
@@ -231,7 +222,7 @@ pub fn error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
 pub fn info(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Info(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.log(...data)`
@@ -246,7 +237,7 @@ pub fn info(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
 pub fn log(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Log(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.trace(...data)`
@@ -272,7 +263,7 @@ pub fn trace(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
         });
     }
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.warn(...data)`
@@ -287,7 +278,7 @@ pub fn trace(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
 pub fn warn(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref(|state| logger(LogMessage::Warn(formatter(&args[..])), state));
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.count(label)`
@@ -311,7 +302,7 @@ pub fn count(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
         logger(LogMessage::Info(format!("{} {}", msg, c)), state);
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.countReset(label)`
@@ -333,7 +324,7 @@ pub fn count_reset(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
         logger(LogMessage::Warn(format!("countReset {}", label)), state);
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// Returns current system time in ms.
@@ -369,7 +360,7 @@ pub fn time(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValu
         }
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.timeLog(label, ...data)`
@@ -401,7 +392,7 @@ pub fn time_log(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Result
         }
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.timeEnd(label)`
@@ -432,7 +423,7 @@ pub fn time_end(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Result
         }
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.group(...data)`
@@ -453,7 +444,7 @@ pub fn group(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVal
         state.groups.push(group_label);
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.groupEnd(label)`
@@ -471,7 +462,7 @@ pub fn group_end(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
         state.groups.pop();
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// `console.dir(item, options)`
@@ -486,21 +477,20 @@ pub fn group_end(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
 pub fn dir(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
+        let undefined = Value::undefined();
         logger(
-            LogMessage::Info(display_obj(
-                args.get(0).unwrap_or(&Gc::new(ValueData::Undefined)),
-                true,
-            )),
+            LogMessage::Info(display_obj(args.get(0).unwrap_or(&undefined), true)),
             state,
         );
     });
 
-    Ok(Gc::new(ValueData::Undefined))
+    Ok(Value::undefined())
 }
 
 /// Create a new `console` object
-pub fn create_constructor(global: &Value) -> Value {
-    let console = ValueData::new_obj(Some(global));
+pub fn create(global: &Value) -> Value {
+    let console = Value::new_object(Some(global));
+
     make_builtin_fn!(assert, named "assert", of console);
     make_builtin_fn!(clear, named "clear", of console);
     make_builtin_fn!(debug, named "debug", of console);
@@ -520,6 +510,14 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(time_end, named "timeEnd", of console);
     make_builtin_fn!(dir, named "dir", of console);
     make_builtin_fn!(dir, named "dirxml", of console);
-    console.set_internal_state(ConsoleState::new());
+
+    console.set_internal_state(ConsoleState::default());
+
     console
+}
+
+/// Initialise the `console` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("console", create(global));
 }

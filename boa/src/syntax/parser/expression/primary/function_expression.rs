@@ -51,10 +51,10 @@ impl TokenParser for FunctionExpression {
 
         let body = FunctionBody::new(false, false)
             .parse(cursor)
-            .map(Node::StatementList)?;
+            .map(Node::statement_list)?;
 
         cursor.expect(Punctuator::CloseBlock, "function expression")?;
 
-        Ok(Node::function_decl::<_, &String, _, _>(name, params, body))
+        Ok(Node::function_expr::<_, &String, _, _>(name, params, body))
     }
 }

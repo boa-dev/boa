@@ -4,7 +4,7 @@ use crate::forward;
 use crate::realm::Realm;
 
 #[test]
-fn test_constructors() {
+fn constructors() {
     let realm = Realm::create();
     let mut engine = Executor::new(realm);
     let init = r#"
@@ -21,15 +21,15 @@ fn test_constructors() {
 
 #[test]
 fn check_regexp_constructor_is_function() {
-    let global = ValueData::new_obj(None);
-    let regexp_constructor = create_constructor(&global);
+    let global = Value::new_object(None);
+    let regexp_constructor = create(&global);
     assert_eq!(regexp_constructor.is_function(), true);
 }
 
 // TODO: uncomment this test when property getters are supported
 
 //    #[test]
-//    fn test_flags() {
+//    fn flags() {
 //        let mut engine = Executor::new();
 //        let init = r#"
 //                var re_gi = /test/gi;
@@ -55,7 +55,7 @@ fn check_regexp_constructor_is_function() {
 //    }
 
 #[test]
-fn test_last_index() {
+fn last_index() {
     let realm = Realm::create();
     let mut engine = Executor::new(realm);
     let init = r#"
@@ -71,7 +71,7 @@ fn test_last_index() {
 }
 
 #[test]
-fn test_exec() {
+fn exec() {
     let realm = Realm::create();
     let mut engine = Executor::new(realm);
     let init = r#"
@@ -91,7 +91,7 @@ fn test_exec() {
 }
 
 #[test]
-fn test_to_string() {
+fn to_string() {
     let realm = Realm::create();
     let mut engine = Executor::new(realm);
 

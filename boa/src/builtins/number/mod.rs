@@ -19,7 +19,7 @@ mod tests;
 use crate::{
     builtins::{
         object::{internal_methods_trait::ObjectInternalMethods, Object, PROTOTYPE},
-        value::{to_value, ResultValue, Value, ValueData},
+        value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -31,19 +31,19 @@ fn to_number(value: &Value) -> Value {
     match *value.deref().borrow() {
         ValueData::Boolean(b) => {
             if b {
-                to_value(1)
+                Value::from(1)
             } else {
-                to_value(0)
+                Value::from(0)
             }
         }
-        ValueData::Symbol(_) | ValueData::Undefined => to_value(f64::NAN),
-        ValueData::Integer(i) => to_value(f64::from(i)),
+        ValueData::Symbol(_) | ValueData::Undefined => Value::from(f64::NAN),
+        ValueData::Integer(i) => Value::from(f64::from(i)),
         ValueData::Object(ref o) => (o).deref().borrow().get_internal_slot("NumberData"),
-        ValueData::Null => to_value(0),
-        ValueData::Rational(n) => to_value(n),
+        ValueData::Null => Value::from(0),
+        ValueData::Rational(n) => Value::from(n),
         ValueData::String(ref s) => match s.parse::<f64>() {
-            Ok(n) => to_value(n),
-            Err(_) => to_value(f64::NAN),
+            Ok(n) => Value::from(n),
+            Err(_) => Value::from(f64::NAN),
         },
     }
 }
@@ -61,7 +61,7 @@ fn num_to_exponential(n: f64) -> String {
 pub fn make_number(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => to_number(value),
-        None => to_number(&to_value(0)),
+        None => to_number(&Value::from(0)),
     };
     this.set_internal_slot("NumberData", data);
     Ok(this.clone())
@@ -73,7 +73,7 @@ pub fn make_number(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> 
 pub fn call_number(_this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => to_number(value),
-        None => to_number(&to_value(0)),
+        None => to_number(&Value::from(0)),
     };
     Ok(data)
 }
@@ -89,9 +89,9 @@ pub fn call_number(_this: &mut Value, args: &[Value], _ctx: &mut Interpreter) ->
 /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
 pub fn to_exponential(this: &mut Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    let this_num = to_number(this).to_num();
+    let this_num = to_number(this).to_number();
     let this_str_num = num_to_exponential(this_num);
-    Ok(to_value(this_str_num))
+    Ok(Value::from(this_str_num))
 }
 
 /// `Number.prototype.toFixed( [digits] )`
@@ -105,16 +105,16 @@ pub fn to_exponential(this: &mut Value, _args: &[Value], _ctx: &mut Interpreter)
 /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
 pub fn to_fixed(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    let this_num = to_number(this).to_num();
+    let this_num = to_number(this).to_number();
     let precision = match args.get(0) {
-        Some(n) => match n.to_int() {
-            x if x > 0 => n.to_int() as usize,
+        Some(n) => match n.to_integer() {
+            x if x > 0 => n.to_integer() as usize,
             _ => 0,
         },
         None => 0,
     };
     let this_fixed_num = format!("{:.*}", precision, this_num);
-    Ok(to_value(this_fixed_num))
+    Ok(Value::from(this_fixed_num))
 }
 
 /// `Number.prototype.toLocaleString( [locales [, options]] )`
@@ -131,9 +131,9 @@ pub fn to_fixed(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> Res
 /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
 pub fn to_locale_string(this: &mut Value, _args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
-    let this_num = to_number(this).to_num();
+    let this_num = to_number(this).to_number();
     let this_str_num = format!("{}", this_num);
-    Ok(to_value(this_str_num))
+    Ok(Value::from(this_str_num))
 }
 
 /// `Number.prototype.toPrecision( [precision] )`
@@ -148,10 +148,10 @@ pub fn to_locale_string(this: &mut Value, _args: &[Value], _ctx: &mut Interprete
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
 pub fn to_precision(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let this_num = to_number(this);
-    let _num_str_len = format!("{}", this_num.to_num()).len();
+    let _num_str_len = format!("{}", this_num.to_number()).len();
     let _precision = match args.get(0) {
-        Some(n) => match n.to_int() {
-            x if x > 0 => n.to_int() as usize,
+        Some(n) => match n.to_integer() {
+            x if x > 0 => n.to_integer() as usize,
             _ => 0,
         },
         None => 0,
@@ -295,19 +295,19 @@ pub fn num_to_string(mut value: f64, radix: u8) -> String {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
 pub fn to_string(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     // 1. Let x be ? thisNumberValue(this value).
-    let x = to_number(this).to_num();
+    let x = to_number(this).to_number();
     // 2. If radix is undefined, let radixNumber be 10.
     // 3. Else, let radixNumber be ? ToInteger(radix).
-    let radix_number = args.get(0).map_or(10, |arg| to_number(arg).to_int());
+    let radix_number = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
 
     if x == -0. {
-        return Ok(to_value("0"));
+        return Ok(Value::from("0"));
     } else if x.is_nan() {
-        return Ok(to_value("NaN"));
+        return Ok(Value::from("NaN"));
     } else if x.is_infinite() && x.is_sign_positive() {
-        return Ok(to_value("Infinity"));
+        return Ok(Value::from("Infinity"));
     } else if x.is_infinite() && x.is_sign_negative() {
-        return Ok(to_value("-Infinity"));
+        return Ok(Value::from("-Infinity"));
     }
 
     // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
@@ -316,10 +316,10 @@ pub fn to_string(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> Re
     }
 
     // 5. If radixNumber = 10, return ! ToString(x).
-    // This part should use exponantial notations for long integer numbers commented tests
+    // This part should use exponential notations for long integer numbers commented tests
     if radix_number == 10 {
         // return Ok(to_value(format!("{}", to_number(this).to_num())));
-        return Ok(to_value(format!("{}", x)));
+        return Ok(Value::from(format!("{}", x)));
     }
 
     // This is a Optimization from the v8 source code to print values that can fit in a single character
@@ -331,7 +331,7 @@ pub fn to_string(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> Re
     // }
 
     // 6. Return the String representation of this Number value using the radix specified by radixNumber.
-    Ok(to_value(num_to_string(x, radix_number as u8)))
+    Ok(Value::from(num_to_string(x, radix_number)))
 }
 
 /// `Number.prototype.toString()`
@@ -349,16 +349,22 @@ pub fn value_of(this: &mut Value, _args: &[Value], _ctx: &mut Interpreter) -> Re
 }
 
 /// Create a new `Number` object
-pub fn create_constructor(global: &Value) -> Value {
-    let number_prototype = ValueData::new_obj(Some(global));
-    number_prototype.set_internal_slot("NumberData", to_value(0));
+pub fn create(global: &Value) -> Value {
+    let prototype = Value::new_object(Some(global));
+    prototype.set_internal_slot("NumberData", Value::from(0));
 
-    make_builtin_fn!(to_exponential, named "toExponential", with length 1, of number_prototype);
-    make_builtin_fn!(to_fixed, named "toFixed", with length 1, of number_prototype);
-    make_builtin_fn!(to_locale_string, named "toLocaleString", of number_prototype);
-    make_builtin_fn!(to_precision, named "toPrecision", with length 1, of number_prototype);
-    make_builtin_fn!(to_string, named "toString", with length 1, of number_prototype);
-    make_builtin_fn!(value_of, named "valueOf", of number_prototype);
+    make_builtin_fn!(to_exponential, named "toExponential", with length 1, of prototype);
+    make_builtin_fn!(to_fixed, named "toFixed", with length 1, of prototype);
+    make_builtin_fn!(to_locale_string, named "toLocaleString", of prototype);
+    make_builtin_fn!(to_precision, named "toPrecision", with length 1, of prototype);
+    make_builtin_fn!(to_string, named "toString", with length 1, of prototype);
+    make_builtin_fn!(value_of, named "valueOf", of prototype);
 
-    make_constructor_fn!(make_number, call_number, global, number_prototype)
+    make_constructor_fn!(make_number, call_number, global, prototype)
+}
+
+/// Initialise the `Number` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Number", create(global));
 }

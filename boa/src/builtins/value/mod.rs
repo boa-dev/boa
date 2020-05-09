@@ -13,8 +13,7 @@ use crate::builtins::{
     },
     property::Property,
 };
-use gc::{Gc, GcCell, GcCellRef};
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
@@ -25,15 +24,128 @@ use std::{
     str::FromStr,
 };
 
+pub mod conversions;
+pub mod operations;
+pub use conversions::*;
+pub use operations::*;
+
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
 pub type ResultValue = Result<Value, Value>;
 
 /// A Garbage-collected Javascript value as represented in the interpreter.
-pub type Value = Gc<ValueData>;
+#[derive(Debug, Clone, Trace, Finalize, Default)]
+pub struct Value(pub(crate) Gc<ValueData>);
 
-pub fn undefined() -> Value {
-    Gc::new(ValueData::Undefined)
+impl Value {
+    /// Creates a new `undefined` value.
+    #[inline]
+    pub fn undefined() -> Self {
+        Self(Gc::new(ValueData::Undefined))
+    }
+
+    /// Creates a new `null` value.
+    #[inline]
+    pub fn null() -> Self {
+        Self(Gc::new(ValueData::Null))
+    }
+
+    /// Creates a new string value.
+    #[inline]
+    pub fn string<S>(value: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self(Gc::new(ValueData::String(value.into())))
+    }
+
+    /// Creates a new number value.
+    #[inline]
+    pub fn rational<N>(value: N) -> Self
+    where
+        N: Into<f64>,
+    {
+        Self(Gc::new(ValueData::Rational(value.into())))
+    }
+
+    /// Creates a new number value.
+    #[inline]
+    pub fn integer<I>(value: I) -> Self
+    where
+        I: Into<i32>,
+    {
+        Self(Gc::new(ValueData::Integer(value.into())))
+    }
+
+    /// Creates a new number value.
+    #[inline]
+    pub fn number<N>(value: N) -> Self
+    where
+        N: Into<f64>,
+    {
+        Self::rational(value.into())
+    }
+
+    /// Creates a new boolean value.
+    #[inline]
+    pub fn boolean(value: bool) -> Self {
+        Self(Gc::new(ValueData::Boolean(value)))
+    }
+
+    /// Creates a new object value.
+    #[inline]
+    pub fn object(object: Object) -> Self {
+        Self(Gc::new(ValueData::Object(Box::new(GcCell::new(object)))))
+    }
+
+    /// Gets the underlying `ValueData` structure.
+    #[inline]
+    pub fn data(&self) -> &ValueData {
+        &*self.0
+    }
+
+    /// Helper function to convert the `Value` to a number and compute its power.
+    pub fn as_num_to_power(&self, other: Self) -> Self {
+        Self::rational(self.to_number().powf(other.to_number()))
+    }
+
+    /// Returns a new empty object
+    pub fn new_object(global: Option<&Value>) -> Self {
+        if let Some(global) = global {
+            let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
+
+            let object = Object::create(object_prototype);
+            Self::object(object)
+        } else {
+            Self::object(Object::default())
+        }
+    }
+
+    /// Similar to `new_object`, but you can pass a prototype to create from, plus a kind
+    pub fn new_object_from_prototype(proto: Value, kind: ObjectKind) -> Self {
+        let mut object = Object::default();
+        object.kind = kind;
+
+        object
+            .internal_slots
+            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
+
+        Self::object(object)
+    }
+}
+
+impl Deref for Value {
+    type Target = ValueData;
+
+    fn deref(&self) -> &Self::Target {
+        self.data()
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
 }
 
 /// A Javascript value
@@ -58,31 +170,6 @@ pub enum ValueData {
 }
 
 impl ValueData {
-    /// Returns a new empty object
-    pub fn new_obj(global: Option<&Value>) -> Value {
-        if let Some(glob) = global {
-            let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
-
-            let obj = Object::create(obj_proto);
-            Gc::new(Self::Object(Box::new(GcCell::new(obj))))
-        } else {
-            let obj = Object::default();
-            Gc::new(Self::Object(Box::new(GcCell::new(obj))))
-        }
-    }
-
-    /// Similar to `new_obj`, but you can pass a prototype to create from,
-    /// plus a kind
-    pub fn new_obj_from_prototype(proto: Value, kind: ObjectKind) -> Value {
-        let mut obj = Object::default();
-        obj.kind = kind;
-
-        obj.internal_slots
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
-
-        Gc::new(Self::Object(Box::new(GcCell::new(obj))))
-    }
-
     /// This will tell us if we can exten an object or not, not properly implemented yet
     ///
     /// For now always returns true.
@@ -170,7 +257,7 @@ impl ValueData {
     }
 
     /// Returns true if the value is a number
-    pub fn is_num(&self) -> bool {
+    pub fn is_number(&self) -> bool {
         self.is_double()
     }
 
@@ -205,7 +292,7 @@ impl ValueData {
     }
 
     /// Converts the value into a 64-bit floating point number
-    pub fn to_num(&self) -> f64 {
+    pub fn to_number(&self) -> f64 {
         match *self {
             Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
             Self::String(ref str) => match FromStr::from_str(str) {
@@ -220,7 +307,7 @@ impl ValueData {
     }
 
     /// Converts the value into a 32-bit integer
-    pub fn to_int(&self) -> i32 {
+    pub fn to_integer(&self) -> i32 {
         match *self {
             Self::Object(_)
             | Self::Undefined
@@ -244,10 +331,10 @@ impl ValueData {
         }
     }
 
-    /// remove_prop removes a property from a Value object.
+    /// Removes a property from a Value object.
     ///
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
-    pub fn remove_prop(&self, field: &str) {
+    pub fn remove_property(&self, field: &str) {
         match *self {
             Self::Object(ref obj) => obj.borrow_mut().deref_mut().properties.remove(field),
             _ => None,
@@ -257,12 +344,12 @@ impl ValueData {
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
-    pub fn get_prop(&self, field: &str) -> Option<Property> {
+    pub fn get_property(&self, field: &str) -> Option<Property> {
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
             if let Self::String(ref s) = *self {
-                return Some(Property::default().value(to_value(s.len() as i32)));
+                return Some(Property::default().value(Value::from(s.len())));
             }
         }
 
@@ -287,7 +374,7 @@ impl ValueData {
         match obj.properties.get(field) {
             Some(val) => Some(val.clone()),
             None => match obj.internal_slots.get(&INSTANCE_PROTOTYPE.to_string()) {
-                Some(value) => value.get_prop(field),
+                Some(value) => value.get_property(field),
                 None => None,
             },
         }
@@ -296,7 +383,7 @@ impl ValueData {
     /// update_prop will overwrite individual [Property] fields, unlike
     /// Set_prop, which will overwrite prop with a new Property
     /// Mostly used internally for now
-    pub fn update_prop(
+    pub fn update_property(
         &self,
         field: &str,
         value: Option<Value>,
@@ -333,12 +420,12 @@ impl ValueData {
                 let hash = obj.clone();
                 hash.into_inner()
             }
-            _ => return Gc::new(Self::Undefined),
+            _ => return Value::undefined(),
         };
 
         match obj.internal_slots.get(field) {
             Some(val) => val.clone(),
-            None => Gc::new(Self::Undefined),
+            None => Value::undefined(),
         }
     }
 
@@ -349,7 +436,7 @@ impl ValueData {
         match *field {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
-                match self.get_prop(s) {
+                match self.get_property(s) {
                     Some(prop) => {
                         // If the Property has [[Get]] set to a function, we should run that and return the Value
                         let prop_getter = match prop.get {
@@ -368,11 +455,11 @@ impl ValueData {
                             val.clone()
                         }
                     }
-                    None => Gc::new(Self::Undefined),
+                    None => Value::undefined(),
                 }
             }
             Self::Symbol(_) => unimplemented!(),
-            _ => Gc::new(Self::Undefined),
+            _ => Value::undefined(),
         }
     }
 
@@ -388,10 +475,7 @@ impl ValueData {
     /// Get the internal state of an object.
     pub fn get_internal_state(&self) -> Option<InternalStateCell> {
         if let Self::Object(ref obj) = *self {
-            obj.borrow()
-                .state
-                .as_ref()
-                .map(|state| state.deref().clone())
+            obj.borrow().state.as_ref().cloned()
         } else {
             None
         }
@@ -447,14 +531,14 @@ impl ValueData {
 
     /// Check to see if the Value has the field, mainly used by environment records
     pub fn has_field(&self, field: &str) -> bool {
-        self.get_prop(field).is_some()
+        self.get_property(field).is_some()
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     pub fn get_field_slice(&self, field: &str) -> Value {
         // get_field used to accept strings, but now Symbols accept it needs to accept a value
         // So this function will now need to Box strings back into values (at least for now)
-        let f = Gc::new(Self::String(field.to_string()));
+        let f = Value::string(field.to_string());
         self.get_field(f)
     }
 
@@ -465,10 +549,9 @@ impl ValueData {
             if obj.borrow().kind == ObjectKind::Array {
                 if let Ok(num) = field.to_string().parse::<usize>() {
                     if num > 0 {
-                        let len: i32 = from_value(self.get_field_slice("length"))
-                            .expect("Could not convert argument to i32");
+                        let len = i32::from(&self.get_field_slice("length"));
                         if len < (num + 1) as i32 {
-                            self.set_field_slice("length", to_value(num + 1));
+                            self.set_field_slice("length", Value::from(num + 1));
                         }
                     }
                 }
@@ -479,7 +562,7 @@ impl ValueData {
                 obj.borrow_mut().set(field, val.clone());
             } else {
                 obj.borrow_mut()
-                    .set(to_value(field.to_string()), val.clone());
+                    .set(Value::from(field.to_string()), val.clone());
             }
         }
 
@@ -490,7 +573,7 @@ impl ValueData {
     pub fn set_field_slice(&self, field: &str, val: Value) -> Value {
         // set_field used to accept strings, but now Symbols accept it needs to accept a value
         // So this function will now need to Box strings back into values (at least for now)
-        let f = Gc::new(Self::String(field.to_string()));
+        let f = Value::string(field.to_string());
         self.set_field(f, val)
     }
 
@@ -512,7 +595,7 @@ impl ValueData {
     }
 
     /// Set the property in the value
-    pub fn set_prop(&self, field: String, prop: Property) -> Property {
+    pub fn set_property(&self, field: String, prop: Property) -> Property {
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut().properties.insert(field, prop.clone());
         }
@@ -520,8 +603,8 @@ impl ValueData {
     }
 
     /// Set the property in the value
-    pub fn set_prop_slice(&self, field: &str, prop: Property) -> Property {
-        self.set_prop(field.to_string(), prop)
+    pub fn set_property_slice(&self, field: &str, prop: Property) -> Property {
+        self.set_property(field.to_string(), prop)
     }
 
     /// Set internal state of an Object. Discards the previous state if it was set.
@@ -529,7 +612,7 @@ impl ValueData {
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .state
-                .replace(Box::new(InternalStateCell::new(state)));
+                .replace(InternalStateCell::new(state));
         }
     }
 
@@ -542,9 +625,9 @@ impl ValueData {
         // Set [[Call]] internal slot
         new_func.set_call(native_func);
         // Wrap Object in GC'd Value
-        let new_func_val = to_value(new_func);
+        let new_func_val = Value::from(new_func);
         // Set length to parameters
-        new_func_val.set_field_slice("length", to_value(length));
+        new_func_val.set_field_slice("length", Value::from(length));
         new_func_val
     }
 
@@ -561,12 +644,12 @@ impl ValueData {
                 for (idx, json) in vs.iter().enumerate() {
                     new_obj.properties.insert(
                         idx.to_string(),
-                        Property::default().value(to_value(json.clone())),
+                        Property::default().value(Value::from(json.clone())),
                     );
                 }
                 new_obj.properties.insert(
                     "length".to_string(),
-                    Property::default().value(to_value(vs.len() as i32)),
+                    Property::default().value(Value::from(vs.len())),
                 );
                 Self::Object(Box::new(GcCell::new(new_obj)))
             }
@@ -575,7 +658,7 @@ impl ValueData {
                 for (key, json) in obj.iter() {
                     new_obj.properties.insert(
                         key.clone(),
-                        Property::default().value(to_value(json.clone())),
+                        Property::default().value(Value::from(json.clone())),
                     );
                 }
 
@@ -626,10 +709,6 @@ impl ValueData {
                 }
             }
         }
-    }
-
-    pub fn as_num_to_power(&self, other: Self) -> Self {
-        Self::Rational(self.to_num().powf(other.to_num()))
     }
 }
 
@@ -707,30 +786,27 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             match v.borrow().kind {
-                ObjectKind::String => from_value(
+                ObjectKind::String => String::from(
                     v.borrow()
                         .internal_slots
                         .get("StringData")
-                        .expect("Cannot get primitive value from String")
-                        .clone(),
-                )
-                .expect("Cannot clone primitive value from String"),
+                        .expect("Cannot get primitive value from String"),
+                ),
                 ObjectKind::Boolean => {
                     let bool_data = v.borrow().get_internal_slot("BooleanData").to_string();
 
                     format!("Boolean {{ {} }}", bool_data)
                 }
                 ObjectKind::Array => {
-                    let len: i32 = from_value(
-                        v.borrow()
+                    let len = i32::from(
+                        &v.borrow()
                             .properties
                             .get("length")
                             .unwrap()
                             .value
                             .clone()
                             .expect("Could not borrow value"),
-                    )
-                    .expect("Could not convert JS value to i32");
+                    );
 
                     if len == 0 {
                         return String::from("[]");
@@ -852,343 +928,5 @@ impl Display for ValueData {
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
         }
-    }
-}
-
-impl PartialEq for ValueData {
-    fn eq(&self, other: &Self) -> bool {
-        match (self.clone(), other.clone()) {
-            // TODO: fix this
-            // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
-            _ if self.is_null_or_undefined() && other.is_null_or_undefined() => true,
-            (Self::String(_), _) | (_, Self::String(_)) => self.to_string() == other.to_string(),
-            (Self::Boolean(a), Self::Boolean(b)) if a == b => true,
-            (Self::Rational(a), Self::Rational(b)) if a == b && !a.is_nan() && !b.is_nan() => true,
-            (Self::Rational(a), _) if a == other.to_num() => true,
-            (_, Self::Rational(a)) if a == self.to_num() => true,
-            (Self::Integer(a), Self::Integer(b)) if a == b => true,
-            _ => false,
-        }
-    }
-}
-
-impl Add for ValueData {
-    type Output = Self;
-    fn add(self, other: Self) -> Self {
-        match (self, other) {
-            (Self::String(ref s), ref o) => {
-                Self::String(format!("{}{}", s.clone(), &o.to_string()))
-            }
-            (ref s, Self::String(ref o)) => Self::String(format!("{}{}", s.to_string(), o)),
-            (ref s, ref o) => Self::Rational(s.to_num() + o.to_num()),
-        }
-    }
-}
-impl Sub for ValueData {
-    type Output = Self;
-    fn sub(self, other: Self) -> Self {
-        Self::Rational(self.to_num() - other.to_num())
-    }
-}
-impl Mul for ValueData {
-    type Output = Self;
-    fn mul(self, other: Self) -> Self {
-        Self::Rational(self.to_num() * other.to_num())
-    }
-}
-impl Div for ValueData {
-    type Output = Self;
-    fn div(self, other: Self) -> Self {
-        Self::Rational(self.to_num() / other.to_num())
-    }
-}
-impl Rem for ValueData {
-    type Output = Self;
-    fn rem(self, other: Self) -> Self {
-        Self::Rational(self.to_num() % other.to_num())
-    }
-}
-impl BitAnd for ValueData {
-    type Output = Self;
-    fn bitand(self, other: Self) -> Self {
-        Self::Integer(self.to_int() & other.to_int())
-    }
-}
-impl BitOr for ValueData {
-    type Output = Self;
-    fn bitor(self, other: Self) -> Self {
-        Self::Integer(self.to_int() | other.to_int())
-    }
-}
-impl BitXor for ValueData {
-    type Output = Self;
-    fn bitxor(self, other: Self) -> Self {
-        Self::Integer(self.to_int() ^ other.to_int())
-    }
-}
-impl Shl for ValueData {
-    type Output = Self;
-    fn shl(self, other: Self) -> Self {
-        Self::Integer(self.to_int() << other.to_int())
-    }
-}
-impl Shr for ValueData {
-    type Output = Self;
-    fn shr(self, other: Self) -> Self {
-        Self::Integer(self.to_int() >> other.to_int())
-    }
-}
-impl Not for ValueData {
-    type Output = Self;
-    fn not(self) -> Self {
-        Self::Boolean(!self.is_true())
-    }
-}
-
-/// Conversion to Javascript values from Rust values
-pub trait ToValue {
-    /// Convert this value to a Rust value
-    fn to_value(&self) -> Value;
-}
-/// Conversion to Rust values from Javascript values
-pub trait FromValue {
-    /// Convert this value to a Javascript value
-    fn from_value(value: Value) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-}
-
-impl ToValue for Value {
-    fn to_value(&self) -> Value {
-        self.clone()
-    }
-}
-
-impl FromValue for Value {
-    fn from_value(value: Value) -> Result<Self, &'static str> {
-        Ok(value)
-    }
-}
-
-impl ToValue for String {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.clone()))
-    }
-}
-
-impl FromValue for String {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_string())
-    }
-}
-
-impl<'s> ToValue for &'s str {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(
-            String::from_str(*self).expect("Could not convert string to self to String"),
-        ))
-    }
-}
-
-impl ToValue for char {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.to_string()))
-    }
-}
-impl FromValue for char {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_string()
-            .chars()
-            .next()
-            .expect("Could not get next char"))
-    }
-}
-
-impl ToValue for f64 {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Rational(*self))
-    }
-}
-impl FromValue for f64 {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_num())
-    }
-}
-
-impl ToValue for i32 {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Integer(*self))
-    }
-}
-impl FromValue for i32 {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_int())
-    }
-}
-
-impl ToValue for usize {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Integer(*self as i32))
-    }
-}
-impl FromValue for usize {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_int() as Self)
-    }
-}
-
-impl ToValue for bool {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Boolean(*self))
-    }
-}
-impl FromValue for bool {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.is_true())
-    }
-}
-
-impl<'s, T: ToValue> ToValue for &'s [T] {
-    fn to_value(&self) -> Value {
-        let mut arr = Object::default();
-        for (i, item) in self.iter().enumerate() {
-            arr.properties
-                .insert(i.to_string(), Property::default().value(item.to_value()));
-        }
-        to_value(arr)
-    }
-}
-impl<T: ToValue> ToValue for Vec<T> {
-    fn to_value(&self) -> Value {
-        let mut arr = Object::default();
-        for (i, item) in self.iter().enumerate() {
-            arr.properties
-                .insert(i.to_string(), Property::default().value(item.to_value()));
-        }
-        to_value(arr)
-    }
-}
-
-impl<T: FromValue> FromValue for Vec<T> {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        let len = v.get_field_slice("length").to_int();
-        let mut vec = Self::with_capacity(len as usize);
-        for i in 0..len {
-            vec.push(from_value(v.get_field_slice(&i.to_string()))?)
-        }
-        Ok(vec)
-    }
-}
-
-impl ToValue for Object {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Object(Box::new(GcCell::new(self.clone()))))
-    }
-}
-
-impl FromValue for Object {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        match *v {
-            ValueData::Object(ref obj) => Ok(obj.clone().into_inner()),
-            _ => Err("Value is not a valid object"),
-        }
-    }
-}
-
-impl ToValue for JSONValue {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::from_json(self.clone()))
-    }
-}
-
-impl FromValue for JSONValue {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_json())
-    }
-}
-
-impl ToValue for () {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Null)
-    }
-}
-impl FromValue for () {
-    fn from_value(_: Value) -> Result<(), &'static str> {
-        Ok(())
-    }
-}
-
-impl<T: ToValue> ToValue for Option<T> {
-    fn to_value(&self) -> Value {
-        match *self {
-            Some(ref v) => v.to_value(),
-            None => Gc::new(ValueData::Null),
-        }
-    }
-}
-impl<T: FromValue> FromValue for Option<T> {
-    fn from_value(value: Value) -> Result<Self, &'static str> {
-        Ok(if value.is_null_or_undefined() {
-            None
-        } else {
-            Some(FromValue::from_value(value)?)
-        })
-    }
-}
-
-/// A utility function that just calls `FromValue::from_value`
-pub fn from_value<A: FromValue>(v: Value) -> Result<A, &'static str> {
-    FromValue::from_value(v)
-}
-
-/// A utility function that just calls `ToValue::to_value`
-pub fn to_value<A: ToValue>(v: A) -> Value {
-    v.to_value()
-}
-
-/// The internal comparison abstract operation SameValue(x, y),
-/// where x and y are ECMAScript language values, produces true or false.
-/// Such a comparison is performed as follows:
-///
-/// https://tc39.es/ecma262/#sec-samevalue
-/// strict mode currently compares the pointers
-pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
-    if strict {
-        // Do both Values point to the same underlying valueData?
-        let x_ptr = Gc::into_raw(x.clone());
-        let y_ptr = Gc::into_raw(y.clone());
-        return x_ptr == y_ptr;
-    }
-
-    if x.get_type() != y.get_type() {
-        return false;
-    }
-
-    if x.get_type() == "number" {
-        let native_x: f64 = from_value(x.clone()).expect("failed to get value");
-        let native_y: f64 = from_value(y.clone()).expect("failed to get value");
-        return native_x.abs() - native_y.abs() == 0.0;
-    }
-
-    same_value_non_number(x, y)
-}
-
-pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
-    debug_assert!(x.get_type() == y.get_type());
-    match x.get_type() {
-        "undefined" => true,
-        "null" => true,
-        "string" => {
-            if x.to_string() == y.to_string() {
-                return true;
-            }
-            false
-        }
-        "boolean" => {
-            from_value::<bool>(x.clone()).expect("failed to get value")
-                == from_value::<bool>(y.clone()).expect("failed to get value")
-        }
-        "object" => *x == *y,
-        _ => false,
     }
 }

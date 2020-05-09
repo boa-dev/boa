@@ -4,7 +4,10 @@ use super::Parser;
 use crate::syntax::{ast::node::Node, ast::op::NumOp, lexer::Lexer};
 
 #[allow(clippy::result_unwrap_used)]
-pub(super) fn check_parser(js: &str, expr: &[Node]) {
+pub(super) fn check_parser<L>(js: &str, expr: L)
+where
+    L: Into<Box<[Node]>>,
+{
     let mut lexer = Lexer::new(js);
     lexer.lex().expect("failed to lex");
 
@@ -28,7 +31,7 @@ pub(super) fn check_invalid(js: &str) {
 fn check_construct_call_precedence() {
     check_parser(
         "new Date().getTime()",
-        &[Node::call(
+        vec![Node::call(
             Node::get_const_field(
                 Node::new(Node::call(Node::local("Date"), Vec::new())),
                 "getTime",
@@ -42,7 +45,7 @@ fn check_construct_call_precedence() {
 fn assign_operator_precedence() {
     check_parser(
         "a = a + 1",
-        &[Node::assign(
+        vec![Node::assign(
             Node::local("a"),
             Node::bin_op(NumOp::Add, Node::local("a"), Node::const_node(1)),
         )],
