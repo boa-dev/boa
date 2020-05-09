@@ -1,9 +1,14 @@
+mod catch;
+mod finally;
+
 #[cfg(test)]
 mod tests;
 
+use self::catch::Catch;
+use self::finally::Finally;
 use super::block::Block;
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{keyword::Keyword, node::Node, token::TokenKind},
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 
@@ -63,39 +68,24 @@ impl TokenParser for TryStatement {
             ));
         }
 
-        // CATCH
         let (catch, param) = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
-            // Catch binding
-            let _ = cursor.next();
-            cursor.expect(Punctuator::OpenParen, "catch in try statement")?;
-            // TODO: should accept BindingPattern
-            let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
-            let catch_param = if let TokenKind::Identifier(s) = &tok.kind {
-                Node::local(s)
-            } else {
-                return Err(ParseError::Expected(
-                    vec![TokenKind::identifier("identifier")],
-                    tok.clone(),
-                    "catch in try statement",
-                ));
-            };
-            cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
-
-            // Catch block
-            (
-                Some(
-                    Block::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor)?,
-                ),
-                Some(catch_param),
-            )
+            match Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor) {
+                Ok((catch, param)) => (Some(catch), Some(param)),
+                Err(e) => return Err(e),
+            }
         } else {
             (None, None)
         };
 
-        // FINALLY
-        let finally_block = if cursor.next_if(Keyword::Finally).is_some() {
-            Some(Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
+        let next_token = cursor.peek(0);
+        let finally_block = if next_token.is_some()
+            && next_token.unwrap().kind == TokenKind::Keyword(Keyword::Finally)
+        {
+            match Finally::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)
+            {
+                Ok(finally) => Some(finally),
+                Err(e) => return Err(e),
+            }
         } else {
             None
         };

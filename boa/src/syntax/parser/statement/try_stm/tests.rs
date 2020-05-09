@@ -73,3 +73,19 @@ fn check_inline_with_empty_try_finally() {
         )],
     );
 }
+
+#[test]
+fn check_inline_with_empty_try_var_decl_in_finally() {
+    check_parser(
+        "try {} finally { var x = 1; }",
+        vec![Node::try_node::<_, _, _, _, Node, Node, Node>(
+            Node::block(vec![]),
+            None,
+            None,
+            Node::block(vec![Node::var_decl(vec![(
+                String::from("x"),
+                Some(Node::const_node(1)),
+            )])]),
+        )],
+    );
+}
