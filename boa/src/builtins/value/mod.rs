@@ -393,10 +393,7 @@ impl ValueData {
     /// Get the internal state of an object.
     pub fn get_internal_state(&self) -> Option<InternalStateCell> {
         if let Self::Object(ref obj) = *self {
-            obj.borrow()
-                .state
-                .as_ref()
-                .map(|state| state.deref().clone())
+            obj.borrow().state.as_ref().cloned()
         } else {
             None
         }
@@ -534,7 +531,7 @@ impl ValueData {
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .state
-                .replace(Box::new(InternalStateCell::new(state)));
+                .replace(InternalStateCell::new(state));
         }
     }
 
