@@ -673,13 +673,13 @@
     <span class="doccomment">/// The type of the object.</span>
     <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">ObjectKind</span>,
     <span class="doccomment">/// Intfiernal Slots</span>
-    <span class="kw">pub</span> <span class="ident">internal_slots</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">internal_slots</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Value</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Properties</span>
-    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Property</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Property</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Symbol Properties</span>
-    <span class="kw">pub</span> <span class="ident">sym_properties</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Property</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Property</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Some rust object that stores internal state</span>
-    <span class="kw">pub</span> <span class="ident">state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InternalStateCell</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InternalStateCell</span><span class="op">&gt;</span>,
     <span class="doccomment">/// [[Call]]</span>
     <span class="kw">pub</span> <span class="ident">call</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;</span>,
     <span class="doccomment">/// [[Construct]]</span>
@@ -964,9 +964,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind</span>::<span class="ident">Ordinary</span>,
-            <span class="ident">internal_slots</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">sym_properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
+            <span class="ident">internal_slots</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">call</span>: <span class="prelude-val">None</span>,
             <span class="ident">construct</span>: <span class="prelude-val">None</span>,
@@ -980,9 +980,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind</span>::<span class="ident">Function</span>,
-            <span class="ident">internal_slots</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">sym_properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
+            <span class="ident">internal_slots</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">call</span>: <span class="prelude-val">None</span>,
             <span class="ident">construct</span>: <span class="prelude-val">None</span>,
@@ -1022,9 +1022,9 @@
     <span class="kw">fn</span> <span class="ident">from_boolean</span>(<span class="ident">argument</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind</span>::<span class="ident">Boolean</span>,
-            <span class="ident">internal_slots</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">sym_properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
+            <span class="ident">internal_slots</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">call</span>: <span class="prelude-val">None</span>,
             <span class="ident">construct</span>: <span class="prelude-val">None</span>,
@@ -1039,9 +1039,9 @@
     <span class="kw">fn</span> <span class="ident">from_number</span>(<span class="ident">argument</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind</span>::<span class="ident">Number</span>,
-            <span class="ident">internal_slots</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">sym_properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
+            <span class="ident">internal_slots</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">call</span>: <span class="prelude-val">None</span>,
             <span class="ident">construct</span>: <span class="prelude-val">None</span>,
@@ -1056,9 +1056,9 @@
     <span class="kw">fn</span> <span class="ident">from_string</span>(<span class="ident">argument</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind</span>::<span class="ident">String</span>,
-            <span class="ident">internal_slots</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
-            <span class="ident">sym_properties</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FxHashMap</span>::<span class="ident">default</span>()),
+            <span class="ident">internal_slots</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">call</span>: <span class="prelude-val">None</span>,
             <span class="ident">construct</span>: <span class="prelude-val">None</span>,

@@ -856,9 +856,6 @@
 <span id="856">856</span>
 <span id="857">857</span>
 <span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1255,10 +1252,7 @@
     <span class="doccomment">/// Get the internal state of an object.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_internal_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InternalStateCell</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">obj</span>.<span class="ident">borrow</span>()
-                .<span class="ident">state</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">state</span>.<span class="ident">deref</span>().<span class="ident">clone</span>())
+            <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">state</span>.<span class="ident">as_ref</span>().<span class="ident">cloned</span>()
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -1396,7 +1390,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">obj</span>.<span class="ident">borrow_mut</span>()
                 .<span class="ident">state</span>
-                .<span class="ident">replace</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">InternalStateCell</span>::<span class="ident">new</span>(<span class="ident">state</span>)));
+                .<span class="ident">replace</span>(<span class="ident">InternalStateCell</span>::<span class="ident">new</span>(<span class="ident">state</span>));
         }
     }
 
