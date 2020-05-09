@@ -12,15 +12,18 @@ Thank you for adding a feature request to Boa! As this is an experimental JavaSc
 -->
 
 **ECMASCript feature**
-Explain the ECMAScript feature that you'd like to see implemented. E.g.:
+Explain the ECMAScript feature that you'd like to see implemented.
 
+<!-- E.g.:
 I would like to see `switch` statement parsing and execution implemented. [ECMAScript specification][spec].
 
 [spec]: https://www.ecma-international.org/ecma-262/10.0/index.html#sec-switch-statement
+-->
 
 **Example code**
-Give a code example that should work after the implementation of this feature. E.g.:
+Give a code example that should work after the implementation of this feature.
 
+<!-- E.g.:
 This code should now work and give the expected result:
 ```javascript
 let a = "hello";
@@ -38,3 +41,4 @@ switch (a) {
 b;
 ```
 The expected output is `world`.
+-->
