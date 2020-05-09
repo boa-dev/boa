@@ -66,6 +66,7 @@ impl TokenParser for TryStatement {
         // CATCH
         let (catch, param) = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
             // Catch binding
+            let _ = cursor.next();
             cursor.expect(Punctuator::OpenParen, "catch in try statement")?;
             // TODO: should accept BindingPattern
             let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
