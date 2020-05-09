@@ -434,6 +434,65 @@ fn unary_post() {
     assert_eq!(&exec(execs_after_dec), "true");
 }
 
+#[test]
+fn unary_void() {
+    let void_should_return_undefined = r#"
+        const a = 0;
+        void a;
+    "#;
+    assert_eq!(&exec(void_should_return_undefined), "undefined");
+
+    let void_invocation = r#"
+        let a = 0;
+        const test = () => a = 42;
+        const b = void test() + '';
+        a + b
+    "#;
+    assert_eq!(&exec(void_invocation), "42undefined");
+}
+
+#[test]
+fn unary_delete() {
+    let delete_var = r#"
+        let a = 5;
+        const b = delete a + '';
+        a + b
+    "#;
+    assert_eq!(&exec(const_delete), "5false");
+
+    let delete_prop = r#"
+        const a = { b: 5 };
+        const c = delete a.b + '';
+        a.b + c
+    "#;
+    assert_eq!(&exec(delete_prop), "undefinedtrue");
+
+    let delete_not_existing_prop = r#"
+        const a = { b: 5 };
+        const c = delete a.c + '';
+        a.b + c
+    "#;
+    assert_eq!(&exec(delete_not_existing_prop), "5false");
+
+    let delete_field = r#"
+        const a = { b: 5 };
+        const c = delete a['b'] + '';
+        a.b + c
+    "#;
+    assert_eq!(&exec(delete_field), "undefinedtrue");
+
+    let delete_object = r#"
+        const a = { b: 5 };
+        delete a
+    "#;
+    assert_eq!(&exec(delete_object), "false");
+
+    let delete_recursive = r#"
+        delete delete delete 1
+    "#;
+    assert_eq!(&exec(delete_object), "true");
+}
+
 #[cfg(test)]
 mod in_operator {
     use super::*;
