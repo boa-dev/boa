@@ -47,13 +47,13 @@ pub struct Object {
     /// The type of the object.
     pub kind: ObjectKind,
     /// Intfiernal Slots
-    pub internal_slots: Box<FxHashMap<String, Value>>,
+    pub internal_slots: FxHashMap<String, Value>,
     /// Properties
-    pub properties: Box<FxHashMap<String, Property>>,
+    pub properties: FxHashMap<String, Property>,
     /// Symbol Properties
-    pub sym_properties: Box<FxHashMap<i32, Property>>,
+    pub sym_properties: FxHashMap<i32, Property>,
     /// Some rust object that stores internal state
-    pub state: Option<Box<InternalStateCell>>,
+    pub state: Option<InternalStateCell>,
     /// [[Call]]
     pub call: Option<Function>,
     /// [[Construct]]
@@ -338,9 +338,9 @@ impl Object {
     pub fn default() -> Self {
         let mut object = Self {
             kind: ObjectKind::Ordinary,
-            internal_slots: Box::new(FxHashMap::default()),
-            properties: Box::new(FxHashMap::default()),
-            sym_properties: Box::new(FxHashMap::default()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
             call: None,
             construct: None,
@@ -354,9 +354,9 @@ impl Object {
     pub fn function() -> Self {
         let mut object = Self {
             kind: ObjectKind::Function,
-            internal_slots: Box::new(FxHashMap::default()),
-            properties: Box::new(FxHashMap::default()),
-            sym_properties: Box::new(FxHashMap::default()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
             call: None,
             construct: None,
@@ -396,9 +396,9 @@ impl Object {
     fn from_boolean(argument: &Value) -> Self {
         let mut obj = Self {
             kind: ObjectKind::Boolean,
-            internal_slots: Box::new(FxHashMap::default()),
-            properties: Box::new(FxHashMap::default()),
-            sym_properties: Box::new(FxHashMap::default()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
             call: None,
             construct: None,
@@ -413,9 +413,9 @@ impl Object {
     fn from_number(argument: &Value) -> Self {
         let mut obj = Self {
             kind: ObjectKind::Number,
-            internal_slots: Box::new(FxHashMap::default()),
-            properties: Box::new(FxHashMap::default()),
-            sym_properties: Box::new(FxHashMap::default()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
             call: None,
             construct: None,
@@ -430,9 +430,9 @@ impl Object {
     fn from_string(argument: &Value) -> Self {
         let mut obj = Self {
             kind: ObjectKind::String,
-            internal_slots: Box::new(FxHashMap::default()),
-            properties: Box::new(FxHashMap::default()),
-            sym_properties: Box::new(FxHashMap::default()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
             call: None,
             construct: None,

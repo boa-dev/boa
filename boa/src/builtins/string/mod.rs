@@ -407,7 +407,7 @@ fn get_regex_string(value: &Value) -> String {
     match value.deref() {
         ValueData::String(ref body) => body.into(),
         ValueData::Object(ref obj) => {
-            let slots = &*obj.borrow().internal_slots;
+            let slots = &obj.borrow().internal_slots;
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {

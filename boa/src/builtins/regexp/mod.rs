@@ -81,7 +81,7 @@ pub fn make_regexp(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
             regex_body = body.into();
         }
         ValueData::Object(ref obj) => {
-            let slots = &*obj.borrow().internal_slots;
+            let slots = &obj.borrow().internal_slots;
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {
