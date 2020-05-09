@@ -458,7 +458,7 @@ fn unary_delete() {
         const b = delete a + '';
         a + b
     "#;
-    assert_eq!(&exec(const_delete), "5false");
+    assert_eq!(&exec(delete_var), "5false");
 
     let delete_prop = r#"
         const a = { b: 5 };
