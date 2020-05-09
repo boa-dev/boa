@@ -892,11 +892,6 @@
 <span id="892">892</span>
 <span id="893">893</span>
 <span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -912,7 +907,7 @@
             <span class="ident">PROTOTYPE</span>,
         },
         <span class="ident">property</span>::<span class="ident">Property</span>,
-        <span class="ident">value</span>::{<span class="ident">from_value</span>, <span class="ident">to_value</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+        <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">new_declarative_environment</span>, <span class="ident">VariableScope</span>},
     <span class="ident">realm</span>::<span class="ident">Realm</span>,
@@ -922,7 +917,6 @@
         <span class="ident">op</span>::{<span class="ident">AssignOp</span>, <span class="ident">BinOp</span>, <span class="ident">BitOp</span>, <span class="ident">CompOp</span>, <span class="ident">LogOp</span>, <span class="ident">NumOp</span>, <span class="ident">UnaryOp</span>},
     },
 };
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">borrow</span>::{<span class="ident">Borrow</span>, <span class="ident">BorrowMut</span>},
     <span class="ident">ops</span>::<span class="ident">Deref</span>,
@@ -944,8 +938,8 @@
     <span class="kw">pub</span> <span class="ident">realm</span>: <span class="ident">Realm</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">exec_assign_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">AssignOp</span>, <span class="ident">v_a</span>: <span class="ident">ValueData</span>, <span class="ident">v_b</span>: <span class="ident">ValueData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
+<span class="kw">fn</span> <span class="ident">exec_assign_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">AssignOp</span>, <span class="ident">v_a</span>: <span class="ident">Value</span>, <span class="ident">v_b</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
         <span class="ident">AssignOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">+</span> <span class="ident">v_b</span>,
         <span class="ident">AssignOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">-</span> <span class="ident">v_b</span>,
         <span class="ident">AssignOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">*</span> <span class="ident">v_b</span>,
@@ -957,7 +951,7 @@
         <span class="ident">AssignOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">^</span> <span class="ident">v_b</span>,
         <span class="ident">AssignOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">v_b</span>,
         <span class="ident">AssignOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">v_b</span>,
-    })
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Executor</span> <span class="kw">for</span> <span class="ident">Interpreter</span> {
@@ -971,15 +965,15 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">match_same_arms</span>)]</span>
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">node</span> {
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="prelude-val">None</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>)),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">num</span>)),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">num</span>)),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>()),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">rational</span>(<span class="ident">num</span>)),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">num</span>)),
             <span class="comment">// we can&#39;t move String from Const into value, because const is a garbage collected value</span>
             <span class="comment">// Which means Drop() get&#39;s called on Const, but str will be gone at that point.</span>
             <span class="comment">// Do Const values need to be garbage collected? We no longer need them once we&#39;ve generated Values</span>
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">str</span>.<span class="ident">to_owned</span>())),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Bool</span>(<span class="ident">val</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">val</span>)),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Bool</span>(<span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">value</span>)),
             <span class="ident">Node</span>::<span class="ident">Block</span>(<span class="kw-2">ref</span> <span class="ident">es</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 {
                     <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>;
@@ -988,7 +982,7 @@
                     )));
                 }
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="prelude-val">None</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">null</span>();
                 <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">es</span>.<span class="ident">iter</span>() {
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">e</span>)<span class="question-mark">?</span>;
                     <span class="comment">// early return</span>
@@ -1060,7 +1054,7 @@
                 <span class="ident">fnct_result</span>
             }
             <span class="ident">Node</span>::<span class="ident">WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">cond</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">undefined</span>();
                 <span class="kw">while</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">cond</span>)<span class="question-mark">?</span>.<span class="ident">borrow</span>().<span class="ident">is_true</span>() {
                     <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">expr</span>)<span class="question-mark">?</span>;
                 }
@@ -1089,12 +1083,12 @@
                     }
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
             }
             <span class="ident">Node</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">cond</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">cond</span>)<span class="question-mark">?</span>.<span class="ident">borrow</span>().<span class="ident">is_true</span>() {
                 <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">expr</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
-                <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)
+                <span class="ident">Value</span>::<span class="ident">undefined</span>()
             }),
             <span class="ident">Node</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">cond</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">else_e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">cond</span>)<span class="question-mark">?</span>.<span class="ident">borrow</span>().<span class="ident">is_true</span>() {
@@ -1105,7 +1099,7 @@
             }
             <span class="ident">Node</span>::<span class="ident">Switch</span>(<span class="kw-2">ref</span> <span class="ident">val_e</span>, <span class="kw-2">ref</span> <span class="ident">vals</span>, <span class="kw-2">ref</span> <span class="ident">default</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">val_e</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Null</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">null</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">for</span> <span class="ident">tup</span> <span class="kw">in</span> <span class="ident">vals</span>.<span class="ident">iter</span>() {
                     <span class="kw">let</span> <span class="ident">cond</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tup</span>.<span class="number">0</span>;
@@ -1136,7 +1130,7 @@
                     .<span class="ident">environment</span>
                     .<span class="ident">get_global_object</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;Could not get the global object&quot;</span>);
-                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">Some</span>(<span class="ident">global_val</span>));
+                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global_val</span>));
 
                 <span class="comment">// TODO: Implement the rest of the property types.</span>
                 <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">properties</span>.<span class="ident">iter</span>() {
@@ -1160,7 +1154,7 @@
             }
             <span class="ident">Node</span>::<span class="ident">ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">array</span>::<span class="ident">new_array</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
                 <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="ident">arr</span>.<span class="ident">iter</span>() {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span> <span class="ident">elem</span>.<span class="ident">deref</span>() {
                         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">x</span>)<span class="question-mark">?</span>;
@@ -1193,11 +1187,11 @@
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
                 <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">func</span>);
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="ident">new_func</span>);
-                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">to_value</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
+                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
 
                 <span class="comment">// Set the name and assign it in the current environment</span>
-                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">to_value</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
+                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
                 <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
                     <span class="ident">name</span>.<span class="ident">clone</span>(),
                     <span class="bool-val">false</span>,
@@ -1228,11 +1222,11 @@
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
                 <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">func</span>);
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="ident">new_func</span>);
-                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">to_value</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
+                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">name</span> {
-                    <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">to_value</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
+                    <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
                 }
 
                 <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
@@ -1256,50 +1250,49 @@
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
                 <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">func</span>);
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="ident">new_func</span>);
-                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">to_value</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
+                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
 
                 <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
             }
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>), <span class="kw-2">ref</span> <span class="ident">a</span>, <span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">v_r_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v_r_a</span>).<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v_r_b</span>).<span class="ident">clone</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
+                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
                     <span class="ident">NumOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">+</span> <span class="ident">v_b</span>,
                     <span class="ident">NumOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">-</span> <span class="ident">v_b</span>,
                     <span class="ident">NumOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">*</span> <span class="ident">v_b</span>,
                     <span class="ident">NumOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span>.<span class="ident">as_num_to_power</span>(<span class="ident">v_b</span>),
                     <span class="ident">NumOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">/</span> <span class="ident">v_b</span>,
                     <span class="ident">NumOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">%</span> <span class="ident">v_b</span>,
-                }))
+                })
             }
             <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v_r_a</span>).<span class="ident">clone</span>();
-                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="op">-</span><span class="ident">v_a</span>.<span class="ident">to_number</span>()),
-                    <span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>()),
+                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
+                    <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="ident">v_a</span>.<span class="ident">to_number</span>()),
+                    <span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>()),
                     <span class="ident">UnaryOp</span>::<span class="ident">IncrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
-                        <span class="ident">v_r_a</span>
+                        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">clone</span>();
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                        <span class="ident">ret</span>
                     }
                     <span class="ident">UnaryOp</span>::<span class="ident">IncrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
                     }
                     <span class="ident">UnaryOp</span>::<span class="ident">DecrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
-                        <span class="ident">v_r_a</span>
+                        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">clone</span>();
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                        <span class="ident">ret</span>
                     }
                     <span class="ident">UnaryOp</span>::<span class="ident">DecrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>.<span class="ident">deref</span>(), <span class="ident">to_value</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                        <span class="self">self</span>.<span class="ident">set_value</span>(<span class="ident">a</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
                     }
-                    <span class="ident">UnaryOp</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="op">!</span><span class="ident">v_a</span>),
+                    <span class="ident">UnaryOp</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">v_a</span>,
                     <span class="ident">UnaryOp</span>::<span class="ident">Tilde</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">num_v_a</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">to_number</span>();
                         <span class="comment">// NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184</span>
-                        <span class="ident">to_value</span>(<span class="kw">if</span> <span class="ident">num_v_a</span>.<span class="ident">is_nan</span>() {
+                        <span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">num_v_a</span>.<span class="ident">is_nan</span>() {
                             <span class="op">-</span><span class="number">1</span>
                         } <span class="kw">else</span> {
                             <span class="op">!</span>(<span class="ident">num_v_a</span> <span class="kw">as</span> <span class="ident">i32</span>)
@@ -1309,11 +1302,9 @@
                 })
             }
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>), <span class="kw-2">ref</span> <span class="ident">a</span>, <span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">v_r_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v_r_a</span>).<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v_r_b</span>).<span class="ident">clone</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
+                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
                     <span class="ident">BitOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&amp;</span> <span class="ident">v_b</span>,
                     <span class="ident">BitOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">|</span> <span class="ident">v_b</span>,
                     <span class="ident">BitOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">^</span> <span class="ident">v_b</span>,
@@ -1321,14 +1312,14 @@
                     <span class="ident">BitOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">v_b</span>,
                     <span class="comment">// TODO Fix</span>
                     <span class="ident">BitOp</span>::<span class="ident">UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">v_b</span>,
-                }))
+                })
             }
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>), <span class="kw-2">ref</span> <span class="ident">a</span>, <span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v_r_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="ident">v_r_a</span>.<span class="ident">borrow_mut</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="ident">v_r_b</span>.<span class="ident">borrow_mut</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
                     <span class="ident">CompOp</span>::<span class="ident">Equal</span> <span class="kw">if</span> <span class="ident">v_a</span>.<span class="ident">is_object</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_r_a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">v_r_b</span>,
                     <span class="ident">CompOp</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">v_b</span>,
                     <span class="ident">CompOp</span>::<span class="ident">NotEqual</span> <span class="kw">if</span> <span class="ident">v_a</span>.<span class="ident">is_object</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_r_a</span> <span class="op">!</span><span class="op">=</span> <span class="ident">v_r_b</span>,
@@ -1352,17 +1343,16 @@
             }
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>), <span class="kw-2">ref</span> <span class="ident">a</span>, <span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// turn a `Value` into a `bool`</span>
-                <span class="kw">let</span> <span class="ident">to_bool</span> <span class="op">=</span>
-                    <span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">from_value</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="ident">val</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not convert JS value to bool&quot;</span>);
+                <span class="kw">let</span> <span class="ident">to_bool</span> <span class="op">=</span> <span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">bool</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>);
                 <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
-                    <span class="ident">LogOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>)),
-                    <span class="ident">LogOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>)),
+                    <span class="ident">LogOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>)),
+                    <span class="ident">LogOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">to_bool</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>)),
                 })
             }
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>), <span class="kw-2">ref</span> <span class="ident">a</span>, <span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">a</span>.<span class="ident">deref</span>() {
                 <span class="ident">Node</span>::<span class="ident">Local</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>)).<span class="ident">clone</span>();
-                    <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>).<span class="ident">clone</span>();
+                    <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>);
+                    <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">exec_assign_op</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="ident">v_b</span>);
                     <span class="self">self</span>.<span class="ident">realm</span>
                         .<span class="ident">environment</span>
@@ -1371,15 +1361,15 @@
                 }
                 <span class="ident">Node</span>::<span class="ident">GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>, <span class="kw-2">ref</span> <span class="ident">field</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">obj</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v_r_a</span>.<span class="ident">borrow</span>().<span class="ident">get_field_slice</span>(<span class="ident">field</span>)).<span class="ident">clone</span>();
-                    <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>).<span class="ident">clone</span>();
+                    <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="ident">v_r_a</span>.<span class="ident">get_field_slice</span>(<span class="ident">field</span>);
+                    <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">exec_assign_op</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="ident">v_b</span>);
                     <span class="ident">v_r_a</span>
                         .<span class="ident">borrow</span>()
                         .<span class="ident">set_field_slice</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">clone</span>(), <span class="ident">value</span>.<span class="ident">clone</span>());
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
             },
             <span class="ident">Node</span>::<span class="ident">New</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">callee</span>, <span class="ident">args</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">call</span>.<span class="ident">as_ref</span>() {
@@ -1392,7 +1382,7 @@
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>() {
                     <span class="ident">v_args</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">arg</span>)<span class="question-mark">?</span>);
                 }
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">None</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
                 <span class="comment">// Create a blank object, then set its __proto__ property to the [Constructor].prototype</span>
                 <span class="ident">this</span>.<span class="ident">borrow</span>().<span class="ident">set_internal_slot</span>(
                     <span class="ident">INSTANCE_PROTOTYPE</span>,
@@ -1405,13 +1395,13 @@
                         .<span class="ident">as_ref</span>()
                         .<span class="ident">unwrap</span>()
                         .<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">func_object</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">v_args</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)),
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
                 }
             }
             <span class="ident">Node</span>::<span class="ident">Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ret</span> {
                     <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">v</span>),
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)),
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
                 };
                 <span class="comment">// Set flag for return</span>
                 <span class="self">self</span>.<span class="ident">is_return</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1456,7 +1446,7 @@
                     <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">var</span>.<span class="ident">clone</span>();
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
                         <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>)<span class="question-mark">?</span>,
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>),
+                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
                     };
                     <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
                         <span class="ident">name</span>.<span class="ident">clone</span>(),
@@ -1465,14 +1455,14 @@
                     );
                     <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">val</span>);
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
             }
             <span class="ident">Node</span>::<span class="ident">LetDecl</span>(<span class="kw-2">ref</span> <span class="ident">vars</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="ident">var</span> <span class="kw">in</span> <span class="ident">vars</span>.<span class="ident">iter</span>() {
                     <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">var</span>.<span class="ident">clone</span>();
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
                         <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>)<span class="question-mark">?</span>,
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>),
+                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
                     };
                     <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
                         <span class="ident">name</span>.<span class="ident">clone</span>(),
@@ -1481,7 +1471,7 @@
                     );
                     <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">val</span>);
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
             }
             <span class="ident">Node</span>::<span class="ident">ConstDecl</span>(<span class="kw-2">ref</span> <span class="ident">vars</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">vars</span>.<span class="ident">iter</span>() {
@@ -1493,11 +1483,11 @@
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">val</span>);
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
             }
             <span class="ident">Node</span>::<span class="ident">TypeOf</span>(<span class="kw-2">ref</span> <span class="ident">val_e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">val_e</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">val</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">val</span> {
                     <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;undefined&quot;</span>,
                     <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbol&quot;</span>,
                     <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;object&quot;</span>,
@@ -1521,7 +1511,7 @@
                     )));
                 }
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="prelude-val">None</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">null</span>();
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
                     <span class="comment">// early return</span>
@@ -1541,7 +1531,7 @@
             }
             <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// TODO: for now we can do nothing but return the value as-is</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">Gc</span>::<span class="ident">new</span>((<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">run</span>(<span class="ident">node</span>)<span class="question-mark">?</span>).<span class="ident">clone</span>()))
+                <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">node</span>)
             }
             <span class="kw-2">ref</span> <span class="ident">i</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">i</span>),
         }
@@ -1568,7 +1558,7 @@
                 <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>.<span class="ident">clone</span>(), <span class="ident">arguments_list</span>, <span class="self">self</span>, <span class="ident">this</span>),
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Expected function&quot;</span>),
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
         }
     }
 
@@ -1599,7 +1589,7 @@
             }
         }
 
-        <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)
+        <span class="ident">Value</span>::<span class="ident">undefined</span>()
     }
 
     <span class="doccomment">/// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.</span>
@@ -1634,17 +1624,17 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="string">&quot;undefined&quot;</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="string">&quot;null&quot;</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="kw-2">ref</span> <span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">boolean</span>.<span class="ident">to_string</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">num</span>.<span class="ident">to_string</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">num</span>.<span class="ident">to_string</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;undefined&quot;</span>),
+            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;null&quot;</span>),
+            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="kw-2">ref</span> <span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">boolean</span>.<span class="ident">to_string</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">to_string</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">to_string</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="string">&quot;string&quot;</span>));
                 <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">prim_value</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="string">&quot;function(){...}&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;function(){...}&quot;</span>),
         }
     }
 
@@ -1679,7 +1669,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
             <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
+                <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
             }
             <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
@@ -1688,7 +1678,7 @@
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;Boolean&quot;</span>)
                     .<span class="ident">get_field_slice</span>(<span class="ident">PROTOTYPE</span>);
 
-                <span class="kw">let</span> <span class="ident">bool_obj</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectKind</span>::<span class="ident">Boolean</span>);
+                <span class="kw">let</span> <span class="ident">bool_obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectKind</span>::<span class="ident">Boolean</span>);
                 <span class="ident">bool_obj</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;BooleanData&quot;</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
                 <span class="prelude-val">Ok</span>(<span class="ident">bool_obj</span>)
             }
@@ -1698,7 +1688,7 @@
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;Number&quot;</span>)
                     .<span class="ident">get_field_slice</span>(<span class="ident">PROTOTYPE</span>);
-                <span class="kw">let</span> <span class="ident">number_obj</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectKind</span>::<span class="ident">Number</span>);
+                <span class="kw">let</span> <span class="ident">number_obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectKind</span>::<span class="ident">Number</span>);
                 <span class="ident">number_obj</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
                 <span class="prelude-val">Ok</span>(<span class="ident">number_obj</span>)
             }
@@ -1708,7 +1698,7 @@
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;String&quot;</span>)
                     .<span class="ident">get_field_slice</span>(<span class="ident">PROTOTYPE</span>);
-                <span class="kw">let</span> <span class="ident">string_obj</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectKind</span>::<span class="ident">String</span>);
+                <span class="kw">let</span> <span class="ident">string_obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectKind</span>::<span class="ident">String</span>);
                 <span class="ident">string_obj</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;StringData&quot;</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
                 <span class="prelude-val">Ok</span>(<span class="ident">string_obj</span>)
             }
@@ -1761,15 +1751,15 @@
 
     <span class="doccomment">/// `extract_array_properties` converts an array object into a rust vector of Values.</span>
     <span class="doccomment">/// This is useful for the spread operator, for any other object an `Err` is returned</span>
-    <span class="kw">fn</span> <span class="ident">extract_array_properties</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">ValueData</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">extract_array_properties</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
             <span class="comment">// Check if object is array</span>
             <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ObjectKind</span>::<span class="ident">Array</span> {
                 <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">value_to_rust_number</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">get_field_slice</span>(<span class="string">&quot;length&quot;</span>)) <span class="kw">as</span> <span class="ident">i32</span>;
-                <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">ValueData</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
+                <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">get_field_slice</span>(<span class="kw-2">&amp;</span><span class="ident">idx</span>.<span class="ident">to_string</span>()))
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                    .<span class="ident">collect</span>();
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">values</span>);
             }
 

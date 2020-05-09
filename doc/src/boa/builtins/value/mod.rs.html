@@ -856,6 +856,80 @@
 <span id="856">856</span>
 <span id="857">857</span>
 <span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -893,11 +967,118 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ResultValue</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Value</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A Garbage-collected Javascript value as represented in the interpreter.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">ValueData</span><span class="op">&gt;</span>;
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Value</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">ValueData</span><span class="op">&gt;</span>);
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">undefined</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)
+<span class="kw">impl</span> <span class="ident">Value</span> {
+    <span class="doccomment">/// Creates a new `undefined` value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">undefined</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
+    }
+
+    <span class="doccomment">/// Creates a new `null` value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Null</span>))
+    }
+
+    <span class="doccomment">/// Creates a new string value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="ident">value</span>.<span class="ident">into</span>())))
+    }
+
+    <span class="doccomment">/// Creates a new number value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rational</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">value</span>.<span class="ident">into</span>())))
+    }
+
+    <span class="doccomment">/// Creates a new number value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">integer</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">value</span>.<span class="ident">into</span>())))
+    }
+
+    <span class="doccomment">/// Creates a new number value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>::<span class="ident">rational</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+    }
+
+    <span class="doccomment">/// Creates a new boolean value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boolean</span>(<span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>)))
+    }
+
+    <span class="doccomment">/// Creates a new object value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">object</span>(<span class="ident">object</span>: <span class="ident">Object</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">object</span>)))))
+    }
+
+    <span class="doccomment">/// Gets the underlying `ValueData` structure.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ValueData</span> {
+        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>
+    }
+
+    <span class="doccomment">/// Helper function to convert the `Value` to a number and compute its power.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_num_to_power</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">rational</span>(<span class="self">self</span>.<span class="ident">to_number</span>().<span class="ident">powf</span>(<span class="ident">other</span>.<span class="ident">to_number</span>()))
+    }
+
+    <span class="doccomment">/// Returns a new empty object</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_object</span>(<span class="ident">global</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">global</span>) <span class="op">=</span> <span class="ident">global</span> {
+            <span class="kw">let</span> <span class="ident">object_prototype</span> <span class="op">=</span> <span class="ident">global</span>.<span class="ident">get_field_slice</span>(<span class="string">&quot;Object&quot;</span>).<span class="ident">get_field_slice</span>(<span class="ident">PROTOTYPE</span>);
+
+            <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">create</span>(<span class="ident">object_prototype</span>);
+            <span class="self">Self</span>::<span class="ident">object</span>(<span class="ident">object</span>)
+        } <span class="kw">else</span> {
+            <span class="self">Self</span>::<span class="ident">object</span>(<span class="ident">Object</span>::<span class="ident">default</span>())
+        }
+    }
+
+    <span class="doccomment">/// Similar to `new_object`, but you can pass a prototype to create from, plus a kind</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>: <span class="ident">Value</span>, <span class="ident">kind</span>: <span class="ident">ObjectKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
+        <span class="ident">object</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">kind</span>;
+
+        <span class="ident">object</span>
+            .<span class="ident">internal_slots</span>
+            .<span class="ident">insert</span>(<span class="ident">INSTANCE_PROTOTYPE</span>.<span class="ident">to_string</span>(), <span class="ident">proto</span>);
+
+        <span class="self">Self</span>::<span class="ident">object</span>(<span class="ident">object</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Value</span> {
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">ValueData</span>;
+
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+        <span class="self">self</span>.<span class="ident">data</span>()
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="ident">f</span>)
+    }
 }
 
 <span class="doccomment">/// A Javascript value</span>
@@ -922,31 +1103,6 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ValueData</span> {
-    <span class="doccomment">/// Returns a new empty object</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_obj</span>(<span class="ident">global</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">glob</span>) <span class="op">=</span> <span class="ident">global</span> {
-            <span class="kw">let</span> <span class="ident">obj_proto</span> <span class="op">=</span> <span class="ident">glob</span>.<span class="ident">get_field_slice</span>(<span class="string">&quot;Object&quot;</span>).<span class="ident">get_field_slice</span>(<span class="ident">PROTOTYPE</span>);
-
-            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">create</span>(<span class="ident">obj_proto</span>);
-            <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">obj</span>))))
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
-            <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">obj</span>))))
-        }
-    }
-
-    <span class="doccomment">/// Similar to `new_obj`, but you can pass a prototype to create from,</span>
-    <span class="doccomment">/// plus a kind</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_obj_from_prototype</span>(<span class="ident">proto</span>: <span class="ident">Value</span>, <span class="ident">kind</span>: <span class="ident">ObjectKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
-        <span class="ident">obj</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">kind</span>;
-
-        <span class="ident">obj</span>.<span class="ident">internal_slots</span>
-            .<span class="ident">insert</span>(<span class="ident">INSTANCE_PROTOTYPE</span>.<span class="ident">to_string</span>(), <span class="ident">proto</span>);
-
-        <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">obj</span>))))
-    }
-
     <span class="doccomment">/// This will tell us if we can exten an object or not, not properly implemented yet</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For now always returns true.</span>
@@ -1108,10 +1264,10 @@
         }
     }
 
-    <span class="doccomment">/// remove_prop removes a property from a Value object.</span>
+    <span class="doccomment">/// Removes a property from a Value object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It will return a boolean based on if the value was removed, if there was no value to remove false is returned</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_prop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">deref_mut</span>().<span class="ident">properties</span>.<span class="ident">remove</span>(<span class="ident">field</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
@@ -1121,12 +1277,12 @@
     <span class="doccomment">/// Resolve the property in the object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A copy of the Property is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_prop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Property</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Property</span><span class="op">&gt;</span> {
         <span class="comment">// Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154</span>
         <span class="comment">// This is only for primitive strings, String() objects have their lengths calculated in string.rs</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_string</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">field</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;length&quot;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">to_value</span>(<span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>)));
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">s</span>.<span class="ident">len</span>())));
             }
         }
 
@@ -1151,7 +1307,7 @@
         <span class="kw">match</span> <span class="ident">obj</span>.<span class="ident">properties</span>.<span class="ident">get</span>(<span class="ident">field</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>.<span class="ident">clone</span>()),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">obj</span>.<span class="ident">internal_slots</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">INSTANCE_PROTOTYPE</span>.<span class="ident">to_string</span>()) {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">get_prop</span>(<span class="ident">field</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">get_property</span>(<span class="ident">field</span>),
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             },
         }
@@ -1160,7 +1316,7 @@
     <span class="doccomment">/// update_prop will overwrite individual [Property] fields, unlike</span>
     <span class="doccomment">/// Set_prop, which will overwrite prop with a new Property</span>
     <span class="doccomment">/// Mostly used internally for now</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_prop</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_property</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
@@ -1197,12 +1353,12 @@
                 <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">clone</span>();
                 <span class="ident">hash</span>.<span class="ident">into_inner</span>()
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">Undefined</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
         };
 
         <span class="kw">match</span> <span class="ident">obj</span>.<span class="ident">internal_slots</span>.<span class="ident">get</span>(<span class="ident">field</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>.<span class="ident">clone</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">Undefined</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
         }
     }
 
@@ -1213,7 +1369,7 @@
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">field</span> {
             <span class="comment">// Our field will either be a String or a Symbol</span>
             <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_prop</span>(<span class="ident">s</span>) {
+                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_property</span>(<span class="ident">s</span>) {
                     <span class="prelude-val">Some</span>(<span class="ident">prop</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// If the Property has [[Get]] set to a function, we should run that and return the Value</span>
                         <span class="kw">let</span> <span class="ident">prop_getter</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">prop</span>.<span class="ident">get</span> {
@@ -1232,11 +1388,11 @@
                             <span class="ident">val</span>.<span class="ident">clone</span>()
                         }
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">Undefined</span>),
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
                 }
             }
             <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">Undefined</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
         }
     }
 
@@ -1308,14 +1464,14 @@
 
     <span class="doccomment">/// Check to see if the Value has the field, mainly used by environment records</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get_prop</span>(<span class="ident">field</span>).<span class="ident">is_some</span>()
+        <span class="self">self</span>.<span class="ident">get_property</span>(<span class="ident">field</span>).<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn&#39;t exist</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="comment">// get_field used to accept strings, but now Symbols accept it needs to accept a value</span>
         <span class="comment">// So this function will now need to Box strings back into values (at least for now)</span>
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">field</span>.<span class="ident">to_string</span>()));
+        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">field</span>.<span class="ident">to_string</span>());
         <span class="self">self</span>.<span class="ident">get_field</span>(<span class="ident">f</span>)
     }
 
@@ -1326,10 +1482,9 @@
             <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ObjectKind</span>::<span class="ident">Array</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">num</span>) <span class="op">=</span> <span class="ident">field</span>.<span class="ident">to_string</span>().<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() {
                     <span class="kw">if</span> <span class="ident">num</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                        <span class="kw">let</span> <span class="ident">len</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">from_value</span>(<span class="self">self</span>.<span class="ident">get_field_slice</span>(<span class="string">&quot;length&quot;</span>))
-                            .<span class="ident">expect</span>(<span class="string">&quot;Could not convert argument to i32&quot;</span>);
+                        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">get_field_slice</span>(<span class="string">&quot;length&quot;</span>));
                         <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span> (<span class="ident">num</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">i32</span> {
-                            <span class="self">self</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">to_value</span>(<span class="ident">num</span> <span class="op">+</span> <span class="number">1</span>));
+                            <span class="self">self</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span> <span class="op">+</span> <span class="number">1</span>));
                         }
                     }
                 }
@@ -1340,7 +1495,7 @@
                 <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">set</span>(<span class="ident">field</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
             } <span class="kw">else</span> {
                 <span class="ident">obj</span>.<span class="ident">borrow_mut</span>()
-                    .<span class="ident">set</span>(<span class="ident">to_value</span>(<span class="ident">field</span>.<span class="ident">to_string</span>()), <span class="ident">val</span>.<span class="ident">clone</span>());
+                    .<span class="ident">set</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">field</span>.<span class="ident">to_string</span>()), <span class="ident">val</span>.<span class="ident">clone</span>());
             }
         }
 
@@ -1351,7 +1506,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_field_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">val</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="comment">// set_field used to accept strings, but now Symbols accept it needs to accept a value</span>
         <span class="comment">// So this function will now need to Box strings back into values (at least for now)</span>
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">field</span>.<span class="ident">to_string</span>()));
+        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">field</span>.<span class="ident">to_string</span>());
         <span class="self">self</span>.<span class="ident">set_field</span>(<span class="ident">f</span>, <span class="ident">val</span>)
     }
 
@@ -1373,7 +1528,7 @@
     }
 
     <span class="doccomment">/// Set the property in the value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="ident">String</span>, <span class="ident">prop</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Property</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="ident">String</span>, <span class="ident">prop</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Property</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="ident">field</span>, <span class="ident">prop</span>.<span class="ident">clone</span>());
         }
@@ -1381,8 +1536,8 @@
     }
 
     <span class="doccomment">/// Set the property in the value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prop_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">prop</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Property</span> {
-        <span class="self">self</span>.<span class="ident">set_prop</span>(<span class="ident">field</span>.<span class="ident">to_string</span>(), <span class="ident">prop</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_property_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">prop</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Property</span> {
+        <span class="self">self</span>.<span class="ident">set_property</span>(<span class="ident">field</span>.<span class="ident">to_string</span>(), <span class="ident">prop</span>)
     }
 
     <span class="doccomment">/// Set internal state of an Object. Discards the previous state if it was set.</span>
@@ -1403,9 +1558,9 @@
         <span class="comment">// Set [[Call]] internal slot</span>
         <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">native_func</span>);
         <span class="comment">// Wrap Object in GC&#39;d Value</span>
-        <span class="kw">let</span> <span class="ident">new_func_val</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="ident">new_func</span>);
+        <span class="kw">let</span> <span class="ident">new_func_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
         <span class="comment">// Set length to parameters</span>
-        <span class="ident">new_func_val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">to_value</span>(<span class="ident">length</span>));
+        <span class="ident">new_func_val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>));
         <span class="ident">new_func_val</span>
     }
 
@@ -1422,12 +1577,12 @@
                 <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">json</span>) <span class="kw">in</span> <span class="ident">vs</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                     <span class="ident">new_obj</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(
                         <span class="ident">idx</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">to_value</span>(<span class="ident">json</span>.<span class="ident">clone</span>())),
+                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">json</span>.<span class="ident">clone</span>())),
                     );
                 }
                 <span class="ident">new_obj</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(
                     <span class="string">&quot;length&quot;</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">to_value</span>(<span class="ident">vs</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>)),
+                    <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">vs</span>.<span class="ident">len</span>())),
                 );
                 <span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">new_obj</span>)))
             }
@@ -1436,7 +1591,7 @@
                 <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">json</span>) <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">iter</span>() {
                     <span class="ident">new_obj</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(
                         <span class="ident">key</span>.<span class="ident">clone</span>(),
-                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">to_value</span>(<span class="ident">json</span>.<span class="ident">clone</span>())),
+                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">json</span>.<span class="ident">clone</span>())),
                     );
                 }
 
@@ -1487,10 +1642,6 @@
                 }
             }
         }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_num_to_power</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="self">self</span>.<span class="ident">to_number</span>().<span class="ident">powf</span>(<span class="ident">other</span>.<span class="ident">to_number</span>()))
     }
 }
 
@@ -1568,30 +1719,27 @@
             <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on</span>
             <span class="comment">// which type of Object it represents for special printing</span>
             <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">kind</span> {
-                <span class="ident">ObjectKind</span>::<span class="ident">String</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">from_value</span>(
+                <span class="ident">ObjectKind</span>::<span class="ident">String</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>::<span class="ident">from</span>(
                     <span class="ident">v</span>.<span class="ident">borrow</span>()
                         .<span class="ident">internal_slots</span>
                         .<span class="ident">get</span>(<span class="string">&quot;StringData&quot;</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;Cannot get primitive value from String&quot;</span>)
-                        .<span class="ident">clone</span>(),
-                )
-                .<span class="ident">expect</span>(<span class="string">&quot;Cannot clone primitive value from String&quot;</span>),
+                        .<span class="ident">expect</span>(<span class="string">&quot;Cannot get primitive value from String&quot;</span>),
+                ),
                 <span class="ident">ObjectKind</span>::<span class="ident">Boolean</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">bool_data</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">get_internal_slot</span>(<span class="string">&quot;BooleanData&quot;</span>).<span class="ident">to_string</span>();
 
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Boolean {{ {} }}&quot;</span>, <span class="ident">bool_data</span>)
                 }
                 <span class="ident">ObjectKind</span>::<span class="ident">Array</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="ident">len</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">from_value</span>(
-                        <span class="ident">v</span>.<span class="ident">borrow</span>()
+                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">borrow</span>()
                             .<span class="ident">properties</span>
                             .<span class="ident">get</span>(<span class="string">&quot;length&quot;</span>)
                             .<span class="ident">unwrap</span>()
                             .<span class="ident">value</span>
                             .<span class="ident">clone</span>()
                             .<span class="ident">expect</span>(<span class="string">&quot;Could not borrow value&quot;</span>),
-                    )
-                    .<span class="ident">expect</span>(<span class="string">&quot;Could not convert JS value to i32&quot;</span>);
+                    );
 
                     <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;[]&quot;</span>);

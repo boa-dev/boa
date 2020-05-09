@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["from_value","A utility function that just calls `FromValue::from_value`"],["to_value","A utility function that just calls `ToValue::to_value`"]],"trait":[["FromValue","Conversion to Rust values from Javascript values"],["ToValue","Conversion to Javascript values from Rust values"]]});
+initSidebarItems({"struct":[["TryFromCharError",""],["TryFromObjectError",""]]});

@@ -229,7 +229,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">object</span>::{<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>, <span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>},
-        <span class="ident">value</span>::{<span class="ident">to_value</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+        <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
 };
@@ -240,19 +240,19 @@
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
         <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">b</span> {
-                <span class="ident">to_value</span>(<span class="number">1</span>)
+                <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">1</span>)
             } <span class="kw">else</span> {
-                <span class="ident">to_value</span>(<span class="number">0</span>)
+                <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)
             }
         }
-        <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
-        <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">i</span>)),
+        <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
+        <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">i</span>)),
         <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">o</span>).<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">get_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>),
-        <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="number">0</span>),
-        <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">n</span>),
+        <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>),
+        <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">n</span>),
         <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">n</span>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_value</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">n</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
         },
     }
 }
@@ -270,7 +270,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_number</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="ident">value</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="number">0</span>)),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)),
     };
     <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">data</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
@@ -282,7 +282,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_number</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="ident">value</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="number">0</span>)),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)),
     };
     <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
 }
@@ -300,7 +300,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_exponential</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
     <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="ident">num_to_exponential</span>(<span class="ident">this_num</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str_num</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str_num</span>))
 }
 
 <span class="doccomment">/// `Number.prototype.toFixed( [digits] )`</span>
@@ -323,7 +323,7 @@
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
     };
     <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:.*}&quot;</span>, <span class="ident">precision</span>, <span class="ident">this_num</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_fixed_num</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_fixed_num</span>))
 }
 
 <span class="doccomment">/// `Number.prototype.toLocaleString( [locales [, options]] )`</span>
@@ -342,7 +342,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_locale_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
     <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str_num</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str_num</span>))
 }
 
 <span class="doccomment">/// `Number.prototype.toPrecision( [precision] )`</span>
@@ -380,7 +380,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>())))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>())))
 }
 
 <span class="doccomment">/// `Number.prototype.toString()`</span>
@@ -399,8 +399,8 @@
 
 <span class="doccomment">/// Create a new `Number` object</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
-    <span class="ident">prototype</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">to_value</span>(<span class="number">0</span>));
+    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+    <span class="ident">prototype</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
 
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_exponential</span>, <span class="ident">named</span> <span class="string">&quot;toExponential&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_fixed</span>, <span class="ident">named</span> <span class="string">&quot;toFixed&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);

@@ -1037,44 +1037,6 @@
 <span id="1037">1037</span>
 <span id="1038">1038</span>
 <span id="1039">1039</span>
-<span id="1040">1040</span>
-<span id="1041">1041</span>
-<span id="1042">1042</span>
-<span id="1043">1043</span>
-<span id="1044">1044</span>
-<span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
-<span id="1055">1055</span>
-<span id="1056">1056</span>
-<span id="1057">1057</span>
-<span id="1058">1058</span>
-<span id="1059">1059</span>
-<span id="1060">1060</span>
-<span id="1061">1061</span>
-<span id="1062">1062</span>
-<span id="1063">1063</span>
-<span id="1064">1064</span>
-<span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
-<span id="1068">1068</span>
-<span id="1069">1069</span>
-<span id="1070">1070</span>
-<span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
-<span id="1077">1077</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1095,11 +1057,10 @@
         <span class="ident">object</span>::{<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>, <span class="ident">Object</span>, <span class="ident">ObjectKind</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">regexp</span>::{<span class="ident">make_regexp</span>, <span class="ident">match_all</span> <span class="kw">as</span> <span class="ident">regexp_match_all</span>, <span class="ident">r#match</span> <span class="kw">as</span> <span class="ident">regexp_match</span>},
-        <span class="ident">value</span>::{<span class="ident">from_value</span>, <span class="ident">to_value</span>, <span class="ident">undefined</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+        <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>},
@@ -1133,21 +1094,21 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_string</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">clone</span>(),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">undefined</span>(),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
     };
 
     <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_undefined</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="string">&quot;&quot;</span>));
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">String</span>::<span class="ident">new</span>()));
     }
 
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">arg</span>.<span class="ident">to_string</span>()))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg</span>.<span class="ident">to_string</span>()))
 }
 
 <span class="doccomment">/// Get the string value to a primitive string</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="comment">// Get String from String Object and send it back as a new value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;StringData&quot;</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">primitive_val</span>)))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">primitive_val</span>)))
 }
 
 <span class="doccomment">/// `String.prototype.charAt( index )`</span>
@@ -1170,12 +1131,10 @@
     <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
-    <span class="kw">let</span> <span class="ident">pos</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
 
     <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of</span>
     <span class="comment">// unicode code points</span>
@@ -1185,10 +1144,10 @@
 
     <span class="comment">// We should return an empty string is pos is out of range</span>
     <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">String</span>::<span class="ident">new</span>()));
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">String</span>::<span class="ident">new</span>()));
     }
 
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>::<span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>(
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
         <span class="ident">primitive_val</span>
             .<span class="ident">chars</span>()
             .<span class="ident">nth</span>(<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">usize</span>)
@@ -1218,15 +1177,13 @@
     <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points</span>
     <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.</span>
     <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-    <span class="kw">let</span> <span class="ident">pos</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
 
     <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">NAN</span>));
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">NAN</span>));
     }
 
     <span class="kw">let</span> <span class="ident">utf16_val</span> <span class="op">=</span> <span class="ident">primitive_val</span>
@@ -1235,7 +1192,7 @@
         .<span class="ident">expect</span>(<span class="string">&quot;failed to get utf16 value&quot;</span>);
     <span class="comment">// If there is no element at that index, the result is NaN</span>
     <span class="comment">// TODO: We currently don&#39;t have NaN</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">utf16_val</span>)))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">utf16_val</span>)))
 }
 
 <span class="doccomment">/// `String.prototype.concat( str1[, ...strN] )`</span>
@@ -1258,11 +1215,11 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
     <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
-        <span class="kw">let</span> <span class="ident">concat_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">from_value</span>(<span class="ident">arg</span>.<span class="ident">clone</span>()).<span class="ident">expect</span>(<span class="string">&quot;failed to get argument value&quot;</span>);
+        <span class="kw">let</span> <span class="ident">concat_str</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">arg</span>);
         <span class="ident">new_str</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">concat_str</span>);
     }
 
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">new_str</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_str</span>))
 }
 
 <span class="doccomment">/// `String.prototype.repeat( count )`</span>
@@ -1281,13 +1238,12 @@
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
-    <span class="kw">let</span> <span class="ident">repeat_times</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">repeat_times</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">primitive_val</span>.<span class="ident">repeat</span>(<span class="ident">repeat_times</span>)))
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
+
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive_val</span>.<span class="ident">repeat</span>(<span class="ident">repeat_times</span>)))
 }
 
 <span class="doccomment">/// `String.prototype.slice( beginIndex [, endIndex] )`</span>
@@ -1305,18 +1261,12 @@
     <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
-    <span class="kw">let</span> <span class="ident">start</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
-    <span class="kw">let</span> <span class="ident">end</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">from_value</span>(
-        <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument in slice&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
+
+    <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to get argument in slice&quot;</span>));
 
     <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points</span>
     <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.</span>
@@ -1344,7 +1294,7 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not get nth char&quot;</span>),
         );
     }
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">new_str</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_str</span>))
 }
 
 <span class="doccomment">/// `String.prototype.startWith( searchString[, position] )`</span>
@@ -1363,12 +1313,10 @@
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
     <span class="comment">// TODO: Should throw TypeError if pattern is regular expression</span>
-    <span class="kw">let</span> <span class="ident">search_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
 
     <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
     <span class="kw">let</span> <span class="ident">search_length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1377,18 +1325,18 @@
     <span class="kw">let</span> <span class="ident">position</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="number">0</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to get arg&quot;</span>).<span class="ident">clone</span>()).<span class="ident">expect</span>(<span class="string">&quot;failed to get argument&quot;</span>)
+        <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to get arg&quot;</span>))
     };
 
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">wrapping_add</span>(<span class="ident">search_length</span>);
 
     <span class="kw">if</span> <span class="ident">end</span> <span class="op">&gt;</span> <span class="ident">length</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="bool-val">false</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>))
     } <span class="kw">else</span> {
         <span class="comment">// Only use the part of the string from &quot;start&quot;</span>
         <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_string</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_string</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>)))
     }
 }
 
@@ -1408,12 +1356,10 @@
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
     <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-    <span class="kw">let</span> <span class="ident">search_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
 
     <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
     <span class="kw">let</span> <span class="ident">search_length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1423,19 +1369,18 @@
     <span class="kw">let</span> <span class="ident">end_position</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="ident">length</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argumetn&quot;</span>).<span class="ident">clone</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;Could not convert value to i32&quot;</span>)
+        <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argumetn&quot;</span>))
     };
 
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">end_position</span>, <span class="number">0</span>), <span class="ident">length</span>);
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">end</span>.<span class="ident">wrapping_sub</span>(<span class="ident">search_length</span>);
 
     <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="bool-val">false</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>))
     } <span class="kw">else</span> {
         <span class="comment">// Only use the part of the string up to &quot;end&quot;</span>
         <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="ident">end</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_string</span>.<span class="ident">ends_with</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_string</span>.<span class="ident">ends_with</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>)))
     }
 }
 
@@ -1455,12 +1400,10 @@
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
     <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-    <span class="kw">let</span> <span class="ident">search_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
 
     <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -1468,8 +1411,7 @@
     <span class="kw">let</span> <span class="ident">position</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="number">0</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;Could not convert value to i32&quot;</span>)
+        <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))
     };
 
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
@@ -1477,7 +1419,7 @@
     <span class="comment">// Take the string from &quot;this&quot; and use only the part of it after &quot;start&quot;</span>
     <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
 
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_string</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>)))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_string</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>)))
 }
 
 <span class="doccomment">/// Return either the string itself or the string of the regex equivalent</span>
@@ -1489,8 +1431,7 @@
             <span class="kw">if</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;RegExpMatcher&quot;</span>).<span class="ident">is_some</span>() {
                 <span class="comment">// first argument is another `RegExp` object, so copy its pattern and flags</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;OriginalSource&quot;</span>) {
-                    <span class="kw">return</span> <span class="ident">from_value</span>(<span class="ident">r#body</span>.<span class="ident">clone</span>())
-                        .<span class="ident">expect</span>(<span class="string">&quot;unable to get body from regex value&quot;</span>);
+                    <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">r#body</span>);
                 }
             }
             <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_string</span>()
@@ -1518,7 +1459,7 @@
     <span class="comment">// TODO: Support Symbol replacer</span>
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">primitive_val</span>));
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive_val</span>));
     }
 
     <span class="kw">let</span> <span class="ident">regex_body</span> <span class="op">=</span> <span class="ident">get_regex_string</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Value needed&quot;</span>));
@@ -1575,7 +1516,7 @@
                 <span class="comment">// This will return the matched substring first, then captured parenthesized groups later</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">caps</span>
                     .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">capture</span><span class="op">|</span> <span class="ident">to_value</span>(<span class="ident">capture</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>()))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">capture</span><span class="op">|</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">capture</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>()))
                     .<span class="ident">collect</span>();
 
                 <span class="comment">// Returns the starting byte offset of the match</span>
@@ -1583,9 +1524,9 @@
                     .<span class="ident">get</span>(<span class="number">0</span>)
                     .<span class="ident">expect</span>(<span class="string">&quot;Unable to get Byte offset from string for match&quot;</span>)
                     .<span class="ident">start</span>();
-                <span class="ident">results</span>.<span class="ident">push</span>(<span class="ident">to_value</span>(<span class="ident">start</span>));
+                <span class="ident">results</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">start</span>));
                 <span class="comment">// Push the whole string being examined</span>
-                <span class="ident">results</span>.<span class="ident">push</span>(<span class="ident">to_value</span>(<span class="ident">primitive_val</span>.<span class="ident">to_string</span>()));
+                <span class="ident">results</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive_val</span>.<span class="ident">to_string</span>()));
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replace_object</span>, <span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">results</span>).<span class="ident">unwrap</span>();
 
@@ -1597,7 +1538,7 @@
         <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_string</span>()
     };
 
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">primitive_val</span>.<span class="ident">replacen</span>(
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive_val</span>.<span class="ident">replacen</span>(
         <span class="kw-2">&amp;</span><span class="ident">mat</span>.<span class="ident">as_str</span>(),
         <span class="kw-2">&amp;</span><span class="ident">replace_value</span>,
         <span class="number">1</span>,
@@ -1622,12 +1563,10 @@
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
     <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-    <span class="kw">let</span> <span class="ident">search_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
 
     <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -1635,8 +1574,7 @@
     <span class="kw">let</span> <span class="ident">position</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="number">0</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;Could not convert value to i32&quot;</span>)
+        <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))
     };
 
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
@@ -1649,11 +1587,11 @@
         <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
         <span class="kw">if</span> <span class="ident">this_string</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>) {
             <span class="comment">// Explicitly return early with the index value</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">index</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">index</span>));
         }
     }
     <span class="comment">// Didn&#39;t find a match, so return -1</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="op">-</span><span class="number">1</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="number">1</span>))
 }
 
 <span class="doccomment">/// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`</span>
@@ -1674,12 +1612,10 @@
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
 
     <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-    <span class="kw">let</span> <span class="ident">search_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
 
     <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -1687,8 +1623,7 @@
     <span class="kw">let</span> <span class="ident">position</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="number">0</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;Could not convert value to i32&quot;</span>)
+        <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))
     };
 
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
@@ -1706,7 +1641,7 @@
     }
 
     <span class="comment">// This will still be -1 if no matches were found, else with be &gt;= 0</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">highest_index</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">highest_index</span>))
 }
 
 <span class="doccomment">/// `String.prototype.match( regexp )`</span>
@@ -1721,7 +1656,7 @@
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match</span>
 <span class="doccomment">/// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">make_regexp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()), <span class="kw-2">&amp;</span>[<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>()], <span class="ident">ctx</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">make_regexp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>()), <span class="kw-2">&amp;</span>[<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>()], <span class="ident">ctx</span>)<span class="question-mark">?</span>;
     <span class="ident">regexp_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>), <span class="ident">ctx</span>)
 }
 
@@ -1738,7 +1673,7 @@
     <span class="kw">let</span> <span class="ident">primitive_length</span> <span class="op">=</span> <span class="ident">primitive</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
     <span class="kw">if</span> <span class="ident">max_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">primitive_length</span> {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">primitive</span>));
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive</span>));
     }
 
     <span class="kw">let</span> <span class="ident">filler</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">fill_string</span> {
@@ -1747,7 +1682,7 @@
     };
 
     <span class="kw">if</span> <span class="ident">filler</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;&quot;</span> {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">primitive</span>));
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive</span>));
     }
 
     <span class="kw">let</span> <span class="ident">fill_len</span> <span class="op">=</span> <span class="ident">max_length</span>.<span class="ident">wrapping_sub</span>(<span class="ident">primitive_length</span>);
@@ -1760,9 +1695,9 @@
     <span class="kw">let</span> <span class="ident">concat_fill_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">fill_str</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
 
     <span class="kw">if</span> <span class="ident">at_start</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">concat_fill_str</span>, <span class="kw-2">&amp;</span><span class="ident">primitive</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">concat_fill_str</span>, <span class="kw-2">&amp;</span><span class="ident">primitive</span>)))
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">primitive</span>, <span class="kw-2">&amp;</span><span class="ident">concat_fill_str</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">primitive</span>, <span class="kw-2">&amp;</span><span class="ident">concat_fill_str</span>)))
     }
 }
 
@@ -1781,20 +1716,16 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pad_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">to_value</span>(<span class="string">&quot;padEnd requires maxLength argument&quot;</span>));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;padEnd requires maxLength argument&quot;</span>));
     }
-    <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
+
     <span class="kw">let</span> <span class="ident">fill_string</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
         <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(
-            <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>())
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not convert value to Option&lt;String&gt;&quot;</span>),
-        ),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))),
     };
 
     <span class="ident">string_pad</span>(<span class="ident">primitive_val</span>, <span class="ident">max_length</span>, <span class="ident">fill_string</span>, <span class="bool-val">false</span>)
@@ -1815,20 +1746,16 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pad_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">primitive_val</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">to_value</span>(<span class="string">&quot;padStart requires maxLength argument&quot;</span>));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;padStart requires maxLength argument&quot;</span>));
     }
-    <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">from_value</span>(
+    <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
         <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">clone</span>(),
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
+    );
+
     <span class="kw">let</span> <span class="ident">fill_string</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
         <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(
-            <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>())
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not convert value to Option&lt;String&gt;&quot;</span>),
-        ),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))),
     };
 
     <span class="ident">string_pad</span>(<span class="ident">primitive_val</span>, <span class="ident">max_length</span>, <span class="ident">fill_string</span>, <span class="bool-val">true</span>)
@@ -1867,7 +1794,7 @@
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
 }
 
 <span class="doccomment">/// `String.prototype.trimStart()`</span>
@@ -1884,7 +1811,7 @@
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
         <span class="ident">this_str</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
     ))
 }
@@ -1903,7 +1830,9 @@
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str</span>.<span class="ident">trim_end_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
+        <span class="ident">this_str</span>.<span class="ident">trim_end_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
+    ))
 }
 
 <span class="doccomment">/// `String.prototype.toLowerCase()`</span>
@@ -1922,7 +1851,7 @@
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_lowercase().</span>
     <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str</span>.<span class="ident">to_lowercase</span>()))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str</span>.<span class="ident">to_lowercase</span>()))
 }
 
 <span class="doccomment">/// `String.prototype.toUpperCase()`</span>
@@ -1943,7 +1872,7 @@
     <span class="kw">let</span> <span class="ident">this_str</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
     <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_uppercase().</span>
     <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">this_str</span>.<span class="ident">to_uppercase</span>()))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str</span>.<span class="ident">to_uppercase</span>()))
 }
 
 <span class="doccomment">/// `String.prototype.substring( indexStart[, indexEnd] )`</span>
@@ -1964,20 +1893,17 @@
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
         <span class="number">0</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(
+        <span class="ident">i32</span>::<span class="ident">from</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-                .<span class="ident">clone</span>(),
+                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>)
     };
     <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
     <span class="comment">// If less than 2 args specified, end is the length of the this object converted to a String</span>
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="ident">length</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>)
+        <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))
     };
     <span class="comment">// Both start and end args replaced by 0 if they were negative</span>
     <span class="comment">// or by the length of the String if they were greater</span>
@@ -1993,7 +1919,7 @@
         .<span class="ident">skip</span>(<span class="ident">from</span>)
         .<span class="ident">take</span>(<span class="ident">to</span>.<span class="ident">wrapping_sub</span>(<span class="ident">from</span>))
         .<span class="ident">collect</span>();
-    <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">extracted_string</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">extracted_string</span>))
 }
 
 <span class="doccomment">/// `String.prototype.substr( start[, length] )`</span>
@@ -2015,12 +1941,10 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
         <span class="number">0</span>
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(
+        <span class="ident">i32</span>::<span class="ident">from</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-                .<span class="ident">clone</span>(),
+                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
         )
-        .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>)
     };
     <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
     <span class="comment">// If less than 2 args specified, end is +infinity, the maximum number value.</span>
@@ -2030,8 +1954,7 @@
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
         <span class="ident">i32</span>::<span class="ident">max_value</span>()
     } <span class="kw">else</span> {
-        <span class="ident">from_value</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>())
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument for String method&quot;</span>)
+        <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))
     };
     <span class="comment">// If start is negative it become the number of code units from the end of the string</span>
     <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -2043,14 +1966,15 @@
     <span class="comment">// If length is negative we return an empty string</span>
     <span class="comment">// otherwise we extract the part of the string from start and is length code units long</span>
     <span class="kw">if</span> <span class="ident">result_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>()))
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="ident">extracted_string</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">primitive_val</span>
             .<span class="ident">chars</span>()
             .<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>)
             .<span class="ident">take</span>(<span class="ident">result_length</span> <span class="kw">as</span> <span class="ident">usize</span>)
             .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">to_value</span>(<span class="ident">extracted_string</span>))
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">extracted_string</span>))
     }
 }
 
@@ -2085,28 +2009,28 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">re</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="ident">arg</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Null</span>) {
+            <span class="kw">if</span> <span class="ident">arg</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">null</span>() {
                 <span class="ident">make_regexp</span>(
-                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
                     <span class="kw-2">&amp;</span>[
-                        <span class="ident">to_value</span>(<span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">arg</span>)),
-                        <span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>)),
+                        <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">arg</span>)),
+                        <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>)),
                     ],
                     <span class="ident">ctx</span>,
                 )
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arg</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">undefined</span>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arg</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>() {
                 <span class="ident">make_regexp</span>(
-                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
-                    <span class="kw-2">&amp;</span>[<span class="ident">undefined</span>(), <span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>))],
+                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+                    <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>))],
                     <span class="ident">ctx</span>,
                 )
             } <span class="kw">else</span> {
-                <span class="ident">from_value</span>(<span class="ident">arg</span>.<span class="ident">clone</span>()).<span class="ident">map_err</span>(<span class="ident">to_value</span>)
+                <span class="prelude-val">Ok</span>(<span class="ident">arg</span>.<span class="ident">clone</span>())
             }
         }
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">make_regexp</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">to_value</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
-            <span class="kw-2">&amp;</span>[<span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">new</span>()), <span class="ident">to_value</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>))],
+            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+            <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">String</span>::<span class="ident">new</span>()), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>)],
             <span class="ident">ctx</span>,
         ),
     }<span class="question-mark">?</span>;
@@ -2117,10 +2041,10 @@
 <span class="doccomment">/// Create a new `String` object.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
     <span class="comment">// Create prototype</span>
-    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
-    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">to_value</span>(<span class="number">0_i32</span>));
+    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
 
-    <span class="ident">prototype</span>.<span class="ident">set_prop_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
+    <span class="ident">prototype</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">char_at</span>, <span class="ident">named</span> <span class="string">&quot;charAt&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">char_code_at</span>, <span class="ident">named</span> <span class="string">&quot;charCodeAt&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);

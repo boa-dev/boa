@@ -354,7 +354,7 @@
 <span class="doccomment">//! This is the entrypoint to lexical environments.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">Value</span>, <span class="ident">ValueData</span>},
+    <span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>,
     <span class="ident">environment</span>::{
         <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
         <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
@@ -559,7 +559,7 @@
         <span class="self">self</span>.<span class="ident">environments</span>()
             .<span class="ident">find</span>(<span class="op">|</span><span class="ident">env</span><span class="op">|</span> <span class="ident">env</span>.<span class="ident">borrow</span>().<span class="ident">has_binding</span>(<span class="ident">name</span>))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">env</span><span class="op">|</span> <span class="ident">env</span>.<span class="ident">borrow</span>().<span class="ident">get_binding_value</span>(<span class="ident">name</span>, <span class="bool-val">false</span>))
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>))
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)
     }
 }
 
@@ -582,10 +582,10 @@
         <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">function</span>: <span class="ident">f</span>,
         <span class="ident">this_binding_status</span>: <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>, <span class="comment">// hardcoding to unitialized for now until short functions are properly supported</span>
-        <span class="ident">home_object</span>: <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>),
+        <span class="ident">home_object</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
         <span class="ident">new_target</span>,
         <span class="ident">outer_env</span>: <span class="ident">outer</span>, <span class="comment">// this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
-        <span class="ident">this_value</span>: <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>), <span class="comment">// TODO: this_value should start as an Option as its not always there to begin with</span>
+        <span class="ident">this_value</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="comment">// TODO: this_value should start as an Option as its not always there to begin with</span>
     })))
 }
 

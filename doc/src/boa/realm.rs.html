@@ -110,7 +110,7 @@
     <span class="ident">builtins</span>::{
         <span class="self">self</span>,
         <span class="ident">function</span>::<span class="ident">NativeFunctionData</span>,
-        <span class="ident">value</span>::{<span class="ident">ToValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+        <span class="ident">value</span>::{<span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
     <span class="ident">environment</span>::{
         <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
@@ -136,7 +136,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// Create brand new global object</span>
         <span class="comment">// Global has no prototype to pass None to new_obj</span>
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">ValueData</span>::<span class="ident">new_obj</span>(<span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>.<span class="ident">clone</span>());
 
@@ -167,7 +167,7 @@
             <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>),
         );
         <span class="self">self</span>.<span class="ident">global_obj</span>
-            .<span class="ident">set_field</span>(<span class="ident">func_name</span>.<span class="ident">to_value</span>(), <span class="ident">ValueData</span>::<span class="ident">from_func</span>(<span class="ident">func</span>));
+            .<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">func_name</span>), <span class="ident">ValueData</span>::<span class="ident">from_func</span>(<span class="ident">func</span>));
 
         <span class="self">self</span>
     }

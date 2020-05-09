@@ -299,7 +299,6 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
-<span id="302">302</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the `ObjectInternalMethods` trait.</span>
 <span class="doccomment">//!</span>
@@ -311,9 +310,8 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
     <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">INSTANCE_PROTOTYPE</span>},
     <span class="ident">property</span>::<span class="ident">Property</span>,
-    <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">to_value</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+    <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
 };
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
 
@@ -373,7 +371,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions</span>
     <span class="kw">fn</span> <span class="ident">prevent_extensions</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;extensible&quot;</span>, <span class="ident">to_value</span>(<span class="bool-val">false</span>));
+        <span class="self">self</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;extensible&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>));
         <span class="bool-val">true</span>
     }
 
@@ -411,7 +409,7 @@
             <span class="comment">// parent will either be null or an Object</span>
             <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_prototype_of</span>();
             <span class="kw">if</span> <span class="ident">parent</span>.<span class="ident">is_null</span>() {
-                <span class="kw">return</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>);
+                <span class="kw">return</span> <span class="ident">Value</span>::<span class="ident">undefined</span>();
             }
 
             <span class="kw">let</span> <span class="ident">parent_obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">parent</span>).<span class="ident">expect</span>(<span class="string">&quot;Failed to get object&quot;</span>);
@@ -425,11 +423,11 @@
 
         <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get</span>.<span class="ident">clone</span>();
         <span class="kw">if</span> <span class="ident">getter</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">getter</span>.<span class="ident">expect</span>(<span class="string">&quot;Failed to get object&quot;</span>).<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>);
+            <span class="kw">return</span> <span class="ident">Value</span>::<span class="ident">undefined</span>();
         }
 
         <span class="comment">// TODO!!!!! Call getter from here</span>
-        <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)
+        <span class="ident">Value</span>::<span class="ident">undefined</span>()
     }
 
     <span class="doccomment">/// [[Set]]</span>
@@ -472,7 +470,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">define_own_property</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">property_key</span>: <span class="ident">String</span>, <span class="ident">desc</span>: <span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">to_value</span>(<span class="ident">property_key</span>.<span class="ident">to_string</span>()));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">property_key</span>.<span class="ident">to_string</span>()));
         <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_extensible</span>();
 
         <span class="comment">// https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor</span>

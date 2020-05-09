@@ -185,13 +185,13 @@
 <span class="doccomment">//! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">Value</span>, <span class="ident">ValueData</span>},
+    <span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>,
     <span class="ident">environment</span>::{
         <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
 <span class="doccomment">/// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).</span>
@@ -333,7 +333,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Undefined</span>)
+        <span class="ident">Value</span>::<span class="ident">undefined</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">get_outer_environment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
