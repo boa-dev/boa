@@ -54,7 +54,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
                         let _ = cursor.next().expect("token disappeared");
                         lhs = Node::bin_op(
-                            dbg!(op).as_binop().expect("Could not get binary operation."),
+                            op.as_binop().expect("Could not get binary operation."),
                             lhs,
                             $lower::new($( self.$low_param ),*).parse(cursor)?
                         )
@@ -62,7 +62,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                     TokenKind::Keyword(op) if $( op == $op )||* => {
                         let _ = cursor.next().expect("token disappeared");
                         lhs = Node::bin_op(
-                            dbg!(op).as_binop().expect("Could not get binary operation."),
+                            op.as_binop().expect("Could not get binary operation."),
                             lhs,
                             $lower::new($( self.$low_param ),*).parse(cursor)?
                         )
