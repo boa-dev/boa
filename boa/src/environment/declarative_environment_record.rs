@@ -6,13 +6,13 @@
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)
 
 use crate::{
-    builtins::value::{Value, ValueData},
+    builtins::value::Value,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::{Finalize, Gc, Trace};
+use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 
 /// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
@@ -154,7 +154,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn with_base_object(&self) -> Value {
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {

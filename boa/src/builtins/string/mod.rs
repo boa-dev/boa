@@ -17,11 +17,10 @@ use crate::{
         object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
         property::Property,
         regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
-        value::{from_value, to_value, undefined, ResultValue, Value, ValueData},
+        value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
-use gc::Gc;
 use regex::Regex;
 use std::{
     cmp::{max, min},
@@ -55,21 +54,21 @@ pub fn make_string(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
 pub fn call_string(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg = match args.get(0) {
         Some(v) => v.clone(),
-        None => undefined(),
+        None => Value::undefined(),
     };
 
     if arg.is_undefined() {
-        return Ok(to_value(""));
+        return Ok(Value::from(String::new()));
     }
 
-    Ok(to_value(arg.to_string()))
+    Ok(Value::from(arg.to_string()))
 }
 
 /// Get the string value to a primitive string
 pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     // Get String from String Object and send it back as a new value
     let primitive_val = this.get_internal_slot("StringData");
-    Ok(to_value(format!("{}", primitive_val)))
+    Ok(Value::from(format!("{}", primitive_val)))
 }
 
 /// `String.prototype.charAt( index )`
@@ -92,12 +91,10 @@ pub fn char_at(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resul
     // First we get it the actual string a private field stored on the object only the engine has access to.
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val = ctx.value_to_rust_string(this);
-    let pos: i32 = from_value(
+    let pos = i32::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of
     // unicode code points
@@ -107,10 +104,10 @@ pub fn char_at(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resul
 
     // We should return an empty string is pos is out of range
     if pos >= length as i32 || pos < 0 {
-        return Ok(to_value::<String>(String::new()));
+        return Ok(Value::from(String::new()));
     }
 
-    Ok(to_value::<char>(
+    Ok(Value::from(
         primitive_val
             .chars()
             .nth(pos as usize)
@@ -140,15 +137,13 @@ pub fn char_code_at(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
     let length = primitive_val.chars().count();
-    let pos: i32 = from_value(
+    let pos = i32::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
 
     if pos >= length as i32 || pos < 0 {
-        return Ok(to_value(NAN));
+        return Ok(Value::from(NAN));
     }
 
     let utf16_val = primitive_val
@@ -157,7 +152,7 @@ pub fn char_code_at(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> 
         .expect("failed to get utf16 value");
     // If there is no element at that index, the result is NaN
     // TODO: We currently don't have NaN
-    Ok(to_value(f64::from(utf16_val)))
+    Ok(Value::from(f64::from(utf16_val)))
 }
 
 /// `String.prototype.concat( str1[, ...strN] )`
@@ -180,11 +175,11 @@ pub fn concat(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
     let mut new_str = ctx.value_to_rust_string(this);
 
     for arg in args {
-        let concat_str: String = from_value(arg.clone()).expect("failed to get argument value");
+        let concat_str = String::from(arg);
         new_str.push_str(&concat_str);
     }
 
-    Ok(to_value(new_str))
+    Ok(Value::from(new_str))
 }
 
 /// `String.prototype.repeat( count )`
@@ -203,13 +198,12 @@ pub fn repeat(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
 
-    let repeat_times: usize = from_value(
+    let repeat_times = usize::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
-    Ok(to_value(primitive_val.repeat(repeat_times)))
+            .expect("failed to get argument for String method"),
+    );
+
+    Ok(Value::from(primitive_val.repeat(repeat_times)))
 }
 
 /// `String.prototype.slice( beginIndex [, endIndex] )`
@@ -227,18 +221,12 @@ pub fn slice(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
     // Then we convert it into a Rust String by wrapping it in from_value
     let primitive_val: String = ctx.value_to_rust_string(this);
 
-    let start: i32 = from_value(
+    let start = i32::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
-    let end: i32 = from_value(
-        args.get(1)
-            .expect("failed to get argument in slice")
-            .clone(),
-    )
-    .expect("failed to parse argument");
+            .expect("failed to get argument for String method"),
+    );
+
+    let end = i32::from(args.get(1).expect("failed to get argument in slice"));
 
     // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
     // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
@@ -266,7 +254,7 @@ pub fn slice(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
                 .expect("Could not get nth char"),
         );
     }
-    Ok(to_value(new_str))
+    Ok(Value::from(new_str))
 }
 
 /// `String.prototype.startWith( searchString[, position] )`
@@ -285,12 +273,10 @@ pub fn starts_with(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> R
     let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if pattern is regular expression
-    let search_string: String = from_value(
+    let search_string = String::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
 
     let length: i32 = primitive_val.chars().count() as i32;
     let search_length: i32 = search_string.chars().count() as i32;
@@ -299,18 +285,18 @@ pub fn starts_with(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> R
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args.get(1).expect("failed to get arg").clone()).expect("failed to get argument")
+        i32::from(args.get(1).expect("failed to get arg"))
     };
 
     let start = min(max(position, 0), length);
     let end = start.wrapping_add(search_length);
 
     if end > length {
-        Ok(to_value(false))
+        Ok(Value::from(false))
     } else {
         // Only use the part of the string from "start"
         let this_string: String = primitive_val.chars().skip(start as usize).collect();
-        Ok(to_value(this_string.starts_with(&search_string)))
+        Ok(Value::from(this_string.starts_with(&search_string)))
     }
 }
 
@@ -330,12 +316,10 @@ pub fn ends_with(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
     let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(
+    let search_string = String::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
 
     let length: i32 = primitive_val.chars().count() as i32;
     let search_length: i32 = search_string.chars().count() as i32;
@@ -345,19 +329,18 @@ pub fn ends_with(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
     let end_position: i32 = if args.len() < 2 {
         length
     } else {
-        from_value(args.get(1).expect("Could not get argumetn").clone())
-            .expect("Could not convert value to i32")
+        i32::from(args.get(1).expect("Could not get argumetn"))
     };
 
     let end = min(max(end_position, 0), length);
     let start = end.wrapping_sub(search_length);
 
     if start < 0 {
-        Ok(to_value(false))
+        Ok(Value::from(false))
     } else {
         // Only use the part of the string up to "end"
         let this_string: String = primitive_val.chars().take(end as usize).collect();
-        Ok(to_value(this_string.ends_with(&search_string)))
+        Ok(Value::from(this_string.ends_with(&search_string)))
     }
 }
 
@@ -377,12 +360,10 @@ pub fn includes(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(
+    let search_string = String::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -390,8 +371,7 @@ pub fn includes(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args.get(1).expect("Could not get argument").clone())
-            .expect("Could not convert value to i32")
+        i32::from(args.get(1).expect("Could not get argument"))
     };
 
     let start = min(max(position, 0), length);
@@ -399,7 +379,7 @@ pub fn includes(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     // Take the string from "this" and use only the part of it after "start"
     let this_string: String = primitive_val.chars().skip(start as usize).collect();
 
-    Ok(to_value(this_string.contains(&search_string)))
+    Ok(Value::from(this_string.contains(&search_string)))
 }
 
 /// Return either the string itself or the string of the regex equivalent
@@ -411,8 +391,7 @@ fn get_regex_string(value: &Value) -> String {
             if slots.get("RegExpMatcher").is_some() {
                 // first argument is another `RegExp` object, so copy its pattern and flags
                 if let Some(body) = slots.get("OriginalSource") {
-                    return from_value(r#body.clone())
-                        .expect("unable to get body from regex value");
+                    return String::from(r#body);
                 }
             }
             "undefined".to_string()
@@ -440,7 +419,7 @@ pub fn replace(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resul
     // TODO: Support Symbol replacer
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
-        return Ok(to_value(primitive_val));
+        return Ok(Value::from(primitive_val));
     }
 
     let regex_body = get_regex_string(args.get(0).expect("Value needed"));
@@ -497,7 +476,7 @@ pub fn replace(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resul
                 // This will return the matched substring first, then captured parenthesized groups later
                 let mut results: Vec<Value> = caps
                     .iter()
-                    .map(|capture| to_value(capture.unwrap().as_str()))
+                    .map(|capture| Value::from(capture.unwrap().as_str()))
                     .collect();
 
                 // Returns the starting byte offset of the match
@@ -505,9 +484,9 @@ pub fn replace(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resul
                     .get(0)
                     .expect("Unable to get Byte offset from string for match")
                     .start();
-                results.push(to_value(start));
+                results.push(Value::from(start));
                 // Push the whole string being examined
-                results.push(to_value(primitive_val.to_string()));
+                results.push(Value::from(primitive_val.to_string()));
 
                 let result = ctx.call(&replace_object, this, &results).unwrap();
 
@@ -519,7 +498,7 @@ pub fn replace(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resul
         "undefined".to_string()
     };
 
-    Ok(to_value(primitive_val.replacen(
+    Ok(Value::from(primitive_val.replacen(
         &mat.as_str(),
         &replace_value,
         1,
@@ -544,12 +523,10 @@ pub fn index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(
+    let search_string = String::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -557,8 +534,7 @@ pub fn index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args.get(1).expect("Could not get argument").clone())
-            .expect("Could not convert value to i32")
+        i32::from(args.get(1).expect("Could not get argument"))
     };
 
     let start = min(max(position, 0), length);
@@ -571,11 +547,11 @@ pub fn index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
         let this_string: String = primitive_val.chars().skip(index as usize).collect();
         if this_string.starts_with(&search_string) {
             // Explicitly return early with the index value
-            return Ok(to_value(index));
+            return Ok(Value::from(index));
         }
     }
     // Didn't find a match, so return -1
-    Ok(to_value(-1))
+    Ok(Value::from(-1))
 }
 
 /// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
@@ -596,12 +572,10 @@ pub fn last_index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) ->
     let primitive_val: String = ctx.value_to_rust_string(this);
 
     // TODO: Should throw TypeError if search_string is regular expression
-    let search_string: String = from_value(
+    let search_string = String::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
 
     let length: i32 = primitive_val.chars().count() as i32;
 
@@ -609,8 +583,7 @@ pub fn last_index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) ->
     let position: i32 = if args.len() < 2 {
         0
     } else {
-        from_value(args.get(1).expect("Could not get argument").clone())
-            .expect("Could not convert value to i32")
+        i32::from(args.get(1).expect("Could not get argument"))
     };
 
     let start = min(max(position, 0), length);
@@ -628,7 +601,7 @@ pub fn last_index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) ->
     }
 
     // This will still be -1 if no matches were found, else with be >= 0
-    Ok(to_value(highest_index))
+    Ok(Value::from(highest_index))
 }
 
 /// `String.prototype.match( regexp )`
@@ -643,7 +616,7 @@ pub fn last_index_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) ->
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
 /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
 pub fn r#match(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-    let mut re = make_regexp(&mut to_value(Object::default()), &[args[0].clone()], ctx)?;
+    let mut re = make_regexp(&mut Value::from(Object::default()), &[args[0].clone()], ctx)?;
     regexp_match(&mut re, ctx.value_to_rust_string(this), ctx)
 }
 
@@ -660,7 +633,7 @@ fn string_pad(
     let primitive_length = primitive.len() as i32;
 
     if max_length <= primitive_length {
-        return Ok(to_value(primitive));
+        return Ok(Value::from(primitive));
     }
 
     let filler = match fill_string {
@@ -669,7 +642,7 @@ fn string_pad(
     };
 
     if filler == "" {
-        return Ok(to_value(primitive));
+        return Ok(Value::from(primitive));
     }
 
     let fill_len = max_length.wrapping_sub(primitive_length);
@@ -682,9 +655,9 @@ fn string_pad(
     let concat_fill_str: String = fill_str.chars().take(fill_len as usize).collect();
 
     if at_start {
-        Ok(to_value(format!("{}{}", concat_fill_str, &primitive)))
+        Ok(Value::from(format!("{}{}", concat_fill_str, &primitive)))
     } else {
-        Ok(to_value(format!("{}{}", primitive, &concat_fill_str)))
+        Ok(Value::from(format!("{}{}", primitive, &concat_fill_str)))
     }
 }
 
@@ -703,20 +676,16 @@ fn string_pad(
 pub fn pad_end(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
-        return Err(to_value("padEnd requires maxLength argument"));
+        return Err(Value::from("padEnd requires maxLength argument"));
     }
-    let max_length = from_value(
+    let max_length = i32::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
+
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(
-            from_value(args.get(1).expect("Could not get argument").clone())
-                .expect("Could not convert value to Option<String>"),
-        ),
+        _ => Some(String::from(args.get(1).expect("Could not get argument"))),
     };
 
     string_pad(primitive_val, max_length, fill_string, false)
@@ -737,20 +706,16 @@ pub fn pad_end(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resul
 pub fn pad_start(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let primitive_val: String = ctx.value_to_rust_string(this);
     if args.is_empty() {
-        return Err(to_value("padStart requires maxLength argument"));
+        return Err(Value::from("padStart requires maxLength argument"));
     }
-    let max_length = from_value(
+    let max_length = i32::from(
         args.get(0)
-            .expect("failed to get argument for String method")
-            .clone(),
-    )
-    .expect("failed to parse argument for String method");
+            .expect("failed to get argument for String method"),
+    );
+
     let fill_string: Option<String> = match args.len() {
         1 => None,
-        _ => Some(
-            from_value(args.get(1).expect("Could not get argument").clone())
-                .expect("Could not convert value to Option<String>"),
-        ),
+        _ => Some(String::from(args.get(1).expect("Could not get argument"))),
     };
 
     string_pad(primitive_val, max_length, fill_string, true)
@@ -789,7 +754,7 @@ fn is_trimmable_whitespace(c: char) -> bool {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
 pub fn trim(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
-    Ok(to_value(this_str.trim_matches(is_trimmable_whitespace)))
+    Ok(Value::from(this_str.trim_matches(is_trimmable_whitespace)))
 }
 
 /// `String.prototype.trimStart()`
@@ -806,7 +771,7 @@ pub fn trim(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
 pub fn trim_start(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
-    Ok(to_value(
+    Ok(Value::from(
         this_str.trim_start_matches(is_trimmable_whitespace),
     ))
 }
@@ -825,7 +790,9 @@ pub fn trim_start(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> Resul
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
 pub fn trim_end(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let this_str: String = ctx.value_to_rust_string(this);
-    Ok(to_value(this_str.trim_end_matches(is_trimmable_whitespace)))
+    Ok(Value::from(
+        this_str.trim_end_matches(is_trimmable_whitespace),
+    ))
 }
 
 /// `String.prototype.toLowerCase()`
@@ -844,7 +811,7 @@ pub fn to_lowercase(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> Res
     let this_str: String = ctx.value_to_rust_string(this);
     // The Rust String is mapped to uppercase using the builtin .to_lowercase().
     // There might be corner cases where it does not behave exactly like Javascript expects
-    Ok(to_value(this_str.to_lowercase()))
+    Ok(Value::from(this_str.to_lowercase()))
 }
 
 /// `String.prototype.toUpperCase()`
@@ -865,7 +832,7 @@ pub fn to_uppercase(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> Res
     let this_str: String = ctx.value_to_rust_string(this);
     // The Rust String is mapped to uppercase using the builtin .to_uppercase().
     // There might be corner cases where it does not behave exactly like Javascript expects
-    Ok(to_value(this_str.to_uppercase()))
+    Ok(Value::from(this_str.to_uppercase()))
 }
 
 /// `String.prototype.substring( indexStart[, indexEnd] )`
@@ -886,20 +853,17 @@ pub fn substring(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
     let start = if args.is_empty() {
         0
     } else {
-        from_value(
+        i32::from(
             args.get(0)
-                .expect("failed to get argument for String method")
-                .clone(),
+                .expect("failed to get argument for String method"),
         )
-        .expect("failed to parse argument for String method")
     };
     let length: i32 = primitive_val.chars().count() as i32;
     // If less than 2 args specified, end is the length of the this object converted to a String
     let end = if args.len() < 2 {
         length
     } else {
-        from_value(args.get(1).expect("Could not get argument").clone())
-            .expect("failed to parse argument for String method")
+        i32::from(args.get(1).expect("Could not get argument"))
     };
     // Both start and end args replaced by 0 if they were negative
     // or by the length of the String if they were greater
@@ -915,7 +879,7 @@ pub fn substring(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
         .skip(from)
         .take(to.wrapping_sub(from))
         .collect();
-    Ok(to_value(extracted_string))
+    Ok(Value::from(extracted_string))
 }
 
 /// `String.prototype.substr( start[, length] )`
@@ -937,12 +901,10 @@ pub fn substr(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
     let mut start = if args.is_empty() {
         0
     } else {
-        from_value(
+        i32::from(
             args.get(0)
-                .expect("failed to get argument for String method")
-                .clone(),
+                .expect("failed to get argument for String method"),
         )
-        .expect("failed to parse argument for String method")
     };
     let length: i32 = primitive_val.chars().count() as i32;
     // If less than 2 args specified, end is +infinity, the maximum number value.
@@ -952,8 +914,7 @@ pub fn substr(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
     let end = if args.len() < 2 {
         i32::max_value()
     } else {
-        from_value(args.get(1).expect("Could not get argument").clone())
-            .expect("failed to parse argument for String method")
+        i32::from(args.get(1).expect("Could not get argument"))
     };
     // If start is negative it become the number of code units from the end of the string
     if start < 0 {
@@ -965,14 +926,15 @@ pub fn substr(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
     // If length is negative we return an empty string
     // otherwise we extract the part of the string from start and is length code units long
     if result_length <= 0 {
-        Ok(to_value("".to_string()))
+        Ok(Value::from("".to_string()))
     } else {
         let extracted_string: String = primitive_val
             .chars()
             .skip(start as usize)
             .take(result_length as usize)
             .collect();
-        Ok(to_value(extracted_string))
+
+        Ok(Value::from(extracted_string))
     }
 }
 
@@ -1007,28 +969,28 @@ pub fn value_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 pub fn match_all(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let mut re: Value = match args.get(0) {
         Some(arg) => {
-            if arg == &Gc::new(ValueData::Null) {
+            if arg == &Value::null() {
                 make_regexp(
-                    &mut to_value(Object::default()),
+                    &mut Value::from(Object::default()),
                     &[
-                        to_value(ctx.value_to_rust_string(arg)),
-                        to_value(String::from("g")),
+                        Value::from(ctx.value_to_rust_string(arg)),
+                        Value::from(String::from("g")),
                     ],
                     ctx,
                 )
-            } else if arg == &undefined() {
+            } else if arg == &Value::undefined() {
                 make_regexp(
-                    &mut to_value(Object::default()),
-                    &[undefined(), to_value(String::from("g"))],
+                    &mut Value::from(Object::default()),
+                    &[Value::undefined(), Value::from(String::from("g"))],
                     ctx,
                 )
             } else {
-                from_value(arg.clone()).map_err(to_value)
+                Ok(arg.clone())
             }
         }
         None => make_regexp(
-            &mut to_value(Object::default()),
-            &[to_value(String::new()), to_value(String::from("g"))],
+            &mut Value::from(Object::default()),
+            &[Value::from(String::new()), Value::from("g")],
             ctx,
         ),
     }?;
@@ -1039,10 +1001,10 @@ pub fn match_all(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
 /// Create a new `String` object.
 pub fn create(global: &Value) -> Value {
     // Create prototype
-    let prototype = ValueData::new_obj(Some(global));
-    let length = Property::default().value(to_value(0_i32));
+    let prototype = Value::new_object(Some(global));
+    let length = Property::default().value(Value::from(0));
 
-    prototype.set_prop_slice("length", length);
+    prototype.set_property_slice("length", length);
     make_builtin_fn!(char_at, named "charAt", with length 1, of prototype);
     make_builtin_fn!(char_code_at, named "charCodeAt", with length 1, of prototype);
     make_builtin_fn!(to_string, named "toString", of prototype);

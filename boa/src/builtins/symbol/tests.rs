@@ -5,7 +5,7 @@ use crate::{forward, forward_val};
 
 #[test]
 fn check_symbol_constructor_is_function() {
-    let global: Gc<ValueData> = ValueData::new_obj(None);
+    let global = Value::new_object(None);
     let symbol_constructor = create(&global);
     assert_eq!(symbol_constructor.is_function(), true);
 }

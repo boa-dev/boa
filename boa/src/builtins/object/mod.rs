@@ -17,11 +17,11 @@ use crate::{
     builtins::{
         function::Function,
         property::Property,
-        value::{from_value, same_value, to_value, undefined, ResultValue, Value, ValueData},
+        value::{same_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
-use gc::{unsafe_empty_trace, Finalize, Gc, GcCell, Trace};
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use rustc_hash::FxHashMap;
 use std::{
     borrow::Borrow,
@@ -103,7 +103,7 @@ impl ObjectInternalMethods for Object {
         while !done {
             if p.is_null() {
                 done = true
-            } else if same_value(&to_value(self.clone()), &p, false) {
+            } else if same_value(&Value::from(self.clone()), &p, false) {
                 return false;
             } else {
                 p = p.get_internal_slot(PROTOTYPE);
@@ -132,7 +132,7 @@ impl ObjectInternalMethods for Object {
     fn get_internal_slot(&self, name: &str) -> Value {
         match self.internal_slots.get(name) {
             Some(v) => v.clone(),
-            None => Gc::new(ValueData::Null),
+            None => Value::null(),
         }
     }
 
@@ -208,7 +208,7 @@ impl ObjectInternalMethods for Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
     #[allow(clippy::option_unwrap_used)]
     fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
-        let mut current = self.get_own_property(&to_value(property_key.to_string()));
+        let mut current = self.get_own_property(&Value::from(property_key.to_string()));
         let extensible = self.is_extensible();
 
         // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
@@ -346,7 +346,7 @@ impl Object {
             construct: None,
         };
 
-        object.set_internal_slot("extensible", to_value(true));
+        object.set_internal_slot("extensible", Value::from(true));
         object
     }
 
@@ -362,7 +362,7 @@ impl Object {
             construct: None,
         };
 
-        object.set_internal_slot("extensible", to_value(true));
+        object.set_internal_slot("extensible", Value::from(true));
         object
     }
 
@@ -378,7 +378,7 @@ impl Object {
         obj.internal_slots
             .insert(INSTANCE_PROTOTYPE.to_string(), proto);
         obj.internal_slots
-            .insert("extensible".to_string(), to_value(true));
+            .insert("extensible".to_string(), Value::from(true));
         obj
     }
 
@@ -528,14 +528,12 @@ unsafe impl Trace for ObjectKind {
 pub fn make_object(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     if let Some(arg) = args.get(0) {
         if !arg.is_null_or_undefined() {
-            return Ok(Gc::new(ValueData::Object(Box::new(GcCell::new(
-                Object::from(arg).unwrap(),
-            )))));
+            return Ok(Value::object(Object::from(arg).unwrap()));
         }
     }
     let global = &ctx.realm.global_obj;
 
-    let object = ValueData::new_obj(Some(global));
+    let object = Value::new_object(Some(global));
 
     Ok(object)
 }
@@ -557,12 +555,10 @@ pub fn set_prototype_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> R
 /// Define a property in an object
 pub fn define_property(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    let prop = from_value::<String>(args.get(1).expect("Cannot get object").clone())
-        .expect("Cannot get object");
-    let desc = from_value::<Property>(args.get(2).expect("Cannot get object").clone())
-        .expect("Cannot get object");
-    obj.set_prop(prop, desc);
-    Ok(undefined())
+    let prop = String::from(args.get(1).expect("Cannot get object"));
+    let desc = Property::from(args.get(2).expect("Cannot get object"));
+    obj.set_property(prop, desc);
+    Ok(Value::undefined())
 }
 
 /// `Object.prototype.toString()`
@@ -576,7 +572,7 @@ pub fn define_property(_: &mut Value, args: &[Value], _: &mut Interpreter) -> Re
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
 pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(this.to_string()))
+    Ok(Value::from(this.to_string()))
 }
 
 /// `Object.prototype.hasOwnPrototype( property )`
@@ -594,23 +590,26 @@ pub fn has_own_property(this: &mut Value, args: &[Value], _: &mut Interpreter) -
     let prop = if args.is_empty() {
         None
     } else {
-        from_value::<String>(args.get(0).expect("Cannot get object").clone()).ok()
+        Some(String::from(args.get(0).expect("Cannot get object")))
     };
-    Ok(to_value(
-        prop.is_some() && this.get_prop(&prop.expect("Cannot get object")).is_some(),
+    Ok(Value::from(
+        prop.is_some()
+            && this
+                .get_property(&prop.expect("Cannot get object"))
+                .is_some(),
     ))
 }
 
 /// Create a new `Object` object.
 pub fn create(global: &Value) -> Value {
-    let prototype = ValueData::new_obj(None);
+    let prototype = Value::new_object(None);
 
     make_builtin_fn!(has_own_property, named "hasOwnProperty", of prototype);
     make_builtin_fn!(to_string, named "toString", of prototype);
 
     let object = make_constructor_fn!(make_object, make_object, global, prototype);
 
-    object.set_field_slice("length", to_value(1_i32));
+    object.set_field_slice("length", Value::from(1));
     make_builtin_fn!(set_prototype_of, named "setPrototypeOf", with length 2, of object);
     make_builtin_fn!(get_prototype_of, named "getPrototypeOf", with length 1, of object);
     make_builtin_fn!(define_property, named "defineProperty", with length 3, of object);

@@ -1,10 +1,10 @@
 #![allow(clippy::float_cmp)]
 
-use crate::{builtins::value::ValueData, exec::Executor, forward, forward_val, realm::Realm};
+use crate::{builtins::value::Value, exec::Executor, forward, forward_val, realm::Realm};
 
 #[test]
 fn check_number_constructor_is_function() {
-    let global = ValueData::new_obj(None);
+    let global = Value::new_object(None);
     let number_constructor = super::create(&global);
     assert_eq!(number_constructor.is_function(), true);
 }
