@@ -872,6 +872,31 @@
 <span id="872">872</span>
 <span id="873">873</span>
 <span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -1172,17 +1197,42 @@
                 <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">to_value</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
 
                 <span class="comment">// Set the name and assign it in the current environment</span>
-                <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_some</span>() {
-                    <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
-                        <span class="ident">name</span>.<span class="ident">clone</span>().<span class="ident">expect</span>(<span class="string">&quot;No name was supplied&quot;</span>),
-                        <span class="bool-val">false</span>,
-                        <span class="ident">VariableScope</span>::<span class="ident">Function</span>,
-                    );
+                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">to_value</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
+                <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
+                    <span class="ident">name</span>.<span class="ident">clone</span>(),
+                    <span class="bool-val">false</span>,
+                    <span class="ident">VariableScope</span>::<span class="ident">Function</span>,
+                );
 
-                    <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">initialize_binding</span>(
-                        <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get name as reference&quot;</span>),
-                        <span class="ident">val</span>.<span class="ident">clone</span>(),
-                    )
+                <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
+
+                <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
+            }
+            <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
+            <span class="ident">Node</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">args</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Todo: Function.prototype doesn&#39;t exist yet, so the prototype right now is the Object.prototype</span>
+                <span class="comment">// let proto = &amp;self</span>
+                <span class="comment">//     .realm</span>
+                <span class="comment">//     .environment</span>
+                <span class="comment">//     .get_global_object()</span>
+                <span class="comment">//     .expect(&quot;Could not get the global object&quot;)</span>
+                <span class="comment">//     .get_field_slice(&quot;Object&quot;)</span>
+                <span class="comment">//     .get_field_slice(&quot;Prototype&quot;);</span>
+
+                <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">FunctionObject</span>::<span class="ident">create_ordinary</span>(
+                    <span class="ident">args</span>.<span class="ident">clone</span>(), <span class="comment">// TODO: args shouldn&#39;t need to be a reference it should be passed by value</span>
+                    <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
+                    <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">clone</span>()),
+                    <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
+                );
+
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
+                <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">func</span>);
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">to_value</span>(<span class="ident">new_func</span>);
+                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">to_value</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">name</span> {
+                    <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">to_value</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
                 }
 
                 <span class="prelude-val">Ok</span>(<span class="ident">val</span>)

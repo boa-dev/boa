@@ -1238,6 +1238,106 @@
 <span id="1238">1238</span>
 <span id="1239">1239</span>
 <span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -1255,13 +1355,15 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Node</span> {
-    <span class="doccomment">/// An array is an ordered collection of data (either primitive or object depending upon the language).</span>
+    <span class="doccomment">/// An array is an ordered collection of data (either primitive or object depending upon the</span>
+    <span class="doccomment">/// language).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Arrays are used to store multiple values in a single variable.</span>
     <span class="doccomment">/// This is compared to a variable that can store only one value.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Each item in an array has a number attached to it, called a numeric index, that allows you to access it.</span>
-    <span class="doccomment">/// In JavaScript, arrays start at index zero and can be manipulated with various methods.</span>
+    <span class="doccomment">/// Each item in an array has a number attached to it, called a numeric index, that allows you</span>
+    <span class="doccomment">/// to access it. In JavaScript, arrays start at index zero and can be manipulated with various</span>
+    <span class="doccomment">/// methods.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1271,10 +1373,12 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array</span>
     <span class="ident">ArrayDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>),
 
-    <span class="doccomment">/// An arrow function expression is a syntactically compact alternative to a regular function expression.</span>
+    <span class="doccomment">/// An arrow function expression is a syntactically compact alternative to a regular function</span>
+    <span class="doccomment">/// expression.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Arrow function expressions are ill suited as methods, and they cannot be used as constructors.</span>
-    <span class="doccomment">/// Arrow functions cannot be used as constructors and will throw an error when used with new.</span>
+    <span class="doccomment">/// Arrow function expressions are ill suited as methods, and they cannot be used as</span>
+    <span class="doccomment">/// constructors. Arrow functions cannot be used as constructors and will throw an error when</span>
+    <span class="doccomment">/// used with new.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1284,7 +1388,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions</span>
     <span class="ident">ArrowFunctionDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// An assignment operator assigns a value to its left operand based on the value of its right operand.</span>
+    <span class="doccomment">/// An assignment operator assigns a value to its left operand based on the value of its right</span>
+    <span class="doccomment">/// operand.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Assignment operator (`=`), assigns the value of its right operand to its left operand.</span>
     <span class="doccomment">///</span>
@@ -1304,12 +1409,14 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Operators</span>
     <span class="ident">BinOp</span>(<span class="ident">BinOp</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// A `block` statement (or compound statement in other languages) is used to group zero or more statements.</span>
+    <span class="doccomment">/// A `block` statement (or compound statement in other languages) is used to group zero or</span>
+    <span class="doccomment">/// more statements.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The block statement is often called compound statement in other languages.</span>
     <span class="doccomment">/// It allows you to use multiple statements where JavaScript expects only one statement.</span>
-    <span class="doccomment">/// Combining statements into blocks is a common practice in JavaScript. The opposite behavior is possible using an empty statement,</span>
-    <span class="doccomment">/// where you provide no statement, although one is required.</span>
+    <span class="doccomment">/// Combining statements into blocks is a common practice in JavaScript. The opposite behavior</span>
+    <span class="doccomment">/// is possible using an empty statement, where you provide no statement, although one is</span>
+    <span class="doccomment">/// required.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1319,11 +1426,13 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block</span>
     <span class="ident">Block</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `break` statement terminates the current loop, switch, or label statement and transfers program control to the statement following the terminated statement.</span>
+    <span class="doccomment">/// The `break` statement terminates the current loop, switch, or label statement and transfers</span>
+    <span class="doccomment">/// program control to the statement following the terminated statement.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The break statement includes an optional label that allows the program to break out of a labeled statement.</span>
-    <span class="doccomment">/// The break statement needs to be nested within the referenced label. The labeled statement can be any block statement;</span>
-    <span class="doccomment">/// it does not have to be preceded by a loop statement.</span>
+    <span class="doccomment">/// The break statement includes an optional label that allows the program to break out of a</span>
+    <span class="doccomment">/// labeled statement. The break statement needs to be nested within the referenced label. The</span>
+    <span class="doccomment">/// labeled statement can be any block statement; it does not have to be preceded by a loop</span>
+    <span class="doccomment">/// statement.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1335,9 +1444,11 @@
 
     <span class="doccomment">/// Calling the function actually performs the specified actions with the indicated parameters.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Defining a function does not execute it. Defining it simply names the function and specifies what to do when the function is called.</span>
-    <span class="doccomment">/// Functions must be in scope when they are called, but the function declaration can be hoisted</span>
-    <span class="doccomment">/// The scope of a function is the function in which it is declared (or the entire program, if it is declared at the top level).</span>
+    <span class="doccomment">/// Defining a function does not execute it. Defining it simply names the function and</span>
+    <span class="doccomment">/// specifies what to do when the function is called. Functions must be in scope when they are</span>
+    <span class="doccomment">/// called, but the function declaration can be hoisted. The scope of a function is the</span>
+    <span class="doccomment">/// function in which it is declared (or the entire program, if it is declared at the top</span>
+    <span class="doccomment">/// level).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1347,11 +1458,13 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions</span>
     <span class="ident">Call</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `conditional` (ternary) operator is the only JavaScript operator that takes three operands.</span>
+    <span class="doccomment">/// The `conditional` (ternary) operator is the only JavaScript operator that takes three</span>
+    <span class="doccomment">/// operands.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This operator is the only JavaScript operator that takes three operands: a condition followed by a question mark (`?`),</span>
-    <span class="doccomment">/// then an expression to execute `if` the condition is truthy followed by a colon (`:`), and finally the expression to execute if the condition is `falsy`.</span>
-    <span class="doccomment">/// This operator is frequently used as a shortcut for the `if` statement.</span>
+    <span class="doccomment">/// This operator is the only JavaScript operator that takes three operands: a condition</span>
+    <span class="doccomment">/// followed by a question mark (`?`), then an expression to execute `if` the condition is</span>
+    <span class="doccomment">/// truthy followed by a colon (`:`), and finally the expression to execute if the condition</span>
+    <span class="doccomment">/// is `false`. This operator is frequently used as a shortcut for the `if` statement.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1373,13 +1486,15 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals</span>
     <span class="ident">Const</span>(<span class="ident">Const</span>),
 
-    <span class="doccomment">/// The `const` statements are block-scoped, much like variables defined using the `let` keyword.</span>
+    <span class="doccomment">/// The `const` statements are block-scoped, much like variables defined using the `let`</span>
+    <span class="doccomment">/// keyword.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This declaration creates a constant whose scope can be either global or local to the block in which it is declared.</span>
-    <span class="doccomment">/// Global constants do not become properties of the window object, unlike var variables.</span>
+    <span class="doccomment">/// This declaration creates a constant whose scope can be either global or local to the block</span>
+    <span class="doccomment">/// in which it is declared. Global constants do not become properties of the window object,</span>
+    <span class="doccomment">/// unlike var variables.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// An initializer for a constant is required. You must specify its value in the same statement in which it&#39;s declared.</span>
-    <span class="doccomment">/// (This makes sense, given that it can&#39;t be changed later.)</span>
+    <span class="doccomment">/// An initializer for a constant is required. You must specify its value in the same statement</span>
+    <span class="doccomment">/// in which it&#39;s declared. (This makes sense, given that it can&#39;t be changed later.)</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1391,11 +1506,12 @@
     <span class="doccomment">/// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions</span>
     <span class="ident">ConstDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="ident">Node</span>)]<span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `continue` statement terminates execution of the statements in the current iteration of the current or labeled loop,</span>
-    <span class="doccomment">/// and continues execution of the loop with the next iteration.</span>
+    <span class="doccomment">/// The `continue` statement terminates execution of the statements in the current iteration of</span>
+    <span class="doccomment">/// the current or labeled loop, and continues execution of the loop with the next iteration.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The continue statement can include an optional label that allows the program to jump to the next iteration of a labeled</span>
-    <span class="doccomment">/// loop statement instead of the current loop. In this case, the continue statement needs to be nested within this labeled statement.</span>
+    <span class="doccomment">/// The continue statement can include an optional label that allows the program to jump to the</span>
+    <span class="doccomment">/// next iteration of a labeled loop statement instead of the current loop. In this case, the</span>
+    <span class="doccomment">/// continue statement needs to be nested within this labeled statement.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1405,9 +1521,11 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue</span>
     <span class="ident">Continue</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `do...while` statement creates a loop that executes a specified statement until the test condition evaluates to false.</span>
+    <span class="doccomment">/// The `do...while` statement creates a loop that executes a specified statement until the</span>
+    <span class="doccomment">/// test condition evaluates to false.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The condition is evaluated after executing the statement, resulting in the specified statement executing at least once.</span>
+    <span class="doccomment">/// The condition is evaluated after executing the statement, resulting in the specified</span>
+    <span class="doccomment">/// statement executing at least once.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1417,13 +1535,16 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while</span>
     <span class="ident">DoWhileLoop</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `function` declaration (function statement) defines a function with the specified parameters.</span>
+    <span class="doccomment">/// The `function` declaration (function statement) defines a function with the specified</span>
+    <span class="doccomment">/// parameters.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// A function created with a function declaration is a `Function` object and has all the properties, methods and behavior of `Function`.</span>
+    <span class="doccomment">/// A function created with a function declaration is a `Function` object and has all the</span>
+    <span class="doccomment">/// properties, methods and behavior of `Function`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A function can also be created using an expression (see function expression).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, functions return undefined. To return any other value, the function must have a return statement that specifies the value to return.</span>
+    <span class="doccomment">/// By default, functions return `undefined`. To return any other value, the function must have</span>
+    <span class="doccomment">/// a return statement that specifies the value to return.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1431,20 +1552,40 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function</span>
-    <span class="ident">FunctionDecl</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+    <span class="ident">FunctionDecl</span>(<span class="ident">String</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// This property accessor provides access to an object&#39;s properties by using the [dot notation][mdn].</span>
+    <span class="doccomment">/// The `function` expression defines a function with the specified parameters.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// A function created with a function expression is a `Function` object and has all the</span>
+    <span class="doccomment">/// properties, methods and behavior of `Function`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// A function can also be created using a declaration (see function expression).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// By default, functions return `undefined`. To return any other value, the function must have</span>
+    <span class="doccomment">/// a return statement that specifies the value to return.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function</span>
+    <span class="ident">FunctionExpr</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
+
+    <span class="doccomment">/// This property accessor provides access to an object&#39;s properties by using the</span>
+    <span class="doccomment">/// [dot notation][mdn].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// In the object.property syntax, the property must be a valid JavaScript identifier.</span>
-    <span class="doccomment">/// (In the ECMAScript standard, the names of properties are technically &quot;IdentifierNames&quot;, not &quot;Identifiers&quot;,</span>
-    <span class="doccomment">/// so reserved words can be used but are not recommended).</span>
+    <span class="doccomment">/// (In the ECMAScript standard, the names of properties are technically &quot;IdentifierNames&quot;, not</span>
+    <span class="doccomment">/// &quot;Identifiers&quot;, so reserved words can be used but are not recommended).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup table).</span>
-    <span class="doccomment">/// The keys in this array are the names of the object&#39;s properties.</span>
+    <span class="doccomment">/// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup</span>
+    <span class="doccomment">/// table). The keys in this array are the names of the object&#39;s properties.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// It&#39;s typical when speaking of an object&#39;s properties to make a distinction between properties and methods. However,</span>
-    <span class="doccomment">/// the property/method distinction is little more than a convention. A method is simply a property that can be called (for example,</span>
-    <span class="doccomment">/// if it has a reference to a Function instance as its value).</span>
+    <span class="doccomment">/// It&#39;s typical when speaking of an object&#39;s properties to make a distinction between</span>
+    <span class="doccomment">/// properties and methods. However, the property/method distinction is little more than a</span>
+    <span class="doccomment">/// convention. A method is simply a property that can be called (for example, if it has a</span>
+    <span class="doccomment">/// reference to a Function instance as its value).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1454,16 +1595,20 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation</span>
     <span class="ident">GetConstField</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">String</span>),
 
-    <span class="doccomment">/// This property accessor provides access to an object&#39;s properties by using the [bracket notation][mdn].</span>
+    <span class="doccomment">/// This property accessor provides access to an object&#39;s properties by using the</span>
+    <span class="doccomment">/// [bracket notation][mdn].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// In the object[property_name] syntax, the property_name is just a string or [Symbol][symbol]. So, it can be any string, including &#39;1foo&#39;, &#39;!bar!&#39;, or even &#39; &#39; (a space).</span>
+    <span class="doccomment">/// In the object[property_name] syntax, the property_name is just a string or</span>
+    <span class="doccomment">/// [Symbol][symbol]. So, it can be any string, including &#39;1foo&#39;, &#39;!bar!&#39;, or even &#39; &#39; (a</span>
+    <span class="doccomment">/// space).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup table).</span>
-    <span class="doccomment">/// The keys in this array are the names of the object&#39;s properties.</span>
+    <span class="doccomment">/// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup</span>
+    <span class="doccomment">/// table). The keys in this array are the names of the object&#39;s properties.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// It&#39;s typical when speaking of an object&#39;s properties to make a distinction between properties and methods. However,</span>
-    <span class="doccomment">/// the property/method distinction is little more than a convention. A method is simply a property that can be called (for example,</span>
-    <span class="doccomment">/// if it has a reference to a Function instance as its value).</span>
+    <span class="doccomment">/// It&#39;s typical when speaking of an object&#39;s properties to make a distinction between</span>
+    <span class="doccomment">/// properties and methods. However, the property/method distinction is little more than a</span>
+    <span class="doccomment">/// convention. A method is simply a property that can be called (for example, if it has a</span>
+    <span class="doccomment">/// reference to a Function instance as its value).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1492,7 +1637,8 @@
         <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     ),
 
-    <span class="doccomment">/// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement can be executed.</span>
+    <span class="doccomment">/// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If</span>
+    <span class="doccomment">/// the condition is [`falsy`][falsy], another statement can be executed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Multiple `if...else` statements can be nested to create an else if clause.</span>
     <span class="doccomment">///</span>
@@ -1509,13 +1655,16 @@
     <span class="doccomment">/// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions</span>
     <span class="ident">If</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `let` statement declares a block scope local variable, optionally initializing it to a value.</span>
+    <span class="doccomment">/// The `let` statement declares a block scope local variable, optionally initializing it to a</span>
+    <span class="doccomment">/// value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// `let` allows you to declare variables that are limited to a scope of a block statement, or expression on which</span>
-    <span class="doccomment">/// it is used, unlike the `var` keyword, which defines a variable globally, or locally to an entire function regardless of block scope.</span>
+    <span class="doccomment">/// `let` allows you to declare variables that are limited to a scope of a block statement, or</span>
+    <span class="doccomment">/// expression on which it is used, unlike the `var` keyword, which defines a variable</span>
+    <span class="doccomment">/// globally, or locally to an entire function regardless of block scope.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Just like const the `let` does not create properties of the window object when declared globally (in the top-most scope).</span>
+    <span class="doccomment">/// Just like const the `let` does not create properties of the window object when declared</span>
+    <span class="doccomment">/// globally (in the top-most scope).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1525,12 +1674,15 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let</span>
     <span class="ident">LetDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)]<span class="op">&gt;</span>),
 
-    <span class="doccomment">/// An `identifier` is a sequence of characters in the code that identifies a variable, function, or property.</span>
+    <span class="doccomment">/// An `identifier` is a sequence of characters in the code that identifies a variable,</span>
+    <span class="doccomment">/// function, or property.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// In JavaScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and digits (0-9), but may not start with a digit.</span>
+    <span class="doccomment">/// In JavaScript, identifiers are case-sensitive and can contain Unicode letters, $, _, and</span>
+    <span class="doccomment">/// digits (0-9), but may not start with a digit.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// An identifier differs from a string in that a string is data, while an identifier is part of the code. In JavaScript, there is no way</span>
-    <span class="doccomment">/// to convert identifiers to strings, but sometimes it is possible to parse strings into identifiers.</span>
+    <span class="doccomment">/// An identifier differs from a string in that a string is data, while an identifier is part</span>
+    <span class="doccomment">/// of the code. In JavaScript, there is no way to convert identifiers to strings, but</span>
+    <span class="doccomment">/// sometimes it is possible to parse strings into identifiers.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1540,7 +1692,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier</span>
     <span class="ident">Local</span>(<span class="ident">String</span>),
 
-    <span class="doccomment">/// The `new` operator lets developers create an instance of a user-defined object type or of one of the built-in object types that has a constructor function.</span>
+    <span class="doccomment">/// The `new` operator lets developers create an instance of a user-defined object type or of</span>
+    <span class="doccomment">/// one of the built-in object types that has a constructor function.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The new keyword does the following things:</span>
     <span class="doccomment">///  - Creates a blank, plain JavaScript object;</span>
@@ -1556,13 +1709,16 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new</span>
     <span class="ident">New</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// Objects in JavaScript may be defined as an unordered collection of related data, of primitive or reference types, in the form of “key: value” pairs.</span>
+    <span class="doccomment">/// Objects in JavaScript may be defined as an unordered collection of related data, of</span>
+    <span class="doccomment">/// primitive or reference types, in the form of “key: value” pairs.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Objects can be initialized using `new Object()`, `Object.create()`, or using the literal notation.</span>
+    <span class="doccomment">/// Objects can be initialized using `new Object()`, `Object.create()`, or using the literal</span>
+    <span class="doccomment">/// notation.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// An object initializer is an expression that describes the initialization of an [`Object`][object].</span>
-    <span class="doccomment">/// Objects consist of properties, which are used to describe an object. Values of object properties can either</span>
-    <span class="doccomment">/// contain [`primitive`][primitive] data types or other objects.</span>
+    <span class="doccomment">/// An object initializer is an expression that describes the initialization of an</span>
+    <span class="doccomment">/// [`Object`][object]. Objects consist of properties, which are used to describe an object.</span>
+    <span class="doccomment">/// Values of object properties can either contain [`primitive`][primitive] data types or other</span>
+    <span class="doccomment">/// objects.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1574,15 +1730,17 @@
     <span class="doccomment">/// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive</span>
     <span class="ident">Object</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PropertyDefinition</span>]<span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `return` statement ends function execution and specifies a value to be returned to the function caller.</span>
+    <span class="doccomment">/// The `return` statement ends function execution and specifies a value to be returned to the</span>
+    <span class="doccomment">/// function caller.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `return [expression];`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `expression`:</span>
-    <span class="doccomment">///  &gt; The expression whose value is to be returned. If omitted, `undefined` is returned instead.</span>
+    <span class="doccomment">///  &gt; The expression whose value is to be returned. If omitted, `undefined` is returned</span>
+    <span class="doccomment">///  &gt; nstead.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// When a `return` statement is used in a function body, the execution of the function is stopped.</span>
-    <span class="doccomment">/// If specified, a given value is returned to the function caller.</span>
+    <span class="doccomment">/// When a `return` statement is used in a function body, the execution of the function is</span>
+    <span class="doccomment">/// stopped. If specified, a given value is returned to the function caller.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1592,13 +1750,15 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return</span>
     <span class="ident">Return</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `switch` statement evaluates an expression, matching the expression&#39;s value to a case clause,</span>
-    <span class="doccomment">/// and executes statements associated with that case, as well as statements in cases that follow the matching case.</span>
+    <span class="doccomment">/// The `switch` statement evaluates an expression, matching the expression&#39;s value to a case</span>
+    <span class="doccomment">/// clause, and executes statements associated with that case, as well as statements in cases</span>
+    <span class="doccomment">/// that follow the matching case.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// A `switch` statement first evaluates its expression. It then looks for the first case clause whose expression evaluates</span>
-    <span class="doccomment">/// to the same value as the result of the input expression (using the strict comparison, `===`) and transfers control to that clause,</span>
-    <span class="doccomment">/// executing the associated statements. (If multiple cases match the provided value, the first case that matches is selected, even if</span>
-    <span class="doccomment">/// the cases are not equal to each other.)</span>
+    <span class="doccomment">/// A `switch` statement first evaluates its expression. It then looks for the first case</span>
+    <span class="doccomment">/// clause whose expression evaluates to the same value as the result of the input expression</span>
+    <span class="doccomment">/// (using the strict comparison, `===`) and transfers control to that clause, executing the</span>
+    <span class="doccomment">/// associated statements. (If multiple cases match the provided value, the first case that</span>
+    <span class="doccomment">/// matches is selected, even if the cases are not equal to each other.)</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1608,12 +1768,15 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch</span>
     <span class="ident">Switch</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">Node</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>)]<span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `spread` operator allows an iterable such as an array expression or string to be expanded.</span>
+    <span class="doccomment">/// The `spread` operator allows an iterable such as an array expression or string to be</span>
+    <span class="doccomment">/// expanded.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `...x`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// It expands array expressions or strings in places where zero or more arguments (for function calls) or elements (for array literals)</span>
-    <span class="doccomment">/// are expected, or an object expression to be expanded in places where zero or more key-value pairs (for object literals) are expected.</span>
+    <span class="doccomment">/// It expands array expressions or strings in places where zero or more arguments (for</span>
+    <span class="doccomment">/// function calls) or elements (for array literals)</span>
+    <span class="doccomment">/// are expected, or an object expression to be expanded in places where zero or more key-value</span>
+    <span class="doccomment">/// pairs (for object literals) are expected.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1636,8 +1799,8 @@
     <span class="doccomment">/// Syntax: `throw expression;`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Execution of the current function will stop (the statements after throw won&#39;t be executed),</span>
-    <span class="doccomment">/// and control will be passed to the first catch block in the call stack. If no catch block exists among</span>
-    <span class="doccomment">/// caller functions, the program will terminate.</span>
+    <span class="doccomment">/// and control will be passed to the first catch block in the call stack. If no catch block</span>
+    <span class="doccomment">/// exists among caller functions, the program will terminate.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1661,10 +1824,12 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof</span>
     <span class="ident">TypeOf</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `try...catch` statement marks a block of statements to try and specifies a response should an exception be thrown.</span>
+    <span class="doccomment">/// The `try...catch` statement marks a block of statements to try and specifies a response</span>
+    <span class="doccomment">/// should an exception be thrown.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The `try` statement consists of a `try`-block, which contains one or more statements. `{}` must always be used,</span>
-    <span class="doccomment">/// even for single statements. At least one `catch`-block, or a `finally`-block, must be present.</span>
+    <span class="doccomment">/// The `try` statement consists of a `try`-block, which contains one or more statements. `{}`</span>
+    <span class="doccomment">/// must always be used, even for single statements. At least one `catch`-block, or a</span>
+    <span class="doccomment">/// `finally`-block, must be present.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1705,13 +1870,15 @@
 
     <span class="doccomment">/// The `var` statement declares a variable, optionally initializing it to a value.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// var declarations, wherever they occur, are processed before any code is executed. This is called hoisting, and is discussed further below.</span>
+    <span class="doccomment">/// var declarations, wherever they occur, are processed before any code is executed. This is</span>
+    <span class="doccomment">/// called hoisting, and is discussed further below.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The scope of a variable declared with var is its current execution context, which is either the enclosing function or,</span>
-    <span class="doccomment">/// for variables declared outside any function, global. If you re-declare a JavaScript variable, it will not lose its value.</span>
+    <span class="doccomment">/// The scope of a variable declared with var is its current execution context, which is either</span>
+    <span class="doccomment">/// the enclosing function or, for variables declared outside any function, global. If you</span>
+    <span class="doccomment">/// re-declare a JavaScript variable, it will not lose its value.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Assigning a value to an undeclared variable implicitly creates it as a global variable</span>
-    <span class="doccomment">/// (it becomes a property of the global object) when the assignment is executed.</span>
+    <span class="doccomment">/// Assigning a value to an undeclared variable implicitly creates it as a global variable (it</span>
+    <span class="doccomment">/// becomes a property of the global object) when the assignment is executed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1721,7 +1888,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var</span>
     <span class="ident">VarDecl</span>(<span class="ident">Box</span><span class="op">&lt;</span>[(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)]<span class="op">&gt;</span>),
 
-    <span class="doccomment">/// The `while` statement creates a loop that executes a specified statement as long as the test condition evaluates to `true`.</span>
+    <span class="doccomment">/// The `while` statement creates a loop that executes a specified statement as long as the</span>
+    <span class="doccomment">/// test condition evaluates to `true`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The condition is evaluated before executing the statement.</span>
     <span class="doccomment">///</span>
@@ -1877,14 +2045,24 @@
     }
 
     <span class="doccomment">/// Creates a `FunctionDecl` AST node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_decl</span><span class="op">&lt;</span><span class="ident">ON</span>, <span class="ident">N</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">ON</span>, <span class="ident">params</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_decl</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">params</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>::<span class="ident">FunctionDecl</span>(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">params</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
+    }
+
+    <span class="doccomment">/// Creates a `FunctionDecl` AST node.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_expr</span><span class="op">&lt;</span><span class="ident">ON</span>, <span class="ident">N</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">ON</span>, <span class="ident">params</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">ON</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span>::<span class="ident">FunctionDecl</span>(<span class="ident">name</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">N</span>::<span class="ident">into</span>), <span class="ident">params</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
+        <span class="self">Self</span>::<span class="ident">FunctionExpr</span>(<span class="ident">name</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">N</span>::<span class="ident">into</span>), <span class="ident">params</span>.<span class="ident">into</span>(), <span class="ident">body</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Creates a `GetConstField` AST node.</span>
@@ -2231,18 +2409,24 @@
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;]&quot;</span>)
             }
             <span class="self">Self</span>::<span class="ident">FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">_args</span>, <span class="kw-2">ref</span> <span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;function {} {{&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+                <span class="comment">//join_nodes(f, args)?; TODO: port</span>
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;} &quot;</span>)<span class="question-mark">?</span>;
+                <span class="ident">node</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>)
+            }
+            <span class="self">Self</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">args</span>, <span class="kw-2">ref</span> <span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;function &quot;</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">func_name</span>) <span class="op">=</span> <span class="ident">name</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">func_name</span>)<span class="question-mark">?</span>;
                 }
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{{&quot;</span>)<span class="question-mark">?</span>;
-                <span class="comment">//join_nodes(f, args)?; TODO: port</span>
+                <span class="ident">join_nodes</span>(<span class="ident">f</span>, <span class="ident">args</span>)<span class="question-mark">?</span>;
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;} &quot;</span>)<span class="question-mark">?</span>;
                 <span class="ident">node</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>)
             }
-            <span class="self">Self</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">_args</span>, <span class="kw-2">ref</span> <span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">args</span>, <span class="kw-2">ref</span> <span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;(&quot;</span>)<span class="question-mark">?</span>;
-                <span class="comment">//join_nodes(f, args)?; TODO: port</span>
+                <span class="ident">join_nodes</span>(<span class="ident">f</span>, <span class="ident">args</span>)<span class="question-mark">?</span>;
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;) =&gt; &quot;</span>)<span class="question-mark">?</span>;
                 <span class="ident">node</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>)
             }
@@ -2279,7 +2463,10 @@
 }
 
 <span class="doccomment">/// Utility to join multiple Nodes into a single string.</span>
-<span class="kw">fn</span> <span class="ident">join_nodes</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">Node</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">fn</span> <span class="ident">join_nodes</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">N</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span>
+<span class="kw">where</span>
+    <span class="ident">N</span>: <span class="ident">fmt</span>::<span class="ident">Display</span>,
+{
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
     <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">nodes</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> {
@@ -2324,6 +2511,19 @@
             <span class="ident">init</span>,
             <span class="ident">is_rest_param</span>,
         }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">FormalParameter</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_rest_param</span> {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;...&quot;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">as_ref</span>() {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot; = {}&quot;</span>, <span class="ident">n</span>)<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
