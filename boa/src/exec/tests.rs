@@ -486,6 +486,21 @@ fn unary_delete() {
         delete a
     "#;
     assert_eq!(&exec(delete_object), "false");
+
+    let delete_array = r#"
+        delete [];
+    "#;
+    assert_eq!(&exec(delete_array), "true");
+
+    let delete_func = r#"
+        delete function() {};
+    "#;
+    assert_eq!(&exec(delete_func), "true");
+
+    let delete_recursive = r#"
+        delete delete delete 1;
+    "#;
+    assert_eq!(&exec(delete_recursive), "true");
 }
 
 #[cfg(test)]
