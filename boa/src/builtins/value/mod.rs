@@ -488,18 +488,14 @@ impl ValueData {
     /// This will panic if this value doesn't have an internal state or if the internal state doesn't
     /// have the concrete type `S`.
     pub fn with_internal_state_ref<S: InternalState, R, F: FnOnce(&S) -> R>(&self, f: F) -> R {
-        // fn get_type<T>(_: &T) {
-        //     dbg!(type_name::<T>());
-        // }
-
-        dbg!(std::any::type_name::<S>());
-
         if let Self::Object(ref obj) = *self {
             let o = obj.borrow();
-            dbg!(&o.state);
-            let state = o.state.as_ref().expect("no state").downcast_ref();
-            dbg!(&state);
-            let state = state.expect("wrong state type");
+            let state = o
+                .state
+                .as_ref()
+                .expect("no state")
+                .downcast_ref()
+                .expect("wrong state type");
             f(state)
         } else {
             panic!("not an object");
