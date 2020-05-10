@@ -9,10 +9,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-use gc::{unsafe_empty_trace, Finalize, Gc, Trace};
-use regex::Regex;
-use std::ops::Deref;
-
 use crate::{
     builtins::{
         object::{InternalState, Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
@@ -21,6 +17,9 @@ use crate::{
     },
     exec::Interpreter,
 };
+use gc::{unsafe_empty_trace, Finalize, Trace};
+use regex::Regex;
+use std::ops::Deref;
 
 #[cfg(test)]
 mod tests;
