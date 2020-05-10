@@ -1,5 +1,6 @@
+use super::catchparam::CatchParameter;
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{keyword::Keyword, node::Node, punc::Punctuator},
     parser::{
         statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
         TokenParser,
@@ -38,27 +39,22 @@ impl Catch {
 }
 
 impl TokenParser for Catch {
-    type Output = (Node, Node);
+    type Output = (Option<Node>, Option<Node>);
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Catch, "try statement")?;
-        cursor.expect(Punctuator::OpenParen, "catch in try statement")?;
-        // TODO: should accept BindingPattern
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        let catch_param = if let TokenKind::Identifier(s) = &tok.kind {
-            Node::local(s)
+        let catch_param = if cursor.next_if(Punctuator::OpenParen).is_some() {
+            let catch_param =
+                CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
+            Some(catch_param)
         } else {
-            return Err(ParseError::Expected(
-                vec![TokenKind::identifier("identifier")],
-                tok.clone(),
-                "catch in try statement",
-            ));
+            None
         };
-        cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
 
         // Catch block
         Ok((
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?,
+            Some(Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?),
             catch_param,
         ))
     }

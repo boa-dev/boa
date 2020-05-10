@@ -1,4 +1,5 @@
 mod catch;
+mod catchparam;
 mod finally;
 
 #[cfg(test)]
@@ -70,7 +71,7 @@ impl TokenParser for TryStatement {
 
         let (catch, param) = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
             match Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor) {
-                Ok((catch, param)) => (Some(catch), Some(param)),
+                Ok((catch, param)) => (catch, param),
                 Err(e) => return Err(e),
             }
         } else {
