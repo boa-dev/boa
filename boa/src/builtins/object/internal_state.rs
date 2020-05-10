@@ -4,7 +4,7 @@ use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::{
     any::Any,
     fmt::{self, Debug},
-    ops::{Deref, DerefMut},
+    ops::Deref,
     rc::Rc,
 };
 
@@ -19,19 +19,6 @@ impl Finalize for InternalStateCell {}
 
 unsafe impl Trace for InternalStateCell {
     unsafe_empty_trace!();
-}
-
-impl Deref for InternalStateCell {
-    type Target = dyn InternalState;
-    fn deref(&self) -> &Self::Target {
-        Deref::deref(&self.state)
-    }
-}
-
-impl DerefMut for InternalStateCell {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        Rc::get_mut(&mut self.state).expect("failed to get mutable")
-    }
 }
 
 /// The derived version would print 'InternalStateCell { state: ... }', this custom implementation
@@ -51,13 +38,17 @@ impl InternalStateCell {
     }
 
     /// Get a reference to the stored value and cast it to `T`.
-    pub fn downcast_ref<T: Any + InternalState>(&self) -> Option<&T> {
-        self.deref().downcast_ref::<T>()
+    pub fn downcast_ref<T: InternalState>(&self) -> Option<&T> {
+        let state = Deref::deref(&mut self.state);
+
+        (state as &dyn Any).downcast_ref::<T>()
     }
 
     /// Get a mutable reference to the stored value and cast it to `T`.
     pub fn downcast_mut<T: InternalState>(&mut self) -> Option<&mut T> {
-        self.state.downcast_mut::<T>()
+        let state = Rc::get_mut(&mut self.state).expect("failed to get mutable");
+
+        (state as &mut dyn Any).downcast_mut::<T>()
     }
 }
 
