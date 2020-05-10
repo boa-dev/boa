@@ -334,11 +334,13 @@ impl ValueData {
     /// Removes a property from a Value object.
     ///
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
-    pub fn remove_property(&self, field: &str) {
-        match *self {
+    pub fn remove_property(&self, field: &str) -> bool {
+        let removed = match *self {
             Self::Object(ref obj) => obj.borrow_mut().deref_mut().properties.remove(field),
             _ => None,
         };
+
+        removed.is_some()
     }
 
     /// Resolve the property in the object.

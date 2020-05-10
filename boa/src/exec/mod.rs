@@ -403,6 +403,27 @@ impl Executor for Interpreter {
                             !(num_v_a as i32)
                         })
                     }
+                    UnaryOp::Void => Value::undefined(),
+                    UnaryOp::Delete => match a.deref() {
+                        Node::GetConstField(ref obj, ref field) => {
+                            Value::boolean(self.run(obj)?.remove_property(field))
+                        }
+                        Node::GetField(ref obj, ref field) => Value::boolean(
+                            self.run(obj)?
+                                .remove_property(&self.run(field)?.to_string()),
+                        ),
+                        Node::Local(_) => Value::boolean(false),
+                        Node::ArrayDecl(_)
+                        | Node::Block(_)
+                        | Node::Const(_)
+                        | Node::FunctionDecl(_, _, _)
+                        | Node::FunctionExpr(_, _, _)
+                        | Node::New(_)
+                        | Node::Object(_)
+                        | Node::TypeOf(_)
+                        | Node::UnaryOp(_, _) => Value::boolean(true),
+                        _ => panic!("SyntaxError: wrong delete argument {}", node),
+                    },
                     _ => unimplemented!(),
                 })
             }
