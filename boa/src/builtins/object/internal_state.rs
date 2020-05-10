@@ -1,5 +1,6 @@
 //! Implementations for storing normal rust structs inside any object as internal state.
 
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::{
     any::Any,
     fmt::{self, Debug},
@@ -7,13 +8,11 @@ use std::{
     rc::Rc,
 };
 
-use gc::{unsafe_empty_trace, Finalize, Trace};
-
 /// Wrapper around `Rc` to implement `Trace` and `Finalize`.
 #[derive(Clone)]
 pub struct InternalStateCell {
     /// The internal state.
-    state: Rc<dyn Any>,
+    state: Rc<dyn InternalState + 'static>,
 }
 
 impl Finalize for InternalStateCell {}
@@ -23,7 +22,7 @@ unsafe impl Trace for InternalStateCell {
 }
 
 impl Deref for InternalStateCell {
-    type Target = dyn Any;
+    type Target = dyn InternalState;
     fn deref(&self) -> &Self::Target {
         Deref::deref(&self.state)
     }
@@ -45,20 +44,22 @@ impl Debug for InternalStateCell {
 
 impl InternalStateCell {
     /// Create new `InternalStateCell` from a value.
-    pub fn new<T: Any + InternalState>(value: T) -> Self {
+    pub fn new<T: 'static + InternalState>(value: T) -> Self {
         Self {
             state: Rc::new(value),
         }
     }
+
     /// Get a reference to the stored value and cast it to `T`.
     pub fn downcast_ref<T: Any + InternalState>(&self) -> Option<&T> {
         self.deref().downcast_ref::<T>()
     }
+
     /// Get a mutable reference to the stored value and cast it to `T`.
-    pub fn downcast_mut<T: Any + InternalState>(&mut self) -> Option<&mut T> {
-        self.deref_mut().downcast_mut::<T>()
+    pub fn downcast_mut<T: InternalState>(&mut self) -> Option<&mut T> {
+        self.state.downcast_mut::<T>()
     }
 }
 
 /// This trait must be implemented by all structs used for internal state.
-pub trait InternalState: Debug {}
+pub trait InternalState: Debug + Trace + Any {}

@@ -23,11 +23,12 @@ use crate::{
     },
     exec::Interpreter,
 };
+use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
 
 /// This is the internal console object state.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Trace, Finalize)]
 pub struct ConsoleState {
     count_map: FxHashMap<String, u32>,
     timer_map: FxHashMap<String, u128>,

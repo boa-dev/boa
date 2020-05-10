@@ -9,9 +9,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-use std::ops::Deref;
-
+use gc::{unsafe_empty_trace, Finalize, Gc, Trace};
 use regex::Regex;
+use std::ops::Deref;
 
 use crate::{
     builtins::{
@@ -26,7 +26,7 @@ use crate::{
 mod tests;
 
 /// The internal representation on a `RegExp` object.
-#[derive(Debug)]
+#[derive(Debug, Finalize)]
 struct RegExp {
     /// Regex matcher.
     matcher: Regex,
@@ -54,6 +54,12 @@ struct RegExp {
 
     /// Flag 'u' - Unicode.
     unicode: bool,
+}
+
+// FIXME: Maybe `Regex` could at some point implement `Trace`, and we need to take that into
+// account.
+unsafe impl Trace for RegExp {
+    unsafe_empty_trace!();
 }
 
 impl InternalState for RegExp {}

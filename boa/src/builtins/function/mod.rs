@@ -39,10 +39,14 @@ pub enum ConstructorKind {
 /// Defines how this references are interpreted within the formal parameters and code body of the function.
 ///
 /// Arrow functions don't define a `this` and thus are lexical, `function`s do define a this and thus are NonLexical
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Finalize, Copy, Debug, Clone)]
 pub enum ThisMode {
     Lexical,
     NonLexical,
+}
+
+unsafe impl Trace for ThisMode {
+    unsafe_empty_trace!();
 }
 
 /// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
