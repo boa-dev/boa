@@ -10,9 +10,7 @@ fn empty_let_decl_undefined() {
         a == undefined;
         "#;
 
-    let pass = String::from("true");
-
-    assert_eq!(exec(scenario), pass);
+    assert_eq!(&exec(scenario), "true");
 }
 
 #[test]
@@ -23,9 +21,7 @@ fn semicolon_expression_stop() {
         a
         "#;
 
-    let pass = String::from("1");
-
-    assert_eq!(exec(scenario), pass);
+    assert_eq!(&exec(scenario), "1");
 }
 
 #[test]
@@ -35,9 +31,7 @@ fn empty_var_decl_undefined() {
         b == undefined;
         "#;
 
-    let pass = String::from("true");
-
-    assert_eq!(exec(scenario), pass);
+    assert_eq!(&exec(scenario), "true");
 }
 
 #[test]
@@ -189,10 +183,10 @@ fn early_return() {
 #[test]
 fn short_circuit_evaluation() {
     // OR operation
-    assert_eq!(exec("true || true"), String::from("true"));
-    assert_eq!(exec("true || false"), String::from("true"));
-    assert_eq!(exec("false || true"), String::from("true"));
-    assert_eq!(exec("false || false"), String::from("false"));
+    assert_eq!(&exec("true || true"), "true");
+    assert_eq!(&exec("true || false"), "true");
+    assert_eq!(&exec("false || true"), "true");
+    assert_eq!(&exec("false || false"), "false");
 
     // the second operand must NOT be evaluated if the first one resolve to `true`.
     let short_circuit_eval = r#"
@@ -219,10 +213,10 @@ fn short_circuit_evaluation() {
     assert_eq!(&exec(short_circuit_eval), "2");
 
     // AND operation
-    assert_eq!(exec("true && true"), String::from("true"));
-    assert_eq!(exec("true && false"), String::from("false"));
-    assert_eq!(exec("false && true"), String::from("false"));
-    assert_eq!(exec("false && false"), String::from("false"));
+    assert_eq!(&exec("true && true"), "true");
+    assert_eq!(&exec("true && false"), "false");
+    assert_eq!(&exec("false && true"), "false");
+    assert_eq!(&exec("false && false"), "false");
 
     // the second operand must be evaluated if the first one resolve to `true`.
     let short_circuit_eval = r#"

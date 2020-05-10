@@ -61,6 +61,7 @@ impl TokenParser for ContinueStatement {
         }
 
         let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        // TODO: LabelIdentifier
         let node = if let TokenKind::Identifier(name) = &tok.kind {
             Node::continue_node(name)
         } else {

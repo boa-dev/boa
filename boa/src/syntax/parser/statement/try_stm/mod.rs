@@ -4,7 +4,10 @@ mod tests;
 use super::block::Block;
 use crate::syntax::{
     ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{
+        statement::BindingIdentifier, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+        ParseResult, TokenParser,
+    },
 };
 
 /// Try...catch statement parsing
@@ -67,17 +70,10 @@ impl TokenParser for TryStatement {
         let (catch, param) = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
             // Catch binding
             cursor.expect(Punctuator::OpenParen, "catch in try statement")?;
-            // TODO: should accept BindingPattern
-            let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
-            let catch_param = if let TokenKind::Identifier(s) = &tok.kind {
-                Node::local(s)
-            } else {
-                return Err(ParseError::Expected(
-                    vec![TokenKind::identifier("identifier")],
-                    tok.clone(),
-                    "catch in try statement",
-                ));
-            };
+            // TODO: CatchParameter - BindingPattern
+            let catch_param = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                .parse(cursor)
+                .map(Node::local)?;
             cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
 
             // Catch block

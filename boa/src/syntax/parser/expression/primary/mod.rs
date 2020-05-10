@@ -81,7 +81,7 @@ impl TokenParser for PrimaryExpression {
             // TODO: ADD TokenKind::UndefinedLiteral
             TokenKind::Identifier(ref i) if i == "undefined" => Ok(Node::Const(Const::Undefined)),
             TokenKind::NullLiteral => Ok(Node::Const(Const::Null)),
-            TokenKind::Identifier(ident) => Ok(Node::local(ident)),
+            TokenKind::Identifier(ident) => Ok(Node::local(ident)), // TODO: IdentifierReference
             TokenKind::StringLiteral(s) => Ok(Node::const_node(s)),
             TokenKind::NumericLiteral(NumericLiteral::Integer(num)) => Ok(Node::const_node(*num)),
             TokenKind::NumericLiteral(NumericLiteral::Rational(num)) => Ok(Node::const_node(*num)),

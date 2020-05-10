@@ -16,7 +16,11 @@ use crate::syntax::{
         punc::Punctuator,
         token::TokenKind,
     },
-    parser::{statement::StatementList, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+    parser::{
+        expression::Initializer,
+        statement::{BindingIdentifier, StatementList},
+        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+    },
 };
 
 /// Formal parameters parsing.
@@ -100,14 +104,24 @@ impl TokenParser for FormalParameters {
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionRestParameter
+type FunctionRestParameter = BindingRestElement;
+
+/// Rest parameter parsing.
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+/// [spec]: https://tc39.es/ecma262/#prod-BindingRestElement
 #[derive(Debug, Clone, Copy)]
-struct FunctionRestParameter {
+struct BindingRestElement {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
-impl FunctionRestParameter {
-    /// Creates a new `FunctionRestParameter` parser.
+impl BindingRestElement {
+    /// Creates a new `BindingRestElement` parser.
     fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
@@ -120,24 +134,17 @@ impl FunctionRestParameter {
     }
 }
 
-impl TokenParser for FunctionRestParameter {
+impl TokenParser for BindingRestElement {
     type Output = node::FormalParameter;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        let token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        Ok(Self::Output::new(
-            if let TokenKind::Identifier(name) = &token.kind {
-                name
-            } else {
-                return Err(ParseError::Expected(
-                    vec![TokenKind::identifier("identifier")],
-                    token.clone(),
-                    "rest parameter",
-                ));
-            },
-            None,
-            true,
-        ))
+        // FIXME: we are reading the spread operator before the rest element.
+        // cursor.expect(Punctuator::Spread, "rest parameter")?;
+
+        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        // TODO: BindingPattern
+
+        Ok(Self::Output::new(param, None, true))
     }
 }
 
@@ -173,19 +180,13 @@ impl TokenParser for FormalParameter {
     type Output = node::FormalParameter;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        let token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        let name = if let TokenKind::Identifier(name) = &token.kind {
-            name
-        } else {
-            return Err(ParseError::Expected(
-                vec![TokenKind::identifier("identifier")],
-                token.clone(),
-                "formal parameter",
-            ));
-        };
+        // TODO: BindingPattern
 
-        // TODO: Implement initializer.
-        Ok(Self::Output::new(name, None, false))
+        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+        let init = Initializer::new(true, self.allow_yield, self.allow_await).try_parse(cursor);
+
+        Ok(Self::Output::new(param, init.map(Box::new), false))
     }
 }
 

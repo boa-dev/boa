@@ -316,3 +316,50 @@ impl TokenParser for ExpressionStatement {
         Ok(expr)
     }
 }
+
+/// Binding identifier parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-BindingIdentifier
+#[derive(Debug, Clone, Copy)]
+pub(super) struct BindingIdentifier {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl BindingIdentifier {
+    /// Creates a new `BindingIdentifier` parser.
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl TokenParser for BindingIdentifier {
+    type Output = String;
+
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<String, ParseError> {
+        // TODO: strict mode.
+
+        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+
+        match next_token.kind {
+            TokenKind::Identifier(ref s) => Ok(s.clone()),
+            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.to_string()),
+            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.to_string()),
+            _ => Err(ParseError::Expected(
+                vec![TokenKind::identifier("identifier")],
+                next_token.clone(),
+                "binding identifier",
+            )),
+        }
+    }
+}
