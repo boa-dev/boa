@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1589038552126,
+  "lastUpdate": 1589097416443,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -6207,6 +6207,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.373,
             "range": "+/- 0.073",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dvt.tnhn.krlbs@gmail.com",
+            "name": "Tunahan Karlıbaş",
+            "username": "dvtkrlbs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bdad99cb8297f72369d843c319bd30d8d6410466",
+          "message": "Implement toString (#381)\n\n* Implement optional parameter `radix` for `Number.prototype.toString( [radix] )\n\nImplement the radix paramet for the `toString`. This implementation is\nconverted from the V8's c++ implementation.\n\n* Use a reversed iterator instead of cursors in the integer part.\n\nInitial version for getting rid of direct slice accesses. Currently\nconverted integer part to iterators. Fraction part is a lot harder since\nthere are two passes to the fraction part (for carry over) and it is\nhard to express that using iterators.\n\n* Format tests",
+          "timestamp": "2020-05-10T09:48:09+02:00",
+          "tree_id": "e4bd0c8d278368ef41e2a11b3fed1c1f2ba35db1",
+          "url": "https://github.com/jasonwilliams/boa/commit/bdad99cb8297f72369d843c319bd30d8d6410466"
+        },
+        "date": 1589097412914,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 350.81,
+            "range": "+/- 10.710",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 398,
+            "range": "+/- 9.540",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 373.19,
+            "range": "+/- 10.930",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.4569,
+            "range": "+/- 0.069",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 1.7433,
+            "range": "+/- 0.047",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 790.65,
+            "range": "+/- 30.380",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.6201,
+            "range": "+/- 0.119",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.5744,
+            "range": "+/- 0.147",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.9309,
+            "range": "+/- 0.066",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 12.126,
+            "range": "+/- 0.446",
             "unit": "us"
           }
         ]
