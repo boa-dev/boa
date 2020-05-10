@@ -12,6 +12,7 @@ ALIASES["lazy_static"] = {};
 ALIASES["libc"] = {};
 ALIASES["log"] = {};
 ALIASES["memchr"] = {};
+ALIASES["num_traits"] = {};
 ALIASES["ppv_lite86"] = {};
 ALIASES["proc_macro2"] = {};
 ALIASES["quote"] = {};
