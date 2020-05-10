@@ -236,6 +236,7 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
@@ -255,7 +256,11 @@
         <span class="ident">punc</span>::<span class="ident">Punctuator</span>,
         <span class="ident">token</span>::<span class="ident">TokenKind</span>,
     },
-    <span class="ident">parser</span>::{<span class="ident">statement</span>::<span class="ident">StatementList</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>},
+    <span class="ident">parser</span>::{
+        <span class="ident">expression</span>::<span class="ident">Initializer</span>,
+        <span class="ident">statement</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">StatementList</span>},
+        <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+    },
 };
 
 <span class="doccomment">/// Formal parameters parsing.</span>
@@ -339,14 +344,24 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FunctionRestParameter</span>
+<span class="kw">type</span> <span class="ident">FunctionRestParameter</span> <span class="op">=</span> <span class="ident">BindingRestElement</span>;
+
+<span class="doccomment">/// Rest parameter parsing.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">///  - [ECMAScript specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BindingRestElement</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">FunctionRestParameter</span> {
+<span class="kw">struct</span> <span class="ident">BindingRestElement</span> {
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">FunctionRestParameter</span> {
-    <span class="doccomment">/// Creates a new `FunctionRestParameter` parser.</span>
+<span class="kw">impl</span> <span class="ident">BindingRestElement</span> {
+    <span class="doccomment">/// Creates a new `BindingRestElement` parser.</span>
     <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
@@ -359,24 +374,17 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">FunctionRestParameter</span> {
+<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">BindingRestElement</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node</span>::<span class="ident">FormalParameter</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Output</span>::<span class="ident">new</span>(
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">token</span>.<span class="ident">kind</span> {
-                <span class="ident">name</span>
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Expected</span>(
-                    <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TokenKind</span>::<span class="ident">identifier</span>(<span class="string">&quot;identifier&quot;</span>)],
-                    <span class="ident">token</span>.<span class="ident">clone</span>(),
-                    <span class="string">&quot;rest parameter&quot;</span>,
-                ));
-            },
-            <span class="prelude-val">None</span>,
-            <span class="bool-val">true</span>,
-        ))
+        <span class="comment">// FIXME: we are reading the spread operator before the rest element.</span>
+        <span class="comment">// cursor.expect(Punctuator::Spread, &quot;rest parameter&quot;)?;</span>
+
+        <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">BindingIdentifier</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+        <span class="comment">// TODO: BindingPattern</span>
+
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Output</span>::<span class="ident">new</span>(<span class="ident">param</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>))
     }
 }
 
@@ -412,19 +420,13 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node</span>::<span class="ident">FormalParameter</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">token</span>.<span class="ident">kind</span> {
-            <span class="ident">name</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Expected</span>(
-                <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TokenKind</span>::<span class="ident">identifier</span>(<span class="string">&quot;identifier&quot;</span>)],
-                <span class="ident">token</span>.<span class="ident">clone</span>(),
-                <span class="string">&quot;formal parameter&quot;</span>,
-            ));
-        };
+        <span class="comment">// TODO: BindingPattern</span>
 
-        <span class="comment">// TODO: Implement initializer.</span>
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Output</span>::<span class="ident">new</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>))
+        <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">BindingIdentifier</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">try_parse</span>(<span class="ident">cursor</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Output</span>::<span class="ident">new</span>(<span class="ident">param</span>, <span class="ident">init</span>.<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">new</span>), <span class="bool-val">false</span>))
     }
 }
 
