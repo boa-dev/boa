@@ -1,9 +1,8 @@
-use super::catchparam::CatchParameter;
 use crate::syntax::{
     ast::{keyword::Keyword, node::Node, punc::Punctuator},
     parser::{
-        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-        TokenParser,
+        statement::{block::Block, BindingIdentifier},
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 
@@ -57,5 +56,44 @@ impl TokenParser for Catch {
             Some(Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?),
             catch_param,
         ))
+    }
+}
+
+/// CatchParameter parsing
+///
+/// More information:
+///  - [MDN documentation][mdn]
+///  - [ECMAScript specification][spec]
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+/// [spec]: https://tc39.es/ecma262/#prod-CatchParameter
+#[derive(Debug, Clone, Copy)]
+pub(super) struct CatchParameter {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl CatchParameter {
+    /// Creates a new `CatchParameter` parser.
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl TokenParser for CatchParameter {
+    type Output = Node;
+
+    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        // TODO: should accept BindingPattern
+        BindingIdentifier::new(self.allow_yield, self.allow_await)
+            .parse(cursor)
+            .map(Node::local)
     }
 }

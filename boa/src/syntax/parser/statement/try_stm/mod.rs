@@ -1,5 +1,4 @@
 mod catch;
-mod catchparam;
 mod finally;
 
 #[cfg(test)]
@@ -70,25 +69,22 @@ impl TokenParser for TryStatement {
         }
 
         let (catch, param) = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
-            match Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor) {
-                Ok((catch, param)) => (catch, param),
-                Err(e) => return Err(e),
-            }
+            Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?
         } else {
             (None, None)
         };
 
         let next_token = cursor.peek(0);
-        let finally_block = if next_token.is_some()
-            && next_token.unwrap().kind == TokenKind::Keyword(Keyword::Finally)
-        {
-            match Finally::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)
-            {
-                Ok(finally) => Some(finally),
-                Err(e) => return Err(e),
-            }
-        } else {
-            None
+        let finally_block = match next_token {
+            Some(token) => match token.kind {
+                TokenKind::Keyword(Keyword::Finally) => Some(
+                    Finally::new(self.allow_yield, self.allow_await, self.allow_return)
+                        .parse(cursor)?,
+                ),
+                _ => None,
+            },
+
+            None => None,
         };
 
         Ok(Node::try_node::<_, _, _, _, Node, Node, Node>(
