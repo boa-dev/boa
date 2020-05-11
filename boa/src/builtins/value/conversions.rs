@@ -1,202 +1,187 @@
 use super::*;
+use std::convert::TryFrom;
 
-/// Conversion to Javascript values from Rust values
-pub trait ToValue {
-    /// Convert this value to a Rust value
-    fn to_value(&self) -> Value;
-}
-/// Conversion to Rust values from Javascript values
-pub trait FromValue {
-    /// Convert this value to a Javascript value
-    fn from_value(value: Value) -> Result<Self, &'static str>
-    where
-        Self: Sized;
-}
-
-impl ToValue for Value {
-    fn to_value(&self) -> Value {
-        self.clone()
+impl From<&Value> for Value {
+    fn from(value: &Value) -> Self {
+        value.clone()
     }
 }
 
-impl FromValue for Value {
-    fn from_value(value: Value) -> Result<Self, &'static str> {
-        Ok(value)
+impl From<String> for Value {
+    fn from(value: String) -> Self {
+        Self::string(value)
     }
 }
 
-impl ToValue for String {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.clone()))
+impl From<&Value> for String {
+    fn from(value: &Value) -> Self {
+        value.to_string()
     }
 }
 
-impl FromValue for String {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_string())
+impl From<&str> for Value {
+    fn from(value: &str) -> Value {
+        Value::string(value)
     }
 }
 
-impl<'s> ToValue for &'s str {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(
-            String::from_str(*self).expect("Could not convert string to self to String"),
-        ))
+impl From<char> for Value {
+    fn from(value: char) -> Self {
+        Value::string(value.to_string())
     }
 }
 
-impl ToValue for char {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::String(self.to_string()))
-    }
-}
-impl FromValue for char {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_string()
-            .chars()
-            .next()
-            .expect("Could not get next char"))
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct TryFromCharError;
+
+impl Display for TryFromCharError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Could not convert value to a char type")
     }
 }
 
-impl ToValue for f64 {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Rational(*self))
-    }
-}
-impl FromValue for f64 {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_number())
-    }
-}
+impl TryFrom<&Value> for char {
+    type Error = TryFromCharError;
 
-impl ToValue for i32 {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Integer(*self))
-    }
-}
-impl FromValue for i32 {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_integer())
-    }
-}
-
-impl ToValue for usize {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Integer(*self as i32))
-    }
-}
-impl FromValue for usize {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_integer() as Self)
-    }
-}
-
-impl ToValue for bool {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Boolean(*self))
-    }
-}
-impl FromValue for bool {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.is_true())
-    }
-}
-
-impl<'s, T: ToValue> ToValue for &'s [T] {
-    fn to_value(&self) -> Value {
-        let mut arr = Object::default();
-        for (i, item) in self.iter().enumerate() {
-            arr.properties
-                .insert(i.to_string(), Property::default().value(item.to_value()));
-        }
-        to_value(arr)
-    }
-}
-impl<T: ToValue> ToValue for Vec<T> {
-    fn to_value(&self) -> Value {
-        let mut arr = Object::default();
-        for (i, item) in self.iter().enumerate() {
-            arr.properties
-                .insert(i.to_string(), Property::default().value(item.to_value()));
-        }
-        to_value(arr)
-    }
-}
-
-impl<T: FromValue> FromValue for Vec<T> {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        let len = v.get_field_slice("length").to_integer();
-        let mut vec = Self::with_capacity(len as usize);
-        for i in 0..len {
-            vec.push(from_value(v.get_field_slice(&i.to_string()))?)
-        }
-        Ok(vec)
-    }
-}
-
-impl ToValue for Object {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Object(Box::new(GcCell::new(self.clone()))))
-    }
-}
-
-impl FromValue for Object {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        match *v {
-            ValueData::Object(ref obj) => Ok(obj.clone().into_inner()),
-            _ => Err("Value is not a valid object"),
-        }
-    }
-}
-
-impl ToValue for JSONValue {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::from_json(self.clone()))
-    }
-}
-
-impl FromValue for JSONValue {
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(v.to_json())
-    }
-}
-
-impl ToValue for () {
-    fn to_value(&self) -> Value {
-        Gc::new(ValueData::Null)
-    }
-}
-impl FromValue for () {
-    fn from_value(_: Value) -> Result<(), &'static str> {
-        Ok(())
-    }
-}
-
-impl<T: ToValue> ToValue for Option<T> {
-    fn to_value(&self) -> Value {
-        match *self {
-            Some(ref v) => v.to_value(),
-            None => Gc::new(ValueData::Null),
-        }
-    }
-}
-impl<T: FromValue> FromValue for Option<T> {
-    fn from_value(value: Value) -> Result<Self, &'static str> {
-        Ok(if value.is_null_or_undefined() {
-            None
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        if let Some(c) = value.to_string().chars().next() {
+            Ok(c)
         } else {
-            Some(FromValue::from_value(value)?)
-        })
+            Err(TryFromCharError)
+        }
     }
 }
 
-/// A utility function that just calls `FromValue::from_value`
-pub fn from_value<A: FromValue>(v: Value) -> Result<A, &'static str> {
-    FromValue::from_value(v)
+impl From<f64> for Value {
+    fn from(value: f64) -> Self {
+        Self::rational(value)
+    }
 }
 
-/// A utility function that just calls `ToValue::to_value`
-pub fn to_value<A: ToValue>(v: A) -> Value {
-    v.to_value()
+impl From<&Value> for f64 {
+    fn from(value: &Value) -> Self {
+        value.to_number()
+    }
+}
+
+impl From<i32> for Value {
+    fn from(value: i32) -> Value {
+        Value::integer(value)
+    }
+}
+
+impl From<&Value> for i32 {
+    fn from(value: &Value) -> i32 {
+        value.to_integer()
+    }
+}
+
+impl From<usize> for Value {
+    fn from(value: usize) -> Value {
+        Value::integer(value as i32)
+    }
+}
+impl From<&Value> for usize {
+    fn from(value: &Value) -> usize {
+        value.to_integer() as Self
+    }
+}
+
+impl From<bool> for Value {
+    fn from(value: bool) -> Self {
+        Value::boolean(value)
+    }
+}
+
+impl From<&Value> for bool {
+    fn from(value: &Value) -> Self {
+        value.is_true()
+    }
+}
+
+impl<T> From<&[T]> for Value
+where
+    T: Clone + Into<Value>,
+{
+    fn from(value: &[T]) -> Self {
+        let mut array = Object::default();
+        for (i, item) in value.iter().enumerate() {
+            array.properties.insert(
+                i.to_string(),
+                Property::default().value(item.clone().into()),
+            );
+        }
+        Self::from(array)
+    }
+}
+
+impl<T> From<Vec<T>> for Value
+where
+    T: Into<Value>,
+{
+    fn from(value: Vec<T>) -> Self {
+        let mut array = Object::default();
+        for (i, item) in value.into_iter().enumerate() {
+            array
+                .properties
+                .insert(i.to_string(), Property::default().value(item.into()));
+        }
+        Value::from(array)
+    }
+}
+
+impl From<Object> for Value {
+    fn from(object: Object) -> Self {
+        Value::object(object)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct TryFromObjectError;
+
+impl Display for TryFromObjectError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Could not convert value to an Object type")
+    }
+}
+
+impl TryFrom<&Value> for Object {
+    type Error = TryFromObjectError;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value.data() {
+            ValueData::Object(ref object) => Ok(object.clone().into_inner()),
+            _ => Err(TryFromObjectError),
+        }
+    }
+}
+
+impl From<JSONValue> for Value {
+    fn from(value: JSONValue) -> Self {
+        Self(Gc::new(ValueData::from_json(value)))
+    }
+}
+
+impl From<&Value> for JSONValue {
+    fn from(value: &Value) -> Self {
+        value.to_json()
+    }
+}
+
+impl From<()> for Value {
+    fn from(_: ()) -> Self {
+        Value::null()
+    }
+}
+
+impl<T> From<Option<T>> for Value
+where
+    T: Into<Value>,
+{
+    fn from(value: Option<T>) -> Self {
+        match value {
+            Some(value) => value.into(),
+            None => Value::null(),
+        }
+    }
 }

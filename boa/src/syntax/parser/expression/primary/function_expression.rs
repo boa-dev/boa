@@ -8,10 +8,11 @@
 //! [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator, token::TokenKind},
+    ast::{node::Node, punc::Punctuator},
     parser::{
         function::{FormalParameters, FunctionBody},
-        Cursor, ParseError, ParseResult, TokenParser,
+        statement::BindingIdentifier,
+        Cursor, ParseResult, TokenParser,
     },
 };
 
@@ -30,17 +31,7 @@ impl TokenParser for FunctionExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        let name = if let TokenKind::Identifier(name) =
-            &cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
-        {
-            Some(name)
-        } else {
-            None
-        };
-        if name.is_some() {
-            // We move the cursor forward.
-            let _ = cursor.next().expect("nex token disappeared");
-        }
+        let name = BindingIdentifier::new(false, false).try_parse(cursor);
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;
 
@@ -55,6 +46,6 @@ impl TokenParser for FunctionExpression {
 
         cursor.expect(Punctuator::CloseBlock, "function expression")?;
 
-        Ok(Node::function_decl::<_, &String, _, _>(name, params, body))
+        Ok(Node::function_expr::<_, String, _, _>(name, params, body))
     }
 }

@@ -34,11 +34,118 @@ pub use operations::*;
 pub type ResultValue = Result<Value, Value>;
 
 /// A Garbage-collected Javascript value as represented in the interpreter.
-pub type Value = Gc<ValueData>;
+#[derive(Debug, Clone, Trace, Finalize, Default)]
+pub struct Value(pub(crate) Gc<ValueData>);
 
-#[inline]
-pub fn undefined() -> Value {
-    Gc::new(ValueData::Undefined)
+impl Value {
+    /// Creates a new `undefined` value.
+    #[inline]
+    pub fn undefined() -> Self {
+        Self(Gc::new(ValueData::Undefined))
+    }
+
+    /// Creates a new `null` value.
+    #[inline]
+    pub fn null() -> Self {
+        Self(Gc::new(ValueData::Null))
+    }
+
+    /// Creates a new string value.
+    #[inline]
+    pub fn string<S>(value: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self(Gc::new(ValueData::String(value.into())))
+    }
+
+    /// Creates a new number value.
+    #[inline]
+    pub fn rational<N>(value: N) -> Self
+    where
+        N: Into<f64>,
+    {
+        Self(Gc::new(ValueData::Rational(value.into())))
+    }
+
+    /// Creates a new number value.
+    #[inline]
+    pub fn integer<I>(value: I) -> Self
+    where
+        I: Into<i32>,
+    {
+        Self(Gc::new(ValueData::Integer(value.into())))
+    }
+
+    /// Creates a new number value.
+    #[inline]
+    pub fn number<N>(value: N) -> Self
+    where
+        N: Into<f64>,
+    {
+        Self::rational(value.into())
+    }
+
+    /// Creates a new boolean value.
+    #[inline]
+    pub fn boolean(value: bool) -> Self {
+        Self(Gc::new(ValueData::Boolean(value)))
+    }
+
+    /// Creates a new object value.
+    #[inline]
+    pub fn object(object: Object) -> Self {
+        Self(Gc::new(ValueData::Object(Box::new(GcCell::new(object)))))
+    }
+
+    /// Gets the underlying `ValueData` structure.
+    #[inline]
+    pub fn data(&self) -> &ValueData {
+        &*self.0
+    }
+
+    /// Helper function to convert the `Value` to a number and compute its power.
+    pub fn as_num_to_power(&self, other: Self) -> Self {
+        Self::rational(self.to_number().powf(other.to_number()))
+    }
+
+    /// Returns a new empty object
+    pub fn new_object(global: Option<&Value>) -> Self {
+        if let Some(global) = global {
+            let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
+
+            let object = Object::create(object_prototype);
+            Self::object(object)
+        } else {
+            Self::object(Object::default())
+        }
+    }
+
+    /// Similar to `new_object`, but you can pass a prototype to create from, plus a kind
+    pub fn new_object_from_prototype(proto: Value, kind: ObjectKind) -> Self {
+        let mut object = Object::default();
+        object.kind = kind;
+
+        object
+            .internal_slots
+            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
+
+        Self::object(object)
+    }
+}
+
+impl Deref for Value {
+    type Target = ValueData;
+
+    fn deref(&self) -> &Self::Target {
+        self.data()
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
 }
 
 /// A Javascript value
@@ -63,31 +170,6 @@ pub enum ValueData {
 }
 
 impl ValueData {
-    /// Returns a new empty object
-    pub fn new_obj(global: Option<&Value>) -> Value {
-        if let Some(glob) = global {
-            let obj_proto = glob.get_field_slice("Object").get_field_slice(PROTOTYPE);
-
-            let obj = Object::create(obj_proto);
-            Gc::new(Self::Object(Box::new(GcCell::new(obj))))
-        } else {
-            let obj = Object::default();
-            Gc::new(Self::Object(Box::new(GcCell::new(obj))))
-        }
-    }
-
-    /// Similar to `new_obj`, but you can pass a prototype to create from,
-    /// plus a kind
-    pub fn new_obj_from_prototype(proto: Value, kind: ObjectKind) -> Value {
-        let mut obj = Object::default();
-        obj.kind = kind;
-
-        obj.internal_slots
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
-
-        Gc::new(Self::Object(Box::new(GcCell::new(obj))))
-    }
-
     /// This will tell us if we can exten an object or not, not properly implemented yet
     ///
     /// For now always returns true.
@@ -249,25 +331,27 @@ impl ValueData {
         }
     }
 
-    /// remove_prop removes a property from a Value object.
+    /// Removes a property from a Value object.
     ///
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
-    pub fn remove_prop(&self, field: &str) {
-        match *self {
+    pub fn remove_property(&self, field: &str) -> bool {
+        let removed = match *self {
             Self::Object(ref obj) => obj.borrow_mut().deref_mut().properties.remove(field),
             _ => None,
         };
+
+        removed.is_some()
     }
 
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
-    pub fn get_prop(&self, field: &str) -> Option<Property> {
+    pub fn get_property(&self, field: &str) -> Option<Property> {
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
             if let Self::String(ref s) = *self {
-                return Some(Property::default().value(to_value(s.len() as i32)));
+                return Some(Property::default().value(Value::from(s.len())));
             }
         }
 
@@ -292,7 +376,7 @@ impl ValueData {
         match obj.properties.get(field) {
             Some(val) => Some(val.clone()),
             None => match obj.internal_slots.get(&INSTANCE_PROTOTYPE.to_string()) {
-                Some(value) => value.get_prop(field),
+                Some(value) => value.get_property(field),
                 None => None,
             },
         }
@@ -301,7 +385,7 @@ impl ValueData {
     /// update_prop will overwrite individual [Property] fields, unlike
     /// Set_prop, which will overwrite prop with a new Property
     /// Mostly used internally for now
-    pub fn update_prop(
+    pub fn update_property(
         &self,
         field: &str,
         value: Option<Value>,
@@ -338,12 +422,12 @@ impl ValueData {
                 let hash = obj.clone();
                 hash.into_inner()
             }
-            _ => return Gc::new(Self::Undefined),
+            _ => return Value::undefined(),
         };
 
         match obj.internal_slots.get(field) {
             Some(val) => val.clone(),
-            None => Gc::new(Self::Undefined),
+            None => Value::undefined(),
         }
     }
 
@@ -354,7 +438,7 @@ impl ValueData {
         match *field {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
-                match self.get_prop(s) {
+                match self.get_property(s) {
                     Some(prop) => {
                         // If the Property has [[Get]] set to a function, we should run that and return the Value
                         let prop_getter = match prop.get {
@@ -373,11 +457,11 @@ impl ValueData {
                             val.clone()
                         }
                     }
-                    None => Gc::new(Self::Undefined),
+                    None => Value::undefined(),
                 }
             }
             Self::Symbol(_) => unimplemented!(),
-            _ => Gc::new(Self::Undefined),
+            _ => Value::undefined(),
         }
     }
 
@@ -393,10 +477,7 @@ impl ValueData {
     /// Get the internal state of an object.
     pub fn get_internal_state(&self) -> Option<InternalStateCell> {
         if let Self::Object(ref obj) = *self {
-            obj.borrow()
-                .state
-                .as_ref()
-                .map(|state| state.deref().clone())
+            obj.borrow().state.as_ref().cloned()
         } else {
             None
         }
@@ -452,14 +533,14 @@ impl ValueData {
 
     /// Check to see if the Value has the field, mainly used by environment records
     pub fn has_field(&self, field: &str) -> bool {
-        self.get_prop(field).is_some()
+        self.get_property(field).is_some()
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     pub fn get_field_slice(&self, field: &str) -> Value {
         // get_field used to accept strings, but now Symbols accept it needs to accept a value
         // So this function will now need to Box strings back into values (at least for now)
-        let f = Gc::new(Self::String(field.to_string()));
+        let f = Value::string(field.to_string());
         self.get_field(f)
     }
 
@@ -470,10 +551,9 @@ impl ValueData {
             if obj.borrow().kind == ObjectKind::Array {
                 if let Ok(num) = field.to_string().parse::<usize>() {
                     if num > 0 {
-                        let len: i32 = from_value(self.get_field_slice("length"))
-                            .expect("Could not convert argument to i32");
+                        let len = i32::from(&self.get_field_slice("length"));
                         if len < (num + 1) as i32 {
-                            self.set_field_slice("length", to_value(num + 1));
+                            self.set_field_slice("length", Value::from(num + 1));
                         }
                     }
                 }
@@ -484,7 +564,7 @@ impl ValueData {
                 obj.borrow_mut().set(field, val.clone());
             } else {
                 obj.borrow_mut()
-                    .set(to_value(field.to_string()), val.clone());
+                    .set(Value::from(field.to_string()), val.clone());
             }
         }
 
@@ -495,7 +575,7 @@ impl ValueData {
     pub fn set_field_slice(&self, field: &str, val: Value) -> Value {
         // set_field used to accept strings, but now Symbols accept it needs to accept a value
         // So this function will now need to Box strings back into values (at least for now)
-        let f = Gc::new(Self::String(field.to_string()));
+        let f = Value::string(field.to_string());
         self.set_field(f, val)
     }
 
@@ -517,7 +597,7 @@ impl ValueData {
     }
 
     /// Set the property in the value
-    pub fn set_prop(&self, field: String, prop: Property) -> Property {
+    pub fn set_property(&self, field: String, prop: Property) -> Property {
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut().properties.insert(field, prop.clone());
         }
@@ -525,8 +605,8 @@ impl ValueData {
     }
 
     /// Set the property in the value
-    pub fn set_prop_slice(&self, field: &str, prop: Property) -> Property {
-        self.set_prop(field.to_string(), prop)
+    pub fn set_property_slice(&self, field: &str, prop: Property) -> Property {
+        self.set_property(field.to_string(), prop)
     }
 
     /// Set internal state of an Object. Discards the previous state if it was set.
@@ -534,7 +614,7 @@ impl ValueData {
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .state
-                .replace(Box::new(InternalStateCell::new(state)));
+                .replace(InternalStateCell::new(state));
         }
     }
 
@@ -547,9 +627,9 @@ impl ValueData {
         // Set [[Call]] internal slot
         new_func.set_call(native_func);
         // Wrap Object in GC'd Value
-        let new_func_val = to_value(new_func);
+        let new_func_val = Value::from(new_func);
         // Set length to parameters
-        new_func_val.set_field_slice("length", to_value(length));
+        new_func_val.set_field_slice("length", Value::from(length));
         new_func_val
     }
 
@@ -566,12 +646,12 @@ impl ValueData {
                 for (idx, json) in vs.iter().enumerate() {
                     new_obj.properties.insert(
                         idx.to_string(),
-                        Property::default().value(to_value(json.clone())),
+                        Property::default().value(Value::from(json.clone())),
                     );
                 }
                 new_obj.properties.insert(
                     "length".to_string(),
-                    Property::default().value(to_value(vs.len() as i32)),
+                    Property::default().value(Value::from(vs.len())),
                 );
                 Self::Object(Box::new(GcCell::new(new_obj)))
             }
@@ -580,7 +660,7 @@ impl ValueData {
                 for (key, json) in obj.iter() {
                     new_obj.properties.insert(
                         key.clone(),
-                        Property::default().value(to_value(json.clone())),
+                        Property::default().value(Value::from(json.clone())),
                     );
                 }
 
@@ -631,10 +711,6 @@ impl ValueData {
                 }
             }
         }
-    }
-
-    pub fn as_num_to_power(&self, other: Self) -> Self {
-        Self::Rational(self.to_number().powf(other.to_number()))
     }
 }
 
@@ -712,30 +788,27 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             match v.borrow().kind {
-                ObjectKind::String => from_value(
+                ObjectKind::String => String::from(
                     v.borrow()
                         .internal_slots
                         .get("StringData")
-                        .expect("Cannot get primitive value from String")
-                        .clone(),
-                )
-                .expect("Cannot clone primitive value from String"),
+                        .expect("Cannot get primitive value from String"),
+                ),
                 ObjectKind::Boolean => {
                     let bool_data = v.borrow().get_internal_slot("BooleanData").to_string();
 
                     format!("Boolean {{ {} }}", bool_data)
                 }
                 ObjectKind::Array => {
-                    let len: i32 = from_value(
-                        v.borrow()
+                    let len = i32::from(
+                        &v.borrow()
                             .properties
                             .get("length")
                             .unwrap()
                             .value
                             .clone()
                             .expect("Could not borrow value"),
-                    )
-                    .expect("Could not convert JS value to i32");
+                    );
 
                     if len == 0 {
                         return String::from("[]");

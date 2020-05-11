@@ -9,14 +9,14 @@
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
 use crate::{
-    builtins::value::{Value, ValueData},
+    builtins::value::Value,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecordBinding,
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::{Finalize, Gc, Trace};
+use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 
 /// Different binding status for `this`.
@@ -220,7 +220,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn with_base_object(&self) -> Value {
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {
