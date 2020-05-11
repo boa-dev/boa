@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1589218063408,
+  "lastUpdate": 1589218201221,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -6543,6 +6543,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.573,
             "range": "+/- 0.630",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abhijeet.bhagat@gmx.com",
+            "name": "abhi",
+            "username": "abhijeetbhagat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2851eb02a7ce7b7d061aafb4d56abab65a8e6206",
+          "message": "Modularize try statement parsing (#390)\n\n* Fix catch parsing - move the cursor to next token\n\n* Refactor catch and finally parsing into separate modules\n\n* Refactor catchparam parsing into separate module and add more tests\n\n* Refactoring - use ? instead of match",
+          "timestamp": "2020-05-11T19:21:26+02:00",
+          "tree_id": "bdac8653f7bb23465dacd90c5984761f30557df1",
+          "url": "https://github.com/jasonwilliams/boa/commit/2851eb02a7ce7b7d061aafb4d56abab65a8e6206"
+        },
+        "date": 1589218197371,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 402.41,
+            "range": "+/- 7.880",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 426.34,
+            "range": "+/- 7.790",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 453.32,
+            "range": "+/- 15.330",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.9239,
+            "range": "+/- 0.080",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.0789,
+            "range": "+/- 0.023",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 940.24,
+            "range": "+/- 17.400",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.0836,
+            "range": "+/- 0.071",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.0253,
+            "range": "+/- 0.052",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.3948,
+            "range": "+/- 0.065",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.156,
+            "range": "+/- 0.237",
             "unit": "us"
           }
         ]
