@@ -13,7 +13,7 @@ mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator, token::TokenKind},
+    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
     parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 pub(super) use exponentiation::ExponentiationExpression;
@@ -72,6 +72,8 @@ impl TokenParser for AssignmentExpression {
         match next_token.kind {
             // a=>{}
             TokenKind::Identifier(_)
+            | TokenKind::Keyword(Keyword::Yield)
+            | TokenKind::Keyword(Keyword::Await)
                 if cursor
                     .peek_expect_no_lineterminator(1, "arrow function")
                     .is_ok() =>

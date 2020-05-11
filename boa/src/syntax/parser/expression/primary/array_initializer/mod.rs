@@ -77,6 +77,6 @@ impl TokenParser for ArrayLiteral {
             cursor.next_if(Punctuator::Comma);
         }
 
-        Ok(Node::ArrayDecl(elements))
+        Ok(Node::array_decl(elements))
     }
 }

@@ -12,7 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 use crate::{
-    builtins::value::{from_value, to_value, ResultValue, Value, ValueData},
+    builtins::value::{ResultValue, Value},
     exec::Interpreter,
 };
 use rand::random;
@@ -30,12 +30,10 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#sec-math.abs
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
 pub fn abs(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .abs()
+        f64::from(args.get(0).expect("Could not get argument")).abs()
     }))
 }
 
@@ -48,12 +46,10 @@ pub fn abs(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.acos
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
 pub fn acos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .acos()
+        f64::from(args.get(0).expect("Could not get argument")).acos()
     }))
 }
 
@@ -66,12 +62,10 @@ pub fn acos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
 pub fn acosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .acosh()
+        f64::from(args.get(0).expect("Could not get argument")).acosh()
     }))
 }
 
@@ -84,12 +78,10 @@ pub fn acosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-math.asin
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
 pub fn asin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .asin()
+        f64::from(args.get(0).expect("Could not get argument")).asin()
     }))
 }
 
@@ -102,12 +94,10 @@ pub fn asin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
 pub fn asinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .asinh()
+        f64::from(args.get(0).expect("Could not get argument")).asinh()
     }))
 }
 
@@ -120,12 +110,10 @@ pub fn asinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-math.atan
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
 pub fn atan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .atan()
+        f64::from(args.get(0).expect("Could not get argument")).atan()
     }))
 }
 
@@ -138,12 +126,10 @@ pub fn atan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
 pub fn atanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .atanh()
+        f64::from(args.get(0).expect("Could not get argument")).atanh()
     }))
 }
 
@@ -156,12 +142,11 @@ pub fn atanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
 pub fn atan2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .atan2(args.get(1).expect("Could not get argument").to_num())
+        f64::from(args.get(0).expect("Could not get argument"))
+            .atan2(args.get(1).expect("Could not get argument").to_number())
     }))
 }
 
@@ -174,12 +159,10 @@ pub fn atan2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-math.cbrt
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
 pub fn cbrt(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .cbrt()
+        f64::from(args.get(0).expect("Could not get argument")).cbrt()
     }))
 }
 
@@ -192,12 +175,10 @@ pub fn cbrt(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.ceil
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
 pub fn ceil(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .ceil()
+        f64::from(args.get(0).expect("Could not get argument")).ceil()
     }))
 }
 
@@ -210,12 +191,10 @@ pub fn ceil(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.cos
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
 pub fn cos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .cos()
+        f64::from(args.get(0).expect("Could not get argument")).cos()
     }))
 }
 
@@ -228,12 +207,10 @@ pub fn cos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.cosh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
 pub fn cosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .cosh()
+        f64::from(args.get(0).expect("Could not get argument")).cosh()
     }))
 }
 
@@ -246,12 +223,10 @@ pub fn cosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.exp
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
 pub fn exp(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .exp()
+        f64::from(args.get(0).expect("Could not get argument")).exp()
     }))
 }
 
@@ -264,12 +239,10 @@ pub fn exp(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.floor
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
 pub fn floor(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .floor()
+        f64::from(args.get(0).expect("Could not get argument")).floor()
     }))
 }
 
@@ -282,11 +255,10 @@ pub fn floor(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-math.log
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
 pub fn log(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64");
+        let value = f64::from(args.get(0).expect("Could not get argument"));
 
         if value <= 0.0 {
             f64::NAN
@@ -305,11 +277,10 @@ pub fn log(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.log10
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
 pub fn log10(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64");
+        let value = f64::from(args.get(0).expect("Could not get argument"));
 
         if value <= 0.0 {
             f64::NAN
@@ -328,11 +299,10 @@ pub fn log10(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-math.log2
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
 pub fn log2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64");
+        let value = f64::from(args.get(0).expect("Could not get argument"));
 
         if value <= 0.0 {
             f64::NAN
@@ -353,10 +323,10 @@ pub fn log2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 pub fn max(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let mut max = f64::NEG_INFINITY;
     for arg in args {
-        let num = arg.to_num();
+        let num = f64::from(arg);
         max = max.max(num);
     }
-    Ok(to_value(max))
+    Ok(Value::from(max))
 }
 
 /// Get the minimum of several numbers.
@@ -370,10 +340,10 @@ pub fn max(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 pub fn min(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let mut max = f64::INFINITY;
     for arg in args {
-        let num = arg.to_num();
+        let num = f64::from(arg);
         max = max.min(num);
     }
-    Ok(to_value(max))
+    Ok(Value::from(max))
 }
 
 /// Raise a number to a power.
@@ -385,11 +355,9 @@ pub fn min(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.pow
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
 pub fn pow(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.len() >= 2 {
-        let num: f64 = from_value(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64");
-        let power: f64 = from_value(args.get(1).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64");
+    Ok(Value::from(if args.len() >= 2 {
+        let num = f64::from(args.get(0).expect("Could not get argument"));
+        let power = f64::from(args.get(1).expect("Could not get argument"));
         num.powf(power)
     } else {
         f64::NAN
@@ -405,7 +373,7 @@ pub fn pow(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.random
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
 pub fn _random(_: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(random::<f64>()))
+    Ok(Value::from(random::<f64>()))
 }
 
 /// Round a number to the nearest integer.
@@ -417,12 +385,10 @@ pub fn _random(_: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.round
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
 pub fn round(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .round()
+        f64::from(args.get(0).expect("Could not get argument")).round()
     }))
 }
 
@@ -435,11 +401,10 @@ pub fn round(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-math.sign
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
 pub fn sign(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        let value = from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64");
+        let value = f64::from(args.get(0).expect("Could not get argument"));
 
         if value == 0.0 || value == -0.0 {
             value
@@ -458,12 +423,10 @@ pub fn sign(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.sin
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
 pub fn sin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .sin()
+        f64::from(args.get(0).expect("Could not get argument")).sin()
     }))
 }
 
@@ -476,12 +439,10 @@ pub fn sin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.sinh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
 pub fn sinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .sinh()
+        f64::from(args.get(0).expect("Could not get argument")).sinh()
     }))
 }
 
@@ -494,22 +455,18 @@ pub fn sinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.sqrt
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
 pub fn sqrt(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .sqrt()
+        f64::from(args.get(0).expect("Could not get argument")).sqrt()
     }))
 }
 /// Get the tangent of a number
 pub fn tan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .tan()
+        f64::from(args.get(0).expect("Could not get argument")).tan()
     }))
 }
 
@@ -522,12 +479,10 @@ pub fn tan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.tanh
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
 pub fn tanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .tanh()
+        f64::from(args.get(0).expect("Could not get argument")).tanh()
     }))
 }
 
@@ -540,26 +495,25 @@ pub fn tanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// [spec]: https://tc39.es/ecma262/#sec-math.trunc
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
 pub fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(if args.is_empty() {
+    Ok(Value::from(if args.is_empty() {
         f64::NAN
     } else {
-        from_value::<f64>(args.get(0).expect("Could not get argument").clone())
-            .expect("Could not convert argument to f64")
-            .trunc()
+        f64::from(args.get(0).expect("Could not get argument")).trunc()
     }))
 }
 
 /// Create a new `Math` object
-pub fn create_constructor(global: &Value) -> Value {
-    let math = ValueData::new_obj(Some(global));
-    math.set_field_slice("E", to_value(f64::consts::E));
-    math.set_field_slice("LN2", to_value(f64::consts::LN_2));
-    math.set_field_slice("LN10", to_value(f64::consts::LN_10));
-    math.set_field_slice("LOG2E", to_value(f64::consts::LOG2_E));
-    math.set_field_slice("LOG10E", to_value(f64::consts::LOG10_E));
-    math.set_field_slice("SQRT1_2", to_value(0.5_f64.sqrt()));
-    math.set_field_slice("SQRT2", to_value(f64::consts::SQRT_2));
-    math.set_field_slice("PI", to_value(f64::consts::PI));
+pub fn create(global: &Value) -> Value {
+    let math = Value::new_object(Some(global));
+
+    math.set_field_slice("E", Value::from(f64::consts::E));
+    math.set_field_slice("LN2", Value::from(f64::consts::LN_2));
+    math.set_field_slice("LN10", Value::from(f64::consts::LN_10));
+    math.set_field_slice("LOG2E", Value::from(f64::consts::LOG2_E));
+    math.set_field_slice("LOG10E", Value::from(f64::consts::LOG10_E));
+    math.set_field_slice("SQRT1_2", Value::from(0.5_f64.sqrt()));
+    math.set_field_slice("SQRT2", Value::from(f64::consts::SQRT_2));
+    math.set_field_slice("PI", Value::from(f64::consts::PI));
     make_builtin_fn!(abs, named "abs", with length 1, of math);
     make_builtin_fn!(acos, named "acos", with length 1, of math);
     make_builtin_fn!(acosh, named "acosh", with length 1, of math);
@@ -589,5 +543,12 @@ pub fn create_constructor(global: &Value) -> Value {
     make_builtin_fn!(tan, named "tan", with length 1, of math);
     make_builtin_fn!(tanh, named "tanh", with length 1, of math);
     make_builtin_fn!(trunc, named "trunc", with length 1, of math);
+
     math
+}
+
+/// Initialise the `Math` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("Math", create(global));
 }

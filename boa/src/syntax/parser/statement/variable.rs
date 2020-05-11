@@ -2,8 +2,8 @@
 use crate::syntax::{
     ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
     parser::{
-        expression::Initializer, AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
+        expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
+        Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 
@@ -117,7 +117,7 @@ impl TokenParser for VariableDeclarationList {
             }
         }
 
-        Ok(Node::VarDecl(list))
+        Ok(Node::var_decl(list))
     }
 }
 
@@ -154,26 +154,13 @@ impl TokenParser for VariableDeclaration {
     type Output = (String, Option<Node>);
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        let name = if let TokenKind::Identifier(name) = &tok.kind {
-            name.clone()
-        } else {
-            return Err(ParseError::Expected(
-                vec![TokenKind::identifier("identifier")],
-                tok.clone(),
-                "variable declaration",
-            ));
-        };
+        // TODO: BindingPattern
 
-        match cursor.peek(0) {
-            Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::Assign) => Ok((
-                name,
-                Some(
-                    Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
-                ),
-            )),
-            _ => Ok((name, None)),
-        }
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+        let ident =
+            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
+
+        Ok((name, ident))
     }
 }

@@ -16,6 +16,7 @@ use crate::syntax::{
     },
     parser::{
         function::{FormalParameters, FunctionBody},
+        statement::BindingIdentifier,
         AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
@@ -59,30 +60,30 @@ impl TokenParser for ArrowFunction {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        let params = match &next_token.kind {
-            TokenKind::Punctuator(Punctuator::OpenParen) => {
-                let params =
-                    FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "arrow function")?;
-                params
-            }
-            TokenKind::Identifier(param_name) => vec![FormalParameter {
+        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind {
+            // CoverParenthesizedExpressionAndArrowParameterList
+            cursor.expect(Punctuator::OpenParen, "arrow function")?;
+            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            cursor.expect(Punctuator::CloseParen, "arrow function")?;
+            params.into_boxed_slice()
+        } else {
+            let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                .parse(cursor)
+                .map_err(|e| match e {
+                    ParseError::Expected(mut exp, tok, _) => {
+                        exp.push(Punctuator::OpenParen.into());
+                        ParseError::Expected(exp, tok, "arrow function")
+                    }
+                    e => e,
+                })?;
+            Box::new([FormalParameter {
                 init: None,
-                name: param_name.clone(),
+                name: param,
                 is_rest_param: false,
-            }],
-            _ => {
-                return Err(ParseError::Expected(
-                    vec![
-                        TokenKind::Punctuator(Punctuator::OpenParen),
-                        TokenKind::identifier("identifier"),
-                    ],
-                    next_token.clone(),
-                    "arrow function",
-                ))
-            }
+            }])
         };
+
         cursor.peek_expect_no_lineterminator(0, "arrow function")?;
 
         cursor.expect(Punctuator::Arrow, "arrow function")?;
@@ -120,7 +121,7 @@ impl TokenParser for ConciseBody {
                 let _ = cursor.next();
                 let body = FunctionBody::new(false, false)
                     .parse(cursor)
-                    .map(Node::StatementList)?;
+                    .map(Node::statement_list)?;
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }

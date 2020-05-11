@@ -6,10 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#prod-HoistableDeclaration
 
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{keyword::Keyword, node::Node, punc::Punctuator},
     parser::{
-        function::FormalParameters, function::FunctionBody, AllowAwait, AllowDefault, AllowYield,
-        Cursor, ParseError, ParseResult, TokenParser,
+        function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
 
@@ -89,16 +89,7 @@ impl TokenParser for FunctionDeclaration {
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
         cursor.expect(Keyword::Function, "function declaration")?;
 
-        let token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        let name = if let TokenKind::Identifier(name) = &token.kind {
-            name.clone()
-        } else {
-            return Err(ParseError::Expected(
-                vec![TokenKind::identifier("function name")],
-                token.clone(),
-                "function declaration",
-            ));
-        };
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect(Punctuator::OpenParen, "function declaration")?;
 
@@ -109,7 +100,7 @@ impl TokenParser for FunctionDeclaration {
 
         let body = FunctionBody::new(self.allow_yield, self.allow_await)
             .parse(cursor)
-            .map(Node::StatementList)?;
+            .map(Node::statement_list)?;
 
         cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 

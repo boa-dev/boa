@@ -13,7 +13,7 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use crate::builtins::value::{to_value, ResultValue, Value, ValueData};
+use crate::builtins::value::{ResultValue, Value};
 use crate::exec::Interpreter;
 use serde_json::{self, Value as JSONValue};
 
@@ -41,8 +41,8 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
             .clone()
             .to_string(),
     ) {
-        Ok(json) => Ok(to_value(json)),
-        Err(err) => Err(to_value(err.to_string())),
+        Ok(json) => Ok(Value::from(json)),
+        Err(err) => Err(Value::from(err.to_string())),
     }
 }
 
@@ -65,15 +65,21 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("cannot get argument for JSON.stringify");
     let json = obj.to_json().to_string();
-    Ok(to_value(json))
+    Ok(Value::from(json))
 }
 
 /// Create a new `JSON` object.
-pub fn create_constructor(global: &Value) -> Value {
-    let json = ValueData::new_obj(Some(global));
+pub fn create(global: &Value) -> Value {
+    let json = Value::new_object(Some(global));
 
     make_builtin_fn!(parse, named "parse", with length 2, of json);
     make_builtin_fn!(stringify, named "stringify", with length 3, of json);
 
-    to_value(json)
+    json
+}
+
+/// Initialise the `JSON` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field_slice("JSON", create(global));
 }
