@@ -42,6 +42,7 @@ fn to_number(value: &Value) -> Value {
         ValueData::Object(ref o) => (o).deref().borrow().get_internal_slot("NumberData"),
         ValueData::Null => Value::from(0),
         ValueData::Rational(n) => Value::from(n),
+        ValueData::BigInt(ref bigint) => Value::from(bigint.to_f64()),
         ValueData::String(ref s) => match s.parse::<f64>() {
             Ok(n) => Value::from(n),
             Err(_) => Value::from(f64::NAN),

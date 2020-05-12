@@ -7,6 +7,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
+use crate::syntax::ast::bigint::BigInt;
 use gc::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
@@ -63,6 +64,8 @@ pub enum Const {
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
     Int(i32),
+
+    BigInt(BigInt),
 
     /// The Boolean type has two literal values: `true` and `false`.
     ///
@@ -131,6 +134,12 @@ impl From<i32> for Const {
     }
 }
 
+impl From<BigInt> for Const {
+    fn from(i: BigInt) -> Self {
+        Self::BigInt(i)
+    }
+}
+
 impl From<bool> for Const {
     fn from(b: bool) -> Self {
         Self::Bool(b)
@@ -143,6 +152,7 @@ impl Display for Const {
             Self::String(ref st) => write!(f, "\"{}\"", st),
             Self::Num(num) => write!(f, "{}", num),
             Self::Int(num) => write!(f, "{}", num),
+            Self::BigInt(ref num) => write!(f, "{}", num),
             Self::Bool(v) => write!(f, "{}", v),
             Self::Null => write!(f, "null"),
             Self::Undefined => write!(f, "undefined"),
