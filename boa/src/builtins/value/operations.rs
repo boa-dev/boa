@@ -23,7 +23,7 @@ impl Value {
         }
 
         if self.is_number() {
-            return strict_number_equals(self, other)
+            return strict_number_equals(self, other);
         }
 
         same_value_non_number(self, other)

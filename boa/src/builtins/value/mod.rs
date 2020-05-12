@@ -260,7 +260,7 @@ impl ValueData {
     pub fn is_number(&self) -> bool {
         match self {
             Self::Rational(_) | Self::Integer(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
