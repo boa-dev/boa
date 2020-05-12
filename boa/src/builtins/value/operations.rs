@@ -29,7 +29,10 @@ impl Value {
         same_value_non_number(self, other)
     }
 
-    // https://tc39.es/ecma262/#sec-abstract-equality-comparison
+    /// Abstract equality comparison.
+    ///
+    /// This method is executed when doing abstract equality comparisons with the `==` operator.
+    ///  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
     pub fn equals(&mut self, other: &mut Self, interpreter: &mut Interpreter) -> bool {
         if self.get_type() == other.get_type() {
             return self.strict_equals(other);
