@@ -16,7 +16,10 @@ fn strict_number_equals<T: Into<f64>>(a: T, b: T) -> bool {
 }
 
 impl Value {
-    // https://tc39.es/ecma262/#sec-strict-equality-comparison
+    /// Strict equality comparison.
+    ///
+    /// This method is executed when doing strict equality comparisons with the `===` operator.
+    /// For more information, check <https://tc39.es/ecma262/#sec-strict-equality-comparison>.
     pub fn strict_equals(&self, other: &Self) -> bool {
         if self.get_type() != other.get_type() {
             return false;
