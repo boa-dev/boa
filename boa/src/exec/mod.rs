@@ -446,14 +446,10 @@ impl Executor for Interpreter {
                 let mut v_a = v_r_a.borrow_mut();
                 let mut v_b = v_r_b.borrow_mut();
                 Ok(Value::from(match *op {
-                    CompOp::Equal if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::Equal => v_a == v_b,
-                    CompOp::NotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::NotEqual => v_a != v_b,
-                    CompOp::StrictEqual if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::StrictEqual => v_a == v_b,
-                    CompOp::StrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::StrictNotEqual => v_a != v_b,
+                    CompOp::Equal => v_r_a.equals(v_b, self),
+                    CompOp::NotEqual => !v_r_a.equals(v_b, self),
+                    CompOp::StrictEqual => v_r_a.strict_equals(v_b),
+                    CompOp::StrictNotEqual => !v_r_a.strict_equals(v_b),
                     CompOp::GreaterThan => v_a.to_number() > v_b.to_number(),
                     CompOp::GreaterThanOrEqual => v_a.to_number() >= v_b.to_number(),
                     CompOp::LessThan => v_a.to_number() < v_b.to_number(),

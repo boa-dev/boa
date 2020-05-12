@@ -1,4 +1,72 @@
 use super::*;
+use crate::Interpreter;
+use std::borrow::Borrow;
+
+#[allow(clippy::float_cmp)]
+/// https://tc39.es/ecma262/#sec-numeric-types-number-equal
+fn strict_number_equals<T: Into<f64>>(a: T, b: T) -> bool {
+    let a: f64 = a.into();
+    let b: f64 = b.into();
+
+    if a.is_nan() || b.is_nan() {
+        return false;
+    }
+
+    a == b
+}
+
+impl Value {
+    // https://tc39.es/ecma262/#sec-strict-equality-comparison
+    pub fn strict_equals(&self, other: &Self) -> bool {
+        if self.get_type() != other.get_type() {
+            return false;
+        }
+
+        if self.is_number() {
+            return strict_number_equals(self, other)
+        }
+
+        same_value_non_number(self, other)
+    }
+
+    // https://tc39.es/ecma262/#sec-abstract-equality-comparison
+    pub fn equals(&mut self, other: &mut Self, interpreter: &mut Interpreter) -> bool {
+        if self.get_type() == other.get_type() {
+            return self.strict_equals(other);
+        }
+
+        match (self.data(), other.data()) {
+            _ if self.is_null_or_undefined() && other.is_null_or_undefined() => true,
+
+            // https://github.com/rust-lang/rust/issues/54883
+            (ValueData::Integer(_), ValueData::String(_))
+            | (ValueData::Rational(_), ValueData::String(_))
+            | (ValueData::String(_), ValueData::Integer(_))
+            | (ValueData::String(_), ValueData::Rational(_))
+            | (ValueData::Rational(_), ValueData::Boolean(_))
+            | (ValueData::Integer(_), ValueData::Boolean(_)) => {
+                let a: &Value = self.borrow();
+                let b: &Value = other.borrow();
+                strict_number_equals(a, b)
+            }
+            (ValueData::Boolean(_), _) => {
+                other.equals(&mut Value::from(self.to_integer()), interpreter)
+            }
+            (_, ValueData::Boolean(_)) => {
+                self.equals(&mut Value::from(other.to_integer()), interpreter)
+            }
+            (ValueData::Object(_), _) => {
+                let mut primitive = interpreter.to_primitive(self, None);
+                primitive.equals(other, interpreter)
+            }
+            (_, ValueData::Object(_)) => {
+                let mut primitive = interpreter.to_primitive(other, None);
+                primitive.equals(self, interpreter)
+            }
+            _ => false,
+        }
+    }
+}
 
 impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
@@ -138,4 +206,51 @@ pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
         "object" => *x == *y,
         _ => false,
     }
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
+#[test]
+fn abstract_equality_comparison() {
+    use crate::{forward, Executor, Realm};
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+
+    assert_eq!(forward(&mut engine, "undefined == undefined"), "true");
+    assert_eq!(forward(&mut engine, "null == null"), "true");
+    assert_eq!(forward(&mut engine, "true == true"), "true");
+    assert_eq!(forward(&mut engine, "false == false"), "true");
+    assert_eq!(forward(&mut engine, "'foo' == 'foo'"), "true");
+    assert_eq!(forward(&mut engine, "0 == 0"), "true");
+    assert_eq!(forward(&mut engine, "+0 == -0"), "true");
+    assert_eq!(forward(&mut engine, "+0 == 0"), "true");
+    assert_eq!(forward(&mut engine, "-0 == 0"), "true");
+    assert_eq!(forward(&mut engine, "0 == false"), "true");
+    assert_eq!(forward(&mut engine, "'' == false"), "true");
+    assert_eq!(forward(&mut engine, "'' == 0"), "true");
+    assert_eq!(forward(&mut engine, "'17' == 17"), "true");
+    assert_eq!(forward(&mut engine, "[1,2] == '1,2'"), "true");
+    assert_eq!(forward(&mut engine, "new String('foo') == 'foo'"), "true");
+    assert_eq!(forward(&mut engine, "null == undefined"), "true");
+    assert_eq!(forward(&mut engine, "undefined == null"), "true");
+    assert_eq!(forward(&mut engine, "null == false"), "false");
+    assert_eq!(
+        forward(&mut engine, "a = { foo: 'bar' }; b = { foo: 'bar'}; a == b"),
+        "false"
+    );
+    assert_eq!(
+        forward(&mut engine, "new String('foo') == new String('foo')"),
+        "false"
+    );
+    assert_eq!(forward(&mut engine, "0 == null"), "false");
+
+    // https://github.com/jasonwilliams/boa/issues/357
+    assert_eq!(forward(&mut engine, "0 == '-0'"), "true");
+    assert_eq!(forward(&mut engine, "0 == '+0'"), "true");
+    assert_eq!(forward(&mut engine, "'+0' == 0"), "true");
+    assert_eq!(forward(&mut engine, "'-0' == 0"), "true");
+
+    // https://github.com/jasonwilliams/boa/issues/393
+    // assert_eq!(forward(&mut engine, "0 == NaN"), "false");
+    // assert_eq!(forward(&mut engine, "'foo' == NaN"), "false");
+    // assert_eq!(forward(&mut engine, "NaN == NaN"), "false");
 }

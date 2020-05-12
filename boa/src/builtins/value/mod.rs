@@ -258,7 +258,10 @@ impl ValueData {
 
     /// Returns true if the value is a number
     pub fn is_number(&self) -> bool {
-        self.is_double()
+        match self {
+            Self::Rational(_) | Self::Integer(_) => true,
+            _ => false
+        }
     }
 
     /// Returns true if the value is a string
@@ -295,13 +298,19 @@ impl ValueData {
     pub fn to_number(&self) -> f64 {
         match *self {
             Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
-            Self::String(ref str) => match FromStr::from_str(str) {
-                Ok(num) => num,
-                Err(_) => NAN,
-            },
-            Self::Rational(num) => num,
+            Self::String(ref str) => {
+                if str.is_empty() {
+                    return 0.0;
+                }
+
+                match FromStr::from_str(str) {
+                    Ok(num) => num,
+                    Err(_) => NAN,
+                }
+            }
             Self::Boolean(true) => 1.0,
             Self::Boolean(false) | Self::Null => 0.0,
+            Self::Rational(num) => num,
             Self::Integer(num) => f64::from(num),
         }
     }
