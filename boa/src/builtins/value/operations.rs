@@ -233,6 +233,7 @@ fn abstract_equality_comparison() {
     assert_eq!(forward(&mut engine, "null == undefined"), "true");
     assert_eq!(forward(&mut engine, "undefined == null"), "true");
     assert_eq!(forward(&mut engine, "null == false"), "false");
+    assert_eq!(forward(&mut engine, "[] == ![]"), "true");
     assert_eq!(
         forward(&mut engine, "a = { foo: 'bar' }; b = { foo: 'bar'}; a == b"),
         "false"
