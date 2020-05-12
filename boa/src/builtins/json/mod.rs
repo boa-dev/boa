@@ -15,9 +15,11 @@
 
 use crate::builtins::{
     function::make_builtin_fn,
-    value::{ResultValue, Value},
+    value::{ResultValue, Value, ValueData},
+    object::ObjectKind
 };
 use crate::exec::Interpreter;
+use std::ops::Deref;
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
@@ -66,8 +68,35 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let obj = args.get(0).expect("cannot get argument for JSON.stringify");
-    let json = obj.to_json().to_string();
+    let object = args.get(0).expect("cannot get argument for JSON.stringify");
+    let object_to_return = Value::new_object(None);
+    if let Some(arg) = args.get(1) {
+        match arg.data() {
+            ValueData::Object(ref obj) => {
+                let derefed_obj = (*obj).deref();
+                let borrowed_derefed_obj = derefed_obj.borrow();
+                if borrowed_derefed_obj.kind == ObjectKind::Array {
+                    for (key, value) in borrowed_derefed_obj.properties.iter() {
+                        if let Some(Value(x)) = &value.value {
+                            if key != "length" {
+                                object_to_return.set_property(
+                                    x.to_string(),
+                                    object.get_property(&x.to_string()).unwrap()
+                                );
+                            }
+                        }
+                    }
+                    return Ok(Value::from(object_to_return.to_json().to_string()));
+                } else {
+                    panic!("replacer only supports arrays at this time");
+                }
+            }
+            _ => {
+                panic!("replacer only supports arrays at this time");
+            }
+        }
+    }
+    let json = object.to_json().to_string();
     Ok(Value::from(json))
 }
 
