@@ -403,7 +403,6 @@ pub fn same_value(a: f64, b: f64) -> bool {
 /// The abstract operation Number::sameValueZero takes arguments
 /// x (a Number) and y (a Number). It performs the following steps when called:
 ///
-
 /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
 #[allow(clippy::float_cmp)]
 pub fn same_value_zero(a: f64, b: f64) -> bool {
