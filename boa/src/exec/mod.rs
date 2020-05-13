@@ -291,7 +291,7 @@ impl Executor for Interpreter {
                 );
 
                 let mut new_func = Object::function();
-                new_func.set_call(func);
+                new_func.set_func(func);
                 let val = Value::from(new_func);
                 val.set_field_slice("length", Value::from(args.len()));
 
@@ -326,7 +326,7 @@ impl Executor for Interpreter {
                 );
 
                 let mut new_func = Object::function();
-                new_func.set_call(func);
+                new_func.set_func(func);
                 let val = Value::from(new_func);
                 val.set_field_slice("length", Value::from(args.len()));
 
@@ -354,7 +354,7 @@ impl Executor for Interpreter {
                 );
 
                 let mut new_func = Object::function();
-                new_func.set_call(func);
+                new_func.set_func(func);
                 let val = Value::from(new_func);
                 val.set_field_slice("length", Value::from(args.len()));
 
@@ -517,7 +517,7 @@ impl Executor for Interpreter {
 
                 match *(func_object.borrow()).deref() {
                     ValueData::Object(ref o) => (*o.deref().clone().borrow_mut())
-                        .construct
+                        .func
                         .as_ref()
                         .unwrap()
                         .construct(&mut func_object.clone(), &v_args, self, &mut this),
@@ -630,13 +630,6 @@ impl Executor for Interpreter {
                 }))
             }
             Node::StatementList(ref list) => {
-                {
-                    let env = &mut self.realm.environment;
-                    env.push(new_declarative_environment(Some(
-                        env.get_current_environment_ref().clone(),
-                    )));
-                }
-
                 let mut obj = Value::null();
                 for (i, item) in list.iter().enumerate() {
                     let val = self.run(item)?;
@@ -649,9 +642,6 @@ impl Executor for Interpreter {
                         obj = val;
                     }
                 }
-
-                // pop the block env
-                let _ = self.realm.environment.pop();
 
                 Ok(obj)
             }
@@ -684,7 +674,7 @@ impl Interpreter {
         // All functions should be objects, and eventually will be.
         // During this transition call will support both native functions and function objects
         match (*f).deref() {
-            ValueData::Object(ref obj) => match (*obj).deref().borrow().call {
+            ValueData::Object(ref obj) => match (*obj).deref().borrow().func {
                 Some(ref func) => func.call(&mut f.clone(), arguments_list, self, this),
                 None => panic!("Expected function"),
             },

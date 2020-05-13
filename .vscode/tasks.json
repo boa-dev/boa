@@ -7,7 +7,7 @@
       "type": "process",
       "label": "Cargo Run",
       "command": "cargo",
-      "args": ["run", "./tests/js/test.js"],
+      "args": ["run", "--bin", "boa", "./tests/js/test.js"],
       "problemMatcher": ["$rustc"],
       "group": {
         "kind": "build",

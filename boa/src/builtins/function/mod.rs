@@ -18,7 +18,10 @@ use crate::{
         property::Property,
         value::{ResultValue, Value},
     },
-    environment::lexical_environment::{new_function_environment, Environment},
+    environment::{
+        function_environment_record::BindingStatus,
+        lexical_environment::{new_function_environment, Environment},
+    },
     exec::Executor,
     syntax::ast::node::{FormalParameter, Node},
     Interpreter,
@@ -162,8 +165,9 @@ impl Function {
                 // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                 let local_env = new_function_environment(
                     this.clone(),
-                    this_obj.clone(),
+                    None,
                     Some(self.environment.as_ref().unwrap().clone()),
+                    BindingStatus::Uninitialized,
                 );
 
                 // Add argument bindings to the function environment
@@ -203,6 +207,7 @@ impl Function {
         }
     }
 
+    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     pub fn construct(
         &self,
         this: &mut Value, // represents a pointer to this function object wrapped in a GC (not a `this` JS object)
@@ -222,8 +227,9 @@ impl Function {
                 // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                 let local_env = new_function_environment(
                     this.clone(),
-                    this_obj.clone(),
+                    Some(this_obj.clone()),
                     Some(self.environment.as_ref().unwrap().clone()),
+                    BindingStatus::Initialized,
                 );
 
                 // Add argument bindings to the function environment
@@ -250,14 +256,14 @@ impl Function {
                 interpreter.realm.environment.push(local_env);
 
                 // Call body should be set before reaching here
-                let result = match &self.body {
+                let _ = match &self.body {
                     FunctionBody::Ordinary(ref body) => interpreter.run(body),
                     _ => panic!("Ordinary function should not have BuiltIn Function body"),
                 };
 
                 // local_env gets dropped here, its no longer needed
-                interpreter.realm.environment.pop();
-                result
+                let binding = interpreter.realm.environment.get_this_binding();
+                Ok(binding)
             }
         }
     }

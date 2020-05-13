@@ -88,7 +88,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn get_this_binding(&self) -> Value {
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     fn has_super_binding(&self) -> bool {

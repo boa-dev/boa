@@ -11,7 +11,7 @@ macro_rules! make_builtin_fn {
         );
 
         let mut new_func = crate::builtins::object::Object::function();
-        new_func.set_call(func);
+        new_func.set_func(func);
         let new_func_obj = Value::from(new_func);
         new_func_obj.set_field_slice("length", Value::from($l));
         $p.set_field_slice($name, new_func_obj);
@@ -39,7 +39,7 @@ macro_rules! make_constructor_fn {
 
         // Create the function object and point its instance prototype to Function.prototype
         let mut constructor_obj = Object::function();
-        constructor_obj.set_construct(constructor_fn);
+        constructor_obj.set_func(constructor_fn);
 
         constructor_obj.set_internal_slot("__proto__", func_prototype);
         let constructor_val = Value::from(constructor_obj);
@@ -51,11 +51,6 @@ macro_rules! make_constructor_fn {
         constructor_val
     }};
     ($construct_body:ident, $call_body:ident, $global:ident, $proto:ident) => {{
-        // Create the native functions
-        let construct_fn = crate::builtins::function::Function::create_builtin(
-            vec![],
-            crate::builtins::function::FunctionBody::BuiltIn($construct_body),
-        );
         let call_fn = crate::builtins::function::Function::create_builtin(
             vec![],
             crate::builtins::function::FunctionBody::BuiltIn($call_body),
@@ -68,8 +63,7 @@ macro_rules! make_constructor_fn {
 
         // Create the function object and point its instance prototype to Function.prototype
         let mut constructor_obj = Object::function();
-        constructor_obj.set_construct(construct_fn);
-        constructor_obj.set_call(call_fn);
+        constructor_obj.set_func(call_fn);
         constructor_obj.set_internal_slot("__proto__", func_prototype);
         let constructor_val = Value::from(constructor_obj);
 
