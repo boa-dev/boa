@@ -18,7 +18,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::{MethodDefinitionKind, Node, PropertyDefinition},
+        node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
     },
 };
@@ -274,38 +274,9 @@ impl Executor for Interpreter {
             }
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref name, ref args, ref expr) => {
-                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
-                let function_prototype = &self
-                    .realm
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object")
-                    .get_field_slice("Function")
-                    .get_field_slice("Prototype");
-
-                // Every new function has a prototype property pre-made
-                let global_val = &self
-                    .realm
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let proto = Value::new_object(Some(global_val));
-
-                let func = FunctionObject::create_ordinary(
-                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
-                    self.realm.environment.get_current_environment().clone(),
-                    FunctionBody::Ordinary(*expr.clone()),
-                    ThisMode::NonLexical,
-                );
-
-                let mut new_func = Object::function();
-                new_func.set_func(func);
-                let val = Value::from(new_func);
-                val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
-                val.set_field_slice(PROTOTYPE, proto);
-                val.set_field_slice("length", Value::from(args.len()));
-
+                let val = self.create_function(args, expr, ThisMode::NonLexical);
                 // Set the name and assign it in the current environment
+
                 val.set_field_slice("name", Value::from(name.clone()));
                 self.realm.environment.create_mutable_binding(
                     name.clone(),
@@ -319,26 +290,7 @@ impl Executor for Interpreter {
             }
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionExpr(ref name, ref args, ref expr) => {
-                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
-                // let proto = &self
-                //     .realm
-                //     .environment
-                //     .get_global_object()
-                //     .expect("Could not get the global object")
-                //     .get_field_slice("Object")
-                //     .get_field_slice("Prototype");
-
-                let func = FunctionObject::create_ordinary(
-                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
-                    self.realm.environment.get_current_environment().clone(),
-                    FunctionBody::Ordinary(*expr.clone()),
-                    ThisMode::NonLexical,
-                );
-
-                let mut new_func = Object::function();
-                new_func.set_func(func);
-                let val = Value::from(new_func);
-                val.set_field_slice("length", Value::from(args.len()));
+                let val = self.create_function(args, expr, ThisMode::NonLexical);
 
                 if let Some(name) = name {
                     val.set_field_slice("name", Value::from(name.clone()));
@@ -347,28 +299,7 @@ impl Executor for Interpreter {
                 Ok(val)
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
-                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
-                // let proto = &self
-                //     .realm
-                //     .environment
-                //     .get_global_object()
-                //     .expect("Could not get the global object")
-                //     .get_field_slice("Object")
-                //     .get_field_slice("Prototype");
-
-                let func = FunctionObject::create_ordinary(
-                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
-                    self.realm.environment.get_current_environment().clone(),
-                    FunctionBody::Ordinary(*expr.clone()),
-                    ThisMode::Lexical,
-                );
-
-                let mut new_func = Object::function();
-                new_func.set_func(func);
-                let val = Value::from(new_func);
-                val.set_field_slice("length", Value::from(args.len()));
-
-                Ok(val)
+                Ok(self.create_function(args, expr, ThisMode::Lexical))
             }
             Node::BinOp(BinOp::Num(ref op), ref a, ref b) => {
                 let v_a = self.run(a)?;
@@ -672,6 +603,46 @@ impl Interpreter {
     /// Get the Interpreter's realm
     pub(crate) fn get_realm(&self) -> &Realm {
         &self.realm
+    }
+
+    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
+    pub(crate) fn create_function(
+        &mut self,
+        args: &Box<[FormalParameter]>,
+        expr: &Node,
+        this_mode: ThisMode,
+    ) -> Value {
+        let function_prototype = &self
+            .realm
+            .environment
+            .get_global_object()
+            .expect("Could not get the global object")
+            .get_field_slice("Function")
+            .get_field_slice("Prototype");
+
+        // Every new function has a prototype property pre-made
+        let global_val = &self
+            .realm
+            .environment
+            .get_global_object()
+            .expect("Could not get the global object");
+        let proto = Value::new_object(Some(global_val));
+
+        let func = FunctionObject::create_ordinary(
+            args.clone(),
+            self.realm.environment.get_current_environment().clone(),
+            FunctionBody::Ordinary(expr.clone()),
+            this_mode,
+        );
+
+        let mut new_func = Object::function();
+        new_func.set_func(func);
+        let val = Value::from(new_func);
+        val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
+        val.set_field_slice(PROTOTYPE, proto);
+        val.set_field_slice("length", Value::from(args.len()));
+
+        val
     }
 
     /// https://tc39.es/ecma262/#sec-call
