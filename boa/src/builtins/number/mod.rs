@@ -375,14 +375,7 @@ pub fn init(global: &Value) {
 /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
 #[allow(clippy::float_cmp)]
 pub fn equals(a: &Value, b: &Value) -> bool {
-    let a: f64 = a.into();
-    let b: f64 = b.into();
-
-    if a.is_nan() || b.is_nan() {
-        return false;
-    }
-
-    a == b
+    f64::from(a) == f64::from(b)
 }
 
 /// The abstract operation Number::sameValue takes arguments
