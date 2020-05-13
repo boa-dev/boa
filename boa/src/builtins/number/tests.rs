@@ -395,3 +395,76 @@ fn value_of() {
     assert_eq!(exp_val.to_number(), 12_000_f64);
     assert_eq!(neg_val.to_number(), -12_000_f64);
 }
+
+#[test]
+fn equal() {
+    assert_eq!(super::equals(&Value::integer(0), &Value::integer(0)), true);
+    assert_eq!(
+        super::equals(&Value::rational(-0.0), &Value::rational(0.0)),
+        true
+    );
+    assert_eq!(
+        super::equals(&Value::rational(0.0), &Value::rational(-0.0)),
+        true
+    );
+    assert_eq!(
+        super::equals(&Value::rational(f64::NAN), &Value::rational(-0.0)),
+        false
+    );
+    assert_eq!(
+        super::equals(&Value::integer(0), &Value::rational(f64::NAN)),
+        false
+    );
+
+    assert_eq!(super::equals(&Value::integer(1), &Value::rational(1)), true);
+}
+
+#[test]
+fn same_value() {
+    assert_eq!(
+        super::same_value(&Value::integer(0), &Value::integer(0)),
+        true
+    );
+    assert_eq!(
+        super::same_value(&Value::rational(-0.0), &Value::rational(0.0)),
+        false
+    );
+    assert_eq!(
+        super::same_value(&Value::rational(0.0), &Value::rational(-0.0)),
+        false
+    );
+    assert_eq!(
+        super::same_value(&Value::rational(f64::NAN), &Value::rational(-0.0)),
+        false
+    );
+    assert_eq!(
+        super::same_value(&Value::integer(0), &Value::rational(f64::NAN)),
+        false
+    );
+    assert_eq!(super::equals(&Value::integer(1), &Value::rational(1)), true);
+}
+
+#[test]
+fn same_value_zero() {
+    assert_eq!(
+        super::same_value_zero(&Value::integer(0), &Value::integer(0)),
+        true
+    );
+    assert_eq!(
+        super::same_value_zero(&Value::rational(-0.0), &Value::rational(0.0)),
+        true
+    );
+    assert_eq!(
+        super::same_value_zero(&Value::rational(0.0), &Value::rational(-0.0)),
+        true
+    );
+    assert_eq!(
+        super::same_value_zero(&Value::rational(f64::NAN), &Value::rational(-0.0)),
+        false
+    );
+    assert_eq!(
+        super::same_value_zero(&Value::integer(0), &Value::rational(f64::NAN)),
+        false
+    );
+    assert_eq!(super::equals(&Value::integer(1), &Value::rational(1)), true);
+}

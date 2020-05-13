@@ -969,7 +969,7 @@ pub fn value_of(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 pub fn match_all(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let mut re: Value = match args.get(0) {
         Some(arg) => {
-            if arg == &Value::null() {
+            if arg.is_null() {
                 make_regexp(
                     &mut Value::from(Object::default()),
                     &[
@@ -978,7 +978,7 @@ pub fn match_all(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Res
                     ],
                     ctx,
                 )
-            } else if arg == &Value::undefined() {
+            } else if arg.is_undefined() {
                 make_regexp(
                     &mut Value::from(Object::default()),
                     &[Value::undefined(), Value::from(String::from("g"))],

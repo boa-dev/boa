@@ -1,19 +1,8 @@
 use super::*;
+use crate::builtins::number;
 use crate::Interpreter;
+
 use std::borrow::Borrow;
-
-#[allow(clippy::float_cmp)]
-/// https://tc39.es/ecma262/#sec-numeric-types-number-equal
-fn strict_number_equals<T: Into<f64>>(a: T, b: T) -> bool {
-    let a: f64 = a.into();
-    let b: f64 = b.into();
-
-    if a.is_nan() || b.is_nan() {
-        return false;
-    }
-
-    a == b
-}
 
 impl Value {
     /// Strict equality comparison.
@@ -26,7 +15,7 @@ impl Value {
         }
 
         if self.is_number() {
-            return strict_number_equals(self, other);
+            return number::equals(self, other);
         }
 
         same_value_non_number(self, other)
@@ -53,7 +42,7 @@ impl Value {
             | (ValueData::Integer(_), ValueData::Boolean(_)) => {
                 let a: &Value = self.borrow();
                 let b: &Value = other.borrow();
-                strict_number_equals(a, b)
+                number::equals(a, b)
             }
             (ValueData::Boolean(_), _) => {
                 other.equals(&mut Value::from(self.to_integer()), interpreter)
@@ -69,29 +58,6 @@ impl Value {
                 let mut primitive = interpreter.to_primitive(other, None);
                 primitive.equals(self, interpreter)
             }
-            _ => false,
-        }
-    }
-}
-
-impl PartialEq for Value {
-    fn eq(&self, other: &Self) -> bool {
-        match (self.data(), other.data()) {
-            // TODO: fix this
-            // _ if self.ptr.to_inner() == &other.ptr.to_inner() => true,
-            _ if self.is_null_or_undefined() && other.is_null_or_undefined() => true,
-            (ValueData::String(_), _) | (_, ValueData::String(_)) => {
-                self.to_string() == other.to_string()
-            }
-            (ValueData::Boolean(a), ValueData::Boolean(b)) if a == b => true,
-            (ValueData::Rational(a), ValueData::Rational(b))
-                if a == b && !a.is_nan() && !b.is_nan() =>
-            {
-                true
-            }
-            (ValueData::Rational(a), _) if *a == other.to_number() => true,
-            (_, ValueData::Rational(a)) if *a == self.to_number() => true,
-            (ValueData::Integer(a), ValueData::Integer(b)) if a == b => true,
             _ => false,
         }
     }
@@ -170,6 +136,25 @@ impl Not for Value {
     }
 }
 
+/// The internal comparison abstract operation SameValueZero(x, y),
+/// where x and y are ECMAScript language values, produces true or false.
+/// SameValueZero differs from SameValue only in its treatment of +0 and -0.
+///
+/// Such a comparison is performed as follows:
+///
+/// https://tc39.es/ecma262/#sec-samevaluezero
+pub fn same_value_zero(x: &Value, y: &Value) -> bool {
+    if x.get_type() != y.get_type() {
+        return false;
+    }
+
+    if x.is_number() {
+        return number::same_value_zero(x, y);
+    }
+
+    same_value_non_number(x, y)
+}
+
 /// The internal comparison abstract operation SameValue(x, y),
 /// where x and y are ECMAScript language values, produces true or false.
 /// Such a comparison is performed as follows:
@@ -188,10 +173,8 @@ pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
         return false;
     }
 
-    if x.get_type() == "number" {
-        let native_x = f64::from(x);
-        let native_y = f64::from(y);
-        return native_x.abs() - native_y.abs() == 0.0;
+    if x.is_number() {
+        return number::same_value(x, y);
     }
 
     same_value_non_number(x, y)
@@ -209,7 +192,7 @@ pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
             false
         }
         "boolean" => bool::from(x) == bool::from(y),
-        "object" => *x == *y,
+        "object" => std::ptr::eq(x, y),
         _ => false,
     }
 }

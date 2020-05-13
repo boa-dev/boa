@@ -91,7 +91,7 @@ impl ObjectInternalMethods for Object {
     fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.get_internal_slot(PROTOTYPE);
-        if current == val {
+        if same_value(&current, &val, false) {
             return true;
         }
         let extensible = self.get_internal_slot("extensible");

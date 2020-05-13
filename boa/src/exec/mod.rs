@@ -209,7 +209,7 @@ impl Executor for Interpreter {
                 for tup in vals.iter() {
                     let cond = &tup.0;
                     let block = &tup.1;
-                    if val == self.run(cond)? {
+                    if val.strict_equals(&self.run(cond)?) {
                         matched = true;
                         let last_expr = block.last().expect("Block has no expressions");
                         for expr in block.iter() {
