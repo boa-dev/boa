@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1589385556743,
+  "lastUpdate": 1589388289110,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -6711,6 +6711,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 15.306,
             "range": "+/- 0.162",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "s1panda@ucsd.edu",
+            "name": "Subhankar Panda",
+            "username": "subhankar-panda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fefb5a3b71344763d92382a092bb10eefe7b0ee5",
+          "message": "Remove Monaco Editor Webpack Plugin and Manually Vendor Editor Workers (#362)\n\n* Removed *.bundle.js from editor WebWorkers\r\n\r\n* Removed Monaco Editor Plugin\r\n\r\n* package.lock -> yarn.lock",
+          "timestamp": "2020-05-13T17:36:43+01:00",
+          "tree_id": "f38223bbbc3f1397faf66abab13f1a8406032ec2",
+          "url": "https://github.com/jasonwilliams/boa/commit/fefb5a3b71344763d92382a092bb10eefe7b0ee5"
+        },
+        "date": 1589388285511,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 388.77,
+            "range": "+/- 7.170",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 392.19,
+            "range": "+/- 9.990",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 408.75,
+            "range": "+/- 11.960",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.6921,
+            "range": "+/- 0.090",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 1.6714,
+            "range": "+/- 0.042",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 840.53,
+            "range": "+/- 27.380",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.5749,
+            "range": "+/- 0.121",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.4861,
+            "range": "+/- 0.117",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.1213,
+            "range": "+/- 0.063",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13.085,
+            "range": "+/- 0.456",
             "unit": "us"
           }
         ]
