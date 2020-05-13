@@ -500,6 +500,7 @@ fn unary_delete() {
 #[cfg(test)]
 mod in_operator {
     use super::*;
+    use crate::{builtins::object::INSTANCE_PROTOTYPE, forward_val};
     #[test]
     fn propery_in_object() {
         let p_in_o = r#"
@@ -563,5 +564,38 @@ mod in_operator {
             'fail' in undefined
         "#;
         exec(scenario);
+    }
+
+    #[test]
+    fn should_set_this_value() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+        function Foo() {
+            this.a = "a";
+            this.b = "b";
+          }
+          
+          var bar = new Foo();
+        "#;
+        forward(&mut engine, scenario);
+        assert_eq!(forward(&mut engine, "bar.a"), "a");
+        assert_eq!(forward(&mut engine, "bar.b"), "b");
+    }
+
+    #[test]
+    fn new_instance_should_point_to_prototype() {
+        // A new instance should point to a prototype object created with the constructor function
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+            function Foo() {}            
+            var bar = new Foo();
+        "#;
+        forward(&mut engine, scenario);
+        let a = forward_val(&mut engine, "bar").unwrap();
+        assert!(a.get_internal_slot(INSTANCE_PROTOTYPE).is_object(), true);
     }
 }

@@ -275,13 +275,21 @@ impl Executor for Interpreter {
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref name, ref args, ref expr) => {
                 // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
-                // let proto = &self
-                //     .realm
-                //     .environment
-                //     .get_global_object()
-                //     .expect("Could not get the global object")
-                //     .get_field_slice("Object")
-                //     .get_field_slice("Prototype");
+                let function_prototype = &self
+                    .realm
+                    .environment
+                    .get_global_object()
+                    .expect("Could not get the global object")
+                    .get_field_slice("Function")
+                    .get_field_slice("Prototype");
+
+                // Every new function has a prototype property pre-made
+                let global_val = &self
+                    .realm
+                    .environment
+                    .get_global_object()
+                    .expect("Could not get the global object");
+                let proto = Value::new_object(Some(global_val));
 
                 let func = FunctionObject::create_ordinary(
                     args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
@@ -293,6 +301,8 @@ impl Executor for Interpreter {
                 let mut new_func = Object::function();
                 new_func.set_func(func);
                 let val = Value::from(new_func);
+                val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
+                val.set_field_slice(PROTOTYPE, proto);
                 val.set_field_slice("length", Value::from(args.len()));
 
                 // Set the name and assign it in the current environment
