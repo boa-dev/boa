@@ -242,7 +242,7 @@ pub fn new_function_environment(
         home_object: Value::undefined(),
         new_target: Value::undefined(),
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-        this_value: this.unwrap_or(Value::undefined()),
+        this_value: this.unwrap_or_else(Value::undefined),
     })))
 }
 

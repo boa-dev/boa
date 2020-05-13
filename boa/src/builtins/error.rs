@@ -10,9 +10,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-error-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
+use super::function::make_constructor_fn;
 use crate::{
     builtins::{
-        object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
+        object::ObjectKind,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
@@ -58,7 +59,7 @@ pub fn create(global: &Value) -> Value {
     prototype.set_field_slice("message", Value::from(""));
     prototype.set_field_slice("name", Value::from("Error"));
     make_builtin_fn!(to_string, named "toString", of prototype);
-    make_constructor_fn!(make_error, global, prototype)
+    make_constructor_fn(make_error, global, prototype)
 }
 
 /// Initialise the global object with the `Error` object.

@@ -12,9 +12,10 @@
 #[cfg(test)]
 mod tests;
 
+use super::function::make_constructor_fn;
 use crate::{
     builtins::{
-        object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
+        object::{Object, ObjectKind},
         property::Property,
         regexp::{make_regexp, match_all as regexp_match_all, r#match as regexp_match},
         value::{ResultValue, Value, ValueData},
@@ -28,14 +29,10 @@ use std::{
     ops::Deref,
 };
 
-/// Create new string [[Construct]]
-// This gets called when a new String() is created, it's called by exec:346
+/// [[Construct]] - Creates a new instance `this`
+///
+/// [[Call]] - Returns a new native `string`
 pub fn make_string(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    // If we're constructing a string, we should set the initial length
-    // To do this we need to convert the string back to a Rust String, then get the .len()
-    // let a: String = from_value(args.get(0).expect("failed to get argument for String method").clone()).unwrap();
-    // this.set_field_slice("length", to_value(a.len() as i32));
-
     // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
     // to its Javascript Identifier (global constructor method name)
     this.set_kind(ObjectKind::String);
@@ -45,13 +42,7 @@ pub fn make_string(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
             .expect("failed to get StringData for make_string()")
             .clone(),
     );
-    Ok(this.clone())
-}
 
-/// Call new string [[Call]]
-///
-/// More information: [ECMAScript reference](https://tc39.es/ecma262/#sec-string-constructor-string-value)
-pub fn call_string(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let arg = match args.get(0) {
         Some(v) => v.clone(),
         None => Value::undefined(),
@@ -1029,7 +1020,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(match_all, named "matchAll", with length 1, of prototype);
     make_builtin_fn!(replace, named "replace", with length 2, of prototype);
 
-    make_constructor_fn!(make_string, call_string, global, prototype)
+    make_constructor_fn(make_string, global, prototype)
 }
 
 /// Initialise the `String` object on the global object.

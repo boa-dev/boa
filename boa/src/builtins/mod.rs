@@ -21,60 +21,6 @@ macro_rules! make_builtin_fn {
     };
 }
 
-/// Macro to create a new constructor function
-///
-/// Either (construct_body, global, prototype)
-macro_rules! make_constructor_fn {
-    ($body:ident, $global:ident, $proto:ident) => {{
-        // Create the native function
-        let constructor_fn = crate::builtins::function::Function::create_builtin(
-            vec![],
-            crate::builtins::function::FunctionBody::BuiltIn($body),
-        );
-
-        // Get reference to Function.prototype
-        let func_prototype = $global
-            .get_field_slice("Function")
-            .get_field_slice(PROTOTYPE);
-
-        // Create the function object and point its instance prototype to Function.prototype
-        let mut constructor_obj = Object::function();
-        constructor_obj.set_func(constructor_fn);
-
-        constructor_obj.set_internal_slot("__proto__", func_prototype);
-        let constructor_val = Value::from(constructor_obj);
-
-        // Set proto.constructor -> constructor_obj
-        $proto.set_field_slice("constructor", constructor_val.clone());
-        constructor_val.set_field_slice(PROTOTYPE, $proto);
-
-        constructor_val
-    }};
-    ($construct_body:ident, $call_body:ident, $global:ident, $proto:ident) => {{
-        let call_fn = crate::builtins::function::Function::create_builtin(
-            vec![],
-            crate::builtins::function::FunctionBody::BuiltIn($call_body),
-        );
-
-        // Get reference to Function.prototype
-        let func_prototype = $global
-            .get_field_slice("Function")
-            .get_field_slice(PROTOTYPE);
-
-        // Create the function object and point its instance prototype to Function.prototype
-        let mut constructor_obj = Object::function();
-        constructor_obj.set_func(call_fn);
-        constructor_obj.set_internal_slot("__proto__", func_prototype);
-        let constructor_val = Value::from(constructor_obj);
-
-        // Set proto.constructor -> constructor_obj
-        $proto.set_field_slice("constructor", constructor_val.clone());
-        constructor_val.set_field_slice(PROTOTYPE, $proto);
-
-        constructor_val
-    }};
-}
-
 pub mod array;
 pub mod boolean;
 pub mod console;

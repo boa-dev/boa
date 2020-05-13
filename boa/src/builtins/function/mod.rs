@@ -217,7 +217,10 @@ impl Function {
     ) -> ResultValue {
         match self.kind {
             FunctionKind::BuiltIn => match &self.body {
-                FunctionBody::BuiltIn(func) => func(this_obj, args_list, interpreter),
+                FunctionBody::BuiltIn(func) => {
+                    func(this_obj, args_list, interpreter).unwrap();
+                    Ok(this_obj.clone())
+                }
                 FunctionBody::Ordinary(_) => {
                     panic!("Builtin function should not have Ordinary Function body")
                 }
@@ -369,7 +372,37 @@ pub fn make_function(this: &mut Value, _: &[Value], _: &mut Interpreter) -> Resu
 pub fn create(global: &Value) -> Value {
     let prototype = Value::new_object(Some(global));
 
-    make_constructor_fn!(make_function, make_function, global, prototype)
+    make_constructor_fn(make_function, global, prototype)
+}
+
+/// Creates a new constructor function
+///
+/// This utility function handling linking the new Constructor to the prototype.
+/// So far this is only used by internal functions
+pub fn make_constructor_fn(body: NativeFunctionData, global: &Value, proto: Value) -> Value {
+    // Create the native function
+    let constructor_fn = crate::builtins::function::Function::create_builtin(
+        vec![],
+        crate::builtins::function::FunctionBody::BuiltIn(body),
+    );
+
+    // Get reference to Function.prototype
+    let func_prototype = global
+        .get_field_slice("Function")
+        .get_field_slice(PROTOTYPE);
+
+    // Create the function object and point its instance prototype to Function.prototype
+    let mut constructor_obj = Object::function();
+    constructor_obj.set_func(constructor_fn);
+
+    constructor_obj.set_internal_slot("__proto__", func_prototype);
+    let constructor_val = Value::from(constructor_obj);
+
+    // Set proto.constructor -> constructor_obj
+    proto.set_field_slice("constructor", constructor_val.clone());
+    constructor_val.set_field_slice(PROTOTYPE, proto);
+
+    constructor_val
 }
 
 /// Initialise the `Function` object on the global object.

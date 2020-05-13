@@ -12,9 +12,10 @@
 #[cfg(test)]
 mod tests;
 
+use super::function::make_constructor_fn;
 use crate::{
     builtins::{
-        object::{Object, ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{ResultValue, Value, ValueData},
     },
@@ -977,7 +978,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(slice, named "slice", with length 2, of prototype);
     make_builtin_fn!(some, named "some", with length 2, of prototype);
 
-    let array = make_constructor_fn!(make_array, make_array, global, prototype);
+    let array = make_constructor_fn(make_array, global, prototype);
 
     // Static Methods
     make_builtin_fn!(is_array, named "isArray", with length 1, of array);

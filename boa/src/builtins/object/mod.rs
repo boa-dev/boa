@@ -29,6 +29,7 @@ use std::{
     ops::Deref,
 };
 
+use super::function::make_constructor_fn;
 pub use internal_methods_trait::ObjectInternalMethods;
 pub use internal_state::{InternalState, InternalStateCell};
 
@@ -594,7 +595,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(has_own_property, named "hasOwnProperty", of prototype);
     make_builtin_fn!(to_string, named "toString", of prototype);
 
-    let object = make_constructor_fn!(make_object, make_object, global, prototype);
+    let object = make_constructor_fn(make_object, global, prototype);
 
     object.set_field_slice("length", Value::from(1));
     make_builtin_fn!(set_prototype_of, named "setPrototypeOf", with length 2, of object);
