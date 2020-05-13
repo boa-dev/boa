@@ -1,5 +1,55 @@
 # CHANGELOG
 
+# [# 0.8.0 (master)](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
+
+Feature Enhancements:
+
+- [FEATURE #293](https://github.com/jasonwilliams/boa/pull/293):
+  Improved documentation of all modules (@HalidOdat)
+- [FEATURE #302](https://github.com/jasonwilliams/boa/issues/302):
+  Implement do..while loop (@ptasz3k)
+- [FEATURE #318](https://github.com/jasonwilliams/boa/pull/318):
+  Added continous integration for windows (@HalidOdat)
+- [FEATURE #290](https://github.com/jasonwilliams/boa/pull/290):
+  Added more build profiles (@Razican)
+- [FEATURE #323](https://github.com/jasonwilliams/boa/pull/323):
+  Aded more benchmarks (@Razican)
+- [FEATURE #326](https://github.com/jasonwilliams/boa/pull/326):
+  Rename Boa CLI (@sphinxc0re)
+- [FEATURE #312](https://github.com/jasonwilliams/boa/pull/312):
+  Added jemallocator for linux targets (@Razican)
+- [FEATURE #339](https://github.com/jasonwilliams/boa/pull/339):
+  Improved Method parsing (@muskuloes)
+- [FEATURE #352](https://github.com/jasonwilliams/boa/pull/352):
+  create boa-wasm package (@muskuloes)
+- [FEATURE #304](https://github.com/jasonwilliams/boa/pull/304):
+  Modularized parser
+- [FEATURE #141](https://github.com/jasonwilliams/boa/issues/141):
+  Implement function objects (@jasonwilliams)
+- [FEATURE #365](https://github.com/jasonwilliams/boa/issues/365):
+  Implement for loop execution (@Razican)
+- [FEATURE #356](https://github.com/jasonwilliams/boa/issues/356):
+  Use Fx Hash to speed up hash maps in the compiler (@Razican)
+- [FEATURE #321](https://github.com/jasonwilliams/boa/issues/321):
+  Implement unary operator execution (@akryvomaz)
+- [FEATURE #379](https://github.com/jasonwilliams/boa/issues/379):
+  Automatic auditing of Boa (@n14little)
+
+Bug fixes:
+
+- [BUG #308](https://github.com/jasonwilliams/boa/issues/308):
+  Assignment operator not working in tests (a = a +1) (@ptasz3k)
+- [BUG #322](https://github.com/jasonwilliams/boa/issues/322):
+  Benchmarks are failing in master (@Razican)
+- [BUG #325](https://github.com/jasonwilliams/boa/pull/325):
+  Put JSON functions on the object, not the prototype (@coolreader18)
+- [BUG #331](https://github.com/jasonwilliams/boa/issues/331):
+  We only get `Const::Num`, never `Const::Int` (@HalidOdat)
+- [BUG #209](https://github.com/jasonwilliams/boa/issues/209):
+  Calling `new Array` with 1 argument doesn't work properly (@HalidOdat)
+- [BUG #266](https://github.com/jasonwilliams/boa/issues/266):
+  Panic assigning named function to variable (@Razican)
+
 # [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
