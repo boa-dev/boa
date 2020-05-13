@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1589218201221,
+  "lastUpdate": 1589385556743,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -6627,6 +6627,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.156,
             "range": "+/- 0.237",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "razican@protonmail.ch",
+            "name": "Iban Eguia Moraza",
+            "username": "Razican"
+          },
+          "committer": {
+            "email": "razican@protonmail.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "distinct": true,
+          "id": "44fde226fc907a15aad4d3802c77777f4f9d4a63",
+          "message": "Added code of conduct based on Contributor Covenant 2.0\n\nCo-authored-by: Jason Williams <jase.williams@gmail.com>\nCo-authored-by: HalidOdat <halidodat@gmail.com>\nCo-authored-by: Iban Eguia <razican@protonmail.ch>",
+          "timestamp": "2020-05-13T17:50:54+02:00",
+          "tree_id": "7542538a33d61017e17af80cb6f8ef36f204dad2",
+          "url": "https://github.com/jasonwilliams/boa/commit/44fde226fc907a15aad4d3802c77777f4f9d4a63"
+        },
+        "date": 1589385553015,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 406.77,
+            "range": "+/- 6.830",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 443.17,
+            "range": "+/- 6.540",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 441.67,
+            "range": "+/- 6.580",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 3.0057,
+            "range": "+/- 0.028",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 1.979,
+            "range": "+/- 0.046",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 945.34,
+            "range": "+/- 16.380",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.1042,
+            "range": "+/- 0.081",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.0521,
+            "range": "+/- 0.089",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.3833,
+            "range": "+/- 0.028",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 15.306,
+            "range": "+/- 0.162",
             "unit": "us"
           }
         ]
