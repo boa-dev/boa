@@ -716,7 +716,7 @@
     <span class="kw">fn</span> <span class="ident">set_prototype_of</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">val</span>.<span class="ident">is_object</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_internal_slot</span>(<span class="ident">PROTOTYPE</span>);
-        <span class="kw">if</span> <span class="ident">current</span> <span class="op">=</span><span class="op">=</span> <span class="ident">val</span> {
+        <span class="kw">if</span> <span class="ident">same_value</span>(<span class="kw-2">&amp;</span><span class="ident">current</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>, <span class="bool-val">false</span>) {
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
         <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;extensible&quot;</span>);

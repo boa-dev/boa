@@ -932,6 +932,15 @@
 <span id="932">932</span>
 <span id="933">933</span>
 <span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1193,7 +1202,10 @@
 
     <span class="doccomment">/// Returns true if the value is a number</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">is_double</span>()
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        }
     }
 
     <span class="doccomment">/// Returns true if the value is a string</span>
@@ -1230,13 +1242,19 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NAN</span>,
-            <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">FromStr</span>::<span class="ident">from_str</span>(<span class="ident">str</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NAN</span>,
-            },
-            <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>,
+            <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">str</span>.<span class="ident">is_empty</span>() {
+                    <span class="kw">return</span> <span class="number">0.0</span>;
+                }
+
+                <span class="kw">match</span> <span class="ident">FromStr</span>::<span class="ident">from_str</span>(<span class="ident">str</span>) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>,
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NAN</span>,
+                }
+            }
             <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">1.0</span>,
             <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="bool-val">false</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0.0</span>,
+            <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>,
             <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">num</span>),
         }
     }
