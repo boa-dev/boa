@@ -142,7 +142,7 @@ impl Not for Value {
 ///
 /// Such a comparison is performed as follows:
 ///
-/// https://tc39.es/ecma262/#sec-samevaluezero
+/// <https://tc39.es/ecma262/#sec-samevaluezero>
 pub fn same_value_zero(x: &Value, y: &Value) -> bool {
     if x.get_type() != y.get_type() {
         return false;
