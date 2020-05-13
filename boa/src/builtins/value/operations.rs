@@ -15,7 +15,7 @@ impl Value {
         }
 
         if self.is_number() {
-            return number::equals(self, other);
+            return number::equals(f64::from(self), f64::from(other));
         }
 
         same_value_non_number(self, other)
@@ -42,7 +42,7 @@ impl Value {
             | (ValueData::Integer(_), ValueData::Boolean(_)) => {
                 let a: &Value = self.borrow();
                 let b: &Value = other.borrow();
-                number::equals(a, b)
+                number::equals(f64::from(a), f64::from(b))
             }
             (ValueData::Boolean(_), _) => {
                 other.equals(&mut Value::from(self.to_integer()), interpreter)
@@ -149,7 +149,7 @@ pub fn same_value_zero(x: &Value, y: &Value) -> bool {
     }
 
     if x.is_number() {
-        return number::same_value_zero(x, y);
+        return number::same_value_zero(f64::from(x), f64::from(y));
     }
 
     same_value_non_number(x, y)
@@ -173,8 +173,10 @@ pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
         return false;
     }
 
+    // TODO: check BigInt
+    // https://github.com/jasonwilliams/boa/pull/358
     if x.is_number() {
-        return number::same_value(x, y);
+        return number::same_value(f64::from(x), f64::from(y));
     }
 
     same_value_non_number(x, y)

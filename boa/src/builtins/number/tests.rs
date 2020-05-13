@@ -398,73 +398,31 @@ fn value_of() {
 
 #[test]
 fn equal() {
-    assert_eq!(super::equals(&Value::integer(0), &Value::integer(0)), true);
-    assert_eq!(
-        super::equals(&Value::rational(-0.0), &Value::rational(0.0)),
-        true
-    );
-    assert_eq!(
-        super::equals(&Value::rational(0.0), &Value::rational(-0.0)),
-        true
-    );
-    assert_eq!(
-        super::equals(&Value::rational(f64::NAN), &Value::rational(-0.0)),
-        false
-    );
-    assert_eq!(
-        super::equals(&Value::integer(0), &Value::rational(f64::NAN)),
-        false
-    );
+    assert_eq!(super::equals(0.0, 0.0), true);
+    assert_eq!(super::equals(-0.0, 0.0), true);
+    assert_eq!(super::equals(0.0, -0.0), true);
+    assert_eq!(super::equals(f64::NAN, -0.0), false);
+    assert_eq!(super::equals(0.0, f64::NAN), false);
 
-    assert_eq!(super::equals(&Value::integer(1), &Value::rational(1)), true);
+    assert_eq!(super::equals(1.0, 1.0), true);
 }
 
 #[test]
 fn same_value() {
-    assert_eq!(
-        super::same_value(&Value::integer(0), &Value::integer(0)),
-        true
-    );
-    assert_eq!(
-        super::same_value(&Value::rational(-0.0), &Value::rational(0.0)),
-        false
-    );
-    assert_eq!(
-        super::same_value(&Value::rational(0.0), &Value::rational(-0.0)),
-        false
-    );
-    assert_eq!(
-        super::same_value(&Value::rational(f64::NAN), &Value::rational(-0.0)),
-        false
-    );
-    assert_eq!(
-        super::same_value(&Value::integer(0), &Value::rational(f64::NAN)),
-        false
-    );
-    assert_eq!(super::equals(&Value::integer(1), &Value::rational(1)), true);
+    assert_eq!(super::same_value(0.0, 0.0), true);
+    assert_eq!(super::same_value(-0.0, 0.0), false);
+    assert_eq!(super::same_value(0.0, -0.0), false);
+    assert_eq!(super::same_value(f64::NAN, -0.0), false);
+    assert_eq!(super::same_value(0.0, f64::NAN), false);
+    assert_eq!(super::equals(1.0, 1.0), true);
 }
 
 #[test]
 fn same_value_zero() {
-    assert_eq!(
-        super::same_value_zero(&Value::integer(0), &Value::integer(0)),
-        true
-    );
-    assert_eq!(
-        super::same_value_zero(&Value::rational(-0.0), &Value::rational(0.0)),
-        true
-    );
-    assert_eq!(
-        super::same_value_zero(&Value::rational(0.0), &Value::rational(-0.0)),
-        true
-    );
-    assert_eq!(
-        super::same_value_zero(&Value::rational(f64::NAN), &Value::rational(-0.0)),
-        false
-    );
-    assert_eq!(
-        super::same_value_zero(&Value::integer(0), &Value::rational(f64::NAN)),
-        false
-    );
-    assert_eq!(super::equals(&Value::integer(1), &Value::rational(1)), true);
+    assert_eq!(super::same_value_zero(0.0, 0.0), true);
+    assert_eq!(super::same_value_zero(-0.0, 0.0), true);
+    assert_eq!(super::same_value_zero(0.0, -0.0), true);
+    assert_eq!(super::same_value_zero(f64::NAN, -0.0), false);
+    assert_eq!(super::same_value_zero(0.0, f64::NAN), false);
+    assert_eq!(super::equals(1.0, 1.0), true);
 }

@@ -374,8 +374,8 @@ pub fn init(global: &Value) {
 ///
 /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
 #[allow(clippy::float_cmp)]
-pub fn equals(a: &Value, b: &Value) -> bool {
-    f64::from(a) == f64::from(b)
+pub fn equals(a: f64, b: f64) -> bool {
+    a == b
 }
 
 /// The abstract operation Number::sameValue takes arguments
@@ -383,20 +383,21 @@ pub fn equals(a: &Value, b: &Value) -> bool {
 ///
 /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValue
 #[allow(clippy::float_cmp)]
-pub fn same_value(a: &Value, b: &Value) -> bool {
-    let a: f64 = a.into();
-    let b: f64 = b.into();
-
+pub fn same_value(a: f64, b: f64) -> bool {
     if a.is_nan() && b.is_nan() {
         return true;
     }
 
-    let multi = a * b;
-    if multi.is_sign_negative() && a == 0.0 && b == 0.0 {
-        return false;
+    if a == 0.0 && b == 0.0 {
+        if (a.is_sign_negative() && b.is_sign_positive())
+            || (a.is_sign_positive() && b.is_sign_negative())
+        {
+            return false;
+        };
+        true
+    } else {
+        a == b
     }
-
-    a == b
 }
 
 /// The abstract operation Number::sameValueZero takes arguments
@@ -405,10 +406,7 @@ pub fn same_value(a: &Value, b: &Value) -> bool {
 
 /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
 #[allow(clippy::float_cmp)]
-pub fn same_value_zero(a: &Value, b: &Value) -> bool {
-    let a: f64 = a.into();
-    let b: f64 = b.into();
-
+pub fn same_value_zero(a: f64, b: f64) -> bool {
     if a.is_nan() && b.is_nan() {
         return true;
     }
