@@ -798,6 +798,7 @@
 <span id="798">798</span>
 <span id="799">799</span>
 <span id="800">800</span>
+<span id="801">801</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -1393,6 +1394,7 @@
                         <span class="string">&quot;true&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">BooleanLiteral</span>(<span class="bool-val">true</span>),
                         <span class="string">&quot;false&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">BooleanLiteral</span>(<span class="bool-val">false</span>),
                         <span class="string">&quot;null&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">NullLiteral</span>,
+                        <span class="string">&quot;NaN&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">NumericLiteral</span>(<span class="ident">NumericLiteral</span>::<span class="ident">Rational</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>)),
                         <span class="ident">slice</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">keyword</span>) <span class="op">=</span> <span class="ident">FromStr</span>::<span class="ident">from_str</span>(<span class="ident">slice</span>) {
                                 <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">keyword</span>)
