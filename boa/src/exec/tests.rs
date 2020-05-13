@@ -386,6 +386,63 @@ fn unary_pre() {
 }
 
 #[test]
+fn unary_typeof() {
+    let typeof_string = r#"
+        const a = String();
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_string), "string");
+
+    let typeof_int = r#"
+        let a = 5;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_int), "number");
+
+    let typeof_rational = r#"
+        let a = 0.5;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_rational), "number");
+
+    let typeof_undefined = r#"
+        let a = undefined;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_undefined), "undefined");
+
+    let typeof_boolean = r#"
+        let a = true;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_boolean), "boolean");
+
+    let typeof_null = r#"
+        let a = null;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_null), "object");
+
+    let typeof_object = r#"
+        let a = {};
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_object), "object");
+
+    let typeof_symbol = r#"
+        let a = Symbol();
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_symbol), "symbol");
+
+    let typeof_function = r#"
+        let a = function(){};
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_function), "function");
+}
+
+#[test]
 fn unary_post() {
     let unary_inc = r#"
         let a = 5;

@@ -19,6 +19,14 @@ impl Value {
             return number::equals(f64::from(self), f64::from(other));
         }
 
+        //Null has to be handled specially because "typeof null" returns object and if we managed
+        //this without a special case we would compare self and other as if they were actually
+        //objects which unfortunately fails
+        //Specification Link: https://tc39.es/ecma262/#sec-typeof-operator
+        if self.is_null() {
+            return true;
+        }
+
         same_value_non_number(self, other)
     }
 
