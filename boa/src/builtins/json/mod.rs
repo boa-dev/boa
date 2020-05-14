@@ -14,7 +14,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
 use crate::builtins::value::{ResultValue, Value};
-use crate::exec::Interpreter;
+use crate::exec::{Executor, Interpreter};
+use crate::syntax::ast::node::Node;
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
@@ -33,7 +34,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#sec-json.parse
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
 // TODO: implement optional revever argument.
-pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn parse(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     match serde_json::from_str::<JSONValue>(
         &args
             .get(0)
@@ -41,10 +42,42 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
             .clone()
             .to_string(),
     ) {
-        Ok(json) => Ok(Value::from(json)),
+        Ok(json) => {
+            let j = Value::from(json);
+            if args.len() > 1 {
+                let result = match args.get(1) {
+                    Some(callback) => {
+                        if callback.is_function() {
+                            println!("yay! we have a function");
+                            Ok(j)
+                        } else {
+                            Ok(j)
+                        }
+                    }
+                    _ => Ok(j),
+                };
+                result
+            } else {
+                Ok(j)
+            }
+            /*    let callback = args.get(1);
+                let callback_result = interpreter
+                    .call(callback, this: &mut Value, arguments_list: &[Value])
+                    .unwrap_or_else(|_| Value::undefined());
+                if callback_result.is_true() {
+                    Some(element)
+                } else {
+                    None
+                }
+            } else {
+                Ok(Value::from(json))
+            }*/
+        }
         Err(err) => Err(Value::from(err.to_string())),
     }
 }
+
+fn walk(holder: &mut Value) {}
 
 /// `JSON.stringify( value[, replacer[, space]] )`
 ///
