@@ -16,7 +16,7 @@ use crate::{
     builtins::{
         object::{Object, ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
-        value::{ResultValue, Value, ValueData},
+        value::{same_value_zero, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -418,7 +418,7 @@ pub fn shift(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
         let to = (k.wrapping_sub(1)).to_string();
 
         let from_value = this.get_field_slice(&from);
-        if from_value == Value::undefined() {
+        if from_value.is_undefined() {
             this.remove_property(&to);
         } else {
             this.set_field_slice(&to, from_value);
@@ -454,7 +454,7 @@ pub fn unshift(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultV
             let to = (k.wrapping_add(arg_c).wrapping_sub(1)).to_string();
 
             let from_value = this.get_field_slice(&from);
-            if from_value == Value::undefined() {
+            if from_value.is_undefined() {
                 this.remove_property(&to);
             } else {
                 this.set_field_slice(&to, from_value);
@@ -601,7 +601,7 @@ pub fn index_of(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Result
     while idx < len {
         let check_element = this.get_field_slice(&idx.to_string()).clone();
 
-        if check_element == search_element {
+        if check_element.strict_equals(&search_element) {
             return Ok(Value::from(idx));
         }
 
@@ -654,7 +654,7 @@ pub fn last_index_of(this: &mut Value, args: &[Value], _: &mut Interpreter) -> R
     while idx >= 0 {
         let check_element = this.get_field_slice(&idx.to_string()).clone();
 
-        if check_element == search_element {
+        if check_element.strict_equals(&search_element) {
             return Ok(Value::from(idx));
         }
 
@@ -797,7 +797,7 @@ pub fn includes_value(this: &mut Value, args: &[Value], _: &mut Interpreter) -> 
     for idx in 0..length {
         let check_element = this.get_field_slice(&idx.to_string()).clone();
 
-        if check_element == search_element {
+        if same_value_zero(&check_element, &search_element) {
             return Ok(Value::from(true));
         }
     }

@@ -370,6 +370,19 @@ fn check_decrement_advances_lexer_2_places() {
 }
 
 #[test]
+fn check_nan() {
+    let mut lexer = Lexer::new("let a = NaN;");
+    lexer.lex().expect("failed to lex");
+
+    match lexer.tokens[3].kind {
+        TokenKind::NumericLiteral(NumericLiteral::Rational(a)) => {
+            assert_eq!(a.is_nan(), true);
+        }
+        _ => assert!(false),
+    }
+}
+
+#[test]
 fn numbers() {
     let mut lexer = Lexer::new(
         "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1 0.0 0.12",
