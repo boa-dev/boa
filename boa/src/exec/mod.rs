@@ -274,7 +274,7 @@ impl Executor for Interpreter {
             }
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref name, ref args, ref expr) => {
-                let val = self.create_function(args, expr, ThisMode::NonLexical);
+                let val = self.create_function(args.clone(), expr, ThisMode::NonLexical);
                 // Set the name and assign it in the current environment
 
                 val.set_field_slice("name", Value::from(name.clone()));
@@ -290,7 +290,7 @@ impl Executor for Interpreter {
             }
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionExpr(ref name, ref args, ref expr) => {
-                let val = self.create_function(args, expr, ThisMode::NonLexical);
+                let val = self.create_function(args.clone(), expr, ThisMode::NonLexical);
 
                 if let Some(name) = name {
                     val.set_field_slice("name", Value::from(name.clone()));
@@ -299,7 +299,7 @@ impl Executor for Interpreter {
                 Ok(val)
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
-                Ok(self.create_function(args, expr, ThisMode::Lexical))
+                Ok(self.create_function(args.clone(), expr, ThisMode::Lexical))
             }
             Node::BinOp(BinOp::Num(ref op), ref a, ref b) => {
                 let v_a = self.run(a)?;
@@ -608,7 +608,7 @@ impl Interpreter {
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
     pub(crate) fn create_function(
         &mut self,
-        args: &Box<[FormalParameter]>,
+        args: Box<[FormalParameter]>,
         expr: &Node,
         this_mode: ThisMode,
     ) -> Value {
