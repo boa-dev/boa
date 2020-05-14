@@ -71,27 +71,22 @@ pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
     let object = args.get(0).expect("cannot get argument for JSON.stringify");
     let object_to_return = Value::new_object(None);
     if let Some(arg) = args.get(1) {
-        match arg.data() {
-            ValueData::Object(ref obj) => {
-                let derefed_obj = (*obj).deref();
-                let borrowed_derefed_obj = derefed_obj.borrow();
-                if borrowed_derefed_obj.kind == ObjectKind::Array {
-                    for (key, value) in borrowed_derefed_obj.properties.iter() {
-                        if let Some(Value(x)) = &value.value {
-                            if key != "length" {
-                                object_to_return.set_property(
-                                    x.to_string(),
-                                    object.get_property(&x.to_string()).unwrap(),
-                                );
-                            }
+        if let ValueData::Object(ref obj) = arg.data() {
+            let derefed_obj = (*obj).deref();
+            let borrowed_derefed_obj = derefed_obj.borrow();
+            if borrowed_derefed_obj.kind == ObjectKind::Array {
+                for (key, value) in borrowed_derefed_obj.properties.iter() {
+                    if let Some(Value(x)) = &value.value {
+                        if key != "length" {
+                            object_to_return.set_property(
+                                x.to_string(),
+                                object.get_property(&x.to_string()).unwrap(),
+                            );
                         }
                     }
-                    return Ok(Value::from(object_to_return.to_json().to_string()));
-                } else {
-                    panic!("replacer only supports arrays at this time");
                 }
-            }
-            _ => {
+                return Ok(Value::from(object_to_return.to_json().to_string()));
+            } else {
                 panic!("replacer only supports arrays at this time");
             }
         }
