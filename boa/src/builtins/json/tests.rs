@@ -45,14 +45,8 @@ fn json_stringify_replacer_array() {
     let mut engine = Interpreter::new(realm);
     let actual = forward(
         &mut engine,
-        r#"JSON.stringify({aaa: 'bbb', bbb: 'ccc', ccc: 'ddd'}, ['aaa', 'bbb'])"#
+        r#"JSON.stringify({aaa: 'bbb', bbb: 'ccc', ccc: 'ddd'}, ['aaa', 'bbb'])"#,
     );
-    let expected = forward(
-        &mut engine,
-        r#"'{"aaa":"bbb","bbb":"ccc"}'"#
-    );
-    assert_eq!(
-        actual,
-        expected
-    );
+    let expected = forward(&mut engine, r#"'{"aaa":"bbb","bbb":"ccc"}'"#);
+    assert_eq!(actual, expected);
 }

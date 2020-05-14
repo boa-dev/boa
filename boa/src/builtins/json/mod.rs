@@ -15,12 +15,12 @@
 
 use crate::builtins::{
     function::make_builtin_fn,
+    object::ObjectKind,
     value::{ResultValue, Value, ValueData},
-    object::ObjectKind
 };
 use crate::exec::Interpreter;
-use std::ops::Deref;
 use serde_json::{self, Value as JSONValue};
+use std::ops::Deref;
 
 #[cfg(test)]
 mod tests;
@@ -81,7 +81,7 @@ pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
                             if key != "length" {
                                 object_to_return.set_property(
                                     x.to_string(),
-                                    object.get_property(&x.to_string()).unwrap()
+                                    object.get_property(&x.to_string()).unwrap(),
                                 );
                             }
                         }
