@@ -69,6 +69,11 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let object = args.get(0).expect("cannot get argument for JSON.stringify");
+    if args.len() == 1 {
+        let json = object.to_json().to_string();
+        return Ok(Value::from(json));
+    }
+
     let object_to_return = Value::new_object(None);
     if let Some(arg) = args.get(1) {
         if let ValueData::Object(ref obj) = arg.data() {
@@ -87,12 +92,11 @@ pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
                 }
                 return Ok(Value::from(object_to_return.to_json().to_string()));
             } else {
-                panic!("replacer only supports arrays at this time");
+                unimplemented!("replacer only supports arrays at this time");
             }
         }
     }
-    let json = object.to_json().to_string();
-    Ok(Value::from(json))
+    panic!("cannot get replacer for JSON.stringify");
 }
 
 /// Create a new `JSON` object.
