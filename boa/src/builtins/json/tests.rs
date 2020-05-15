@@ -62,3 +62,21 @@ fn json_stringify_replacer_array_numbers() {
     let expected = forward(&mut engine, r#"'{"1":"bbb","2":"ccc"}'"#);
     assert_eq!(actual, expected);
 }
+
+#[test]
+fn json_stringify_replacer_function() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let actual = forward(
+        &mut engine,
+        r#"JSON.stringify({ aaa: 1, bbb: 2}, (key, value) => {
+            if (key === 'aaa') {
+                return undefined;
+            }
+
+            return value;
+        })"#,
+    );
+    let expected = forward(&mut engine, r#"'{"bbb":2}'"#);
+    assert_eq!(actual, expected);
+}

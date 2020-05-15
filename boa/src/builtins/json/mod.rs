@@ -16,6 +16,7 @@
 use crate::builtins::{
     function::make_builtin_fn,
     object::ObjectKind,
+    property::Property,
     value::{ResultValue, Value, ValueData},
 };
 use crate::exec::Interpreter;
@@ -67,7 +68,7 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     let object = args.get(0).expect("cannot get argument for JSON.stringify");
     if args.len() == 1 {
         let json = object.to_json().to_string();
@@ -78,9 +79,9 @@ pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
     if let Some(arg) = args.get(1) {
         if let ValueData::Object(ref obj) = arg.data() {
             let derefed_obj = (*obj).deref();
-            let borrowed_derefed_obj = derefed_obj.borrow();
-            if borrowed_derefed_obj.kind == ObjectKind::Array {
-                for (key, value) in borrowed_derefed_obj.properties.iter() {
+            let borrowed_derefed_replacer = derefed_obj.borrow();
+            if borrowed_derefed_replacer.kind == ObjectKind::Array {
+                for (key, value) in borrowed_derefed_replacer.properties.iter() {
                     if let Some(Value(x)) = &value.value {
                         if key != "length" {
                             object_to_return.set_property(
@@ -90,10 +91,22 @@ pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
                         }
                     }
                 }
-                return Ok(Value::from(object_to_return.to_json().to_string()));
-            } else {
-                unimplemented!("replacer only supports arrays at this time");
+            } else if borrowed_derefed_replacer.kind == ObjectKind::Function {
+                if let ValueData::Object(ref obj) = object.data() {
+                    let derefed_obj = (*obj).deref();
+                    let borrowed_deref_obj = derefed_obj.borrow();
+                    for (key, val) in borrowed_deref_obj.properties.iter() {
+                        if let Some(value) = &val.value {
+                            let mut this_arg = object.clone();
+                            object_to_return.set_property(
+                                String::from(key),
+                                Property::default().value(interpreter.call(arg, &mut this_arg, &[Value::string(key), Value::from(value)]).unwrap()),
+                            );
+                        }
+                    }
+                }
             }
+            return Ok(Value::from(object_to_return.to_json().to_string()));
         }
     }
     panic!("cannot get replacer for JSON.stringify");
