@@ -40,7 +40,7 @@ fn json_stringify_remove_function_values_from_objects() {
 }
 
 #[test]
-fn json_stringify_replacer_array() {
+fn json_stringify_replacer_array_strings() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
     let actual = forward(
@@ -48,5 +48,17 @@ fn json_stringify_replacer_array() {
         r#"JSON.stringify({aaa: 'bbb', bbb: 'ccc', ccc: 'ddd'}, ['aaa', 'bbb'])"#,
     );
     let expected = forward(&mut engine, r#"'{"aaa":"bbb","bbb":"ccc"}'"#);
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_replacer_array_numbers() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let actual = forward(
+        &mut engine,
+        r#"JSON.stringify({ 0: 'aaa', 1: 'bbb', 2: 'ccc'}, [1, 2])"#,
+    );
+    let expected = forward(&mut engine, r#"'{"1":"bbb","2":"ccc"}'"#);
     assert_eq!(actual, expected);
 }
