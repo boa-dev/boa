@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1589397028134,
+  "lastUpdate": 1589635737245,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -6963,6 +6963,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.021,
             "range": "+/- 0.144",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "936006+jasonwilliams@users.noreply.github.com",
+            "name": "Jason Williams",
+            "username": "jasonwilliams"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "63f37a2858f0e618ac277a91cb9148e849b5bf45",
+          "message": "implement \"this\" (#320)\n\n* implement this\r\n* remove construct/call from Object instead set func\r\n* get_this_binding() was wrong, fixed\r\n* BindingStatus is now properly set\r\n* `this` now works on dynamic functions\r\n* Migrates all builtins to use a single constructor/call fucntion to match the spec\r\n* Ensure new object has an existing prototype\r\n* create_function utility\r\n* needing to clone before passing through",
+          "timestamp": "2020-05-16T14:20:50+01:00",
+          "tree_id": "2d09323b7a7c4cc878a75aa09efad966d5ed4685",
+          "url": "https://github.com/jasonwilliams/boa/commit/63f37a2858f0e618ac277a91cb9148e849b5bf45"
+        },
+        "date": 1589635733498,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 370.84,
+            "range": "+/- 4.870",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 398.32,
+            "range": "+/- 9.470",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 398.24,
+            "range": "+/- 10.900",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.5218,
+            "range": "+/- 0.042",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 1.8658,
+            "range": "+/- 0.043",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 912.71,
+            "range": "+/- 19.200",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.9696,
+            "range": "+/- 0.088",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.6793,
+            "range": "+/- 0.092",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.2014,
+            "range": "+/- 0.038",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13.514,
+            "range": "+/- 0.361",
             "unit": "us"
           }
         ]
