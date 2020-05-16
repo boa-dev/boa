@@ -18,6 +18,7 @@
 #[cfg(test)]
 mod tests;
 
+use super::function::make_constructor_fn;
 use crate::{
     builtins::{
         object::{
@@ -92,7 +93,7 @@ pub fn create(global: &Value) -> Value {
     // Create prototype object
     let prototype = Value::new_object(Some(global));
     make_builtin_fn!(to_string, named "toString", of prototype);
-    make_constructor_fn!(call_symbol, call_symbol, global, prototype)
+    make_constructor_fn(call_symbol, global, prototype)
 }
 
 /// Initialise the `Symbol` object on the global object.

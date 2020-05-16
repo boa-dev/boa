@@ -634,7 +634,7 @@ impl ValueData {
         // Get Length
         let length = native_func.params.len();
         // Set [[Call]] internal slot
-        new_func.set_call(native_func);
+        new_func.set_func(native_func);
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters

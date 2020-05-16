@@ -29,6 +29,7 @@ use std::{
     ops::Deref,
 };
 
+use super::function::make_constructor_fn;
 pub use internal_methods_trait::ObjectInternalMethods;
 pub use internal_state::{InternalState, InternalStateCell};
 
@@ -46,7 +47,7 @@ pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 pub struct Object {
     /// The type of the object.
     pub kind: ObjectKind,
-    /// Intfiernal Slots
+    /// Internal Slots
     pub internal_slots: FxHashMap<String, Value>,
     /// Properties
     pub properties: FxHashMap<String, Property>,
@@ -54,10 +55,8 @@ pub struct Object {
     pub sym_properties: FxHashMap<i32, Property>,
     /// Some rust object that stores internal state
     pub state: Option<InternalStateCell>,
-    /// [[Call]]
-    pub call: Option<Function>,
-    /// [[Construct]]
-    pub construct: Option<Function>,
+    /// Function
+    pub func: Option<Function>,
 }
 
 impl Debug for Object {
@@ -65,8 +64,7 @@ impl Debug for Object {
         writeln!(f, "{{")?;
         writeln!(f, "\tkind: {}", self.kind)?;
         writeln!(f, "\tstate: {:?}", self.state)?;
-        writeln!(f, "\tcall: {:?}", self.call)?;
-        writeln!(f, "\tconstruct: {:?}", self.construct)?;
+        writeln!(f, "\tfunc: {:?}", self.func)?;
         writeln!(f, "\tproperties: {{")?;
         for (key, _) in self.properties.iter() {
             writeln!(f, "\t\t{}", key)?;
@@ -342,8 +340,7 @@ impl Object {
             properties: FxHashMap::default(),
             sym_properties: FxHashMap::default(),
             state: None,
-            call: None,
-            construct: None,
+            func: None,
         };
 
         object.set_internal_slot("extensible", Value::from(true));
@@ -358,8 +355,7 @@ impl Object {
             properties: FxHashMap::default(),
             sym_properties: FxHashMap::default(),
             state: None,
-            call: None,
-            construct: None,
+            func: None,
         };
 
         object.set_internal_slot("extensible", Value::from(true));
@@ -382,14 +378,9 @@ impl Object {
         obj
     }
 
-    /// Set [[Call]]
-    pub fn set_call(&mut self, val: Function) {
-        self.call = Some(val);
-    }
-
-    /// set [[Construct]]
-    pub fn set_construct(&mut self, val: Function) {
-        self.construct = Some(val);
+    /// Set the function this object wraps
+    pub fn set_func(&mut self, val: Function) {
+        self.func = Some(val);
     }
 
     /// Return a new Boolean object whose `[[BooleanData]]` internal slot is set to argument.
@@ -400,8 +391,7 @@ impl Object {
             properties: FxHashMap::default(),
             sym_properties: FxHashMap::default(),
             state: None,
-            call: None,
-            construct: None,
+            func: None,
         };
 
         obj.internal_slots
@@ -417,8 +407,7 @@ impl Object {
             properties: FxHashMap::default(),
             sym_properties: FxHashMap::default(),
             state: None,
-            call: None,
-            construct: None,
+            func: None,
         };
 
         obj.internal_slots
@@ -434,8 +423,7 @@ impl Object {
             properties: FxHashMap::default(),
             sym_properties: FxHashMap::default(),
             state: None,
-            call: None,
-            construct: None,
+            func: None,
         };
 
         obj.internal_slots
@@ -466,7 +454,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     pub fn is_callable(&self) -> bool {
-        self.call.is_some()
+        self.func.is_some()
     }
 
     /// It determines if Object is a function object with a [[Construct]] internal method.
@@ -476,7 +464,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     pub fn is_constructor(&self) -> bool {
-        self.construct.is_some()
+        self.func.is_some()
     }
 }
 
@@ -607,7 +595,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(has_own_property, named "hasOwnProperty", of prototype);
     make_builtin_fn!(to_string, named "toString", of prototype);
 
-    let object = make_constructor_fn!(make_object, make_object, global, prototype);
+    let object = make_constructor_fn(make_object, global, prototype);
 
     object.set_field_slice("length", Value::from(1));
     make_builtin_fn!(set_prototype_of, named "setPrototypeOf", with length 2, of object);

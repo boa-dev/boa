@@ -16,9 +16,10 @@
 #[cfg(test)]
 mod tests;
 
+use super::{function::make_constructor_fn, object::ObjectKind};
 use crate::{
     builtins::{
-        object::{internal_methods_trait::ObjectInternalMethods, Object, PROTOTYPE},
+        object::internal_methods_trait::ObjectInternalMethods,
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
@@ -57,14 +58,18 @@ fn num_to_exponential(n: f64) -> String {
     }
 }
 
-/// Create a new number `[[Construct]]`
+/// `[[Construct]]` - Creates a Number instance
+///
+/// `[[Call]]` - Creates a number primitive
 pub fn make_number(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => to_number(value),
         None => to_number(&Value::from(0)),
     };
-    this.set_internal_slot("NumberData", data);
-    Ok(this.clone())
+    this.set_kind(ObjectKind::Number);
+    this.set_internal_slot("NumberData", data.clone());
+
+    Ok(data)
 }
 
 /// `Number()` function.
@@ -360,7 +365,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(to_string, named "toString", with length 1, of prototype);
     make_builtin_fn!(value_of, named "valueOf", of prototype);
 
-    make_constructor_fn!(make_number, call_number, global, prototype)
+    make_constructor_fn(make_number, global, prototype)
 }
 
 /// Initialise the `Number` object on the global object.

@@ -60,6 +60,9 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Return true if it does and false if it does not.
     fn has_this_binding(&self) -> bool;
 
+    /// Return the `this` binding from the environment
+    fn get_this_binding(&self) -> Value;
+
     /// Determine if an Environment Record establishes a super method binding.
     /// Return true if it does and false if it does not.
     fn has_super_binding(&self) -> bool;

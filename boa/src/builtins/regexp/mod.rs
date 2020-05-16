@@ -13,9 +13,10 @@ use std::ops::Deref;
 
 use regex::Regex;
 
+use super::function::make_constructor_fn;
 use crate::{
     builtins::{
-        object::{InternalState, Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
+        object::{InternalState, ObjectKind},
         property::Property,
         value::{ResultValue, Value, ValueData},
     },
@@ -475,7 +476,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(get_sticky, named "sticky", of prototype);
     make_builtin_fn!(get_unicode, named "unicode", of prototype);
 
-    make_constructor_fn!(make_regexp, make_regexp, global, prototype)
+    make_constructor_fn(make_regexp, global, prototype)
 }
 
 /// Initialise the `RegExp` object on the global object.

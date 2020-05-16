@@ -12,16 +12,19 @@
 #[cfg(test)]
 mod tests;
 
+use super::function::make_constructor_fn;
 use crate::{
     builtins::{
-        object::{internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, PROTOTYPE},
+        object::{internal_methods_trait::ObjectInternalMethods, ObjectKind},
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
 use std::{borrow::Borrow, ops::Deref};
 
-/// Create a new boolean object - [[Construct]]
+/// `[[Construct]]` Create a new boolean object
+///
+/// `[[Call]]` Creates a new boolean primitive
 pub fn construct_boolean(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.set_kind(ObjectKind::Boolean);
 
@@ -32,13 +35,6 @@ pub fn construct_boolean(this: &mut Value, args: &[Value], _: &mut Interpreter) 
         this.set_internal_slot("BooleanData", to_boolean(&Value::from(false)));
     }
 
-    // no need to return `this` as its passed by reference
-    Ok(this.clone())
-}
-
-/// Return a boolean literal [[Call]]
-pub fn call_boolean(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    // Get the argument, if any
     match args.get(0) {
         Some(ref value) => Ok(to_boolean(value)),
         None => Ok(to_boolean(&Value::from(false))),
@@ -108,7 +104,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(to_string, named "toString", of prototype);
     make_builtin_fn!(value_of, named "valueOf", of prototype);
 
-    make_constructor_fn!(construct_boolean, call_boolean, global, prototype)
+    make_constructor_fn(construct_boolean, global, prototype)
 }
 
 /// Initialise the `Boolean` object on the global object.
