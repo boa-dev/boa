@@ -720,12 +720,18 @@ impl ValueData {
             Self::Null | Self::Symbol(_) | Self::Undefined => JSONValue::Null,
             Self::Boolean(b) => JSONValue::Bool(b),
             Self::Object(ref obj) => {
-                let new_obj = obj
+                let mut new_obj = Map::new();
+                obj
                     .borrow()
                     .properties
                     .iter()
-                    .map(|(k, _)| (k.clone(), self.get_field(k.as_str()).to_json()))
-                    .collect::<Map<String, JSONValue>>();
+                    .for_each(|(k, _)| {
+                        let key = k.clone();
+                        let value = self.get_field(k.to_string());
+                        if !value.is_undefined() {
+                            new_obj.insert(key, value.to_json());
+                        }
+                    });
                 JSONValue::Object(new_obj)
             }
             Self::String(ref str) => JSONValue::String(str.clone()),
