@@ -1578,7 +1578,7 @@
         <span class="comment">// Get Length</span>
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">native_func</span>.<span class="ident">params</span>.<span class="ident">len</span>();
         <span class="comment">// Set [[Call]] internal slot</span>
-        <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">native_func</span>);
+        <span class="ident">new_func</span>.<span class="ident">set_func</span>(<span class="ident">native_func</span>);
         <span class="comment">// Wrap Object in GC&#39;d Value</span>
         <span class="kw">let</span> <span class="ident">new_func_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
         <span class="comment">// Set length to parameters</span>

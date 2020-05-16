@@ -483,6 +483,7 @@
 <span id="483">483</span>
 <span id="484">484</span>
 <span id="485">485</span>
+<span id="486">486</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
@@ -499,9 +500,10 @@
 
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
 
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">InternalState</span>, <span class="ident">Object</span>, <span class="ident">ObjectInternalMethods</span>, <span class="ident">ObjectKind</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">InternalState</span>, <span class="ident">ObjectKind</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
@@ -961,7 +963,7 @@
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_sticky</span>, <span class="ident">named</span> <span class="string">&quot;sticky&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_unicode</span>, <span class="ident">named</span> <span class="string">&quot;unicode&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
 
-    <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_regexp</span>, <span class="ident">make_regexp</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
+    <span class="ident">make_constructor_fn</span>(<span class="ident">make_regexp</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
 }
 
 <span class="doccomment">/// Initialise the `RegExp` object on the global object.</span>

@@ -65,6 +65,7 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
+<span id="68">68</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Error` object.</span>
 <span class="doccomment">//!</span>
@@ -78,9 +79,10 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-error-objects</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error</span>
 
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>, <span class="ident">Object</span>, <span class="ident">ObjectKind</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::<span class="ident">ObjectKind</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
@@ -126,7 +128,7 @@
     <span class="ident">prototype</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;message&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>));
     <span class="ident">prototype</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;Error&quot;</span>));
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_error</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
+    <span class="ident">make_constructor_fn</span>(<span class="ident">make_error</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
 }
 
 <span class="doccomment">/// Initialise the global object with the `Error` object.</span>

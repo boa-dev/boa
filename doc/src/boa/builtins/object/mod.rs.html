@@ -610,18 +610,6 @@
 <span id="610">610</span>
 <span id="611">611</span>
 <span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -654,6 +642,7 @@
     <span class="ident">ops</span>::<span class="ident">Deref</span>,
 };
 
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">internal_state</span>::{<span class="ident">InternalState</span>, <span class="ident">InternalStateCell</span>};
 
@@ -671,7 +660,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Object</span> {
     <span class="doccomment">/// The type of the object.</span>
     <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">ObjectKind</span>,
-    <span class="doccomment">/// Intfiernal Slots</span>
+    <span class="doccomment">/// Internal Slots</span>
     <span class="kw">pub</span> <span class="ident">internal_slots</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Value</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Properties</span>
     <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Property</span><span class="op">&gt;</span>,
@@ -679,10 +668,8 @@
     <span class="kw">pub</span> <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Property</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Some rust object that stores internal state</span>
     <span class="kw">pub</span> <span class="ident">state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InternalStateCell</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// [[Call]]</span>
-    <span class="kw">pub</span> <span class="ident">call</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// [[Construct]]</span>
-    <span class="kw">pub</span> <span class="ident">construct</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Function</span>
+    <span class="kw">pub</span> <span class="ident">func</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Object</span> {
@@ -690,8 +677,7 @@
         <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{{&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\tkind: {}&quot;</span>, <span class="self">self</span>.<span class="ident">kind</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\tstate: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">state</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\tcall: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">call</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\tconstruct: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">construct</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\tfunc: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">func</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\tproperties: {{&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> (<span class="ident">key</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">iter</span>() {
             <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\t\t{}&quot;</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;
@@ -967,8 +953,7 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
-            <span class="ident">call</span>: <span class="prelude-val">None</span>,
-            <span class="ident">construct</span>: <span class="prelude-val">None</span>,
+            <span class="ident">func</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="ident">object</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;extensible&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">true</span>));
@@ -983,8 +968,7 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
-            <span class="ident">call</span>: <span class="prelude-val">None</span>,
-            <span class="ident">construct</span>: <span class="prelude-val">None</span>,
+            <span class="ident">func</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="ident">object</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;extensible&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">true</span>));
@@ -1007,14 +991,9 @@
         <span class="ident">obj</span>
     }
 
-    <span class="doccomment">/// Set [[Call]]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">Function</span>) {
-        <span class="self">self</span>.<span class="ident">call</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>);
-    }
-
-    <span class="doccomment">/// set [[Construct]]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_construct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">Function</span>) {
-        <span class="self">self</span>.<span class="ident">construct</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>);
+    <span class="doccomment">/// Set the function this object wraps</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_func</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">Function</span>) {
+        <span class="self">self</span>.<span class="ident">func</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>);
     }
 
     <span class="doccomment">/// Return a new Boolean object whose `[[BooleanData]]` internal slot is set to argument.</span>
@@ -1025,8 +1004,7 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
-            <span class="ident">call</span>: <span class="prelude-val">None</span>,
-            <span class="ident">construct</span>: <span class="prelude-val">None</span>,
+            <span class="ident">func</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="ident">obj</span>.<span class="ident">internal_slots</span>
@@ -1042,8 +1020,7 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
-            <span class="ident">call</span>: <span class="prelude-val">None</span>,
-            <span class="ident">construct</span>: <span class="prelude-val">None</span>,
+            <span class="ident">func</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="ident">obj</span>.<span class="ident">internal_slots</span>
@@ -1059,8 +1036,7 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">sym_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">state</span>: <span class="prelude-val">None</span>,
-            <span class="ident">call</span>: <span class="prelude-val">None</span>,
-            <span class="ident">construct</span>: <span class="prelude-val">None</span>,
+            <span class="ident">func</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="ident">obj</span>.<span class="ident">internal_slots</span>
@@ -1091,7 +1067,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">call</span>.<span class="ident">is_some</span>()
+        <span class="self">self</span>.<span class="ident">func</span>.<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// It determines if Object is a function object with a [[Construct]] internal method.</span>
@@ -1101,7 +1077,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isconstructor</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">construct</span>.<span class="ident">is_some</span>()
+        <span class="self">self</span>.<span class="ident">func</span>.<span class="ident">is_some</span>()
     }
 }
 
@@ -1232,7 +1208,7 @@
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">has_own_property</span>, <span class="ident">named</span> <span class="string">&quot;hasOwnProperty&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
 
-    <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_object</span>, <span class="ident">make_object</span>, <span class="ident">global</span>, <span class="ident">prototype</span>);
+    <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">make_constructor_fn</span>(<span class="ident">make_object</span>, <span class="ident">global</span>, <span class="ident">prototype</span>);
 
     <span class="ident">object</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">1</span>));
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">set_prototype_of</span>, <span class="ident">named</span> <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">2</span>, <span class="ident">of</span> <span class="ident">object</span>);

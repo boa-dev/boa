@@ -884,31 +884,6 @@
 <span id="884">884</span>
 <span id="885">885</span>
 <span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -930,7 +905,7 @@
     <span class="ident">realm</span>::<span class="ident">Realm</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::{
         <span class="ident">constant</span>::<span class="ident">Const</span>,
-        <span class="ident">node</span>::{<span class="ident">MethodDefinitionKind</span>, <span class="ident">Node</span>, <span class="ident">PropertyDefinition</span>},
+        <span class="ident">node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">MethodDefinitionKind</span>, <span class="ident">Node</span>, <span class="ident">PropertyDefinition</span>},
         <span class="ident">op</span>::{<span class="ident">AssignOp</span>, <span class="ident">BinOp</span>, <span class="ident">BitOp</span>, <span class="ident">CompOp</span>, <span class="ident">LogOp</span>, <span class="ident">NumOp</span>, <span class="ident">UnaryOp</span>},
     },
 };
@@ -1186,28 +1161,9 @@
             }
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
             <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">args</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// Todo: Function.prototype doesn&#39;t exist yet, so the prototype right now is the Object.prototype</span>
-                <span class="comment">// let proto = &amp;self</span>
-                <span class="comment">//     .realm</span>
-                <span class="comment">//     .environment</span>
-                <span class="comment">//     .get_global_object()</span>
-                <span class="comment">//     .expect(&quot;Could not get the global object&quot;)</span>
-                <span class="comment">//     .get_field_slice(&quot;Object&quot;)</span>
-                <span class="comment">//     .get_field_slice(&quot;Prototype&quot;);</span>
-
-                <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">FunctionObject</span>::<span class="ident">create_ordinary</span>(
-                    <span class="ident">args</span>.<span class="ident">clone</span>(), <span class="comment">// TODO: args shouldn&#39;t need to be a reference it should be passed by value</span>
-                    <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
-                    <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">clone</span>()),
-                    <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
-                );
-
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
-                <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">func</span>);
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
-                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
-
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_function</span>(<span class="ident">args</span>.<span class="ident">clone</span>(), <span class="ident">expr</span>, <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>);
                 <span class="comment">// Set the name and assign it in the current environment</span>
+
                 <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
                 <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
                     <span class="ident">name</span>.<span class="ident">clone</span>(),
@@ -1221,26 +1177,7 @@
             }
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
             <span class="ident">Node</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">args</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// Todo: Function.prototype doesn&#39;t exist yet, so the prototype right now is the Object.prototype</span>
-                <span class="comment">// let proto = &amp;self</span>
-                <span class="comment">//     .realm</span>
-                <span class="comment">//     .environment</span>
-                <span class="comment">//     .get_global_object()</span>
-                <span class="comment">//     .expect(&quot;Could not get the global object&quot;)</span>
-                <span class="comment">//     .get_field_slice(&quot;Object&quot;)</span>
-                <span class="comment">//     .get_field_slice(&quot;Prototype&quot;);</span>
-
-                <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">FunctionObject</span>::<span class="ident">create_ordinary</span>(
-                    <span class="ident">args</span>.<span class="ident">clone</span>(), <span class="comment">// TODO: args shouldn&#39;t need to be a reference it should be passed by value</span>
-                    <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
-                    <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">clone</span>()),
-                    <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
-                );
-
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
-                <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">func</span>);
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
-                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_function</span>(<span class="ident">args</span>.<span class="ident">clone</span>(), <span class="ident">expr</span>, <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>);
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">name</span> {
                     <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name</span>.<span class="ident">clone</span>()));
@@ -1249,28 +1186,7 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
             }
             <span class="ident">Node</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">args</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// Todo: Function.prototype doesn&#39;t exist yet, so the prototype right now is the Object.prototype</span>
-                <span class="comment">// let proto = &amp;self</span>
-                <span class="comment">//     .realm</span>
-                <span class="comment">//     .environment</span>
-                <span class="comment">//     .get_global_object()</span>
-                <span class="comment">//     .expect(&quot;Could not get the global object&quot;)</span>
-                <span class="comment">//     .get_field_slice(&quot;Object&quot;)</span>
-                <span class="comment">//     .get_field_slice(&quot;Prototype&quot;);</span>
-
-                <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">FunctionObject</span>::<span class="ident">create_ordinary</span>(
-                    <span class="ident">args</span>.<span class="ident">clone</span>(), <span class="comment">// TODO: args shouldn&#39;t need to be a reference it should be passed by value</span>
-                    <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
-                    <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">clone</span>()),
-                    <span class="ident">ThisMode</span>::<span class="ident">Lexical</span>,
-                );
-
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
-                <span class="ident">new_func</span>.<span class="ident">set_call</span>(<span class="ident">func</span>);
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
-                <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
-
-                <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">create_function</span>(<span class="ident">args</span>.<span class="ident">clone</span>(), <span class="ident">expr</span>, <span class="ident">ThisMode</span>::<span class="ident">Lexical</span>))
             }
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>), <span class="kw-2">ref</span> <span class="ident">a</span>, <span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
@@ -1425,7 +1341,7 @@
 
                 <span class="kw">match</span> <span class="kw-2">*</span>(<span class="ident">func_object</span>.<span class="ident">borrow</span>()).<span class="ident">deref</span>() {
                     <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">*</span><span class="ident">o</span>.<span class="ident">deref</span>().<span class="ident">clone</span>().<span class="ident">borrow_mut</span>())
-                        .<span class="ident">construct</span>
+                        .<span class="ident">func</span>
                         .<span class="ident">as_ref</span>()
                         .<span class="ident">unwrap</span>()
                         .<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">func_object</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">v_args</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this</span>),
@@ -1538,13 +1454,6 @@
                 }))
             }
             <span class="ident">Node</span>::<span class="ident">StatementList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                {
-                    <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>;
-                    <span class="ident">env</span>.<span class="ident">push</span>(<span class="ident">new_declarative_environment</span>(<span class="prelude-val">Some</span>(
-                        <span class="ident">env</span>.<span class="ident">get_current_environment_ref</span>().<span class="ident">clone</span>(),
-                    )));
-                }
-
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">null</span>();
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
@@ -1558,14 +1467,15 @@
                     }
                 }
 
-                <span class="comment">// pop the block env</span>
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">pop</span>();
-
                 <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
             }
             <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// TODO: for now we can do nothing but return the value as-is</span>
                 <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">node</span>)
+            }
+            <span class="ident">Node</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Will either return `this` binding or undefined</span>
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_this_binding</span>())
             }
             <span class="kw-2">ref</span> <span class="ident">i</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">i</span>),
         }
@@ -1578,6 +1488,46 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">realm</span>
     }
 
+    <span class="doccomment">/// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_function</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">args</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>,
+        <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>,
+        <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>
+            .<span class="ident">realm</span>
+            .<span class="ident">environment</span>
+            .<span class="ident">get_global_object</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;Could not get the global object&quot;</span>)
+            .<span class="ident">get_field_slice</span>(<span class="string">&quot;Function&quot;</span>)
+            .<span class="ident">get_field_slice</span>(<span class="string">&quot;Prototype&quot;</span>);
+
+        <span class="comment">// Every new function has a prototype property pre-made</span>
+        <span class="kw">let</span> <span class="ident">global_val</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>
+            .<span class="ident">realm</span>
+            .<span class="ident">environment</span>
+            .<span class="ident">get_global_object</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;Could not get the global object&quot;</span>);
+        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global_val</span>));
+
+        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">FunctionObject</span>::<span class="ident">create_ordinary</span>(
+            <span class="ident">args</span>.<span class="ident">clone</span>(),
+            <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
+            <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">expr</span>.<span class="ident">clone</span>()),
+            <span class="ident">this_mode</span>,
+        );
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
+        <span class="ident">new_func</span>.<span class="ident">set_func</span>(<span class="ident">func</span>);
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
+        <span class="ident">val</span>.<span class="ident">set_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">function_prototype</span>.<span class="ident">clone</span>());
+        <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">proto</span>);
+        <span class="ident">val</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">len</span>()));
+
+        <span class="ident">val</span>
+    }
+
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-call</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
@@ -1588,7 +1538,7 @@
         <span class="comment">// All functions should be objects, and eventually will be.</span>
         <span class="comment">// During this transition call will support both native functions and function objects</span>
         <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">f</span>).<span class="ident">deref</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">obj</span>).<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">call</span> {
+            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">obj</span>).<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">func</span> {
                 <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>.<span class="ident">clone</span>(), <span class="ident">arguments_list</span>, <span class="self">self</span>, <span class="ident">this</span>),
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Expected function&quot;</span>),
             },

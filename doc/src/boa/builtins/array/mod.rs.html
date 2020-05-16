@@ -990,6 +990,7 @@
 <span id="990">990</span>
 <span id="991">991</span>
 <span id="992">992</span>
+<span id="993">993</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1005,9 +1006,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectInternalMethods</span>, <span class="ident">ObjectKind</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">ObjectKind</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
@@ -1970,7 +1972,7 @@
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">slice</span>, <span class="ident">named</span> <span class="string">&quot;slice&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">2</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">some</span>, <span class="ident">named</span> <span class="string">&quot;some&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">2</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
 
-    <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_array</span>, <span class="ident">make_array</span>, <span class="ident">global</span>, <span class="ident">prototype</span>);
+    <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">make_constructor_fn</span>(<span class="ident">make_array</span>, <span class="ident">global</span>, <span class="ident">prototype</span>);
 
     <span class="comment">// Static Methods</span>
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">is_array</span>, <span class="ident">named</span> <span class="string">&quot;isArray&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">array</span>);

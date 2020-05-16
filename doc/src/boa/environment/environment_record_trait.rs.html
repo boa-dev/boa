@@ -80,6 +80,9 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Environment Records</span>
 <span class="doccomment">//!</span>
@@ -142,6 +145,9 @@
     <span class="doccomment">/// Determine if an Environment Record establishes a this binding.</span>
     <span class="doccomment">/// Return true if it does and false if it does not.</span>
     <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+
+    <span class="doccomment">/// Return the `this` binding from the environment</span>
+    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span>;
 
     <span class="doccomment">/// Determine if an Environment Record establishes a super method binding.</span>
     <span class="doccomment">/// Return true if it does and false if it does not.</span>

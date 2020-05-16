@@ -345,6 +345,11 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Lexical Environment</span>
 <span class="doccomment">//!</span>
@@ -461,6 +466,11 @@
             .<span class="ident">get_global_object</span>()
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">environment_stack</span>.<span class="ident">back</span>().<span class="ident">expect</span>(<span class="string">&quot;&quot;</span>).<span class="ident">borrow</span>();
+        <span class="ident">env</span>.<span class="ident">get_this_binding</span>()
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">deletion</span>: <span class="ident">bool</span>, <span class="ident">scope</span>: <span class="ident">VariableScope</span>) {
         <span class="kw">match</span> <span class="ident">scope</span> {
             <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
@@ -574,18 +584,18 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_function_environment</span>(
     <span class="ident">f</span>: <span class="ident">Value</span>,
-    <span class="ident">new_target</span>: <span class="ident">Value</span>,
+    <span class="ident">this</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
     <span class="ident">outer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
+    <span class="ident">binding_status</span>: <span class="ident">BindingStatus</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">new_target</span>.<span class="ident">is_object</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>());
     <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FunctionEnvironmentRecord</span> {
         <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">function</span>: <span class="ident">f</span>,
-        <span class="ident">this_binding_status</span>: <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>, <span class="comment">// hardcoding to unitialized for now until short functions are properly supported</span>
+        <span class="ident">this_binding_status</span>: <span class="ident">binding_status</span>,
         <span class="ident">home_object</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
-        <span class="ident">new_target</span>,
+        <span class="ident">new_target</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
         <span class="ident">outer_env</span>: <span class="ident">outer</span>, <span class="comment">// this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
-        <span class="ident">this_value</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="comment">// TODO: this_value should start as an Option as its not always there to begin with</span>
+        <span class="ident">this_value</span>: <span class="ident">this</span>.<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>),
     })))
 }
 

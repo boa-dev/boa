@@ -100,6 +100,7 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
@@ -121,6 +122,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">object</span>::{
@@ -195,7 +197,7 @@
     <span class="comment">// Create prototype object</span>
     <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">call_symbol</span>, <span class="ident">call_symbol</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
+    <span class="ident">make_constructor_fn</span>(<span class="ident">call_symbol</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
 }
 
 <span class="doccomment">/// Initialise the `Symbol` object on the global object.</span>

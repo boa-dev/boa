@@ -322,21 +322,6 @@
             }
         }
     }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
-            <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// TODO: change this when error handling comes into play</span>
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;There is no this for a lexical function record&quot;</span>);
-            }
-            <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// TODO: change this when error handling comes into play</span>
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Reference Error: Unitialised binding for this function&quot;</span>);
-            }
-
-            <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">this_value</span>.<span class="ident">clone</span>(),
-        }
-    }
 }
 
 <span class="kw">impl</span> <span class="ident">EnvironmentRecordTrait</span> <span class="kw">for</span> <span class="ident">FunctionEnvironmentRecord</span> {
@@ -361,6 +346,21 @@
                 <span class="ident">strict</span>: <span class="bool-val">false</span>,
             },
         );
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
+            <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// TODO: change this when error handling comes into play</span>
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;There is no this for a lexical function record&quot;</span>);
+            }
+            <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// TODO: change this when error handling comes into play</span>
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Reference Error: Unitialised binding for this function&quot;</span>);
+            }
+
+            <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">this_value</span>.<span class="ident">clone</span>(),
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {

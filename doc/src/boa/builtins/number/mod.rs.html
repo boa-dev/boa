@@ -412,6 +412,11 @@
 <span id="412">412</span>
 <span id="413">413</span>
 <span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -431,9 +436,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>, <span class="ident">object</span>::<span class="ident">ObjectKind</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>, <span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
@@ -472,14 +478,18 @@
     }
 }
 
-<span class="doccomment">/// Create a new number `[[Construct]]`</span>
+<span class="doccomment">/// `[[Construct]]` - Creates a Number instance</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `[[Call]]` - Creates a number primitive</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_number</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="ident">value</span>),
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)),
     };
-    <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">data</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
+    <span class="ident">this</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Number</span>);
+    <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">data</span>.<span class="ident">clone</span>());
+
+    <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
 }
 
 <span class="doccomment">/// `Number()` function.</span>
@@ -775,7 +785,7 @@
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
     <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">value_of</span>, <span class="ident">named</span> <span class="string">&quot;valueOf&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
 
-    <span class="macro">make_constructor_fn</span><span class="macro">!</span>(<span class="ident">make_number</span>, <span class="ident">call_number</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
+    <span class="ident">make_constructor_fn</span>(<span class="ident">make_number</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
 }
 
 <span class="doccomment">/// Initialise the `Number` object on the global object.</span>
