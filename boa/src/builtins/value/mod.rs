@@ -162,23 +162,23 @@ impl Display for Value {
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum ValueData {
-    /// `null` - A null value, for when a value doesn't exist
+    /// `null` - A null value, for when a value doesn't exist.
     Null,
-    /// `undefined` - An undefined value, for when a field or index doesn't exist
+    /// `undefined` - An undefined value, for when a field or index doesn't exist.
     Undefined,
-    /// `boolean` - A `true` / `false` value, for if a certain criteria is met
+    /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
-    /// `String` - A UTF-8 string, such as `"Hello, world"`
+    /// `String` - A UTF-8 string, such as `"Hello, world"`.
     String(String),
     /// `Number` - A 64-bit floating point number, such as `3.1415`
     Rational(f64),
-    /// `Number` - A 32-bit integer, such as `42`
+    /// `Number` - A 32-bit integer, such as `42`.
     Integer(i32),
-    /// ---
+    /// `BigInt` - holds any arbitrary large signed integer.
     BigInt(BigInt),
-    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
+    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
     Object(Box<GcCell<Object>>),
-    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots
+    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots.
     Symbol(Box<GcCell<Object>>),
 }
 

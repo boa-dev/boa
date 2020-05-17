@@ -132,9 +132,7 @@ pub fn string_to_bigint(string: &str) -> Option<BigInt> {
 pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
     if strict {
         // Do both Values point to the same underlying valueData?
-        let x_ptr = Gc::into_raw(x.0.clone());
-        let y_ptr = Gc::into_raw(y.0.clone());
-        return x_ptr == y_ptr;
+        return std::ptr::eq(x.data(), y.data());
     }
 
     if x.get_type() != y.get_type() {

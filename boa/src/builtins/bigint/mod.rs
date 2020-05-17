@@ -24,9 +24,16 @@ use crate::{
 #[cfg(test)]
 mod tests;
 
-/// `BigInt()` function.
+/// `BigInt()`
 ///
-/// More Information https://tc39.es/ecma262/#sec-number-constructor-number-value
+/// The `BigInt()` constructor is used to create BigInt objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
 pub fn make_bigint(_this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => {
