@@ -728,7 +728,7 @@ impl ValueData {
                     .for_each(|(k, _)| {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
-                        if !value.is_undefined() {
+                        if !value.is_undefined() && !value.is_function() {
                             new_obj.insert(key, value.to_json());
                         }
                     });
