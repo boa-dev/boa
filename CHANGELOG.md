@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [# 0.8.0 (master)](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
+# [# 0.8.0 (master)](https://github.com/jasonwilliams/boa/compare/v0.7.0...HEAD)
 
 Feature Enhancements:
 
@@ -34,6 +34,8 @@ Feature Enhancements:
   Implement unary operator execution (@akryvomaz)
 - [FEATURE #379](https://github.com/jasonwilliams/boa/issues/379):
   Automatic auditing of Boa (@n14little)
+- [FEATURE #264](https://github.com/jasonwilliams/boa/issues/264):
+  Implement this (@jasonwilliams)
 
 Bug fixes:
 
@@ -50,7 +52,7 @@ Bug fixes:
 - [BUG #266](https://github.com/jasonwilliams/boa/issues/266):
   Panic assigning named function to variable (@Razican)
 
-# [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
+# [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...v0.7.0)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
 This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.  
