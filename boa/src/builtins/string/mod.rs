@@ -58,7 +58,7 @@ pub fn make_string(this: &mut Value, args: &[Value], _: &mut Interpreter) -> Res
         return Ok(Value::from(String::new()));
     }
 
-    Ok(Value::from(arg))
+    Ok(Value::from(arg.to_string()))
 }
 
 /// Get the string value to a primitive string
