@@ -37,6 +37,21 @@ fn check_string_constructor_is_function() {
 // }
 
 #[test]
+fn new_string_has_length() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        let a = new String("1234");
+        a
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let empty = String::from("4");
+    assert_eq!(forward(&mut engine, "a.length"), empty);
+}
+
+#[test]
 fn concat() {
     let realm = Realm::create();
     let mut engine = Executor::new(realm);
