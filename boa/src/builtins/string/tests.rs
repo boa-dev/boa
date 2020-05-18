@@ -45,10 +45,8 @@ fn new_string_has_length() {
         a
         "#;
 
-    eprintln!("{}", forward(&mut engine, init));
-
-    let empty = String::from("4");
-    assert_eq!(forward(&mut engine, "a.length"), empty);
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "a.length"), "4");
 }
 
 #[test]
@@ -60,10 +58,8 @@ fn new_utf8_string_has_length() {
         a
         "#;
 
-    eprintln!("{}", forward(&mut engine, init));
-
-    let empty = String::from("2");
-    assert_eq!(forward(&mut engine, "a.length"), empty);
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "a.length"), "2");
 }
 
 #[test]
