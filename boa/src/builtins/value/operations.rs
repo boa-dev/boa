@@ -109,7 +109,7 @@ impl Value {
 
 /// This function takes a string and conversts it to BigInt type.
 ///
-/// If the result is NaN than None is returned.
+/// If the result is `NaN` than `None` is returned.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
