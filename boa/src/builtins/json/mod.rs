@@ -100,7 +100,15 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
                             let mut this_arg = object.clone();
                             object_to_return.set_property(
                                 String::from(key),
-                                Property::default().value(interpreter.call(arg, &mut this_arg, &[Value::string(key), Value::from(value)]).unwrap()),
+                                Property::default().value(
+                                    interpreter
+                                        .call(
+                                            arg,
+                                            &mut this_arg,
+                                            &[Value::string(key), Value::from(value)],
+                                        )
+                                        .unwrap(),
+                                ),
                             );
                         }
                     }

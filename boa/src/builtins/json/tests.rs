@@ -22,7 +22,10 @@ fn json_stringify_remove_undefined_values_from_objects() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward(&mut engine, r#"JSON.stringify({ aaa: undefined, bbb: 'ccc' })"#);
+    let actual = forward(
+        &mut engine,
+        r#"JSON.stringify({ aaa: undefined, bbb: 'ccc' })"#,
+    );
     let expected = r#"{"bbb":"ccc"}"#;
 
     assert_eq!(actual, expected);
@@ -33,7 +36,10 @@ fn json_stringify_remove_function_values_from_objects() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward(&mut engine, r#"JSON.stringify({ aaa: () => {}, bbb: 'ccc' })"#);
+    let actual = forward(
+        &mut engine,
+        r#"JSON.stringify({ aaa: () => {}, bbb: 'ccc' })"#,
+    );
     let expected = r#"{"bbb":"ccc"}"#;
 
     assert_eq!(actual, expected);
@@ -54,7 +60,7 @@ fn json_stringify_replacer_array_strings() {
 #[test]
 fn json_stringify_replacer_array_numbers() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let actual = forward(
         &mut engine,
         r#"JSON.stringify({ 0: 'aaa', 1: 'bbb', 2: 'ccc'}, [1, 2])"#,
@@ -66,7 +72,7 @@ fn json_stringify_replacer_array_numbers() {
 #[test]
 fn json_stringify_replacer_function() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let actual = forward(
         &mut engine,
         r#"JSON.stringify({ aaa: 1, bbb: 2}, (key, value) => {
