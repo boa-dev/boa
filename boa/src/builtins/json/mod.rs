@@ -13,6 +13,7 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
+use super::value::ValueData;
 use crate::builtins::value::{ResultValue, Value};
 use crate::exec::{Executor, Interpreter};
 use crate::syntax::ast::node::Node;
@@ -48,8 +49,12 @@ pub fn parse(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) ->
                 let result = match args.get(1) {
                     Some(callback) => {
                         if callback.is_function() {
-                            println!("yay! we have a function");
-                            Ok(j)
+                            let mut holder = Value::new_object(None);
+                            holder.set_field(Value::from(""), j.clone());
+                            println!("Value is {}", holder.get_field(Value::from("")));
+                            //TODO abhi: check if this arg exists just like `every` in the array module
+                            //let mut this_arg = args[2].clone();
+                            walk(callback, interpreter, &mut holder, Value::from(""))
                         } else {
                             Ok(j)
                         }
@@ -60,6 +65,7 @@ pub fn parse(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) ->
             } else {
                 Ok(j)
             }
+            //Ok(j)
             /*    let callback = args.get(1);
                 let callback_result = interpreter
                     .call(callback, this: &mut Value, arguments_list: &[Value])
@@ -77,7 +83,36 @@ pub fn parse(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) ->
     }
 }
 
-fn walk(holder: &mut Value) {}
+fn walk(
+    callback: &Value,
+    interpreter: &mut Interpreter,
+    holder: &mut Value,
+    key: Value,
+) -> ResultValue {
+    let mut value = holder.get_field(key.clone());
+
+    if value.get_type() == "object" {
+        let obj = value.as_object().unwrap().clone();
+        for (key, _val) in obj.properties.iter() {
+            let v = walk(callback, interpreter, &mut value, Value::from(key.as_str()));
+            match v {
+                Ok(v) => {
+                    println!("Ok {}", v);
+                    if !v.is_undefined() {
+                        value.set_field(Value::from(key.as_str()), v);
+                    } else {
+                        value.remove_property(key.as_str());
+                    }
+                }
+                Err(v) => {
+                    println!("Err {}", v);
+                }
+            }
+        }
+    }
+    let arguments = [key, value];
+    interpreter.call(callback, holder, &arguments)
+}
 
 /// `JSON.stringify( value[, replacer[, space]] )`
 ///
