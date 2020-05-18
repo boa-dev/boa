@@ -46,6 +46,20 @@ fn json_stringify_remove_function_values_from_objects() {
 }
 
 #[test]
+fn json_stringify_remove_symbols_from_objects() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+
+    let actual = forward(
+        &mut engine,
+        r#"JSON.stringify({ aaa: Symbol(), bbb: 'ccc' })"#,
+    );
+    let expected = r#"{"bbb":"ccc"}"#;
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn json_stringify_replacer_array_strings() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
