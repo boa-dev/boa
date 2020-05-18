@@ -52,6 +52,21 @@ fn new_string_has_length() {
 }
 
 #[test]
+fn new_utf8_string_has_length() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        let a = new String("中文");
+        a
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let empty = String::from("2");
+    assert_eq!(forward(&mut engine, "a.length"), empty);
+}
+
+#[test]
 fn concat() {
     let realm = Realm::create();
     let mut engine = Executor::new(realm);
