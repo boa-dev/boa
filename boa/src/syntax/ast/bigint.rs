@@ -239,5 +239,8 @@ impl std::ops::DerefMut for BigInt {
 
 impl Finalize for BigInt {}
 unsafe impl Trace for BigInt {
+    // BigInt type implements an empty trace becasue the inner structure 
+    // `num_bigint::BigInt` does not implement `Trace` trait.
+    // If it did this would be unsound.
     unsafe_empty_trace!();
 }

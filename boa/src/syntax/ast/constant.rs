@@ -61,10 +61,19 @@ pub enum Const {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-bigint-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
     Int(i32),
 
+    /// BigInt provides a way to represent whole numbers larger than the largest number JavaScript
+    /// can reliably represent with the `Number` primitive.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-boolean-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
     BigInt(BigInt),
 
     /// The Boolean type has two literal values: `true` and `false`.
