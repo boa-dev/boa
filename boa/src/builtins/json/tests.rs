@@ -142,3 +142,14 @@ fn json_stringify_array_converts_function_to_null() {
 
     assert_eq!(actual, expected);
 }
+
+#[test]
+#[ignore]
+fn json_stringify_array_converts_symbol_to_null() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let actual = forward(&mut engine, r#"JSON.stringify([Symbol()])"#);
+    let expected = forward(&mut engine, r#"'[null]'"#);
+
+    assert_eq!(actual, expected);
+}
