@@ -884,6 +884,23 @@
 <span id="884">884</span>
 <span id="885">885</span>
 <span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -961,6 +978,7 @@
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">rational</span>(<span class="ident">num</span>)),
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">num</span>)),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())),
             <span class="comment">// we can&#39;t move String from Const into value, because const is a garbage collected value</span>
             <span class="comment">// Which means Drop() get&#39;s called on Const, but str will be gone at that point.</span>
             <span class="comment">// Do Const values need to be garbage collected? We no longer need them once we&#39;ve generated Values</span>
@@ -1203,7 +1221,7 @@
             <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>(<span class="ident">a</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
-                    <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="ident">v_a</span>.<span class="ident">to_number</span>()),
+                    <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">-</span><span class="ident">v_a</span>,
                     <span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>()),
                     <span class="ident">UnaryOp</span>::<span class="ident">IncrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">clone</span>();
@@ -1451,6 +1469,7 @@
                             <span class="string">&quot;object&quot;</span>
                         }
                     }
+                    <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;bigint&quot;</span>,
                 }))
             }
             <span class="ident">Node</span>::<span class="ident">StatementList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1603,7 +1622,9 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">input</span>.<span class="ident">clone</span>(),
         }
     }
-    <span class="doccomment">/// to_string() converts a value into a String</span>
+
+    <span class="doccomment">/// Converts a value into a `String`.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-tostring</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
@@ -1614,6 +1635,7 @@
             <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">to_string</span>()),
             <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">to_string</span>()),
             <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">bigint</span>.<span class="ident">to_string</span>()),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="string">&quot;string&quot;</span>));
                 <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">prim_value</span>)
@@ -1687,6 +1709,16 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">string_obj</span>)
             }
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">clone</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">realm</span>
+                    .<span class="ident">environment</span>
+                    .<span class="ident">get_binding_value</span>(<span class="string">&quot;BigInt&quot;</span>)
+                    .<span class="ident">get_field_slice</span>(<span class="ident">PROTOTYPE</span>);
+                <span class="kw">let</span> <span class="ident">bigint_obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectKind</span>::<span class="ident">BigInt</span>);
+                <span class="ident">bigint_obj</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;BigIntData&quot;</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
+                <span class="prelude-val">Ok</span>(<span class="ident">bigint_obj</span>)
+            }
         }
     }
 
@@ -1698,6 +1730,7 @@
             <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>.<span class="ident">to_string</span>(),
             <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>.<span class="ident">to_string</span>(),
             <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">clone</span>(),
+            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bigint</span>.<span class="ident">to_string</span>(),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="string">&quot;string&quot;</span>));
                 <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">prim_value</span>).<span class="ident">to_string</span>()
@@ -1719,6 +1752,7 @@
             <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>,
             <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">num</span>),
             <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bigint</span>.<span class="ident">to_f64</span>(),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="string">&quot;number&quot;</span>));
                 <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">prim_value</span>)
