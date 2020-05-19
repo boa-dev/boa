@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1589635737245,
+  "lastUpdate": 1589874741493,
   "repoUrl": "https://github.com/jasonwilliams/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -7047,6 +7047,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.514,
             "range": "+/- 0.361",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tyler@givestack.com",
+            "name": "Tyler Morten",
+            "username": "tylermorten"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d84d9cbe2e1d60c85ba7c6f01b2c1eaf5b0e6e7c",
+          "message": "Fix for 0 length new String (#404)\n\n* Fix for 0 length field when constructing a new String.\r\n\r\n* String.length uses character count not byte count. Also, corresponding test\r\n\r\n* Made tests more succinct per suggestion.",
+          "timestamp": "2020-05-19T09:44:20+02:00",
+          "tree_id": "7af8e7ad1413afe19476d0550ae390c7989d95d7",
+          "url": "https://github.com/jasonwilliams/boa/commit/d84d9cbe2e1d60c85ba7c6f01b2c1eaf5b0e6e7c"
+        },
+        "date": 1589874734378,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 368.93,
+            "range": "+/- 6.330",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 395.97,
+            "range": "+/- 4.920",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 388.77,
+            "range": "+/- 8.490",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.5413,
+            "range": "+/- 0.033",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 1.7987,
+            "range": "+/- 0.028",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 910.39,
+            "range": "+/- 11.890",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.9606,
+            "range": "+/- 0.073",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.7025,
+            "range": "+/- 0.081",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.1611,
+            "range": "+/- 0.030",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13.307,
+            "range": "+/- 0.172",
             "unit": "us"
           }
         ]
