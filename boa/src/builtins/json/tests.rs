@@ -50,7 +50,7 @@ fn json_stringify_remove_function_values_from_objects() {
 // there is a bug for setting a symbol as a field's value
 fn json_stringify_remove_symbols_from_objects() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     let actual = forward(
         &mut engine,
@@ -100,5 +100,45 @@ fn json_stringify_replacer_function() {
         })"#,
     );
     let expected = forward(&mut engine, r#"'{"bbb":2}'"#);
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_arrays() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let actual = forward(&mut engine, r#"JSON.stringify(['a', 'b'])"#);
+    let expected = forward(&mut engine, r#"'["a","b"]'"#);
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_object_array() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let actual = forward(&mut engine, r#"JSON.stringify([{a: 'b'}, {b: 'c'}])"#);
+    let expected = forward(&mut engine, r#"'[{"a":"b"},{"b":"c"}]'"#);
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_array_converts_undefined_to_null() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let actual = forward(&mut engine, r#"JSON.stringify([undefined])"#);
+    let expected = forward(&mut engine, r#"'[null]'"#);
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_array_converts_function_to_null() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let actual = forward(&mut engine, r#"JSON.stringify([() => {}])"#);
+    let expected = forward(&mut engine, r#"'[null]'"#);
+
     assert_eq!(actual, expected);
 }
