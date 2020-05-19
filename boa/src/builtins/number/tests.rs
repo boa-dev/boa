@@ -426,3 +426,14 @@ fn same_value_zero() {
     assert_eq!(super::same_value_zero(0.0, f64::NAN), false);
     assert_eq!(super::equals(1.0, 1.0), true);
 }
+
+#[test]
+fn from_bigint() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+
+    assert_eq!(&forward(&mut engine, "Number(0n)"), "0",);
+    assert_eq!(&forward(&mut engine, "Number(100000n)"), "100000",);
+    assert_eq!(&forward(&mut engine, "Number(100000n)"), "100000",);
+    assert_eq!(&forward(&mut engine, "Number(1n << 1240n)"), "Infinity",);
+}

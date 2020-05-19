@@ -85,6 +85,9 @@ impl TokenParser for PrimaryExpression {
             TokenKind::StringLiteral(s) => Ok(Node::const_node(s)),
             TokenKind::NumericLiteral(NumericLiteral::Integer(num)) => Ok(Node::const_node(*num)),
             TokenKind::NumericLiteral(NumericLiteral::Rational(num)) => Ok(Node::const_node(*num)),
+            TokenKind::NumericLiteral(NumericLiteral::BigInt(num)) => {
+                Ok(Node::const_node(num.clone()))
+            }
             TokenKind::RegularExpressionLiteral(body, flags) => Ok(Node::new(Node::call(
                 Node::local("RegExp"),
                 vec![Node::const_node(body), Node::const_node(flags)],

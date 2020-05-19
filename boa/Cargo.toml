@@ -17,6 +17,7 @@ rand = "0.7.3"
 num-traits = "0.2.11"
 regex = "1.3.7"
 rustc-hash = "1.1.0"
+num-bigint = {version = "0.2.6", features = ["serde"]}
 
 # Optional Dependencies
 serde = { version = "1.0.106", features = ["derive"], optional = true }

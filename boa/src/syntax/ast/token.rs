@@ -5,7 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
-use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
+use crate::syntax::ast::{bigint::BigInt, keyword::Keyword, pos::Position, punc::Punctuator};
 use std::fmt::{Debug, Display, Formatter, Result};
 
 #[cfg(feature = "serde")]
@@ -58,14 +58,16 @@ impl Debug for VecToken {
 
 /// Represents the type differenct types of numeric literals.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum NumericLiteral {
     /// A floating point number
     Rational(f64),
 
     /// An integer
     Integer(i32),
-    // TODO: Add BigInt
+
+    // A BigInt
+    BigInt(BigInt),
 }
 
 impl From<f64> for NumericLiteral {
@@ -77,6 +79,12 @@ impl From<f64> for NumericLiteral {
 impl From<i32> for NumericLiteral {
     fn from(n: i32) -> Self {
         Self::Integer(n)
+    }
+}
+
+impl From<BigInt> for NumericLiteral {
+    fn from(n: BigInt) -> Self {
+        Self::BigInt(n)
     }
 }
 
@@ -207,6 +215,7 @@ impl Display for TokenKind {
             Self::NullLiteral => write!(f, "null"),
             Self::NumericLiteral(NumericLiteral::Rational(num)) => write!(f, "{}", num),
             Self::NumericLiteral(NumericLiteral::Integer(num)) => write!(f, "{}", num),
+            Self::NumericLiteral(NumericLiteral::BigInt(ref num)) => write!(f, "{}n", num),
             Self::Punctuator(ref punc) => write!(f, "{}", punc),
             Self::StringLiteral(ref lit) => write!(f, "{}", lit),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),

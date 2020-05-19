@@ -6,6 +6,7 @@
 #[cfg(test)]
 mod tests;
 
+use crate::syntax::ast::bigint::BigInt;
 use crate::syntax::ast::{
     punc::Punctuator,
     token::{NumericLiteral, Token, TokenKind},
@@ -395,10 +396,10 @@ impl<'a> Lexer<'a> {
         };
 
         let num = match kind {
-                NumericKind::BigInt(_) => {
-                    // TODO: Implement bigint.
-                    // NOTE: implementation goes here.
-                    unimplemented!("BigInt");
+                NumericKind::BigInt(base) => {
+                    NumericLiteral::BigInt(
+                        BigInt::from_str_radix(&buf, base).expect("Could not conver to BigInt")
+                        )
                 }
                 NumericKind::Rational /* base: 10 */ => {
                     NumericLiteral::Rational(

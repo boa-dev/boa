@@ -83,14 +83,12 @@ fn abstract_equality_comparison() {
     );
     assert_eq!(forward(&mut engine, "0 == null"), "false");
 
-    // https://github.com/jasonwilliams/boa/issues/357
     assert_eq!(forward(&mut engine, "0 == '-0'"), "true");
     assert_eq!(forward(&mut engine, "0 == '+0'"), "true");
     assert_eq!(forward(&mut engine, "'+0' == 0"), "true");
     assert_eq!(forward(&mut engine, "'-0' == 0"), "true");
 
-    // https://github.com/jasonwilliams/boa/issues/393
-    // assert_eq!(forward(&mut engine, "0 == NaN"), "false");
-    // assert_eq!(forward(&mut engine, "'foo' == NaN"), "false");
-    // assert_eq!(forward(&mut engine, "NaN == NaN"), "false");
+    assert_eq!(forward(&mut engine, "0 == NaN"), "false");
+    assert_eq!(forward(&mut engine, "'foo' == NaN"), "false");
+    assert_eq!(forward(&mut engine, "NaN == NaN"), "false");
 }

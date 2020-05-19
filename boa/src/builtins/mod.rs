@@ -22,6 +22,7 @@ macro_rules! make_builtin_fn {
 }
 
 pub mod array;
+pub mod bigint;
 pub mod boolean;
 pub mod console;
 pub mod error;
@@ -42,6 +43,7 @@ use value::Value;
 #[inline]
 pub fn init(global: &Value) {
     array::init(global);
+    bigint::init(global);
     boolean::init(global);
     json::init(global);
     math::init(global);
