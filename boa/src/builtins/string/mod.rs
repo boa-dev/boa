@@ -35,13 +35,16 @@ use std::{
 pub fn make_string(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
     // to its Javascript Identifier (global constructor method name)
+    let s = args
+        .get(0)
+        .expect("failed to get StringData for make_string()")
+        .clone();
+    let length_str = s.to_string().chars().count();
+
+    this.set_field_slice("length", Value::from(length_str as i32));
+
     this.set_kind(ObjectKind::String);
-    this.set_internal_slot(
-        "StringData",
-        args.get(0)
-            .expect("failed to get StringData for make_string()")
-            .clone(),
-    );
+    this.set_internal_slot("StringData", s);
 
     let arg = match args.get(0) {
         Some(v) => v.clone(),

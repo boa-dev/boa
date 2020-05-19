@@ -37,6 +37,32 @@ fn check_string_constructor_is_function() {
 // }
 
 #[test]
+fn new_string_has_length() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        let a = new String("1234");
+        a
+        "#;
+
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "a.length"), "4");
+}
+
+#[test]
+fn new_utf8_string_has_length() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    let init = r#"
+        let a = new String("中文");
+        a
+        "#;
+
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "a.length"), "2");
+}
+
+#[test]
 fn concat() {
     let realm = Realm::create();
     let mut engine = Executor::new(realm);
