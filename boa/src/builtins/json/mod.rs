@@ -82,13 +82,15 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
             let borrowed_derefed_replacer = derefed_obj.borrow();
             if borrowed_derefed_replacer.kind == ObjectKind::Array {
                 for (key, value) in borrowed_derefed_replacer.properties.iter() {
+                    if key == "length" {
+                        continue;
+                    }
+
                     if let Some(Value(x)) = &value.value {
-                        if key != "length" {
-                            object_to_return.set_property(
-                                x.to_string(),
-                                object.get_property(&x.to_string()).unwrap(),
-                            );
-                        }
+                        object_to_return.set_property(
+                            x.to_string(),
+                            object.get_property(&x.to_string()).unwrap(),
+                        );
                     }
                 }
             } else if borrowed_derefed_replacer.kind == ObjectKind::Function {
