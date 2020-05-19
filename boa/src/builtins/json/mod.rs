@@ -78,43 +78,47 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
     let object_to_return = Value::new_object(None);
     if let Some(arg) = args.get(1) {
         if let ValueData::Object(ref obj) = arg.data() {
-            let derefed_obj = (*obj).deref();
-            let borrowed_derefed_replacer = derefed_obj.borrow();
-            if borrowed_derefed_replacer.kind == ObjectKind::Array {
-                for (key, value) in borrowed_derefed_replacer.properties.iter() {
-                    if key == "length" {
-                        continue;
-                    }
+            let replacer = (*obj).deref().borrow();
+            match replacer.kind {
+                ObjectKind::Array => {
+                    for (key, value) in replacer.properties.iter() {
+                        if key == "length" {
+                            continue;
+                        }
 
-                    if let Some(Value(x)) = &value.value {
-                        object_to_return.set_property(
-                            x.to_string(),
-                            object.get_property(&x.to_string()).unwrap(),
-                        );
-                    }
-                }
-            } else if borrowed_derefed_replacer.kind == ObjectKind::Function {
-                if let ValueData::Object(ref obj) = object.data() {
-                    let derefed_obj = (*obj).deref();
-                    let borrowed_deref_obj = derefed_obj.borrow();
-                    for (key, val) in borrowed_deref_obj.properties.iter() {
-                        if let Some(value) = &val.value {
-                            let mut this_arg = object.clone();
+                        if let Some(Value(x)) = &value.value {
                             object_to_return.set_property(
-                                String::from(key),
-                                Property::default().value(
-                                    interpreter
-                                        .call(
-                                            arg,
-                                            &mut this_arg,
-                                            &[Value::string(key), Value::from(value)],
-                                        )
-                                        .unwrap(),
-                                ),
+                                x.to_string(),
+                                object
+                                    .get_property(&x.to_string())
+                                    .expect("failed to get property from object"),
                             );
                         }
                     }
                 }
+                ObjectKind::Function => {
+                    if let ValueData::Object(ref obj) = object.data() {
+                        let object_to_stringify = (*obj).deref().borrow();
+                        for (key, val) in object_to_stringify.properties.iter() {
+                            if let Some(value) = &val.value {
+                                let mut this_arg = object.clone();
+                                object_to_return.set_property(
+                                    String::from(key),
+                                    Property::default().value(
+                                        interpreter
+                                            .call(
+                                                arg,
+                                                &mut this_arg,
+                                                &[Value::string(key), Value::from(value)],
+                                            )
+                                            .expect("failed to get returned value from replacer function"),
+                                    ),
+                                );
+                            }
+                        }
+                    }
+                }
+                _ => panic!("JSON.stringify replacer can only be an array or function"),
             }
             return Ok(Value::from(object_to_return.to_json().to_string()));
         }
