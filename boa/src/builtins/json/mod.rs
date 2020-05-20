@@ -84,28 +84,30 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
         .as_object()
         .expect("JSON.stringify replacer was an object");
     if replacer_as_object.is_callable() {
-        let object_to_return = Value::new_object(None);
-        if let ValueData::Object(ref obj) = object.data() {
-            let object_to_stringify = (*obj).deref().borrow();
-            for (key, val) in object_to_stringify.properties.iter() {
-                if let Some(value) = &val.value {
-                    let mut this_arg = object.clone();
-                    object_to_return.set_property(
-                        String::from(key),
-                        Property::default().value(
-                            interpreter
-                                .call(
-                                    replacer,
-                                    &mut this_arg,
-                                    &[Value::string(key), Value::from(value)],
-                                )
-                                .expect("failed to get returned value from replacer function"),
-                        ),
-                    );
+        object
+            .as_object()
+            .map(|obj| {
+                let object_to_return = Value::new_object(None);
+                for (key, val) in obj.properties.iter() {
+                    if let Some(value) = &val.value {
+                        let mut this_arg = object.clone();
+                        object_to_return.set_property(
+                            String::from(key),
+                            Property::default().value(
+                                interpreter
+                                    .call(
+                                        replacer,
+                                        &mut this_arg,
+                                        &[Value::string(key), Value::from(value)],
+                                    )
+                                    .expect("failed to get returned value from replacer function"),
+                            ),
+                        );
+                    }
                 }
-            }
-        }
-        Ok(Value::from(object_to_return.to_json().to_string()))
+                Value::from(object_to_return.to_json().to_string())
+            })
+            .ok_or_else(Value::undefined)
     } else if replacer_as_object.kind == ObjectKind::Array {
         let mut obj_to_return =
             serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
