@@ -70,60 +70,84 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     let object = args.get(0).expect("cannot get argument for JSON.stringify");
+
     if args.len() == 1 {
-        let json = object.to_json().to_string();
-        return Ok(Value::from(json));
+        return Ok(Value::from(object.to_json().to_string()));
     }
 
-    let object_to_return = Value::new_object(None);
-    if let Some(arg) = args.get(1) {
-        if let ValueData::Object(ref obj) = arg.data() {
-            let replacer = (*obj).deref().borrow();
-            match replacer.kind {
-                ObjectKind::Array => {
-                    for (key, value) in replacer.properties.iter() {
-                        if key == "length" {
-                            continue;
-                        }
+    let replacer = args.get(1).expect("cannot get JSON.stringify replacer");
+    if !replacer.is_object() {
+        return Ok(Value::from(object.to_json().to_string()));
+    }
 
-                        if let Some(Value(x)) = &value.value {
-                            object_to_return.set_property(
-                                x.to_string(),
-                                object
-                                    .get_property(&x.to_string())
-                                    .expect("failed to get property from object"),
-                            );
-                        }
-                    }
+    let replacer_as_object = replacer
+        .as_object()
+        .expect("JSON.stringify replacer was an object");
+    if replacer_as_object.is_callable() {
+        let object_to_return = Value::new_object(None);
+        if let ValueData::Object(ref obj) = object.data() {
+            let object_to_stringify = (*obj).deref().borrow();
+            for (key, val) in object_to_stringify.properties.iter() {
+                if let Some(value) = &val.value {
+                    let mut this_arg = object.clone();
+                    object_to_return.set_property(
+                        String::from(key),
+                        Property::default().value(
+                            interpreter
+                                .call(
+                                    replacer,
+                                    &mut this_arg,
+                                    &[Value::string(key), Value::from(value)],
+                                )
+                                .expect("failed to get returned value from replacer function"),
+                        ),
+                    );
                 }
-                ObjectKind::Function => {
-                    if let ValueData::Object(ref obj) = object.data() {
-                        let object_to_stringify = (*obj).deref().borrow();
-                        for (key, val) in object_to_stringify.properties.iter() {
-                            if let Some(value) = &val.value {
-                                let mut this_arg = object.clone();
-                                object_to_return.set_property(
-                                    String::from(key),
-                                    Property::default().value(
-                                        interpreter
-                                            .call(
-                                                arg,
-                                                &mut this_arg,
-                                                &[Value::string(key), Value::from(value)],
-                                            )
-                                            .expect("failed to get returned value from replacer function"),
-                                    ),
-                                );
-                            }
-                        }
-                    }
-                }
-                _ => panic!("JSON.stringify replacer can only be an array or function"),
             }
-            return Ok(Value::from(object_to_return.to_json().to_string()));
         }
+        Ok(Value::from(object_to_return.to_json().to_string()))
+    } else if replacer_as_object.kind == ObjectKind::Array {
+        let mut obj_to_return =
+            serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
+        let fields = replacer_as_object
+            .properties
+            .iter()
+            .filter_map(|(key, prop)| {
+                if key == "length" {
+                    None
+                } else {
+                    // TODO: this should be the abstract operation `Get`
+                    prop.value.as_ref().map(Value::to_string)
+                }
+            });
+        for field in fields {
+            if let Some(value) = object
+                .get_property(&field)
+                .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
+                .flatten()
+            {
+                obj_to_return.insert(field.to_string(), value);
+            }
+        }
+        Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
+    } else {
+        Ok(Value::from(object.to_json().to_string()))
     }
-    panic!("cannot get replacer for JSON.stringify");
+
+    // let object_to_return = Value::new_object(None);
+    // if let Some(arg) = args.get(1) {
+    //     if let ValueData::Object(ref obj) = arg.data() {
+    //         let replacer = (*obj).deref().borrow();
+    //         match replacer.kind {
+    //             ObjectKind::Function => {
+
+    //             }
+    //             _ => panic!("JSON.stringify replacer can only be an array or function"),
+    //         }
+    //         return Ok(Value::from(object_to_return.to_json().to_string()));
+    //     }
+    // }
+    // panic!("cannot get replacer for JSON.stringify");
 }
 
 /// Create a new `JSON` object.
