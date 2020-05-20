@@ -17,11 +17,10 @@ use crate::builtins::{
     function::make_builtin_fn,
     object::ObjectKind,
     property::Property,
-    value::{ResultValue, Value, ValueData},
+    value::{ResultValue, Value},
 };
 use crate::exec::Interpreter;
 use serde_json::{self, Value as JSONValue};
-use std::ops::Deref;
 
 #[cfg(test)]
 mod tests;
@@ -135,21 +134,6 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
     } else {
         Ok(Value::from(object.to_json().to_string()))
     }
-
-    // let object_to_return = Value::new_object(None);
-    // if let Some(arg) = args.get(1) {
-    //     if let ValueData::Object(ref obj) = arg.data() {
-    //         let replacer = (*obj).deref().borrow();
-    //         match replacer.kind {
-    //             ObjectKind::Function => {
-
-    //             }
-    //             _ => panic!("JSON.stringify replacer can only be an array or function"),
-    //         }
-    //         return Ok(Value::from(object_to_return.to_json().to_string()));
-    //     }
-    // }
-    // panic!("cannot get replacer for JSON.stringify");
 }
 
 /// Create a new `JSON` object.
