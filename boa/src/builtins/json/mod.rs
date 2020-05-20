@@ -110,8 +110,7 @@ fn walk(
             }
         }
     }
-    let arguments = [key, value];
-    interpreter.call(callback, holder, &arguments)
+    interpreter.call(callback, holder, &[key, value])
 }
 
 /// `JSON.stringify( value[, replacer[, space]] )`
