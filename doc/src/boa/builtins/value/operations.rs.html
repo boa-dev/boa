@@ -327,6 +327,14 @@
 <span id="327">327</span>
 <span id="328">328</span>
 <span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">number</span>;
@@ -347,6 +355,14 @@
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_number</span>() {
             <span class="kw">return</span> <span class="ident">number</span>::<span class="ident">equals</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="self">self</span>), <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">other</span>));
+        }
+
+        <span class="comment">//Null has to be handled specially because &quot;typeof null&quot; returns object and if we managed</span>
+        <span class="comment">//this without a special case we would compare self and other as if they were actually</span>
+        <span class="comment">//objects which unfortunately fails</span>
+        <span class="comment">//Specification Link: https://tc39.es/ecma262/#sec-typeof-operator</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_null</span>() {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
         }
 
         <span class="ident">same_value_non_number</span>(<span class="self">self</span>, <span class="ident">other</span>)
