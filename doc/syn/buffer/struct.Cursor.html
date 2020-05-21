@@ -6,7 +6,7 @@ and copied around.</p>
 object and get a cursor to its first token with <code>begin()</code>.</p>
 <p>Two cursors are equal if they have the same location in the same input
 stream, and have the same scope.</p>
-<p><em>This type is available if Syn is built with the <code>&quot;parsing&quot;</code> feature.</em></p>
+<p><em>This type is available only if Syn is built with the <code>&quot;parsing&quot;</code> feature.</em></p>
 </div><h2 id='methods' class='small-section-header'>Methods<a href='#methods' class='anchor'></a></h2><h3 id='impl' class='impl'><code class='in-band'>impl&lt;'a&gt; <a class="struct" href="../../syn/buffer/struct.Cursor.html" title="struct syn::buffer::Cursor">Cursor</a>&lt;'a&gt;</code><a href='#impl' class='anchor'></a><a class='srclink' href='../../src/syn/buffer.rs.html#149-364' title='goto source code'>[src]</a></h3><div class='impl-items'><h4 id='method.empty' class="method"><code id='empty.v'>pub fn <a href='#method.empty' class='fnname'>empty</a>() -&gt; Self</code><a class='srclink' href='../../src/syn/buffer.rs.html#151-168' title='goto source code'>[src]</a></h4><div class='docblock'><p>Creates a cursor referencing a static empty TokenStream.</p>
 </div><h4 id='method.eof' class="method"><code id='eof.v'>pub fn <a href='#method.eof' class='fnname'>eof</a>(self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a></code><a class='srclink' href='../../src/syn/buffer.rs.html#224-227' title='goto source code'>[src]</a></h4><div class='docblock'><p>Checks whether the cursor is currently pointing at the end of its valid
 scope.</p>

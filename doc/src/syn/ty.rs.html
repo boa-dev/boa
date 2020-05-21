@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.19/src/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.23/src/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1188,7 +1188,7 @@
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
     <span class="doccomment">/// The possible types that a Rust value could have.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Syntax tree enum</span>
@@ -1256,7 +1256,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A fixed size array type: `[T; n]`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeArray</span> {
         <span class="kw">pub</span> <span class="ident">bracket_token</span>: <span class="ident">token</span>::<span class="ident">Bracket</span>,
@@ -1269,7 +1269,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A bare function type: `fn(usize) -&gt; bool`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeBareFn</span> {
         <span class="kw">pub</span> <span class="ident">lifetimes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BoundLifetimes</span><span class="op">&gt;</span>,
@@ -1286,7 +1286,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A type contained within invisible delimiters.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeGroup</span> {
         <span class="kw">pub</span> <span class="ident">group_token</span>: <span class="ident">token</span>::<span class="ident">Group</span>,
@@ -1298,7 +1298,7 @@
     <span class="doccomment">/// An `impl Bound1 + Bound2 + Bound3` type where `Bound` is a trait or</span>
     <span class="doccomment">/// a lifetime.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeImplTrait</span> {
         <span class="kw">pub</span> <span class="ident">impl_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">impl</span>],
@@ -1309,7 +1309,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// Indication that a type should be inferred by the compiler: `_`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeInfer</span> {
         <span class="kw">pub</span> <span class="ident">underscore_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>],
@@ -1319,7 +1319,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A macro in the type position.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeMacro</span> {
         <span class="kw">pub</span> <span class="ident">mac</span>: <span class="ident">Macro</span>,
@@ -1329,7 +1329,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// The never type: `!`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeNever</span> {
         <span class="kw">pub</span> <span class="ident">bang_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">!</span>],
@@ -1339,7 +1339,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A parenthesized type equivalent to the inner type.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeParen</span> {
         <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
@@ -1351,7 +1351,7 @@
     <span class="doccomment">/// A path like `std::slice::Iter`, optionally qualified with a</span>
     <span class="doccomment">/// self-type as in `&lt;Vec&lt;T&gt; as SomeTrait&gt;::Associated`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypePath</span> {
         <span class="kw">pub</span> <span class="ident">qself</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">QSelf</span><span class="op">&gt;</span>,
@@ -1362,7 +1362,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A raw pointer type: `*const T` or `*mut T`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypePtr</span> {
         <span class="kw">pub</span> <span class="ident">star_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">*</span>],
@@ -1375,7 +1375,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A reference type: `&amp;&#39;a T` or `&amp;&#39;a mut T`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeReference</span> {
         <span class="kw">pub</span> <span class="ident">and_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">&amp;</span>],
@@ -1388,7 +1388,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A dynamically sized slice type: `[T]`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeSlice</span> {
         <span class="kw">pub</span> <span class="ident">bracket_token</span>: <span class="ident">token</span>::<span class="ident">Bracket</span>,
@@ -1400,7 +1400,7 @@
     <span class="doccomment">/// A trait object type `Bound1 + Bound2 + Bound3` where `Bound` is a</span>
     <span class="doccomment">/// trait or a lifetime.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeTraitObject</span> {
         <span class="kw">pub</span> <span class="ident">dyn_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">dyn</span>]<span class="op">&gt;</span>,
@@ -1411,7 +1411,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A tuple type: `(A, B, C, String)`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeTuple</span> {
         <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
@@ -1523,7 +1523,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// The binary interface of a function: `extern &quot;C&quot;`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Abi</span> {
         <span class="kw">pub</span> <span class="ident">extern_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>],
@@ -1534,7 +1534,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An argument in a function type: the `usize` in `fn(usize) -&gt; bool`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BareFnArg</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
@@ -1556,7 +1556,7 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Variadic</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
@@ -1567,7 +1567,7 @@
 <span class="macro">ast_enum</span><span class="macro">!</span> {
     <span class="doccomment">/// Return type of a function signature.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ReturnType</span> {
         <span class="doccomment">/// Return type is not specified.</span>

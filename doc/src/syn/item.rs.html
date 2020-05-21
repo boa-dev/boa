@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.19/src/item.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>item.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.23/src/item.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>item.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3255,6 +3255,26 @@
 <span id="3255">3255</span>
 <span id="3256">3256</span>
 <span id="3257">3257</span>
+<span id="3258">3258</span>
+<span id="3259">3259</span>
+<span id="3260">3260</span>
+<span id="3261">3261</span>
+<span id="3262">3262</span>
+<span id="3263">3263</span>
+<span id="3264">3264</span>
+<span id="3265">3265</span>
+<span id="3266">3266</span>
+<span id="3267">3267</span>
+<span id="3268">3268</span>
+<span id="3269">3269</span>
+<span id="3270">3270</span>
+<span id="3271">3271</span>
+<span id="3272">3272</span>
+<span id="3273">3273</span>
+<span id="3274">3274</span>
+<span id="3275">3275</span>
+<span id="3276">3276</span>
+<span id="3277">3277</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">derive</span>::{<span class="ident">Data</span>, <span class="ident">DataEnum</span>, <span class="ident">DataStruct</span>, <span class="ident">DataUnion</span>, <span class="ident">DeriveInput</span>};
@@ -3271,7 +3291,7 @@
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
     <span class="doccomment">/// Things that can appear directly inside of a module or scope.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Syntax tree enum</span>
     <span class="doccomment">///</span>
@@ -3343,7 +3363,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A constant item: `const MAX: u16 = 65535`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemConst</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3360,7 +3380,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An enum definition: `enum Foo&lt;A, B&gt; { A(A), B(B) }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemEnum</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3375,7 +3395,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An `extern crate` item: `extern crate serde`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemExternCrate</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3391,7 +3411,7 @@
     <span class="doccomment">/// A free-standing function: `fn process(n: usize) -&gt; Result&lt;()&gt; { ...</span>
     <span class="doccomment">/// }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemFn</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3403,7 +3423,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A block of foreign items: `extern &quot;C&quot; { ... }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemForeignMod</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">abi</span>: <span class="ident">Abi</span>,
@@ -3416,7 +3436,7 @@
     <span class="doccomment">/// An impl block providing trait or associated items: `impl&lt;A&gt; Trait</span>
     <span class="doccomment">/// for Data&lt;A&gt; { ... }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemImpl</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">defaultness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="ident">default</span>]<span class="op">&gt;</span>,
@@ -3435,7 +3455,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A macro invocation, which includes `macro_rules!` definitions.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemMacro</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="doccomment">/// The `example` in `macro_rules! example { ... }`.</span>
@@ -3448,7 +3468,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A 2.0-style declarative macro introduced by the `macro` keyword.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemMacro2</span> #<span class="ident">manual_extra_traits</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3461,7 +3481,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A module or module declaration: `mod m` or `mod m { ... }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemMod</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3475,7 +3495,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A static item: `static BIKE: Shed = Shed(42)`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemStatic</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3493,7 +3513,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A struct definition: `struct Foo&lt;A&gt; { x: A }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemStruct</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3508,7 +3528,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A trait definition: `pub trait Iterator { ... }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemTrait</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3527,7 +3547,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A trait alias: `pub trait SharableIterator = Iterator + Sync`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemTraitAlias</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3543,7 +3563,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A type alias: `type Result&lt;T&gt; = std::result::Result&lt;T, MyError&gt;`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemType</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3559,7 +3579,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A union definition: `union Foo&lt;A, B&gt; { x: A, y: B }`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemUnion</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3573,7 +3593,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A use declaration: `use std::collections::HashMap`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemUse</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3832,7 +3852,7 @@
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
     <span class="doccomment">/// A suffix of an import tree in a `use` item: `Type as Renamed` or `*`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Syntax tree enum</span>
     <span class="doccomment">///</span>
@@ -3863,7 +3883,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A path prefix of imports in a `use` item: `std::...`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UsePath</span> {
         <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
         <span class="kw">pub</span> <span class="ident">colon2_token</span>: <span class="macro">Token</span><span class="macro">!</span>[::],
@@ -3874,7 +3894,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An identifier imported by a `use` item: `HashMap`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UseName</span> {
         <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
     }
@@ -3883,7 +3903,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An renamed identifier imported by a `use` item: `HashMap as Map`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UseRename</span> {
         <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
         <span class="kw">pub</span> <span class="ident">as_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">as</span>],
@@ -3894,7 +3914,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A glob import in a `use` item: `*`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UseGlob</span> {
         <span class="kw">pub</span> <span class="ident">star_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">*</span>],
     }
@@ -3903,7 +3923,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A braced group of imports in a `use` item: `{A, B, C}`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UseGroup</span> {
         <span class="kw">pub</span> <span class="ident">brace_token</span>: <span class="ident">token</span>::<span class="ident">Brace</span>,
         <span class="kw">pub</span> <span class="ident">items</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">UseTree</span>, <span class="macro">Token</span><span class="macro">!</span>[,]<span class="op">&gt;</span>,
@@ -3913,7 +3933,7 @@
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
     <span class="doccomment">/// An item within an `extern` block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Syntax tree enum</span>
     <span class="doccomment">///</span>
@@ -3947,7 +3967,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A foreign function in an `extern` block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForeignItemFn</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3959,7 +3979,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A foreign static item in an `extern` block: `static ext: u8`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForeignItemStatic</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3975,7 +3995,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A foreign type in an `extern` block: `type void`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForeignItemType</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -3988,7 +4008,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A macro invocation within an extern block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForeignItemMacro</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">mac</span>: <span class="ident">Macro</span>,
@@ -4050,7 +4070,7 @@
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
     <span class="doccomment">/// An item declaration within the definition of a trait.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Syntax tree enum</span>
     <span class="doccomment">///</span>
@@ -4084,7 +4104,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An associated constant within the definition of a trait.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TraitItemConst</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">const_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>],
@@ -4099,7 +4119,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A trait method within the definition of a trait.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TraitItemMethod</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">sig</span>: <span class="ident">Signature</span>,
@@ -4111,7 +4131,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An associated type within the definition of a trait.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TraitItemType</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">type_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">type</span>],
@@ -4127,7 +4147,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A macro invocation within the definition of a trait.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TraitItemMacro</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">mac</span>: <span class="ident">Macro</span>,
@@ -4189,7 +4209,7 @@
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
     <span class="doccomment">/// An item within an impl block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Syntax tree enum</span>
     <span class="doccomment">///</span>
@@ -4223,7 +4243,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An associated constant within an impl block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplItemConst</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -4241,7 +4261,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A method within an impl block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplItemMethod</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -4254,7 +4274,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An associated type within an impl block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplItemType</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">vis</span>: <span class="ident">Visibility</span>,
@@ -4271,7 +4291,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A macro invocation within an impl block.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplItemMacro</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">mac</span>: <span class="ident">Macro</span>,
@@ -4334,7 +4354,7 @@
     <span class="doccomment">/// A function signature in a trait or implementation: `unsafe fn</span>
     <span class="doccomment">/// initialize(&amp;self)`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Signature</span> {
         <span class="kw">pub</span> <span class="ident">constness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>]<span class="op">&gt;</span>,
@@ -4371,7 +4391,7 @@
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
     <span class="doccomment">/// An argument in a function signature: the `n: usize` in `fn f(n: usize)`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FnArg</span> {
         <span class="doccomment">/// The `self` argument of an associated method, whether taken by value</span>
         <span class="doccomment">/// or by reference.</span>
@@ -4392,7 +4412,7 @@
     <span class="doccomment">/// Note that `self` receivers with a specified type, such as `self:</span>
     <span class="doccomment">/// Box&lt;Self&gt;`, are parsed as a `FnArg::Typed`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;full&quot;` feature.*</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;full&quot;` feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Receiver</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">reference</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">&amp;</span>], <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Lifetime</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
@@ -4422,18 +4442,26 @@
 
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Item</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">ahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
             <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>]) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">peek_signature</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>) {
+                <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[;]) {
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[;]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>(<span class="ident">Item</span>::<span class="ident">Verbatim</span>(<span class="ident">verbatim</span>::<span class="ident">between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
+                } <span class="kw">else</span> {
+                    <span class="ident">parse_rest_of_fn</span>(<span class="ident">input</span>, <span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">vis</span>, <span class="ident">sig</span>).<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Fn</span>)
+                }
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>]) {
                 <span class="ident">ahead</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
                 <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">crate</span>]) {
                     <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">ExternCrate</span>)
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) {
-                    <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Fn</span>)
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Brace</span>) {
                     <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">ForeignMod</span>)
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">LitStr</span>) {
@@ -4441,8 +4469,6 @@
                     <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
                     <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Brace</span>) {
                         <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">ForeignMod</span>)
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) {
-                        <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Fn</span>)
                     } <span class="kw">else</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
                     }
@@ -4452,18 +4478,61 @@
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">use</span>]) {
                 <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Use</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">static</span>]) {
-                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Static</span>)
+                <span class="kw">let</span> <span class="ident">vis</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">static_token</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">mutability</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">colon_token</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[;]) {
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[;]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>(<span class="ident">Item</span>::<span class="ident">Verbatim</span>(<span class="ident">verbatim</span>::<span class="ident">between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">Item</span>::<span class="ident">Static</span>(<span class="ident">ItemStatic</span> {
+                        <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+                        <span class="ident">vis</span>,
+                        <span class="ident">static_token</span>,
+                        <span class="ident">mutability</span>,
+                        <span class="ident">ident</span>,
+                        <span class="ident">colon_token</span>,
+                        <span class="ident">ty</span>,
+                        <span class="ident">eq_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                        <span class="ident">expr</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                        <span class="ident">semi_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                    }))
+                }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]) {
                 <span class="ident">ahead</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
                 <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) {
-                    <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Const</span>)
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
-                {
-                    <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Fn</span>)
+                    <span class="kw">let</span> <span class="ident">vis</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">const_token</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> {
+                        <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
+                        <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) {
+                            <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Ident</span>::<span class="ident">parse_any</span>)<span class="question-mark">?</span>
+                        } <span class="kw">else</span> {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>());
+                        }
+                    };
+                    <span class="kw">let</span> <span class="ident">colon_token</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[;]) {
+                        <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[;]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                        <span class="prelude-val">Ok</span>(<span class="ident">Item</span>::<span class="ident">Verbatim</span>(<span class="ident">verbatim</span>::<span class="ident">between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">Ok</span>(<span class="ident">Item</span>::<span class="ident">Const</span>(<span class="ident">ItemConst</span> {
+                            <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+                            <span class="ident">vis</span>,
+                            <span class="ident">const_token</span>,
+                            <span class="ident">ident</span>,
+                            <span class="ident">colon_token</span>,
+                            <span class="ident">ty</span>,
+                            <span class="ident">eq_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                            <span class="ident">expr</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                            <span class="ident">semi_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                        }))
+                    }
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
                 }
@@ -4476,16 +4545,9 @@
                     <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Trait</span>)
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">impl</span>]) {
                     <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Impl</span>)
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
-                {
-                    <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Fn</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) {
-                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Fn</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">mod</span>]) {
                 <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Item</span>::<span class="ident">Mod</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">type</span>]) {
@@ -4775,53 +4837,76 @@
         ])
     }
 
+    <span class="kw">fn</span> <span class="ident">peek_signature</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">fork</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
+        <span class="ident">fork</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">is_ok</span>()
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">fork</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>]<span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">is_ok</span>()
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">fork</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">is_ok</span>()
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">fork</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Abi</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">is_ok</span>()
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">fork</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
+    }
+
+    <span class="kw">fn</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Signature</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">constness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">abi</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Abi</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">fn_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">generics</span>: <span class="ident">Generics</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">content</span>;
+        <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">parse_fn_args</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">variadic</span> <span class="op">=</span> <span class="ident">pop_variadic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">inputs</span>);
+
+        <span class="kw">let</span> <span class="ident">output</span>: <span class="ident">ReturnType</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">where_clause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WhereClause</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Signature</span> {
+            <span class="ident">constness</span>,
+            <span class="ident">asyncness</span>,
+            <span class="ident">unsafety</span>,
+            <span class="ident">abi</span>,
+            <span class="ident">fn_token</span>,
+            <span class="ident">ident</span>,
+            <span class="ident">paren_token</span>,
+            <span class="ident">inputs</span>,
+            <span class="ident">output</span>,
+            <span class="ident">variadic</span>,
+            <span class="ident">generics</span>: <span class="ident">Generics</span> {
+                <span class="ident">where_clause</span>,
+                ..<span class="ident">generics</span>
+            },
+        })
+    }
+
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">ItemFn</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">outer_attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">constness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">abi</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Abi</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">fn_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">generics</span>: <span class="ident">Generics</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">parse_fn_args</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">variadic</span> <span class="op">=</span> <span class="ident">pop_variadic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">inputs</span>);
-
-            <span class="kw">let</span> <span class="ident">output</span>: <span class="ident">ReturnType</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">where_clause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WhereClause</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-            <span class="kw">let</span> <span class="ident">inner_attrs</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Block</span>::<span class="ident">parse_within</span>)<span class="question-mark">?</span>;
-
-            <span class="prelude-val">Ok</span>(<span class="ident">ItemFn</span> {
-                <span class="ident">attrs</span>: <span class="ident">private</span>::<span class="ident">attrs</span>(<span class="ident">outer_attrs</span>, <span class="ident">inner_attrs</span>),
-                <span class="ident">vis</span>,
-                <span class="ident">sig</span>: <span class="ident">Signature</span> {
-                    <span class="ident">constness</span>,
-                    <span class="ident">asyncness</span>,
-                    <span class="ident">unsafety</span>,
-                    <span class="ident">abi</span>,
-                    <span class="ident">fn_token</span>,
-                    <span class="ident">ident</span>,
-                    <span class="ident">paren_token</span>,
-                    <span class="ident">inputs</span>,
-                    <span class="ident">output</span>,
-                    <span class="ident">variadic</span>,
-                    <span class="ident">generics</span>: <span class="ident">Generics</span> {
-                        <span class="ident">where_clause</span>,
-                        ..<span class="ident">generics</span>
-                    },
-                },
-                <span class="ident">block</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Block</span> { <span class="ident">brace_token</span>, <span class="ident">stmts</span> }),
-            })
+            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+            <span class="ident">parse_rest_of_fn</span>(<span class="ident">input</span>, <span class="ident">outer_attrs</span>, <span class="ident">vis</span>, <span class="ident">sig</span>)
         }
+    }
+
+    <span class="kw">fn</span> <span class="ident">parse_rest_of_fn</span>(
+        <span class="ident">input</span>: <span class="ident">ParseStream</span>,
+        <span class="ident">outer_attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
+        <span class="ident">vis</span>: <span class="ident">Visibility</span>,
+        <span class="ident">sig</span>: <span class="ident">Signature</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ItemFn</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">content</span>;
+        <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+        <span class="kw">let</span> <span class="ident">inner_attrs</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">stmts</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Block</span>::<span class="ident">parse_within</span>)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">ItemFn</span> {
+            <span class="ident">attrs</span>: <span class="ident">private</span>::<span class="ident">attrs</span>(<span class="ident">outer_attrs</span>, <span class="ident">inner_attrs</span>),
+            <span class="ident">vis</span>,
+            <span class="ident">sig</span>,
+            <span class="ident">block</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Block</span> { <span class="ident">brace_token</span>, <span class="ident">stmts</span> }),
+        })
     }
 
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">FnArg</span> {
@@ -4929,7 +5014,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="ident">PatType</span> {
             <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">pat</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+            <span class="ident">pat</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>::<span class="ident">parsing</span>::<span class="ident">multi_pat</span>(<span class="ident">input</span>)<span class="question-mark">?</span>),
             <span class="ident">colon_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
             <span class="ident">ty</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">match</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[...]<span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">dot3</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">variadic_to_tokens</span>(<span class="kw-2">&amp;</span><span class="ident">dot3</span>)),
@@ -5009,10 +5094,48 @@
             <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) {
-                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">ForeignItem</span>::<span class="ident">Fn</span>)
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">peek_signature</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>) {
+                <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Brace</span>) {
+                    <span class="kw">let</span> <span class="ident">content</span>;
+                    <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+                    <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>)<span class="question-mark">?</span>;
+                    <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Block</span>::<span class="ident">parse_within</span>)<span class="question-mark">?</span>;
+
+                    <span class="prelude-val">Ok</span>(<span class="ident">ForeignItem</span>::<span class="ident">Verbatim</span>(<span class="ident">verbatim</span>::<span class="ident">between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">ForeignItem</span>::<span class="ident">Fn</span>(<span class="ident">ForeignItemFn</span> {
+                        <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+                        <span class="ident">vis</span>,
+                        <span class="ident">sig</span>,
+                        <span class="ident">semi_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                    }))
+                }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">static</span>]) {
-                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">ForeignItem</span>::<span class="ident">Static</span>)
+                <span class="kw">let</span> <span class="ident">vis</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">static_token</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">mutability</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">colon_token</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">=</span>]) {
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="op">=</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[;]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>(<span class="ident">ForeignItem</span>::<span class="ident">Verbatim</span>(<span class="ident">verbatim</span>::<span class="ident">between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">ForeignItem</span>::<span class="ident">Static</span>(<span class="ident">ForeignItemStatic</span> {
+                        <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+                        <span class="ident">vis</span>,
+                        <span class="ident">static_token</span>,
+                        <span class="ident">mutability</span>,
+                        <span class="ident">ident</span>,
+                        <span class="ident">colon_token</span>,
+                        <span class="ident">ty</span>,
+                        <span class="ident">semi_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                    }))
+                }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">type</span>]) {
                 <span class="ident">parse_flexible_foreign_item_type</span>(<span class="ident">begin</span>, <span class="ident">input</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">vis</span>.<span class="ident">is_inherited</span>()
@@ -5047,38 +5170,12 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">fn_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">generics</span>: <span class="ident">Generics</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">parse_fn_args</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">variadic</span> <span class="op">=</span> <span class="ident">pop_variadic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">inputs</span>);
-
-            <span class="kw">let</span> <span class="ident">output</span>: <span class="ident">ReturnType</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">where_clause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WhereClause</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">semi_token</span>: <span class="macro">Token</span><span class="macro">!</span>[;] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-
             <span class="prelude-val">Ok</span>(<span class="ident">ForeignItemFn</span> {
                 <span class="ident">attrs</span>,
                 <span class="ident">vis</span>,
-                <span class="ident">sig</span>: <span class="ident">Signature</span> {
-                    <span class="ident">constness</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">asyncness</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">unsafety</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">abi</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">fn_token</span>,
-                    <span class="ident">ident</span>,
-                    <span class="ident">paren_token</span>,
-                    <span class="ident">inputs</span>,
-                    <span class="ident">output</span>,
-                    <span class="ident">variadic</span>,
-                    <span class="ident">generics</span>: <span class="ident">Generics</span> {
-                        <span class="ident">where_clause</span>,
-                        ..<span class="ident">generics</span>
-                    },
-                },
+                <span class="ident">sig</span>,
                 <span class="ident">semi_token</span>,
             })
         }
@@ -5341,7 +5438,7 @@
 
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">ItemTrait</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">outer_attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">auto_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="ident">auto</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
@@ -5350,7 +5447,7 @@
             <span class="kw">let</span> <span class="ident">generics</span>: <span class="ident">Generics</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="ident">parse_rest_of_trait</span>(
                 <span class="ident">input</span>,
-                <span class="ident">attrs</span>,
+                <span class="ident">outer_attrs</span>,
                 <span class="ident">vis</span>,
                 <span class="ident">unsafety</span>,
                 <span class="ident">auto_token</span>,
@@ -5363,7 +5460,7 @@
 
     <span class="kw">fn</span> <span class="ident">parse_rest_of_trait</span>(
         <span class="ident">input</span>: <span class="ident">ParseStream</span>,
-        <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
+        <span class="ident">outer_attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="ident">vis</span>: <span class="ident">Visibility</span>,
         <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span>,
         <span class="ident">auto_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="ident">auto</span>]<span class="op">&gt;</span>,
@@ -5391,13 +5488,14 @@
 
         <span class="kw">let</span> <span class="ident">content</span>;
         <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+        <span class="kw">let</span> <span class="ident">inner_attrs</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="kw">while</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">is_empty</span>() {
             <span class="ident">items</span>.<span class="ident">push</span>(<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">ItemTrait</span> {
-            <span class="ident">attrs</span>,
+            <span class="ident">attrs</span>: <span class="ident">private</span>::<span class="ident">attrs</span>(<span class="ident">outer_attrs</span>, <span class="ident">inner_attrs</span>),
             <span class="ident">vis</span>,
             <span class="ident">unsafety</span>,
             <span class="ident">auto_token</span>,
@@ -5475,10 +5573,12 @@
             <span class="kw">let</span> <span class="ident">ahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
 
             <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">peek_signature</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>) {
+                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">TraitItem</span>::<span class="ident">Method</span>)
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]) {
                 <span class="ident">ahead</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
-                <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) {
+                <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) {
                     <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">TraitItem</span>::<span class="ident">Const</span>)
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>])
                     <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>])
@@ -5489,12 +5589,6 @@
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
-            {
-                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">TraitItem</span>::<span class="ident">Method</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">type</span>]) {
                 <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">TraitItem</span>::<span class="ident">Type</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>)
@@ -5532,7 +5626,14 @@
             <span class="prelude-val">Ok</span>(<span class="ident">TraitItemConst</span> {
                 <span class="ident">attrs</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>,
                 <span class="ident">const_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                <span class="ident">ident</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                <span class="ident">ident</span>: {
+                    <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
+                    <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) {
+                        <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Ident</span>::<span class="ident">parse_any</span>)<span class="question-mark">?</span>
+                    } <span class="kw">else</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>());
+                    }
+                },
                 <span class="ident">colon_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">ty</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">default</span>: {
@@ -5552,21 +5653,7 @@
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TraitItemMethod</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">outer_attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">constness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">abi</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Abi</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">fn_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">generics</span>: <span class="ident">Generics</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">parse_fn_args</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">variadic</span> <span class="op">=</span> <span class="ident">pop_variadic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">inputs</span>);
-
-            <span class="kw">let</span> <span class="ident">output</span>: <span class="ident">ReturnType</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">where_clause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WhereClause</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
             <span class="kw">let</span> (<span class="ident">brace_token</span>, <span class="ident">inner_attrs</span>, <span class="ident">stmts</span>, <span class="ident">semi_token</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Brace</span>) {
@@ -5584,22 +5671,7 @@
 
             <span class="prelude-val">Ok</span>(<span class="ident">TraitItemMethod</span> {
                 <span class="ident">attrs</span>: <span class="ident">private</span>::<span class="ident">attrs</span>(<span class="ident">outer_attrs</span>, <span class="ident">inner_attrs</span>),
-                <span class="ident">sig</span>: <span class="ident">Signature</span> {
-                    <span class="ident">constness</span>,
-                    <span class="ident">asyncness</span>,
-                    <span class="ident">unsafety</span>,
-                    <span class="ident">abi</span>,
-                    <span class="ident">fn_token</span>,
-                    <span class="ident">ident</span>,
-                    <span class="ident">paren_token</span>,
-                    <span class="ident">inputs</span>,
-                    <span class="ident">output</span>,
-                    <span class="ident">variadic</span>,
-                    <span class="ident">generics</span>: <span class="ident">Generics</span> {
-                        <span class="ident">where_clause</span>,
-                        ..<span class="ident">generics</span>
-                    },
-                },
+                <span class="ident">sig</span>,
                 <span class="ident">default</span>: <span class="ident">brace_token</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">brace_token</span><span class="op">|</span> <span class="ident">Block</span> { <span class="ident">brace_token</span>, <span class="ident">stmts</span> }),
                 <span class="ident">semi_token</span>,
             })
@@ -5738,12 +5810,14 @@
                 <span class="prelude-val">None</span>
             };
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">peek_signature</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>) {
+                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">ImplItem</span>::<span class="ident">Method</span>)
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]) {
                 <span class="kw">let</span> <span class="ident">const_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>] <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">ahead</span>.<span class="ident">lookahead1</span>();
-                <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) {
+                <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) {
                     <span class="ident">input</span>.<span class="ident">advance_to</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>);
-                    <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Ident</span>::<span class="ident">parse_any</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">colon_token</span>: <span class="macro">Token</span><span class="macro">!</span>[:] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">ty</span>: <span class="ident">Type</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">eq_token</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span> {
@@ -5763,21 +5837,9 @@
                         <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[;]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ImplItem</span>::<span class="ident">Verbatim</span>(<span class="ident">verbatim</span>::<span class="ident">between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)));
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
-                {
-                    <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">ImplItem</span>::<span class="ident">Method</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
-            {
-                <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">ImplItem</span>::<span class="ident">Method</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">type</span>]) {
                 <span class="ident">input</span>.<span class="ident">advance_to</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>);
                 <span class="kw">let</span> <span class="ident">type_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">type</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
@@ -5854,7 +5916,14 @@
                 <span class="ident">vis</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">defaultness</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">const_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                <span class="ident">ident</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                <span class="ident">ident</span>: {
+                    <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
+                    <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) {
+                        <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Ident</span>::<span class="ident">parse_any</span>)<span class="question-mark">?</span>
+                    } <span class="kw">else</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>());
+                    }
+                },
                 <span class="ident">colon_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">ty</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">eq_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
@@ -5869,21 +5938,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">vis</span>: <span class="ident">Visibility</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">defaultness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="ident">default</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">constness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">asyncness</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">async</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">abi</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Abi</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">fn_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">generics</span>: <span class="ident">Generics</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">parse_fn_args</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">variadic</span> <span class="op">=</span> <span class="ident">pop_variadic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">inputs</span>);
-
-            <span class="kw">let</span> <span class="ident">output</span>: <span class="ident">ReturnType</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">where_clause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WhereClause</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">parse_signature</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">semi</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[;]<span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span> {
                 <span class="comment">// Accept methods without a body in an impl block because</span>
@@ -5911,22 +5966,7 @@
                 <span class="ident">attrs</span>,
                 <span class="ident">vis</span>,
                 <span class="ident">defaultness</span>,
-                <span class="ident">sig</span>: <span class="ident">Signature</span> {
-                    <span class="ident">constness</span>,
-                    <span class="ident">asyncness</span>,
-                    <span class="ident">unsafety</span>,
-                    <span class="ident">abi</span>,
-                    <span class="ident">fn_token</span>,
-                    <span class="ident">ident</span>,
-                    <span class="ident">paren_token</span>,
-                    <span class="ident">inputs</span>,
-                    <span class="ident">output</span>,
-                    <span class="ident">variadic</span>,
-                    <span class="ident">generics</span>: <span class="ident">Generics</span> {
-                        <span class="ident">where_clause</span>,
-                        ..<span class="ident">generics</span>
-                    },
-                },
+                <span class="ident">sig</span>,
                 <span class="ident">block</span>,
             })
         }

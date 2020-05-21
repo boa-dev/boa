@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.19/src/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.23/src/path.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>path.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -747,9 +747,9 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">punctuated</span>::<span class="ident">Punctuated</span>;
 
 <span class="macro">ast_struct</span><span class="macro">!</span> {
-    <span class="doccomment">/// A path at which a named item is exported: `std::collections::HashMap`.</span>
+    <span class="doccomment">/// A path at which a named item is exported (e.g. `std::collections::HashMap`).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Path</span> {
         <span class="kw">pub</span> <span class="ident">leading_colon</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[::]<span class="op">&gt;</span>,
@@ -774,7 +774,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A segment of a path together with any path arguments on that segment.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PathSegment</span> {
         <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
@@ -797,7 +797,7 @@
 <span class="macro">ast_enum</span><span class="macro">!</span> {
     <span class="doccomment">/// Angle bracketed or parenthesized arguments of a path segment.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Angle bracketed</span>
@@ -843,7 +843,7 @@
 <span class="macro">ast_enum</span><span class="macro">!</span> {
     <span class="doccomment">/// An individual generic argument, like `&#39;a`, `T`, or `Item = T`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GenericArgument</span> {
         <span class="doccomment">/// A lifetime argument.</span>
@@ -867,7 +867,7 @@
     <span class="doccomment">/// Angle bracketed arguments of a path segment: the `&lt;K, V&gt;` in `HashMap&lt;K,</span>
     <span class="doccomment">/// V&gt;`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AngleBracketedGenericArguments</span> {
         <span class="kw">pub</span> <span class="ident">colon2_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[::]<span class="op">&gt;</span>,
@@ -880,7 +880,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A binding (equality constraint) on an associated type: `Item = u8`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Binding</span> {
         <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
@@ -892,7 +892,7 @@
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An associated type bound: `Iterator&lt;Item: Display&gt;`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Constraint</span> {
         <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
@@ -905,7 +905,7 @@
     <span class="doccomment">/// Arguments of a function path segment: the `(A, B) -&gt; C` in `Fn(A,B) -&gt;</span>
     <span class="doccomment">/// C`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParenthesizedGenericArguments</span> {
         <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
@@ -934,7 +934,7 @@
     <span class="doccomment">///  ty       position = 0</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This type is available if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
+    <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">QSelf</span> {
         <span class="kw">pub</span> <span class="ident">lt_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>],
@@ -1103,7 +1103,7 @@
     <span class="kw">impl</span> <span class="ident">Path</span> {
         <span class="doccomment">/// Parse a `Path` containing no path arguments on any of its segments.</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// *This function is available if Syn is built with the `&quot;parsing&quot;`</span>
+        <span class="doccomment">/// *This function is available only if Syn is built with the `&quot;parsing&quot;`</span>
         <span class="doccomment">/// feature.*</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// # Example</span>
@@ -1178,7 +1178,7 @@
         <span class="doccomment">///   path arguments, and</span>
         <span class="doccomment">/// - the ident of the first path segment is equal to the given one.</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// *This function is available if Syn is built with the `&quot;parsing&quot;`</span>
+        <span class="doccomment">/// *This function is available only if Syn is built with the `&quot;parsing&quot;`</span>
         <span class="doccomment">/// feature.*</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// # Example</span>
@@ -1217,7 +1217,7 @@
         <span class="doccomment">/// - the first path segment has no angle bracketed or parenthesized</span>
         <span class="doccomment">///   path arguments.</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// *This function is available if Syn is built with the `&quot;parsing&quot;`</span>
+        <span class="doccomment">/// *This function is available only if Syn is built with the `&quot;parsing&quot;`</span>
         <span class="doccomment">/// feature.*</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Ident</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">leading_colon</span>.<span class="ident">is_none</span>()

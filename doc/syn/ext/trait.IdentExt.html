@@ -6,7 +6,7 @@
 }</pre></div><div class='docblock'><p>Additional methods for <code>Ident</code> not provided by proc-macro2 or libproc_macro.</p>
 <p>This trait is sealed and cannot be implemented for types outside of Syn. It
 is implemented only for <code>proc_macro2::Ident</code>.</p>
-<p><em>This trait is available if Syn is built with the <code>&quot;parsing&quot;</code> feature.</em></p>
+<p><em>This trait is available only if Syn is built with the <code>&quot;parsing&quot;</code> feature.</em></p>
 </div>
             <h2 id='associated-const' class='small-section-header'>Associated Constants<a href='#associated-const' class='anchor'></a></h2><div class='methods'><h3 id='associatedconstant.peek_any' class='method'><code id='peek_any.v'>const <a href='#associatedconstant.peek_any' class="constant"><b>peek_any</b></a>: PeekFn</code></h3><div class='docblock'><p>Peeks any identifier including keywords. Usage:
 <code>input.peek(Ident::peek_any)</code></p>
