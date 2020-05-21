@@ -755,7 +755,7 @@ impl ValueData {
             Self::String(_) => "string",
             Self::Boolean(_) => "boolean",
             Self::Symbol(_) => "symbol",
-            Self::Null => "null",
+            Self::Null => "object",
             Self::Undefined => "undefined",
             Self::Object(ref o) => {
                 if o.deref().borrow().is_callable() {

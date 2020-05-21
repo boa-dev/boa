@@ -469,20 +469,6 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
     Throw(Box<Node>),
 
-    /// The `typeof` operator returns a string indicating the type of the unevaluated operand.
-    ///
-    /// Syntax: `typeof operand`
-    ///
-    /// Returns a string indicating the type of the unevaluated operand.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
-    TypeOf(Box<Node>),
-
     /// The `try...catch` statement marks a block of statements to try and specifies a response
     /// should an exception be thrown.
     ///
@@ -564,7 +550,7 @@ pub enum Node {
 impl Operator for Node {
     fn get_assoc(&self) -> bool {
         match *self {
-            Self::UnaryOp(_, _) | Self::TypeOf(_) | Self::If(_, _, _) | Self::Assign(_, _) => false,
+            Self::UnaryOp(_, _) | Self::If(_, _, _) | Self::Assign(_, _) => false,
             _ => true,
         }
     }
@@ -580,7 +566,7 @@ impl Operator for Node {
             Self::UnaryOp(UnaryOp::Not, _)
             | Self::UnaryOp(UnaryOp::Tilde, _)
             | Self::UnaryOp(UnaryOp::Minus, _)
-            | Self::TypeOf(_) => 4,
+            | Self::UnaryOp(UnaryOp::TypeOf, _) => 4,
             Self::BinOp(op, _, _) => op.get_precedence(),
             Self::If(_, _, _) => 15,
             // 16 should be yield
@@ -848,14 +834,6 @@ impl Node {
         Self::Throw(val.into())
     }
 
-    /// Creates a `TypeOf` AST node.
-    pub fn type_of<E>(expr: E) -> Self
-    where
-        E: Into<Box<Self>>,
-    {
-        Self::TypeOf(expr.into())
-    }
-
     /// Creates a `Try` AST node.
     pub fn try_node<T, OC, OP, OF, C, P, F>(try_node: T, catch: OC, param: OP, finally: OF) -> Self
     where
@@ -1116,7 +1094,6 @@ impl Node {
                 }
                 Ok(())
             }
-            Self::TypeOf(ref e) => write!(f, "typeof {}", e),
         }
     }
 }

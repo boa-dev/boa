@@ -362,11 +362,10 @@ impl Executor for Interpreter {
                         | Node::FunctionExpr(_, _, _)
                         | Node::New(_)
                         | Node::Object(_)
-                        | Node::TypeOf(_)
                         | Node::UnaryOp(_, _) => Value::boolean(true),
                         _ => panic!("SyntaxError: wrong delete argument {}", node),
                     },
-                    _ => unimplemented!(),
+                    UnaryOp::TypeOf => Value::from(v_a.get_type()),
                 })
             }
             Node::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
@@ -548,25 +547,6 @@ impl Executor for Interpreter {
                     self.realm.environment.initialize_binding(&name, val);
                 }
                 Ok(Value::undefined())
-            }
-            Node::TypeOf(ref val_e) => {
-                let val = self.run(val_e)?;
-                Ok(Value::from(match *val {
-                    ValueData::Undefined => "undefined",
-                    ValueData::Symbol(_) => "symbol",
-                    ValueData::Null => "object",
-                    ValueData::Boolean(_) => "boolean",
-                    ValueData::Rational(_) | ValueData::Integer(_) => "number",
-                    ValueData::String(_) => "string",
-                    ValueData::Object(ref o) => {
-                        if o.deref().borrow().is_callable() {
-                            "function"
-                        } else {
-                            "object"
-                        }
-                    }
-                    ValueData::BigInt(_) => "bigint",
-                }))
             }
             Node::StatementList(ref list) => {
                 let mut obj = Value::null();
