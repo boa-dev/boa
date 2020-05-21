@@ -16,9 +16,10 @@
 #[cfg(test)]
 mod tests;
 
+use super::{function::make_constructor_fn, object::ObjectKind};
 use crate::{
     builtins::{
-        object::{internal_methods_trait::ObjectInternalMethods, Object, PROTOTYPE},
+        object::internal_methods_trait::ObjectInternalMethods,
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
@@ -41,6 +42,7 @@ fn to_number(value: &Value) -> Value {
         ValueData::Object(ref o) => (o).deref().borrow().get_internal_slot("NumberData"),
         ValueData::Null => Value::from(0),
         ValueData::Rational(n) => Value::from(n),
+        ValueData::BigInt(ref bigint) => Value::from(bigint.to_f64()),
         ValueData::String(ref s) => match s.parse::<f64>() {
             Ok(n) => Value::from(n),
             Err(_) => Value::from(f64::NAN),
@@ -57,14 +59,18 @@ fn num_to_exponential(n: f64) -> String {
     }
 }
 
-/// Create a new number `[[Construct]]`
+/// `[[Construct]]` - Creates a Number instance
+///
+/// `[[Call]]` - Creates a number primitive
 pub fn make_number(this: &mut Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
     let data = match args.get(0) {
         Some(ref value) => to_number(value),
         None => to_number(&Value::from(0)),
     };
-    this.set_internal_slot("NumberData", data);
-    Ok(this.clone())
+    this.set_kind(ObjectKind::Number);
+    this.set_internal_slot("NumberData", data.clone());
+
+    Ok(data)
 }
 
 /// `Number()` function.
@@ -360,11 +366,55 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn!(to_string, named "toString", with length 1, of prototype);
     make_builtin_fn!(value_of, named "valueOf", of prototype);
 
-    make_constructor_fn!(make_number, call_number, global, prototype)
+    make_constructor_fn(make_number, global, prototype)
 }
 
 /// Initialise the `Number` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
     global.set_field_slice("Number", create(global));
+}
+
+/// The abstract operation Number::equal takes arguments
+/// x (a Number) and y (a Number). It performs the following steps when called:
+///
+/// https://tc39.es/ecma262/#sec-numeric-types-number-equal
+#[allow(clippy::float_cmp)]
+pub fn equals(a: f64, b: f64) -> bool {
+    a == b
+}
+
+/// The abstract operation Number::sameValue takes arguments
+/// x (a Number) and y (a Number). It performs the following steps when called:
+///
+/// https://tc39.es/ecma262/#sec-numeric-types-number-sameValue
+#[allow(clippy::float_cmp)]
+pub fn same_value(a: f64, b: f64) -> bool {
+    if a.is_nan() && b.is_nan() {
+        return true;
+    }
+
+    if a == 0.0 && b == 0.0 {
+        if (a.is_sign_negative() && b.is_sign_positive())
+            || (a.is_sign_positive() && b.is_sign_negative())
+        {
+            return false;
+        };
+        true
+    } else {
+        a == b
+    }
+}
+
+/// The abstract operation Number::sameValueZero takes arguments
+/// x (a Number) and y (a Number). It performs the following steps when called:
+///
+/// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
+#[allow(clippy::float_cmp)]
+pub fn same_value_zero(a: f64, b: f64) -> bool {
+    if a.is_nan() && b.is_nan() {
+        return true;
+    }
+
+    a == b
 }

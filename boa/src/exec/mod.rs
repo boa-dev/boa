@@ -18,7 +18,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::{MethodDefinitionKind, Node, PropertyDefinition},
+        node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
     },
 };
@@ -74,6 +74,7 @@ impl Executor for Interpreter {
             Node::Const(Const::Undefined) => Ok(Value::undefined()),
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
+            Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
@@ -209,7 +210,7 @@ impl Executor for Interpreter {
                 for tup in vals.iter() {
                     let cond = &tup.0;
                     let block = &tup.1;
-                    if val == self.run(cond)? {
+                    if val.strict_equals(&self.run(cond)?) {
                         matched = true;
                         let last_expr = block.last().expect("Block has no expressions");
                         for expr in block.iter() {
@@ -274,28 +275,9 @@ impl Executor for Interpreter {
             }
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref name, ref args, ref expr) => {
-                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
-                // let proto = &self
-                //     .realm
-                //     .environment
-                //     .get_global_object()
-                //     .expect("Could not get the global object")
-                //     .get_field_slice("Object")
-                //     .get_field_slice("Prototype");
-
-                let func = FunctionObject::create_ordinary(
-                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
-                    self.realm.environment.get_current_environment().clone(),
-                    FunctionBody::Ordinary(*expr.clone()),
-                    ThisMode::NonLexical,
-                );
-
-                let mut new_func = Object::function();
-                new_func.set_call(func);
-                let val = Value::from(new_func);
-                val.set_field_slice("length", Value::from(args.len()));
-
+                let val = self.create_function(args.clone(), expr, ThisMode::NonLexical);
                 // Set the name and assign it in the current environment
+
                 val.set_field_slice("name", Value::from(name.clone()));
                 self.realm.environment.create_mutable_binding(
                     name.clone(),
@@ -309,26 +291,7 @@ impl Executor for Interpreter {
             }
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionExpr(ref name, ref args, ref expr) => {
-                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
-                // let proto = &self
-                //     .realm
-                //     .environment
-                //     .get_global_object()
-                //     .expect("Could not get the global object")
-                //     .get_field_slice("Object")
-                //     .get_field_slice("Prototype");
-
-                let func = FunctionObject::create_ordinary(
-                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
-                    self.realm.environment.get_current_environment().clone(),
-                    FunctionBody::Ordinary(*expr.clone()),
-                    ThisMode::NonLexical,
-                );
-
-                let mut new_func = Object::function();
-                new_func.set_call(func);
-                let val = Value::from(new_func);
-                val.set_field_slice("length", Value::from(args.len()));
+                let val = self.create_function(args.clone(), expr, ThisMode::NonLexical);
 
                 if let Some(name) = name {
                     val.set_field_slice("name", Value::from(name.clone()));
@@ -337,28 +300,7 @@ impl Executor for Interpreter {
                 Ok(val)
             }
             Node::ArrowFunctionDecl(ref args, ref expr) => {
-                // Todo: Function.prototype doesn't exist yet, so the prototype right now is the Object.prototype
-                // let proto = &self
-                //     .realm
-                //     .environment
-                //     .get_global_object()
-                //     .expect("Could not get the global object")
-                //     .get_field_slice("Object")
-                //     .get_field_slice("Prototype");
-
-                let func = FunctionObject::create_ordinary(
-                    args.clone(), // TODO: args shouldn't need to be a reference it should be passed by value
-                    self.realm.environment.get_current_environment().clone(),
-                    FunctionBody::Ordinary(*expr.clone()),
-                    ThisMode::Lexical,
-                );
-
-                let mut new_func = Object::function();
-                new_func.set_call(func);
-                let val = Value::from(new_func);
-                val.set_field_slice("length", Value::from(args.len()));
-
-                Ok(val)
+                Ok(self.create_function(args.clone(), expr, ThisMode::Lexical))
             }
             Node::BinOp(BinOp::Num(ref op), ref a, ref b) => {
                 let v_a = self.run(a)?;
@@ -375,7 +317,7 @@ impl Executor for Interpreter {
             Node::UnaryOp(ref op, ref a) => {
                 let v_a = self.run(a)?;
                 Ok(match *op {
-                    UnaryOp::Minus => Value::from(-v_a.to_number()),
+                    UnaryOp::Minus => -v_a,
                     UnaryOp::Plus => Value::from(v_a.to_number()),
                     UnaryOp::IncrementPost => {
                         let ret = v_a.clone();
@@ -420,11 +362,10 @@ impl Executor for Interpreter {
                         | Node::FunctionExpr(_, _, _)
                         | Node::New(_)
                         | Node::Object(_)
-                        | Node::TypeOf(_)
                         | Node::UnaryOp(_, _) => Value::boolean(true),
                         _ => panic!("SyntaxError: wrong delete argument {}", node),
                     },
-                    _ => unimplemented!(),
+                    UnaryOp::TypeOf => Value::from(v_a.get_type()),
                 })
             }
             Node::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
@@ -446,14 +387,10 @@ impl Executor for Interpreter {
                 let mut v_a = v_r_a.borrow_mut();
                 let mut v_b = v_r_b.borrow_mut();
                 Ok(Value::from(match *op {
-                    CompOp::Equal if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::Equal => v_a == v_b,
-                    CompOp::NotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::NotEqual => v_a != v_b,
-                    CompOp::StrictEqual if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::StrictEqual => v_a == v_b,
-                    CompOp::StrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::StrictNotEqual => v_a != v_b,
+                    CompOp::Equal => v_r_a.equals(v_b, self),
+                    CompOp::NotEqual => !v_r_a.equals(v_b, self),
+                    CompOp::StrictEqual => v_r_a.strict_equals(v_b),
+                    CompOp::StrictNotEqual => !v_r_a.strict_equals(v_b),
                     CompOp::GreaterThan => v_a.to_number() > v_b.to_number(),
                     CompOp::GreaterThanOrEqual => v_a.to_number() >= v_b.to_number(),
                     CompOp::LessThan => v_a.to_number() < v_b.to_number(),
@@ -517,7 +454,7 @@ impl Executor for Interpreter {
 
                 match *(func_object.borrow()).deref() {
                     ValueData::Object(ref o) => (*o.deref().clone().borrow_mut())
-                        .construct
+                        .func
                         .as_ref()
                         .unwrap()
                         .construct(&mut func_object.clone(), &v_args, self, &mut this),
@@ -611,32 +548,7 @@ impl Executor for Interpreter {
                 }
                 Ok(Value::undefined())
             }
-            Node::TypeOf(ref val_e) => {
-                let val = self.run(val_e)?;
-                Ok(Value::from(match *val {
-                    ValueData::Undefined => "undefined",
-                    ValueData::Symbol(_) => "symbol",
-                    ValueData::Null => "object",
-                    ValueData::Boolean(_) => "boolean",
-                    ValueData::Rational(_) | ValueData::Integer(_) => "number",
-                    ValueData::String(_) => "string",
-                    ValueData::Object(ref o) => {
-                        if o.deref().borrow().is_callable() {
-                            "function"
-                        } else {
-                            "object"
-                        }
-                    }
-                }))
-            }
             Node::StatementList(ref list) => {
-                {
-                    let env = &mut self.realm.environment;
-                    env.push(new_declarative_environment(Some(
-                        env.get_current_environment_ref().clone(),
-                    )));
-                }
-
                 let mut obj = Value::null();
                 for (i, item) in list.iter().enumerate() {
                     let val = self.run(item)?;
@@ -650,14 +562,15 @@ impl Executor for Interpreter {
                     }
                 }
 
-                // pop the block env
-                let _ = self.realm.environment.pop();
-
                 Ok(obj)
             }
             Node::Spread(ref node) => {
                 // TODO: for now we can do nothing but return the value as-is
                 self.run(node)
+            }
+            Node::This => {
+                // Will either return `this` binding or undefined
+                Ok(self.realm.environment.get_this_binding())
             }
             ref i => unimplemented!("{}", i),
         }
@@ -670,6 +583,46 @@ impl Interpreter {
         &self.realm
     }
 
+    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
+    pub(crate) fn create_function(
+        &mut self,
+        args: Box<[FormalParameter]>,
+        expr: &Node,
+        this_mode: ThisMode,
+    ) -> Value {
+        let function_prototype = &self
+            .realm
+            .environment
+            .get_global_object()
+            .expect("Could not get the global object")
+            .get_field_slice("Function")
+            .get_field_slice("Prototype");
+
+        // Every new function has a prototype property pre-made
+        let global_val = &self
+            .realm
+            .environment
+            .get_global_object()
+            .expect("Could not get the global object");
+        let proto = Value::new_object(Some(global_val));
+
+        let func = FunctionObject::create_ordinary(
+            args.clone(),
+            self.realm.environment.get_current_environment().clone(),
+            FunctionBody::Ordinary(expr.clone()),
+            this_mode,
+        );
+
+        let mut new_func = Object::function();
+        new_func.set_func(func);
+        let val = Value::from(new_func);
+        val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
+        val.set_field_slice(PROTOTYPE, proto);
+        val.set_field_slice("length", Value::from(args.len()));
+
+        val
+    }
+
     /// https://tc39.es/ecma262/#sec-call
     pub(crate) fn call(
         &mut self,
@@ -680,7 +633,7 @@ impl Interpreter {
         // All functions should be objects, and eventually will be.
         // During this transition call will support both native functions and function objects
         match (*f).deref() {
-            ValueData::Object(ref obj) => match (*obj).deref().borrow().call {
+            ValueData::Object(ref obj) => match (*obj).deref().borrow().func {
                 Some(ref func) => func.call(&mut f.clone(), arguments_list, self, this),
                 None => panic!("Expected function"),
             },
@@ -745,7 +698,9 @@ impl Interpreter {
             _ => input.clone(),
         }
     }
-    /// to_string() converts a value into a String
+
+    /// Converts a value into a `String`.
+    ///
     /// https://tc39.es/ecma262/#sec-tostring
     #[allow(clippy::wrong_self_convention)]
     pub fn to_string(&mut self, value: &Value) -> Value {
@@ -756,6 +711,7 @@ impl Interpreter {
             ValueData::Rational(ref num) => Value::from(num.to_string()),
             ValueData::Integer(ref num) => Value::from(num.to_string()),
             ValueData::String(ref string) => Value::from(string.clone()),
+            ValueData::BigInt(ref bigint) => Value::from(bigint.to_string()),
             ValueData::Object(_) => {
                 let prim_value = self.to_primitive(&mut (value.clone()), Some("string"));
                 self.to_string(&prim_value)
@@ -829,6 +785,16 @@ impl Interpreter {
                 Ok(string_obj)
             }
             ValueData::Object(_) | ValueData::Symbol(_) => Ok(value.clone()),
+            ValueData::BigInt(_) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("BigInt")
+                    .get_field_slice(PROTOTYPE);
+                let bigint_obj = Value::new_object_from_prototype(proto, ObjectKind::BigInt);
+                bigint_obj.set_internal_slot("BigIntData", value.clone());
+                Ok(bigint_obj)
+            }
         }
     }
 
@@ -840,6 +806,7 @@ impl Interpreter {
             ValueData::Rational(ref num) => num.to_string(),
             ValueData::Integer(ref num) => num.to_string(),
             ValueData::String(ref string) => string.clone(),
+            ValueData::BigInt(ref bigint) => bigint.to_string(),
             ValueData::Object(_) => {
                 let prim_value = self.to_primitive(&mut (value.clone()), Some("string"));
                 self.to_string(&prim_value).to_string()
@@ -861,6 +828,7 @@ impl Interpreter {
             ValueData::Rational(num) => num,
             ValueData::Integer(num) => f64::from(num),
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
+            ValueData::BigInt(ref bigint) => bigint.to_f64(),
             ValueData::Object(_) => {
                 let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
                 self.to_string(&prim_value)

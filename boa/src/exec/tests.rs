@@ -386,6 +386,63 @@ fn unary_pre() {
 }
 
 #[test]
+fn unary_typeof() {
+    let typeof_string = r#"
+        const a = String();
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_string), "string");
+
+    let typeof_int = r#"
+        let a = 5;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_int), "number");
+
+    let typeof_rational = r#"
+        let a = 0.5;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_rational), "number");
+
+    let typeof_undefined = r#"
+        let a = undefined;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_undefined), "undefined");
+
+    let typeof_boolean = r#"
+        let a = true;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_boolean), "boolean");
+
+    let typeof_null = r#"
+        let a = null;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_null), "object");
+
+    let typeof_object = r#"
+        let a = {};
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_object), "object");
+
+    let typeof_symbol = r#"
+        let a = Symbol();
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_symbol), "symbol");
+
+    let typeof_function = r#"
+        let a = function(){};
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_function), "function");
+}
+
+#[test]
 fn unary_post() {
     let unary_inc = r#"
         let a = 5;
@@ -500,6 +557,7 @@ fn unary_delete() {
 #[cfg(test)]
 mod in_operator {
     use super::*;
+    use crate::{builtins::object::INSTANCE_PROTOTYPE, forward_val};
     #[test]
     fn propery_in_object() {
         let p_in_o = r#"
@@ -563,5 +621,38 @@ mod in_operator {
             'fail' in undefined
         "#;
         exec(scenario);
+    }
+
+    #[test]
+    fn should_set_this_value() {
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+        function Foo() {
+            this.a = "a";
+            this.b = "b";
+          }
+          
+          var bar = new Foo();
+        "#;
+        forward(&mut engine, scenario);
+        assert_eq!(forward(&mut engine, "bar.a"), "a");
+        assert_eq!(forward(&mut engine, "bar.b"), "b");
+    }
+
+    #[test]
+    fn new_instance_should_point_to_prototype() {
+        // A new instance should point to a prototype object created with the constructor function
+        let realm = Realm::create();
+        let mut engine = Executor::new(realm);
+
+        let scenario = r#"
+            function Foo() {}            
+            var bar = new Foo();
+        "#;
+        forward(&mut engine, scenario);
+        let a = forward_val(&mut engine, "bar").unwrap();
+        assert!(a.get_internal_slot(INSTANCE_PROTOTYPE).is_object(), true);
     }
 }

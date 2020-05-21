@@ -149,6 +149,10 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
+    fn get_this_binding(&self) -> Value {
+        Value::undefined()
+    }
+
     fn has_super_binding(&self) -> bool {
         false
     }

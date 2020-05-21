@@ -13,14 +13,16 @@ use crate::builtins::{
     },
     property::Property,
 };
+use crate::syntax::ast::bigint::BigInt;
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
     collections::HashSet,
+    convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
-    ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Not, Rem, Shl, Shr, Sub},
+    ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
     str::FromStr,
 };
 
@@ -86,6 +88,12 @@ impl Value {
         Self::rational(value.into())
     }
 
+    /// Creates a new bigint value.
+    #[inline]
+    pub fn bigint(value: BigInt) -> Self {
+        Self(Gc::new(ValueData::BigInt(value)))
+    }
+
     /// Creates a new boolean value.
     #[inline]
     pub fn boolean(value: bool) -> Self {
@@ -106,7 +114,10 @@ impl Value {
 
     /// Helper function to convert the `Value` to a number and compute its power.
     pub fn as_num_to_power(&self, other: Self) -> Self {
-        Self::rational(self.to_number().powf(other.to_number()))
+        match (self.data(), other.data()) {
+            (ValueData::BigInt(ref a), ValueData::BigInt(ref b)) => Self::bigint(a.clone().pow(b)),
+            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
+        }
     }
 
     /// Returns a new empty object
@@ -151,21 +162,23 @@ impl Display for Value {
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum ValueData {
-    /// `null` - A null value, for when a value doesn't exist
+    /// `null` - A null value, for when a value doesn't exist.
     Null,
-    /// `undefined` - An undefined value, for when a field or index doesn't exist
+    /// `undefined` - An undefined value, for when a field or index doesn't exist.
     Undefined,
-    /// `boolean` - A `true` / `false` value, for if a certain criteria is met
+    /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
-    /// `String` - A UTF-8 string, such as `"Hello, world"`
+    /// `String` - A UTF-8 string, such as `"Hello, world"`.
     String(String),
     /// `Number` - A 64-bit floating point number, such as `3.1415`
     Rational(f64),
-    /// `Number` - A 32-bit integer, such as `42`
+    /// `Number` - A 32-bit integer, such as `42`.
     Integer(i32),
-    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
+    /// `BigInt` - holds any arbitrary large signed integer.
+    BigInt(BigInt),
+    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
     Object(Box<GcCell<Object>>),
-    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots
+    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots.
     Symbol(Box<GcCell<Object>>),
 }
 
@@ -258,7 +271,10 @@ impl ValueData {
 
     /// Returns true if the value is a number
     pub fn is_number(&self) -> bool {
-        self.is_double()
+        match self {
+            Self::Rational(_) | Self::Integer(_) => true,
+            _ => false,
+        }
     }
 
     /// Returns true if the value is a string
@@ -287,6 +303,7 @@ impl ValueData {
             Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
             Self::Integer(n) if n != 0 => true,
             Self::Boolean(v) => v,
+            Self::BigInt(ref n) if *n != 0 => true,
             _ => false,
         }
     }
@@ -295,14 +312,23 @@ impl ValueData {
     pub fn to_number(&self) -> f64 {
         match *self {
             Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
-            Self::String(ref str) => match FromStr::from_str(str) {
-                Ok(num) => num,
-                Err(_) => NAN,
-            },
-            Self::Rational(num) => num,
+            Self::String(ref str) => {
+                if str.is_empty() {
+                    return 0.0;
+                }
+
+                match FromStr::from_str(str) {
+                    Ok(num) => num,
+                    Err(_) => NAN,
+                }
+            }
             Self::Boolean(true) => 1.0,
             Self::Boolean(false) | Self::Null => 0.0,
+            Self::Rational(num) => num,
             Self::Integer(num) => f64::from(num),
+            Self::BigInt(_) => {
+                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
+            }
         }
     }
 
@@ -321,6 +347,30 @@ impl ValueData {
             Self::Rational(num) => num as i32,
             Self::Boolean(true) => 1,
             Self::Integer(num) => num,
+            Self::BigInt(_) => {
+                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
+            }
+        }
+    }
+
+    /// Helper function.
+    pub fn to_bigint(&self) -> Option<BigInt> {
+        match self {
+            Self::String(ref string) => string_to_bigint(string),
+            Self::Boolean(true) => Some(BigInt::from(1)),
+            Self::Boolean(false) | Self::Null => Some(BigInt::from(0)),
+            Self::Rational(num) => BigInt::try_from(*num).ok(),
+            Self::Integer(num) => Some(BigInt::from(*num)),
+            ValueData::BigInt(b) => Some(b.clone()),
+            ValueData::Object(ref o) => {
+                let object = (o).deref().borrow();
+                if object.kind == ObjectKind::BigInt {
+                    object.get_internal_slot("BigIntData").to_bigint()
+                } else {
+                    None
+                }
+            }
+            _ => None,
         }
     }
 
@@ -625,7 +675,7 @@ impl ValueData {
         // Get Length
         let length = native_func.params.len();
         // Set [[Call]] internal slot
-        new_func.set_call(native_func);
+        new_func.set_func(native_func);
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters
@@ -689,6 +739,10 @@ impl ValueData {
                 JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
             ),
             Self::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
+            Self::BigInt(_) => {
+                // TODO: throw TypeError
+                panic!("TypeError: \"BigInt value can't be serialized in JSON\"");
+            }
         }
     }
 
@@ -701,7 +755,7 @@ impl ValueData {
             Self::String(_) => "string",
             Self::Boolean(_) => "boolean",
             Self::Symbol(_) => "symbol",
-            Self::Null => "null",
+            Self::Null => "object",
             Self::Undefined => "undefined",
             Self::Object(ref o) => {
                 if o.deref().borrow().is_callable() {
@@ -710,6 +764,7 @@ impl ValueData {
                     "object"
                 }
             }
+            Self::BigInt(_) => "bigint",
         }
     }
 }
@@ -929,6 +984,7 @@ impl Display for ValueData {
             ),
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
+            Self::BigInt(ref num) => write!(f, "{}n", num),
         }
     }
 }

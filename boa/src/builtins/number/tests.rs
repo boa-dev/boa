@@ -395,3 +395,45 @@ fn value_of() {
     assert_eq!(exp_val.to_number(), 12_000_f64);
     assert_eq!(neg_val.to_number(), -12_000_f64);
 }
+
+#[test]
+fn equal() {
+    assert_eq!(super::equals(0.0, 0.0), true);
+    assert_eq!(super::equals(-0.0, 0.0), true);
+    assert_eq!(super::equals(0.0, -0.0), true);
+    assert_eq!(super::equals(f64::NAN, -0.0), false);
+    assert_eq!(super::equals(0.0, f64::NAN), false);
+
+    assert_eq!(super::equals(1.0, 1.0), true);
+}
+
+#[test]
+fn same_value() {
+    assert_eq!(super::same_value(0.0, 0.0), true);
+    assert_eq!(super::same_value(-0.0, 0.0), false);
+    assert_eq!(super::same_value(0.0, -0.0), false);
+    assert_eq!(super::same_value(f64::NAN, -0.0), false);
+    assert_eq!(super::same_value(0.0, f64::NAN), false);
+    assert_eq!(super::equals(1.0, 1.0), true);
+}
+
+#[test]
+fn same_value_zero() {
+    assert_eq!(super::same_value_zero(0.0, 0.0), true);
+    assert_eq!(super::same_value_zero(-0.0, 0.0), true);
+    assert_eq!(super::same_value_zero(0.0, -0.0), true);
+    assert_eq!(super::same_value_zero(f64::NAN, -0.0), false);
+    assert_eq!(super::same_value_zero(0.0, f64::NAN), false);
+    assert_eq!(super::equals(1.0, 1.0), true);
+}
+
+#[test]
+fn from_bigint() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+
+    assert_eq!(&forward(&mut engine, "Number(0n)"), "0",);
+    assert_eq!(&forward(&mut engine, "Number(100000n)"), "100000",);
+    assert_eq!(&forward(&mut engine, "Number(100000n)"), "100000",);
+    assert_eq!(&forward(&mut engine, "Number(1n << 1240n)"), "Infinity",);
+}
