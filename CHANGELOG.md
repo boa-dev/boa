@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [# 0.8.0 (master)](https://github.com/jasonwilliams/boa/compare/v0.7.0...HEAD)
+# [# 0.8.0 (2020-05-22) - BigInt, Modularized Parser, Faster Hashing](https://github.com/jasonwilliams/boa/compare/v0.7.0...HEAD)
 
 Feature Enhancements:
 
@@ -74,6 +74,11 @@ Code Of Conduct:
 
 - [COC #384](https://github.com/jasonwilliams/boa/pull/384):
   Code of conduct added (@Razican)
+
+Security:
+
+- [SEC #391](https://github.com/jasonwilliams/boa/pull/391):
+  run security audit daily at midnight. (@n14little)
 
 # [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...v0.7.0)
 
