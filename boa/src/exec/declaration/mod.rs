@@ -18,6 +18,8 @@ impl Executable for FunctionDecl {
             self.parameters().to_vec(),
             self.body().to_vec(),
             ThisMode::NonLexical,
+            true,
+            true,
         );
 
         // Set the name and assign it in the current environment
@@ -43,6 +45,8 @@ impl Executable for FunctionExpr {
             self.parameters().to_vec(),
             self.body().to_vec(),
             ThisMode::NonLexical,
+            true,
+            true,
         );
 
         if let Some(name) = self.name() {
@@ -125,6 +129,8 @@ impl Executable for ArrowFunctionDecl {
             self.params().to_vec(),
             self.body().to_vec(),
             ThisMode::Lexical,
+            false,
+            true,
         ))
     }
 }

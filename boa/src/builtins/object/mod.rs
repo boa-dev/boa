@@ -471,7 +471,10 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     pub fn is_callable(&self) -> bool {
-        self.func.is_some()
+        match self.func {
+            Some(ref function) => function.is_callable(),
+            None => false,
+        }
     }
 
     /// It determines if Object is a function object with a [[Construct]] internal method.
@@ -480,8 +483,11 @@ impl Object {
     /// - [EcmaScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
-    pub fn is_constructor(&self) -> bool {
-        self.func.is_some()
+    pub fn is_constructable(&self) -> bool {
+        match self.func {
+            Some(ref function) => function.is_constructable(),
+            None => false,
+        }
     }
 }
 
@@ -614,7 +620,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
     make_builtin_fn(to_string, "toString", &prototype, 0);
 
-    let object = make_constructor_fn(make_object, global, prototype);
+    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
 
     object.set_field("length", Value::from(1));
     make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);

@@ -217,7 +217,7 @@ impl ValueData {
         match *self {
             Self::Object(ref o) => {
                 let borrowed_obj = o.borrow();
-                borrowed_obj.is_callable() || borrowed_obj.is_constructor()
+                borrowed_obj.is_callable() || borrowed_obj.is_constructable()
             }
             _ => false,
         }

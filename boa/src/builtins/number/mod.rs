@@ -89,21 +89,6 @@ impl Number {
         Ok(data)
     }
 
-    /// `Number()` function.
-    ///
-    /// More Information https://tc39.es/ecma262/#sec-number-constructor-number-value
-    pub(crate) fn call_number(
-        _this: &mut Value,
-        args: &[Value],
-        _ctx: &mut Interpreter,
-    ) -> ResultValue {
-        let data = match args.get(0) {
-            Some(ref value) => Self::to_number(value),
-            None => Self::to_number(&Value::from(0)),
-        };
-        Ok(data)
-    }
-
     /// `Number.prototype.toExponential( [fractionDigits] )`
     ///
     /// The `toExponential()` method returns a string representing the Number object in exponential notation.
@@ -417,7 +402,7 @@ impl Number {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_constructor_fn(Self::make_number, global, prototype)
+        make_constructor_fn("Number", 1, Self::make_number, global, prototype, true)
     }
 
     /// Initialise the `Number` object on the global object.

@@ -1031,7 +1031,7 @@ impl Array {
         make_builtin_fn(Self::slice, "slice", &prototype, 2);
         make_builtin_fn(Self::some, "some", &prototype, 2);
 
-        let array = make_constructor_fn(Self::make_array, global, prototype);
+        let array = make_constructor_fn("Array", 1, Self::make_array, global, prototype, true);
 
         // Static Methods
         make_builtin_fn(Self::is_array, "isArray", &array, 1);
