@@ -4,6 +4,8 @@
 
 Feature Enhancements:
 
+- [FEATURE #121](https://github.com/jasonwilliams/boa/issues/121):
+  `BigInt` Implemented (@HalidOdat)
 - [FEATURE #293](https://github.com/jasonwilliams/boa/pull/293):
   Improved documentation of all modules (@HalidOdat)
 - [FEATURE #302](https://github.com/jasonwilliams/boa/issues/302):
@@ -35,7 +37,13 @@ Feature Enhancements:
 - [FEATURE #379](https://github.com/jasonwilliams/boa/issues/379):
   Automatic auditing of Boa (@n14little)
 - [FEATURE #264](https://github.com/jasonwilliams/boa/issues/264):
-  Implement this (@jasonwilliams)
+  Implement `this` (@jasonwilliams)
+- [FEATURE #395](https://github.com/jasonwilliams/boa/pull/395):
+  impl abstract-equality-comparison (@hello2dj)
+- [FEATURE #359](https://github.com/jasonwilliams/boa/issues/359):
+  impl typeof (@RestitutorOrbis)
+- [FEATURE #390](https://github.com/jasonwilliams/boa/pull/390):
+  Modularize try statement parsing (@abhijeetbhagat)
 
 Bug fixes:
 
@@ -51,6 +59,21 @@ Bug fixes:
   Calling `new Array` with 1 argument doesn't work properly (@HalidOdat)
 - [BUG #266](https://github.com/jasonwilliams/boa/issues/266):
   Panic assigning named function to variable (@Razican)
+- [BUG #397](https://github.com/jasonwilliams/boa/pull/397):
+  fix `NaN` is lexed as identifier, not as a number (@attliaLin)
+- [BUG #362](https://github.com/jasonwilliams/boa/pull/362):
+  Remove Monaco Editor Webpack Plugin and Manually Vendor Editor Workers (@subhankar-panda)
+- [BUG #406](https://github.com/jasonwilliams/boa/pull/406):
+  Dependency Upgrade (@Razican)
+- [BUG #407](https://github.com/jasonwilliams/boa/pull/407):
+  `String()` wasn't defaulting to empty string on call (@jasonwilliams)
+- [BUG #404](https://github.com/jasonwilliams/boa/pull/404):
+  Fix for 0 length new String(@tylermorten)
+
+Code Of Conduct:
+
+- [COC #384](https://github.com/jasonwilliams/boa/pull/384):
+  Code of conduct added (@Razican)
 
 # [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...v0.7.0)
 
