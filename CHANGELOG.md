@@ -1,6 +1,81 @@
 # CHANGELOG
 
-# [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...HEAD)
+# [# 0.8.0 (master)](https://github.com/jasonwilliams/boa/compare/v0.7.0...HEAD)
+
+Feature Enhancements:
+
+- [FEATURE #121](https://github.com/jasonwilliams/boa/issues/121):
+  `BigInt` Implemented (@HalidOdat)
+- [FEATURE #293](https://github.com/jasonwilliams/boa/pull/293):
+  Improved documentation of all modules (@HalidOdat)
+- [FEATURE #302](https://github.com/jasonwilliams/boa/issues/302):
+  Implement do..while loop (@ptasz3k)
+- [FEATURE #318](https://github.com/jasonwilliams/boa/pull/318):
+  Added continous integration for windows (@HalidOdat)
+- [FEATURE #290](https://github.com/jasonwilliams/boa/pull/290):
+  Added more build profiles (@Razican)
+- [FEATURE #323](https://github.com/jasonwilliams/boa/pull/323):
+  Aded more benchmarks (@Razican)
+- [FEATURE #326](https://github.com/jasonwilliams/boa/pull/326):
+  Rename Boa CLI (@sphinxc0re)
+- [FEATURE #312](https://github.com/jasonwilliams/boa/pull/312):
+  Added jemallocator for linux targets (@Razican)
+- [FEATURE #339](https://github.com/jasonwilliams/boa/pull/339):
+  Improved Method parsing (@muskuloes)
+- [FEATURE #352](https://github.com/jasonwilliams/boa/pull/352):
+  create boa-wasm package (@muskuloes)
+- [FEATURE #304](https://github.com/jasonwilliams/boa/pull/304):
+  Modularized parser
+- [FEATURE #141](https://github.com/jasonwilliams/boa/issues/141):
+  Implement function objects (@jasonwilliams)
+- [FEATURE #365](https://github.com/jasonwilliams/boa/issues/365):
+  Implement for loop execution (@Razican)
+- [FEATURE #356](https://github.com/jasonwilliams/boa/issues/356):
+  Use Fx Hash to speed up hash maps in the compiler (@Razican)
+- [FEATURE #321](https://github.com/jasonwilliams/boa/issues/321):
+  Implement unary operator execution (@akryvomaz)
+- [FEATURE #379](https://github.com/jasonwilliams/boa/issues/379):
+  Automatic auditing of Boa (@n14little)
+- [FEATURE #264](https://github.com/jasonwilliams/boa/issues/264):
+  Implement `this` (@jasonwilliams)
+- [FEATURE #395](https://github.com/jasonwilliams/boa/pull/395):
+  impl abstract-equality-comparison (@hello2dj)
+- [FEATURE #359](https://github.com/jasonwilliams/boa/issues/359):
+  impl typeof (@RestitutorOrbis)
+- [FEATURE #390](https://github.com/jasonwilliams/boa/pull/390):
+  Modularize try statement parsing (@abhijeetbhagat)
+
+Bug fixes:
+
+- [BUG #308](https://github.com/jasonwilliams/boa/issues/308):
+  Assignment operator not working in tests (a = a +1) (@ptasz3k)
+- [BUG #322](https://github.com/jasonwilliams/boa/issues/322):
+  Benchmarks are failing in master (@Razican)
+- [BUG #325](https://github.com/jasonwilliams/boa/pull/325):
+  Put JSON functions on the object, not the prototype (@coolreader18)
+- [BUG #331](https://github.com/jasonwilliams/boa/issues/331):
+  We only get `Const::Num`, never `Const::Int` (@HalidOdat)
+- [BUG #209](https://github.com/jasonwilliams/boa/issues/209):
+  Calling `new Array` with 1 argument doesn't work properly (@HalidOdat)
+- [BUG #266](https://github.com/jasonwilliams/boa/issues/266):
+  Panic assigning named function to variable (@Razican)
+- [BUG #397](https://github.com/jasonwilliams/boa/pull/397):
+  fix `NaN` is lexed as identifier, not as a number (@attliaLin)
+- [BUG #362](https://github.com/jasonwilliams/boa/pull/362):
+  Remove Monaco Editor Webpack Plugin and Manually Vendor Editor Workers (@subhankar-panda)
+- [BUG #406](https://github.com/jasonwilliams/boa/pull/406):
+  Dependency Upgrade (@Razican)
+- [BUG #407](https://github.com/jasonwilliams/boa/pull/407):
+  `String()` wasn't defaulting to empty string on call (@jasonwilliams)
+- [BUG #404](https://github.com/jasonwilliams/boa/pull/404):
+  Fix for 0 length new String(@tylermorten)
+
+Code Of Conduct:
+
+- [COC #384](https://github.com/jasonwilliams/boa/pull/384):
+  Code of conduct added (@Razican)
+
+# [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...v0.7.0)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
 This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.  
