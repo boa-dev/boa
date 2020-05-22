@@ -44,22 +44,18 @@ pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> Re
         Ok(json) => {
             let j = Value::from(json);
             if args.len() > 1 {
-                let result = match args.get(1) {
+                match args.get(1) {
                     Some(callback) => {
                         if callback.is_function() {
                             let mut holder = Value::new_object(None);
                             holder.set_field(Value::from(""), j.clone());
-
-                            println!("calling");
                             walk(callback, interpreter, &mut holder, Value::from(""))
                         } else {
-                            println!("arg type is {}", callback.get_type());
                             Ok(j)
                         }
                     }
                     _ => Ok(j),
-                };
-                result
+                }
             } else {
                 Ok(j)
             }
