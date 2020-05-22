@@ -82,7 +82,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -v  
+          args: -v
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
