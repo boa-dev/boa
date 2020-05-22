@@ -43,27 +43,20 @@ pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> Re
     ) {
         Ok(json) => {
             let j = Value::from(json);
-            if args.len() > 1 {
-                match args.get(1) {
-                    Some(callback) => {
-                        if callback.is_function() {
-                            let mut holder = Value::new_object(None);
-                            holder.set_field(Value::from(""), j.clone());
-                            walk(callback, interpreter, &mut holder, Value::from(""))
-                        } else {
-                            Ok(j)
-                        }
-                    }
-                    _ => Ok(j),
+            match args.get(1) {
+                Some(callback) if callback.is_function() => {
+                    let mut holder = Value::new_object(None);
+                    holder.set_field(Value::from(""), j);
+                    walk(callback, interpreter, &mut holder, Value::from(""))
                 }
-            } else {
-                Ok(j)
+                _ => Ok(j),
             }
         }
         Err(err) => Err(Value::from(err.to_string())),
     }
 }
 
+#[allow(clippy::map_clone)]
 fn walk(
     callback: &Value,
     interpreter: &mut Interpreter,
@@ -72,22 +65,17 @@ fn walk(
 ) -> ResultValue {
     let mut value = holder.get_field(key.clone());
 
-    if value.is_object() {
-        let obj = value.as_object();
-        if obj.is_some() {
-            let obj = obj.unwrap().clone();
-            for (key, _val) in obj.properties.iter() {
-                let v = walk(callback, interpreter, &mut value, Value::from(key.as_str()));
-                match v {
-                    Ok(v) => {
-                        if !v.is_undefined() {
-                            value.set_field(Value::from(key.as_str()), v);
-                        } else {
-                            value.remove_property(key.as_str());
-                        }
-                    }
-                    Err(_v) => {}
+    if let Some(obj) = value.as_object().map(|x| x.clone()) {
+        for key in obj.properties.keys() {
+            let v = walk(callback, interpreter, &mut value, Value::from(key.as_str()));
+            match v {
+                Ok(v) if !v.is_undefined() => {
+                    value.set_field(Value::from(key.as_str()), v);
                 }
+                Ok(_) => {
+                    value.remove_property(key.as_str());
+                }
+                Err(_v) => {}
             }
         }
     }
