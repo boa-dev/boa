@@ -86,7 +86,7 @@ jobs:
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          version: '0.9.0'
+          version: '0.12.4'
           args: '-- --test-threads 1'
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2
