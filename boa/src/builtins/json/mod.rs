@@ -13,10 +13,8 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use super::value::ValueData;
 use crate::builtins::value::{ResultValue, Value};
-use crate::exec::{Executor, Interpreter};
-use crate::syntax::ast::node::Node;
+use crate::exec::Interpreter;
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
@@ -35,7 +33,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#sec-json.parse
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
 // TODO: implement optional revever argument.
-pub fn parse(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     match serde_json::from_str::<JSONValue>(
         &args
             .get(0)
@@ -51,11 +49,11 @@ pub fn parse(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) ->
                         if callback.is_function() {
                             let mut holder = Value::new_object(None);
                             holder.set_field(Value::from(""), j.clone());
-                            println!("Value is {}", holder.get_field(Value::from("")));
-                            //TODO abhi: check if this arg exists just like `every` in the array module
-                            //let mut this_arg = args[2].clone();
+
+                            println!("calling");
                             walk(callback, interpreter, &mut holder, Value::from(""))
                         } else {
+                            println!("arg type is {}", callback.get_type());
                             Ok(j)
                         }
                     }
@@ -65,19 +63,6 @@ pub fn parse(this: &mut Value, args: &[Value], interpreter: &mut Interpreter) ->
             } else {
                 Ok(j)
             }
-            //Ok(j)
-            /*    let callback = args.get(1);
-                let callback_result = interpreter
-                    .call(callback, this: &mut Value, arguments_list: &[Value])
-                    .unwrap_or_else(|_| Value::undefined());
-                if callback_result.is_true() {
-                    Some(element)
-                } else {
-                    None
-                }
-            } else {
-                Ok(Value::from(json))
-            }*/
         }
         Err(err) => Err(Value::from(err.to_string())),
     }
@@ -91,21 +76,21 @@ fn walk(
 ) -> ResultValue {
     let mut value = holder.get_field(key.clone());
 
-    if value.get_type() == "object" {
-        let obj = value.as_object().unwrap().clone();
-        for (key, _val) in obj.properties.iter() {
-            let v = walk(callback, interpreter, &mut value, Value::from(key.as_str()));
-            match v {
-                Ok(v) => {
-                    println!("Ok {}", v);
-                    if !v.is_undefined() {
-                        value.set_field(Value::from(key.as_str()), v);
-                    } else {
-                        value.remove_property(key.as_str());
+    if value.is_object() {
+        let obj = value.as_object();
+        if obj.is_some() {
+            let obj = obj.unwrap().clone();
+            for (key, _val) in obj.properties.iter() {
+                let v = walk(callback, interpreter, &mut value, Value::from(key.as_str()));
+                match v {
+                    Ok(v) => {
+                        if !v.is_undefined() {
+                            value.set_field(Value::from(key.as_str()), v);
+                        } else {
+                            value.remove_property(key.as_str());
+                        }
                     }
-                }
-                Err(v) => {
-                    println!("Err {}", v);
+                    Err(_v) => {}
                 }
             }
         }
