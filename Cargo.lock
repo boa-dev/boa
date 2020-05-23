@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "Boa"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "criterion",
  "gc",
@@ -59,7 +59,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "boa_cli"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "Boa",
  "jemallocator",
@@ -69,7 +69,7 @@ dependencies = [
 
 [[package]]
 name = "boa_wasm"
-version = "0.1.0"
+version = "0.8.0"
 dependencies = [
  "Boa",
  "wasm-bindgen",

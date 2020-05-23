@@ -2,6 +2,13 @@
 
 # [# 0.8.0 (2020-05-22) - BigInt, Modularized Parser, Faster Hashing](https://github.com/jasonwilliams/boa/compare/v0.7.0...HEAD)
 
+`v0.7.0` brings more language implementations, such as do..while, function objects and also more recent EcmaScript additions, like BigInt.  
+We have now moved the Web Assembly build into the `wasm` package, plus added a code of conduct for those contributing.
+
+The parser has been even more modularized in this release making it easier to add new parsing rules.
+
+Boa has migrated it's object implemention to FXHash which brings much improved results over the built-in Rust hashmaps (at the cost of less DOS Protection).
+
 Feature Enhancements:
 
 - [FEATURE #121](https://github.com/jasonwilliams/boa/issues/121):
