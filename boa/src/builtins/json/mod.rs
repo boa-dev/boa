@@ -87,22 +87,20 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
             .as_object()
             .map(|obj| {
                 let object_to_return = Value::new_object(None);
-                for (key, val) in obj.properties.iter() {
-                    if let Some(value) = &val.value {
-                        let mut this_arg = object.clone();
-                        object_to_return.set_property(
-                            String::from(key),
-                            Property::default().value(
-                                interpreter
-                                    .call(
-                                        replacer,
-                                        &mut this_arg,
-                                        &[Value::string(key), Value::from(value)],
-                                    )
-                                    .expect("failed to get returned value from replacer function"),
-                            ),
-                        );
-                    }
+                for (key, val) in obj.properties.iter().filter(|(_, v)|v.value.is_some()) {
+                    let mut this_arg = object.clone();
+                    object_to_return.set_property(
+                        key.to_owned(),
+                        Property::default().value(
+                            interpreter
+                                .call(
+                                    replacer,
+                                    &mut this_arg,
+                                    &[Value::string(key), Value::from(val.value.as_ref())],
+                                )
+                                .expect("failed to get returned value from replacer function"),
+                        ),
+                    );
                 }
                 Value::from(object_to_return.to_json().to_string())
             })
@@ -112,18 +110,17 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
             serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
         let fields = replacer_as_object
             .properties
-            .iter()
-            .filter_map(|(key, prop)| {
+            .keys()
+            .filter_map(|key| {
                 if key == "length" {
                     None
                 } else {
-                    // TODO: this should be the abstract operation `Get`
-                    prop.value.as_ref().map(Value::to_string)
+                    Some(replacer.get_field_slice(&key.to_string()))
                 }
             });
         for field in fields {
             if let Some(value) = object
-                .get_property(&field)
+                .get_property(&field.to_string())
                 .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
                 .flatten()
             {

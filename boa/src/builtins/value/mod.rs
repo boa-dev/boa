@@ -722,7 +722,7 @@ impl ValueData {
             Self::Object(ref obj) => {
                 if obj.borrow().kind == ObjectKind::Array {
                     let mut arr: Vec<JSONValue> = Vec::new();
-                    obj.borrow().properties.iter().for_each(|(k, _)| {
+                    obj.borrow().properties.keys().for_each(|k| {
                         if k != "length" {
                             let value = self.get_field(k.to_string());
                             if value.is_undefined() || value.is_function() {
@@ -735,7 +735,7 @@ impl ValueData {
                     JSONValue::Array(arr)
                 } else {
                     let mut new_obj = Map::new();
-                    obj.borrow().properties.iter().for_each(|(k, _)| {
+                    obj.borrow().properties.keys().for_each(|k| {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
                         if !value.is_undefined() && !value.is_function() {
