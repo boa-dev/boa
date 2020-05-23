@@ -10,9 +10,10 @@
 #[cfg(test)]
 mod tests;
 
+use super::LabelIdentifier;
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    ast::{Keyword, Node, Punctuator, TokenKind},
+    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
 
 /// For statement parsing
@@ -49,7 +50,7 @@ impl TokenParser for ContinueStatement {
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
         cursor.expect(Keyword::Continue, "continue statement")?;
 
-        if let (true, tok) = cursor.peek_semicolon(false) {
+        let label = if let (true, tok) = cursor.peek_semicolon(false) {
             match tok {
                 Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
                     let _ = cursor.next();
@@ -57,23 +58,14 @@ impl TokenParser for ContinueStatement {
                 _ => {}
             }
 
-            return Ok(Node::Continue(None));
-        }
-
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        // TODO: LabelIdentifier
-        let node = if let TokenKind::Identifier(name) = &tok.kind {
-            Node::continue_node(name)
+            None
         } else {
-            return Err(ParseError::Expected(
-                vec![TokenKind::identifier("identifier")],
-                tok.clone(),
-                "continue statement",
-            ));
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            cursor.expect_semicolon(false, "continue statement")?;
+
+            Some(label)
         };
 
-        cursor.expect_semicolon(false, "continue statement")?;
-
-        Ok(node)
+        Ok(Node::Continue(label))
     }
 }

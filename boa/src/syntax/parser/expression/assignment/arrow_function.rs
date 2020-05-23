@@ -10,14 +10,14 @@
 use super::AssignmentExpression;
 use crate::syntax::{
     ast::{
-        node::{FormalParameter, Node},
-        punc::Punctuator,
-        token::TokenKind,
+        node::{ArrowFunctionDecl, FormalParameter, Node, StatementList},
+        Punctuator, TokenKind,
     },
     parser::{
+        error::{ErrorContext, ParseError, ParseResult},
         function::{FormalParameters, FunctionBody},
         statement::BindingIdentifier,
-        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
     },
 };
 
@@ -57,40 +57,30 @@ impl ArrowFunction {
 }
 
 impl TokenParser for ArrowFunction {
-    type Output = Node;
+    type Output = ArrowFunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind {
             // CoverParenthesizedExpressionAndArrowParameterList
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
             let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
             cursor.expect(Punctuator::CloseParen, "arrow function")?;
-            params.into_boxed_slice()
+            params
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
-                .map_err(|e| match e {
-                    ParseError::Expected(mut exp, tok, _) => {
-                        exp.push(Punctuator::OpenParen.into());
-                        ParseError::Expected(exp, tok, "arrow function")
-                    }
-                    e => e,
-                })?;
-            Box::new([FormalParameter {
-                init: None,
-                name: param,
-                is_rest_param: false,
-            }])
+                .context("arrow function")?;
+            Box::new([FormalParameter::new(param, None, false)])
         };
 
-        cursor.peek_expect_no_lineterminator(0, "arrow function")?;
+        cursor.peek_expect_no_lineterminator(0)?;
 
         cursor.expect(Punctuator::Arrow, "arrow function")?;
 
         let body = ConciseBody::new(self.allow_in).parse(cursor)?;
 
-        Ok(Node::arrow_function_decl(params, body))
+        Ok(ArrowFunctionDecl::new(params, body))
     }
 }
 
@@ -113,21 +103,19 @@ impl ConciseBody {
 }
 
 impl TokenParser for ConciseBody {
-    type Output = Node;
+    type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         match cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let _ = cursor.next();
-                let body = FunctionBody::new(false, false)
-                    .parse(cursor)
-                    .map(Node::statement_list)?;
+                let body = FunctionBody::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }
-            _ => Ok(Node::return_node(
+            _ => Ok(StatementList::from(vec![Node::return_node(
                 ExpressionBody::new(self.allow_in, false).parse(cursor)?,
-            )),
+            )])),
         }
     }
 }

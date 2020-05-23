@@ -8,7 +8,11 @@
 //! [spec]: https://tc39.es/ecma262/#sec-unary-operators
 
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, op::UnaryOp, punc::Punctuator, token::TokenKind},
+    ast::{
+        node::{self, Node},
+        op::UnaryOp,
+        Keyword, Punctuator, TokenKind,
+    },
     parser::{
         expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
         ParseResult, TokenParser,
@@ -50,25 +54,25 @@ impl TokenParser for UnaryExpression {
         let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
         match tok.kind {
             TokenKind::Keyword(Keyword::Delete) => {
-                Ok(Node::unary_op(UnaryOp::Delete, self.parse(cursor)?))
+                Ok(node::UnaryOp::new(UnaryOp::Delete, self.parse(cursor)?).into())
             }
             TokenKind::Keyword(Keyword::Void) => {
-                Ok(Node::unary_op(UnaryOp::Void, self.parse(cursor)?))
+                Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor)?).into())
             }
             TokenKind::Keyword(Keyword::TypeOf) => {
-                Ok(Node::unary_op(UnaryOp::TypeOf, self.parse(cursor)?))
+                Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Add) => {
-                Ok(Node::unary_op(UnaryOp::Plus, self.parse(cursor)?))
+                Ok(node::UnaryOp::new(UnaryOp::Plus, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Sub) => {
-                Ok(Node::unary_op(UnaryOp::Minus, self.parse(cursor)?))
+                Ok(node::UnaryOp::new(UnaryOp::Minus, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Neg) => {
-                Ok(Node::unary_op(UnaryOp::Tilde, self.parse(cursor)?))
+                Ok(node::UnaryOp::new(UnaryOp::Tilde, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Not) => {
-                Ok(Node::unary_op(UnaryOp::Not, self.parse(cursor)?))
+                Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor)?).into())
             }
             _ => {
                 cursor.back();

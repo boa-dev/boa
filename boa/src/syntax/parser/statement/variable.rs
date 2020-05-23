@@ -1,9 +1,12 @@
 // use super::lexical_declaration_continuation;
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{
+        node::{VarDecl, VarDeclList},
+        Keyword, Punctuator, TokenKind,
+    },
     parser::{
         expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-        Cursor, ParseError, ParseResult, TokenParser,
+        Cursor, ParseError, TokenParser,
     },
 };
 
@@ -38,9 +41,9 @@ impl VariableStatement {
 }
 
 impl TokenParser for VariableStatement {
-    type Output = Node;
+    type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Var, "variable statement")?;
 
         let decl_list =
@@ -88,9 +91,9 @@ impl VariableDeclarationList {
 }
 
 impl TokenParser for VariableDeclarationList {
-    type Output = Node;
+    type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
 
         loop {
@@ -105,7 +108,7 @@ impl TokenParser for VariableDeclarationList {
                     let _ = cursor.next();
                 }
                 _ => {
-                    return Err(ParseError::Expected(
+                    return Err(ParseError::expected(
                         vec![
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
@@ -117,7 +120,7 @@ impl TokenParser for VariableDeclarationList {
             }
         }
 
-        Ok(Node::var_decl(list))
+        Ok(VarDeclList::from(list))
     }
 }
 
@@ -151,7 +154,7 @@ impl VariableDeclaration {
 }
 
 impl TokenParser for VariableDeclaration {
-    type Output = (String, Option<Node>);
+    type Output = VarDecl;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
@@ -161,6 +164,6 @@ impl TokenParser for VariableDeclaration {
         let ident =
             Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
 
-        Ok((name, ident))
+        Ok(VarDecl::new(name, ident))
     }
 }

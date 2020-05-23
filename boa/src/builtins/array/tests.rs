@@ -1,11 +1,9 @@
-use crate::exec::Executor;
-use crate::forward;
-use crate::realm::Realm;
+use crate::{exec::Interpreter, forward, realm::Realm};
 
 #[test]
 fn is_array() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [];
         var new_arr = new Array();
@@ -46,7 +44,7 @@ fn is_array() {
 fn concat() {
     //TODO: array display formatter
     // let realm = Realm::create();
-    // let mut engine = Executor::new(realm);
+    // let mut engine = Interpreter::new(realm);
     // let init = r#"
     // var empty = new Array();
     // var one = new Array(1);
@@ -69,7 +67,7 @@ fn concat() {
 #[test]
 fn join() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -90,7 +88,7 @@ fn join() {
 #[test]
 fn to_string() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -111,7 +109,7 @@ fn to_string() {
 #[test]
 fn every() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     // taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
     let init = r#"
         var empty = [];
@@ -156,7 +154,7 @@ fn every() {
 #[test]
 fn find() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         function comp(a) {
             return a == "a";
@@ -171,7 +169,7 @@ fn find() {
 #[test]
 fn find_index() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     let code = r#"
         function comp(item) {
@@ -197,7 +195,7 @@ fn find_index() {
 #[test]
 fn push() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var arr = [1, 2];
         "#;
@@ -212,7 +210,7 @@ fn push() {
 #[test]
 fn pop() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ];
         var one = [1];
@@ -234,7 +232,7 @@ fn pop() {
 #[test]
 fn shift() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ];
         var one = [1];
@@ -256,7 +254,7 @@ fn shift() {
 #[test]
 fn unshift() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var arr = [3, 4];
         "#;
@@ -271,7 +269,7 @@ fn unshift() {
 #[test]
 fn reverse() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var arr = [1, 2];
         var reversed = arr.reverse();
@@ -286,7 +284,7 @@ fn reverse() {
 #[test]
 fn index_of() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -350,7 +348,7 @@ fn index_of() {
 #[test]
 fn last_index_of() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -414,7 +412,7 @@ fn last_index_of() {
 #[test]
 fn fill() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     forward(&mut engine, "var a = [1, 2, 3];");
     assert_eq!(
@@ -511,7 +509,7 @@ fn fill() {
 #[test]
 fn includes_value() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -550,7 +548,7 @@ fn includes_value() {
 #[test]
 fn map() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     let js = r#"
         var empty = [];
@@ -611,7 +609,7 @@ fn map() {
 #[test]
 fn slice() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [ ].slice();
         var one = ["a"].slice();
@@ -635,7 +633,7 @@ fn slice() {
 #[test]
 fn for_each() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = [2, 3, 4, 5];
         var sum = 0;
@@ -658,7 +656,7 @@ fn for_each() {
 #[test]
 fn for_each_push_value() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = [1, 2, 3, 4];
         function callingCallback(item, index, list) {
@@ -679,7 +677,7 @@ fn for_each_push_value() {
 #[test]
 fn filter() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     let js = r#"
         var empty = [];
@@ -746,7 +744,7 @@ fn filter() {
 #[test]
 fn some() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = [];
 
@@ -795,7 +793,7 @@ fn some() {
 #[test]
 fn call_array_constructor_with_one_argument() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = new Array(0);
 

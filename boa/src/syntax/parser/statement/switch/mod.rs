@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator},
+    ast::{Keyword, Node, Punctuator},
     parser::{
         expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
         ParseResult, TokenParser,
