@@ -44,10 +44,10 @@ pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> Re
         Ok(json) => {
             let j = Value::from(json);
             match args.get(1) {
-                Some(callback) if callback.is_function() => {
+                Some(reviver) if reviver.is_function() => {
                     let mut holder = Value::new_object(None);
                     holder.set_field(Value::from(""), j);
-                    walk(callback, interpreter, &mut holder, Value::from(""))
+                    walk(reviver, interpreter, &mut holder, Value::from(""))
                 }
                 _ => Ok(j),
             }
@@ -56,18 +56,22 @@ pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> Re
     }
 }
 
-#[allow(clippy::map_clone)]
+/// This is a translation of the [Polyfill implementation][polyfill]
+/// This function recursively walks the structure. passing each key-value pair to the reviver function
+/// for possible transformation
+/// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
 fn walk(
-    callback: &Value,
+    reviver: &Value,
     interpreter: &mut Interpreter,
     holder: &mut Value,
     key: Value,
 ) -> ResultValue {
     let mut value = holder.get_field(key.clone());
 
-    if let Some(obj) = value.as_object().map(|x| x.clone()) {
+    let obj = value.as_object().as_deref().cloned();
+    if let Some(obj) = obj {
         for key in obj.properties.keys() {
-            let v = walk(callback, interpreter, &mut value, Value::from(key.as_str()));
+            let v = walk(reviver, interpreter, &mut value, Value::from(key.as_str()));
             match v {
                 Ok(v) if !v.is_undefined() => {
                     value.set_field(Value::from(key.as_str()), v);
@@ -79,7 +83,7 @@ fn walk(
             }
         }
     }
-    interpreter.call(callback, holder, &[key, value])
+    interpreter.call(reviver, holder, &[key, value])
 }
 
 /// `JSON.stringify( value[, replacer[, space]] )`
