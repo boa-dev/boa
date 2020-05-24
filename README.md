@@ -17,17 +17,17 @@ Currently, it has support for some of the language.
 
 ## Live Demo (WASM)
 
-<https://jasonwilliams.github.io/boa/>
+<https://boa-dev.github.io/boa/>
 
 You can get more verbose errors when running from the command line
 
 ## Development documentation
 
-You can check the internal development docs at <https://jasonwilliams.github.io/boa/doc>
+You can check the internal development docs at <https://boa-dev.github.io/boa/doc>
 
 ## Benchmarks
 
-<https://jasonwilliams.github.io/boa/dev/bench/>
+<https://boa-dev.github.io/boa/dev/bench/>
 
 ## Contributing
 
