@@ -1,40 +1,96 @@
 //! Error and result implementation for the parser.
 use crate::syntax::ast::{
-    keyword::Keyword,
-    node::Node,
-    pos::Position,
+    position::Position,
     token::{Token, TokenKind},
+    Node,
 };
 use std::fmt;
 
 /// Result of a parsing operation.
 pub type ParseResult = Result<Node, ParseError>;
 
+pub(crate) trait ErrorContext {
+    fn context(self, context: &'static str) -> Self;
+}
+
+impl<T> ErrorContext for Result<T, ParseError> {
+    fn context(self, context: &'static str) -> Self {
+        self.map_err(|e| e.context(context))
+    }
+}
+
 /// `ParseError` is an enum which represents errors encounted during parsing an expression
 #[derive(Debug, Clone)]
 pub enum ParseError {
     /// When it expected a certain kind of token, but got another as part of something
-    Expected(Vec<TokenKind>, Token, &'static str),
-    /// When it expected a certain expression, but got another
-    ExpectedExpr(&'static str, Node, Position),
-    /// When it didn't expect this keyword
-    UnexpectedKeyword(Keyword, Position),
+    Expected {
+        expected: Box<[TokenKind]>,
+        found: Token,
+        context: &'static str,
+    },
     /// When a token is unexpected
-    Unexpected(Token, Option<&'static str>),
+    Unexpected {
+        found: Token,
+        message: Option<&'static str>,
+    },
     /// When there is an abrupt end to the parsing
     AbruptEnd,
-    /// Out of range error, attempting to set a position where there is no token
-    RangeError,
     /// Catch all General Error
-    General(&'static str, Option<Position>),
+    General {
+        message: &'static str,
+        position: Position,
+    },
+}
+
+impl ParseError {
+    /// Changes the context of the error, if any.
+    fn context(self, new_context: &'static str) -> Self {
+        match self {
+            Self::Expected {
+                expected, found, ..
+            } => Self::expected(expected, found, new_context),
+            e => e,
+        }
+    }
+
+    /// Creates an `Expected` parsing error.
+    pub(super) fn expected<E>(expected: E, found: Token, context: &'static str) -> Self
+    where
+        E: Into<Box<[TokenKind]>>,
+    {
+        Self::Expected {
+            expected: expected.into(),
+            found,
+            context,
+        }
+    }
+
+    /// Creates an `Expected` parsing error.
+    pub(super) fn unexpected<C>(found: Token, message: C) -> Self
+    where
+        C: Into<Option<&'static str>>,
+    {
+        Self::Unexpected {
+            found,
+            message: message.into(),
+        }
+    }
+
+    pub(super) fn general(message: &'static str, position: Position) -> Self {
+        Self::General { message, position }
+    }
 }
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Expected(expected, actual, routine) => write!(
+            Self::Expected {
+                expected,
+                found,
+                context,
+            } => write!(
                 f,
-                "Expected {}, got '{}' in {} at line {}, col {}",
+                "expected {}, got '{}' in {} at line {}, col {}",
                 if expected.len() == 1 {
                     format!(
                         "token '{}'",
@@ -62,45 +118,31 @@ impl fmt::Display for ParseError {
                             .collect::<String>()
                     )
                 },
-                actual,
-                routine,
-                actual.pos.line_number,
-                actual.pos.column_number
+                found,
+                context,
+                found.span().start().line_number(),
+                found.span().start().column_number()
             ),
-            Self::ExpectedExpr(expected, actual, pos) => write!(
+            Self::Unexpected { found, message } => write!(
                 f,
-                "Expected expression '{}', got '{}' at line {}, col {}",
-                expected, actual, pos.line_number, pos.column_number
-            ),
-            Self::UnexpectedKeyword(keyword, pos) => write!(
-                f,
-                "Unexpected keyword: '{}' at line {}, col {}",
-                keyword, pos.line_number, pos.column_number
-            ),
-            Self::Unexpected(tok, msg) => write!(
-                f,
-                "Unexpected Token '{}'{} at line {}, col {}",
-                tok,
-                if let Some(m) = msg {
+                "unexpected token '{}'{} at line {}, col {}",
+                found,
+                if let Some(m) = message {
                     format!(", {}", m)
                 } else {
                     String::new()
                 },
-                tok.pos.line_number,
-                tok.pos.column_number
+                found.span().start().line_number(),
+                found.span().start().column_number()
             ),
             Self::AbruptEnd => write!(f, "Abrupt End"),
-            Self::General(msg, pos) => write!(
+            Self::General { message, position } => write!(
                 f,
-                "{}{}",
-                msg,
-                if let Some(pos) = pos {
-                    format!(" at line {}, col {}", pos.line_number, pos.column_number)
-                } else {
-                    String::new()
-                }
+                "{} at line {}, col {}",
+                message,
+                position.line_number(),
+                position.column_number()
             ),
-            Self::RangeError => write!(f, "RangeError!"),
         }
     }
 }

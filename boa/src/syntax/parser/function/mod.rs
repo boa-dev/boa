@@ -12,9 +12,8 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{self, Node},
-        punc::Punctuator,
-        token::TokenKind,
+        node::{self},
+        Punctuator, TokenKind,
     },
     parser::{
         expression::Initializer,
@@ -52,7 +51,7 @@ impl FormalParameters {
 }
 
 impl TokenParser for FormalParameters {
-    type Output = Vec<node::FormalParameter>;
+    type Output = Box<[node::FormalParameter]>;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let mut params = Vec::new();
@@ -60,7 +59,7 @@ impl TokenParser for FormalParameters {
         if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
             == TokenKind::Punctuator(Punctuator::CloseParen)
         {
-            return Ok(params);
+            return Ok(params.into_boxed_slice());
         }
 
         loop {
@@ -80,19 +79,19 @@ impl TokenParser for FormalParameters {
             }
 
             if rest_param {
-                return Err(ParseError::Unexpected(
+                return Err(ParseError::unexpected(
                     cursor
                         .peek_prev()
                         .expect("current token disappeared")
                         .clone(),
-                    Some("rest parameter must be the last formal parameter"),
+                    "rest parameter must be the last formal parameter",
                 ));
             }
 
             cursor.expect(Punctuator::Comma, "parameter list")?;
         }
 
-        Ok(params)
+        Ok(params.into_boxed_slice())
     }
 }
 
@@ -186,7 +185,7 @@ impl TokenParser for FormalParameter {
 
         let init = Initializer::new(true, self.allow_yield, self.allow_await).try_parse(cursor);
 
-        Ok(Self::Output::new(param, init.map(Box::new), false))
+        Ok(Self::Output::new(param, init, false))
     }
 }
 
@@ -225,12 +224,12 @@ impl FunctionStatementList {
 }
 
 impl TokenParser for FunctionStatementList {
-    type Output = Vec<Node>;
+    type Output = node::StatementList;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         if let Some(tk) = cursor.peek(0) {
             if tk.kind == Punctuator::CloseBlock.into() {
-                return Ok(Vec::new());
+                return Ok(Vec::new().into());
             }
         }
 

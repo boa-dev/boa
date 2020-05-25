@@ -173,12 +173,12 @@ impl Default for Property {
 impl From<&Property> for Value {
     fn from(value: &Property) -> Value {
         let property = Value::new_object(None);
-        property.set_field_slice("configurable", Value::from(value.configurable));
-        property.set_field_slice("enumerable", Value::from(value.enumerable));
-        property.set_field_slice("writable", Value::from(value.writable));
-        property.set_field_slice("value", value.value.clone().unwrap_or_else(Value::null));
-        property.set_field_slice("get", value.get.clone().unwrap_or_else(Value::null));
-        property.set_field_slice("set", value.set.clone().unwrap_or_else(Value::null));
+        property.set_field("configurable", Value::from(value.configurable));
+        property.set_field("enumerable", Value::from(value.enumerable));
+        property.set_field("writable", Value::from(value.writable));
+        property.set_field("value", value.value.clone().unwrap_or_else(Value::null));
+        property.set_field("get", value.get.clone().unwrap_or_else(Value::null));
+        property.set_field("set", value.set.clone().unwrap_or_else(Value::null));
         property
     }
 }
@@ -188,12 +188,12 @@ impl<'a> From<&'a Value> for Property {
     /// if they're not there default to false
     fn from(value: &Value) -> Self {
         Self {
-            configurable: { Some(bool::from(&value.get_field_slice("configurable"))) },
-            enumerable: { Some(bool::from(&value.get_field_slice("enumerable"))) },
-            writable: { Some(bool::from(&value.get_field_slice("writable"))) },
-            value: Some(value.get_field_slice("value")),
-            get: Some(value.get_field_slice("get")),
-            set: Some(value.get_field_slice("set")),
+            configurable: { Some(bool::from(&value.get_field("configurable"))) },
+            enumerable: { Some(bool::from(&value.get_field("enumerable"))) },
+            writable: { Some(bool::from(&value.get_field("writable"))) },
+            value: Some(value.get_field("value")),
+            get: Some(value.get_field("get")),
+            set: Some(value.get_field("set")),
         }
     }
 }

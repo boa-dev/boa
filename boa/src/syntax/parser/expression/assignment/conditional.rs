@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator, token::TokenKind},
+    ast::{Node, Punctuator, TokenKind},
     parser::{
         expression::{AssignmentExpression, LogicalORExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,

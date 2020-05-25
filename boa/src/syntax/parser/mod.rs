@@ -9,7 +9,7 @@ mod statement;
 mod tests;
 
 use self::error::{ParseError, ParseResult};
-use crate::syntax::ast::{node::Node, token::Token};
+use crate::syntax::ast::{node::StatementList, Token};
 use cursor::Cursor;
 
 /// Trait implemented by parsers.
@@ -103,8 +103,8 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse all expressions in the token array
-    pub fn parse_all(&mut self) -> ParseResult {
-        Script.parse(&mut self.cursor).map(Node::statement_list)
+    pub fn parse_all(&mut self) -> Result<StatementList, ParseError> {
+        Script.parse(&mut self.cursor)
     }
 }
 
@@ -118,13 +118,13 @@ impl<'a> Parser<'a> {
 pub struct Script;
 
 impl TokenParser for Script {
-    type Output = Vec<Node>;
+    type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         if cursor.peek(0).is_some() {
             ScriptBody.parse(cursor)
         } else {
-            Ok(Vec::new())
+            Ok(StatementList::from(Vec::new()))
         }
     }
 }
@@ -139,7 +139,7 @@ impl TokenParser for Script {
 pub struct ScriptBody;
 
 impl TokenParser for ScriptBody {
-    type Output = Vec<Node>;
+    type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         self::statement::StatementList::new(false, false, false, false).parse(cursor)

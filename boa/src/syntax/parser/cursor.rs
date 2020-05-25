@@ -2,8 +2,8 @@
 
 use super::ParseError;
 use crate::syntax::ast::{
-    punc::Punctuator,
     token::{Token, TokenKind},
+    Punctuator,
 };
 
 /// Token cursor.
@@ -119,7 +119,7 @@ impl<'a> Cursor<'a> {
     /// Returns an error if the next token is not of kind `kind`.
     ///
     /// Note: it will consume the next token.
-    pub(super) fn expect<K>(&mut self, kind: K, routine: &'static str) -> Result<(), ParseError>
+    pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<(), ParseError>
     where
         K: Into<TokenKind>,
     {
@@ -129,10 +129,10 @@ impl<'a> Cursor<'a> {
         if next_token.kind == kind {
             Ok(())
         } else {
-            Err(ParseError::Expected(
+            Err(ParseError::expected(
                 vec![kind],
                 next_token.clone(),
-                routine,
+                context,
             ))
         }
     }
@@ -180,7 +180,7 @@ impl<'a> Cursor<'a> {
     pub(super) fn expect_semicolon(
         &mut self,
         do_while: bool,
-        routine: &'static str,
+        context: &'static str,
     ) -> Result<(), ParseError> {
         match self.peek_semicolon(do_while) {
             (true, Some(tk)) => match tk.kind {
@@ -191,10 +191,10 @@ impl<'a> Cursor<'a> {
                 _ => Ok(()),
             },
             (true, None) => Ok(()),
-            (false, Some(tk)) => Err(ParseError::Expected(
+            (false, Some(tk)) => Err(ParseError::expected(
                 vec![TokenKind::Punctuator(Punctuator::Semicolon)],
                 tk.clone(),
-                routine,
+                context,
             )),
             (false, None) => unreachable!(),
         }
@@ -203,11 +203,7 @@ impl<'a> Cursor<'a> {
     /// It will make sure that the next token is not a line terminator.
     ///
     /// It expects that the token stream does not end here.
-    pub(super) fn peek_expect_no_lineterminator(
-        &mut self,
-        skip: usize,
-        routine: &'static str,
-    ) -> Result<(), ParseError> {
+    pub(super) fn peek_expect_no_lineterminator(&mut self, skip: usize) -> Result<(), ParseError> {
         let mut count = 0;
         let mut skipped = 0;
         loop {
@@ -215,7 +211,7 @@ impl<'a> Cursor<'a> {
             count += 1;
             if let Some(tk) = token {
                 if skipped == skip && tk.kind == TokenKind::LineTerminator {
-                    break Err(ParseError::Unexpected(tk.clone(), Some(routine)));
+                    break Err(ParseError::unexpected(tk.clone(), None));
                 } else if skipped == skip && tk.kind != TokenKind::LineTerminator {
                     break Ok(());
                 } else if tk.kind != TokenKind::LineTerminator {

@@ -1,6 +1,9 @@
 use crate::syntax::{
-    ast::node::Node,
-    ast::op::{AssignOp, BinOp, CompOp, UnaryOp},
+    ast::{
+        node::{BinOp, Block, Call, Identifier, Node, UnaryOp, VarDecl, VarDeclList},
+        op::{self, AssignOp, CompOp},
+        Const,
+    },
     parser::tests::check_parser,
 };
 
@@ -12,12 +15,13 @@ fn check_do_while() {
             a += 1;
         } while (true)"#,
         vec![Node::do_while_loop(
-            Node::block(vec![Node::bin_op(
-                BinOp::Assign(AssignOp::Add),
-                Node::local("a"),
-                Node::const_node(1),
-            )]),
-            Node::const_node(true),
+            Block::from(vec![BinOp::new(
+                AssignOp::Add,
+                Identifier::from("a"),
+                Const::from(1),
+            )
+            .into()]),
+            Const::from(true),
         )],
     );
 }
@@ -29,22 +33,24 @@ fn check_do_while_semicolon_insertion() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
         vec![
-            Node::var_decl(vec![(String::from("i"), Some(Node::const_node(0)))]),
+            VarDeclList::from(vec![VarDecl::new("i", Some(Const::from(0).into()))]).into(),
             Node::do_while_loop(
-                Node::block(vec![Node::call(
-                    Node::get_const_field(Node::local("console"), "log"),
-                    vec![Node::const_node("hello")],
-                )]),
-                Node::bin_op(
-                    BinOp::Comp(CompOp::LessThan),
-                    Node::unary_op(UnaryOp::IncrementPost, Node::local("i")),
-                    Node::const_node(10),
+                Block::from(vec![Call::new(
+                    Node::get_const_field(Identifier::from("console"), "log"),
+                    vec![Const::from("hello").into()],
+                )
+                .into()]),
+                BinOp::new(
+                    CompOp::LessThan,
+                    UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("i")),
+                    Const::from(10),
                 ),
             ),
-            Node::call(
-                Node::get_const_field(Node::local("console"), "log"),
-                vec![Node::const_node("end")],
-            ),
+            Call::new(
+                Node::get_const_field(Identifier::from("console"), "log"),
+                vec![Const::from("end").into()],
+            )
+            .into(),
         ],
     );
 }

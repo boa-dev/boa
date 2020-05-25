@@ -7,7 +7,10 @@
 
 use super::arguments::Arguments;
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{
+        node::{Call, New, Node},
+        Keyword, Punctuator, TokenKind,
+    },
     parser::{
         expression::{primary::PrimaryExpression, Expression},
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
@@ -50,9 +53,9 @@ impl TokenParser for MemberExpression {
             let _ = cursor.next().expect("keyword disappeared");
             let lhs = self.parse(cursor)?;
             let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            let call_node = Node::call(lhs, args);
+            let call_node = Call::new(lhs, args);
 
-            Node::new(call_node)
+            Node::from(New::from(call_node))
         } else {
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
@@ -61,10 +64,12 @@ impl TokenParser for MemberExpression {
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor forward.
                     match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
-                        TokenKind::Identifier(name) => lhs = Node::get_const_field(lhs, name),
+                        TokenKind::Identifier(name) => {
+                            lhs = Node::get_const_field(lhs, name.clone())
+                        }
                         TokenKind::Keyword(kw) => lhs = Node::get_const_field(lhs, kw.to_string()),
                         _ => {
-                            return Err(ParseError::Expected(
+                            return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
                                 tok.clone(),
                                 "member expression",

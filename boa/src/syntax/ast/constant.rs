@@ -40,7 +40,7 @@ pub enum Const {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-string-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#String_literals
-    String(String),
+    String(Box<str>),
 
     /// A floating-point number literal.
     ///
@@ -115,19 +115,25 @@ pub enum Const {
 
 impl From<&str> for Const {
     fn from(s: &str) -> Self {
-        Self::String(s.into())
+        Self::String(s.to_owned().into_boxed_str())
     }
 }
 
 impl From<&String> for Const {
     fn from(s: &String) -> Self {
-        Self::String(s.clone())
+        Self::String(s.clone().into_boxed_str())
+    }
+}
+
+impl From<Box<str>> for Const {
+    fn from(s: Box<str>) -> Self {
+        Self::String(s)
     }
 }
 
 impl From<String> for Const {
     fn from(s: String) -> Self {
-        Self::String(s)
+        Self::String(s.into_boxed_str())
     }
 }
 

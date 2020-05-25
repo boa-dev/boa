@@ -3,7 +3,7 @@ mod tests;
 
 use super::Statement;
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{Keyword, Node, Punctuator, TokenKind},
     parser::{
         expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
         TokenParser,

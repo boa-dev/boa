@@ -8,11 +8,11 @@
 //! [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator},
+    ast::{node::FunctionExpr, Punctuator},
     parser::{
         function::{FormalParameters, FunctionBody},
         statement::BindingIdentifier,
-        Cursor, ParseResult, TokenParser,
+        Cursor, ParseError, TokenParser,
     },
 };
 
@@ -28,9 +28,9 @@ use crate::syntax::{
 pub(super) struct FunctionExpression;
 
 impl TokenParser for FunctionExpression {
-    type Output = Node;
+    type Output = FunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let name = BindingIdentifier::new(false, false).try_parse(cursor);
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;
@@ -40,12 +40,10 @@ impl TokenParser for FunctionExpression {
         cursor.expect(Punctuator::CloseParen, "function expression")?;
         cursor.expect(Punctuator::OpenBlock, "function expression")?;
 
-        let body = FunctionBody::new(false, false)
-            .parse(cursor)
-            .map(Node::statement_list)?;
+        let body = FunctionBody::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "function expression")?;
 
-        Ok(Node::function_expr::<_, String, _, _>(name, params, body))
+        Ok(FunctionExpr::new(name, params, body))
     }
 }

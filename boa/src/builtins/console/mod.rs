@@ -18,6 +18,7 @@ mod tests;
 
 use crate::{
     builtins::{
+        function::make_builtin_fn,
         object::InternalState,
         value::{display_obj, ResultValue, Value},
     },
@@ -491,25 +492,25 @@ pub fn dir(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue
 pub fn create(global: &Value) -> Value {
     let console = Value::new_object(Some(global));
 
-    make_builtin_fn!(assert, named "assert", of console);
-    make_builtin_fn!(clear, named "clear", of console);
-    make_builtin_fn!(debug, named "debug", of console);
-    make_builtin_fn!(error, named "error", of console);
-    make_builtin_fn!(info, named "info", of console);
-    make_builtin_fn!(log, named "log", of console);
-    make_builtin_fn!(trace, named "trace", of console);
-    make_builtin_fn!(warn, named "warn", of console);
-    make_builtin_fn!(error, named "exception", of console);
-    make_builtin_fn!(count, named "count", of console);
-    make_builtin_fn!(count_reset, named "countReset", of console);
-    make_builtin_fn!(group, named "group", of console);
-    make_builtin_fn!(group, named "groupCollapsed", of console);
-    make_builtin_fn!(group_end , named "groupEnd", of console);
-    make_builtin_fn!(time, named "time", of console);
-    make_builtin_fn!(time_log, named "timeLog", of console);
-    make_builtin_fn!(time_end, named "timeEnd", of console);
-    make_builtin_fn!(dir, named "dir", of console);
-    make_builtin_fn!(dir, named "dirxml", of console);
+    make_builtin_fn(assert, "assert", &console, 0);
+    make_builtin_fn(clear, "clear", &console, 0);
+    make_builtin_fn(debug, "debug", &console, 0);
+    make_builtin_fn(error, "error", &console, 0);
+    make_builtin_fn(info, "info", &console, 0);
+    make_builtin_fn(log, "log", &console, 0);
+    make_builtin_fn(trace, "trace", &console, 0);
+    make_builtin_fn(warn, "warn", &console, 0);
+    make_builtin_fn(error, "exception", &console, 0);
+    make_builtin_fn(count, "count", &console, 0);
+    make_builtin_fn(count_reset, "countReset", &console, 0);
+    make_builtin_fn(group, "group", &console, 0);
+    make_builtin_fn(group, "groupCollapsed", &console, 0);
+    make_builtin_fn(group_end, "groupEnd", &console, 0);
+    make_builtin_fn(time, "time", &console, 0);
+    make_builtin_fn(time_log, "timeLog", &console, 0);
+    make_builtin_fn(time_end, "timeEnd", &console, 0);
+    make_builtin_fn(dir, "dir", &console, 0);
+    make_builtin_fn(dir, "dirxml", &console, 0);
 
     console.set_internal_state(ConsoleState::default());
 
@@ -519,5 +520,5 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `console` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("console", create(global));
+    global.set_field("console", create(global));
 }
