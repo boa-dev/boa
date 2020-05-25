@@ -12,12 +12,15 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::{
-    ast::{
-        node::{Assign, BinOp, Node},
-        Keyword, Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{Assign, BinOp, Node},
+            Keyword, Punctuator, TokenKind,
+        },
+        parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
-    parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    BoaProfiler,
 };
 pub(super) use exponentiation::ExponentiationExpression;
 
@@ -70,6 +73,7 @@ impl TokenParser for AssignmentExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // Arrow function
         let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
         match next_token.kind {

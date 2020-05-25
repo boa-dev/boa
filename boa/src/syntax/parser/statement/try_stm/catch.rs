@@ -1,12 +1,15 @@
-use crate::syntax::{
-    ast::{
-        node::{self, Identifier},
-        Keyword, Punctuator,
+use crate::{
+    syntax::{
+        ast::{
+            node::{self, Identifier},
+            Keyword, Punctuator,
+        },
+        parser::{
+            statement::{block::Block, BindingIdentifier},
+            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+        },
     },
-    parser::{
-        statement::{block::Block, BindingIdentifier},
-        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Catch parsing
@@ -44,6 +47,7 @@ impl TokenParser for Catch {
     type Output = node::Catch;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("Catch", "Parsing");
         cursor.expect(Keyword::Catch, "try statement")?;
         let catch_param = if cursor.next_if(Punctuator::OpenParen).is_some() {
             let catch_param =
