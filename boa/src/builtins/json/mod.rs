@@ -115,7 +115,7 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
                 if key == "length" {
                     None
                 } else {
-                    Some(replacer.get_field_slice(&key.to_string()))
+                    Some(replacer.get_field(key.to_string()))
                 }
             });
         for field in fields {
