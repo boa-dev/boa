@@ -425,8 +425,8 @@ impl Number {
         number.set_field("EPSILON", Value::from(std::f64::EPSILON));
         number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
         number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
-        number.set_field("MAX_VALUE", Value::from(1.797_693_134_862_315_7E+308_f64));
-        number.set_field("MIN_VALUE", Value::from(5E-324_f64));
+        number.set_field("MAX_VALUE", Value::from(std::f64::MAX));
+        number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
         number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
         number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
         number.set_field("NAN", Value::from(f64::NAN));
