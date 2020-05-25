@@ -46,7 +46,7 @@ impl BoaProfiler {
     }
 
     pub fn global() -> &'static BoaProfiler {
-        unsafe { INSTANCE.get().expect("Profiler is not initialized") }
+        unsafe { INSTANCE.get_or_init(Self::default) }
     }
 
     pub fn drop(&self) {

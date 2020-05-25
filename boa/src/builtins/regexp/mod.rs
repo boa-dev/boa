@@ -21,6 +21,7 @@ use crate::{
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 
 #[cfg(test)]
@@ -491,6 +492,7 @@ impl RegExp {
     /// Initialise the `RegExp` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("regexp", "init");
         global.set_field("RegExp", Self::create(global));
     }
 }

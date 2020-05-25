@@ -74,7 +74,6 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// Similar to `forward`, except the current value is returned instad of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
-    BoaProfiler::init();
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
     let result = match parser_expr(src) {

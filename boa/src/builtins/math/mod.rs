@@ -17,6 +17,7 @@ use crate::{
         value::{ResultValue, Value},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use rand::random;
 use std::f64;
@@ -553,5 +554,6 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `Math` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
+    let _timer = BoaProfiler::global().start_event("math", "init");
     global.set_field("Math", create(global));
 }

@@ -22,6 +22,7 @@ use crate::{
     environment::lexical_environment::{new_function_environment, Environment},
     exec::{Executable, Interpreter},
     syntax::ast::node::{FormalParameter, StatementList},
+    BoaProfiler,
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
@@ -447,5 +448,6 @@ where
 /// Initialise the `Function` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
+    let _timer = BoaProfiler::global().start_event("function", "init");
     global.set_field("Function", create(global));
 }

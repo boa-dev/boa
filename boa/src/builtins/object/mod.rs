@@ -20,6 +20,7 @@ use crate::{
         value::{same_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -633,5 +634,6 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `Object` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
+    let _timer = BoaProfiler::global().start_event("object", "init");
     global.set_field("Object", create(global));
 }

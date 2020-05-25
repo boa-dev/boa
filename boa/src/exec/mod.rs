@@ -26,6 +26,7 @@ use crate::{
         constant::Const,
         node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition, StatementList},
     },
+    BoaProfiler,
 };
 use std::{borrow::Borrow, ops::Deref};
 
@@ -373,6 +374,7 @@ impl Interpreter {
 
 impl Executable for Node {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::Const(Const::Null) => Ok(Value::null()),
             Node::Const(Const::Undefined) => Ok(Value::undefined()),

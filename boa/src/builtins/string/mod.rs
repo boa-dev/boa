@@ -21,6 +21,7 @@ use crate::{
         RegExp,
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use regex::Regex;
 use std::string::String as StdString;
@@ -1077,6 +1078,7 @@ impl String {
     /// Initialise the `String` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("string", "init");
         global.set_field("String", Self::create(global));
     }
 }

@@ -21,6 +21,7 @@ use crate::{
         value::{same_value_zero, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use std::{
     borrow::Borrow,
@@ -1042,6 +1043,7 @@ impl Array {
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("array", "init");
         global.set_field("Array", Self::create(global));
     }
 }
