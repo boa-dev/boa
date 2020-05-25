@@ -419,6 +419,10 @@ impl Number {
 
         let number = make_constructor_fn(Self::make_number, global, prototype);
 
+        // Constants from:
+        // Draft ECMA-262 / May 22, 2020 ECMAScript® 2021 Language Specification
+        // Section 20.1.2 Properties of the Number Constructor
+
         number.set_field("EPSILON", Value::from(f64::EPSILON));
         number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
         number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
