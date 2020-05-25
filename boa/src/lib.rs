@@ -38,20 +38,21 @@ pub mod environment;
 pub mod exec;
 pub mod realm;
 pub mod syntax;
-use crate::{
-    builtins::value::ResultValue,
-    exec::{Executor, Interpreter},
+
+use crate::{builtins::value::ResultValue, syntax::ast::node::StatementList};
+pub use crate::{
+    exec::{Executable, Interpreter},
     realm::Realm,
-    syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
+    syntax::{lexer::Lexer, parser::Parser},
 };
 
-fn parser_expr(src: &str) -> Result<Node, String> {
+fn parser_expr(src: &str) -> Result<StatementList, String> {
     let mut lexer = Lexer::new(src);
-    lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
+    lexer.lex().map_err(|e| format!("Syntax Error: {}", e))?;
     let tokens = lexer.tokens;
     Parser::new(&tokens)
         .parse_all()
-        .map_err(|e| format!("ParsingError: {}", e))
+        .map_err(|e| format!("Parsing Error: {}", e))
 }
 
 /// Execute the code using an existing Interpreter
@@ -59,16 +60,11 @@ fn parser_expr(src: &str) -> Result<Node, String> {
 pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
     let expr = match parser_expr(src) {
-        Ok(v) => v,
-        Err(error_string) => {
-            return error_string;
-        }
+        Ok(res) => res,
+        Err(e) => return e,
     };
-    let result = engine.run(&expr);
-    match result {
-        Ok(v) => v.to_string(),
-        Err(v) => format!("{}: {}", "Error", v.to_string()),
-    }
+    expr.run(engine)
+        .map_or_else(|e| format!("Error: {}", e), |v| v.to_string())
 }
 
 /// Execute the code using an existing Interpreter.
@@ -78,7 +74,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     // Setup executor
     match parser_expr(src) {
-        Ok(expr) => engine.run(&expr),
+        Ok(expr) => expr.run(engine),
         Err(e) => {
             eprintln!("{}", e);
             std::process::exit(1);
@@ -90,6 +86,6 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
 pub fn exec(src: &str) -> String {
     // Create new Realm
     let realm = Realm::create();
-    let mut engine: Interpreter = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     forward(&mut engine, src)
 }

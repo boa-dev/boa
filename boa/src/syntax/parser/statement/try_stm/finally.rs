@@ -1,7 +1,7 @@
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node},
+    ast::{node, Keyword},
     parser::{
-        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
+        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
         TokenParser,
     },
 };
@@ -38,10 +38,14 @@ impl Finally {
 }
 
 impl TokenParser for Finally {
-    type Output = Node;
+    type Output = node::Finally;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Finally, "try statement")?;
-        Ok(Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
+        Ok(
+            Block::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor)?
+                .into(),
+        )
     }
 }

@@ -99,10 +99,8 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back()
     }
 
-    pub fn environments(&self) -> impl Iterator<Item = Environment> {
-        std::iter::successors(Some(self.get_current_environment_ref().clone()), |env| {
-            env.borrow().get_outer_environment()
-        })
+    pub fn environments(&self) -> impl Iterator<Item = &Environment> {
+        self.environment_stack.iter().rev()
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
@@ -114,8 +112,10 @@ impl LexicalEnvironment {
     }
 
     pub fn get_this_binding(&self) -> Value {
-        let env = self.environment_stack.back().expect("").borrow();
-        env.get_this_binding()
+        self.environments()
+            .find(|env| env.borrow().has_this_binding())
+            .map(|env| env.borrow().get_this_binding())
+            .unwrap_or_else(Value::undefined)
     }
 
     pub fn create_mutable_binding(&mut self, name: String, deletion: bool, scope: VariableScope) {
@@ -192,10 +192,8 @@ impl LexicalEnvironment {
     /// get_current_environment_ref is used when you only need to borrow the environment
     /// (you only need to add a new variable binding, or you want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
-        let index = self.environment_stack.len().wrapping_sub(1);
-        &self
-            .environment_stack
-            .get(index)
+        self.environment_stack
+            .back()
             .expect("Could not get current environment")
     }
 

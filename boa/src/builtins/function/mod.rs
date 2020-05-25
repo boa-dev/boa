@@ -13,18 +13,15 @@
 
 use crate::{
     builtins::{
-        array,
+        array::Array,
         object::{Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
         property::Property,
         value::{ResultValue, Value},
     },
-    environment::{
-        function_environment_record::BindingStatus,
-        lexical_environment::{new_function_environment, Environment},
-    },
-    exec::Executor,
-    syntax::ast::node::{FormalParameter, Node},
-    Interpreter,
+    environment::function_environment_record::BindingStatus,
+    environment::lexical_environment::{new_function_environment, Environment},
+    exec::{Executable, Interpreter},
+    syntax::ast::node::{FormalParameter, StatementList},
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
@@ -52,14 +49,14 @@ pub enum ThisMode {
 #[derive(Clone, Finalize)]
 pub enum FunctionBody {
     BuiltIn(NativeFunctionData),
-    Ordinary(Node),
+    Ordinary(StatementList),
 }
 
 impl Debug for FunctionBody {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BuiltIn(_) => write!(f, "native code"),
-            Self::Ordinary(node) => write!(f, "{}", node),
+            Self::Ordinary(statements) => write!(f, "{:?}", statements),
         }
     }
 }
@@ -174,7 +171,7 @@ impl Function {
                 for i in 0..self.params.len() {
                     let param = self.params.get(i).expect("Could not get param");
                     // Rest Parameters
-                    if param.is_rest_param {
+                    if param.is_rest_param() {
                         self.add_rest_param(param, i, args_list, interpreter, &local_env);
                         break;
                     }
@@ -196,7 +193,7 @@ impl Function {
 
                 // Call body should be set before reaching here
                 let result = match &self.body {
-                    FunctionBody::Ordinary(ref body) => interpreter.run(body),
+                    FunctionBody::Ordinary(ref body) => body.run(interpreter),
                     _ => panic!("Ordinary function should not have BuiltIn Function body"),
                 };
 
@@ -238,7 +235,7 @@ impl Function {
                 // Add argument bindings to the function environment
                 for (i, param) in self.params.iter().enumerate() {
                     // Rest Parameters
-                    if param.is_rest_param {
+                    if param.is_rest_param() {
                         self.add_rest_param(param, i, args_list, interpreter, &local_env);
                         break;
                     }
@@ -260,7 +257,7 @@ impl Function {
 
                 // Call body should be set before reaching here
                 let _ = match &self.body {
-                    FunctionBody::Ordinary(ref body) => interpreter.run(body),
+                    FunctionBody::Ordinary(ref body) => body.run(interpreter),
                     _ => panic!("Ordinary function should not have BuiltIn Function body"),
                 };
 
@@ -281,18 +278,18 @@ impl Function {
         local_env: &Environment,
     ) {
         // Create array of values
-        let array = array::new_array(interpreter).unwrap();
-        array::add_to_array_object(&array, &args_list[index..]).unwrap();
+        let array = Array::new_array(interpreter).unwrap();
+        Array::add_to_array_object(&array, &args_list[index..]).unwrap();
 
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name.clone(), false);
+            .create_mutable_binding(param.name().to_owned(), false);
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(&param.name, array);
+            .initialize_binding(param.name(), array);
     }
 
     // Adds an argument to the environment
@@ -305,12 +302,12 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name.clone(), false);
+            .create_mutable_binding(param.name().to_owned(), false);
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(&param.name, value);
+            .initialize_binding(param.name(), value);
     }
 }
 
@@ -387,9 +384,7 @@ pub fn make_constructor_fn(body: NativeFunctionData, global: &Value, proto: Valu
     );
 
     // Get reference to Function.prototype
-    let func_prototype = global
-        .get_field_slice("Function")
-        .get_field_slice(PROTOTYPE);
+    let func_prototype = global.get_field("Function").get_field(PROTOTYPE);
 
     // Create the function object and point its instance prototype to Function.prototype
     let mut constructor_obj = Object::function();
@@ -399,14 +394,32 @@ pub fn make_constructor_fn(body: NativeFunctionData, global: &Value, proto: Valu
     let constructor_val = Value::from(constructor_obj);
 
     // Set proto.constructor -> constructor_obj
-    proto.set_field_slice("constructor", constructor_val.clone());
-    constructor_val.set_field_slice(PROTOTYPE, proto);
+    proto.set_field("constructor", constructor_val.clone());
+    constructor_val.set_field(PROTOTYPE, proto);
 
     constructor_val
+}
+
+/// Macro to create a new member function of a prototype.
+///
+/// If no length is provided, the length will be set to 0.
+pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value, length: i32)
+where
+    N: Into<String>,
+{
+    let func = Function::create_builtin(vec![], FunctionBody::BuiltIn(function));
+
+    let mut new_func = Object::function();
+    new_func.set_func(func);
+
+    let new_func_obj = Value::from(new_func);
+    new_func_obj.set_field("length", length);
+
+    parent.set_field(name.into(), new_func_obj);
 }
 
 /// Initialise the `Function` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("Function", create(global));
+    global.set_field("Function", create(global));
 }

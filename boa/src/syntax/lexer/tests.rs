@@ -2,7 +2,11 @@
 #![allow(clippy::indexing_slicing)]
 
 use super::*;
-use crate::syntax::ast::keyword::Keyword;
+use crate::syntax::ast::Keyword;
+
+fn span(start: (u32, u32), end: (u32, u32)) -> Span {
+    Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
+}
 
 #[test]
 fn check_single_line_comment() {
@@ -294,31 +298,30 @@ fn check_variable_definition_tokens() {
 
 #[test]
 fn check_positions() {
-    let s = "console.log(\"hello world\"); // Test";
-    // ------123456789
+    let s = r#"console.log("hello world\u{2764}"); // Test"#;
+    // --------123456789
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
     // The first column is 1 (not zero indexed)
-    assert_eq!(lexer.tokens[0].pos.column_number, 1);
-    assert_eq!(lexer.tokens[0].pos.line_number, 1);
+    assert_eq!(lexer.tokens[0].span(), span((1, 1), (1, 7)));
+
     // Dot Token starts on column 8
-    assert_eq!(lexer.tokens[1].pos.column_number, 8);
-    assert_eq!(lexer.tokens[1].pos.line_number, 1);
+    assert_eq!(lexer.tokens[1].span(), span((1, 8), (1, 8)));
+
     // Log Token starts on column 9
-    assert_eq!(lexer.tokens[2].pos.column_number, 9);
-    assert_eq!(lexer.tokens[2].pos.line_number, 1);
+    assert_eq!(lexer.tokens[2].span(), span((1, 9), (1, 11)));
+
     // Open parenthesis token starts on column 12
-    assert_eq!(lexer.tokens[3].pos.column_number, 12);
-    assert_eq!(lexer.tokens[3].pos.line_number, 1);
+    assert_eq!(lexer.tokens[3].span(), span((1, 12), (1, 12)));
+
     // String token starts on column 13
-    assert_eq!(lexer.tokens[4].pos.column_number, 13);
-    assert_eq!(lexer.tokens[4].pos.line_number, 1);
-    // Close parenthesis token starts on column 26
-    assert_eq!(lexer.tokens[5].pos.column_number, 26);
-    assert_eq!(lexer.tokens[5].pos.line_number, 1);
-    // Semi Colon token starts on column 27
-    assert_eq!(lexer.tokens[6].pos.column_number, 27);
-    assert_eq!(lexer.tokens[6].pos.line_number, 1);
+    assert_eq!(lexer.tokens[4].span(), span((1, 13), (1, 33)));
+
+    // Close parenthesis token starts on column 34
+    assert_eq!(lexer.tokens[5].span(), span((1, 34), (1, 34)));
+
+    // Semi Colon token starts on column 35
+    assert_eq!(lexer.tokens[6].span(), span((1, 35), (1, 35)));
 }
 
 #[test]
@@ -329,8 +332,7 @@ fn two_divisions_in_expression() {
     lexer.lex().expect("failed to lex");
     // dbg!(&lexer.tokens);
 
-    assert_eq!(lexer.tokens[11].pos.column_number, 37);
-    assert_eq!(lexer.tokens[11].pos.line_number, 1);
+    assert_eq!(lexer.tokens[11].span(), span((1, 37), (1, 37)));
 }
 
 #[test]
@@ -340,17 +342,10 @@ fn check_line_numbers() {
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
 
-    assert_eq!(lexer.tokens[0].pos.column_number, 1);
-    assert_eq!(lexer.tokens[0].pos.line_number, 1);
-
-    assert_eq!(lexer.tokens[1].pos.column_number, 2);
-    assert_eq!(lexer.tokens[1].pos.line_number, 1);
-
-    assert_eq!(lexer.tokens[2].pos.column_number, 1);
-    assert_eq!(lexer.tokens[2].pos.line_number, 2);
-
-    assert_eq!(lexer.tokens[3].pos.column_number, 2);
-    assert_eq!(lexer.tokens[3].pos.line_number, 2);
+    assert_eq!(lexer.tokens[0].span(), span((1, 1), (1, 1)));
+    assert_eq!(lexer.tokens[1].span(), span((1, 2), (2, 1)));
+    assert_eq!(lexer.tokens[2].span(), span((2, 1), (2, 1)));
+    assert_eq!(lexer.tokens[3].span(), span((2, 2), (3, 1)));
 }
 
 // Increment/Decrement
@@ -376,9 +371,9 @@ fn check_nan() {
 
     match lexer.tokens[3].kind {
         TokenKind::NumericLiteral(NumericLiteral::Rational(a)) => {
-            assert_eq!(a.is_nan(), true);
+            assert!(a.is_nan());
         }
-        _ => assert!(false),
+        ref other => panic!("Incorrect token kind found for NaN: {}", other),
     }
 }
 
@@ -428,10 +423,7 @@ fn hexadecimal_edge_case() {
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::numeric_literal(0xffff));
     assert_eq!(lexer.tokens[1].kind, TokenKind::Punctuator(Punctuator::Dot));
-    assert_eq!(
-        lexer.tokens[2].kind,
-        TokenKind::Identifier(String::from("ff"))
-    );
+    assert_eq!(lexer.tokens[2].kind, TokenKind::identifier("ff"));
 
     assert_eq!(
         lexer.tokens[3].kind,
@@ -459,7 +451,7 @@ fn regex_literal() {
     lexer.lex().expect("failed to lex");
     assert_eq!(
         lexer.tokens[0].kind,
-        TokenKind::regular_expression_literal("(?:)", "")
+        TokenKind::regular_expression_literal("(?:)", "".parse().unwrap())
     );
 }
 
@@ -469,7 +461,7 @@ fn regex_literal_flags() {
     lexer.lex().expect("failed to lex");
     assert_eq!(
         lexer.tokens[0].kind,
-        TokenKind::regular_expression_literal("\\/[^\\/]*\\/*", "gmi")
+        TokenKind::regular_expression_literal("\\/[^\\/]*\\/*", "gmi".parse().unwrap())
     );
 }
 

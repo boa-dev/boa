@@ -57,6 +57,12 @@ rust.then((m) => {
 function inputHandler(evt) {
   const text = editor.getValue();
   let p = document.querySelector("p.output");
-  let result = window.evaluate(text);
-  p.textContent = `> ${result}`;
+
+  try {
+    let result = window.evaluate(text);
+    p.textContent = `> ${result}`;
+  } catch (err) {
+    console.error(err);
+    p.innerHTML = `<span style="color:red">${err}</span>`
+  }
 }
