@@ -14,13 +14,13 @@ use std::{
 type SerializationSink = measureme::MmapSerializationSink;
 #[cfg(windows)]
 type SerializationSink = measureme::FileSerializationSink;
-
+#[cfg(feature = "profiler")]
 pub struct BoaProfiler {
     profiler: Profiler<SerializationSink>,
 }
 
 pub static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
-
+#[cfg(feature = "profiler")]
 impl BoaProfiler {
     pub fn start_event(&self, label: &str, category: &str) -> TimingGuard<'_, SerializationSink> {
         let kind = self.profiler.alloc_string(category);
@@ -73,5 +73,24 @@ impl BoaProfiler {
 impl Debug for BoaProfiler {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Debug::fmt("no debug implemented", f)
+    }
+}
+
+#[cfg(not(feature = "profiler"))]
+pub struct BoaProfiler;
+
+#[allow(clippy::unused_unit)]
+#[cfg(not(feature = "profiler"))]
+impl BoaProfiler {
+    pub fn start_event(&self, _label: &str, _category: &str) -> () {
+        ()
+    }
+
+    pub fn drop(&self) {
+        ()
+    }
+
+    pub fn global() -> BoaProfiler {
+        BoaProfiler
     }
 }
