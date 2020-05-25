@@ -422,7 +422,7 @@ impl Number {
         // Constants from:
         // Draft ECMA-262 / May 22, 2020 ECMAScript® 2021 Language Specification
         // Section 20.1.2 Properties of the Number Constructor
-        number.set_field("EPSILON", Value::from(2.220_446_049_250_313_080_847_263_336_181_6E-16_f64));
+        number.set_field("EPSILON", Value::from(std::f64::EPSILON));
         number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
         number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
         number.set_field("MAX_VALUE", Value::from(1.797_693_134_862_315_7E+308_f64));
