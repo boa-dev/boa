@@ -13,7 +13,10 @@ mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{
+        node::{Assign, BinOp, Node},
+        Keyword, Punctuator, TokenKind,
+    },
     parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 pub(super) use exponentiation::ExponentiationExpression;
@@ -74,9 +77,7 @@ impl TokenParser for AssignmentExpression {
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await)
-                if cursor
-                    .peek_expect_no_lineterminator(1, "arrow function")
-                    .is_ok() =>
+                if cursor.peek_expect_no_lineterminator(1).is_ok() =>
             {
                 if let Some(tok) = cursor.peek(1) {
                     if tok.kind == TokenKind::Punctuator(Punctuator::Arrow) {
@@ -85,7 +86,8 @@ impl TokenParser for AssignmentExpression {
                             self.allow_yield,
                             self.allow_await,
                         )
-                        .parse(cursor);
+                        .parse(cursor)
+                        .map(Node::ArrowFunctionDecl);
                     }
                 }
             }
@@ -94,6 +96,7 @@ impl TokenParser for AssignmentExpression {
                 if let Some(node) =
                     ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
                         .try_parse(cursor)
+                        .map(Node::ArrowFunctionDecl)
                 {
                     return Ok(node);
                 }
@@ -103,17 +106,16 @@ impl TokenParser for AssignmentExpression {
 
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
-        // let mut lhs = self.read_block()?;
 
         if let Some(tok) = cursor.next() {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    lhs = Node::assign(lhs, self.parse(cursor)?)
+                    lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() => {
                     let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");
-                    lhs = Node::bin_op(binop, lhs, expr);
+                    lhs = BinOp::new(binop, lhs, expr).into();
                 }
                 _ => {
                     cursor.back();

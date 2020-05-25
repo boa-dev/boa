@@ -13,7 +13,10 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use crate::builtins::value::{ResultValue, Value};
+use crate::builtins::{
+    function::make_builtin_fn,
+    value::{ResultValue, Value},
+};
 use crate::exec::Interpreter;
 use serde_json::{self, Value as JSONValue};
 
@@ -72,8 +75,8 @@ pub fn stringify(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultVa
 pub fn create(global: &Value) -> Value {
     let json = Value::new_object(Some(global));
 
-    make_builtin_fn!(parse, named "parse", with length 2, of json);
-    make_builtin_fn!(stringify, named "stringify", with length 3, of json);
+    make_builtin_fn(parse, "parse", &json, 2);
+    make_builtin_fn(stringify, "stringify", &json, 3);
 
     json
 }
@@ -81,5 +84,5 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `JSON` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("JSON", create(global));
+    global.set_field("JSON", create(global));
 }

@@ -4,6 +4,7 @@
 name = "Boa"
 version = "0.8.0"
 dependencies = [
+ "bitflags",
  "criterion",
  "gc",
  "jemallocator",
@@ -253,18 +254,18 @@ checksum = "5f2a4a2034423744d2cc7ca2068453168dcdb82c438419e639a26bd87839c674"
 
 [[package]]
 name = "gc"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4917b7233397091baf9136eec3c669c8551b097d69ca2b00a2606e5f07641d1"
+checksum = "1a56d49bc3e3be03d3432ba45e0503aa13f7e0ad2fc2e6d8ab50b33725b3d767"
 dependencies = [
  "gc_derive",
 ]
 
 [[package]]
 name = "gc_derive"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a5b968c8044a119af2671a52de57689cbf502d6686847abd9e6252ee4c39313"
+checksum = "034ffcc744b2fc6ec8d23695a4562428093b6f37c74746d9ee9ce606bfc869b8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -481,9 +482,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.13"
+version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53f5ffe53a6b28e37c9c1ce74893477864d64f74778a93a4beb43c8fa167f639"
+checksum = "1502d12e458c49a4c9cbff560d0fe0060c252bc29799ed94ca2ed4bb665a0101"
 dependencies = [
  "unicode-xid",
 ]
@@ -789,9 +790,9 @@ checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
 name = "version_check"
-version = "0.9.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "078775d0255232fb988e6fccf26ddc9d1ac274299aaedcedce21c6f72cc533ce"
+checksum = "b5a972e5669d67ba988ce3dc826706fb0a8b01471c088cb0b6110b805cc36aed"
 
 [[package]]
 name = "walkdir"

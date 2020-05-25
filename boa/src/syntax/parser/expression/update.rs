@@ -7,7 +7,7 @@
 
 use super::left_hand_side::LeftHandSideExpression;
 use crate::syntax::{
-    ast::{node::Node, op::UnaryOp, punc::Punctuator, token::TokenKind},
+    ast::{node, op::UnaryOp, Node, Punctuator, TokenKind},
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 
@@ -45,19 +45,21 @@ impl TokenParser for UpdateExpression {
         match tok.kind {
             TokenKind::Punctuator(Punctuator::Inc) => {
                 cursor.next().expect("token disappeared");
-                return Ok(Node::unary_op(
+                return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
                         .parse(cursor)?,
-                ));
+                )
+                .into());
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
                 cursor.next().expect("token disappeared");
-                return Ok(Node::unary_op(
+                return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
                         .parse(cursor)?,
-                ));
+                )
+                .into());
             }
             _ => {}
         }
@@ -67,11 +69,11 @@ impl TokenParser for UpdateExpression {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::Inc) => {
                     cursor.next().expect("token disappeared");
-                    return Ok(Node::unary_op(UnaryOp::IncrementPost, lhs));
+                    return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
                     cursor.next().expect("token disappeared");
-                    return Ok(Node::unary_op(UnaryOp::DecrementPost, lhs));
+                    return Ok(node::UnaryOp::new(UnaryOp::DecrementPost, lhs).into());
                 }
                 _ => {}
             }

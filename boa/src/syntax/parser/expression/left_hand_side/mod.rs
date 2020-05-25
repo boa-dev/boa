@@ -13,7 +13,7 @@ mod member;
 
 use self::{call::CallExpression, member::MemberExpression};
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator, token::TokenKind},
+    ast::{Node, Punctuator, TokenKind},
     parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
 

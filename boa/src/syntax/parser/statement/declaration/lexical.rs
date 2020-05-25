@@ -8,7 +8,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{
+        node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
+        Keyword, Punctuator, TokenKind,
+    },
     parser::{
         expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
         Cursor, ParseError, ParseResult, TokenParser,
@@ -108,22 +111,22 @@ impl TokenParser for BindingList {
         let mut const_decls = Vec::new();
 
         loop {
-            let lexical_binding =
+            let (ident, init) =
                 LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
                     .parse(cursor)?;
 
             if self.is_const {
-                if let (ident, Some(init)) = lexical_binding {
-                    const_decls.push((ident, init));
+                if let Some(init) = init {
+                    const_decls.push(ConstDecl::new(ident, init));
                 } else {
-                    return Err(ParseError::Expected(
+                    return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
                         cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
                         "const declaration",
                     ));
                 }
             } else {
-                let_decls.push(lexical_binding);
+                let_decls.push(LetDecl::new(ident, init));
             }
 
             match cursor.peek_semicolon(false) {
@@ -132,7 +135,7 @@ impl TokenParser for BindingList {
                     let _ = cursor.next();
                 }
                 _ => {
-                    return Err(ParseError::Expected(
+                    return Err(ParseError::expected(
                         vec![
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
@@ -145,9 +148,9 @@ impl TokenParser for BindingList {
         }
 
         if self.is_const {
-            Ok(Node::const_decl(const_decls))
+            Ok(ConstDeclList::from(const_decls).into())
         } else {
-            Ok(Node::let_decl(let_decls))
+            Ok(LetDeclList::from(let_decls).into())
         }
     }
 }
@@ -181,9 +184,9 @@ impl LexicalBinding {
 }
 
 impl TokenParser for LexicalBinding {
-    type Output = (String, Option<Node>);
+    type Output = (Box<str>, Option<Node>);
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<(String, Option<Node>), ParseError> {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         let initializer =
             Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);

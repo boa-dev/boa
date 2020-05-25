@@ -1,47 +1,24 @@
-use boa::{
-    exec::{Executor, Interpreter},
-    realm::Realm,
-    syntax::{ast::node::Node, lexer::Lexer, parser::Parser},
-};
+use boa::{Executable, Interpreter, Lexer, Parser, Realm};
 use wasm_bindgen::prelude::*;
 
-// WASM
 #[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn evaluate(src: &str) -> String {
-    let mut lexer = Lexer::new(&src);
-    match lexer.lex() {
-        Ok(_v) => (),
-        Err(v) => log(&v.to_string()),
-    }
+pub fn evaluate(src: &str) -> Result<String, JsValue> {
+    let mut lexer = Lexer::new(src);
+    lexer
+        .lex()
+        .map_err(|e| JsValue::from(format!("Syntax Error: {}", e)))?;
 
     let tokens = lexer.tokens;
+    let expr = Parser::new(&tokens)
+        .parse_all()
+        .map_err(|e| JsValue::from(format!("Parsing Error: {}", e)))?;
 
     // Setup executor
-    let node: Node;
-
-    match Parser::new(&tokens).parse_all() {
-        Ok(v) => {
-            node = v;
-        }
-        Err(_v) => {
-            log("parsing fail");
-            return String::from("parsing failed");
-        }
-    }
-    // Create new Realm
     let realm = Realm::create();
-    let mut engine: Interpreter = Executor::new(realm);
-    let result = engine.run(&node);
-    match result {
-        Ok(v) => v.to_string(),
-        Err(v) => format!("{}: {}", "error", v.to_string()),
-    }
+    let mut engine = Interpreter::new(realm);
+
+    // Setup executor
+    expr.run(&mut engine)
+        .map_err(|e| JsValue::from(format!("Error: {}", e)))
+        .map(|v| v.to_string())
 }

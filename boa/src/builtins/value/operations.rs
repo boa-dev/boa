@@ -1,6 +1,5 @@
 use super::*;
-use crate::builtins::number;
-use crate::Interpreter;
+use crate::{builtins::Number, Interpreter};
 
 use std::borrow::Borrow;
 use std::convert::TryFrom;
@@ -16,7 +15,7 @@ impl Value {
         }
 
         if self.is_number() {
-            return number::equals(f64::from(self), f64::from(other));
+            return Number::equals(f64::from(self), f64::from(other));
         }
 
         //Null has to be handled specially because "typeof null" returns object and if we managed
@@ -59,7 +58,7 @@ impl Value {
             | (ValueData::Integer(_), ValueData::Boolean(_)) => {
                 let a: &Value = self.borrow();
                 let b: &Value = other.borrow();
-                number::equals(f64::from(a), f64::from(b))
+                Number::equals(f64::from(a), f64::from(b))
             }
 
             // 6. If Type(x) is BigInt and Type(y) is String, then
@@ -150,7 +149,7 @@ pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
     // TODO: check BigInt
     // https://github.com/jasonwilliams/boa/pull/358
     if x.is_number() {
-        return number::same_value(f64::from(x), f64::from(y));
+        return Number::same_value(f64::from(x), f64::from(y));
     }
 
     same_value_non_number(x, y)
@@ -330,7 +329,7 @@ pub fn same_value_zero(x: &Value, y: &Value) -> bool {
     }
 
     if x.is_number() {
-        return number::same_value_zero(f64::from(x), f64::from(y));
+        return Number::same_value_zero(f64::from(x), f64::from(y));
     }
 
     same_value_non_number(x, y)
