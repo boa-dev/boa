@@ -444,11 +444,16 @@ fn from_bigint() {
 }
 
 #[test]
-fn epsilon_constant_test_expected() {
+fn number_constants() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-
-    let num = forward_val(&mut engine, "Number.EPSILON").unwrap();
-
-    assert!(!num.is_null_or_undefined());
+    
+    assert!(!forward_val(&mut engine, "Number.EPSILON").unwrap().is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MAX_SAFE_INTEGER").unwrap().is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MIN_SAFE_INTEGER").unwrap().is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MAX_VALUE").unwrap().is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MIN_VALUE").unwrap().is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.NEGATIVE_INFINITY").unwrap().is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.POSITIVE_INFINITY").unwrap().is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.NAN").unwrap().is_null_or_undefined());
 }
