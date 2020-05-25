@@ -437,3 +437,23 @@ fn from_bigint() {
     assert_eq!(&forward(&mut engine, "Number(100000n)"), "100000",);
     assert_eq!(&forward(&mut engine, "Number(1n << 1240n)"), "Infinity",);
 }
+
+#[test]
+fn epsilon_constant_test_expected() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+
+    let num = forward_val(&mut engine, "Number.EPSILON").unwrap();
+
+    assert!(!num.is_null_or_undefined());
+}
+
+#[test]
+fn epsilon_constant_test_prototype() {
+    let realm = Realm::create();
+    let mut engine = Executor::new(realm);
+    
+    let num = forward_val(&mut engine, "Number.prototype.EPSILON").unwrap();
+
+    assert!(num.is_null_or_undefined());
+}

@@ -356,17 +356,33 @@ pub fn value_of(this: &mut Value, _args: &[Value], _ctx: &mut Interpreter) -> Re
 
 /// Create a new `Number` object
 pub fn create(global: &Value) -> Value {
-    let prototype = Value::new_object(Some(global));
-    prototype.set_internal_slot("NumberData", Value::from(0));
+    let number = Value::new_object(Some(global));
+    number.set_internal_slot("NumberData", Value::from(0));
 
-    make_builtin_fn!(to_exponential, named "toExponential", with length 1, of prototype);
-    make_builtin_fn!(to_fixed, named "toFixed", with length 1, of prototype);
-    make_builtin_fn!(to_locale_string, named "toLocaleString", of prototype);
-    make_builtin_fn!(to_precision, named "toPrecision", with length 1, of prototype);
-    make_builtin_fn!(to_string, named "toString", with length 1, of prototype);
-    make_builtin_fn!(value_of, named "valueOf", of prototype);
+    // Number constant values as defined in 
+    // ECMAScript® 2021 Language Specification Draft ECMA-262 / May 22, 2020 Section 20.1.2
+    // https://tc39.es/ecma262/#sec-number-objects
 
-    make_constructor_fn(make_number, global, prototype)
+    number.set_field_slice("EPSILON", Value::from(f64::EPSILON));
+    number.set_field_slice("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
+    number.set_field_slice("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
+    number.set_field_slice("MAX_VALUE", Value::from(1.797_693_134_862_315_7E+308_f64));
+    number.set_field_slice("MIN_VALUE", Value::from(5E-324_f64));
+    // number.set_field_slice("NEGATIVE_INFINITY", );
+    // number.set_field_slice("POSITIVE_INFINITY", );
+    // number.set_field_slice("NaN", );
+
+
+    make_builtin_fn!(to_exponential, named "toExponential", with length 1, of number);
+    make_builtin_fn!(to_fixed, named "toFixed", with length 1, of number);
+    make_builtin_fn!(to_locale_string, named "toLocaleString", of number);
+    make_builtin_fn!(to_precision, named "toPrecision", with length 1, of number);
+    make_builtin_fn!(to_string, named "toString", with length 1, of number);
+    make_builtin_fn!(value_of, named "valueOf", of number);
+
+    make_constructor_fn(make_number, global, number)
+
+    // number
 }
 
 /// Initialise the `Number` object on the global object.
