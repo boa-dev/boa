@@ -16,6 +16,7 @@ use crate::{
         lexical_environment::LexicalEnvironment,
         object_environment_record::ObjectEnvironmentRecord,
     },
+    BoaProfiler,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -32,6 +33,7 @@ pub struct Realm {
 
 impl Realm {
     pub fn create() -> Self {
+        let _timer = BoaProfiler::global().start_event("Realm::create", "Realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
         let global = Value::new_object(None);

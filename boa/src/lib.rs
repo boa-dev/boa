@@ -36,12 +36,14 @@
 pub mod builtins;
 pub mod environment;
 pub mod exec;
+pub mod profiler;
 pub mod realm;
 pub mod syntax;
 
 use crate::{builtins::value::ResultValue, syntax::ast::node::StatementList};
 pub use crate::{
     exec::{Executable, Interpreter},
+    profiler::BoaProfiler,
     realm::Realm,
     syntax::{lexer::Lexer, parser::Parser},
 };
@@ -72,14 +74,22 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// Similar to `forward`, except the current value is returned instad of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
+    BoaProfiler::init();
+    let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
-    match parser_expr(src) {
+    let result = match parser_expr(src) {
         Ok(expr) => expr.run(engine),
         Err(e) => {
             eprintln!("{}", e);
             std::process::exit(1);
         }
-    }
+    };
+
+    // The main_timer needs to be dropped before the BoaProfiler is.
+    drop(main_timer);
+    BoaProfiler::global().drop();
+
+    result
 }
 
 /// Create a clean Interpreter and execute the code

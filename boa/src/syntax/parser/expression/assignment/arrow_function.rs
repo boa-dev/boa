@@ -8,17 +8,20 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arrow-function-definitions
 
 use super::AssignmentExpression;
-use crate::syntax::{
-    ast::{
-        node::{ArrowFunctionDecl, FormalParameter, Node, StatementList},
-        Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{ArrowFunctionDecl, FormalParameter, Node, StatementList},
+            Punctuator, TokenKind,
+        },
+        parser::{
+            error::{ErrorContext, ParseError, ParseResult},
+            function::{FormalParameters, FunctionBody},
+            statement::BindingIdentifier,
+            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+        },
     },
-    parser::{
-        error::{ErrorContext, ParseError, ParseResult},
-        function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
-        AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Arrow function parsing.
@@ -60,6 +63,7 @@ impl TokenParser for ArrowFunction {
     type Output = ArrowFunctionDecl;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind {
             // CoverParenthesizedExpressionAndArrowParameterList
