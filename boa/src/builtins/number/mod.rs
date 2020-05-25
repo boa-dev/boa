@@ -18,18 +18,15 @@ mod tests;
 
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
-    object::ObjectKind,
+    object::ObjectData,
 };
 use crate::{
-    builtins::{
-        object::internal_methods_trait::ObjectInternalMethods,
-        value::{ResultValue, Value, ValueData},
-    },
+    builtins::value::{ResultValue, Value, ValueData},
     exec::Interpreter,
     BoaProfiler,
 };
 use num_traits::float::FloatCore;
-use std::{borrow::Borrow, ops::Deref};
+use std::ops::Deref;
 
 const BUF_SIZE: usize = 2200;
 
@@ -47,19 +44,22 @@ impl Number {
     /// Helper function that converts a Value to a Number.
     #[allow(clippy::wrong_self_convention)]
     fn to_number(value: &Value) -> Value {
-        match *value.deref().borrow() {
+        match value.data() {
             ValueData::Boolean(b) => {
-                if b {
+                if *b {
                     Value::from(1)
                 } else {
                     Value::from(0)
                 }
             }
             ValueData::Symbol(_) | ValueData::Undefined => Value::from(f64::NAN),
-            ValueData::Integer(i) => Value::from(f64::from(i)),
-            ValueData::Object(ref o) => (o).deref().borrow().get_internal_slot("NumberData"),
+            ValueData::Integer(i) => Value::from(f64::from(*i)),
+            ValueData::Object(ref o) => match (o).deref().borrow().data {
+                ObjectData::Number(num) => Value::from(num),
+                _ => unreachable!(),
+            },
             ValueData::Null => Value::from(0),
-            ValueData::Rational(n) => Value::from(n),
+            ValueData::Rational(n) => Value::from(*n),
             ValueData::BigInt(ref bigint) => Value::from(bigint.to_f64()),
             ValueData::String(ref s) => match s.parse::<f64>() {
                 Ok(n) => Value::from(n),
@@ -86,13 +86,12 @@ impl Number {
         _ctx: &mut Interpreter,
     ) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => Self::to_number(value),
-            None => Self::to_number(&Value::from(0)),
+            Some(ref value) => Self::to_number(value).to_number(),
+            None => 0.0,
         };
-        this.set_kind(ObjectKind::Number);
-        this.set_internal_slot("NumberData", data.clone());
+        this.set_data(ObjectData::Number(data));
 
-        Ok(data)
+        Ok(Value::from(data))
     }
 
     /// `Number.prototype.toExponential( [fractionDigits] )`
@@ -530,7 +529,6 @@ impl Number {
     /// Create a new `Number` object
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
-        prototype.set_internal_slot("NumberData", Value::from(0));
 
         make_builtin_fn(Self::to_exponential, "toExponential", &prototype, 1);
         make_builtin_fn(Self::to_fixed, "toFixed", &prototype, 1);
@@ -556,14 +554,17 @@ impl Number {
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
-        number.set_field("EPSILON", Value::from(f64::EPSILON));
-        number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
-        number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
-        number.set_field("MAX_VALUE", Value::from(f64::MAX));
-        number.set_field("MIN_VALUE", Value::from(f64::MIN));
-        number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
-        number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-        number.set_field("NaN", Value::from(f64::NAN));
+        {
+            let mut properties = number.as_object_mut().unwrap();
+            properties.insert_field("EPSILON", Value::from(f64::EPSILON));
+            properties.insert_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
+            properties.insert_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
+            properties.insert_field("MAX_VALUE", Value::from(f64::MAX));
+            properties.insert_field("MIN_VALUE", Value::from(f64::MIN));
+            properties.insert_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
+            properties.insert_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
+            properties.insert_field("NaN", Value::from(f64::NAN));
+        }
 
         number
     }
@@ -572,7 +573,12 @@ impl Number {
     #[inline]
     pub(crate) fn init(global: &Value) {
         let _timer = BoaProfiler::global().start_event("number", "init");
-        global.set_field("Number", Self::create(global));
+
+        let number = Self::create(global);
+        global
+            .as_object_mut()
+            .unwrap()
+            .insert_field("Number", number);
     }
 
     /// The abstract operation Number::equal takes arguments

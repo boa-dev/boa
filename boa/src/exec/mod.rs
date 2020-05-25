@@ -23,10 +23,7 @@ mod try_node;
 use crate::{
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
-        object::{
-            internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
-            PROTOTYPE,
-        },
+        object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{ResultValue, Type, Value, ValueData},
         BigInt, Number,
@@ -127,8 +124,8 @@ impl Interpreter {
             callable,
         );
 
-        let mut new_func = Object::function();
-        new_func.set_func(func);
+        let new_func = Object::function(func);
+
         let val = Value::from(new_func);
         val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
         val.set_field(PROTOTYPE, proto);
@@ -147,8 +144,10 @@ impl Interpreter {
         match *f.data() {
             ValueData::Object(ref obj) => {
                 let obj = (**obj).borrow();
-                let func = obj.func.as_ref().expect("Expected function");
-                func.call(&mut f.clone(), arguments_list, self, this)
+                if let ObjectData::Function(ref func) = obj.data {
+                    return func.call(f.clone(), this, arguments_list, self);
+                }
+                self.throw_type_error("not a function")
             }
             _ => Err(Value::undefined()),
         }
@@ -288,7 +287,7 @@ impl Interpreter {
     pub(crate) fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Value>, ()> {
         if let ValueData::Object(ref x) = *value.deref().borrow() {
             // Check if object is array
-            if x.deref().borrow().kind == ObjectKind::Array {
+            if let ObjectData::Array = x.deref().borrow().data {
                 let length: i32 = self.value_to_rust_number(&value.get_field("length")) as i32;
                 let values: Vec<Value> = (0..length)
                     .map(|idx| value.get_field(idx.to_string()))
@@ -389,58 +388,76 @@ impl Interpreter {
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
         match value.data() {
             ValueData::Undefined | ValueData::Null => Err(Value::undefined()),
-            ValueData::Integer(_) => {
-                let proto = self
-                    .realm
-                    .environment
-                    .get_binding_value("Number")
-                    .get_field(PROTOTYPE);
-                let number_obj = Value::new_object_from_prototype(proto, ObjectKind::Number);
-                number_obj.set_internal_slot("NumberData", value.clone());
-                Ok(number_obj)
-            }
-            ValueData::Boolean(_) => {
+            ValueData::Boolean(boolean) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("Boolean")
                     .get_field(PROTOTYPE);
 
-                let bool_obj = Value::new_object_from_prototype(proto, ObjectKind::Boolean);
-                bool_obj.set_internal_slot("BooleanData", value.clone());
-                Ok(bool_obj)
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Boolean(*boolean),
+                ))
             }
-            ValueData::Rational(_) => {
+            ValueData::Integer(integer) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("Number")
                     .get_field(PROTOTYPE);
-                let number_obj = Value::new_object_from_prototype(proto, ObjectKind::Number);
-                number_obj.set_internal_slot("NumberData", value.clone());
-                Ok(number_obj)
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(f64::from(*integer)),
+                ))
             }
-            ValueData::String(_) => {
+            ValueData::Rational(rational) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(*rational),
+                ))
+            }
+            ValueData::String(ref string) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("String")
                     .get_field(PROTOTYPE);
-                let string_obj = Value::new_object_from_prototype(proto, ObjectKind::String);
-                string_obj.set_internal_slot("StringData", value.clone());
-                Ok(string_obj)
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::String(string.clone()),
+                ))
             }
-            ValueData::Object(_) | ValueData::Symbol(_) => Ok(value.clone()),
-            ValueData::BigInt(_) => {
+            ValueData::Symbol(ref symbol) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("Symbol")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Symbol(symbol.clone()),
+                ))
+            }
+            ValueData::BigInt(ref bigint) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("BigInt")
                     .get_field(PROTOTYPE);
-                let bigint_obj = Value::new_object_from_prototype(proto, ObjectKind::BigInt);
-                bigint_obj.set_internal_slot("BigIntData", value.clone());
+                let bigint_obj =
+                    Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
                 Ok(bigint_obj)
             }
+            ValueData::Object(_) => Ok(value.clone()),
         }
     }
 
@@ -499,6 +516,24 @@ impl Interpreter {
 
     pub(crate) fn get_current_state(&self) -> &InterpreterState {
         &self.current_state
+    }
+    /// Check if the `Value` can be converted to an `Object`
+    ///
+    /// The abstract operation `RequireObjectCoercible` takes argument argument.
+    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
+    /// It is defined by [Table 15][table]
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [table]: https://tc39.es/ecma262/#table-14
+    /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
+    pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value, Value> {
+        if value.is_null_or_undefined() {
+            self.throw_type_error("cannot convert null or undefined to Object")?;
+            unreachable!();
+        }
+        Ok(value)
     }
 }
 

@@ -23,16 +23,17 @@ pub(crate) use self::{
     bigint::BigInt,
     boolean::Boolean,
     error::{Error, RangeError, TypeError},
-    function::Function,
     number::Number,
     regexp::RegExp,
     string::String,
+    symbol::Symbol,
     value::{ResultValue, Value},
 };
 
 /// Initializes builtin objects and functions
 #[inline]
 pub fn init(global: &Value) {
+    function::init(global);
     Array::init(global);
     BigInt::init(global);
     Boolean::init(global);
@@ -42,11 +43,11 @@ pub fn init(global: &Value) {
     nan::init(global);
     Number::init(global);
     object::init(global);
-    function::init(global);
     RegExp::init(global);
     String::init(global);
-    symbol::init(global);
+    Symbol::init(global);
     console::init(global);
+
     Error::init(global);
     RangeError::init(global);
     TypeError::init(global);

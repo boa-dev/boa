@@ -57,7 +57,7 @@ macro_rules! print_obj_value {
     (impl $field:ident, $v:expr, $f:expr) => {
         $v
             .borrow()
-            .$field
+            .$field()
             .iter()
             .map($f)
             .collect::<Vec<String>>()
@@ -70,26 +70,13 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
         ValueData::Object(ref v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
-            match v.borrow().kind {
-                ObjectKind::String => match v
-                    .borrow()
-                    .internal_slots
-                    .get("StringData")
-                    .expect("Cannot get primitive value from String")
-                    .data()
-                {
-                    ValueData::String(ref string) => format!("\"{}\"", string),
-                    _ => unreachable!("[[StringData]] should always contain String"),
-                },
-                ObjectKind::Boolean => {
-                    let bool_data = v.borrow().get_internal_slot("BooleanData").to_string();
-
-                    format!("Boolean {{ {} }}", bool_data)
-                }
-                ObjectKind::Array => {
+            match v.borrow().data {
+                ObjectData::String(ref string) => format!("String {{ \"{}\" }}", string),
+                ObjectData::Boolean(boolean) => format!("Boolean {{ {} }}", boolean),
+                ObjectData::Array => {
                     let len = i32::from(
                         &v.borrow()
-                            .properties
+                            .properties()
                             .get("length")
                             .unwrap()
                             .value
@@ -107,7 +94,7 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
                             // which are part of the Array
                             log_string_from(
                                 &v.borrow()
-                                    .properties
+                                    .properties()
                                     .get(&i.to_string())
                                     .unwrap()
                                     .value
@@ -124,14 +111,10 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
                 _ => display_obj(&x, print_internals),
             }
         }
-        ValueData::Symbol(ref sym) => {
-            let desc: Value = sym.borrow().get_internal_slot("Description");
-            match *desc {
-                ValueData::String(ref st) => format!("Symbol(\"{}\")", st.to_string()),
-                _ => String::from("Symbol()"),
-            }
-        }
-
+        ValueData::Symbol(ref symbol) => match symbol.description() {
+            Some(description) => format!("Symbol({})", description),
+            None => String::from("Symbol()"),
+        },
         _ => format!("{}", x),
     }
 }
@@ -198,10 +181,9 @@ impl Display for ValueData {
             Self::Null => write!(f, "null"),
             Self::Undefined => write!(f, "undefined"),
             Self::Boolean(v) => write!(f, "{}", v),
-            Self::Symbol(ref v) => match *v.borrow().get_internal_slot("Description") {
-                // If a description exists use it
-                Self::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
-                _ => write!(f, "Symbol()"),
+            Self::Symbol(ref symbol) => match symbol.description() {
+                Some(description) => write!(f, "Symbol({})", description),
+                None => write!(f, "Symbol()"),
             },
             Self::String(ref v) => write!(f, "{}", v),
             Self::Rational(v) => write!(

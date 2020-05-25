@@ -15,7 +15,6 @@
 
 use crate::builtins::{
     function::make_builtin_fn,
-    object::ObjectKind,
     property::Property,
     value::{ResultValue, Value},
 };
@@ -67,7 +66,7 @@ fn walk(reviver: &Value, ctx: &mut Interpreter, holder: &mut Value, key: Value) 
 
     let obj = value.as_object().as_deref().cloned();
     if let Some(obj) = obj {
-        for key in obj.properties.keys() {
+        for key in obj.properties().keys() {
             let v = walk(reviver, ctx, &mut value, Value::from(key.as_str()));
             match v {
                 Ok(v) if !v.is_undefined() => {
@@ -119,7 +118,7 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
             .map(|obj| {
                 let object_to_return = Value::new_object(None);
                 for (key, val) in obj
-                    .properties
+                    .properties()
                     .iter()
                     .filter_map(|(k, v)| v.value.as_ref().map(|value| (k, value)))
                 {
@@ -136,10 +135,10 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
                 Ok(Value::from(object_to_return.to_json(ctx)?.to_string()))
             })
             .ok_or_else(Value::undefined)?
-    } else if replacer_as_object.kind == ObjectKind::Array {
+    } else if replacer_as_object.is_array() {
         let mut obj_to_return =
-            serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
-        let fields = replacer_as_object.properties.keys().filter_map(|key| {
+            serde_json::Map::with_capacity(replacer_as_object.properties().len() - 1);
+        let fields = replacer_as_object.properties().keys().filter_map(|key| {
             if key == "length" {
                 None
             } else {
@@ -175,5 +174,7 @@ pub fn create(global: &Value) -> Value {
 #[inline]
 pub fn init(global: &Value) {
     let _timer = BoaProfiler::global().start_event("json", "init");
-    global.set_field("JSON", create(global));
+
+    let json = create(global);
+    global.as_object_mut().unwrap().insert_field("JSON", json);
 }

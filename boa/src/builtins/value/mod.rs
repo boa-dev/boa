@@ -10,17 +10,14 @@ pub mod val_type;
 pub use crate::builtins::value::val_type::Type;
 
 use crate::builtins::{
-    object::{
-        internal_methods_trait::ObjectInternalMethods, InternalState, InternalStateCell, Object,
-        ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE,
-    },
+    function::Function,
+    object::{InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
     property::Property,
-    BigInt, Function,
+    BigInt, Symbol,
 };
-use crate::BoaProfiler;
-
 use crate::exec::Interpreter;
-use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
+use crate::BoaProfiler;
+use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
@@ -28,18 +25,20 @@ use std::{
     convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
-    ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
+    ops::{Add, BitAnd, BitOr, BitXor, Deref, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
     str::FromStr,
 };
 
 pub mod conversions;
 pub mod display;
 pub mod equality;
+pub mod hash;
 pub mod operations;
 
 pub use conversions::*;
 pub(crate) use display::display_obj;
 pub use equality::*;
+pub use hash::*;
 pub use operations::*;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
@@ -48,7 +47,7 @@ pub type ResultValue = Result<Value, Value>;
 
 /// A Garbage-collected Javascript value as represented in the interpreter.
 #[derive(Debug, Clone, Trace, Finalize, Default)]
-pub struct Value(pub(crate) Gc<ValueData>);
+pub struct Value(Gc<ValueData>);
 
 impl Value {
     /// Creates a new `undefined` value.
@@ -61,6 +60,12 @@ impl Value {
     #[inline]
     pub fn null() -> Self {
         Self(Gc::new(ValueData::Null))
+    }
+
+    /// Creates a new number with `NaN` value.
+    #[inline]
+    pub fn nan() -> Self {
+        Self::number(NAN)
     }
 
     /// Creates a new string value.
@@ -117,6 +122,12 @@ impl Value {
         Self(Gc::new(ValueData::Object(Box::new(GcCell::new(object)))))
     }
 
+    /// Creates a new symbol value.
+    #[inline]
+    pub fn symbol(symbol: Symbol) -> Self {
+        Self(Gc::new(ValueData::Symbol(symbol)))
+    }
+
     /// Gets the underlying `ValueData` structure.
     #[inline]
     pub fn data(&self) -> &ValueData {
@@ -145,12 +156,12 @@ impl Value {
     }
 
     /// Similar to `new_object`, but you can pass a prototype to create from, plus a kind
-    pub fn new_object_from_prototype(proto: Value, kind: ObjectKind) -> Self {
+    pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
-        object.kind = kind;
+        object.data = data;
 
         object
-            .internal_slots
+            .internal_slots_mut()
             .insert(INSTANCE_PROTOTYPE.to_string(), proto);
 
         Self::object(object)
@@ -175,7 +186,7 @@ impl Value {
                     .get_field("Array")
                     .get_field(PROTOTYPE);
                 let new_obj =
-                    Value::new_object_from_prototype(global_array_prototype, ObjectKind::Array);
+                    Value::new_object_from_prototype(global_array_prototype, ObjectData::Array);
                 let length = vs.len();
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
@@ -216,9 +227,9 @@ impl Value {
             ValueData::Null => Ok(JSONValue::Null),
             ValueData::Boolean(b) => Ok(JSONValue::Bool(b)),
             ValueData::Object(ref obj) => {
-                if obj.borrow().kind == ObjectKind::Array {
+                if obj.borrow().is_array() {
                     let mut arr: Vec<JSONValue> = Vec::new();
-                    for k in obj.borrow().properties.keys() {
+                    for k in obj.borrow().properties().keys() {
                         if k != "length" {
                             let value = self.get_field(k.to_string());
                             if value.is_undefined() || value.is_function() {
@@ -231,7 +242,7 @@ impl Value {
                     Ok(JSONValue::Array(arr))
                 } else {
                     let mut new_obj = Map::new();
-                    for k in obj.borrow().properties.keys() {
+                    for k in obj.borrow().properties().keys() {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
                         if !value.is_undefined() && !value.is_function() {
@@ -283,8 +294,8 @@ pub enum ValueData {
     BigInt(BigInt),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
     Object(Box<GcCell<Object>>),
-    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots.
-    Symbol(Box<GcCell<Object>>),
+    /// `Symbol` - A Symbol Primitive type.
+    Symbol(Symbol),
 }
 
 impl ValueData {
@@ -302,65 +313,65 @@ impl ValueData {
     }
 
     /// Returns true if the value is an object
+    #[inline]
     pub fn is_object(&self) -> bool {
+        matches!(self, Self::Object(_))
+    }
+
+    #[inline]
+    pub fn as_object(&self) -> Option<GcCellRef<'_, Object>> {
         match *self {
-            Self::Object(_) => true,
-            _ => false,
+            Self::Object(ref o) => Some(o.borrow()),
+            _ => None,
         }
     }
 
-    /// Returns true if the value is a symbol
-    pub fn is_symbol(&self) -> bool {
+    #[inline]
+    pub fn as_object_mut(&self) -> Option<GcCellRefMut<'_, Object>> {
         match *self {
-            Self::Symbol(_) => true,
-            _ => false,
+            Self::Object(ref o) => Some(o.borrow_mut()),
+            _ => None,
         }
+    }
+
+    /// Returns true if the value is a symbol.
+    #[inline]
+    pub fn is_symbol(&self) -> bool {
+        matches!(self, Self::Symbol(_))
     }
 
     /// Returns true if the value is a function
+    #[inline]
     pub fn is_function(&self) -> bool {
-        match *self {
-            Self::Object(ref o) => {
-                let borrowed_obj = o.borrow();
-                borrowed_obj.is_callable() || borrowed_obj.is_constructable()
-            }
-            _ => false,
-        }
+        matches!(self, Self::Object(o) if o.borrow().is_function())
     }
 
     /// Returns true if the value is undefined.
+    #[inline]
     pub fn is_undefined(&self) -> bool {
-        match *self {
-            Self::Undefined => true,
-            _ => false,
-        }
+        matches!(self, Self::Undefined)
     }
 
     /// Returns true if the value is null.
+    #[inline]
     pub fn is_null(&self) -> bool {
-        match *self {
-            Self::Null => true,
-            _ => false,
-        }
+        matches!(self, Self::Null)
     }
 
     /// Returns true if the value is null or undefined.
+    #[inline]
     pub fn is_null_or_undefined(&self) -> bool {
-        match *self {
-            Self::Null | Self::Undefined => true,
-            _ => false,
-        }
+        matches!(self, Self::Null | Self::Undefined)
     }
 
     /// Returns true if the value is a 64-bit floating-point number.
+    #[inline]
     pub fn is_double(&self) -> bool {
-        match *self {
-            Self::Rational(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Rational(_))
     }
 
     /// Returns true if the value is integer.
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub fn is_integer(&self) -> bool {
         // If it can fit in a i32 and the trucated version is
@@ -374,41 +385,32 @@ impl ValueData {
         }
     }
 
-    /// Returns true if the value is a number
+    /// Returns true if the value is a number.
+    #[inline]
     pub fn is_number(&self) -> bool {
-        match self {
-            Self::Rational(_) | Self::Integer(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Rational(_) | Self::Integer(_))
     }
 
-    /// Returns true if the value is a string
+    /// Returns true if the value is a string.
+    #[inline]
     pub fn is_string(&self) -> bool {
-        match *self {
-            Self::String(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::String(_))
     }
 
-    /// Returns true if the value is a boolean
+    /// Returns true if the value is a boolean.
+    #[inline]
     pub fn is_boolean(&self) -> bool {
-        match *self {
-            Self::Boolean(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Boolean(_))
     }
 
-    /// Returns true if the value is a bigint
+    /// Returns true if the value is a bigint.
     pub fn is_bigint(&self) -> bool {
-        match *self {
-            Self::BigInt(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::BigInt(_))
     }
 
-    /// Returns true if the value is true
+    /// Returns true if the value is true.
     ///
-    /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
+    /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean
     pub fn is_true(&self) -> bool {
         match *self {
             Self::Object(_) => true,
@@ -466,23 +468,27 @@ impl ValueData {
         }
     }
 
-    pub fn as_object(&self) -> Option<GcCellRef<'_, Object>> {
+    /// Creates a new boolean value from the input
+    pub fn to_boolean(&self) -> bool {
         match *self {
-            ValueData::Object(ref o) => Some(o.borrow()),
-            _ => None,
+            Self::Undefined | Self::Null => false,
+            Self::Symbol(_) | Self::Object(_) => true,
+            Self::String(ref s) if !s.is_empty() => true,
+            Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
+            Self::Integer(n) if n != 0 => true,
+            Self::BigInt(ref n) if *n != 0 => true,
+            Self::Boolean(v) => v,
+            _ => false,
         }
     }
 
     /// Removes a property from a Value object.
     ///
-    /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned
+    /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned.
     pub fn remove_property(&self, field: &str) -> bool {
-        let removed = match *self {
-            Self::Object(ref obj) => obj.borrow_mut().deref_mut().properties.remove(field),
-            _ => None,
-        };
-
-        removed.is_some()
+        self.as_object_mut()
+            .and_then(|mut x| x.properties_mut().remove(field))
+            .is_some()
     }
 
     /// Resolve the property in the object.
@@ -492,36 +498,22 @@ impl ValueData {
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
-        if self.is_string() && field == "length" {
-            if let Self::String(ref s) = *self {
-                return Some(Property::default().value(Value::from(s.len())));
+        match self {
+            Self::Undefined => None,
+            Self::String(ref s) if field == "length" => {
+                Some(Property::default().value(Value::from(s.chars().count())))
             }
-        }
-
-        if self.is_undefined() {
-            return None;
-        }
-
-        let obj: Object = match *self {
-            Self::Object(ref obj) => {
-                let hash = obj.clone();
-                // TODO: This will break, we should return a GcCellRefMut instead
-                // into_inner will consume the wrapped value and remove it from the hashmap
-                hash.into_inner()
+            Self::Object(ref object) => {
+                let object = object.borrow();
+                match object.properties().get(field) {
+                    Some(value) => Some(value.clone()),
+                    None => match object.internal_slots().get(INSTANCE_PROTOTYPE) {
+                        Some(value) => value.get_property(field),
+                        None => None,
+                    },
+                }
             }
-            Self::Symbol(ref obj) => {
-                let hash = obj.clone();
-                hash.into_inner()
-            }
-            _ => return None,
-        };
-
-        match obj.properties.get(field) {
-            Some(val) => Some(val.clone()),
-            None => match obj.internal_slots.get(&INSTANCE_PROTOTYPE.to_string()) {
-                Some(value) => value.get_property(field),
-                None => None,
-            },
+            _ => None,
         }
     }
 
@@ -537,18 +529,14 @@ impl ValueData {
         configurable: Option<bool>,
     ) {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
-        let obj: Option<Object> = match self {
-            Self::Object(ref obj) => Some(obj.borrow_mut().deref_mut().clone()),
-            _ => None,
-        };
 
-        if let Some(mut obj_data) = obj {
+        if let Some(ref mut object) = self.as_object_mut() {
             // Use value, or walk up the prototype chain
-            if let Some(ref mut prop) = obj_data.properties.get_mut(field) {
-                prop.value = value;
-                prop.enumerable = enumerable;
-                prop.writable = writable;
-                prop.configurable = configurable;
+            if let Some(ref mut property) = object.properties_mut().get_mut(field) {
+                property.value = value;
+                property.enumerable = enumerable;
+                property.writable = writable;
+                property.configurable = configurable;
             }
         }
     }
@@ -558,20 +546,16 @@ impl ValueData {
     /// Returns a copy of the Property.
     pub fn get_internal_slot(&self, field: &str) -> Value {
         let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
-        let obj: Object = match *self {
-            Self::Object(ref obj) => {
-                let hash = obj.clone();
-                hash.into_inner()
-            }
-            Self::Symbol(ref obj) => {
-                let hash = obj.clone();
-                hash.into_inner()
-            }
-            _ => return Value::undefined(),
-        };
 
-        match obj.internal_slots.get(field) {
-            Some(val) => val.clone(),
+        let property = self
+            .as_object()
+            .and_then(|x| match x.internal_slots().get(field) {
+                Some(value) => Some(value.clone()),
+                None => None,
+            });
+
+        match property {
+            Some(value) => value,
             None => Value::undefined(),
         }
     }
@@ -616,19 +600,17 @@ impl ValueData {
 
     /// Check whether an object has an internal state set.
     pub fn has_internal_state(&self) -> bool {
-        if let Self::Object(ref obj) = *self {
-            obj.borrow().state.is_some()
-        } else {
-            false
+        match self.as_object() {
+            Some(object) => object.state().is_some(),
+            None => false,
         }
     }
 
     /// Get the internal state of an object.
     pub fn get_internal_state(&self) -> Option<InternalStateCell> {
-        if let Self::Object(ref obj) = *self {
-            obj.borrow().state.as_ref().cloned()
-        } else {
-            None
+        match self.as_object() {
+            Some(object) => object.state().clone(),
+            None => None,
         }
     }
 
@@ -638,14 +620,14 @@ impl ValueData {
     ///
     /// This will panic if this value doesn't have an internal state or if the internal state doesn't
     /// have the concrete type `S`.
-    pub fn with_internal_state_ref<S: Any + InternalState, R, F: FnOnce(&S) -> R>(
-        &self,
-        f: F,
-    ) -> R {
-        if let Self::Object(ref obj) = *self {
-            let o = obj.borrow();
-            let state = o
-                .state
+    pub fn with_internal_state_ref<S, R, F>(&self, f: F) -> R
+    where
+        S: Any + InternalState,
+        F: FnOnce(&S) -> R,
+    {
+        if let Some(object) = self.as_object() {
+            let state = object
+                .state()
                 .as_ref()
                 .expect("no state")
                 .downcast_ref()
@@ -662,14 +644,14 @@ impl ValueData {
     ///
     /// This will panic if this value doesn't have an internal state or if the internal state doesn't
     /// have the concrete type `S`.
-    pub fn with_internal_state_mut<S: Any + InternalState, R, F: FnOnce(&mut S) -> R>(
-        &self,
-        f: F,
-    ) -> R {
-        if let Self::Object(ref obj) = *self {
-            let mut o = obj.borrow_mut();
-            let state = o
-                .state
+    pub fn with_internal_state_mut<S, R, F>(&self, f: F) -> R
+    where
+        S: Any + InternalState,
+        F: FnOnce(&mut S) -> R,
+    {
+        if let Some(mut object) = self.as_object_mut() {
+            let state = object
+                .state_mut()
                 .as_mut()
                 .expect("no state")
                 .downcast_mut()
@@ -698,7 +680,7 @@ impl ValueData {
         let val = val.into();
 
         if let Self::Object(ref obj) = *self {
-            if obj.borrow().kind == ObjectKind::Array {
+            if obj.borrow().is_array() {
                 if let Ok(num) = field.to_string().parse::<usize>() {
                     if num > 0 {
                         let len = i32::from(&self.get_field("length"));
@@ -722,53 +704,49 @@ impl ValueData {
     }
 
     /// Set the private field in the value
-    pub fn set_internal_slot(&self, field: &str, val: Value) -> Value {
+    pub fn set_internal_slot(&self, field: &str, value: Value) -> Value {
         let _timer = BoaProfiler::global().start_event("Value::set_internal_slot", "exec");
-        if let Self::Object(ref obj) = *self {
-            obj.borrow_mut()
-                .internal_slots
-                .insert(field.to_string(), val.clone());
+        if let Some(mut object) = self.as_object_mut() {
+            object
+                .internal_slots_mut()
+                .insert(field.to_string(), value.clone());
         }
-        val
+        value
     }
 
     /// Set the kind of an object
-    pub fn set_kind(&self, kind: ObjectKind) {
+    pub fn set_data(&self, data: ObjectData) {
         if let Self::Object(ref obj) = *self {
-            (*obj.deref().borrow_mut()).kind = kind;
+            (*obj.deref().borrow_mut()).data = data;
         }
     }
 
-    /// Set the property in the value
-    pub fn set_property(&self, field: String, prop: Property) -> Property {
-        if let Self::Object(ref obj) = *self {
-            obj.borrow_mut().properties.insert(field, prop.clone());
+    /// Set the property in the value.
+    pub fn set_property<S>(&self, field: S, property: Property) -> Property
+    where
+        S: Into<String>,
+    {
+        if let Some(mut object) = self.as_object_mut() {
+            object
+                .properties_mut()
+                .insert(field.into(), property.clone());
         }
-        prop
-    }
-
-    /// Set the property in the value
-    pub fn set_property_slice(&self, field: &str, prop: Property) -> Property {
-        self.set_property(field.to_string(), prop)
+        property
     }
 
     /// Set internal state of an Object. Discards the previous state if it was set.
     pub fn set_internal_state<T: Any + InternalState>(&self, state: T) {
-        if let Self::Object(ref obj) = *self {
-            obj.borrow_mut()
-                .state
-                .replace(InternalStateCell::new(state));
+        if let Some(mut object) = self.as_object_mut() {
+            object.state_mut().replace(InternalStateCell::new(state));
         }
     }
 
     /// Consume the function and return a Value
-    pub fn from_func(native_func: Function) -> Value {
-        // Object with Kind set to function
-        let mut new_func = crate::builtins::object::Object::function();
+    pub fn from_func(function: Function) -> Value {
         // Get Length
-        let length = native_func.params.len();
-        // Set [[Call]] internal slot
-        new_func.set_func(native_func);
+        let length = function.params.len();
+        // Object with Kind set to function
+        let new_func = Object::function(function);
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters

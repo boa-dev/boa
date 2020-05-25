@@ -19,10 +19,11 @@ use crate::{
     builtins::{
         function::make_builtin_fn,
         function::make_constructor_fn,
-        object::ObjectKind,
+        object::ObjectData,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 
 /// JavaScript `TypeError` implementation.
@@ -45,7 +46,7 @@ impl TypeError {
 
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_kind(ObjectKind::Error);
+        this.set_data(ObjectData::Error);
         Err(this.clone())
     }
 
@@ -78,6 +79,8 @@ impl TypeError {
 
     /// Initialise the global object with the `RangeError` object.
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("typeerror", "init");
+
         global.set_field("TypeError", Self::create(global));
     }
 }

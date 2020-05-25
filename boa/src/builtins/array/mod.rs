@@ -15,7 +15,7 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{same_value_zero, ResultValue, Value, ValueData},
     },
@@ -42,7 +42,7 @@ impl Array {
                 .get_global_object()
                 .expect("Could not get global object"),
         ));
-        array.set_kind(ObjectKind::Array);
+        array.set_data(ObjectData::Array);
         array.borrow().set_internal_slot(
             INSTANCE_PROTOTYPE,
             interpreter
@@ -117,7 +117,7 @@ impl Array {
         this.set_internal_slot(INSTANCE_PROTOTYPE, prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_kind(ObjectKind::Array);
+        this.set_data(ObjectData::Array);
 
         // add our arguments in
         let mut length = args.len() as i32;
@@ -176,7 +176,7 @@ impl Array {
                     // 1.
                     ValueData::Object(ref obj) => {
                         // 2.
-                        if (*obj).deref().borrow().kind == ObjectKind::Array {
+                        if let ObjectData::Array = (*obj).deref().borrow().data {
                             return Ok(value_true);
                         }
                         Ok(value_false)
@@ -1008,7 +1008,7 @@ impl Array {
         let prototype = Value::new_object(None);
         let length = Property::default().value(Value::from(0));
 
-        prototype.set_property_slice("length", length);
+        prototype.set_property("length", length);
 
         make_builtin_fn(Self::concat, "concat", &prototype, 1);
         make_builtin_fn(Self::push, "push", &prototype, 1);
@@ -1043,6 +1043,8 @@ impl Array {
     #[inline]
     pub(crate) fn init(global: &Value) {
         let _timer = BoaProfiler::global().start_event("array", "init");
-        global.set_field("Array", Self::create(global));
+
+        let array = Self::create(global);
+        global.as_object_mut().unwrap().insert_field("Array", array);
     }
 }

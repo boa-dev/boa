@@ -16,7 +16,7 @@ use regex::Regex;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{InternalState, ObjectKind},
+        object::{InternalState, ObjectData},
         property::Property,
         value::{ResultValue, Value, ValueData},
     },
@@ -79,7 +79,8 @@ impl RegExp {
                 regex_body = body.into();
             }
             ValueData::Object(ref obj) => {
-                let slots = &obj.borrow().internal_slots;
+                let obj = obj.borrow();
+                let slots = obj.internal_slots();
                 if slots.get("RegExpMatcher").is_some() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
                     if let Some(body) = slots.get("OriginalSource") {
@@ -160,7 +161,7 @@ impl RegExp {
 
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_kind(ObjectKind::Ordinary);
+        this.set_data(ObjectData::Ordinary);
         this.set_internal_slot("RegExpMatcher", Value::undefined());
         this.set_internal_slot("OriginalSource", Value::from(regex_body));
         this.set_internal_slot("OriginalFlags", Value::from(regex_flags));
@@ -354,9 +355,8 @@ impl RegExp {
                 }
 
                 let result = Value::from(result);
-                result
-                    .set_property_slice("index", Property::default().value(Value::from(m.start())));
-                result.set_property_slice("input", Property::default().value(Value::from(arg_str)));
+                result.set_property("index", Property::default().value(Value::from(m.start())));
+                result.set_property("input", Property::default().value(Value::from(arg_str)));
                 result
             } else {
                 if regex.use_last_index {
@@ -441,11 +441,9 @@ impl RegExp {
 
                     let match_val = Value::from(match_vec);
 
-                    match_val.set_property_slice(
-                        "index",
-                        Property::default().value(Value::from(m.start())),
-                    );
-                    match_val.set_property_slice(
+                    match_val
+                        .set_property("index", Property::default().value(Value::from(m.start())));
+                    match_val.set_property(
                         "input",
                         Property::default().value(Value::from(arg_str.clone())),
                     );
@@ -463,7 +461,7 @@ impl RegExp {
         let length = matches.len();
         let result = Value::from(matches);
         result.set_field("length", Value::from(length));
-        result.set_kind(ObjectKind::Array);
+        result.set_data(ObjectData::Array);
 
         Ok(result)
     }
@@ -472,7 +470,10 @@ impl RegExp {
     pub(crate) fn create(global: &Value) -> Value {
         // Create prototype
         let prototype = Value::new_object(Some(global));
-        prototype.set_field("lastIndex", Value::from(0));
+        prototype
+            .as_object_mut()
+            .unwrap()
+            .insert_field("lastIndex", Value::from(0));
 
         make_builtin_fn(Self::test, "test", &prototype, 1);
         make_builtin_fn(Self::exec, "exec", &prototype, 1);
@@ -493,6 +494,10 @@ impl RegExp {
     #[inline]
     pub(crate) fn init(global: &Value) {
         let _timer = BoaProfiler::global().start_event("regexp", "init");
-        global.set_field("RegExp", Self::create(global));
+        let regexp = Self::create(global);
+        global
+            .as_object_mut()
+            .unwrap()
+            .insert_field("RegExp", regexp);
     }
 }

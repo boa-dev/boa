@@ -511,14 +511,17 @@ pub fn create(global: &Value) -> Value {
     let _timer = BoaProfiler::global().start_event("math:create", "init");
     let math = Value::new_object(Some(global));
 
-    math.set_field("E", Value::from(f64::consts::E));
-    math.set_field("LN2", Value::from(f64::consts::LN_2));
-    math.set_field("LN10", Value::from(f64::consts::LN_10));
-    math.set_field("LOG2E", Value::from(f64::consts::LOG2_E));
-    math.set_field("LOG10E", Value::from(f64::consts::LOG10_E));
-    math.set_field("SQRT1_2", Value::from(0.5_f64.sqrt()));
-    math.set_field("SQRT2", Value::from(f64::consts::SQRT_2));
-    math.set_field("PI", Value::from(f64::consts::PI));
+    {
+        let mut properties = math.as_object_mut().unwrap();
+        properties.insert_field("E", Value::from(f64::consts::E));
+        properties.insert_field("LN2", Value::from(f64::consts::LN_2));
+        properties.insert_field("LN10", Value::from(f64::consts::LN_10));
+        properties.insert_field("LOG2E", Value::from(f64::consts::LOG2_E));
+        properties.insert_field("LOG10E", Value::from(f64::consts::LOG10_E));
+        properties.insert_field("SQRT1_2", Value::from(0.5_f64.sqrt()));
+        properties.insert_field("SQRT2", Value::from(f64::consts::SQRT_2));
+        properties.insert_field("PI", Value::from(f64::consts::PI));
+    }
     make_builtin_fn(abs, "abs", &math, 1);
     make_builtin_fn(acos, "acos", &math, 1);
     make_builtin_fn(acosh, "acosh", &math, 1);

@@ -556,5 +556,10 @@ pub fn create(global: &Value) -> Value {
 #[inline]
 pub fn init(global: &Value) {
     let _timer = BoaProfiler::global().start_event("console", "init");
-    global.set_field("console", create(global));
+
+    let console = create(global);
+    global
+        .as_object_mut()
+        .unwrap()
+        .insert_field("console", console);
 }

@@ -15,7 +15,7 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{Object, ObjectKind},
+        object::{Object, ObjectData},
         property::Property,
         value::{ResultValue, Value, ValueData},
         RegExp,
@@ -36,6 +36,22 @@ use std::{
 pub(crate) struct String;
 
 impl String {
+    fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<StdString, Value> {
+        match this.data() {
+            ValueData::String(ref string) => return Ok(string.clone()),
+            ValueData::Object(ref object) => {
+                let object = object.borrow();
+                if let Some(string) = object.as_string() {
+                    return Ok(string.clone());
+                }
+            }
+            _ => {}
+        }
+
+        ctx.throw_type_error("'this' is not a string")?;
+        unreachable!();
+    }
+
     /// [[Construct]] - Creates a new instance `this`
     ///
     /// [[Call]] - Returns a new native `string`
@@ -43,39 +59,29 @@ impl String {
     pub(crate) fn make_string(
         this: &mut Value,
         args: &[Value],
-        _: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
         // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
         // to its Javascript Identifier (global constructor method name)
-        let s = args.get(0).unwrap_or(&Value::string("")).clone();
-        let length_str = s.to_string().chars().count();
-
-        this.set_field("length", Value::from(length_str as i32));
-
-        this.set_kind(ObjectKind::String);
-        this.set_internal_slot("StringData", s);
-
-        let arg = match args.get(0) {
-            Some(v) => v.clone(),
-            None => Value::undefined(),
+        let string = match args.get(0) {
+            Some(ref value) => ctx.to_string(value)?,
+            None => StdString::new(),
         };
 
-        if arg.is_undefined() {
-            return Ok("".into());
-        }
+        let length = string.chars().count();
 
-        Ok(Value::from(arg.to_string()))
+        this.set_field("length", Value::from(length as i32));
+
+        this.set_data(ObjectData::String(string.clone()));
+
+        Ok(Value::from(string))
     }
 
     /// Get the string value to a primitive string
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
         // Get String from String Object and send it back as a new value
-        match this.get_internal_slot("StringData").data() {
-            ValueData::String(ref string) => Ok(Value::from(string.clone())),
-            // Throw expection here:
-            _ => ctx.throw_type_error("'this' is not a string"),
-        }
+        Ok(Value::from(Self::this_string_value(this, ctx)?))
     }
 
     /// `String.prototype.charAt( index )`
@@ -183,14 +189,14 @@ impl String {
     pub(crate) fn concat(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let mut new_str = ctx.to_string(this)?;
+        let object = ctx.require_object_coercible(this)?;
+        let mut string = ctx.to_string(object)?;
 
         for arg in args {
-            let concat_str = arg.to_string();
-            new_str.push_str(&concat_str);
+            string.push_str(&ctx.to_string(arg)?);
         }
 
-        Ok(Value::from(new_str))
+        Ok(Value::from(string))
     }
 
     /// `String.prototype.repeat( count )`
@@ -402,10 +408,11 @@ impl String {
         match value.deref() {
             ValueData::String(ref body) => body.into(),
             ValueData::Object(ref obj) => {
-                let slots = &obj.borrow().internal_slots;
-                if slots.get("RegExpMatcher").is_some() {
+                let obj = obj.borrow();
+
+                if obj.internal_slots().get("RegExpMatcher").is_some() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
-                    if let Some(body) = slots.get("OriginalSource") {
+                    if let Some(body) = obj.internal_slots().get("OriginalSource") {
                         return body.to_string();
                     }
                 }
@@ -1046,7 +1053,8 @@ impl String {
         let prototype = Value::new_object(Some(global));
         let length = Property::default().value(Value::from(0));
 
-        prototype.set_property_slice("length", length);
+        prototype.set_property("length", length);
+
         make_builtin_fn(Self::char_at, "charAt", &prototype, 1);
         make_builtin_fn(Self::char_code_at, "charCodeAt", &prototype, 1);
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
@@ -1079,6 +1087,10 @@ impl String {
     #[inline]
     pub(crate) fn init(global: &Value) {
         let _timer = BoaProfiler::global().start_event("string", "init");
-        global.set_field("String", Self::create(global));
+        let string = Self::create(global);
+        global
+            .as_object_mut()
+            .unwrap()
+            .insert_field("String", string);
     }
 }

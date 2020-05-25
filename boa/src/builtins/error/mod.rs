@@ -13,7 +13,7 @@
 use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
-        object::ObjectKind,
+        object::ObjectData,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
@@ -49,7 +49,7 @@ impl Error {
         }
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_kind(ObjectKind::Error);
+        this.set_data(ObjectData::Error);
         Err(this.clone())
     }
 
@@ -83,6 +83,8 @@ impl Error {
     /// Initialise the global object with the `Error` object.
     pub(crate) fn init(global: &Value) {
         let _timer = BoaProfiler::global().start_event("error", "init");
-        global.set_field("Error", Self::create(global));
+
+        let error = Self::create(global);
+        global.as_object_mut().unwrap().insert_field("Error", error);
     }
 }
