@@ -99,14 +99,13 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
                         key.to_owned(),
                         Property::default().value(
                             interpreter
-                                .call(replacer, &mut this_arg, &[Value::string(key), val.clone()])
-                                .expect("failed to get returned value from replacer function"),
+                                .call(replacer, &mut this_arg, &[Value::string(key), val.clone()])?,
                         ),
                     );
                 }
-                Value::from(object_to_return.to_json().to_string())
+                Ok(Value::from(object_to_return.to_json().to_string()))
             })
-            .ok_or_else(Value::undefined)
+            .ok_or_else(Value::undefined)?
     } else if replacer_as_object.kind == ObjectKind::Array {
         let mut obj_to_return =
             serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);

@@ -153,3 +153,15 @@ fn json_stringify_array_converts_symbol_to_null() {
 
     assert_eq!(actual, expected);
 }
+ #[test]
+ fn json_stringify_function_replacer_propogate_error() {
+     let realm = Realm::create();
+     let mut engine = Interpreter::new(realm);
+
+     let actual = forward(&mut engine, r#"JSON.stringify({x: 1}, (key, value) => {
+         throw new TypeError("type error")
+     })"#);
+     let expected = forward(&mut engine, r#"'Error: undefined'"#);
+
+     assert_eq!(actual, expected);
+ }
