@@ -33,7 +33,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Object {
-    properties: Box<[PropertyDefinition]>
+    properties: Box<[PropertyDefinition]>,
 }
 
 impl Object {
@@ -43,7 +43,7 @@ impl Object {
         D: Into<Box<[PropertyDefinition]>>,
     {
         Self {
-            properties: props.into()
+            properties: props.into(),
         }
     }
 

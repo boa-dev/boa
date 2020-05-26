@@ -6,10 +6,10 @@ pub mod declaration;
 pub mod expression;
 pub mod identifier;
 pub mod iteration;
+pub mod object;
 pub mod operator;
 pub mod statement_list;
 pub mod try_node;
-pub mod object;
 
 pub use self::{
     array::ArrayDecl,
@@ -21,10 +21,10 @@ pub use self::{
     expression::{Call, New},
     identifier::Identifier,
     iteration::ForLoop,
+    object::Object,
     operator::{Assign, BinOp, UnaryOp},
     statement_list::StatementList,
     try_node::{Catch, Finally, Try},
-    object::Object
 };
 use super::Const;
 use gc::{Finalize, Trace};

@@ -2,13 +2,11 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::{Value, ResultValue},
+    builtins::value::{ResultValue, Value},
     environment::lexical_environment::{new_declarative_environment, VariableScope},
-    syntax::ast::node::{Object, PropertyDefinition},
     syntax::ast::node::MethodDefinitionKind,
+    syntax::ast::node::{Object, PropertyDefinition},
 };
-
-
 
 use std::borrow::Borrow;
 

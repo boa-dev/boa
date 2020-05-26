@@ -2,7 +2,7 @@ use crate::syntax::{
     ast::{
         node::{
             ConstDecl, ConstDeclList, FormalParameter, FunctionExpr, MethodDefinitionKind, Node,
-            PropertyDefinition, Object
+            Object, PropertyDefinition,
         },
         Const,
     },
@@ -23,9 +23,7 @@ fn check_object_literal() {
             b: false,
         };
         ",
-        vec![
-            ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into(),
-        ],
+        vec![ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into()],
     );
 }
 
@@ -47,9 +45,7 @@ fn check_object_short_function() {
             b() {},
         };
         ",
-        vec![
-            ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into(),
-        ],
+        vec![ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into()],
     );
 }
 
@@ -75,9 +71,7 @@ fn check_object_short_function_arguments() {
             b(test) {}
          };
         ",
-        vec![
-            ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into(),
-        ],
+        vec![ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into()],
     );
 }
 
@@ -98,9 +92,7 @@ fn check_object_getter() {
             get b() {}
         };
         ",
-        vec![
-            ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into(),
-        ],
+        vec![ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into()],
     );
 }
 
@@ -125,8 +117,6 @@ fn check_object_setter() {
             set b(test) {}
         };
         ",
-        vec![
-            ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into(),
-        ],
+        vec![ConstDeclList::from(vec![ConstDecl::new("x", Object::new(object_properties))]).into()],
     );
 }
