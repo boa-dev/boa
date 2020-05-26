@@ -63,9 +63,10 @@ impl RangeError {
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
         prototype.set_field("message", Value::from(""));
-        prototype.set_field("name", Value::from("RangeError"));
+
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
-        make_constructor_fn(Self::make_error, global, prototype)
+
+        make_constructor_fn("RangeError", 1, Self::make_error, global, prototype, true)
     }
 
     /// Runs a `new RangeError(message)`.

@@ -58,7 +58,14 @@ impl Interpreter {
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<P, B>(&mut self, params: P, body: B, this_mode: ThisMode) -> Value
+    pub(crate) fn create_function<P, B>(
+        &mut self,
+        params: P,
+        body: B,
+        this_mode: ThisMode,
+        constructable: bool,
+        callable: bool,
+    ) -> Value
     where
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
@@ -69,7 +76,7 @@ impl Interpreter {
             .get_global_object()
             .expect("Could not get the global object")
             .get_field("Function")
-            .get_field("Prototype");
+            .get_field(PROTOTYPE);
 
         // Every new function has a prototype property pre-made
         let global_val = &self
@@ -81,11 +88,13 @@ impl Interpreter {
 
         let params = params.into();
         let params_len = params.len();
-        let func = FunctionObject::create_ordinary(
+        let func = FunctionObject::new(
             params,
-            self.realm.environment.get_current_environment().clone(),
+            Some(self.realm.environment.get_current_environment().clone()),
             FunctionBody::Ordinary(body.into()),
             this_mode,
+            constructable,
+            callable,
         );
 
         let mut new_func = Object::function();

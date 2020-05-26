@@ -115,7 +115,14 @@ impl Boolean {
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_constructor_fn(Self::construct_boolean, global, prototype)
+        make_constructor_fn(
+            "Boolean",
+            1,
+            Self::construct_boolean,
+            global,
+            prototype,
+            true,
+        )
     }
 
     /// Initialise the `Boolean` object on the global object.

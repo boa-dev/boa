@@ -7,7 +7,7 @@
 use crate::{
     builtins::{
         self,
-        function::NativeFunctionData,
+        function::{Function, NativeFunctionData},
         value::{Value, ValueData},
     },
     environment::{
@@ -60,10 +60,7 @@ impl Realm {
 
     /// Utility to add a function to the global object
     pub fn register_global_func(self, func_name: &str, func: NativeFunctionData) -> Self {
-        let func = crate::builtins::function::Function::create_builtin(
-            vec![],
-            crate::builtins::function::FunctionBody::BuiltIn(func),
-        );
+        let func = Function::builtin(Vec::new(), func);
         self.global_obj
             .set_field(Value::from(func_name), ValueData::from_func(func));
 

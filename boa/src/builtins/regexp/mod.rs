@@ -485,7 +485,7 @@ impl RegExp {
         make_builtin_fn(Self::get_sticky, "sticky", &prototype, 0);
         make_builtin_fn(Self::get_unicode, "unicode", &prototype, 0);
 
-        make_constructor_fn(Self::make_regexp, global, prototype)
+        make_constructor_fn("RegExp", 1, Self::make_regexp, global, prototype, true)
     }
 
     /// Initialise the `RegExp` object on the global object.

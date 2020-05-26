@@ -1071,7 +1071,7 @@ impl String {
         make_builtin_fn(Self::match_all, "matchAll", &prototype, 1);
         make_builtin_fn(Self::replace, "replace", &prototype, 2);
 
-        make_constructor_fn(Self::make_string, global, prototype)
+        make_constructor_fn("String", 1, Self::make_string, global, prototype, true)
     }
 
     /// Initialise the `String` object on the global object.
