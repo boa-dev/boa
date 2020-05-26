@@ -426,14 +426,6 @@ impl Node {
         )
     }
 
-    /// Creates an `Object` AST node.
-    pub fn object<D>(def: D) -> Self
-    where
-        D: Into<Box<[PropertyDefinition]>>,
-    {
-        Self::Object(def.into())
-    }
-
     /// Creates a `Return` AST node.
     pub fn return_node<E, OE>(expr: OE) -> Self
     where
@@ -566,27 +558,7 @@ impl Node {
                 def.display(f, indentation + 1)?;
                 write!(f, "{}}}", indent)
             }
-            Self::Object(ref properties) => {
-                f.write_str("{\n")?;
-                for property in properties.iter() {
-                    match property {
-                        PropertyDefinition::IdentifierReference(key) => {
-                            write!(f, "{}    {},", indent, key)?;
-                        }
-                        PropertyDefinition::Property(key, value) => {
-                            write!(f, "{}    {}: {},", indent, key, value)?;
-                        }
-                        PropertyDefinition::SpreadObject(key) => {
-                            write!(f, "{}    ...{},", indent, key)?;
-                        }
-                        PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
-                            // TODO: Implement display for PropertyDefinition::MethodDefinition.
-                            unimplemented!("Display for PropertyDefinition::MethodDefinition");
-                        }
-                    }
-                }
-                f.write_str("}")
-            }
+            Self::Object(ref obj) => obj.display(f, indentation),
             Self::ArrayDecl(ref arr) => Display::fmt(arr, f),
             Self::VarDeclList(ref list) => Display::fmt(list, f),
             Self::FunctionDecl(ref decl) => decl.display(f, indentation),

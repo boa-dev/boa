@@ -12,7 +12,7 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{self, FunctionExpr, MethodDefinitionKind, Node},
+        node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
         token::{Token, TokenKind},
         Punctuator,
     },
@@ -82,7 +82,7 @@ impl TokenParser for ObjectLiteral {
             }
         }
 
-        Ok(Node::object(elements))
+        Ok(Object::new(elements).into())
     }
 }
 

@@ -2,11 +2,15 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::V
-    builtins::value::ResultValue,
+    builtins::value::{Value, ResultValue},
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     syntax::ast::node::{Object, PropertyDefinition},
+    syntax::ast::node::MethodDefinitionKind,
 };
+
+
+
+use std::borrow::Borrow;
 
 impl Executable for Object {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
@@ -18,7 +22,7 @@ impl Executable for Object {
         let obj = Value::new_object(Some(global_val));
 
         // TODO: Implement the rest of the property types.
-        for property in properties.iter() {
+        for property in self.properties().iter() {
             match property {
                 PropertyDefinition::Property(key, value) => {
                     obj.borrow()

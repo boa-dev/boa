@@ -35,3 +35,54 @@ use serde::{Deserialize, Serialize};
 pub struct Object {
     properties: Box<[PropertyDefinition]>
 }
+
+impl Object {
+    /// Creates an `Object` AST node.
+    pub fn new<D>(props: D) -> Self
+    where
+        D: Into<Box<[PropertyDefinition]>>,
+    {
+        Self {
+            properties: props.into()
+        }
+    }
+
+    pub fn properties(&self) -> &Box<[PropertyDefinition]> {
+        &self.properties
+    }
+
+    /// Implements the display formatting with indentation.
+    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indent: usize) -> fmt::Result {
+        f.write_str("{\n")?;
+        for property in self.properties().iter() {
+            match property {
+                PropertyDefinition::IdentifierReference(key) => {
+                    write!(f, "{}    {},", indent, key)?;
+                }
+                PropertyDefinition::Property(key, value) => {
+                    write!(f, "{}    {}: {},", indent, key, value)?;
+                }
+                PropertyDefinition::SpreadObject(key) => {
+                    write!(f, "{}    ...{},", indent, key)?;
+                }
+                PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
+                    // TODO: Implement display for PropertyDefinition::MethodDefinition.
+                    unimplemented!("Display for PropertyDefinition::MethodDefinition");
+                }
+            }
+        }
+        f.write_str("}")
+    }
+}
+
+impl fmt::Display for Object {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display(f, 0)
+    }
+}
+
+impl From<Object> for Node {
+    fn from(obj: Object) -> Self {
+        Self::Object(obj)
+    }
+}
