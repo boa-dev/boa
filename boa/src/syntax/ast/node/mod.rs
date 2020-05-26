@@ -255,7 +255,7 @@ pub enum Node {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
-    Switch(Box<Node>, Box<[(Node, Box<[Node]>)]>, Option<Box<Node>>),
+    Switch(Switch),
 
     /// The `spread` operator allows an iterable such as an array expression or string to be
     /// expanded.
