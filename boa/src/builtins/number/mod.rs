@@ -405,8 +405,7 @@ impl Number {
         let number = make_constructor_fn(Self::make_number, global, prototype);
 
         // Constants from:
-        // Draft ECMA-262 / May 22, 2020 ECMAScript® 2021 Language Specification
-        // Section 20.1.2 Properties of the Number Constructor
+        // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
         number.set_field("EPSILON", Value::from(std::f64::EPSILON));
         number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
         number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
@@ -414,9 +413,7 @@ impl Number {
         number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
         number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
         number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-
-        // TODO: Currently parsing/lexing Number.NaN is not supported due to the inclusion of the lower case 'a'.
-        // number.set_field("NaN", Value::from(f64::NAN));
+        number.set_field("NaN", Value::from(f64::NAN));
 
         number
     }
