@@ -87,17 +87,19 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
             .as_object()
             .map(|obj| {
                 let object_to_return = Value::new_object(None);
-                for (key, val) in obj.properties.iter().filter(|(_, v)|v.value.is_some()) {
+                for (key, val) in obj.properties.iter().filter_map(|(key, v)| {
+                    if let Some(value) = &v.value {
+                        Some((key, value))
+                    } else {
+                        None
+                    }
+                }) {
                     let mut this_arg = object.clone();
                     object_to_return.set_property(
                         key.to_owned(),
                         Property::default().value(
                             interpreter
-                                .call(
-                                    replacer,
-                                    &mut this_arg,
-                                    &[Value::string(key), Value::from(val.value.as_ref())],
-                                )
+                                .call(replacer, &mut this_arg, &[Value::string(key), val.clone()])
                                 .expect("failed to get returned value from replacer function"),
                         ),
                     );
@@ -108,16 +110,13 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
     } else if replacer_as_object.kind == ObjectKind::Array {
         let mut obj_to_return =
             serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
-        let fields = replacer_as_object
-            .properties
-            .keys()
-            .filter_map(|key| {
-                if key == "length" {
-                    None
-                } else {
-                    Some(replacer.get_field(key.to_string()))
-                }
-            });
+        let fields = replacer_as_object.properties.keys().filter_map(|key| {
+            if key == "length" {
+                None
+            } else {
+                Some(replacer.get_field(key.to_string()))
+            }
+        });
         for field in fields {
             if let Some(value) = object
                 .get_property(&field.to_string())
