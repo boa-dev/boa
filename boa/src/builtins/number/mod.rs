@@ -429,7 +429,9 @@ impl Number {
         number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
         number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
         number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-        number.set_field("NAN", Value::from(f64::NAN));
+
+        // TODO: Currently parsing/lexing Number.NaN is not supported due to the inclusion of the lower case 'a'.
+        // number.set_field("NaN", Value::from(f64::NAN));
 
         number
     }

@@ -455,5 +455,4 @@ fn number_constants() {
     assert!(!forward_val(&mut engine, "Number.MIN_VALUE").unwrap().is_null_or_undefined());
     assert!(!forward_val(&mut engine, "Number.NEGATIVE_INFINITY").unwrap().is_null_or_undefined());
     assert!(!forward_val(&mut engine, "Number.POSITIVE_INFINITY").unwrap().is_null_or_undefined());
-    assert!(!forward_val(&mut engine, "Number.NAN").unwrap().is_null_or_undefined());
 }
