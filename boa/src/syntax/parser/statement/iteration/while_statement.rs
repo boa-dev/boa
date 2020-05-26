@@ -1,5 +1,5 @@
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator},
+    ast::{Keyword, Node, Punctuator},
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         ParseResult, TokenParser,

@@ -12,7 +12,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 use crate::{
-    builtins::value::{ResultValue, Value},
+    builtins::{
+        function::make_builtin_fn,
+        value::{ResultValue, Value},
+    },
     exec::Interpreter,
 };
 use rand::random;
@@ -506,43 +509,43 @@ pub fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 pub fn create(global: &Value) -> Value {
     let math = Value::new_object(Some(global));
 
-    math.set_field_slice("E", Value::from(f64::consts::E));
-    math.set_field_slice("LN2", Value::from(f64::consts::LN_2));
-    math.set_field_slice("LN10", Value::from(f64::consts::LN_10));
-    math.set_field_slice("LOG2E", Value::from(f64::consts::LOG2_E));
-    math.set_field_slice("LOG10E", Value::from(f64::consts::LOG10_E));
-    math.set_field_slice("SQRT1_2", Value::from(0.5_f64.sqrt()));
-    math.set_field_slice("SQRT2", Value::from(f64::consts::SQRT_2));
-    math.set_field_slice("PI", Value::from(f64::consts::PI));
-    make_builtin_fn!(abs, named "abs", with length 1, of math);
-    make_builtin_fn!(acos, named "acos", with length 1, of math);
-    make_builtin_fn!(acosh, named "acosh", with length 1, of math);
-    make_builtin_fn!(asin, named "asin", with length 1, of math);
-    make_builtin_fn!(asinh, named "asinh", with length 1, of math);
-    make_builtin_fn!(atan, named "atan", with length 1, of math);
-    make_builtin_fn!(atanh, named "atanh", with length 1, of math);
-    make_builtin_fn!(atan2, named "atan2", with length 2, of math);
-    make_builtin_fn!(cbrt, named "cbrt", with length 1, of math);
-    make_builtin_fn!(ceil, named "ceil", with length 1, of math);
-    make_builtin_fn!(cos,  named "cos", with length 1, of math);
-    make_builtin_fn!(cosh,  named "cosh", with length 1, of math);
-    make_builtin_fn!(exp, named "exp", with length 1, of math);
-    make_builtin_fn!(floor, named "floor", with length 1, of math);
-    make_builtin_fn!(log, named "log", with length 1, of math);
-    make_builtin_fn!(log10, named "log10", with length 1, of math);
-    make_builtin_fn!(log2, named "log2", with length 1, of math);
-    make_builtin_fn!(max, named "max", with length 2, of math);
-    make_builtin_fn!(min, named "min", with length 2, of math);
-    make_builtin_fn!(pow, named "pow", with length 2, of math);
-    make_builtin_fn!(_random, named "random", of math);
-    make_builtin_fn!(round, named "round", with length 1, of math);
-    make_builtin_fn!(sign, named "sign", with length 1, of math);
-    make_builtin_fn!(sin, named "sin", with length 1, of math);
-    make_builtin_fn!(sinh, named "sinh", with length 1, of math);
-    make_builtin_fn!(sqrt, named "sqrt", with length 1, of math);
-    make_builtin_fn!(tan, named "tan", with length 1, of math);
-    make_builtin_fn!(tanh, named "tanh", with length 1, of math);
-    make_builtin_fn!(trunc, named "trunc", with length 1, of math);
+    math.set_field("E", Value::from(f64::consts::E));
+    math.set_field("LN2", Value::from(f64::consts::LN_2));
+    math.set_field("LN10", Value::from(f64::consts::LN_10));
+    math.set_field("LOG2E", Value::from(f64::consts::LOG2_E));
+    math.set_field("LOG10E", Value::from(f64::consts::LOG10_E));
+    math.set_field("SQRT1_2", Value::from(0.5_f64.sqrt()));
+    math.set_field("SQRT2", Value::from(f64::consts::SQRT_2));
+    math.set_field("PI", Value::from(f64::consts::PI));
+    make_builtin_fn(abs, "abs", &math, 1);
+    make_builtin_fn(acos, "acos", &math, 1);
+    make_builtin_fn(acosh, "acosh", &math, 1);
+    make_builtin_fn(asin, "asin", &math, 1);
+    make_builtin_fn(asinh, "asinh", &math, 1);
+    make_builtin_fn(atan, "atan", &math, 1);
+    make_builtin_fn(atanh, "atanh", &math, 1);
+    make_builtin_fn(atan2, "atan2", &math, 2);
+    make_builtin_fn(cbrt, "cbrt", &math, 1);
+    make_builtin_fn(ceil, "ceil", &math, 1);
+    make_builtin_fn(cos, "cos", &math, 1);
+    make_builtin_fn(cosh, "cosh", &math, 1);
+    make_builtin_fn(exp, "exp", &math, 1);
+    make_builtin_fn(floor, "floor", &math, 1);
+    make_builtin_fn(log, "log", &math, 1);
+    make_builtin_fn(log10, "log10", &math, 1);
+    make_builtin_fn(log2, "log2", &math, 1);
+    make_builtin_fn(max, "max", &math, 2);
+    make_builtin_fn(min, "min", &math, 2);
+    make_builtin_fn(pow, "pow", &math, 2);
+    make_builtin_fn(_random, "random", &math, 0);
+    make_builtin_fn(round, "round", &math, 1);
+    make_builtin_fn(sign, "sign", &math, 1);
+    make_builtin_fn(sin, "sin", &math, 1);
+    make_builtin_fn(sinh, "sinh", &math, 1);
+    make_builtin_fn(sqrt, "sqrt", &math, 1);
+    make_builtin_fn(tan, "tan", &math, 1);
+    make_builtin_fn(tanh, "tanh", &math, 1);
+    make_builtin_fn(trunc, "trunc", &math, 1);
 
     math
 }
@@ -550,5 +553,5 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `Math` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("Math", create(global));
+    global.set_field("Math", create(global));
 }

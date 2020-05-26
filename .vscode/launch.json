@@ -4,7 +4,6 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
     {
       "type": "lldb",
       "request": "launch",
@@ -37,16 +36,16 @@
       "symbolSearchPath": "https://msdl.microsoft.com/download/symbols"
     },
     {
-    "name": "(Windows) Run Test Debugger",
-    "type": "cppvsdbg",
-    "request": "launch",
-    "program": "${workspaceFolder}/target/debug/boa-ea5ed1ef3ee0cbe1.exe",
-    "args": [],
-    "stopAtEntry": false,
-    "cwd": "${workspaceFolder}",
-    "environment": [],
-    "externalConsole": true,
-    "preLaunchTask": "Cargo Test Build",
-}
+      "name": "(Windows) Run Test Debugger",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/boa-ea5ed1ef3ee0cbe1.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": true,
+      "preLaunchTask": "Cargo Test Build",
+    }
   ]
 }

@@ -3,7 +3,7 @@ mod tests;
 
 use super::Statement;
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{Keyword, Node, Punctuator, TokenKind},
     parser::{
         expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
         TokenParser,
@@ -57,15 +57,15 @@ impl TokenParser for IfStatement {
         let then_stm =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let else_stm = match cursor.next() {
-            Some(else_tok) if else_tok.kind == TokenKind::Keyword(Keyword::Else) => Some(
-                Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?,
-            ),
-            _ => {
-                cursor.back();
-                None
+        let else_stm = match cursor.peek(0) {
+            Some(else_tok) if else_tok.kind == TokenKind::Keyword(Keyword::Else) => {
+                cursor.next();
+                Some(
+                    Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                        .parse(cursor)?,
+                )
             }
+            _ => None,
         };
 
         Ok(Node::if_node::<_, _, Node, _>(cond, then_stm, else_stm))

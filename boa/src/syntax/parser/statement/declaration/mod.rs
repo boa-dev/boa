@@ -14,7 +14,7 @@ mod tests;
 
 use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, token::TokenKind},
+    ast::{Keyword, Node, TokenKind},
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 
