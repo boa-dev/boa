@@ -5,6 +5,7 @@ mod block;
 mod declaration;
 mod expression;
 mod iteration;
+mod object;
 mod operator;
 mod statement_list;
 #[cfg(test)]
@@ -447,36 +448,7 @@ impl Executable for Node {
                 }
                 Ok(result)
             }
-            Node::Object(ref properties) => {
-                let global_val = &interpreter
-                    .realm()
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let obj = Value::new_object(Some(global_val));
-
-                // TODO: Implement the rest of the property types.
-                for property in properties.iter() {
-                    match property {
-                        PropertyDefinition::Property(key, value) => {
-                            obj.borrow()
-                                .set_field(&key.clone(), value.run(interpreter)?);
-                        }
-                        PropertyDefinition::MethodDefinition(kind, name, func) => {
-                            if let MethodDefinitionKind::Ordinary = kind {
-                                obj.borrow()
-                                    .set_field(&name.clone(), func.run(interpreter)?);
-                            } else {
-                                // TODO: Implement other types of MethodDefinitionKinds.
-                                unimplemented!("other types of property method definitions.");
-                            }
-                        }
-                        i => unimplemented!("{:?} type of property", i),
-                    }
-                }
-
-                Ok(obj)
-            }
+            Node::Object(ref obj) => obj.run(interpreter),
             Node::ArrayDecl(ref arr) => arr.run(interpreter),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref decl) => decl.run(interpreter),

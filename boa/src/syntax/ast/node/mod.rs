@@ -9,6 +9,7 @@ pub mod iteration;
 pub mod operator;
 pub mod statement_list;
 pub mod try_node;
+pub mod object;
 
 pub use self::{
     array::ArrayDecl,
@@ -23,6 +24,7 @@ pub use self::{
     operator::{Assign, BinOp, UnaryOp},
     statement_list::StatementList,
     try_node::{Catch, Finally, Try},
+    object::Object
 };
 use super::Const;
 use gc::{Finalize, Trace};
@@ -214,26 +216,8 @@ pub enum Node {
     /// A `new` expression. [More information](./expression/struct.New.html).
     New(New),
 
-    /// Objects in JavaScript may be defined as an unordered collection of related data, of
-    /// primitive or reference types, in the form of “key: value” pairs.
-    ///
-    /// Objects can be initialized using `new Object()`, `Object.create()`, or using the literal
-    /// notation.
-    ///
-    /// An object initializer is an expression that describes the initialization of an
-    /// [`Object`][object]. Objects consist of properties, which are used to describe an object.
-    /// Values of object properties can either contain [`primitive`][primitive] data types or other
-    /// objects.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-ObjectLiteral
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
-    /// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
-    /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
-    Object(Box<[PropertyDefinition]>),
+    /// An object. [More information](./object/struct.Object.html).
+    Object(Object),
 
     /// The `return` statement ends function execution and specifies a value to be returned to the
     /// function caller.
