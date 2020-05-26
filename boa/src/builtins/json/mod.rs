@@ -97,10 +97,11 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
                     let mut this_arg = object.clone();
                     object_to_return.set_property(
                         key.to_owned(),
-                        Property::default().value(
-                            interpreter
-                                .call(replacer, &mut this_arg, &[Value::string(key), val.clone()])?,
-                        ),
+                        Property::default().value(interpreter.call(
+                            replacer,
+                            &mut this_arg,
+                            &[Value::string(key), val.clone()],
+                        )?),
                     );
                 }
                 Ok(Value::from(object_to_return.to_json().to_string()))
