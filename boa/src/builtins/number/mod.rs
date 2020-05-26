@@ -402,7 +402,7 @@ impl Number {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
       
-        let number = make_constructor_fn(Self::make_number, global, prototype);
+        let number = make_constructor_fn("Number", 1, Self::make_number, global, prototype, true);
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
