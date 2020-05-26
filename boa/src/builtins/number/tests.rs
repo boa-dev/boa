@@ -442,3 +442,31 @@ fn from_bigint() {
     assert_eq!(&forward(&mut engine, "Number(100000n)"), "100000",);
     assert_eq!(&forward(&mut engine, "Number(1n << 1240n)"), "Infinity",);
 }
+
+#[test]
+fn number_constants() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert!(!forward_val(&mut engine, "Number.EPSILON")
+        .unwrap()
+        .is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MAX_SAFE_INTEGER")
+        .unwrap()
+        .is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MIN_SAFE_INTEGER")
+        .unwrap()
+        .is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MAX_VALUE")
+        .unwrap()
+        .is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.MIN_VALUE")
+        .unwrap()
+        .is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.NEGATIVE_INFINITY")
+        .unwrap()
+        .is_null_or_undefined());
+    assert!(!forward_val(&mut engine, "Number.POSITIVE_INFINITY")
+        .unwrap()
+        .is_null_or_undefined());
+}
