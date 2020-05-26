@@ -800,6 +800,49 @@
 <span id="800">800</span>
 <span id="801">801</span>
 <span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -811,8 +854,8 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">bigint</span>::<span class="ident">BigInt</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{
-    <span class="ident">punc</span>::<span class="ident">Punctuator</span>,
     <span class="ident">token</span>::{<span class="ident">NumericLiteral</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
+    <span class="ident">Position</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">char</span>::{<span class="ident">decode_utf16</span>, <span class="ident">from_u32</span>},
@@ -826,38 +869,38 @@
 <span class="doccomment">/// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">vop</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
-        <span class="kw">let</span> <span class="ident">preview</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">preview_next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Could not preview next value&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">preview</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">preview_next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;could not preview next value&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">preview</span> {
             <span class="string">&#39;=&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next</span>();
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>,
         }
     });
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>), <span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> ({
-        <span class="kw">let</span> <span class="ident">preview</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">preview_next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Could not preview next value&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">preview</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">preview_next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;could not preview next value&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">preview</span> {
             <span class="string">&#39;=&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next</span>();
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>
             },
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next</span>();
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>
             })<span class="op">+</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>
         }
     });
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">preview</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">preview_next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Could not preview next value&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">preview</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">preview_next</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;could not preview next value&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">preview</span> {
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">next_column</span>();
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>
             })<span class="op">+</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>
@@ -867,17 +910,13 @@
 
 <span class="doccomment">/// The `op` macro handles binary operations or assignment operations and converts them into tokens.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">op</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
         <span class="kw">let</span> <span class="ident">punc</span> <span class="op">=</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>);
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">push_punc</span>(<span class="ident">punc</span>);
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">push_punc</span>(<span class="ident">punc</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>);
     });
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> ({
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> ({
         <span class="kw">let</span> <span class="ident">punc</span> <span class="op">=</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">assign_op</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>),<span class="op">+</span>});
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">push_punc</span>(<span class="ident">punc</span>);
-    });
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">expr</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>:<span class="ident">expr</span>),<span class="op">+</span>}) <span class="op">=</span><span class="op">&gt;</span> ({
-        <span class="kw">let</span> <span class="ident">punc</span> <span class="op">=</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">case</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">block</span>),<span class="op">+</span>});
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">push_punc</span>();
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">push_punc</span>(<span class="ident">punc</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">start_pos</span>);
     });
 }
 
@@ -894,9 +933,12 @@
     <span class="doccomment">/// Create a new LexerError struct</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `msg` - The message to show when LexerError is displayed</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="ident">msg</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    {
         <span class="self">Self</span> {
-            <span class="ident">details</span>: <span class="ident">msg</span>.<span class="ident">to_string</span>(),
+            <span class="ident">details</span>: <span class="ident">msg</span>.<span class="ident">into</span>(),
         }
     }
 }
@@ -925,10 +967,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This field is public so you can use them once lexing has finished.</span>
     <span class="kw">pub</span> <span class="ident">tokens</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The current line number in the script</span>
-    <span class="ident">line_number</span>: <span class="ident">u64</span>,
-    <span class="doccomment">/// the current column number in the script</span>
-    <span class="ident">column_number</span>: <span class="ident">u64</span>,
+    <span class="doccomment">/// The current position in the source code.</span>
+    <span class="ident">position</span>: <span class="ident">Position</span>,
     <span class="doccomment">/// The full Peekable buffer, an array of [Char]s</span>
     <span class="ident">buffer</span>: <span class="ident">Peekable</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -940,21 +980,62 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Lexer</span> {
             <span class="ident">tokens</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">line_number</span>: <span class="number">1</span>,
-            <span class="ident">column_number</span>: <span class="number">0</span>,
+            <span class="ident">position</span>: <span class="ident">Position</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">1</span>),
             <span class="ident">buffer</span>: <span class="ident">buffer</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>(),
         }
     }
 
     <span class="doccomment">/// Push a token onto the token queue.</span>
-    <span class="kw">fn</span> <span class="ident">push_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tk</span>: <span class="ident">TokenKind</span>) {
-        <span class="self">self</span>.<span class="ident">tokens</span>
-            .<span class="ident">push</span>(<span class="ident">Token</span>::<span class="ident">new</span>(<span class="ident">tk</span>, <span class="self">self</span>.<span class="ident">line_number</span>, <span class="self">self</span>.<span class="ident">column_number</span>))
+    <span class="kw">fn</span> <span class="ident">push_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tk</span>: <span class="ident">TokenKind</span>, <span class="ident">start</span>: <span class="ident">Position</span>) {
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind</span>::<span class="ident">LineTerminator</span> <span class="op">=</span> <span class="ident">tk</span> {
+            <span class="self">self</span>.<span class="ident">position</span>
+        } <span class="kw">else</span> {
+            <span class="ident">Position</span>::<span class="ident">new</span>(
+                <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">line_number</span>(),
+                <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">column_number</span>() <span class="op">-</span> <span class="number">1</span>,
+            )
+        };
+        <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">Token</span>::<span class="ident">new</span>(<span class="ident">tk</span>, <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">start</span>, <span class="ident">end</span>)))
     }
 
     <span class="doccomment">/// Push a punctuation token</span>
-    <span class="kw">fn</span> <span class="ident">push_punc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">punc</span>: <span class="ident">Punctuator</span>) {
-        <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">punc</span>));
+    <span class="kw">fn</span> <span class="ident">push_punc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">punc</span>: <span class="ident">Punctuator</span>, <span class="ident">start</span>: <span class="ident">Position</span>) {
+        <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">punc</span>), <span class="ident">start</span>);
+    }
+
+    <span class="doccomment">/// Changes the current position by advancing to the next column.</span>
+    <span class="kw">fn</span> <span class="ident">next_column</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(
+            <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">line_number</span>(),
+            <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">column_number</span>() <span class="op">+</span> <span class="number">1</span>,
+        );
+        <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">pos</span>;
+    }
+
+    <span class="doccomment">/// Changes the current position by advancing the given number of columns.</span>
+    <span class="kw">fn</span> <span class="ident">move_columns</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">columns</span>: <span class="ident">u32</span>) {
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(
+            <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">line_number</span>(),
+            <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">column_number</span>() <span class="op">+</span> <span class="ident">columns</span>,
+        );
+        <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">pos</span>;
+    }
+
+    <span class="kw">fn</span> <span class="ident">carriage_return</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">position</span>.<span class="ident">line_number</span>(), <span class="number">1</span>);
+        <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">pos</span>;
+    }
+
+    <span class="doccomment">/// Changes the current position by advancing to the next line.</span>
+    <span class="kw">fn</span> <span class="ident">next_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">position</span>.<span class="ident">line_number</span>() <span class="op">+</span> <span class="number">1</span>, <span class="number">1</span>);
+        <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">pos</span>;
+    }
+
+    <span class="doccomment">/// Changes the current position by advancing the given number of lines.</span>
+    <span class="kw">fn</span> <span class="ident">move_lines</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">lines</span>: <span class="ident">u32</span>) {
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">position</span>.<span class="ident">line_number</span>() <span class="op">+</span> <span class="ident">lines</span>, <span class="number">1</span>);
+        <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">pos</span>;
     }
 
     <span class="doccomment">/// next fetches the next token and return it, or a LexerError if there are no more.</span>
@@ -1005,6 +1086,7 @@
     <span class="kw">fn</span> <span class="ident">next_is</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">peek</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">preview_next</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">peek</span>);
         <span class="kw">if</span> <span class="ident">result</span> {
+            <span class="self">self</span>.<span class="ident">next_column</span>();
             <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">next</span>();
         }
         <span class="ident">result</span>
@@ -1038,29 +1120,30 @@
         <span class="doccomment">/// This is a helper structure</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This structure helps with identifying what numerical type it is and what base is it.</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
         <span class="kw">enum</span> <span class="ident">NumericKind</span> {
             <span class="ident">Rational</span>,
-            <span class="ident">Integer</span>(<span class="ident">u32</span>),
-            <span class="ident">BigInt</span>(<span class="ident">u32</span>),
+            <span class="ident">Integer</span>(<span class="ident">u8</span>),
+            <span class="ident">BigInt</span>(<span class="ident">u8</span>),
         }
 
         <span class="kw">impl</span> <span class="ident">NumericKind</span> {
             <span class="doccomment">/// Get the base of the number kind.</span>
-            <span class="kw">fn</span> <span class="ident">base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+            <span class="kw">fn</span> <span class="ident">base</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
                 <span class="kw">match</span> <span class="self">self</span> {
                     <span class="self">Self</span>::<span class="ident">Rational</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
-                    <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="kw-2">ref</span> <span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">base</span>,
-                    <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">base</span>,
+                    <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">base</span> <span class="kw">as</span> <span class="ident">u32</span>,
+                    <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">base</span> <span class="kw">as</span> <span class="ident">u32</span>,
                 }
             }
 
             <span class="doccomment">/// Converts `self` to BigInt kind.</span>
-            <span class="kw">fn</span> <span class="ident">convert_to_bigint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-                <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="kw">fn</span> <span class="ident">to_bigint</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">match</span> <span class="self">self</span> {
                     <span class="self">Self</span>::<span class="ident">Rational</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;can not convert rational number to BigInt&quot;</span>),
                     <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="ident">base</span>),
                     <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="ident">base</span>),
-                };
+                }
             }
         }
 
@@ -1068,28 +1151,31 @@
         <span class="kw">let</span> <span class="ident">strict_mode</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ch</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">position_offset</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">NumericKind</span>::<span class="ident">Integer</span>(<span class="number">10</span>);
+        <span class="kw">let</span> <span class="ident">start_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">position</span>;
         <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;0&#39;</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">preview_next</span>() {
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">NumericLiteral</span>(<span class="ident">NumericLiteral</span>::<span class="ident">Integer</span>(<span class="number">0</span>)));
-                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="self">self</span>.<span class="ident">next_column</span>();
+                    <span class="self">self</span>.<span class="ident">push_token</span>(
+                        <span class="ident">TokenKind</span>::<span class="ident">NumericLiteral</span>(<span class="ident">NumericLiteral</span>::<span class="ident">Integer</span>(<span class="number">0</span>)),
+                        <span class="ident">start_pos</span>,
+                    );
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
                 }
                 <span class="prelude-val">Some</span>(<span class="string">&#39;x&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;X&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">next</span>();
-                    <span class="ident">position_offset</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="self">self</span>.<span class="ident">next_column</span>();
                     <span class="ident">kind</span> <span class="op">=</span> <span class="ident">NumericKind</span>::<span class="ident">Integer</span>(<span class="number">16</span>);
                 }
                 <span class="prelude-val">Some</span>(<span class="string">&#39;o&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;O&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">next</span>();
-                    <span class="ident">position_offset</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="self">self</span>.<span class="ident">next_column</span>();
                     <span class="ident">kind</span> <span class="op">=</span> <span class="ident">NumericKind</span>::<span class="ident">Integer</span>(<span class="number">8</span>);
                 }
                 <span class="prelude-val">Some</span>(<span class="string">&#39;b&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;B&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">next</span>();
-                    <span class="ident">position_offset</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="self">self</span>.<span class="ident">next_column</span>();
                     <span class="ident">kind</span> <span class="op">=</span> <span class="ident">NumericKind</span>::<span class="ident">Integer</span>(<span class="number">2</span>);
                 }
                 <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_ascii_digit</span>() <span class="op">=</span><span class="op">&gt;</span> {
@@ -1130,7 +1216,7 @@
         }
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;n&#39;</span>) {
-            <span class="ident">kind</span>.<span class="ident">convert_to_bigint</span>()
+            <span class="ident">kind</span> <span class="op">=</span> <span class="ident">kind</span>.<span class="ident">to_bigint</span>();
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">NumericKind</span>::<span class="ident">Integer</span>(<span class="number">10</span>) <span class="op">=</span> <span class="ident">kind</span> {
@@ -1194,14 +1280,12 @@
             }
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">check_after_numeric_literal</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
-        };
+        <span class="self">self</span>.<span class="ident">check_after_numeric_literal</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
                 <span class="ident">NumericKind</span>::<span class="ident">BigInt</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">NumericLiteral</span>::<span class="ident">BigInt</span>(
-                        <span class="ident">BigInt</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">base</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not conver to BigInt&quot;</span>)
+                        <span class="ident">BigInt</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">base</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not conver to BigInt&quot;</span>)
                         )
                 }
                 <span class="ident">NumericKind</span>::<span class="ident">Rational</span> <span class="comment">/* base: 10 */</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1211,7 +1295,7 @@
                     )
                 }
                 <span class="ident">NumericKind</span>::<span class="ident">Integer</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">num</span>) <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">base</span>) {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">num</span>) <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">base</span> <span class="kw">as</span> <span class="ident">u32</span>) {
                         <span class="ident">NumericLiteral</span>::<span class="ident">Integer</span>(
                             <span class="ident">num</span>
                         )
@@ -1219,7 +1303,7 @@
                         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">base</span>);
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0.0_f64</span>;
                         <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">buf</span>.<span class="ident">chars</span>() {
-                            <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">c</span>.<span class="ident">to_digit</span>(<span class="ident">base</span>).<span class="ident">unwrap</span>());
+                            <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">c</span>.<span class="ident">to_digit</span>(<span class="ident">base</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>());
                             <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span> <span class="op">*</span> <span class="ident">b</span> <span class="op">+</span> <span class="ident">digit</span>;
                         }
 
@@ -1229,8 +1313,8 @@
                 }
             };
 
-        <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">NumericLiteral</span>(<span class="ident">num</span>));
-        <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">+</span> <span class="ident">position_offset</span> <span class="op">-</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">move_columns</span>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>);
+        <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">NumericLiteral</span>(<span class="ident">num</span>), <span class="ident">start_pos</span>);
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -1253,7 +1337,8 @@
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">preview_next</span>().<span class="ident">is_none</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
             }
-            <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">start_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">position</span>;
+            <span class="self">self</span>.<span class="ident">next_column</span>();
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
             <span class="kw">match</span> <span class="ident">ch</span> {
                 <span class="string">&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1273,6 +1358,7 @@
                                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">preview_next</span>().<span class="ident">is_none</span>() {
                                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Unterminated String&quot;</span>));
                                 }
+                                <span class="kw">let</span> <span class="ident">escape_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">position</span>;
                                 <span class="kw">let</span> <span class="ident">escape</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
                                 <span class="kw">if</span> <span class="ident">escape</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span> {
                                     <span class="kw">let</span> <span class="ident">escaped_ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">escape</span> {
@@ -1290,7 +1376,7 @@
                                                 }
                                                 <span class="ident">nums</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">next</span>());
                                             }
-                                            <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
+                                            <span class="self">self</span>.<span class="ident">move_columns</span>(<span class="number">2</span>);
                                             <span class="kw">let</span> <span class="ident">as_num</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">u64</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">nums</span>, <span class="number">16</span>) {
                                                 <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
                                                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
@@ -1298,8 +1384,8 @@
                                             <span class="kw">match</span> <span class="ident">from_u32</span>(<span class="ident">as_num</span> <span class="kw">as</span> <span class="ident">u32</span>) {
                                                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
                                                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
-                                                    <span class="string">&quot;{}:{}: {} is not a valid unicode scalar value&quot;</span>,
-                                                    <span class="self">self</span>.<span class="ident">line_number</span>, <span class="self">self</span>.<span class="ident">column_number</span>, <span class="ident">as_num</span>
+                                                    <span class="string">&quot;{}: {} is not a valid unicode scalar value&quot;</span>,
+                                                    <span class="self">self</span>.<span class="ident">position</span>, <span class="ident">as_num</span>
                                                 ),
                                             }
                                         }
@@ -1326,8 +1412,7 @@
                                                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Unterminated String&quot;</span>));
                                                 }
                                                 <span class="self">self</span>.<span class="ident">next</span>(); <span class="comment">// &#39;}&#39;</span>
-                                                <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span>
-                                                    (<span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">wrapping_add</span>(<span class="number">3</span>);
+                                                <span class="self">self</span>.<span class="ident">move_columns</span>(<span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>);
                                                 <span class="ident">c</span>
                                             } <span class="kw">else</span> {
                                                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">codepoints</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
@@ -1344,8 +1429,7 @@
                                                     };
 
                                                     <span class="ident">codepoints</span>.<span class="ident">push</span>(<span class="ident">as_num</span>);
-                                                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span>
-                                                        (<span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">wrapping_add</span>(<span class="number">2</span>);
+                                                    <span class="self">self</span>.<span class="ident">move_columns</span>(<span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>);
 
                                                     <span class="comment">// Check for another UTF-16 codepoint</span>
                                                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;\\&#39;</span>) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;u&#39;</span>) {
@@ -1364,7 +1448,7 @@
                                         }
                                         <span class="string">&#39;\&#39;&#39;</span> <span class="op">|</span> <span class="string">&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">&#39;\\&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">escape</span>,
                                         <span class="ident">ch</span> <span class="op">=</span><span class="op">&gt;</span> {
-                                            <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}:{}: Invalid escape `{}`&quot;</span>, <span class="self">self</span>.<span class="ident">line_number</span>, <span class="self">self</span>.<span class="ident">column_number</span>, <span class="ident">ch</span>);
+                                            <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;invalid escape sequence `{}` at line {}, column {}&quot;</span>, <span class="ident">escape_pos</span>.<span class="ident">line_number</span>(), <span class="ident">escape_pos</span>.<span class="ident">column_number</span>(), <span class="ident">ch</span>);
                                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span> { <span class="ident">details</span> });
                                         }
                                     };
@@ -1374,12 +1458,12 @@
                             <span class="ident">next_ch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">next_ch</span>),
                         }
                     }
-                    <span class="kw">let</span> <span class="ident">str_length</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
-                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">buf</span>));
+                    <span class="kw">let</span> <span class="ident">str_length</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
                     <span class="comment">// Why +1? Quotation marks are not included,</span>
                     <span class="comment">// So technically it would be +2, (for both &quot; &quot;) but we want to be 1 less</span>
                     <span class="comment">// to compensate for the incrementing at the top</span>
-                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="ident">str_length</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+                    <span class="self">self</span>.<span class="ident">move_columns</span>( <span class="ident">str_length</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>));
+                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">string_literal</span>(<span class="ident">buf</span>), <span class="ident">start_pos</span>);
                 }
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">reed_numerical_literal</span>(<span class="ident">ch</span>)<span class="question-mark">?</span>,
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_alphabetic</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;$&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1391,8 +1475,7 @@
                             <span class="kw">break</span>;
                         }
                     }
-
-                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="kw">match</span> <span class="ident">buf</span>.<span class="ident">as_str</span>() {
+                    <span class="kw">let</span> <span class="ident">tk</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">buf</span>.<span class="ident">as_str</span>() {
                         <span class="string">&quot;true&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">BooleanLiteral</span>(<span class="bool-val">true</span>),
                         <span class="string">&quot;false&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">BooleanLiteral</span>(<span class="bool-val">false</span>),
                         <span class="string">&quot;null&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TokenKind</span>::<span class="ident">NullLiteral</span>,
@@ -1404,33 +1487,35 @@
                                 <span class="ident">TokenKind</span>::<span class="ident">identifier</span>(<span class="ident">slice</span>)
                             }
                         }
-                    });
-                    <span class="comment">// Move position forward the length of keyword</span>
-                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">buf</span>.<span class="ident">len</span>().<span class="ident">wrapping_sub</span>(<span class="number">1</span>)) <span class="kw">as</span> <span class="ident">u64</span>;
+                    };
+
+                    <span class="comment">// Move position forward the length of the token</span>
+                    <span class="self">self</span>.<span class="ident">move_columns</span>( (<span class="ident">buf</span>.<span class="ident">len</span>().<span class="ident">wrapping_sub</span>(<span class="number">1</span>)) <span class="kw">as</span> <span class="ident">u32</span>);
+
+                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">tk</span>, <span class="ident">start_pos</span>);
                 }
-                <span class="string">&#39;;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>),
-                <span class="string">&#39;:&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Colon</span>),
+                <span class="string">&#39;;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;:&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Colon</span>, <span class="ident">start_pos</span>),
                 <span class="string">&#39;.&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// . or ...</span>
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;.&#39;</span>) {
                         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;.&#39;</span>) {
-                            <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Spread</span>);
-                            <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
+                            <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Spread</span>, <span class="ident">start_pos</span>);
                         } <span class="kw">else</span> {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Expecting Token .&quot;</span>));
                         }
                     } <span class="kw">else</span> {
-                        <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Dot</span>);
+                        <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Dot</span>, <span class="ident">start_pos</span>);
                     };
                 }
-                <span class="string">&#39;(&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenParen</span>),
-                <span class="string">&#39;)&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseParen</span>),
-                <span class="string">&#39;,&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Comma</span>),
-                <span class="string">&#39;{&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenBlock</span>),
-                <span class="string">&#39;}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>),
-                <span class="string">&#39;[&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenBracket</span>),
-                <span class="string">&#39;]&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBracket</span>),
-                <span class="string">&#39;?&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Question</span>),
+                <span class="string">&#39;(&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenParen</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;)&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseParen</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;,&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Comma</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;{&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenBlock</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;[&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenBracket</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;]&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBracket</span>, <span class="ident">start_pos</span>),
+                <span class="string">&#39;?&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Question</span>, <span class="ident">start_pos</span>),
                 <span class="comment">// Comments</span>
                 <span class="string">&#39;/&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">preview_next</span>() {
@@ -1442,15 +1527,14 @@
                                         <span class="kw">break</span>;
                                     }
                                 }
-                                <span class="self">self</span>.<span class="ident">line_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                                <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">=</span> <span class="number">0</span>;
+                                <span class="self">self</span>.<span class="ident">next_line</span>()
                             }
                             <span class="comment">// block comment</span>
                             <span class="string">&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="number">0</span>;
                                 <span class="kw">loop</span> {
                                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">preview_next</span>().<span class="ident">is_none</span>() {
-                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Unterminated Multiline Comment&quot;</span>));
+                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;unterminated multiline comment&quot;</span>));
                                     }
                                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next</span>() {
                                         <span class="string">&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1465,19 +1549,19 @@
                                         },
                                     }
                                 }
-                                <span class="self">self</span>.<span class="ident">line_number</span> <span class="op">+</span><span class="op">=</span> <span class="ident">lines</span>;
-                                <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">=</span> <span class="number">0</span>;
+                                <span class="self">self</span>.<span class="ident">move_lines</span>(<span class="ident">lines</span>);
                             }
                             <span class="comment">// division, assigndiv or regex literal</span>
                             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="comment">// if we fail to parse a regex literal, store a copy of the current</span>
                                 <span class="comment">// buffer to restore later on</span>
                                 <span class="kw">let</span> <span class="ident">original_buffer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">clone</span>();
+                                <span class="kw">let</span> <span class="ident">original_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">position</span>;
                                 <span class="comment">// first, try to parse a regex literal</span>
                                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
                                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regex</span> <span class="op">=</span> <span class="bool-val">false</span>;
                                 <span class="kw">loop</span> {
-                                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">+</span><span class="op">=</span><span class="number">1</span>;
+                                    <span class="self">self</span>.<span class="ident">next_column</span>();
                                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">next</span>() {
                                         <span class="comment">// end of body</span>
                                         <span class="prelude-val">Some</span>(<span class="string">&#39;/&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1487,14 +1571,14 @@
                                         <span class="comment">// newline/eof not allowed in regex literal</span>
                                         <span class="ident">n</span> @ <span class="prelude-val">Some</span>(<span class="string">&#39;\n&#39;</span>) <span class="op">|</span> <span class="ident">n</span> @ <span class="prelude-val">Some</span>(<span class="string">&#39;\r&#39;</span>) <span class="op">|</span> <span class="ident">n</span> @ <span class="prelude-val">Some</span>(<span class="string">&#39;\u{2028}&#39;</span>)
                                         <span class="op">|</span> <span class="ident">n</span> @ <span class="prelude-val">Some</span>(<span class="string">&#39;\u{2029}&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                            <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">=</span> <span class="number">0</span>;
+                                            <span class="self">self</span>.<span class="ident">carriage_return</span>();
                                             <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\r&#39;</span>) {
-                                                <span class="self">self</span>.<span class="ident">line_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                                                <span class="self">self</span>.<span class="ident">next_line</span>();
                                             }
                                             <span class="kw">break</span>
                                         },
                                         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                                            <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                                            <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">position</span>.<span class="ident">line_number</span>(), <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">column_number</span>()<span class="op">-</span><span class="number">1</span>);
                                             <span class="kw">break</span>
                                         }
                                         <span class="comment">// escape sequence</span>
@@ -1515,19 +1599,21 @@
                                 <span class="kw">if</span> <span class="ident">regex</span> {
                                     <span class="comment">// body was parsed, now look for flags</span>
                                     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">take_char_while</span>(<span class="ident">char</span>::<span class="ident">is_alphabetic</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">RegularExpressionLiteral</span>(
-                                        <span class="ident">body</span>, <span class="ident">flags</span>,
-                                    ));
+                                    <span class="self">self</span>.<span class="ident">move_columns</span>(<span class="ident">body</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span> <span class="op">+</span> <span class="ident">flags</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>);
+                                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">regular_expression_literal</span>(
+                                        <span class="ident">body</span>, <span class="ident">flags</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                                    ), <span class="ident">start_pos</span>);
                                 } <span class="kw">else</span> {
                                     <span class="comment">// failed to parse regex, restore original buffer position and</span>
                                     <span class="comment">// parse either div or assigndiv</span>
                                     <span class="self">self</span>.<span class="ident">buffer</span> <span class="op">=</span> <span class="ident">original_buffer</span>;
+                                    <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">original_pos</span>;
                                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;=&#39;</span>) {
                                         <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(
                                             <span class="ident">Punctuator</span>::<span class="ident">AssignDiv</span>,
-                                        ));
+                                        ), <span class="ident">start_pos</span>);
                                     } <span class="kw">else</span> {
-                                        <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Div</span>));
+                                        <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Div</span>), <span class="ident">start_pos</span>);
                                     }
                                 }
                             }
@@ -1536,26 +1622,26 @@
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Expecting Token /,*,= or regex&quot;</span>));
                     }
                 }
-                <span class="string">&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignMul</span>, <span class="ident">Punctuator</span>::<span class="ident">Mul</span>, {
+                <span class="string">&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignMul</span>, <span class="ident">Punctuator</span>::<span class="ident">Mul</span>, {
                     <span class="string">&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignPow</span>, <span class="ident">Punctuator</span>::<span class="ident">Exp</span>)
                 }),
-                <span class="string">&#39;+&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignAdd</span>, <span class="ident">Punctuator</span>::<span class="ident">Add</span>, {
+                <span class="string">&#39;+&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignAdd</span>, <span class="ident">Punctuator</span>::<span class="ident">Add</span>, {
                     <span class="string">&#39;+&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Punctuator</span>::<span class="ident">Inc</span>
                 }),
-                <span class="string">&#39;-&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignSub</span>, <span class="ident">Punctuator</span>::<span class="ident">Sub</span>, {
+                <span class="string">&#39;-&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignSub</span>, <span class="ident">Punctuator</span>::<span class="ident">Sub</span>, {
                     <span class="string">&#39;-&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">Punctuator</span>::<span class="ident">Dec</span>
                     }
                 }),
-                <span class="string">&#39;%&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignMod</span>, <span class="ident">Punctuator</span>::<span class="ident">Mod</span>),
-                <span class="string">&#39;|&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignOr</span>, <span class="ident">Punctuator</span>::<span class="ident">Or</span>, {
+                <span class="string">&#39;%&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignMod</span>, <span class="ident">Punctuator</span>::<span class="ident">Mod</span>),
+                <span class="string">&#39;|&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignOr</span>, <span class="ident">Punctuator</span>::<span class="ident">Or</span>, {
                     <span class="string">&#39;|&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Punctuator</span>::<span class="ident">BoolOr</span>
                 }),
-                <span class="string">&#39;&amp;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignAnd</span>, <span class="ident">Punctuator</span>::<span class="ident">And</span>, {
+                <span class="string">&#39;&amp;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignAnd</span>, <span class="ident">Punctuator</span>::<span class="ident">And</span>, {
                     <span class="string">&#39;&amp;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Punctuator</span>::<span class="ident">BoolAnd</span>
                 }),
-                <span class="string">&#39;^&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignXor</span>, <span class="ident">Punctuator</span>::<span class="ident">Xor</span>),
-                <span class="string">&#39;=&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;=&#39;</span>) {
+                <span class="string">&#39;^&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignXor</span>, <span class="ident">Punctuator</span>::<span class="ident">Xor</span>),
+                <span class="string">&#39;=&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_is</span>(<span class="string">&#39;=&#39;</span>) {
                     <span class="ident">Punctuator</span>::<span class="ident">StrictEq</span>
                 } <span class="kw">else</span> {
                     <span class="ident">Punctuator</span>::<span class="ident">Eq</span>
@@ -1564,27 +1650,27 @@
                         <span class="ident">Punctuator</span>::<span class="ident">Arrow</span>
                     }
                 }),
-                <span class="string">&#39;&lt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">LessThanOrEq</span>, <span class="ident">Punctuator</span>::<span class="ident">LessThan</span>, {
+                <span class="string">&#39;&lt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">LessThanOrEq</span>, <span class="ident">Punctuator</span>::<span class="ident">LessThan</span>, {
                     <span class="string">&#39;&lt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignLeftSh</span>, <span class="ident">Punctuator</span>::<span class="ident">LeftSh</span>)
                 }),
-                <span class="string">&#39;&gt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">GreaterThanOrEq</span>, <span class="ident">Punctuator</span>::<span class="ident">GreaterThan</span>, {
+                <span class="string">&#39;&gt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start_pos</span>, <span class="ident">Punctuator</span>::<span class="ident">GreaterThanOrEq</span>, <span class="ident">Punctuator</span>::<span class="ident">GreaterThan</span>, {
                     <span class="string">&#39;&gt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignRightSh</span>, <span class="ident">Punctuator</span>::<span class="ident">RightSh</span>, {
                         <span class="string">&#39;&gt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vop</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">AssignURightSh</span>, <span class="ident">Punctuator</span>::<span class="ident">URightSh</span>)
                     })
                 }),
                 <span class="string">&#39;!&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">op</span><span class="macro">!</span>(
                     <span class="self">self</span>,
+                    <span class="ident">start_pos</span>,
                     <span class="macro">vop</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Punctuator</span>::<span class="ident">StrictNotEq</span>, <span class="ident">Punctuator</span>::<span class="ident">NotEq</span>),
                     <span class="ident">Punctuator</span>::<span class="ident">Not</span>
                 ),
-                <span class="string">&#39;~&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Neg</span>),
+                <span class="string">&#39;~&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">push_punc</span>(<span class="ident">Punctuator</span>::<span class="ident">Neg</span>, <span class="ident">start_pos</span>),
                 <span class="string">&#39;\n&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2028}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2029}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">LineTerminator</span>);
-                    <span class="self">self</span>.<span class="ident">line_number</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">=</span> <span class="number">0</span>;
+                    <span class="self">self</span>.<span class="ident">next_line</span>();
+                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">LineTerminator</span>, <span class="ident">start_pos</span>);
                 }
                 <span class="string">&#39;\r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="self">self</span>.<span class="ident">column_number</span> <span class="op">=</span> <span class="number">0</span>;
+                    <span class="self">self</span>.<span class="ident">carriage_return</span>();
                 }
                 <span class="comment">// The rust char::is_whitespace function and the ecma standard use different sets</span>
                 <span class="comment">// of characters as whitespaces:</span>
@@ -1596,7 +1682,7 @@
                 <span class="comment">// Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)</span>
                 <span class="string">&#39;\u{1680}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{200A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{202F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{205F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{3000}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> (),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}:{}: Unexpected &#39;{}&#39;&quot;</span>, <span class="self">self</span>.<span class="ident">line_number</span>, <span class="self">self</span>.<span class="ident">column_number</span>, <span class="ident">ch</span>);
+                    <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unexpected &#39;{}&#39; at line {}, column {}&quot;</span>, <span class="ident">start_pos</span>.<span class="ident">line_number</span>(), <span class="ident">start_pos</span>.<span class="ident">column_number</span>(), <span class="ident">ch</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span> { <span class="ident">details</span> });
                 },
             }

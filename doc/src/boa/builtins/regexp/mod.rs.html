@@ -484,6 +484,16 @@
 <span id="484">484</span>
 <span id="485">485</span>
 <span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
@@ -500,7 +510,7 @@
 
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">object</span>::{<span class="ident">InternalState</span>, <span class="ident">ObjectKind</span>},
@@ -515,7 +525,7 @@
 
 <span class="doccomment">/// The internal representation on a `RegExp` object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">RegExp</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">RegExp</span> {
     <span class="doccomment">/// Regex matcher.</span>
     <span class="ident">matcher</span>: <span class="ident">Regex</span>,
 
@@ -546,430 +556,440 @@
 
 <span class="kw">impl</span> <span class="ident">InternalState</span> <span class="kw">for</span> <span class="ident">RegExp</span> {}
 
-<span class="doccomment">/// Create a new `RegExp`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_regexp</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
-    }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regex_body</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regex_flags</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">indexing_slicing</span>)]</span> <span class="comment">// length has been checked</span>
-    <span class="kw">match</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">deref</span>() {
-        <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="comment">// first argument is a string -&gt; use it as regex pattern</span>
-            <span class="ident">regex_body</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">into</span>();
+<span class="kw">impl</span> <span class="ident">RegExp</span> {
+    <span class="doccomment">/// Create a new `RegExp`</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_regexp</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
         }
-        <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">slots</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">internal_slots</span>;
-            <span class="kw">if</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;RegExpMatcher&quot;</span>).<span class="ident">is_some</span>() {
-                <span class="comment">// first argument is another `RegExp` object, so copy its pattern and flags</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;OriginalSource&quot;</span>) {
-                    <span class="ident">regex_body</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">body</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regex_body</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regex_flags</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">indexing_slicing</span>)]</span> <span class="comment">// length has been checked</span>
+        <span class="kw">match</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">deref</span>() {
+            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// first argument is a string -&gt; use it as regex pattern</span>
+                <span class="ident">regex_body</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">into</span>();
+            }
+            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">slots</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">internal_slots</span>;
+                <span class="kw">if</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;RegExpMatcher&quot;</span>).<span class="ident">is_some</span>() {
+                    <span class="comment">// first argument is another `RegExp` object, so copy its pattern and flags</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;OriginalSource&quot;</span>) {
+                        <span class="ident">regex_body</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">body</span>);
+                    }
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">flags</span>) <span class="op">=</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;OriginalFlags&quot;</span>) {
+                        <span class="ident">regex_flags</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">flags</span>);
+                    }
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">flags</span>) <span class="op">=</span> <span class="ident">slots</span>.<span class="ident">get</span>(<span class="string">&quot;OriginalFlags&quot;</span>) {
-                    <span class="ident">regex_flags</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">flags</span>);
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+        }
+        <span class="comment">// if a second argument is given and it&#39;s a string, use it as flags</span>
+        <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="prelude-val">Some</span>(<span class="ident">flags</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="ident">flags</span>) <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">deref</span>() {
+                    <span class="ident">regex_flags</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">into</span>();
                 }
             }
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
-    }
-    <span class="comment">// if a second argument is given and it&#39;s a string, use it as flags</span>
-    <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="prelude-val">Some</span>(<span class="ident">flags</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="ident">flags</span>) <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">deref</span>() {
-                <span class="ident">regex_flags</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">into</span>();
-            }
+
+        <span class="comment">// parse flags</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sorted_flags</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
+            <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;g&#39;</span>);
         }
-    }
+        <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;i&#39;</span>) {
+            <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;i&#39;</span>);
+            <span class="ident">pattern</span>.<span class="ident">push</span>(<span class="string">&#39;i&#39;</span>);
+        }
+        <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;m&#39;</span>) {
+            <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;m&#39;</span>);
+            <span class="ident">pattern</span>.<span class="ident">push</span>(<span class="string">&#39;m&#39;</span>);
+        }
+        <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;s&#39;</span>) {
+            <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;s&#39;</span>);
+            <span class="ident">pattern</span>.<span class="ident">push</span>(<span class="string">&#39;s&#39;</span>);
+        }
+        <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;u&#39;</span>) {
+            <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;u&#39;</span>);
+            <span class="comment">//pattern.push(&#39;s&#39;); // rust uses utf-8 anyway</span>
+        }
+        <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;y&#39;</span>) {
+            <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;y&#39;</span>);
+        }
+        <span class="comment">// the `regex` crate uses &#39;(?{flags})` inside the pattern to enable flags</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">pattern</span>.<span class="ident">is_empty</span>() {
+            <span class="ident">pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(?{})&quot;</span>, <span class="ident">pattern</span>);
+        }
+        <span class="ident">pattern</span>.<span class="ident">push_str</span>(<span class="ident">regex_body</span>.<span class="ident">as_str</span>());
 
-    <span class="comment">// parse flags</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sorted_flags</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">false</span>;
-    <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
-        <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;g&#39;</span>);
-    }
-    <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;i&#39;</span>) {
-        <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;i&#39;</span>);
-        <span class="ident">pattern</span>.<span class="ident">push</span>(<span class="string">&#39;i&#39;</span>);
-    }
-    <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;m&#39;</span>) {
-        <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;m&#39;</span>);
-        <span class="ident">pattern</span>.<span class="ident">push</span>(<span class="string">&#39;m&#39;</span>);
-    }
-    <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;s&#39;</span>) {
-        <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;s&#39;</span>);
-        <span class="ident">pattern</span>.<span class="ident">push</span>(<span class="string">&#39;s&#39;</span>);
-    }
-    <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;u&#39;</span>) {
-        <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;u&#39;</span>);
-        <span class="comment">//pattern.push(&#39;s&#39;); // rust uses utf-8 anyway</span>
-    }
-    <span class="kw">if</span> <span class="ident">regex_flags</span>.<span class="ident">contains</span>(<span class="string">&#39;y&#39;</span>) {
-        <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;y&#39;</span>);
-    }
-    <span class="comment">// the `regex` crate uses &#39;(?{flags})` inside the pattern to enable flags</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">pattern</span>.<span class="ident">is_empty</span>() {
-        <span class="ident">pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(?{})&quot;</span>, <span class="ident">pattern</span>);
-    }
-    <span class="ident">pattern</span>.<span class="ident">push_str</span>(<span class="ident">regex_body</span>.<span class="ident">as_str</span>());
-
-    <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="ident">pattern</span>.<span class="ident">as_str</span>()).<span class="ident">expect</span>(<span class="string">&quot;failed to create matcher&quot;</span>);
-    <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">RegExp</span> {
-        <span class="ident">matcher</span>,
-        <span class="ident">use_last_index</span>: <span class="ident">global</span> <span class="op">|</span><span class="op">|</span> <span class="ident">sticky</span>,
-        <span class="ident">flags</span>: <span class="ident">sorted_flags</span>,
-        <span class="ident">dot_all</span>,
-        <span class="ident">global</span>,
-        <span class="ident">ignore_case</span>,
-        <span class="ident">multiline</span>,
-        <span class="ident">sticky</span>,
-        <span class="ident">unicode</span>,
-    };
-
-    <span class="comment">// This value is used by console.log and other routines to match Object type</span>
-    <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
-    <span class="ident">this</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Ordinary</span>);
-    <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;RegExpMatcher&quot;</span>, <span class="ident">Value</span>::<span class="ident">undefined</span>());
-    <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;OriginalSource&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex_body</span>));
-    <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;OriginalFlags&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex_flags</span>));
-
-    <span class="ident">this</span>.<span class="ident">set_internal_state</span>(<span class="ident">regexp</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
-}
-
-<span class="doccomment">/// `RegExp.prototype.dotAll`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `dotAll` property indicates whether or not the &quot;`s`&quot; flag is used with the regular expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll</span>
-<span class="kw">fn</span> <span class="ident">get_dot_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">dot_all</span>)))
-}
-
-<span class="doccomment">/// `RegExp.prototype.flags`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags</span>
-<span class="doccomment">/// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2</span>
-<span class="kw">fn</span> <span class="ident">get_flags</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">clone</span>())))
-}
-
-<span class="doccomment">/// `RegExp.prototype.global`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `global` property indicates whether or not the &quot;`g`&quot; flag is used with the regular expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global</span>
-<span class="kw">fn</span> <span class="ident">get_global</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">global</span>)))
-}
-
-<span class="doccomment">/// `RegExp.prototype.ignoreCase`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `ignoreCase` property indicates whether or not the &quot;`i`&quot; flag is used with the regular expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase</span>
-<span class="kw">fn</span> <span class="ident">get_ignore_case</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">ignore_case</span>)))
-}
-
-<span class="doccomment">/// `RegExp.prototype.multiline`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The multiline property indicates whether or not the &quot;m&quot; flag is used with the regular expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline</span>
-<span class="kw">fn</span> <span class="ident">get_multiline</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">multiline</span>)))
-}
-
-<span class="doccomment">/// `RegExp.prototype.source`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `source` property returns a `String` containing the source text of the regexp object,</span>
-<span class="doccomment">/// and it doesn&#39;t contain the two forward slashes on both sides and any flags.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source</span>
-<span class="kw">fn</span> <span class="ident">get_source</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;OriginalSource&quot;</span>))
-}
-
-<span class="doccomment">/// `RegExp.prototype.sticky`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky</span>
-<span class="kw">fn</span> <span class="ident">get_sticky</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">sticky</span>)))
-}
-
-<span class="doccomment">/// `RegExp.prototype.unicode`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The unicode property indicates whether or not the &quot;`u`&quot; flag is used with a regular expression.</span>
-<span class="doccomment">/// unicode is a read-only property of an individual regular expression instance.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode</span>
-<span class="kw">fn</span> <span class="ident">get_unicode</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">unicode</span>)))
-}
-
-<span class="doccomment">/// `RegExp.prototype.test( string )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `test()` method executes a search for a match between a regular expression and a specified string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns `true` or `false`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;could not get argument&quot;</span>));
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">get_field_slice</span>(<span class="string">&quot;lastIndex&quot;</span>));
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">find_at</span>(<span class="ident">arg_str</span>.<span class="ident">as_str</span>(), <span class="ident">last_index</span>) {
-            <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
-                <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">end</span>();
-            }
-            <span class="bool-val">true</span>
-        } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
-                <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
-            }
-            <span class="bool-val">false</span>
+        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="ident">pattern</span>.<span class="ident">as_str</span>()).<span class="ident">expect</span>(<span class="string">&quot;failed to create matcher&quot;</span>);
+        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">RegExp</span> {
+            <span class="ident">matcher</span>,
+            <span class="ident">use_last_index</span>: <span class="ident">global</span> <span class="op">|</span><span class="op">|</span> <span class="ident">sticky</span>,
+            <span class="ident">flags</span>: <span class="ident">sorted_flags</span>,
+            <span class="ident">dot_all</span>,
+            <span class="ident">global</span>,
+            <span class="ident">ignore_case</span>,
+            <span class="ident">multiline</span>,
+            <span class="ident">sticky</span>,
+            <span class="ident">unicode</span>,
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">result</span>))
-    });
-    <span class="ident">this</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">last_index</span>));
-    <span class="ident">result</span>
-}
 
-<span class="doccomment">/// `RegExp.prototype.exec( string )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The exec() method executes a search for a match in a specified string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns a result array, or `null`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exec</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;could not get argument&quot;</span>));
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">get_field_slice</span>(<span class="string">&quot;lastIndex&quot;</span>));
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locations</span> <span class="op">=</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">capture_locations</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span>
-            <span class="ident">regex</span>
-                .<span class="ident">matcher</span>
-                .<span class="ident">captures_read_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">locations</span>, <span class="ident">arg_str</span>.<span class="ident">as_str</span>(), <span class="ident">last_index</span>)
-        {
-            <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
-                <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">end</span>();
-            }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">locations</span>.<span class="ident">len</span>());
-            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">locations</span>.<span class="ident">len</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">start</span>, <span class="ident">end</span>)) <span class="op">=</span> <span class="ident">locations</span>.<span class="ident">get</span>(<span class="ident">i</span>) {
-                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
-                        <span class="ident">arg_str</span>.<span class="ident">get</span>(<span class="ident">start</span>..<span class="ident">end</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get slice&quot;</span>),
-                    ));
-                } <span class="kw">else</span> {
-                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
-                }
-            }
+        <span class="comment">// This value is used by console.log and other routines to match Object type</span>
+        <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
+        <span class="ident">this</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Ordinary</span>);
+        <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;RegExpMatcher&quot;</span>, <span class="ident">Value</span>::<span class="ident">undefined</span>());
+        <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;OriginalSource&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex_body</span>));
+        <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;OriginalFlags&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex_flags</span>));
 
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">result</span>);
-            <span class="ident">result</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">m</span>.<span class="ident">start</span>())));
-            <span class="ident">result</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;input&quot;</span>, <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg_str</span>)));
-            <span class="ident">result</span>
-        } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
-                <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
-            }
-            <span class="ident">Value</span>::<span class="ident">null</span>()
-        };
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
-    });
-    <span class="ident">this</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">last_index</span>));
-    <span class="ident">result</span>
-}
-
-<span class="doccomment">/// `RegExp.prototype[ @@match ]( string )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This method retrieves the matches when matching a string against a regular expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@match</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">arg</span>: <span class="ident">String</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> (<span class="ident">matcher</span>, <span class="ident">flags</span>) <span class="op">=</span>
-        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> (<span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">clone</span>(), <span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">clone</span>()));
-    <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="ident">matcher</span>.<span class="ident">find_iter</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
-            <span class="ident">matches</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">mat</span>.<span class="ident">as_str</span>()));
-        }
-        <span class="kw">if</span> <span class="ident">matches</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>());
-        }
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">matches</span>))
-    } <span class="kw">else</span> {
-        <span class="ident">exec</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg</span>)], <span class="ident">ctx</span>)
+        <span class="ident">this</span>.<span class="ident">set_internal_state</span>(<span class="ident">regexp</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
     }
-}
 
-<span class="doccomment">/// `RegExp.prototype.toString()`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Return a string representing the regular expression.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;OriginalSource&quot;</span>));
-    <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">clone</span>());
-    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>)))
-}
+    <span class="doccomment">/// `RegExp.prototype.dotAll`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `dotAll` property indicates whether or not the &quot;`s`&quot; flag is used with the regular expression.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll</span>
+    <span class="kw">fn</span> <span class="ident">get_dot_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">dot_all</span>)))
+    }
 
-<span class="doccomment">/// `RegExp.prototype[ @@matchAll ]( string )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `[@@matchAll]` method returns all matches of the regular expression against a string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp-prototype-matchall</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll</span>
-<span class="comment">// TODO: it&#39;s returning an array, it should return an iterator</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">arg_str</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">matches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+    <span class="doccomment">/// `RegExp.prototype.flags`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags</span>
+    <span class="doccomment">/// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2</span>
+    <span class="kw">fn</span> <span class="ident">get_flags</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">clone</span>())))
+    }
 
-        <span class="kw">for</span> <span class="ident">m</span> <span class="kw">in</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">find_iter</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">caps</span>) <span class="op">=</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">captures</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>.<span class="ident">as_str</span>()) {
-                <span class="kw">let</span> <span class="ident">match_vec</span> <span class="op">=</span> <span class="ident">caps</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">group</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">group</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">g</span>.<span class="ident">as_str</span>()),
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
-                    })
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="doccomment">/// `RegExp.prototype.global`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `global` property indicates whether or not the &quot;`g`&quot; flag is used with the regular expression.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global</span>
+    <span class="kw">fn</span> <span class="ident">get_global</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">global</span>)))
+    }
 
-                <span class="kw">let</span> <span class="ident">match_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">match_vec</span>);
+    <span class="doccomment">/// `RegExp.prototype.ignoreCase`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `ignoreCase` property indicates whether or not the &quot;`i`&quot; flag is used with the regular expression.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase</span>
+    <span class="kw">fn</span> <span class="ident">get_ignore_case</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">ignore_case</span>)))
+    }
 
-                <span class="ident">match_val</span>
+    <span class="doccomment">/// `RegExp.prototype.multiline`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The multiline property indicates whether or not the &quot;m&quot; flag is used with the regular expression.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline</span>
+    <span class="kw">fn</span> <span class="ident">get_multiline</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">multiline</span>)))
+    }
+
+    <span class="doccomment">/// `RegExp.prototype.source`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `source` property returns a `String` containing the source text of the regexp object,</span>
+    <span class="doccomment">/// and it doesn&#39;t contain the two forward slashes on both sides and any flags.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source</span>
+    <span class="kw">fn</span> <span class="ident">get_source</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;OriginalSource&quot;</span>))
+    }
+
+    <span class="doccomment">/// `RegExp.prototype.sticky`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky</span>
+    <span class="kw">fn</span> <span class="ident">get_sticky</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">sticky</span>)))
+    }
+
+    <span class="doccomment">/// `RegExp.prototype.unicode`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The unicode property indicates whether or not the &quot;`u`&quot; flag is used with a regular expression.</span>
+    <span class="doccomment">/// unicode is a read-only property of an individual regular expression instance.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode</span>
+    <span class="kw">fn</span> <span class="ident">get_unicode</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">regex</span>.<span class="ident">unicode</span>)))
+    }
+
+    <span class="doccomment">/// `RegExp.prototype.test( string )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `test()` method executes a search for a match between a regular expression and a specified string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `true` or `false`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;could not get argument&quot;</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;lastIndex&quot;</span>));
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">find_at</span>(<span class="ident">arg_str</span>.<span class="ident">as_str</span>(), <span class="ident">last_index</span>) {
+                <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
+                    <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">end</span>();
+                }
+                <span class="bool-val">true</span>
+            } <span class="kw">else</span> {
+                <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
+                    <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
+                }
+                <span class="bool-val">false</span>
+            };
+            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">result</span>))
+        });
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">last_index</span>));
+        <span class="ident">result</span>
+    }
+
+    <span class="doccomment">/// `RegExp.prototype.exec( string )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The exec() method executes a search for a match in a specified string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns a result array, or `null`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">exec</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;could not get argument&quot;</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;lastIndex&quot;</span>));
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locations</span> <span class="op">=</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">capture_locations</span>();
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span>
+                <span class="ident">regex</span>
+                    .<span class="ident">matcher</span>
+                    .<span class="ident">captures_read_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">locations</span>, <span class="ident">arg_str</span>.<span class="ident">as_str</span>(), <span class="ident">last_index</span>)
+            {
+                <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
+                    <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">end</span>();
+                }
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">locations</span>.<span class="ident">len</span>());
+                <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">locations</span>.<span class="ident">len</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">start</span>, <span class="ident">end</span>)) <span class="op">=</span> <span class="ident">locations</span>.<span class="ident">get</span>(<span class="ident">i</span>) {
+                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
+                            <span class="ident">arg_str</span>.<span class="ident">get</span>(<span class="ident">start</span>..<span class="ident">end</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get slice&quot;</span>),
+                        ));
+                    } <span class="kw">else</span> {
+                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
+                    }
+                }
+
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">result</span>);
+                <span class="ident">result</span>
                     .<span class="ident">set_property_slice</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">m</span>.<span class="ident">start</span>())));
-                <span class="ident">match_val</span>.<span class="ident">set_property_slice</span>(
-                    <span class="string">&quot;input&quot;</span>,
-                    <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg_str</span>.<span class="ident">clone</span>())),
-                );
-                <span class="ident">matches</span>.<span class="ident">push</span>(<span class="ident">match_val</span>);
+                <span class="ident">result</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;input&quot;</span>, <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg_str</span>)));
+                <span class="ident">result</span>
+            } <span class="kw">else</span> {
+                <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
+                    <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
+                }
+                <span class="ident">Value</span>::<span class="ident">null</span>()
+            };
+            <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        });
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">last_index</span>));
+        <span class="ident">result</span>
+    }
 
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
-                    <span class="kw">break</span>;
+    <span class="doccomment">/// `RegExp.prototype[ @@match ]( string )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method retrieves the matches when matching a string against a regular expression.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@match</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">r#match</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">arg</span>: <span class="ident">String</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> (<span class="ident">matcher</span>, <span class="ident">flags</span>) <span class="op">=</span> <span class="ident">this</span>
+            .<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> (<span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">clone</span>(), <span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">clone</span>()));
+        <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+            <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="ident">matcher</span>.<span class="ident">find_iter</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
+                <span class="ident">matches</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">mat</span>.<span class="ident">as_str</span>()));
+            }
+            <span class="kw">if</span> <span class="ident">matches</span>.<span class="ident">is_empty</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>());
+            }
+            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">matches</span>))
+        } <span class="kw">else</span> {
+            <span class="self">Self</span>::<span class="ident">exec</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg</span>)], <span class="ident">ctx</span>)
+        }
+    }
+
+    <span class="doccomment">/// `RegExp.prototype.toString()`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Return a string representing the regular expression.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;OriginalSource&quot;</span>));
+        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> <span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">clone</span>());
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>)))
+    }
+
+    <span class="doccomment">/// `RegExp.prototype[ @@matchAll ]( string )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `[@@matchAll]` method returns all matches of the regular expression against a string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp-prototype-matchall</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll</span>
+    <span class="comment">// TODO: it&#39;s returning an array, it should return an iterator</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">match_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">arg_str</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">matches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">with_internal_state_ref</span>(<span class="op">|</span><span class="ident">regex</span>: <span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+
+            <span class="kw">for</span> <span class="ident">m</span> <span class="kw">in</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">find_iter</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">caps</span>) <span class="op">=</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">captures</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>.<span class="ident">as_str</span>()) {
+                    <span class="kw">let</span> <span class="ident">match_vec</span> <span class="op">=</span> <span class="ident">caps</span>
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">group</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">group</span> {
+                            <span class="prelude-val">Some</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">g</span>.<span class="ident">as_str</span>()),
+                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
+                        })
+                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+                    <span class="kw">let</span> <span class="ident">match_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">match_vec</span>);
+
+                    <span class="ident">match_val</span>.<span class="ident">set_property_slice</span>(
+                        <span class="string">&quot;index&quot;</span>,
+                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">m</span>.<span class="ident">start</span>())),
+                    );
+                    <span class="ident">match_val</span>.<span class="ident">set_property_slice</span>(
+                        <span class="string">&quot;input&quot;</span>,
+                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg_str</span>.<span class="ident">clone</span>())),
+                    );
+                    <span class="ident">matches</span>.<span class="ident">push</span>(<span class="ident">match_val</span>);
+
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
+                        <span class="kw">break</span>;
+                    }
                 }
             }
-        }
 
-        <span class="ident">matches</span>
-    });
+            <span class="ident">matches</span>
+        });
 
-    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">matches</span>);
-    <span class="ident">result</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>));
-    <span class="ident">result</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Array</span>);
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">matches</span>);
+        <span class="ident">result</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>));
+        <span class="ident">result</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Array</span>);
 
-    <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
-}
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+    }
 
-<span class="doccomment">/// Create a new `RegExp` object.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="comment">// Create prototype</span>
-    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
-    <span class="ident">prototype</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
+    <span class="doccomment">/// Create a new `RegExp` object.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="comment">// Create prototype</span>
+        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+        <span class="ident">prototype</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
 
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">test</span>, <span class="ident">named</span> <span class="string">&quot;test&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">exec</span>, <span class="ident">named</span> <span class="string">&quot;exec&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_dot_all</span>, <span class="ident">named</span> <span class="string">&quot;dotAll&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_flags</span>, <span class="ident">named</span> <span class="string">&quot;flags&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_global</span>, <span class="ident">named</span> <span class="string">&quot;global&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_ignore_case</span>, <span class="ident">named</span> <span class="string">&quot;ignoreCase&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_multiline</span>, <span class="ident">named</span> <span class="string">&quot;multiline&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_source</span>, <span class="ident">named</span> <span class="string">&quot;source&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_sticky</span>, <span class="ident">named</span> <span class="string">&quot;sticky&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">get_unicode</span>, <span class="ident">named</span> <span class="string">&quot;unicode&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">test</span>, <span class="string">&quot;test&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">exec</span>, <span class="string">&quot;exec&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_dot_all</span>, <span class="string">&quot;dotAll&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_flags</span>, <span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_global</span>, <span class="string">&quot;global&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_ignore_case</span>, <span class="string">&quot;ignoreCase&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_multiline</span>, <span class="string">&quot;multiline&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_source</span>, <span class="string">&quot;source&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_sticky</span>, <span class="string">&quot;sticky&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">get_unicode</span>, <span class="string">&quot;unicode&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
 
-    <span class="ident">make_constructor_fn</span>(<span class="ident">make_regexp</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
-}
+        <span class="ident">make_constructor_fn</span>(<span class="string">&quot;RegExp&quot;</span>, <span class="number">1</span>, <span class="self">Self</span>::<span class="ident">make_regexp</span>, <span class="ident">global</span>, <span class="ident">prototype</span>, <span class="bool-val">true</span>)
+    }
 
-<span class="doccomment">/// Initialise the `RegExp` object on the global object.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-    <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;RegExp&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
+    <span class="doccomment">/// Initialise the `RegExp` object on the global object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+        <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;RegExp&quot;</span>, <span class="self">Self</span>::<span class="ident">create</span>(<span class="ident">global</span>));
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

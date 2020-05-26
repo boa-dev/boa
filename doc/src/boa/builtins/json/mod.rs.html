@@ -83,6 +83,9 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -99,7 +102,10 @@
 <span class="doccomment">//! [json]: https://www.json.org/json-en.html</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
+    <span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
+    <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
+};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exec</span>::<span class="ident">Interpreter</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="self">self</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 
@@ -158,8 +164,8 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
     <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
 
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">parse</span>, <span class="ident">named</span> <span class="string">&quot;parse&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">2</span>, <span class="ident">of</span> <span class="ident">json</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">stringify</span>, <span class="ident">named</span> <span class="string">&quot;stringify&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">3</span>, <span class="ident">of</span> <span class="ident">json</span>);
+    <span class="ident">make_builtin_fn</span>(<span class="ident">parse</span>, <span class="string">&quot;parse&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="number">2</span>);
+    <span class="ident">make_builtin_fn</span>(<span class="ident">stringify</span>, <span class="string">&quot;stringify&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="number">3</span>);
 
     <span class="ident">json</span>
 }
@@ -167,7 +173,7 @@
 <span class="doccomment">/// Initialise the `JSON` object on the global object.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-    <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;JSON&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
+    <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;JSON&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Call","Calling the function actually performs the specified actions with the indicated parameters."],["New","The `new` operator lets developers create an instance of a user-defined object type or of one of the built-in object types that has a constructor function."]]});

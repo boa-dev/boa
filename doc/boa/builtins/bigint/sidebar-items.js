@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["create","Create a new `Number` object"],["init","Initialise the `BigInt` object on the global object."],["make_bigint","`BigInt()`"],["to_string","`BigInt.prototype.toString( [radix] )`"],["value_of","[spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf"]]});
+initSidebarItems({"struct":[["BigInt","`BigInt` implementation."]]});

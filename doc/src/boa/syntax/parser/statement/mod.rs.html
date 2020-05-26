@@ -363,6 +363,23 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -402,7 +419,7 @@
     <span class="ident">expression</span>::<span class="ident">Expression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>,
     <span class="ident">TokenParser</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">keyword</span>::<span class="ident">Keyword</span>, <span class="ident">node</span>::<span class="ident">Node</span>, <span class="ident">punc</span>::<span class="ident">Punctuator</span>, <span class="ident">token</span>::<span class="ident">TokenKind</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>};
 
 <span class="doccomment">/// Statement parsing.</span>
 <span class="doccomment">///</span>
@@ -465,7 +482,9 @@
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>)
             }
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Var</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">VariableStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                <span class="ident">VariableStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                    .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">from</span>)
             }
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">While</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">WhileStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
@@ -478,12 +497,13 @@
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">For</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">ForStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                    .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">from</span>)
             }
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Return</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_return</span>.<span class="number">0</span> {
                     <span class="ident">ReturnStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Unexpected</span>(<span class="ident">tok</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;statement&quot;</span>)))
+                    <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">unexpected</span>(<span class="ident">tok</span>.<span class="ident">clone</span>(), <span class="string">&quot;statement&quot;</span>))
                 }
             }
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Break</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -495,6 +515,7 @@
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Try</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">TryStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                    .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">from</span>)
             }
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Throw</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">ThrowStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
@@ -506,6 +527,7 @@
             <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenBlock</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">BlockStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                    .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">from</span>)
             }
             <span class="comment">// TODO: https://tc39.es/ecma262/#prod-LabelledStatement</span>
             <span class="comment">// TokenKind::Punctuator(Punctuator::Semicolon) =&gt; {</span>
@@ -555,9 +577,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node</span>::<span class="ident">StatementList</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
         <span class="kw">loop</span> {
@@ -566,7 +588,7 @@
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">break_when_closingbrase</span> {
                         <span class="kw">break</span>;
                     } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Unexpected</span>(<span class="ident">token</span>.<span class="ident">clone</span>(), <span class="prelude-val">None</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">unexpected</span>(<span class="ident">token</span>.<span class="ident">clone</span>(), <span class="prelude-val">None</span>));
                     }
                 }
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -588,7 +610,9 @@
             <span class="kw">while</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>).<span class="ident">is_some</span>() {}
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">items</span>)
+        <span class="ident">items</span>.<span class="ident">sort_by</span>(<span class="ident">Node</span>::<span class="ident">hoistable_order</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="ident">items</span>.<span class="ident">into</span>())
     }
 }
 
@@ -683,6 +707,16 @@
     }
 }
 
+<span class="doccomment">/// Label identifier parsing.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This seems to be the same as a `BindingIdentifier`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier</span>
+<span class="kw">type</span> <span class="ident">LabelIdentifier</span> <span class="op">=</span> <span class="ident">BindingIdentifier</span>;
+
 <span class="doccomment">/// Binding identifier parsing.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
@@ -710,18 +744,18 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">BindingIdentifier</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">String</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="comment">// TODO: strict mode.</span>
 
         <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span> {
             <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>.<span class="ident">clone</span>()),
-            <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">k</span> @ <span class="ident">Keyword</span>::<span class="ident">Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">k</span>.<span class="ident">to_string</span>()),
-            <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">k</span> @ <span class="ident">Keyword</span>::<span class="ident">Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">k</span>.<span class="ident">to_string</span>()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Expected</span>(
+            <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">k</span> @ <span class="ident">Keyword</span>::<span class="ident">Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">k</span>.<span class="ident">as_str</span>().<span class="ident">into</span>()),
+            <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">k</span> @ <span class="ident">Keyword</span>::<span class="ident">Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">k</span>.<span class="ident">as_str</span>().<span class="ident">into</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">expected</span>(
                 <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TokenKind</span>::<span class="ident">identifier</span>(<span class="string">&quot;identifier&quot;</span>)],
                 <span class="ident">next_token</span>.<span class="ident">clone</span>(),
                 <span class="string">&quot;binding identifier&quot;</span>,

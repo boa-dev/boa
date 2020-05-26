@@ -168,6 +168,12 @@
 <span id="168">168</span>
 <span id="169">169</span>
 <span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Const` structure, which represents the primitive values in JavaScript.</span>
 <span class="doccomment">//!</span>
@@ -211,7 +217,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-string-value</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#String_literals</span>
-    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">String</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// A floating-point number literal.</span>
     <span class="doccomment">///</span>
@@ -286,19 +292,25 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Const</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>.<span class="ident">into</span>())
+        <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>().<span class="ident">into_boxed_str</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Const</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>.<span class="ident">clone</span>())
+        <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>.<span class="ident">clone</span>().<span class="ident">into_boxed_str</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Const</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Const</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>)
+        <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>.<span class="ident">into_boxed_str</span>())
     }
 }
 

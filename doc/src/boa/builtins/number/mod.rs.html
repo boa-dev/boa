@@ -418,6 +418,56 @@
 <span id="418">418</span>
 <span id="419">419</span>
 <span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -437,407 +487,457 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">function</span>::<span class="ident">make_constructor_fn</span>, <span class="ident">object</span>::<span class="ident">ObjectKind</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>},
+    <span class="ident">object</span>::<span class="ident">ObjectKind</span>,
+};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">object</span>::<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+        <span class="ident">RangeError</span>,
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
 };
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">float</span>::<span class="ident">FloatCore</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Borrow</span>, <span class="ident">f64</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>};
 
-<span class="doccomment">/// Helper function that converts a Value to a Number.</span>
-<span class="kw">fn</span> <span class="ident">to_number</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
-        <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="ident">b</span> {
-                <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">1</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)
-            }
-        }
-        <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
-        <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">i</span>)),
-        <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">o</span>).<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">get_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>),
-        <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>),
-        <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">n</span>),
-        <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">bigint</span>.<span class="ident">to_f64</span>()),
-        <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">n</span>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
-        },
-    }
-}
-
-<span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string.</span>
-<span class="kw">fn</span> <span class="ident">num_to_exponential</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">abs</span>() {
-        <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">1.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
-        <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>),
-    }
-}
-
-<span class="doccomment">/// `[[Construct]]` - Creates a Number instance</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `[[Call]]` - Creates a number primitive</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_number</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="ident">value</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)),
-    };
-    <span class="ident">this</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Number</span>);
-    <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">data</span>.<span class="ident">clone</span>());
-
-    <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
-}
-
-<span class="doccomment">/// `Number()` function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More Information https://tc39.es/ecma262/#sec-number-constructor-number-value</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_number</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="ident">value</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)),
-    };
-    <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
-}
-
-<span class="doccomment">/// `Number.prototype.toExponential( [fractionDigits] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `toExponential()` method returns a string representing the Number object in exponential notation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_exponential</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
-    <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="ident">num_to_exponential</span>(<span class="ident">this_num</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str_num</span>))
-}
-
-<span class="doccomment">/// `Number.prototype.toFixed( [digits] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `toFixed()` method formats a number using fixed-point notation</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_fixed</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
-    <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-        },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-    };
-    <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:.*}&quot;</span>, <span class="ident">precision</span>, <span class="ident">this_num</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_fixed_num</span>))
-}
-
-<span class="doccomment">/// `Number.prototype.toLocaleString( [locales [, options]] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `toLocaleString()` method returns a string with a language-sensitive representation of this number.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Note that while this technically conforms to the Ecma standard, it does no actual</span>
-<span class="doccomment">/// internationalization logic.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_locale_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
-    <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str_num</span>))
-}
-
-<span class="doccomment">/// `Number.prototype.toPrecision( [precision] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `toPrecision()` method returns a string representing the Number object to the specified precision.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_precision</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>);
-    <span class="kw">let</span> <span class="ident">_num_str_len</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>.<span class="ident">to_number</span>()).<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">_precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-        },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-    };
-    <span class="comment">// TODO: Implement toPrecision</span>
-    <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;TODO: Implement toPrecision&quot;</span>);
-}
-
 <span class="kw">const</span> <span class="ident">BUF_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2200</span>;
 
-<span class="comment">// https://golang.org/src/math/nextafter.go</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">next_after</span>(<span class="ident">x</span>: <span class="ident">f64</span>, <span class="ident">y</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
-    <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">y</span>.<span class="ident">is_nan</span>() {
-        <span class="ident">f64</span>::<span class="ident">NAN</span>
-    } <span class="kw">else</span> <span class="kw">if</span> (<span class="ident">x</span> <span class="op">-</span> <span class="ident">y</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0.</span> {
-        <span class="ident">x</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
-        <span class="ident">f64</span>::<span class="ident">from_bits</span>(<span class="number">1</span>).<span class="ident">copysign</span>(<span class="ident">y</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">y</span> <span class="op">&gt;</span> <span class="ident">x</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
-        <span class="ident">f64</span>::<span class="ident">from_bits</span>(<span class="ident">x</span>.<span class="ident">to_bits</span>() <span class="op">+</span> <span class="number">1</span>)
-    } <span class="kw">else</span> {
-        <span class="ident">f64</span>::<span class="ident">from_bits</span>(<span class="ident">x</span>.<span class="ident">to_bits</span>() <span class="op">-</span> <span class="number">1</span>)
-    }
-}
+<span class="doccomment">/// `Number` implementation.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Number</span>;
 
-<span class="comment">// https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/numbers/conversions.cc#1230</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_to_string</span>(<span class="kw-2">mut</span> <span class="ident">value</span>: <span class="ident">f64</span>, <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">radix</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>);
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">radix</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">36</span>);
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">value</span>.<span class="ident">is_finite</span>());
-    <span class="comment">// assert_ne!(0.0, value);</span>
-
-    <span class="comment">// Character array used for conversion.</span>
-    <span class="comment">// Temporary buffer for the result. We start with the decimal point in the</span>
-    <span class="comment">// middle and write to the left for the integer part and to the right for the</span>
-    <span class="comment">// fractional part. 1024 characters for the exponent and 52 for the mantissa</span>
-    <span class="comment">// either way, with additional space for sign, decimal point and string</span>
-    <span class="comment">// termination should be sufficient.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span>: [<span class="ident">u8</span>; <span class="ident">BUF_SIZE</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="ident">BUF_SIZE</span>];
-    <span class="kw">let</span> (<span class="ident">int_buf</span>, <span class="ident">frac_buf</span>) <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">split_at_mut</span>(<span class="ident">BUF_SIZE</span> <span class="op">/</span> <span class="number">2</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fraction_cursor</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="ident">negative</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">is_sign_negative</span>();
-    <span class="kw">if</span> <span class="ident">negative</span> {
-        <span class="ident">value</span> <span class="op">=</span> <span class="op">-</span><span class="ident">value</span>
-    }
-    <span class="comment">// Split the value into an integer part and a fractional part.</span>
-    <span class="comment">// let mut integer = value.trunc();</span>
-    <span class="comment">// let mut fraction = value.fract();</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">integer</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">floor</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fraction</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">-</span> <span class="ident">integer</span>;
-
-    <span class="comment">// We only compute fractional digits up to the input double&#39;s precision.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delta</span> <span class="op">=</span> <span class="number">0.5</span> <span class="op">*</span> (<span class="ident">next_after</span>(<span class="ident">value</span>, <span class="ident">f64</span>::<span class="ident">MAX</span>) <span class="op">-</span> <span class="ident">value</span>);
-    <span class="ident">delta</span> <span class="op">=</span> <span class="ident">next_after</span>(<span class="number">0.0</span>, <span class="ident">f64</span>::<span class="ident">MAX</span>).<span class="ident">max</span>(<span class="ident">delta</span>);
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">delta</span> <span class="op">&gt;</span> <span class="number">0.0</span>);
-    <span class="kw">if</span> <span class="ident">fraction</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">delta</span> {
-        <span class="comment">// Insert decimal point.</span>
-        <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>] <span class="op">=</span> <span class="string">b&#39;.&#39;</span>;
-        <span class="ident">fraction_cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">loop</span> {
-            <span class="comment">// Shift up by one digit.</span>
-            <span class="ident">fraction</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
-            <span class="ident">delta</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
-            <span class="comment">// Write digit.</span>
-            <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">fraction</span> <span class="kw">as</span> <span class="ident">u32</span>;
-            <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>] <span class="op">=</span> <span class="ident">std</span>::<span class="ident">char</span>::<span class="ident">from_digit</span>(<span class="ident">digit</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
-            <span class="ident">fraction_cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="comment">// Calculate remainder.</span>
-            <span class="ident">fraction</span> <span class="op">-</span><span class="op">=</span> <span class="ident">digit</span> <span class="kw">as</span> <span class="ident">f64</span>;
-            <span class="comment">// Round to even.</span>
-            <span class="kw">if</span> <span class="ident">fraction</span> <span class="op">+</span> <span class="ident">delta</span> <span class="op">&gt;</span> <span class="number">1.0</span>
-                <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">fraction</span> <span class="op">&gt;</span> <span class="number">0.5</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">fraction</span> <span class="op">-</span> <span class="number">0.5</span>) <span class="op">&lt;</span> <span class="ident">f64</span>::<span class="ident">EPSILON</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">digit</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>)
-            {
-                <span class="kw">loop</span> {
-                    <span class="comment">// We need to back trace already written digits in case of carry-over.</span>
-                    <span class="ident">fraction_cursor</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="kw">if</span> <span class="ident">fraction_cursor</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="comment">//              CHECK_EQ(&#39;.&#39;, buffer[fraction_cursor]);</span>
-                        <span class="comment">// Carry over to the integer part.</span>
-                        <span class="ident">integer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1.</span>;
-                        <span class="kw">break</span>;
-                    } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="ident">c</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>];
-                        <span class="comment">// Reconstruct digit.</span>
-                        <span class="kw">let</span> <span class="ident">digit_0</span> <span class="op">=</span> (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>).<span class="ident">to_digit</span>(<span class="number">10</span>).<span class="ident">unwrap</span>();
-                        <span class="kw">if</span> <span class="ident">digit_0</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span> {
-                            <span class="kw">continue</span>;
-                        }
-                        <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>] <span class="op">=</span>
-                            <span class="ident">std</span>::<span class="ident">char</span>::<span class="ident">from_digit</span>(<span class="ident">digit_0</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
-                        <span class="ident">fraction_cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                        <span class="kw">break</span>;
-                    }
+<span class="kw">impl</span> <span class="ident">Number</span> {
+    <span class="doccomment">/// Helper function that converts a Value to a Number.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">to_number</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
+            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">b</span> {
+                    <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">1</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)
                 }
-                <span class="kw">break</span>;
             }
-            <span class="kw">if</span> <span class="ident">fraction</span> <span class="op">&lt;</span> <span class="ident">delta</span> {
-                <span class="kw">break</span>;
-            }
+            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
+            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">i</span>)),
+            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">o</span>).<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">get_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>),
+            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>),
+            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">n</span>),
+            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">bigint</span>.<span class="ident">to_f64</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">n</span>),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
+            },
         }
     }
 
-    <span class="comment">// Compute integer digits. Fill unrepresented digits with zero.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">int_iter</span> <span class="op">=</span> <span class="ident">int_buf</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>(); <span class="comment">//.rev();</span>
-    <span class="kw">while</span> <span class="ident">FloatCore</span>::<span class="ident">integer_decode</span>(<span class="ident">integer</span> <span class="op">/</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">radix</span>)).<span class="number">1</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="ident">integer</span> <span class="op">/</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
-        <span class="kw-2">*</span><span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">1</span> <span class="op">=</span> <span class="string">b&#39;0&#39;</span>;
-    }
-
-    <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">remainder</span> <span class="op">=</span> <span class="ident">integer</span> <span class="op">%</span> (<span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>);
-        <span class="kw-2">*</span><span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">1</span> <span class="op">=</span>
-            <span class="ident">std</span>::<span class="ident">char</span>::<span class="ident">from_digit</span>(<span class="ident">remainder</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="ident">integer</span> <span class="op">=</span> (<span class="ident">integer</span> <span class="op">-</span> <span class="ident">remainder</span>) <span class="op">/</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
-        <span class="kw">if</span> <span class="ident">integer</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0f64</span> {
-            <span class="kw">break</span>;
+    <span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string.</span>
+    <span class="kw">fn</span> <span class="ident">num_to_exponential</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+        <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">abs</span>() {
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">1.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>),
         }
     }
-    <span class="comment">// Add sign and terminate string.</span>
-    <span class="kw">if</span> <span class="ident">negative</span> {
-        <span class="kw-2">*</span><span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">1</span> <span class="op">=</span> <span class="string">b&#39;-&#39;</span>;
-    }
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">fraction_cursor</span> <span class="op">&lt;</span> <span class="ident">BUF_SIZE</span>);
 
-    <span class="kw">let</span> <span class="ident">integer_cursor</span> <span class="op">=</span> <span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>;
-    <span class="kw">let</span> <span class="ident">fraction_cursor</span> <span class="op">=</span> <span class="ident">fraction_cursor</span> <span class="op">+</span> <span class="ident">BUF_SIZE</span> <span class="op">/</span> <span class="number">2</span>;
-    <span class="comment">// dbg!(&quot;Number: {}, Radix: {}, Cursors: {}, {}&quot;, value, radix, integer_cursor, fraction_cursor);</span>
-    <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>[<span class="ident">integer_cursor</span>..<span class="ident">fraction_cursor</span>]).<span class="ident">into</span>()
-}
-
-<span class="doccomment">/// `Number.prototype.toString( [radix] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `toString()` method returns a string representing the specified Number object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="comment">// 1. Let x be ? thisNumberValue(this value).</span>
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
-    <span class="comment">// 2. If radix is undefined, let radixNumber be 10.</span>
-    <span class="comment">// 3. Else, let radixNumber be ? ToInteger(radix).</span>
-    <span class="kw">let</span> <span class="ident">radix_number</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="number">10</span>, <span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_integer</span>()) <span class="kw">as</span> <span class="ident">u8</span>;
-
-    <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">0.</span> {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;0&quot;</span>));
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_nan</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;NaN&quot;</span>));
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">x</span>.<span class="ident">is_sign_positive</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;Infinity&quot;</span>));
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">x</span>.<span class="ident">is_sign_negative</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;-Infinity&quot;</span>));
-    }
-
-    <span class="comment">// 4. If radixNumber &lt; 2 or radixNumber &gt; 36, throw a RangeError exception.</span>
-    <span class="kw">if</span> <span class="ident">radix_number</span> <span class="op">&lt;</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix_number</span> <span class="op">&gt;</span> <span class="number">36</span> {
-        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Radix must be between 2 and 36&quot;</span>);
-    }
-
-    <span class="comment">// 5. If radixNumber = 10, return ! ToString(x).</span>
-    <span class="comment">// This part should use exponential notations for long integer numbers commented tests</span>
-    <span class="kw">if</span> <span class="ident">radix_number</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> {
-        <span class="comment">// return Ok(to_value(format!(&quot;{}&quot;, to_number(this).to_num())));</span>
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)));
-    }
-
-    <span class="comment">// This is a Optimization from the v8 source code to print values that can fit in a single character</span>
-    <span class="comment">// Since the actual num_to_string allocates a 2200 bytes buffer for actual conversion</span>
-    <span class="comment">// I am not sure if this part is effective as the v8 equivalent https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/builtins/number.tq#53</span>
-    <span class="comment">// // Fast case where the result is a one character string.</span>
-    <span class="comment">// if x.is_sign_positive() &amp;&amp; x.fract() == 0.0 &amp;&amp; x &lt; radix_number as f64 {</span>
-    <span class="comment">//     return Ok(to_value(format!(&quot;{}&quot;, std::char::from_digit(x as u32, radix_number as u32).unwrap())))</span>
-    <span class="comment">// }</span>
-
-    <span class="comment">// 6. Return the String representation of this Number value using the radix specified by radixNumber.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num_to_string</span>(<span class="ident">x</span>, <span class="ident">radix_number</span>)))
-}
-
-<span class="doccomment">/// `Number.prototype.toString()`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `valueOf()` method returns the wrapped primitive value of a Number object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">to_number</span>(<span class="ident">this</span>))
-}
-
-<span class="doccomment">/// Create a new `Number` object</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
-    <span class="ident">prototype</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
-
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_exponential</span>, <span class="ident">named</span> <span class="string">&quot;toExponential&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_fixed</span>, <span class="ident">named</span> <span class="string">&quot;toFixed&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_locale_string</span>, <span class="ident">named</span> <span class="string">&quot;toLocaleString&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_precision</span>, <span class="ident">named</span> <span class="string">&quot;toPrecision&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">to_string</span>, <span class="ident">named</span> <span class="string">&quot;toString&quot;</span>, <span class="ident">with</span> <span class="ident">length</span> <span class="number">1</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-    <span class="macro">make_builtin_fn</span><span class="macro">!</span>(<span class="ident">value_of</span>, <span class="ident">named</span> <span class="string">&quot;valueOf&quot;</span>, <span class="ident">of</span> <span class="ident">prototype</span>);
-
-    <span class="ident">make_constructor_fn</span>(<span class="ident">make_number</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
-}
-
-<span class="doccomment">/// Initialise the `Number` object on the global object.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-    <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Number&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
-}
-
-<span class="doccomment">/// The abstract operation Number::equal takes arguments</span>
-<span class="doccomment">/// x (a Number) and y (a Number). It performs the following steps when called:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-numeric-types-number-equal</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">float_cmp</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals</span>(<span class="ident">a</span>: <span class="ident">f64</span>, <span class="ident">b</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
-}
-
-<span class="doccomment">/// The abstract operation Number::sameValue takes arguments</span>
-<span class="doccomment">/// x (a Number) and y (a Number). It performs the following steps when called:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-numeric-types-number-sameValue</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">float_cmp</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value</span>(<span class="ident">a</span>: <span class="ident">f64</span>, <span class="ident">b</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_nan</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_nan</span>() {
-        <span class="kw">return</span> <span class="bool-val">true</span>;
-    }
-
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
-        <span class="kw">if</span> (<span class="ident">a</span>.<span class="ident">is_sign_negative</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_sign_positive</span>())
-            <span class="op">|</span><span class="op">|</span> (<span class="ident">a</span>.<span class="ident">is_sign_positive</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_sign_negative</span>())
-        {
-            <span class="kw">return</span> <span class="bool-val">false</span>;
+    <span class="doccomment">/// `[[Construct]]` - Creates a Number instance</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `[[Call]]` - Creates a number primitive</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_number</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">to_number</span>(<span class="ident">value</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>)),
         };
-        <span class="bool-val">true</span>
-    } <span class="kw">else</span> {
+        <span class="ident">this</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Number</span>);
+        <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">data</span>.<span class="ident">clone</span>());
+
+        <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
+    }
+
+    <span class="doccomment">/// `Number.prototype.toExponential( [fractionDigits] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `toExponential()` method returns a string representing the Number object in exponential notation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_exponential</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
+        <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">num_to_exponential</span>(<span class="ident">this_num</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str_num</span>))
+    }
+
+    <span class="doccomment">/// `Number.prototype.toFixed( [digits] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `toFixed()` method formats a number using fixed-point notation</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_fixed</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
+        <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
+                <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            },
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+        };
+        <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:.*}&quot;</span>, <span class="ident">precision</span>, <span class="ident">this_num</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_fixed_num</span>))
+    }
+
+    <span class="doccomment">/// `Number.prototype.toLocaleString( [locales [, options]] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `toLocaleString()` method returns a string with a language-sensitive representation of this number.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that while this technically conforms to the Ecma standard, it does no actual</span>
+    <span class="doccomment">/// internationalization logic.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_locale_string</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
+        <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str_num</span>))
+    }
+
+    <span class="doccomment">/// `Number.prototype.toPrecision( [precision] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `toPrecision()` method returns a string representing the Number object to the specified precision.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_precision</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">to_number</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">_num_str_len</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>.<span class="ident">to_number</span>()).<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">_precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
+                <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            },
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+        };
+        <span class="comment">// TODO: Implement toPrecision</span>
+        <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;TODO: Implement toPrecision&quot;</span>);
+    }
+
+    <span class="comment">// https://golang.org/src/math/nextafter.go</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">next_after</span>(<span class="ident">x</span>: <span class="ident">f64</span>, <span class="ident">y</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+        <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">y</span>.<span class="ident">is_nan</span>() {
+            <span class="ident">f64</span>::<span class="ident">NAN</span>
+        } <span class="kw">else</span> <span class="kw">if</span> (<span class="ident">x</span> <span class="op">-</span> <span class="ident">y</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0.</span> {
+            <span class="ident">x</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
+            <span class="ident">f64</span>::<span class="ident">from_bits</span>(<span class="number">1</span>).<span class="ident">copysign</span>(<span class="ident">y</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">y</span> <span class="op">&gt;</span> <span class="ident">x</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
+            <span class="ident">f64</span>::<span class="ident">from_bits</span>(<span class="ident">x</span>.<span class="ident">to_bits</span>() <span class="op">+</span> <span class="number">1</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">f64</span>::<span class="ident">from_bits</span>(<span class="ident">x</span>.<span class="ident">to_bits</span>() <span class="op">-</span> <span class="number">1</span>)
+        }
+    }
+
+    <span class="comment">// https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/numbers/conversions.cc#1230</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">num_to_string</span>(<span class="kw-2">mut</span> <span class="ident">value</span>: <span class="ident">f64</span>, <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">radix</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">radix</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">36</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">value</span>.<span class="ident">is_finite</span>());
+        <span class="comment">// assert_ne!(0.0, value);</span>
+
+        <span class="comment">// Character array used for conversion.</span>
+        <span class="comment">// Temporary buffer for the result. We start with the decimal point in the</span>
+        <span class="comment">// middle and write to the left for the integer part and to the right for the</span>
+        <span class="comment">// fractional part. 1024 characters for the exponent and 52 for the mantissa</span>
+        <span class="comment">// either way, with additional space for sign, decimal point and string</span>
+        <span class="comment">// termination should be sufficient.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span>: [<span class="ident">u8</span>; <span class="ident">BUF_SIZE</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="ident">BUF_SIZE</span>];
+        <span class="kw">let</span> (<span class="ident">int_buf</span>, <span class="ident">frac_buf</span>) <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">split_at_mut</span>(<span class="ident">BUF_SIZE</span> <span class="op">/</span> <span class="number">2</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fraction_cursor</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="ident">negative</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">is_sign_negative</span>();
+        <span class="kw">if</span> <span class="ident">negative</span> {
+            <span class="ident">value</span> <span class="op">=</span> <span class="op">-</span><span class="ident">value</span>
+        }
+        <span class="comment">// Split the value into an integer part and a fractional part.</span>
+        <span class="comment">// let mut integer = value.trunc();</span>
+        <span class="comment">// let mut fraction = value.fract();</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">integer</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">floor</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fraction</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">-</span> <span class="ident">integer</span>;
+
+        <span class="comment">// We only compute fractional digits up to the input double&#39;s precision.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delta</span> <span class="op">=</span> <span class="number">0.5</span> <span class="op">*</span> (<span class="self">Self</span>::<span class="ident">next_after</span>(<span class="ident">value</span>, <span class="ident">f64</span>::<span class="ident">MAX</span>) <span class="op">-</span> <span class="ident">value</span>);
+        <span class="ident">delta</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">next_after</span>(<span class="number">0.0</span>, <span class="ident">f64</span>::<span class="ident">MAX</span>).<span class="ident">max</span>(<span class="ident">delta</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">delta</span> <span class="op">&gt;</span> <span class="number">0.0</span>);
+        <span class="kw">if</span> <span class="ident">fraction</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">delta</span> {
+            <span class="comment">// Insert decimal point.</span>
+            <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>] <span class="op">=</span> <span class="string">b&#39;.&#39;</span>;
+            <span class="ident">fraction_cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">loop</span> {
+                <span class="comment">// Shift up by one digit.</span>
+                <span class="ident">fraction</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
+                <span class="ident">delta</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
+                <span class="comment">// Write digit.</span>
+                <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">fraction</span> <span class="kw">as</span> <span class="ident">u32</span>;
+                <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>] <span class="op">=</span>
+                    <span class="ident">std</span>::<span class="ident">char</span>::<span class="ident">from_digit</span>(<span class="ident">digit</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
+                <span class="ident">fraction_cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="comment">// Calculate remainder.</span>
+                <span class="ident">fraction</span> <span class="op">-</span><span class="op">=</span> <span class="ident">digit</span> <span class="kw">as</span> <span class="ident">f64</span>;
+                <span class="comment">// Round to even.</span>
+                <span class="kw">if</span> <span class="ident">fraction</span> <span class="op">+</span> <span class="ident">delta</span> <span class="op">&gt;</span> <span class="number">1.0</span>
+                    <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">fraction</span> <span class="op">&gt;</span> <span class="number">0.5</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">fraction</span> <span class="op">-</span> <span class="number">0.5</span>) <span class="op">&lt;</span> <span class="ident">f64</span>::<span class="ident">EPSILON</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">digit</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>)
+                {
+                    <span class="kw">loop</span> {
+                        <span class="comment">// We need to back trace already written digits in case of carry-over.</span>
+                        <span class="ident">fraction_cursor</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="kw">if</span> <span class="ident">fraction_cursor</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                            <span class="comment">//              CHECK_EQ(&#39;.&#39;, buffer[fraction_cursor]);</span>
+                            <span class="comment">// Carry over to the integer part.</span>
+                            <span class="ident">integer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1.</span>;
+                            <span class="kw">break</span>;
+                        } <span class="kw">else</span> {
+                            <span class="kw">let</span> <span class="ident">c</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>];
+                            <span class="comment">// Reconstruct digit.</span>
+                            <span class="kw">let</span> <span class="ident">digit_0</span> <span class="op">=</span> (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>).<span class="ident">to_digit</span>(<span class="number">10</span>).<span class="ident">unwrap</span>();
+                            <span class="kw">if</span> <span class="ident">digit_0</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span> {
+                                <span class="kw">continue</span>;
+                            }
+                            <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>] <span class="op">=</span>
+                                <span class="ident">std</span>::<span class="ident">char</span>::<span class="ident">from_digit</span>(<span class="ident">digit_0</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
+                            <span class="ident">fraction_cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                            <span class="kw">break</span>;
+                        }
+                    }
+                    <span class="kw">break</span>;
+                }
+                <span class="kw">if</span> <span class="ident">fraction</span> <span class="op">&lt;</span> <span class="ident">delta</span> {
+                    <span class="kw">break</span>;
+                }
+            }
+        }
+
+        <span class="comment">// Compute integer digits. Fill unrepresented digits with zero.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">int_iter</span> <span class="op">=</span> <span class="ident">int_buf</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>().<span class="ident">rev</span>(); <span class="comment">//.rev();</span>
+        <span class="kw">while</span> <span class="ident">FloatCore</span>::<span class="ident">integer_decode</span>(<span class="ident">integer</span> <span class="op">/</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">radix</span>)).<span class="number">1</span> <span class="op">&gt;</span> <span class="number">0</span> {
+            <span class="ident">integer</span> <span class="op">/</span><span class="op">=</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
+            <span class="kw-2">*</span><span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">1</span> <span class="op">=</span> <span class="string">b&#39;0&#39;</span>;
+        }
+
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">remainder</span> <span class="op">=</span> <span class="ident">integer</span> <span class="op">%</span> (<span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>);
+            <span class="kw-2">*</span><span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">1</span> <span class="op">=</span>
+                <span class="ident">std</span>::<span class="ident">char</span>::<span class="ident">from_digit</span>(<span class="ident">remainder</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="ident">integer</span> <span class="op">=</span> (<span class="ident">integer</span> <span class="op">-</span> <span class="ident">remainder</span>) <span class="op">/</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>;
+            <span class="kw">if</span> <span class="ident">integer</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0f64</span> {
+                <span class="kw">break</span>;
+            }
+        }
+        <span class="comment">// Add sign and terminate string.</span>
+        <span class="kw">if</span> <span class="ident">negative</span> {
+            <span class="kw-2">*</span><span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">1</span> <span class="op">=</span> <span class="string">b&#39;-&#39;</span>;
+        }
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">fraction_cursor</span> <span class="op">&lt;</span> <span class="ident">BUF_SIZE</span>);
+
+        <span class="kw">let</span> <span class="ident">integer_cursor</span> <span class="op">=</span> <span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">fraction_cursor</span> <span class="op">=</span> <span class="ident">fraction_cursor</span> <span class="op">+</span> <span class="ident">BUF_SIZE</span> <span class="op">/</span> <span class="number">2</span>;
+        <span class="comment">// dbg!(&quot;Number: {}, Radix: {}, Cursors: {}, {}&quot;, value, radix, integer_cursor, fraction_cursor);</span>
+        <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>[<span class="ident">integer_cursor</span>..<span class="ident">fraction_cursor</span>]).<span class="ident">into</span>()
+    }
+
+    <span class="doccomment">/// `Number.prototype.toString( [radix] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `toString()` method returns a string representing the specified Number object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="comment">// 1. Let x be ? thisNumberValue(this value).</span>
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">to_number</span>(<span class="ident">this</span>).<span class="ident">to_number</span>();
+        <span class="comment">// 2. If radix is undefined, let radixNumber be 10.</span>
+        <span class="comment">// 3. Else, let radixNumber be ? ToInteger(radix).</span>
+        <span class="kw">let</span> <span class="ident">radix_number</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="number">10</span>, <span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_integer</span>()) <span class="kw">as</span> <span class="ident">u8</span>;
+
+        <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">0.</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;0&quot;</span>));
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_nan</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;NaN&quot;</span>));
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">x</span>.<span class="ident">is_sign_positive</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;Infinity&quot;</span>));
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">x</span>.<span class="ident">is_sign_negative</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;-Infinity&quot;</span>));
+        }
+
+        <span class="comment">// 4. If radixNumber &lt; 2 or radixNumber &gt; 36, throw a RangeError exception.</span>
+        <span class="kw">if</span> <span class="ident">radix_number</span> <span class="op">&lt;</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix_number</span> <span class="op">&gt;</span> <span class="number">36</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RangeError</span>::<span class="ident">run_new</span>(
+                <span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>,
+                <span class="ident">ctx</span>,
+            )<span class="question-mark">?</span>);
+        }
+
+        <span class="comment">// 5. If radixNumber = 10, return ! ToString(x).</span>
+        <span class="comment">// This part should use exponential notations for long integer numbers commented tests</span>
+        <span class="kw">if</span> <span class="ident">radix_number</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> {
+            <span class="comment">// return Ok(to_value(format!(&quot;{}&quot;, Self::to_number(this).to_num())));</span>
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)));
+        }
+
+        <span class="comment">// This is a Optimization from the v8 source code to print values that can fit in a single character</span>
+        <span class="comment">// Since the actual num_to_string allocates a 2200 bytes buffer for actual conversion</span>
+        <span class="comment">// I am not sure if this part is effective as the v8 equivalent https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/builtins/number.tq#53</span>
+        <span class="comment">// // Fast case where the result is a one character string.</span>
+        <span class="comment">// if x.is_sign_positive() &amp;&amp; x.fract() == 0.0 &amp;&amp; x &lt; radix_number as f64 {</span>
+        <span class="comment">//     return Ok(to_value(format!(&quot;{}&quot;, std::char::from_digit(x as u32, radix_number as u32).unwrap())))</span>
+        <span class="comment">// }</span>
+
+        <span class="comment">// 6. Return the String representation of this Number value using the radix specified by radixNumber.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="self">Self</span>::<span class="ident">num_to_string</span>(<span class="ident">x</span>, <span class="ident">radix_number</span>)))
+    }
+
+    <span class="doccomment">/// `Number.prototype.toString()`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `valueOf()` method returns the wrapped primitive value of a Number object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">to_number</span>(<span class="ident">this</span>))
+    }
+
+    <span class="doccomment">/// Create a new `Number` object</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+        <span class="ident">prototype</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;NumberData&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
+
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_exponential</span>, <span class="string">&quot;toExponential&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_fixed</span>, <span class="string">&quot;toFixed&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_locale_string</span>, <span class="string">&quot;toLocaleString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_precision</span>, <span class="string">&quot;toPrecision&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+
+        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">make_constructor_fn</span>(<span class="string">&quot;Number&quot;</span>, <span class="number">1</span>, <span class="self">Self</span>::<span class="ident">make_number</span>, <span class="ident">global</span>, <span class="ident">prototype</span>, <span class="bool-val">true</span>);
+
+        <span class="comment">// Constants from:</span>
+        <span class="comment">// https://tc39.es/ecma262/#sec-properties-of-the-number-constructor</span>
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;EPSILON&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">f64</span>::<span class="ident">EPSILON</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">9_007_199_254_740_991_f64</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MIN_SAFE_INTEGER&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="number">9_007_199_254_740_991_f64</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MAX_VALUE&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">f64</span>::<span class="ident">MAX</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MIN_VALUE&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">f64</span>::<span class="ident">MIN</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;NEGATIVE_INFINITY&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NEG_INFINITY</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;POSITIVE_INFINITY&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">INFINITY</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;NaN&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>));
+
+        <span class="ident">number</span>
+    }
+
+    <span class="doccomment">/// Initialise the `Number` object on the global object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+        <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;Number&quot;</span>, <span class="self">Self</span>::<span class="ident">create</span>(<span class="ident">global</span>));
+    }
+
+    <span class="doccomment">/// The abstract operation Number::equal takes arguments</span>
+    <span class="doccomment">/// x (a Number) and y (a Number). It performs the following steps when called:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// https://tc39.es/ecma262/#sec-numeric-types-number-equal</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">float_cmp</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">equals</span>(<span class="ident">a</span>: <span class="ident">f64</span>, <span class="ident">b</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
     }
-}
 
-<span class="doccomment">/// The abstract operation Number::sameValueZero takes arguments</span>
-<span class="doccomment">/// x (a Number) and y (a Number). It performs the following steps when called:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">float_cmp</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_value_zero</span>(<span class="ident">a</span>: <span class="ident">f64</span>, <span class="ident">b</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_nan</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_nan</span>() {
-        <span class="kw">return</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// The abstract operation Number::sameValue takes arguments</span>
+    <span class="doccomment">/// x (a Number) and y (a Number). It performs the following steps when called:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// https://tc39.es/ecma262/#sec-numeric-types-number-sameValue</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">float_cmp</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">same_value</span>(<span class="ident">a</span>: <span class="ident">f64</span>, <span class="ident">b</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_nan</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_nan</span>() {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+
+        <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
+            <span class="kw">if</span> (<span class="ident">a</span>.<span class="ident">is_sign_negative</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_sign_positive</span>())
+                <span class="op">|</span><span class="op">|</span> (<span class="ident">a</span>.<span class="ident">is_sign_positive</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_sign_negative</span>())
+            {
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            };
+            <span class="bool-val">true</span>
+        } <span class="kw">else</span> {
+            <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
+        }
     }
 
-    <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
+    <span class="doccomment">/// The abstract operation Number::sameValueZero takes arguments</span>
+    <span class="doccomment">/// x (a Number) and y (a Number). It performs the following steps when called:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">float_cmp</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">same_value_zero</span>(<span class="ident">a</span>: <span class="ident">f64</span>, <span class="ident">b</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_nan</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_nan</span>() {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+
+        <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

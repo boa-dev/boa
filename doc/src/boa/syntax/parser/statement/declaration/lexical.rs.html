@@ -191,6 +191,9 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Lexical declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -202,7 +205,10 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">keyword</span>::<span class="ident">Keyword</span>, <span class="ident">node</span>::<span class="ident">Node</span>, <span class="ident">punc</span>::<span class="ident">Punctuator</span>, <span class="ident">token</span>::<span class="ident">TokenKind</span>},
+    <span class="ident">ast</span>::{
+        <span class="ident">node</span>::{<span class="ident">ConstDecl</span>, <span class="ident">ConstDeclList</span>, <span class="ident">LetDecl</span>, <span class="ident">LetDeclList</span>, <span class="ident">Node</span>},
+        <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>,
+    },
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::<span class="ident">Initializer</span>, <span class="ident">statement</span>::<span class="ident">BindingIdentifier</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>,
         <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
@@ -302,22 +308,22 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">const_decls</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
         <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">lexical_binding</span> <span class="op">=</span>
+            <span class="kw">let</span> (<span class="ident">ident</span>, <span class="ident">init</span>) <span class="op">=</span>
                 <span class="ident">LexicalBinding</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_const</span> {
-                <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">ident</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>)) <span class="op">=</span> <span class="ident">lexical_binding</span> {
-                    <span class="ident">const_decls</span>.<span class="ident">push</span>((<span class="ident">ident</span>, <span class="ident">init</span>));
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">init</span> {
+                    <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">ConstDecl</span>::<span class="ident">new</span>(<span class="ident">ident</span>, <span class="ident">init</span>));
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Expected</span>(
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">expected</span>(
                         <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Assign</span>)],
                         <span class="ident">cursor</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">clone</span>(),
                         <span class="string">&quot;const declaration&quot;</span>,
                     ));
                 }
             } <span class="kw">else</span> {
-                <span class="ident">let_decls</span>.<span class="ident">push</span>(<span class="ident">lexical_binding</span>);
+                <span class="ident">let_decls</span>.<span class="ident">push</span>(<span class="ident">LetDecl</span>::<span class="ident">new</span>(<span class="ident">ident</span>, <span class="ident">init</span>));
             }
 
             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_semicolon</span>(<span class="bool-val">false</span>) {
@@ -326,7 +332,7 @@
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>();
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Expected</span>(
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">expected</span>(
                         <span class="macro">vec</span><span class="macro">!</span>[
                             <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>),
                             <span class="ident">TokenKind</span>::<span class="ident">LineTerminator</span>,
@@ -339,9 +345,9 @@
         }
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_const</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">const_decl</span>(<span class="ident">const_decls</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">ConstDeclList</span>::<span class="ident">from</span>(<span class="ident">const_decls</span>).<span class="ident">into</span>())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">let_decl</span>(<span class="ident">let_decls</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">LetDeclList</span>::<span class="ident">from</span>(<span class="ident">let_decls</span>).<span class="ident">into</span>())
         }
     }
 }
@@ -375,9 +381,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">LexicalBinding</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>);
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>);
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">BindingIdentifier</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">initializer</span> <span class="op">=</span>
             <span class="ident">Initializer</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">try_parse</span>(<span class="ident">cursor</span>);

@@ -937,38 +937,14 @@
 <span id="937">937</span>
 <span id="938">938</span>
 <span id="939">939</span>
-<span id="940">940</span>
-<span id="941">941</span>
-<span id="942">942</span>
-<span id="943">943</span>
-<span id="944">944</span>
-<span id="945">945</span>
-<span id="946">946</span>
-<span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements various structure for logic handling.</span>
 
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-
-<span class="doccomment">/// Represents an operator</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Operator</span> {
-    <span class="doccomment">/// Get the associativity as a boolean that is true if it goes rightwards</span>
-    <span class="kw">fn</span> <span class="ident">get_assoc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
-    <span class="doccomment">/// Get the precedence as an unsigned integer, where the lower it is, the more precedence/priority it has</span>
-    <span class="kw">fn</span> <span class="ident">get_precedence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
-    <span class="doccomment">/// Get the precedence and associativity of this operator</span>
-    <span class="kw">fn</span> <span class="ident">get_precedence_and_assoc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">bool</span>) {
-        (<span class="self">self</span>.<span class="ident">get_precedence</span>(), <span class="self">self</span>.<span class="ident">get_assoc</span>())
-    }
-}
 
 <span class="doccomment">/// Arithmetic operators take numerical values (either literals or variables)</span>
 <span class="doccomment">/// as their operands and return a single numerical value.</span>
@@ -978,7 +954,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NumOp</span> {
     <span class="doccomment">/// The addition operator produces the sum of numeric operands or string concatenation.</span>
     <span class="doccomment">///</span>
@@ -1076,6 +1052,10 @@
     }
 }
 
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">NumOp</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+}
+
 <span class="doccomment">/// A unary operator is one that takes a single operand/argument and performs an operation.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A unary operation is an operation with only one operand. This operand comes either</span>
@@ -1089,7 +1069,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UnaryOp</span> {
     <span class="doccomment">/// The increment operator increments (adds one to) its operand and returns a value.</span>
     <span class="doccomment">///</span>
@@ -1288,6 +1268,10 @@
     }
 }
 
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+}
+
 <span class="doccomment">/// A bitwise operator is an operator used to perform bitwise operations</span>
 <span class="doccomment">/// on bit patterns or binary numerals that involve the manipulation of individual bits.</span>
 <span class="doccomment">///</span>
@@ -1296,7 +1280,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BitOp</span> {
     <span class="doccomment">/// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.</span>
     <span class="doccomment">///</span>
@@ -1399,6 +1383,10 @@
     }
 }
 
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">BitOp</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+}
+
 <span class="doccomment">/// A comparison operator compares its operands and returns a logical value based on whether the comparison is true.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The operands can be numerical, string, logical, or object values. Strings are compared based on standard</span>
@@ -1415,7 +1403,7 @@
 <span class="doccomment">/// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompOp</span> {
     <span class="doccomment">/// The equality operator converts the operands if they are not of the same type, then applies strict comparison.</span>
     <span class="doccomment">///</span>
@@ -1531,6 +1519,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator</span>
     <span class="ident">LessThanOrEqual</span>,
+
     <span class="doccomment">/// The `in` operator returns true if the specified property is in the specified object or its prototype chain.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `prop in object`</span>
@@ -1566,6 +1555,10 @@
     }
 }
 
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">CompOp</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+}
+
 <span class="doccomment">/// Logical operators are typically used with Boolean (logical) values; when they are, they return a Boolean value.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// However, the `&amp;&amp;` and `||` operators actually return the value of one of the specified operands,</span>
@@ -1578,7 +1571,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LogOp</span> {
     <span class="doccomment">/// The logical AND operator returns the value of the first operand if it can be coerced into `false`;</span>
     <span class="doccomment">/// otherwise, it returns the second operand.</span>
@@ -1620,9 +1613,13 @@
     }
 }
 
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">LogOp</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+}
+
 <span class="doccomment">/// This represents a binary operation between two values.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BinOp</span> {
     <span class="doccomment">/// Numeric operation.</span>
     <span class="doccomment">///</span>
@@ -1680,35 +1677,6 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Operator</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">get_assoc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="bool-val">true</span>
-    }
-    <span class="kw">fn</span> <span class="ident">get_precedence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Num</span>(<span class="ident">NumOp</span>::<span class="ident">Exp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
-            <span class="self">Self</span>::<span class="ident">Num</span>(<span class="ident">NumOp</span>::<span class="ident">Mul</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Num</span>(<span class="ident">NumOp</span>::<span class="ident">Div</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Num</span>(<span class="ident">NumOp</span>::<span class="ident">Mod</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
-            <span class="self">Self</span>::<span class="ident">Num</span>(<span class="ident">NumOp</span>::<span class="ident">Add</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Num</span>(<span class="ident">NumOp</span>::<span class="ident">Sub</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
-            <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">Shl</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">Shr</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">UShr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
-            <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">LessThan</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">LessThanOrEqual</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">GreaterThan</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">GreaterThanOrEqual</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">In</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
-            <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">Equal</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">NotEqual</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">StrictEqual</span>)
-            <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">StrictNotEqual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">9</span>,
-            <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">And</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
-            <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">Xor</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">11</span>,
-            <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">Or</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">12</span>,
-            <span class="self">Self</span>::<span class="ident">Log</span>(<span class="ident">LogOp</span>::<span class="ident">And</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">13</span>,
-            <span class="self">Self</span>::<span class="ident">Log</span>(<span class="ident">LogOp</span>::<span class="ident">Or</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">14</span>,
-            <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">15</span>,
-        }
-    }
-}
-
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
@@ -1725,6 +1693,10 @@
     }
 }
 
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+}
+
 <span class="doccomment">/// An assignment operator assigns a value to its left operand based on the value of its right operand.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The simple assignment operator is equal (`=`), which assigns the value of its right operand to its</span>
@@ -1739,7 +1711,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssignOp</span> {
     <span class="doccomment">/// The addition assignment operator adds the value of the right operand to a variable and assigns the result to the variable.</span>
     <span class="doccomment">///</span>
@@ -1878,6 +1850,10 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Right_shift_assignment</span>
     <span class="ident">Shr</span>,
     <span class="comment">// TODO: Add UShl (unsigned shift left).</span>
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">AssignOp</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AssignOp</span> {

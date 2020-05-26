@@ -157,7 +157,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">error</span>::{<span class="ident">ParseError</span>, <span class="ident">ParseResult</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">node</span>::<span class="ident">Node</span>, <span class="ident">token</span>::<span class="ident">Token</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">node</span>::<span class="ident">StatementList</span>, <span class="ident">Token</span>};
 <span class="kw">use</span> <span class="ident">cursor</span>::<span class="ident">Cursor</span>;
 
 <span class="doccomment">/// Trait implemented by parsers.</span>
@@ -251,8 +251,8 @@
     }
 
     <span class="doccomment">/// Parse all expressions in the token array</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
-        <span class="ident">Script</span>.<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">statement_list</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+        <span class="ident">Script</span>.<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>)
     }
 }
 
@@ -266,13 +266,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Script</span>;
 
 <span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">Script</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">StatementList</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>).<span class="ident">is_some</span>() {
             <span class="ident">ScriptBody</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Vec</span>::<span class="ident">new</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">StatementList</span>::<span class="ident">from</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()))
         }
     }
 }
@@ -287,7 +287,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ScriptBody</span>;
 
 <span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">ScriptBody</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">StatementList</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="self">self</span>::<span class="ident">statement</span>::<span class="ident">StatementList</span>::<span class="ident">new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)

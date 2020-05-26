@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.13/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.17/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -836,6 +836,24 @@
 <span id="836">836</span>
 <span id="837">837</span>
 <span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::{<span class="ident">token_stream</span>, <span class="ident">Cursor</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Delimiter</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
@@ -845,6 +863,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">RangeBounds</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
@@ -855,15 +874,15 @@
 
 <span class="doccomment">/// Force use of proc-macro2&#39;s fallback implementation of the API for now, even</span>
 <span class="doccomment">/// if the compiler&#39;s implementation is available.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">force</span>() {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
     <span class="kw">crate</span>::<span class="ident">detection</span>::<span class="ident">force_fallback</span>();
 }
 
 <span class="doccomment">/// Resume using the compiler&#39;s implementation of the proc macro API if it is</span>
 <span class="doccomment">/// available.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unforce</span>() {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
     <span class="kw">crate</span>::<span class="ident">detection</span>::<span class="ident">unforce_fallback</span>();
 }
 
@@ -882,6 +901,29 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">take_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
+        <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">Vec</span>::<span class="ident">new</span>())
+    }
+}
+
+<span class="comment">// Nonrecursive to prevent stack overflow.</span>
+<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">pop</span>() {
+            <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">token</span> {
+                <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">group</span>.<span class="ident">inner</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+            };
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
+            <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">group</span> {
+                <span class="kw">crate</span>::<span class="ident">imp</span>::<span class="ident">Group</span>::<span class="ident">Fallback</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">group</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+            };
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">group</span>;
+            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">group</span>.<span class="ident">stream</span>.<span class="ident">take_inner</span>());
+        }
     }
 }
 
@@ -911,15 +953,11 @@
         <span class="comment">// Create a dummy file &amp; add it to the source map</span>
         <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">get_cursor</span>(<span class="ident">src</span>);
 
-        <span class="kw">match</span> <span class="ident">token_stream</span>(<span class="ident">cursor</span>) {
-            <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">output</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">is_empty</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">output</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">LexError</span>)
-                }
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">LexError</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">LexError</span>),
+        <span class="kw">let</span> (<span class="ident">rest</span>, <span class="ident">tokens</span>) <span class="op">=</span> <span class="ident">token_stream</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">rest</span>.<span class="ident">is_empty</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">tokens</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">LexError</span>)
         }
     }
 }
@@ -932,8 +970,8 @@
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">joint</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tt</span> {
-                <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="ident">tt</span> {
+                <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> (<span class="ident">start</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">tt</span>.<span class="ident">delimiter</span>() {
                         <span class="ident">Delimiter</span>::<span class="ident">Parenthesis</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&quot;(&quot;</span>, <span class="string">&quot;)&quot;</span>),
                         <span class="ident">Delimiter</span>::<span class="ident">Brace</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&quot;{&quot;</span>, <span class="string">&quot;}&quot;</span>),
@@ -946,15 +984,15 @@
                         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {} {}&quot;</span>, <span class="ident">start</span>, <span class="ident">tt</span>.<span class="ident">stream</span>(), <span class="ident">end</span>)<span class="question-mark">?</span>
                     }
                 }
-                <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">tt</span>)<span class="question-mark">?</span>,
-                <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">tt</span>)<span class="question-mark">?</span>,
+                <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">tt</span>.<span class="ident">as_char</span>())<span class="question-mark">?</span>;
                     <span class="kw">match</span> <span class="ident">tt</span>.<span class="ident">spacing</span>() {
                         <span class="ident">Spacing</span>::<span class="ident">Alone</span> <span class="op">=</span><span class="op">&gt;</span> {}
                         <span class="ident">Spacing</span>::<span class="ident">Joint</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">joint</span> <span class="op">=</span> <span class="bool-val">true</span>,
                     }
                 }
-                <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">tt</span>)<span class="question-mark">?</span>,
+                <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">tt</span>)<span class="question-mark">?</span>,
             }
         }
 
@@ -1011,8 +1049,8 @@
     <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenStream</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
-        <span class="kw">for</span> <span class="ident">stream</span> <span class="kw">in</span> <span class="ident">streams</span>.<span class="ident">into_iter</span>() {
-            <span class="ident">v</span>.<span class="ident">extend</span>(<span class="ident">stream</span>.<span class="ident">inner</span>);
+        <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="kw">in</span> <span class="ident">streams</span>.<span class="ident">into_iter</span>() {
+            <span class="ident">v</span>.<span class="ident">extend</span>(<span class="ident">stream</span>.<span class="ident">take_inner</span>());
         }
 
         <span class="ident">TokenStream</span> { <span class="ident">inner</span>: <span class="ident">v</span> }
@@ -1038,8 +1076,8 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">TokenTreeIter</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenTreeIter</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_iter</span>()
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenTreeIter</span> {
+        <span class="self">self</span>.<span class="ident">take_inner</span>().<span class="ident">into_iter</span>()
     }
 }
 
@@ -1080,23 +1118,11 @@
     <span class="kw">static</span> <span class="ident">SOURCE_MAP</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">SourceMap</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">SourceMap</span> {
         <span class="comment">// NOTE: We start with a single dummy file which all call_site() and</span>
         <span class="comment">// def_site() spans reference.</span>
-        <span class="ident">files</span>: <span class="macro">vec</span><span class="macro">!</span>[{
+        <span class="ident">files</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">FileInfo</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
-            {
-                <span class="ident">FileInfo</span> {
-                    <span class="ident">name</span>: <span class="string">&quot;&lt;unspecified&gt;&quot;</span>.<span class="ident">to_owned</span>(),
-                    <span class="ident">span</span>: <span class="ident">Span</span> { <span class="ident">lo</span>: <span class="number">0</span>, <span class="ident">hi</span>: <span class="number">0</span> },
-                    <span class="ident">lines</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>],
-                }
-            }
-
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">procmacro2_semver_exempt</span>))]</span>
-            {
-                <span class="ident">FileInfo</span> {
-                    <span class="ident">span</span>: <span class="ident">Span</span> { <span class="ident">lo</span>: <span class="number">0</span>, <span class="ident">hi</span>: <span class="number">0</span> },
-                    <span class="ident">lines</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>],
-                }
-            }
+            <span class="ident">name</span>: <span class="string">&quot;&lt;unspecified&gt;&quot;</span>.<span class="ident">to_owned</span>(),
+            <span class="ident">span</span>: <span class="ident">Span</span> { <span class="ident">lo</span>: <span class="number">0</span>, <span class="ident">hi</span>: <span class="number">0</span> },
+            <span class="ident">lines</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>],
         }],
     });
 }
@@ -1134,16 +1160,21 @@
     }
 }
 
-<span class="doccomment">/// Computesthe offsets of each line in the given source string.</span>
+<span class="doccomment">/// Computes the offsets of each line in the given source string</span>
+<span class="doccomment">/// and the total number of characters</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
-<span class="kw">fn</span> <span class="ident">lines_offsets</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">lines_offsets</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span> <span class="ident">s</span>[<span class="ident">prev</span>..].<span class="ident">find</span>(<span class="string">&#39;\n&#39;</span>) {
-        <span class="ident">prev</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>;
-        <span class="ident">lines</span>.<span class="ident">push</span>(<span class="ident">prev</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="number">0</span>;
+
+    <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">chars</span>() {
+        <span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span> {
+            <span class="ident">lines</span>.<span class="ident">push</span>(<span class="ident">total</span>);
+        }
     }
-    <span class="ident">lines</span>
+
+    (<span class="ident">total</span>, <span class="ident">lines</span>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
@@ -1162,23 +1193,22 @@
     }
 
     <span class="kw">fn</span> <span class="ident">add_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="kw">let</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">lines_offsets</span>(<span class="ident">src</span>);
+        <span class="kw">let</span> (<span class="ident">len</span>, <span class="ident">lines</span>) <span class="op">=</span> <span class="ident">lines_offsets</span>(<span class="ident">src</span>);
         <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_start_pos</span>();
         <span class="comment">// XXX(nika): Shouild we bother doing a checked cast or checked add here?</span>
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span> {
             <span class="ident">lo</span>,
-            <span class="ident">hi</span>: <span class="ident">lo</span> <span class="op">+</span> (<span class="ident">src</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>),
+            <span class="ident">hi</span>: <span class="ident">lo</span> <span class="op">+</span> (<span class="ident">len</span> <span class="kw">as</span> <span class="ident">u32</span>),
         };
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
         <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">push</span>(<span class="ident">FileInfo</span> {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
             <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">to_owned</span>(),
             <span class="ident">span</span>,
             <span class="ident">lines</span>,
         });
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">procmacro2_semver_exempt</span>))]</span>
-        <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">push</span>(<span class="ident">FileInfo</span> { <span class="ident">span</span>, <span class="ident">lines</span> });
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">name</span>;
 
         <span class="ident">span</span>
@@ -1211,6 +1241,12 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="ident">Span</span> { <span class="ident">lo</span>: <span class="number">0</span>, <span class="ident">hi</span>: <span class="number">0</span> }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">hygiene</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mixed_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="ident">Span</span>::<span class="ident">call_site</span>()
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>

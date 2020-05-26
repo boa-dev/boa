@@ -410,6 +410,45 @@
 <span id="410">410</span>
 <span id="411">411</span>
 <span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -426,18 +465,15 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">array</span>,
-        <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectInternalMethods</span>, <span class="ident">ObjectKind</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">array</span>::<span class="ident">Array</span>,
+        <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectInternalMethods</span>, <span class="ident">ObjectKind</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
-    <span class="ident">environment</span>::{
-        <span class="ident">function_environment_record</span>::<span class="ident">BindingStatus</span>,
-        <span class="ident">lexical_environment</span>::{<span class="ident">new_function_environment</span>, <span class="ident">Environment</span>},
-    },
-    <span class="ident">exec</span>::<span class="ident">Executor</span>,
-    <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">Node</span>},
-    <span class="ident">Interpreter</span>,
+    <span class="ident">environment</span>::<span class="ident">function_environment_record</span>::<span class="ident">BindingStatus</span>,
+    <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">new_function_environment</span>, <span class="ident">Environment</span>},
+    <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>},
+    <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">StatementList</span>},
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
@@ -465,14 +501,14 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FunctionBody</span> {
     <span class="ident">BuiltIn</span>(<span class="ident">NativeFunctionData</span>),
-    <span class="ident">Ordinary</span>(<span class="ident">Node</span>),
+    <span class="ident">Ordinary</span>(<span class="ident">StatementList</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">FunctionBody</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">BuiltIn</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;native code&quot;</span>),
-            <span class="self">Self</span>::<span class="ident">Ordinary</span>(<span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">node</span>),
+            <span class="self">Self</span>::<span class="ident">Ordinary</span>(<span class="ident">statements</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">statements</span>),
         }
     }
 }
@@ -488,18 +524,6 @@
     <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
 }
 
-<span class="doccomment">/// Signal what sort of function this is</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FunctionKind</span> {
-    <span class="ident">BuiltIn</span>,
-    <span class="ident">Ordinary</span>,
-}
-
-<span class="doccomment">/// Waiting on &lt;https://github.com/Manishearth/rust-gc/issues/87&gt; until we can derive Copy</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">FunctionKind</span> {
-    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
-}
-
 <span class="doccomment">/// Boa representation of a Function Object.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects&gt;</span>
@@ -511,48 +535,73 @@
     <span class="kw">pub</span> <span class="ident">params</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>,
     <span class="doccomment">/// This Mode</span>
     <span class="kw">pub</span> <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
-    <span class="doccomment">/// Function kind</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">FunctionKind</span>,
     <span class="comment">// Environment, built-in functions don&#39;t need Environments</span>
     <span class="kw">pub</span> <span class="ident">environment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Is it constructable</span>
+    <span class="ident">constructable</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// Is it callable.</span>
+    <span class="ident">callable</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Function</span> {
-    <span class="doccomment">/// This will create an ordinary function object</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinaryfunctioncreate&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_ordinary</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(
         <span class="ident">parameter_list</span>: <span class="ident">P</span>,
-        <span class="ident">scope</span>: <span class="ident">Environment</span>,
+        <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
         <span class="ident">body</span>: <span class="ident">FunctionBody</span>,
         <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
+        <span class="ident">constructable</span>: <span class="ident">bool</span>,
+        <span class="ident">callable</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
             <span class="ident">body</span>,
-            <span class="ident">environment</span>: <span class="prelude-val">Some</span>(<span class="ident">scope</span>),
+            <span class="ident">environment</span>: <span class="ident">scope</span>,
             <span class="ident">params</span>: <span class="ident">parameter_list</span>.<span class="ident">into</span>(),
-            <span class="ident">kind</span>: <span class="ident">FunctionKind</span>::<span class="ident">Ordinary</span>,
             <span class="ident">this_mode</span>,
+            <span class="ident">constructable</span>,
+            <span class="ident">callable</span>,
         }
+    }
+
+    <span class="doccomment">/// This will create an ordinary function object</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinaryfunctioncreate&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ordinary</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(
+        <span class="ident">parameter_list</span>: <span class="ident">P</span>,
+        <span class="ident">scope</span>: <span class="ident">Environment</span>,
+        <span class="ident">body</span>: <span class="ident">StatementList</span>,
+        <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>::<span class="ident">new</span>(
+            <span class="ident">parameter_list</span>.<span class="ident">into</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">scope</span>),
+            <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>),
+            <span class="ident">this_mode</span>,
+            <span class="bool-val">true</span>,
+            <span class="bool-val">true</span>,
+        )
     }
 
     <span class="doccomment">/// This will create a built-in function object</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-createbuiltinfunction&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_builtin</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">parameter_list</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">FunctionBody</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builtin</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">parameter_list</span>: <span class="ident">P</span>, <span class="ident">body</span>: <span class="ident">NativeFunctionData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span> {
-            <span class="ident">body</span>,
-            <span class="ident">params</span>: <span class="ident">parameter_list</span>.<span class="ident">into</span>(),
-            <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
-            <span class="ident">kind</span>: <span class="ident">FunctionKind</span>::<span class="ident">BuiltIn</span>,
-            <span class="ident">environment</span>: <span class="prelude-val">None</span>,
-        }
+        <span class="self">Self</span>::<span class="ident">new</span>(
+            <span class="ident">parameter_list</span>.<span class="ident">into</span>(),
+            <span class="prelude-val">None</span>,
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">body</span>),
+            <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
+            <span class="bool-val">false</span>,
+            <span class="bool-val">true</span>,
+        )
     }
 
     <span class="doccomment">/// This will handle calls for both ordinary and built-in functions</span>
@@ -566,57 +615,53 @@
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
         <span class="ident">this_obj</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">FunctionKind</span>::<span class="ident">BuiltIn</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">callable</span> {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">body</span> {
                 <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>(<span class="ident">this_obj</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>),
-                <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Builtin function should not have Ordinary Function body&quot;</span>)
-                }
-            },
-            <span class="ident">FunctionKind</span>::<span class="ident">Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
-                <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
-                <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
-                    <span class="ident">this</span>.<span class="ident">clone</span>(),
-                    <span class="prelude-val">None</span>,
-                    <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
-                    <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>,
-                );
+                <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
+                    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
+                    <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
+                        <span class="ident">this</span>.<span class="ident">clone</span>(),
+                        <span class="prelude-val">None</span>,
+                        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
+                        <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>,
+                    );
 
-                <span class="comment">// Add argument bindings to the function environment</span>
-                <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">params</span>.<span class="ident">len</span>() {
-                    <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get param&quot;</span>);
-                    <span class="comment">// Rest Parameters</span>
-                    <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span> {
-                        <span class="self">self</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
-                        <span class="kw">break</span>;
+                    <span class="comment">// Add argument bindings to the function environment</span>
+                    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">params</span>.<span class="ident">len</span>() {
+                        <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get param&quot;</span>);
+                        <span class="comment">// Rest Parameters</span>
+                        <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span>() {
+                            <span class="self">self</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
+                            <span class="kw">break</span>;
+                        }
+
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args_list</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get value&quot;</span>);
+                        <span class="self">self</span>.<span class="ident">add_arguments_to_environment</span>(<span class="ident">param</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
                     }
 
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args_list</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get value&quot;</span>);
-                    <span class="self">self</span>.<span class="ident">add_arguments_to_environment</span>(<span class="ident">param</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
+                    <span class="comment">// Add arguments object</span>
+                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args_list</span>);
+                    <span class="ident">local_env</span>
+                        .<span class="ident">borrow_mut</span>()
+                        .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>);
+                    <span class="ident">local_env</span>
+                        .<span class="ident">borrow_mut</span>()
+                        .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
+
+                    <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
+
+                    <span class="comment">// Call body should be set before reaching here</span>
+                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>);
+
+                    <span class="comment">// local_env gets dropped here, its no longer needed</span>
+                    <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">pop</span>();
+                    <span class="ident">result</span>
                 }
-
-                <span class="comment">// Add arguments object</span>
-                <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args_list</span>);
-                <span class="ident">local_env</span>
-                    .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>);
-                <span class="ident">local_env</span>
-                    .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
-
-                <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
-
-                <span class="comment">// Call body should be set before reaching here</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span> {
-                    <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">interpreter</span>.<span class="ident">run</span>(<span class="ident">body</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Ordinary function should not have BuiltIn Function body&quot;</span>),
-                };
-
-                <span class="comment">// local_env gets dropped here, its no longer needed</span>
-                <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">pop</span>();
-                <span class="ident">result</span>
             }
+        } <span class="kw">else</span> {
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;TypeError: class constructors must be invoked with &#39;new&#39;&quot;</span>);
         }
     }
 
@@ -628,59 +673,56 @@
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
         <span class="ident">this_obj</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">FunctionKind</span>::<span class="ident">BuiltIn</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">constructable</span> {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">body</span> {
                 <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">func</span>(<span class="ident">this_obj</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>).<span class="ident">unwrap</span>();
                     <span class="prelude-val">Ok</span>(<span class="ident">this_obj</span>.<span class="ident">clone</span>())
                 }
-                <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Builtin function should not have Ordinary Function body&quot;</span>)
-                }
-            },
-            <span class="ident">FunctionKind</span>::<span class="ident">Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
-                <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
-                <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
-                    <span class="ident">this</span>.<span class="ident">clone</span>(),
-                    <span class="prelude-val">Some</span>(<span class="ident">this_obj</span>.<span class="ident">clone</span>()),
-                    <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
-                    <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span>,
-                );
+                <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
+                    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
+                    <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
+                        <span class="ident">this</span>.<span class="ident">clone</span>(),
+                        <span class="prelude-val">Some</span>(<span class="ident">this_obj</span>.<span class="ident">clone</span>()),
+                        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
+                        <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span>,
+                    );
 
-                <span class="comment">// Add argument bindings to the function environment</span>
-                <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                    <span class="comment">// Rest Parameters</span>
-                    <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span> {
-                        <span class="self">self</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
-                        <span class="kw">break</span>;
+                    <span class="comment">// Add argument bindings to the function environment</span>
+                    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+                        <span class="comment">// Rest Parameters</span>
+                        <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span>() {
+                            <span class="self">self</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
+                            <span class="kw">break</span>;
+                        }
+
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args_list</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get value&quot;</span>);
+                        <span class="self">self</span>.<span class="ident">add_arguments_to_environment</span>(<span class="ident">param</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
                     }
 
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args_list</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get value&quot;</span>);
-                    <span class="self">self</span>.<span class="ident">add_arguments_to_environment</span>(<span class="ident">param</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
+                    <span class="comment">// Add arguments object</span>
+                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args_list</span>);
+                    <span class="ident">local_env</span>
+                        .<span class="ident">borrow_mut</span>()
+                        .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>);
+                    <span class="ident">local_env</span>
+                        .<span class="ident">borrow_mut</span>()
+                        .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
+
+                    <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
+
+                    <span class="comment">// Call body should be set before reaching here</span>
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>);
+
+                    <span class="comment">// local_env gets dropped here, its no longer needed</span>
+                    <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_this_binding</span>();
+                    <span class="prelude-val">Ok</span>(<span class="ident">binding</span>)
                 }
-
-                <span class="comment">// Add arguments object</span>
-                <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args_list</span>);
-                <span class="ident">local_env</span>
-                    .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>);
-                <span class="ident">local_env</span>
-                    .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
-
-                <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
-
-                <span class="comment">// Call body should be set before reaching here</span>
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span> {
-                    <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">interpreter</span>.<span class="ident">run</span>(<span class="ident">body</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Ordinary function should not have BuiltIn Function body&quot;</span>),
-                };
-
-                <span class="comment">// local_env gets dropped here, its no longer needed</span>
-                <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_this_binding</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">binding</span>)
             }
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;name&quot;</span>).<span class="ident">to_string</span>();
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;TypeError: {} is not a constructor&quot;</span>, <span class="ident">name</span>);
         }
     }
 
@@ -694,18 +736,18 @@
         <span class="ident">local_env</span>: <span class="kw-2">&amp;</span><span class="ident">Environment</span>,
     ) {
         <span class="comment">// Create array of values</span>
-        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">array</span>::<span class="ident">new_array</span>(<span class="ident">interpreter</span>).<span class="ident">unwrap</span>();
-        <span class="ident">array</span>::<span class="ident">add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">array</span>, <span class="kw-2">&amp;</span><span class="ident">args_list</span>[<span class="ident">index</span>..]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">new_array</span>(<span class="ident">interpreter</span>).<span class="ident">unwrap</span>();
+        <span class="ident">Array</span>::<span class="ident">add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">array</span>, <span class="kw-2">&amp;</span><span class="ident">args_list</span>[<span class="ident">index</span>..]).<span class="ident">unwrap</span>();
 
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="bool-val">false</span>);
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>);
 
         <span class="comment">// Set Binding to value</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="ident">param</span>.<span class="ident">name</span>, <span class="ident">array</span>);
+            .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">array</span>);
     }
 
     <span class="comment">// Adds an argument to the environment</span>
@@ -718,12 +760,22 @@
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="bool-val">false</span>);
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>);
 
         <span class="comment">// Set Binding to value</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="ident">param</span>.<span class="ident">name</span>, <span class="ident">value</span>);
+            .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">value</span>);
+    }
+
+    <span class="doccomment">/// Returns true if the function object is callable.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">callable</span>
+    }
+
+    <span class="doccomment">/// Returns true if the function object is constructable.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">constructable</span>
     }
 }
 
@@ -733,16 +785,6 @@
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;[Not implemented]&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;}}&quot;</span>)
     }
-}
-
-<span class="doccomment">/// Function Prototype.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-properties-of-the-function-prototype-object&gt;</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_function_prototype</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_prototype</span>: <span class="ident">Object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
-    <span class="comment">// Set Kind to function (for historical &amp; compatibility reasons)</span>
-    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-properties-of-the-function-prototype-object&gt;</span>
-    <span class="ident">function_prototype</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">ObjectKind</span>::<span class="ident">Function</span>;
 }
 
 <span class="doccomment">/// Arguments.</span>
@@ -785,43 +827,79 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
     <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
 
-    <span class="ident">make_constructor_fn</span>(<span class="ident">make_function</span>, <span class="ident">global</span>, <span class="ident">prototype</span>)
+    <span class="ident">make_constructor_fn</span>(<span class="string">&quot;Function&quot;</span>, <span class="number">1</span>, <span class="ident">make_function</span>, <span class="ident">global</span>, <span class="ident">prototype</span>, <span class="bool-val">true</span>)
 }
 
 <span class="doccomment">/// Creates a new constructor function</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This utility function handling linking the new Constructor to the prototype.</span>
 <span class="doccomment">/// So far this is only used by internal functions</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_constructor_fn</span>(<span class="ident">body</span>: <span class="ident">NativeFunctionData</span>, <span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">proto</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_constructor_fn</span>(
+    <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">length</span>: <span class="ident">i32</span>,
+    <span class="ident">body</span>: <span class="ident">NativeFunctionData</span>,
+    <span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+    <span class="ident">proto</span>: <span class="ident">Value</span>,
+    <span class="ident">constructable</span>: <span class="ident">bool</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
     <span class="comment">// Create the native function</span>
-    <span class="kw">let</span> <span class="ident">constructor_fn</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">Function</span>::<span class="ident">create_builtin</span>(
-        <span class="macro">vec</span><span class="macro">!</span>[],
-        <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">body</span>),
-    );
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor_fn</span> <span class="op">=</span> <span class="ident">Function</span>::<span class="ident">builtin</span>(<span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">body</span>);
+
+    <span class="ident">constructor_fn</span>.<span class="ident">constructable</span> <span class="op">=</span> <span class="ident">constructable</span>;
 
     <span class="comment">// Get reference to Function.prototype</span>
-    <span class="kw">let</span> <span class="ident">func_prototype</span> <span class="op">=</span> <span class="ident">global</span>
-        .<span class="ident">get_field_slice</span>(<span class="string">&quot;Function&quot;</span>)
-        .<span class="ident">get_field_slice</span>(<span class="ident">PROTOTYPE</span>);
+    <span class="kw">let</span> <span class="ident">func_prototype</span> <span class="op">=</span> <span class="ident">global</span>.<span class="ident">get_field</span>(<span class="string">&quot;Function&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
     <span class="comment">// Create the function object and point its instance prototype to Function.prototype</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor_obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
     <span class="ident">constructor_obj</span>.<span class="ident">set_func</span>(<span class="ident">constructor_fn</span>);
 
-    <span class="ident">constructor_obj</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;__proto__&quot;</span>, <span class="ident">func_prototype</span>);
+    <span class="ident">constructor_obj</span>.<span class="ident">set_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">func_prototype</span>);
     <span class="kw">let</span> <span class="ident">constructor_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">constructor_obj</span>);
 
     <span class="comment">// Set proto.constructor -&gt; constructor_obj</span>
-    <span class="ident">proto</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">constructor_val</span>.<span class="ident">clone</span>());
-    <span class="ident">constructor_val</span>.<span class="ident">set_field_slice</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">proto</span>);
+    <span class="ident">proto</span>.<span class="ident">set_field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">constructor_val</span>.<span class="ident">clone</span>());
+    <span class="ident">constructor_val</span>.<span class="ident">set_field</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">proto</span>);
+
+    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">new</span>()
+        .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>))
+        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>);
+    <span class="ident">constructor_val</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
+
+    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">new</span>()
+        .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name</span>))
+        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>);
+    <span class="ident">constructor_val</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>);
 
     <span class="ident">constructor_val</span>
+}
+
+<span class="doccomment">/// Macro to create a new member function of a prototype.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If no length is provided, the length will be set to 0.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_builtin_fn</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">function</span>: <span class="ident">NativeFunctionData</span>, <span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">length</span>: <span class="ident">i32</span>)
+<span class="kw">where</span>
+    <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+{
+    <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">Function</span>::<span class="ident">builtin</span>(<span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">function</span>);
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
+    <span class="ident">new_func</span>.<span class="ident">set_func</span>(<span class="ident">func</span>);
+
+    <span class="kw">let</span> <span class="ident">new_func_obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
+    <span class="ident">new_func_obj</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
+
+    <span class="ident">parent</span>.<span class="ident">set_field</span>(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">new_func_obj</span>);
 }
 
 <span class="doccomment">/// Initialise the `Function` object on the global object.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-    <span class="ident">global</span>.<span class="ident">set_field_slice</span>(<span class="string">&quot;Function&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
+    <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;Function&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

@@ -69,14 +69,6 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Break expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -90,9 +82,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">LabelIdentifier</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">keyword</span>::<span class="ident">Keyword</span>, <span class="ident">node</span>::<span class="ident">Node</span>, <span class="ident">punc</span>::<span class="ident">Punctuator</span>, <span class="ident">token</span>::<span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
+    <span class="ident">ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>},
+    <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
 };
 
 <span class="doccomment">/// Break statement parsing</span>
@@ -129,7 +122,7 @@
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword</span>::<span class="ident">Break</span>, <span class="string">&quot;break statement&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> (<span class="bool-val">true</span>, <span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek_semicolon</span>(<span class="bool-val">false</span>) {
+        <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> (<span class="bool-val">true</span>, <span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek_semicolon</span>(<span class="bool-val">false</span>) {
             <span class="kw">match</span> <span class="ident">tok</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>();
@@ -137,24 +130,15 @@
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
 
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">Break</span>(<span class="prelude-val">None</span>));
-        }
-
-        <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="comment">// TODO: LabelIdentifier</span>
-        <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tok</span>.<span class="ident">kind</span> {
-            <span class="ident">Node</span>::<span class="ident">break_node</span>(<span class="ident">name</span>)
+            <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">Expected</span>(
-                <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TokenKind</span>::<span class="ident">identifier</span>(<span class="string">&quot;identifier&quot;</span>)],
-                <span class="ident">tok</span>.<span class="ident">clone</span>(),
-                <span class="string">&quot;break statement&quot;</span>,
-            ));
+            <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">LabelIdentifier</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+            <span class="ident">cursor</span>.<span class="ident">expect_semicolon</span>(<span class="bool-val">false</span>, <span class="string">&quot;continue statement&quot;</span>)<span class="question-mark">?</span>;
+
+            <span class="prelude-val">Some</span>(<span class="ident">label</span>)
         };
 
-        <span class="ident">cursor</span>.<span class="ident">expect_semicolon</span>(<span class="bool-val">false</span>, <span class="string">&quot;break statement&quot;</span>)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(<span class="ident">node</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">Break</span>(<span class="ident">label</span>))
     }
 }
 </pre></div>

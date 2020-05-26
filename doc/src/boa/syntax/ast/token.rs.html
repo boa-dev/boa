@@ -223,6 +223,124 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
@@ -231,11 +349,18 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-tokens</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">bigint</span>::<span class="ident">BigInt</span>, <span class="ident">keyword</span>::<span class="ident">Keyword</span>, <span class="ident">pos</span>::<span class="ident">Position</span>, <span class="ident">punc</span>::<span class="ident">Punctuator</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::{
+    <span class="ident">ast</span>::{<span class="ident">bigint</span>::<span class="ident">BigInt</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
+    <span class="ident">lexer</span>::<span class="ident">LexerError</span>,
+};
+<span class="kw">use</span> <span class="ident">bitflags</span>::<span class="ident">bitflags</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>},
+    <span class="ident">str</span>::<span class="ident">FromStr</span>,
+};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>, <span class="ident">Serializer</span>};
 
 <span class="doccomment">/// This represents the smallest individual words, phrases, or characters that JavaScript can understand.</span>
 <span class="doccomment">///</span>
@@ -247,38 +372,31 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Token</span> {
     <span class="doccomment">/// The token kind, which contains the actual data of the token.</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">TokenKind</span>,
-
-    <span class="doccomment">/// The token position from origina source code.</span>
-    <span class="kw">pub</span> <span class="ident">pos</span>: <span class="ident">Position</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">kind</span>: <span class="ident">TokenKind</span>,
+    <span class="doccomment">/// The token position in the original source code.</span>
+    <span class="ident">span</span>: <span class="ident">Span</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Token</span> {
     <span class="doccomment">/// Create a new detailed token from the token data, line number and column number</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">TokenKind</span>, <span class="ident">line_number</span>: <span class="ident">u64</span>, <span class="ident">column_number</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">kind</span>,
-            <span class="ident">pos</span>: <span class="ident">Position</span>::<span class="ident">new</span>(<span class="ident">line_number</span>, <span class="ident">column_number</span>),
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">TokenKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">kind</span>, <span class="ident">span</span> }
+    }
+
+    <span class="doccomment">/// Gets the kind of the token.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>
+    }
+
+    <span class="doccomment">/// Gets the token span in the original source code.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="self">self</span>.<span class="ident">span</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Token</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">kind</span>)
-    }
-}
-
-<span class="doccomment">/// A continuous sequence of tokens.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VecToken</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">VecToken</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-        <span class="kw">for</span> <span class="ident">token</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">buffer</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">token</span>.<span class="ident">to_string</span>());
-        }
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">buffer</span>)
     }
 }
 
@@ -314,6 +432,125 @@
     }
 }
 
+<span class="macro">bitflags</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegExpFlags</span>: <span class="ident">u8</span> {
+        <span class="kw">const</span> <span class="ident">GLOBAL</span> <span class="op">=</span> <span class="number">0b0000_0001</span>;
+        <span class="kw">const</span> <span class="ident">IGNORE_CASE</span> <span class="op">=</span> <span class="number">0b0000_0010</span>;
+        <span class="kw">const</span> <span class="ident">MULTILINE</span> <span class="op">=</span> <span class="number">0b0000_0100</span>;
+        <span class="kw">const</span> <span class="ident">DOT_ALL</span> <span class="op">=</span> <span class="number">0b0000_1000</span>;
+        <span class="kw">const</span> <span class="ident">UNICODE</span> <span class="op">=</span> <span class="number">0b0001_0000</span>;
+        <span class="kw">const</span> <span class="ident">STICKY</span> <span class="op">=</span> <span class="number">0b0010_0000</span>;
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">LexerError</span>;
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">default</span>();
+        <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">bytes</span>() {
+            <span class="kw">let</span> <span class="ident">new_flag</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span> {
+                <span class="string">b&#39;g&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">GLOBAL</span>,
+                <span class="string">b&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IGNORE_CASE</span>,
+                <span class="string">b&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">MULTILINE</span>,
+                <span class="string">b&#39;s&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">DOT_ALL</span>,
+                <span class="string">b&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">UNICODE</span>,
+                <span class="string">b&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">STICKY</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(
+                        <span class="string">&quot;invalid regular expression flag {}&quot;</span>,
+                        <span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">c</span>)
+                    )))
+                }
+            };
+
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">new_flag</span>) {
+                <span class="ident">flags</span>.<span class="ident">insert</span>(<span class="ident">new_flag</span>);
+            } <span class="kw">else</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;invalid regular expression flag {}&quot;</span>,
+                    <span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">c</span>)
+                )));
+            }
+        }
+        <span class="prelude-val">Ok</span>(<span class="ident">flags</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">use</span> <span class="ident">fmt</span>::<span class="ident">Write</span>;
+
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">GLOBAL</span>) {
+            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;g&#39;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">IGNORE_CASE</span>) {
+            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;i&#39;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">MULTILINE</span>) {
+            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;m&#39;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">DOT_ALL</span>) {
+            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;s&#39;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">UNICODE</span>) {
+            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;u&#39;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">STICKY</span>) {
+            <span class="ident">f</span>.<span class="ident">write_char</span>(<span class="string">&#39;y&#39;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Serializer</span>,
+    {
+        <span class="ident">serializer</span>.<span class="ident">serialize_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_string</span>())
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::{<span class="self">self</span>, <span class="ident">Visitor</span>};
+
+        <span class="doccomment">/// Deserializer visitor implementation for `RegExpFlags`.</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+        <span class="kw">struct</span> <span class="ident">RegExpFlagsVisitor</span>;
+
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RegExpFlagsVisitor</span> {
+            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">RegExpFlags</span>;
+
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+                <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a string representing JavaScript regular expression flags&quot;</span>)
+            }
+
+            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+            {
+                <span class="ident">value</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">E</span>::<span class="ident">custom</span>)
+            }
+
+            <span class="kw">fn</span> <span class="ident">visit_string</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+            {
+                <span class="self">self</span>.<span class="ident">visit_str</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>)
+            }
+        }
+
+        <span class="ident">deserializer</span>.<span class="ident">deserialize_str</span>(<span class="ident">RegExpFlagsVisitor</span>)
+    }
+}
+
 <span class="doccomment">/// Represents the type of Token and the data it has inside.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
@@ -325,7 +562,7 @@
     <span class="ident">EOF</span>,
 
     <span class="doccomment">/// An identifier.</span>
-    <span class="ident">Identifier</span>(<span class="ident">String</span>),
+    <span class="ident">Identifier</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// A keyword.</span>
     <span class="doccomment">///</span>
@@ -344,10 +581,10 @@
     <span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>),
 
     <span class="doccomment">/// A string literal.</span>
-    <span class="ident">StringLiteral</span>(<span class="ident">String</span>),
+    <span class="ident">StringLiteral</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// A regular expression, consisting of body and flags.</span>
-    <span class="ident">RegularExpressionLiteral</span>(<span class="ident">String</span>, <span class="ident">String</span>),
+    <span class="ident">RegularExpressionLiteral</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">RegExpFlags</span>),
 
     <span class="doccomment">/// Indicates the end of a line (`\n`).</span>
     <span class="ident">LineTerminator</span>,
@@ -385,7 +622,7 @@
     <span class="doccomment">/// Creates an `Identifier` token type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">identifier</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">ident</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">Identifier</span>(<span class="ident">ident</span>.<span class="ident">into</span>())
     }
@@ -411,18 +648,17 @@
     <span class="doccomment">/// Creates a `StringLiteral` token type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_literal</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">lit</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span>::<span class="ident">StringLiteral</span>(<span class="ident">lit</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Creates a `RegularExpressionLiteral` token kind.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regular_expression_literal</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">B</span>, <span class="ident">flags</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regular_expression_literal</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">B</span>, <span class="ident">flags</span>: <span class="ident">RegExpFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span>::<span class="ident">RegularExpressionLiteral</span>(<span class="ident">body</span>.<span class="ident">into</span>(), <span class="ident">flags</span>.<span class="ident">into</span>())
+        <span class="self">Self</span>::<span class="ident">RegularExpressionLiteral</span>(<span class="ident">body</span>.<span class="ident">into</span>(), <span class="ident">flags</span>)
     }
 
     <span class="doccomment">/// Creates a `LineTerminator` token kind.</span>
@@ -432,7 +668,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TokenKind</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">BooleanLiteral</span>(<span class="kw-2">ref</span> <span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>),
             <span class="self">Self</span>::<span class="ident">EOF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;end of file&quot;</span>),
