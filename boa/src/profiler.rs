@@ -20,6 +20,7 @@ pub struct BoaProfiler {
 }
 
 pub static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
+
 #[cfg(feature = "profiler")]
 impl BoaProfiler {
     pub fn start_event(&self, label: &str, category: &str) -> TimingGuard<'_, SerializationSink> {

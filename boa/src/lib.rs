@@ -30,6 +30,7 @@
     clippy::must_use_candidate,
     clippy::missing_errors_doc,
     clippy::as_conversions,
+    clippy::let_unit_value,
     missing_doc_code_examples
 )]
 
