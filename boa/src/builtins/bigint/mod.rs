@@ -96,14 +96,14 @@ impl BigInt {
         ))
     }
 
-    // /// `BigInt.prototype.valueOf()`
-    // ///
-    // /// The `valueOf()` method returns the wrapped primitive value of a Number object.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
+    /// `BigInt.prototype.valueOf()`
+    ///
+    /// The `valueOf()` method returns the wrapped primitive value of a Number object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
     pub(crate) fn value_of(
@@ -124,7 +124,7 @@ impl BigInt {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_constructor_fn(Self::make_bigint, global, prototype)
+        make_constructor_fn("BigInt", 1, Self::make_bigint, global, prototype, false)
     }
 
     /// Initialise the `BigInt` object on the global object.
