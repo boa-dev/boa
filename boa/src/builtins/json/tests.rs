@@ -160,11 +160,17 @@ fn json_stringify_function_replacer_propogate_error() {
 
     let actual = forward(
         &mut engine,
-        r#"JSON.stringify({x: 1}, (key, value) => {
-         throw new TypeError("type error")
-     })"#,
+        r#"
+        let thrown = 0;
+        try {
+            JSON.stringify({x: 1}, (key, value) => { throw 1 })
+        } catch (err) {
+            thrown = err;
+        }
+        thrown
+        "#,
     );
-    let expected = forward(&mut engine, r#"'Error: undefined'"#);
+    let expected = forward(&mut engine, r#"1"#);
 
     assert_eq!(actual, expected);
 }
