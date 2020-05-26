@@ -47,7 +47,7 @@ impl Object {
         }
     }
 
-    pub fn properties(&self) -> &Box<[PropertyDefinition]> {
+    pub fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
     }
 

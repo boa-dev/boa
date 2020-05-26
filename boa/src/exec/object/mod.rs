@@ -3,7 +3,6 @@
 use super::{Executable, Interpreter};
 use crate::{
     builtins::value::{ResultValue, Value},
-    environment::lexical_environment::{new_declarative_environment, VariableScope},
     syntax::ast::node::MethodDefinitionKind,
     syntax::ast::node::{Object, PropertyDefinition},
 };

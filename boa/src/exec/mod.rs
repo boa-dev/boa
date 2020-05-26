@@ -25,7 +25,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition, StatementList},
+        node::{FormalParameter, Node, StatementList},
     },
 };
 use std::{borrow::Borrow, ops::Deref};
