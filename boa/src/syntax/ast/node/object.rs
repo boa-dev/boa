@@ -28,7 +28,6 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
 /// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
-
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
@@ -37,16 +36,6 @@ pub struct Object {
 }
 
 impl Object {
-    /// Creates an `Object` AST node.
-    pub fn new<D>(props: D) -> Self
-    where
-        D: Into<Box<[PropertyDefinition]>>,
-    {
-        Self {
-            properties: props.into(),
-        }
-    }
-
     pub fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
     }
@@ -78,6 +67,17 @@ impl Object {
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.display(f, 0)
+    }
+}
+
+impl<T> From<T> for Object
+where
+    T: Into<Box<[PropertyDefinition]>>,
+{
+    fn from(props: T) -> Self {
+        Self {
+            properties: props.into(),
+        }
     }
 }
 
