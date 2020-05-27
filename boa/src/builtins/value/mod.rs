@@ -13,14 +13,16 @@ use crate::builtins::{
     },
     property::Property,
 };
+use crate::syntax::ast::bigint::BigInt;
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
     collections::HashSet,
+    convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
-    ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Not, Rem, Shl, Shr, Sub},
+    ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
     str::FromStr,
 };
 
@@ -86,6 +88,12 @@ impl Value {
         Self::rational(value.into())
     }
 
+    /// Creates a new bigint value.
+    #[inline]
+    pub fn bigint(value: BigInt) -> Self {
+        Self(Gc::new(ValueData::BigInt(value)))
+    }
+
     /// Creates a new boolean value.
     #[inline]
     pub fn boolean(value: bool) -> Self {
@@ -106,13 +114,16 @@ impl Value {
 
     /// Helper function to convert the `Value` to a number and compute its power.
     pub fn as_num_to_power(&self, other: Self) -> Self {
-        Self::rational(self.to_number().powf(other.to_number()))
+        match (self.data(), other.data()) {
+            (ValueData::BigInt(ref a), ValueData::BigInt(ref b)) => Self::bigint(a.clone().pow(b)),
+            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
+        }
     }
 
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
         if let Some(global) = global {
-            let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
+            let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
 
             let object = Object::create(object_prototype);
             Self::object(object)
@@ -151,21 +162,23 @@ impl Display for Value {
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum ValueData {
-    /// `null` - A null value, for when a value doesn't exist
+    /// `null` - A null value, for when a value doesn't exist.
     Null,
-    /// `undefined` - An undefined value, for when a field or index doesn't exist
+    /// `undefined` - An undefined value, for when a field or index doesn't exist.
     Undefined,
-    /// `boolean` - A `true` / `false` value, for if a certain criteria is met
+    /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
-    /// `String` - A UTF-8 string, such as `"Hello, world"`
+    /// `String` - A UTF-8 string, such as `"Hello, world"`.
     String(String),
     /// `Number` - A 64-bit floating point number, such as `3.1415`
     Rational(f64),
-    /// `Number` - A 32-bit integer, such as `42`
+    /// `Number` - A 32-bit integer, such as `42`.
     Integer(i32),
-    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values
+    /// `BigInt` - holds any arbitrary large signed integer.
+    BigInt(BigInt),
+    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
     Object(Box<GcCell<Object>>),
-    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots
+    /// `Symbol` - A Symbol Type - Internally Symbols are similar to objects, except there are no properties, only internal slots.
     Symbol(Box<GcCell<Object>>),
 }
 
@@ -204,7 +217,7 @@ impl ValueData {
         match *self {
             Self::Object(ref o) => {
                 let borrowed_obj = o.borrow();
-                borrowed_obj.is_callable() || borrowed_obj.is_constructor()
+                borrowed_obj.is_callable() || borrowed_obj.is_constructable()
             }
             _ => false,
         }
@@ -290,6 +303,7 @@ impl ValueData {
             Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
             Self::Integer(n) if n != 0 => true,
             Self::Boolean(v) => v,
+            Self::BigInt(ref n) if *n != 0 => true,
             _ => false,
         }
     }
@@ -312,6 +326,9 @@ impl ValueData {
             Self::Boolean(false) | Self::Null => 0.0,
             Self::Rational(num) => num,
             Self::Integer(num) => f64::from(num),
+            Self::BigInt(_) => {
+                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
+            }
         }
     }
 
@@ -330,6 +347,30 @@ impl ValueData {
             Self::Rational(num) => num as i32,
             Self::Boolean(true) => 1,
             Self::Integer(num) => num,
+            Self::BigInt(_) => {
+                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
+            }
+        }
+    }
+
+    /// Helper function.
+    pub fn to_bigint(&self) -> Option<BigInt> {
+        match self {
+            Self::String(ref string) => string_to_bigint(string),
+            Self::Boolean(true) => Some(BigInt::from(1)),
+            Self::Boolean(false) | Self::Null => Some(BigInt::from(0)),
+            Self::Rational(num) => BigInt::try_from(*num).ok(),
+            Self::Integer(num) => Some(BigInt::from(*num)),
+            ValueData::BigInt(b) => Some(b.clone()),
+            ValueData::Object(ref o) => {
+                let object = (o).deref().borrow();
+                if object.kind == ObjectKind::BigInt {
+                    object.get_internal_slot("BigIntData").to_bigint()
+                } else {
+                    None
+                }
+            }
+            _ => None,
         }
     }
 
@@ -443,8 +484,11 @@ impl ValueData {
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field(&self, field: Value) -> Value {
-        match *field {
+    pub fn get_field<F>(&self, field: F) -> Value
+    where
+        F: Into<Value>,
+    {
+        match *field.into() {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
                 match self.get_property(s) {
@@ -545,24 +589,23 @@ impl ValueData {
         self.get_property(field).is_some()
     }
 
-    /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
-    pub fn get_field_slice(&self, field: &str) -> Value {
-        // get_field used to accept strings, but now Symbols accept it needs to accept a value
-        // So this function will now need to Box strings back into values (at least for now)
-        let f = Value::string(field.to_string());
-        self.get_field(f)
-    }
-
     /// Set the field in the value
     /// Field could be a Symbol, so we need to accept a Value (not a string)
-    pub fn set_field(&self, field: Value, val: Value) -> Value {
+    pub fn set_field<F, V>(&self, field: F, val: V) -> Value
+    where
+        F: Into<Value>,
+        V: Into<Value>,
+    {
+        let field = field.into();
+        let val = val.into();
+
         if let Self::Object(ref obj) = *self {
             if obj.borrow().kind == ObjectKind::Array {
                 if let Ok(num) = field.to_string().parse::<usize>() {
                     if num > 0 {
-                        let len = i32::from(&self.get_field_slice("length"));
+                        let len = i32::from(&self.get_field("length"));
                         if len < (num + 1) as i32 {
-                            self.set_field_slice("length", Value::from(num + 1));
+                            self.set_field("length", Value::from(num + 1));
                         }
                     }
                 }
@@ -578,14 +621,6 @@ impl ValueData {
         }
 
         val
-    }
-
-    /// Set the field in the value
-    pub fn set_field_slice(&self, field: &str, val: Value) -> Value {
-        // set_field used to accept strings, but now Symbols accept it needs to accept a value
-        // So this function will now need to Box strings back into values (at least for now)
-        let f = Value::string(field.to_string());
-        self.set_field(f, val)
     }
 
     /// Set the private field in the value
@@ -634,11 +669,11 @@ impl ValueData {
         // Get Length
         let length = native_func.params.len();
         // Set [[Call]] internal slot
-        new_func.set_call(native_func);
+        new_func.set_func(native_func);
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters
-        new_func_val.set_field_slice("length", Value::from(length));
+        new_func_val.set_field("length", Value::from(length));
         new_func_val
     }
 
@@ -689,7 +724,7 @@ impl ValueData {
                     .borrow()
                     .properties
                     .iter()
-                    .map(|(k, _)| (k.clone(), self.get_field_slice(k).to_json()))
+                    .map(|(k, _)| (k.clone(), self.get_field(k.as_str()).to_json()))
                     .collect::<Map<String, JSONValue>>();
                 JSONValue::Object(new_obj)
             }
@@ -698,6 +733,10 @@ impl ValueData {
                 JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
             ),
             Self::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
+            Self::BigInt(_) => {
+                // TODO: throw TypeError
+                panic!("TypeError: \"BigInt value can't be serialized in JSON\"");
+            }
         }
     }
 
@@ -710,7 +749,7 @@ impl ValueData {
             Self::String(_) => "string",
             Self::Boolean(_) => "boolean",
             Self::Symbol(_) => "symbol",
-            Self::Null => "null",
+            Self::Null => "object",
             Self::Undefined => "undefined",
             Self::Object(ref o) => {
                 if o.deref().borrow().is_callable() {
@@ -719,6 +758,7 @@ impl ValueData {
                     "object"
                 }
             }
+            Self::BigInt(_) => "bigint",
         }
     }
 }
@@ -938,6 +978,7 @@ impl Display for ValueData {
             ),
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
+            Self::BigInt(ref num) => write!(f, "{}n", num),
         }
     }
 }

@@ -6,10 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#prod-HoistableDeclaration
 
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator},
+    ast::{node::FunctionDecl, Keyword, Node, Punctuator},
     parser::{
         function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 
@@ -23,12 +23,12 @@ use crate::syntax::{
 pub(super) struct HoistableDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    allow_default: AllowDefault,
+    is_default: AllowDefault,
 }
 
 impl HoistableDeclaration {
     /// Creates a new `HoistableDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, allow_default: D) -> Self
+    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -37,7 +37,7 @@ impl HoistableDeclaration {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
-            allow_default: allow_default.into(),
+            is_default: is_default.into(),
         }
     }
 }
@@ -47,8 +47,9 @@ impl TokenParser for HoistableDeclaration {
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
         // TODO: check for generators and async functions + generators
-        FunctionDeclaration::new(self.allow_yield, self.allow_await, self.allow_default)
+        FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
             .parse(cursor)
+            .map(Node::from)
     }
 }
 
@@ -64,12 +65,12 @@ impl TokenParser for HoistableDeclaration {
 struct FunctionDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    allow_default: AllowDefault,
+    is_default: AllowDefault,
 }
 
 impl FunctionDeclaration {
     /// Creates a new `FunctionDeclaration` parser.
-    fn new<Y, A, D>(allow_yield: Y, allow_await: A, allow_default: D) -> Self
+    fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -78,17 +79,18 @@ impl FunctionDeclaration {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
-            allow_default: allow_default.into(),
+            is_default: is_default.into(),
         }
     }
 }
 
 impl TokenParser for FunctionDeclaration {
-    type Output = Node;
+    type Output = FunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Function, "function declaration")?;
 
+        // TODO: If self.is_default, then this can be empty.
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect(Punctuator::OpenParen, "function declaration")?;
@@ -98,12 +100,10 @@ impl TokenParser for FunctionDeclaration {
         cursor.expect(Punctuator::CloseParen, "function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "function declaration")?;
 
-        let body = FunctionBody::new(self.allow_yield, self.allow_await)
-            .parse(cursor)
-            .map(Node::statement_list)?;
+        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 
-        Ok(Node::function_decl(name, params, body))
+        Ok(FunctionDecl::new(name, params, body))
     }
 }

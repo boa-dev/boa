@@ -99,10 +99,8 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back()
     }
 
-    pub fn environments(&self) -> impl Iterator<Item = Environment> {
-        std::iter::successors(Some(self.get_current_environment_ref().clone()), |env| {
-            env.borrow().get_outer_environment()
-        })
+    pub fn environments(&self) -> impl Iterator<Item = &Environment> {
+        self.environment_stack.iter().rev()
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
@@ -111,6 +109,13 @@ impl LexicalEnvironment {
             .expect("")
             .borrow()
             .get_global_object()
+    }
+
+    pub fn get_this_binding(&self) -> Value {
+        self.environments()
+            .find(|env| env.borrow().has_this_binding())
+            .map(|env| env.borrow().get_this_binding())
+            .unwrap_or_else(Value::undefined)
     }
 
     pub fn create_mutable_binding(&mut self, name: String, deletion: bool, scope: VariableScope) {
@@ -187,10 +192,8 @@ impl LexicalEnvironment {
     /// get_current_environment_ref is used when you only need to borrow the environment
     /// (you only need to add a new variable binding, or you want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
-        let index = self.environment_stack.len().wrapping_sub(1);
-        &self
-            .environment_stack
-            .get(index)
+        self.environment_stack
+            .back()
             .expect("Could not get current environment")
     }
 
@@ -226,18 +229,18 @@ pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
 
 pub fn new_function_environment(
     f: Value,
-    new_target: Value,
+    this: Option<Value>,
     outer: Option<Environment>,
+    binding_status: BindingStatus,
 ) -> Environment {
-    debug_assert!(new_target.is_object() || new_target.is_undefined());
     Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
         env_rec: FxHashMap::default(),
         function: f,
-        this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
+        this_binding_status: binding_status,
         home_object: Value::undefined(),
-        new_target,
+        new_target: Value::undefined(),
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-        this_value: Value::undefined(), // TODO: this_value should start as an Option as its not always there to begin with
+        this_value: this.unwrap_or_else(Value::undefined),
     })))
 }
 

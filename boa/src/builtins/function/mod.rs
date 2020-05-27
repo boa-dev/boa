@@ -13,15 +13,15 @@
 
 use crate::{
     builtins::{
-        array,
-        object::{Object, ObjectInternalMethods, ObjectKind, PROTOTYPE},
+        array::Array,
+        object::{Object, ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{ResultValue, Value},
     },
+    environment::function_environment_record::BindingStatus,
     environment::lexical_environment::{new_function_environment, Environment},
-    exec::Executor,
-    syntax::ast::node::{FormalParameter, Node},
-    Interpreter,
+    exec::{Executable, Interpreter},
+    syntax::ast::node::{FormalParameter, StatementList},
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
@@ -49,14 +49,14 @@ pub enum ThisMode {
 #[derive(Clone, Finalize)]
 pub enum FunctionBody {
     BuiltIn(NativeFunctionData),
-    Ordinary(Node),
+    Ordinary(StatementList),
 }
 
 impl Debug for FunctionBody {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BuiltIn(_) => write!(f, "native code"),
-            Self::Ordinary(node) => write!(f, "{}", node),
+            Self::Ordinary(statements) => write!(f, "{:?}", statements),
         }
     }
 }
@@ -72,18 +72,6 @@ unsafe impl Trace for FunctionBody {
     unsafe_empty_trace!();
 }
 
-/// Signal what sort of function this is
-#[derive(Clone, Debug, Copy, Finalize)]
-pub enum FunctionKind {
-    BuiltIn,
-    Ordinary,
-}
-
-/// Waiting on <https://github.com/Manishearth/rust-gc/issues/87> until we can derive Copy
-unsafe impl Trace for FunctionKind {
-    unsafe_empty_trace!();
-}
-
 /// Boa representation of a Function Object.
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
@@ -95,48 +83,73 @@ pub struct Function {
     pub params: Box<[FormalParameter]>,
     /// This Mode
     pub this_mode: ThisMode,
-    /// Function kind
-    pub kind: FunctionKind,
     // Environment, built-in functions don't need Environments
     pub environment: Option<Environment>,
+    /// Is it constructable
+    constructable: bool,
+    /// Is it callable.
+    callable: bool,
 }
 
 impl Function {
-    /// This will create an ordinary function object
-    ///
-    /// <https://tc39.es/ecma262/#sec-ordinaryfunctioncreate>
-    pub fn create_ordinary<P>(
+    pub fn new<P>(
         parameter_list: P,
-        scope: Environment,
+        scope: Option<Environment>,
         body: FunctionBody,
         this_mode: ThisMode,
+        constructable: bool,
+        callable: bool,
     ) -> Self
     where
         P: Into<Box<[FormalParameter]>>,
     {
         Self {
             body,
-            environment: Some(scope),
+            environment: scope,
             params: parameter_list.into(),
-            kind: FunctionKind::Ordinary,
             this_mode,
+            constructable,
+            callable,
         }
+    }
+
+    /// This will create an ordinary function object
+    ///
+    /// <https://tc39.es/ecma262/#sec-ordinaryfunctioncreate>
+    pub fn ordinary<P>(
+        parameter_list: P,
+        scope: Environment,
+        body: StatementList,
+        this_mode: ThisMode,
+    ) -> Self
+    where
+        P: Into<Box<[FormalParameter]>>,
+    {
+        Self::new(
+            parameter_list.into(),
+            Some(scope),
+            FunctionBody::Ordinary(body),
+            this_mode,
+            true,
+            true,
+        )
     }
 
     /// This will create a built-in function object
     ///
     /// <https://tc39.es/ecma262/#sec-createbuiltinfunction>
-    pub fn create_builtin<P>(parameter_list: P, body: FunctionBody) -> Self
+    pub fn builtin<P>(parameter_list: P, body: NativeFunctionData) -> Self
     where
         P: Into<Box<[FormalParameter]>>,
     {
-        Self {
-            body,
-            params: parameter_list.into(),
-            this_mode: ThisMode::NonLexical,
-            kind: FunctionKind::BuiltIn,
-            environment: None,
-        }
+        Self::new(
+            parameter_list.into(),
+            None,
+            FunctionBody::BuiltIn(body),
+            ThisMode::NonLexical,
+            false,
+            true,
+        )
     }
 
     /// This will handle calls for both ordinary and built-in functions
@@ -150,59 +163,57 @@ impl Function {
         interpreter: &mut Interpreter,
         this_obj: &mut Value,
     ) -> ResultValue {
-        match self.kind {
-            FunctionKind::BuiltIn => match &self.body {
+        if self.callable {
+            match self.body {
                 FunctionBody::BuiltIn(func) => func(this_obj, args_list, interpreter),
-                FunctionBody::Ordinary(_) => {
-                    panic!("Builtin function should not have Ordinary Function body")
-                }
-            },
-            FunctionKind::Ordinary => {
-                // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
-                // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                let local_env = new_function_environment(
-                    this.clone(),
-                    this_obj.clone(),
-                    Some(self.environment.as_ref().unwrap().clone()),
-                );
+                FunctionBody::Ordinary(ref body) => {
+                    // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+                    let local_env = new_function_environment(
+                        this.clone(),
+                        None,
+                        Some(self.environment.as_ref().unwrap().clone()),
+                        BindingStatus::Uninitialized,
+                    );
 
-                // Add argument bindings to the function environment
-                for i in 0..self.params.len() {
-                    let param = self.params.get(i).expect("Could not get param");
-                    // Rest Parameters
-                    if param.is_rest_param {
-                        self.add_rest_param(param, i, args_list, interpreter, &local_env);
-                        break;
+                    // Add argument bindings to the function environment
+                    for i in 0..self.params.len() {
+                        let param = self.params.get(i).expect("Could not get param");
+                        // Rest Parameters
+                        if param.is_rest_param() {
+                            self.add_rest_param(param, i, args_list, interpreter, &local_env);
+                            break;
+                        }
+
+                        let value = args_list.get(i).expect("Could not get value");
+                        self.add_arguments_to_environment(param, value.clone(), &local_env);
                     }
 
-                    let value = args_list.get(i).expect("Could not get value");
-                    self.add_arguments_to_environment(param, value.clone(), &local_env);
+                    // Add arguments object
+                    let arguments_obj = create_unmapped_arguments_object(args_list);
+                    local_env
+                        .borrow_mut()
+                        .create_mutable_binding("arguments".to_string(), false);
+                    local_env
+                        .borrow_mut()
+                        .initialize_binding("arguments", arguments_obj);
+
+                    interpreter.realm.environment.push(local_env);
+
+                    // Call body should be set before reaching here
+                    let result = body.run(interpreter);
+
+                    // local_env gets dropped here, its no longer needed
+                    interpreter.realm.environment.pop();
+                    result
                 }
-
-                // Add arguments object
-                let arguments_obj = create_unmapped_arguments_object(args_list);
-                local_env
-                    .borrow_mut()
-                    .create_mutable_binding("arguments".to_string(), false);
-                local_env
-                    .borrow_mut()
-                    .initialize_binding("arguments", arguments_obj);
-
-                interpreter.realm.environment.push(local_env);
-
-                // Call body should be set before reaching here
-                let result = match &self.body {
-                    FunctionBody::Ordinary(ref body) => interpreter.run(body),
-                    _ => panic!("Ordinary function should not have BuiltIn Function body"),
-                };
-
-                // local_env gets dropped here, its no longer needed
-                interpreter.realm.environment.pop();
-                result
             }
+        } else {
+            panic!("TypeError: class constructors must be invoked with 'new'");
         }
     }
 
+    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     pub fn construct(
         &self,
         this: &mut Value, // represents a pointer to this function object wrapped in a GC (not a `this` JS object)
@@ -210,55 +221,56 @@ impl Function {
         interpreter: &mut Interpreter,
         this_obj: &mut Value,
     ) -> ResultValue {
-        match self.kind {
-            FunctionKind::BuiltIn => match &self.body {
-                FunctionBody::BuiltIn(func) => func(this_obj, args_list, interpreter),
-                FunctionBody::Ordinary(_) => {
-                    panic!("Builtin function should not have Ordinary Function body")
+        if self.constructable {
+            match self.body {
+                FunctionBody::BuiltIn(func) => {
+                    func(this_obj, args_list, interpreter).unwrap();
+                    Ok(this_obj.clone())
                 }
-            },
-            FunctionKind::Ordinary => {
-                // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
-                // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                let local_env = new_function_environment(
-                    this.clone(),
-                    this_obj.clone(),
-                    Some(self.environment.as_ref().unwrap().clone()),
-                );
+                FunctionBody::Ordinary(ref body) => {
+                    // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+                    let local_env = new_function_environment(
+                        this.clone(),
+                        Some(this_obj.clone()),
+                        Some(self.environment.as_ref().unwrap().clone()),
+                        BindingStatus::Initialized,
+                    );
 
-                // Add argument bindings to the function environment
-                for (i, param) in self.params.iter().enumerate() {
-                    // Rest Parameters
-                    if param.is_rest_param {
-                        self.add_rest_param(param, i, args_list, interpreter, &local_env);
-                        break;
+                    // Add argument bindings to the function environment
+                    for (i, param) in self.params.iter().enumerate() {
+                        // Rest Parameters
+                        if param.is_rest_param() {
+                            self.add_rest_param(param, i, args_list, interpreter, &local_env);
+                            break;
+                        }
+
+                        let value = args_list.get(i).expect("Could not get value");
+                        self.add_arguments_to_environment(param, value.clone(), &local_env);
                     }
 
-                    let value = args_list.get(i).expect("Could not get value");
-                    self.add_arguments_to_environment(param, value.clone(), &local_env);
+                    // Add arguments object
+                    let arguments_obj = create_unmapped_arguments_object(args_list);
+                    local_env
+                        .borrow_mut()
+                        .create_mutable_binding("arguments".to_string(), false);
+                    local_env
+                        .borrow_mut()
+                        .initialize_binding("arguments", arguments_obj);
+
+                    interpreter.realm.environment.push(local_env);
+
+                    // Call body should be set before reaching here
+                    let _ = body.run(interpreter);
+
+                    // local_env gets dropped here, its no longer needed
+                    let binding = interpreter.realm.environment.get_this_binding();
+                    Ok(binding)
                 }
-
-                // Add arguments object
-                let arguments_obj = create_unmapped_arguments_object(args_list);
-                local_env
-                    .borrow_mut()
-                    .create_mutable_binding("arguments".to_string(), false);
-                local_env
-                    .borrow_mut()
-                    .initialize_binding("arguments", arguments_obj);
-
-                interpreter.realm.environment.push(local_env);
-
-                // Call body should be set before reaching here
-                let result = match &self.body {
-                    FunctionBody::Ordinary(ref body) => interpreter.run(body),
-                    _ => panic!("Ordinary function should not have BuiltIn Function body"),
-                };
-
-                // local_env gets dropped here, its no longer needed
-                interpreter.realm.environment.pop();
-                result
             }
+        } else {
+            let name = this.get_field("name").to_string();
+            panic!("TypeError: {} is not a constructor", name);
         }
     }
 
@@ -272,18 +284,18 @@ impl Function {
         local_env: &Environment,
     ) {
         // Create array of values
-        let array = array::new_array(interpreter).unwrap();
-        array::add_to_array_object(&array, &args_list[index..]).unwrap();
+        let array = Array::new_array(interpreter).unwrap();
+        Array::add_to_array_object(&array, &args_list[index..]).unwrap();
 
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name.clone(), false);
+            .create_mutable_binding(param.name().to_owned(), false);
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(&param.name, array);
+            .initialize_binding(param.name(), array);
     }
 
     // Adds an argument to the environment
@@ -296,12 +308,22 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name.clone(), false);
+            .create_mutable_binding(param.name().to_owned(), false);
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(&param.name, value);
+            .initialize_binding(param.name(), value);
+    }
+
+    /// Returns true if the function object is callable.
+    pub fn is_callable(&self) -> bool {
+        self.callable
+    }
+
+    /// Returns true if the function object is constructable.
+    pub fn is_constructable(&self) -> bool {
+        self.constructable
     }
 }
 
@@ -311,16 +333,6 @@ impl Debug for Function {
         write!(f, "[Not implemented]")?;
         write!(f, "}}")
     }
-}
-
-/// Function Prototype.
-///
-/// <https://tc39.es/ecma262/#sec-properties-of-the-function-prototype-object>
-pub fn create_function_prototype() {
-    let mut function_prototype: Object = Object::default();
-    // Set Kind to function (for historical & compatibility reasons)
-    // <https://tc39.es/ecma262/#sec-properties-of-the-function-prototype-object>
-    function_prototype.kind = ObjectKind::Function;
 }
 
 /// Arguments.
@@ -363,11 +375,77 @@ pub fn make_function(this: &mut Value, _: &[Value], _: &mut Interpreter) -> Resu
 pub fn create(global: &Value) -> Value {
     let prototype = Value::new_object(Some(global));
 
-    make_constructor_fn!(make_function, make_function, global, prototype)
+    make_constructor_fn("Function", 1, make_function, global, prototype, true)
+}
+
+/// Creates a new constructor function
+///
+/// This utility function handling linking the new Constructor to the prototype.
+/// So far this is only used by internal functions
+pub fn make_constructor_fn(
+    name: &str,
+    length: i32,
+    body: NativeFunctionData,
+    global: &Value,
+    proto: Value,
+    constructable: bool,
+) -> Value {
+    // Create the native function
+    let mut constructor_fn = Function::builtin(Vec::new(), body);
+
+    constructor_fn.constructable = constructable;
+
+    // Get reference to Function.prototype
+    let func_prototype = global.get_field("Function").get_field(PROTOTYPE);
+
+    // Create the function object and point its instance prototype to Function.prototype
+    let mut constructor_obj = Object::function();
+    constructor_obj.set_func(constructor_fn);
+
+    constructor_obj.set_internal_slot(INSTANCE_PROTOTYPE, func_prototype);
+    let constructor_val = Value::from(constructor_obj);
+
+    // Set proto.constructor -> constructor_obj
+    proto.set_field("constructor", constructor_val.clone());
+    constructor_val.set_field(PROTOTYPE, proto);
+
+    let length = Property::new()
+        .value(Value::from(length))
+        .writable(false)
+        .configurable(false)
+        .enumerable(false);
+    constructor_val.set_property_slice("length", length);
+
+    let name = Property::new()
+        .value(Value::from(name))
+        .writable(false)
+        .configurable(false)
+        .enumerable(false);
+    constructor_val.set_property_slice("name", name);
+
+    constructor_val
+}
+
+/// Macro to create a new member function of a prototype.
+///
+/// If no length is provided, the length will be set to 0.
+pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value, length: i32)
+where
+    N: Into<String>,
+{
+    let func = Function::builtin(Vec::new(), function);
+
+    let mut new_func = Object::function();
+    new_func.set_func(func);
+
+    let new_func_obj = Value::from(new_func);
+    new_func_obj.set_field("length", length);
+
+    parent.set_field(name.into(), new_func_obj);
 }
 
 /// Initialise the `Function` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("Function", create(global));
+    global.set_field("Function", create(global));
 }

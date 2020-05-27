@@ -68,7 +68,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {
         if self.bindings.has_field(name) {
-            self.bindings.get_field_slice(name)
+            self.bindings.get_field(name)
         } else {
             if strict {
                 // TODO: throw error here
@@ -85,6 +85,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn has_this_binding(&self) -> bool {
         false
+    }
+
+    fn get_this_binding(&self) -> Value {
+        Value::undefined()
     }
 
     fn has_super_binding(&self) -> bool {

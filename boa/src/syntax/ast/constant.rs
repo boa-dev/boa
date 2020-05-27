@@ -7,6 +7,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
+use crate::syntax::ast::bigint::BigInt;
 use gc::{Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
@@ -39,7 +40,7 @@ pub enum Const {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-string-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#String_literals
-    String(String),
+    String(Box<str>),
 
     /// A floating-point number literal.
     ///
@@ -63,6 +64,17 @@ pub enum Const {
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-number-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
     Int(i32),
+
+    /// BigInt provides a way to represent whole numbers larger than the largest number JavaScript
+    /// can reliably represent with the `Number` primitive.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-bigint-value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
+    BigInt(BigInt),
 
     /// The Boolean type has two literal values: `true` and `false`.
     ///
@@ -103,19 +115,25 @@ pub enum Const {
 
 impl From<&str> for Const {
     fn from(s: &str) -> Self {
-        Self::String(s.into())
+        Self::String(s.to_owned().into_boxed_str())
     }
 }
 
 impl From<&String> for Const {
     fn from(s: &String) -> Self {
-        Self::String(s.clone())
+        Self::String(s.clone().into_boxed_str())
+    }
+}
+
+impl From<Box<str>> for Const {
+    fn from(s: Box<str>) -> Self {
+        Self::String(s)
     }
 }
 
 impl From<String> for Const {
     fn from(s: String) -> Self {
-        Self::String(s)
+        Self::String(s.into_boxed_str())
     }
 }
 
@@ -131,6 +149,12 @@ impl From<i32> for Const {
     }
 }
 
+impl From<BigInt> for Const {
+    fn from(i: BigInt) -> Self {
+        Self::BigInt(i)
+    }
+}
+
 impl From<bool> for Const {
     fn from(b: bool) -> Self {
         Self::Bool(b)
@@ -143,6 +167,7 @@ impl Display for Const {
             Self::String(ref st) => write!(f, "\"{}\"", st),
             Self::Num(num) => write!(f, "{}", num),
             Self::Int(num) => write!(f, "{}", num),
+            Self::BigInt(ref num) => write!(f, "{}", num),
             Self::Bool(v) => write!(f, "{}", v),
             Self::Null => write!(f, "null"),
             Self::Undefined => write!(f, "undefined"),

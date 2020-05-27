@@ -5,11 +5,18 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
-use crate::syntax::ast::{keyword::Keyword, pos::Position, punc::Punctuator};
-use std::fmt::{Debug, Display, Formatter, Result};
+use crate::syntax::{
+    ast::{bigint::BigInt, Keyword, Punctuator, Span},
+    lexer::LexerError,
+};
+use bitflags::bitflags;
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+};
 
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
 ///
@@ -21,51 +28,46 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token kind, which contains the actual data of the token.
-    pub kind: TokenKind,
-
-    /// The token position from origina source code.
-    pub pos: Position,
+    pub(crate) kind: TokenKind,
+    /// The token position in the original source code.
+    span: Span,
 }
 
 impl Token {
     /// Create a new detailed token from the token data, line number and column number
-    pub fn new(kind: TokenKind, line_number: u64, column_number: u64) -> Self {
-        Self {
-            kind,
-            pos: Position::new(line_number, column_number),
-        }
+    pub fn new(kind: TokenKind, span: Span) -> Self {
+        Self { kind, span }
+    }
+
+    /// Gets the kind of the token.
+    pub fn kind(&self) -> &TokenKind {
+        &self.kind
+    }
+
+    /// Gets the token span in the original source code.
+    pub fn span(&self) -> Span {
+        self.span
     }
 }
 
 impl Display for Token {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.kind)
-    }
-}
-
-/// A continuous sequence of tokens.
-pub struct VecToken(Vec<Token>);
-
-impl Debug for VecToken {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        let mut buffer = String::new();
-        for token in &self.0 {
-            buffer.push_str(&token.to_string());
-        }
-        write!(f, "{}", buffer)
     }
 }
 
 /// Represents the type differenct types of numeric literals.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum NumericLiteral {
     /// A floating point number
     Rational(f64),
 
     /// An integer
     Integer(i32),
-    // TODO: Add BigInt
+
+    // A BigInt
+    BigInt(BigInt),
 }
 
 impl From<f64> for NumericLiteral {
@@ -80,6 +82,131 @@ impl From<i32> for NumericLiteral {
     }
 }
 
+impl From<BigInt> for NumericLiteral {
+    fn from(n: BigInt) -> Self {
+        Self::BigInt(n)
+    }
+}
+
+bitflags! {
+    #[derive(Default)]
+    pub struct RegExpFlags: u8 {
+        const GLOBAL = 0b0000_0001;
+        const IGNORE_CASE = 0b0000_0010;
+        const MULTILINE = 0b0000_0100;
+        const DOT_ALL = 0b0000_1000;
+        const UNICODE = 0b0001_0000;
+        const STICKY = 0b0010_0000;
+    }
+}
+
+impl FromStr for RegExpFlags {
+    type Err = LexerError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut flags = Self::default();
+        for c in s.bytes() {
+            let new_flag = match c {
+                b'g' => Self::GLOBAL,
+                b'i' => Self::IGNORE_CASE,
+                b'm' => Self::MULTILINE,
+                b's' => Self::DOT_ALL,
+                b'u' => Self::UNICODE,
+                b'y' => Self::STICKY,
+                _ => {
+                    return Err(LexerError::new(format!(
+                        "invalid regular expression flag {}",
+                        char::from(c)
+                    )))
+                }
+            };
+
+            if !flags.contains(new_flag) {
+                flags.insert(new_flag);
+            } else {
+                return Err(LexerError::new(format!(
+                    "invalid regular expression flag {}",
+                    char::from(c)
+                )));
+            }
+        }
+        Ok(flags)
+    }
+}
+
+impl Display for RegExpFlags {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        use fmt::Write;
+
+        if self.contains(Self::GLOBAL) {
+            f.write_char('g')?;
+        }
+        if self.contains(Self::IGNORE_CASE) {
+            f.write_char('i')?;
+        }
+        if self.contains(Self::MULTILINE) {
+            f.write_char('m')?;
+        }
+        if self.contains(Self::DOT_ALL) {
+            f.write_char('s')?;
+        }
+        if self.contains(Self::UNICODE) {
+            f.write_char('u')?;
+        }
+        if self.contains(Self::STICKY) {
+            f.write_char('y')?;
+        }
+        Ok(())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for RegExpFlags {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for RegExpFlags {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::{self, Visitor};
+
+        /// Deserializer visitor implementation for `RegExpFlags`.
+        #[derive(Debug, Clone, Copy)]
+        struct RegExpFlagsVisitor;
+
+        impl<'de> Visitor<'de> for RegExpFlagsVisitor {
+            type Value = RegExpFlags;
+
+            fn expecting(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+                formatter.write_str("a string representing JavaScript regular expression flags")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                value.parse().map_err(E::custom)
+            }
+
+            fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                self.visit_str(&value)
+            }
+        }
+
+        deserializer.deserialize_str(RegExpFlagsVisitor)
+    }
+}
+
 /// Represents the type of Token and the data it has inside.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
@@ -91,7 +218,7 @@ pub enum TokenKind {
     EOF,
 
     /// An identifier.
-    Identifier(String),
+    Identifier(Box<str>),
 
     /// A keyword.
     ///
@@ -110,10 +237,10 @@ pub enum TokenKind {
     Punctuator(Punctuator),
 
     /// A string literal.
-    StringLiteral(String),
+    StringLiteral(Box<str>),
 
     /// A regular expression, consisting of body and flags.
-    RegularExpressionLiteral(String, String),
+    RegularExpressionLiteral(Box<str>, RegExpFlags),
 
     /// Indicates the end of a line (`\n`).
     LineTerminator,
@@ -151,7 +278,7 @@ impl TokenKind {
     /// Creates an `Identifier` token type.
     pub fn identifier<I>(ident: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Box<str>>,
     {
         Self::Identifier(ident.into())
     }
@@ -177,18 +304,17 @@ impl TokenKind {
     /// Creates a `StringLiteral` token type.
     pub fn string_literal<S>(lit: S) -> Self
     where
-        S: Into<String>,
+        S: Into<Box<str>>,
     {
         Self::StringLiteral(lit.into())
     }
 
     /// Creates a `RegularExpressionLiteral` token kind.
-    pub fn regular_expression_literal<B, F>(body: B, flags: F) -> Self
+    pub fn regular_expression_literal<B>(body: B, flags: RegExpFlags) -> Self
     where
-        B: Into<String>,
-        F: Into<String>,
+        B: Into<Box<str>>,
     {
-        Self::RegularExpressionLiteral(body.into(), flags.into())
+        Self::RegularExpressionLiteral(body.into(), flags)
     }
 
     /// Creates a `LineTerminator` token kind.
@@ -198,7 +324,7 @@ impl TokenKind {
 }
 
 impl Display for TokenKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match *self {
             Self::BooleanLiteral(ref val) => write!(f, "{}", val),
             Self::EOF => write!(f, "end of file"),
@@ -207,6 +333,7 @@ impl Display for TokenKind {
             Self::NullLiteral => write!(f, "null"),
             Self::NumericLiteral(NumericLiteral::Rational(num)) => write!(f, "{}", num),
             Self::NumericLiteral(NumericLiteral::Integer(num)) => write!(f, "{}", num),
+            Self::NumericLiteral(NumericLiteral::BigInt(ref num)) => write!(f, "{}n", num),
             Self::Punctuator(ref punc) => write!(f, "{}", punc),
             Self::StringLiteral(ref lit) => write!(f, "{}", lit),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),

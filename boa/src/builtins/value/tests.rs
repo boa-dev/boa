@@ -1,5 +1,5 @@
 use super::*;
-use crate::{forward, Executor, Realm};
+use crate::{forward, Interpreter, Realm};
 
 #[test]
 fn check_is_object() {
@@ -27,8 +27,8 @@ fn check_get_set_field() {
     let obj = Value::new_object(None);
     // Create string and convert it to a Value
     let s = Value::from("bar");
-    obj.set_field_slice("foo", s);
-    assert_eq!(obj.get_field_slice("foo").to_string(), "bar");
+    obj.set_field("foo", s);
+    assert_eq!(obj.get_field("foo").to_string(), "bar");
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn check_number_is_true() {
 #[test]
 fn abstract_equality_comparison() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "undefined == undefined"), "true");
     assert_eq!(forward(&mut engine, "null == null"), "true");
@@ -83,14 +83,12 @@ fn abstract_equality_comparison() {
     );
     assert_eq!(forward(&mut engine, "0 == null"), "false");
 
-    // https://github.com/jasonwilliams/boa/issues/357
     assert_eq!(forward(&mut engine, "0 == '-0'"), "true");
     assert_eq!(forward(&mut engine, "0 == '+0'"), "true");
     assert_eq!(forward(&mut engine, "'+0' == 0"), "true");
     assert_eq!(forward(&mut engine, "'-0' == 0"), "true");
 
-    // https://github.com/jasonwilliams/boa/issues/393
-    // assert_eq!(forward(&mut engine, "0 == NaN"), "false");
-    // assert_eq!(forward(&mut engine, "'foo' == NaN"), "false");
-    // assert_eq!(forward(&mut engine, "NaN == NaN"), "false");
+    assert_eq!(forward(&mut engine, "0 == NaN"), "false");
+    assert_eq!(forward(&mut engine, "'foo' == NaN"), "false");
+    assert_eq!(forward(&mut engine, "NaN == NaN"), "false");
 }

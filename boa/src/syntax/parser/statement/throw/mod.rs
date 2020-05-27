@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{Keyword, Node, Punctuator, TokenKind},
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
 
@@ -40,7 +40,7 @@ impl TokenParser for ThrowStatement {
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
         cursor.expect(Keyword::Throw, "throw statement")?;
 
-        cursor.peek_expect_no_lineterminator(0, "throw statement")?;
+        cursor.peek_expect_no_lineterminator(0)?;
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
         if let Some(tok) = cursor.peek(0) {

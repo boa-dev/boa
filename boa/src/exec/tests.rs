@@ -1,7 +1,4 @@
-use crate::exec;
-use crate::exec::Executor;
-use crate::forward;
-use crate::realm::Realm;
+use crate::{exec, exec::Interpreter, forward, realm::Realm};
 
 #[test]
 fn empty_let_decl_undefined() {
@@ -47,7 +44,7 @@ fn object_field_set() {
 #[test]
 fn spread_with_arguments() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     let scenario = r#"
             const a = [1, "test", 3, 4];
@@ -74,7 +71,7 @@ fn spread_with_arguments() {
 #[test]
 fn array_rest_with_arguments() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     let scenario = r#"
             var b = [4, 5, 6]
@@ -329,10 +326,7 @@ fn test_for_loop() {
 
         a
         "#;
-    assert_eq!(
-        exec(body_should_not_execute_on_false_condition),
-        String::from("0")
-    );
+    assert_eq!(&exec(body_should_not_execute_on_false_condition), "0");
 
     let inner_scope = r#"
         for (let i = 0;false;) {}
@@ -383,6 +377,63 @@ fn unary_pre() {
         --a === 4;
     "#;
     assert_eq!(&exec(execs_before_dec), "true");
+}
+
+#[test]
+fn unary_typeof() {
+    let typeof_string = r#"
+        const a = String();
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_string), "string");
+
+    let typeof_int = r#"
+        let a = 5;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_int), "number");
+
+    let typeof_rational = r#"
+        let a = 0.5;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_rational), "number");
+
+    let typeof_undefined = r#"
+        let a = undefined;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_undefined), "undefined");
+
+    let typeof_boolean = r#"
+        let a = true;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_boolean), "boolean");
+
+    let typeof_null = r#"
+        let a = null;
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_null), "object");
+
+    let typeof_object = r#"
+        let a = {};
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_object), "object");
+
+    let typeof_symbol = r#"
+        let a = Symbol();
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_symbol), "symbol");
+
+    let typeof_function = r#"
+        let a = function(){};
+        typeof a;
+    "#;
+    assert_eq!(&exec(typeof_function), "function");
 }
 
 #[test]
@@ -500,6 +551,7 @@ fn unary_delete() {
 #[cfg(test)]
 mod in_operator {
     use super::*;
+    use crate::{builtins::object::INSTANCE_PROTOTYPE, forward_val};
     #[test]
     fn propery_in_object() {
         let p_in_o = r#"
@@ -564,4 +616,131 @@ mod in_operator {
         "#;
         exec(scenario);
     }
+
+    #[test]
+    fn should_set_this_value() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+
+        let scenario = r#"
+        function Foo() {
+            this.a = "a";
+            this.b = "b";
+          }
+          
+          var bar = new Foo();
+        "#;
+        forward(&mut engine, scenario);
+        assert_eq!(forward(&mut engine, "bar.a"), "a");
+        assert_eq!(forward(&mut engine, "bar.b"), "b");
+    }
+
+    #[test]
+    fn new_instance_should_point_to_prototype() {
+        // A new instance should point to a prototype object created with the constructor function
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+
+        let scenario = r#"
+            function Foo() {}            
+            var bar = new Foo();
+        "#;
+        forward(&mut engine, scenario);
+        let a = forward_val(&mut engine, "bar").unwrap();
+        assert!(a.get_internal_slot(INSTANCE_PROTOTYPE).is_object(), true);
+    }
+}
+
+#[test]
+fn var_decl_hoisting() {
+    let scenario = r#"
+        x = 5;
+        
+        var x;
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "5");
+
+    let scenario = r#"
+        x = 5;
+
+        var x = 10;
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "10");
+
+    let scenario = r#"
+        x = y;
+
+        var x = 10;
+        var y = 5;
+
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "10");
+
+    let scenario = r#"
+        var x = y;
+
+        var y = 5;
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "undefined");
+
+    let scenario = r#"
+        let y = x;
+        x = 5;
+
+        var x = 10;
+        y;
+    "#;
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn function_decl_hoisting() {
+    let scenario = r#"
+        let a = hello();
+        function hello() { return 5 }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "5");
+
+    let scenario = r#"
+        x = hello();
+
+        function hello() {return 5}
+        var x;
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "5");
+
+    let scenario = r#"
+        hello = function() { return 5 }
+        x = hello();
+
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "5");
+
+    let scenario = r#"
+        let x = b();
+
+        function a() {return 5}
+        function b() {return a()}
+        
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "5");
+
+    let scenario = r#"
+        let x = b();
+
+        function b() {return a()}
+        function a() {return 5}
+        
+        x;
+    "#;
+    assert_eq!(&exec(scenario), "5");
 }

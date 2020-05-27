@@ -1,7 +1,5 @@
 use super::*;
-use crate::exec::Executor;
-use crate::realm::Realm;
-use crate::{forward, forward_val};
+use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[test]
 fn check_symbol_constructor_is_function() {
@@ -13,7 +11,7 @@ fn check_symbol_constructor_is_function() {
 #[test]
 fn call_symbol_and_check_return_type() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var sym = Symbol();
         "#;
@@ -25,7 +23,7 @@ fn call_symbol_and_check_return_type() {
 #[test]
 fn print_symbol_expect_description() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var sym = Symbol("Hello");
         "#;

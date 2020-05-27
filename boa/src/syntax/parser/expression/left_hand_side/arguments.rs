@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator, token::TokenKind},
+    ast::{Node, Punctuator, TokenKind},
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
@@ -43,9 +43,9 @@ impl Arguments {
 }
 
 impl TokenParser for Arguments {
-    type Output = Vec<Node>;
+    type Output = Box<[Node]>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Vec<Node>, ParseError> {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
@@ -54,7 +54,7 @@ impl TokenParser for Arguments {
                 TokenKind::Punctuator(Punctuator::CloseParen) => break,
                 TokenKind::Punctuator(Punctuator::Comma) => {
                     if args.is_empty() {
-                        return Err(ParseError::Unexpected(next_token.clone(), None));
+                        return Err(ParseError::unexpected(next_token.clone(), None));
                     }
 
                     if cursor.next_if(Punctuator::CloseParen).is_some() {
@@ -63,7 +63,7 @@ impl TokenParser for Arguments {
                 }
                 _ => {
                     if !args.is_empty() {
-                        return Err(ParseError::Expected(
+                        return Err(ParseError::expected(
                             vec![
                                 TokenKind::Punctuator(Punctuator::Comma),
                                 TokenKind::Punctuator(Punctuator::CloseParen),
@@ -89,6 +89,6 @@ impl TokenParser for Arguments {
                 );
             }
         }
-        Ok(args)
+        Ok(args.into_boxed_slice())
     }
 }

@@ -1,9 +1,21 @@
 //! Tests for the parser.
 
 use super::Parser;
-use crate::syntax::{ast::node::Node, ast::op::NumOp, lexer::Lexer};
+use crate::syntax::{
+    ast::{
+        node::{
+            Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, StatementList, UnaryOp,
+            VarDecl, VarDeclList,
+        },
+        op::{self, NumOp},
+        Const,
+    },
+    lexer::Lexer,
+};
 
+/// Checks that the given JavaScript string gives the expected expression.
 #[allow(clippy::result_unwrap_used)]
+// TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_parser<L>(js: &str, expr: L)
 where
     L: Into<Box<[Node]>>,
@@ -15,10 +27,12 @@ where
         Parser::new(&lexer.tokens)
             .parse_all()
             .expect("failed to parse"),
-        Node::statement_list(expr)
+        StatementList::from(expr)
     );
 }
 
+/// Checks that the given javascript string creates a parse error.
+// TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_invalid(js: &str) {
     let mut lexer = Lexer::new(js);
     lexer.lex().expect("failed to lex");
@@ -31,13 +45,13 @@ pub(super) fn check_invalid(js: &str) {
 fn check_construct_call_precedence() {
     check_parser(
         "new Date().getTime()",
-        vec![Node::call(
+        vec![Node::from(Call::new(
             Node::get_const_field(
-                Node::new(Node::call(Node::local("Date"), Vec::new())),
+                New::from(Call::new(Identifier::from("Date"), vec![])),
                 "getTime",
             ),
-            Vec::new(),
-        )],
+            vec![],
+        ))],
     );
 }
 
@@ -45,9 +59,48 @@ fn check_construct_call_precedence() {
 fn assign_operator_precedence() {
     check_parser(
         "a = a + 1",
-        vec![Node::assign(
-            Node::local("a"),
-            Node::bin_op(NumOp::Add, Node::local("a"), Node::const_node(1)),
-        )],
+        vec![Assign::new(
+            Identifier::from("a"),
+            BinOp::new(NumOp::Add, Identifier::from("a"), Const::from(1)),
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn hoisting() {
+    check_parser(
+        r"
+            var a = hello();
+            a++;
+
+            function hello() { return 10 }",
+        vec![
+            FunctionDecl::new(
+                Box::from("hello"),
+                vec![],
+                vec![Node::return_node(Const::from(10))],
+            )
+            .into(),
+            VarDeclList::from(vec![VarDecl::new(
+                "a",
+                Node::from(Call::new(Identifier::from("hello"), vec![])),
+            )])
+            .into(),
+            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
+        ],
+    );
+
+    check_parser(
+        r"
+            a = 10;
+            a++;
+
+            var a;",
+        vec![
+            Assign::new(Identifier::from("a"), Const::from(10)).into(),
+            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
+            VarDeclList::from(vec![VarDecl::new("a", None)]).into(),
+        ],
     );
 }

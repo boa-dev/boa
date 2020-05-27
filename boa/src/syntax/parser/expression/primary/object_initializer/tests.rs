@@ -1,5 +1,11 @@
 use crate::syntax::{
-    ast::node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition},
+    ast::{
+        node::{
+            ConstDecl, ConstDeclList, FormalParameter, FunctionExpr, MethodDefinitionKind, Node,
+            PropertyDefinition,
+        },
+        Const,
+    },
     parser::tests::check_parser,
 };
 
@@ -7,8 +13,8 @@ use crate::syntax::{
 #[test]
 fn check_object_literal() {
     let object_properties = vec![
-        PropertyDefinition::property("a", Node::const_node(true)),
-        PropertyDefinition::property("b", Node::const_node(false)),
+        PropertyDefinition::property("a", Const::from(true)),
+        PropertyDefinition::property("b", Const::from(false)),
     ];
 
     check_parser(
@@ -17,10 +23,9 @@ fn check_object_literal() {
             b: false,
         };
         ",
-        vec![Node::const_decl(vec![(
-            String::from("x"),
-            Node::object(object_properties),
-        )])],
+        vec![
+            ConstDeclList::from(vec![ConstDecl::new("x", Node::object(object_properties))]).into(),
+        ],
     );
 }
 
@@ -28,11 +33,11 @@ fn check_object_literal() {
 #[test]
 fn check_object_short_function() {
     let object_properties = vec![
-        PropertyDefinition::property("a", Node::const_node(true)),
+        PropertyDefinition::property("a", Const::from(true)),
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Ordinary,
             "b",
-            Node::function_expr::<_, String, _, _>(None, Vec::new(), Node::statement_list(vec![])),
+            FunctionExpr::new(None, vec![], vec![]),
         ),
     ];
 
@@ -42,10 +47,9 @@ fn check_object_short_function() {
             b() {},
         };
         ",
-        vec![Node::const_decl(vec![(
-            String::from("x"),
-            Node::object(object_properties),
-        )])],
+        vec![
+            ConstDeclList::from(vec![ConstDecl::new("x", Node::object(object_properties))]).into(),
+        ],
     );
 }
 
@@ -53,14 +57,14 @@ fn check_object_short_function() {
 #[test]
 fn check_object_short_function_arguments() {
     let object_properties = vec![
-        PropertyDefinition::property("a", Node::const_node(true)),
+        PropertyDefinition::property("a", Const::from(true)),
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Ordinary,
             "b",
-            Node::FunctionExpr(
+            FunctionExpr::new(
                 None,
-                Box::new([FormalParameter::new("test", None, false)]),
-                Box::new(Node::StatementList(Box::new([]))),
+                vec![FormalParameter::new("test", None, false)],
+                vec![],
             ),
         ),
     ];
@@ -71,25 +75,20 @@ fn check_object_short_function_arguments() {
             b(test) {}
          };
         ",
-        vec![Node::const_decl(vec![(
-            String::from("x"),
-            Node::object(object_properties),
-        )])],
+        vec![
+            ConstDeclList::from(vec![ConstDecl::new("x", Node::object(object_properties))]).into(),
+        ],
     );
 }
 
 #[test]
 fn check_object_getter() {
     let object_properties = vec![
-        PropertyDefinition::property("a", Node::const_node(true)),
+        PropertyDefinition::property("a", Const::from(true)),
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Get,
             "b",
-            Node::FunctionExpr(
-                None,
-                Box::new([]),
-                Box::new(Node::statement_list(Vec::new())),
-            ),
+            FunctionExpr::new(None, vec![], vec![]),
         ),
     ];
 
@@ -99,24 +98,23 @@ fn check_object_getter() {
             get b() {}
         };
         ",
-        vec![Node::const_decl(vec![(
-            String::from("x"),
-            Node::object(object_properties),
-        )])],
+        vec![
+            ConstDeclList::from(vec![ConstDecl::new("x", Node::object(object_properties))]).into(),
+        ],
     );
 }
 
 #[test]
 fn check_object_setter() {
     let object_properties = vec![
-        PropertyDefinition::property("a", Node::const_node(true)),
+        PropertyDefinition::property("a", Const::from(true)),
         PropertyDefinition::method_definition(
             MethodDefinitionKind::Set,
             "b",
-            Node::function_expr::<_, String, _, _>(
+            FunctionExpr::new(
                 None,
                 vec![FormalParameter::new("test", None, false)],
-                Node::statement_list(Vec::new()),
+                vec![],
             ),
         ),
     ];
@@ -127,9 +125,8 @@ fn check_object_setter() {
             set b(test) {}
         };
         ",
-        vec![Node::const_decl(vec![(
-            String::from("x"),
-            Node::object(object_properties),
-        )])],
+        vec![
+            ConstDeclList::from(vec![ConstDecl::new("x", Node::object(object_properties))]).into(),
+        ],
     );
 }

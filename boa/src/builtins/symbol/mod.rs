@@ -18,6 +18,7 @@
 #[cfg(test)]
 mod tests;
 
+use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{
@@ -62,8 +63,8 @@ pub fn call_symbol(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     let proto = ctx
         .realm
         .global_obj
-        .get_field_slice("Symbol")
-        .get_field_slice(PROTOTYPE);
+        .get_field("Symbol")
+        .get_field(PROTOTYPE);
     sym_instance.set_internal_slot(INSTANCE_PROTOTYPE, proto);
 
     Ok(Value(Gc::new(ValueData::Symbol(Box::new(GcCell::new(
@@ -91,12 +92,13 @@ pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
 pub fn create(global: &Value) -> Value {
     // Create prototype object
     let prototype = Value::new_object(Some(global));
-    make_builtin_fn!(to_string, named "toString", of prototype);
-    make_constructor_fn!(call_symbol, call_symbol, global, prototype)
+
+    make_builtin_fn(to_string, "toString", &prototype, 0);
+    make_constructor_fn("Symbol", 1, call_symbol, global, prototype, false)
 }
 
 /// Initialise the `Symbol` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("Symbol", create(global));
+    global.set_field("Symbol", create(global));
 }

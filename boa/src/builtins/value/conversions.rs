@@ -13,6 +13,12 @@ impl From<String> for Value {
     }
 }
 
+impl From<Box<str>> for Value {
+    fn from(value: Box<str>) -> Self {
+        Self::string(value)
+    }
+}
+
 impl From<&Value> for String {
     fn from(value: &Value) -> Self {
         value.to_string()
@@ -22,6 +28,12 @@ impl From<&Value> for String {
 impl From<&str> for Value {
     fn from(value: &str) -> Value {
         Value::string(value)
+    }
+}
+
+impl From<&Box<str>> for Value {
+    fn from(value: &Box<str>) -> Self {
+        Self::string(value.as_ref())
     }
 }
 
@@ -73,6 +85,32 @@ impl From<i32> for Value {
 impl From<&Value> for i32 {
     fn from(value: &Value) -> i32 {
         value.to_integer()
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct TryFromBigIntError;
+
+impl Display for TryFromBigIntError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Could not convert value to a BigInt type")
+    }
+}
+
+impl TryFrom<&Value> for BigInt {
+    type Error = TryFromBigIntError;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value.data() {
+            ValueData::BigInt(ref bigint) => Ok(bigint.clone()),
+            _ => Err(TryFromBigIntError),
+        }
+    }
+}
+
+impl From<BigInt> for Value {
+    fn from(value: BigInt) -> Self {
+        Value::bigint(value)
     }
 }
 

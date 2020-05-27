@@ -9,7 +9,10 @@
 
 use super::arguments::Arguments;
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator, token::TokenKind},
+    ast::{
+        node::{Call, Node},
+        Punctuator, TokenKind,
+    },
     parser::{
         expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
         TokenParser,
@@ -51,11 +54,11 @@ impl TokenParser for CallExpression {
         let mut lhs = match cursor.peek(0) {
             Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                Node::call(self.first_member_expr, args)
+                Node::from(Call::new(self.first_member_expr, args))
             }
             _ => {
                 let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-                return Err(ParseError::Expected(
+                return Err(ParseError::expected(
                     vec![TokenKind::Punctuator(Punctuator::OpenParen)],
                     next_token.clone(),
                     "call expression",
@@ -67,19 +70,19 @@ impl TokenParser for CallExpression {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                    lhs = Node::call(lhs, args);
+                    lhs = Node::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor.
                     match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
                         TokenKind::Identifier(name) => {
-                            lhs = Node::get_const_field(lhs, name);
+                            lhs = Node::get_const_field(lhs, name.clone());
                         }
                         TokenKind::Keyword(kw) => {
                             lhs = Node::get_const_field(lhs, kw.to_string());
                         }
                         _ => {
-                            return Err(ParseError::Expected(
+                            return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
                                 tok.clone(),
                                 "call expression",
