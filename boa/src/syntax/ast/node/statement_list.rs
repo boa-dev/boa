@@ -37,10 +37,7 @@ impl StatementList {
             node.display(f, indentation + 1)?;
 
             match node {
-                Node::Block(_)
-                | Node::If(_, _, _)
-                | Node::Switch(_, _, _)
-                | Node::WhileLoop(_, _) => {}
+                Node::Block(_) | Node::If(_, _, _) | Node::Switch(_) | Node::WhileLoop(_, _) => {}
                 _ => write!(f, ";")?,
             }
             writeln!(f)?;
