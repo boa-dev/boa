@@ -1,18 +1,18 @@
 //! Switch node.
-
-use super::Node;
+//!
+use super::{join_nodes, Node};
 use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Switch {
-
+    val: Box<Node>,
+    cases: Box<[(Node, Box<[Node]>)]>,
+    default: Option<Box<Node>>,
 }
 
 /// The `switch` statement evaluates an expression, matching the expression's value to a case
@@ -32,9 +32,43 @@ pub struct Switch {
 /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
 impl Switch {
+    pub fn val(&self) -> &Node {
+        &self.val
+    }
+
+    pub fn cases(&self) -> &[(Node, Box<[Node]>)] {
+        &self.cases
+    }
+
+    pub fn default(&self) -> &Option<Box<Node>> {
+        &self.default
+    }
+
+    pub fn new(
+        val: Box<Node>,
+        cases: Box<[(Node, Box<[Node]>)]>,
+        default: Option<Box<Node>>,
+    ) -> Switch {
+        Self {
+            val,
+            cases,
+            default,
+        }
+    }
+
     /// Implements the display formatting with indentation.
     pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indent: usize) -> fmt::Result {
-        
+        writeln!(f, "switch ({}) {{", self.val())?;
+        for e in self.cases().iter() {
+            writeln!(f, "{}case {}:", indent, e.0)?;
+            join_nodes(f, &e.1)?;
+        }
+
+        if self.default().is_some() {
+            writeln!(f, "{}default:", indent)?;
+            self.default().as_ref().unwrap().display(f, indent + 1)?;
+        }
+        writeln!(f, "{}}}", indent)
     }
 }
 

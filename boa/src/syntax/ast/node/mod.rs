@@ -421,21 +421,6 @@ impl Node {
         Self::Return(expr.into().map(E::into).map(Box::new))
     }
 
-    /// Creates a `Switch` AST node.
-    pub fn switch<V, C, OD, D>(val: V, cases: C, default: OD) -> Self
-    where
-        V: Into<Self>,
-        C: Into<Box<[(Self, Box<[Self]>)]>>,
-        OD: Into<Option<D>>,
-        D: Into<Self>,
-    {
-        Self::Switch(
-            Box::new(val.into()),
-            cases.into(),
-            default.into().map(D::into).map(Box::new),
-        )
-    }
-
     /// Creates a `Spread` AST node.
     pub fn spread<V>(val: V) -> Self
     where
@@ -526,24 +511,8 @@ impl Node {
                 f.write_str(" else ")?;
                 else_e.display(f, indentation)
             }
-            Self::Switch(ref val, ref vals, None) => {
-                writeln!(f, "switch ({}) {{", val)?;
-                for e in vals.iter() {
-                    writeln!(f, "{}case {}:", indent, e.0)?;
-                    join_nodes(f, &e.1)?;
-                }
-                writeln!(f, "{}}}", indent)
-            }
-            Self::Switch(ref val, ref vals, Some(ref def)) => {
-                writeln!(f, "switch ({}) {{", val)?;
-                for e in vals.iter() {
-                    writeln!(f, "{}case {}:", indent, e.0)?;
-                    join_nodes(f, &e.1)?;
-                }
-                writeln!(f, "{}default:", indent)?;
-                def.display(f, indentation + 1)?;
-                write!(f, "{}}}", indent)
-            }
+
+            Self::Switch(ref switch) => switch.display(f, indentation),
             Self::Object(ref obj) => obj.display(f, indentation),
             Self::ArrayDecl(ref arr) => Display::fmt(arr, f),
             Self::VarDeclList(ref list) => Display::fmt(list, f),
