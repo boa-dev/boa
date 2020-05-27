@@ -82,7 +82,7 @@ impl TokenParser for ObjectLiteral {
             }
         }
 
-        Ok(Object::new(elements).into())
+        Ok(Object::from(elements).into())
     }
 }
 
