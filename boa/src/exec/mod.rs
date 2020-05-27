@@ -8,6 +8,7 @@ mod iteration;
 mod object;
 mod operator;
 mod statement_list;
+mod switch;
 #[cfg(test)]
 mod tests;
 mod try_node;

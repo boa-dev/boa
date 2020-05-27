@@ -9,6 +9,7 @@ pub mod iteration;
 pub mod object;
 pub mod operator;
 pub mod statement_list;
+pub mod switch;
 pub mod try_node;
 
 pub use self::{
@@ -24,6 +25,7 @@ pub use self::{
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     statement_list::StatementList,
+    switch::Switch,
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
@@ -239,22 +241,6 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return(Option<Box<Node>>),
 
-    /// The `switch` statement evaluates an expression, matching the expression's value to a case
-    /// clause, and executes statements associated with that case, as well as statements in cases
-    /// that follow the matching case.
-    ///
-    /// A `switch` statement first evaluates its expression. It then looks for the first case
-    /// clause whose expression evaluates to the same value as the result of the input expression
-    /// (using the strict comparison, `===`) and transfers control to that clause, executing the
-    /// associated statements. (If multiple cases match the provided value, the first case that
-    /// matches is selected, even if the cases are not equal to each other.)
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
     Switch(Switch),
 
     /// The `spread` operator allows an iterable such as an array expression or string to be
