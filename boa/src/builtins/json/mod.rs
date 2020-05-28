@@ -73,14 +73,10 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
         None => return Ok(Value::undefined()),
     };
 
-    if args.len() == 1 {
-        return Ok(Value::from(object.to_json().to_string()));
-    }
-
-    let replacer = args.get(1).expect("cannot get JSON.stringify replacer");
-    if !replacer.is_object() {
-        return Ok(Value::from(object.to_json().to_string()));
-    }
+    let replacer = match args.get(1) {
+        Some(replacer) if replacer.is_object() => replacer,
+        _ => return Ok(Value::from(object.to_json().to_string())),
+    };
 
     let replacer_as_object = replacer
         .as_object()
