@@ -1,6 +1,6 @@
 //! Field AST node.
 //!
-use super::{join_nodes, Node};
+use super::Node;
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -47,7 +47,7 @@ impl GetConstField {
     /// Creates a `GetConstField` AST node.
     pub fn new<V, L>(value: V, label: L) -> Self
     where
-        V: Into<Self>,
+        V: Into<Node>,
         L: Into<Box<str>>,
     {
         Self {
@@ -58,7 +58,9 @@ impl GetConstField {
 }
 
 impl fmt::Display for GetConstField {
-    write!(f, "{}.{}", obj, field)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}.{}", self.obj(), self.field())
+    }
 }
 
 impl From<GetConstField> for Node {

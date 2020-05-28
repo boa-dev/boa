@@ -12,15 +12,7 @@ use crate::{
 impl Executable for Call {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let (mut this, func) = match self.expr() {
-            Node::GetConstField(ref obj, ref field) => {
-                let mut obj = obj.run(interpreter)?;
-                if obj.get_type() != "object" || obj.get_type() != "symbol" {
-                    obj = interpreter
-                        .to_object(&obj)
-                        .expect("failed to convert to object");
-                }
-                (obj.clone(), obj.get_field(field))
-            }
+            Node::GetConstField(ref get_const_field) => get_const_field.run(interpreter),
             Node::GetField(ref obj, ref field) => {
                 let obj = obj.run(interpreter)?;
                 let field = field.run(interpreter)?;

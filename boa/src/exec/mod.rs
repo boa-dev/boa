@@ -4,6 +4,7 @@ mod array;
 mod block;
 mod declaration;
 mod expression;
+mod field;
 mod iteration;
 mod object;
 mod operator;
@@ -355,7 +356,7 @@ impl Interpreter {
                     .set_mutable_binding(name.as_ref(), value.clone(), true);
                 Ok(value)
             }
-            Node::GetConstField(ref obj, ref field) => Ok(obj.run(self)?.set_field(field, value)),
+            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node.obj().run(self)?.set_field(get_const_field_node.field(), value)),
             Node::GetField(ref obj, ref field) => {
                 Ok(obj.run(self)?.set_field(field.run(self)?, value))
             }
@@ -385,10 +386,7 @@ impl Executable for Node {
                     .get_binding_value(name.as_ref());
                 Ok(val)
             }
-            Node::GetConstField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                Ok(val_obj.borrow().get_field(field))
-            }
+            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
             Node::GetField(ref obj, ref field) => {
                 let val_obj = obj.run(interpreter)?;
                 let val_field = field.run(interpreter)?;
