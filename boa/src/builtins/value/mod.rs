@@ -145,6 +145,13 @@ impl Value {
     }
 }
 
+impl<'vd> Value {
+    /// Returns a REPL representation of the contained `ValueData`
+    pub fn display(&'vd self) -> DisplayValueData<'vd> {
+        self.data().display()
+    }
+}
+
 impl Deref for Value {
     type Target = ValueData;
 
@@ -763,6 +770,13 @@ impl ValueData {
     }
 }
 
+impl<'vd> ValueData {
+    /// Returns a REPL representation of the `ValueData`
+    fn display(&'vd self) -> DisplayValueData<'vd> {
+        DisplayValueData::new(self)
+    }
+}
+
 impl Default for ValueData {
     fn default() -> Self {
         Self::Undefined
@@ -894,7 +908,7 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
             }
         }
 
-        _ => format!("{}", x),
+        _ => format!("{}", x.display()),
     }
 }
 
@@ -947,7 +961,7 @@ pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
             // Every other type of data is printed as is
-            format!("{}", data)
+            format!("{}", data.display())
         }
     }
 
@@ -979,6 +993,24 @@ impl Display for ValueData {
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
             Self::BigInt(ref num) => write!(f, "{}n", num),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct DisplayValueData<'vd>(pub(crate) &'vd ValueData);
+
+impl<'vd> DisplayValueData<'vd> {
+    fn new(vd: &'vd ValueData) -> Self {
+        DisplayValueData(vd)
+    }
+}
+
+impl<'vd> Display for DisplayValueData<'vd> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            ValueData::String(ref v) => write!(f, "\"{}\"", v),
+            _ => self.0.fmt(f),
         }
     }
 }
