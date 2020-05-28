@@ -68,7 +68,10 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
-    let object = args.get(0).expect("cannot get argument for JSON.stringify");
+    let object = match args.get(0) {
+        Some(obj) => obj,
+        None => return Ok(Value::undefined()),
+    };
 
     if args.len() == 1 {
         return Ok(Value::from(object.to_json().to_string()));

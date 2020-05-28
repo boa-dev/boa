@@ -174,3 +174,14 @@ fn json_stringify_function_replacer_propogate_error() {
 
     assert_eq!(actual, expected);
 }
+
+#[test]
+fn json_stringify_with_no_args() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward(&mut engine, r#"JSON.stringify()"#);
+    let expected = forward(&mut engine, r#"undefined"#);
+
+    assert_eq!(actual, expected);
+}
