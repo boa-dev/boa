@@ -1,6 +1,9 @@
 use crate::syntax::{
     ast::{
-        node::{BinOp, Block, Call, Identifier, Node, UnaryOp, VarDecl, VarDeclList},
+        node::{
+            field::GetConstField, BinOp, Block, Call, Identifier, Node, UnaryOp, VarDecl,
+            VarDeclList,
+        },
         op::{self, AssignOp, CompOp},
         Const,
     },
@@ -36,7 +39,7 @@ fn check_do_while_semicolon_insertion() {
             VarDeclList::from(vec![VarDecl::new("i", Some(Const::from(0).into()))]).into(),
             Node::do_while_loop(
                 Block::from(vec![Call::new(
-                    Node::get_const_field(Identifier::from("console"), "log"),
+                    GetConstField::new(Identifier::from("console"), "log"),
                     vec![Const::from("hello").into()],
                 )
                 .into()]),
@@ -47,7 +50,7 @@ fn check_do_while_semicolon_insertion() {
                 ),
             ),
             Call::new(
-                Node::get_const_field(Identifier::from("console"), "log"),
+                GetConstField::new(Identifier::from("console"), "log"),
                 vec![Const::from("end").into()],
             )
             .into(),

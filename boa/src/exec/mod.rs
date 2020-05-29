@@ -4,6 +4,7 @@ mod array;
 mod block;
 mod declaration;
 mod expression;
+mod field;
 mod iteration;
 mod object;
 mod operator;
@@ -355,10 +356,14 @@ impl Interpreter {
                     .set_mutable_binding(name.as_ref(), value.clone(), true);
                 Ok(value)
             }
-            Node::GetConstField(ref obj, ref field) => Ok(obj.run(self)?.set_field(field, value)),
-            Node::GetField(ref obj, ref field) => {
-                Ok(obj.run(self)?.set_field(field.run(self)?, value))
-            }
+            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
+                .obj()
+                .run(self)?
+                .set_field(get_const_field_node.field(), value)),
+            Node::GetField(ref get_field) => Ok(get_field
+                .obj()
+                .run(self)?
+                .set_field(get_field.field().run(self)?, value)),
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }
@@ -385,15 +390,8 @@ impl Executable for Node {
                     .get_binding_value(name.as_ref());
                 Ok(val)
             }
-            Node::GetConstField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                Ok(val_obj.borrow().get_field(field))
-            }
-            Node::GetField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                let val_field = field.run(interpreter)?;
-                Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
-            }
+            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
+            Node::GetField(ref get_field) => get_field.run(interpreter),
             Node::Call(ref expr) => expr.run(interpreter),
             Node::WhileLoop(ref cond, ref expr) => {
                 let mut result = Value::undefined();
