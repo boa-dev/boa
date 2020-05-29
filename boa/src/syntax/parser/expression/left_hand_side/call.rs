@@ -10,7 +10,7 @@
 use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
-        node::{Call, Node},
+        node::{Call, Node, field::{GetConstField, GetField}},
         Punctuator, TokenKind,
     },
     parser::{
@@ -76,10 +76,10 @@ impl TokenParser for CallExpression {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor.
                     match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
                         TokenKind::Identifier(name) => {
-                            lhs = Node::get_const_field(lhs, name.clone());
+                            lhs = GetConstField::new(lhs, name.clone()).into();
                         }
                         TokenKind::Keyword(kw) => {
-                            lhs = Node::get_const_field(lhs, kw.to_string());
+                            lhs = GetConstField::new(lhs, kw.to_string()).into();
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -95,7 +95,7 @@ impl TokenParser for CallExpression {
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression")?;
-                    lhs = Node::get_field(lhs, idx);
+                    lhs = GetField::new(lhs, idx).into();
                 }
                 _ => break,
             }

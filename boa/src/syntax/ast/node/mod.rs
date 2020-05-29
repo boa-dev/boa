@@ -21,7 +21,7 @@ pub use self::{
         LetDeclList, VarDecl, VarDeclList
     },
     expression::{Call, New},
-    field::GetConstField,
+    field::{GetConstField, GetField},
     identifier::Identifier,
     iteration::ForLoop,
     object::Object,
@@ -146,29 +146,8 @@ pub enum Node {
     /// Provides access to an object types' constant properties. [More information](./declaration/struct.GetConstField.html).
     GetConstField(GetConstField),
 
-    /// This property accessor provides access to an object's properties by using the
-    /// [bracket notation][mdn].
-    ///
-    /// In the object[property_name] syntax, the property_name is just a string or
-    /// [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a
-    /// space).
-    ///
-    /// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup
-    /// table). The keys in this array are the names of the object's properties.
-    ///
-    /// It's typical when speaking of an object's properties to make a distinction between
-    /// properties and methods. However, the property/method distinction is little more than a
-    /// convention. A method is simply a property that can be called (for example, if it has a
-    /// reference to a Function instance as its value).
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-property-accessors
-    /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
-    GetField(Box<Node>, Box<Node>),
+    /// Provides access to object fields. [More information](./declaration/struct.GetField.html).
+    GetField(GetField),
 
     /// A `for` statement. [More information](./iteration.struct.ForLoop.html).
     ForLoop(ForLoop),
@@ -361,15 +340,6 @@ impl Node {
         Self::DoWhileLoop(Box::new(body.into()), Box::new(condition.into()))
     }
 
-    /// Creates a `GetField` AST node.
-    pub fn get_field<V, F>(value: V, field: F) -> Self
-    where
-        V: Into<Self>,
-        F: Into<Self>,
-    {
-        Self::GetField(Box::new(value.into()), Box::new(field.into()))
-    }
-
     /// Creates an `If` AST node.
     pub fn if_node<C, B, E, OE>(condition: C, body: B, else_node: OE) -> Self
     where
@@ -462,7 +432,7 @@ impl Node {
             Self::Block(ref block) => block.display(f, indentation),
             Self::Identifier(ref s) => Display::fmt(s, f),
             Self::GetConstField(ref get_const_field) => Display::fmt(get_const_field, f),
-            Self::GetField(ref ex, ref field) => write!(f, "{}[{}]", ex, field),
+            Self::GetField(ref get_field) => Display::fmt(get_field, f),
             Self::Call(ref expr) => Display::fmt(expr, f),
             Self::New(ref expr) => Display::fmt(expr, f),
             Self::WhileLoop(ref cond, ref node) => {

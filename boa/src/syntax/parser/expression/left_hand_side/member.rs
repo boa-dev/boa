@@ -8,7 +8,7 @@
 use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
-        node::{Call, New, Node},
+        node::{Call, New, Node, field::{GetConstField, GetField}},
         Keyword, Punctuator, TokenKind,
     },
     parser::{
@@ -65,9 +65,9 @@ impl TokenParser for MemberExpression {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor forward.
                     match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
                         TokenKind::Identifier(name) => {
-                            lhs = Node::get_const_field(lhs, name.clone())
+                            lhs = GetConstField::new(lhs, name.clone()).into()
                         }
-                        TokenKind::Keyword(kw) => lhs = Node::get_const_field(lhs, kw.to_string()),
+                        TokenKind::Keyword(kw) => lhs = GetConstField::new(lhs, kw.to_string()).into(),
                         _ => {
                             return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
@@ -82,7 +82,7 @@ impl TokenParser for MemberExpression {
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;
-                    lhs = Node::get_field(lhs, idx);
+                    lhs = GetField::new(lhs, idx).into();
                 }
                 _ => break,
             }

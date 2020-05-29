@@ -1,7 +1,7 @@
 use super::{Executable, Interpreter};
 use crate::{
     builtins::value::ResultValue,
-    syntax::ast::node::GetConstField,
+    syntax::ast::node::{GetConstField, GetField},
 };
 
 impl Executable for GetConstField {
@@ -18,5 +18,12 @@ impl Executable for GetConstField {
     }
 }
 
+impl Executable for GetField {
+    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let obj = self.obj().run(interpreter)?;
+        let field = self.field().run(interpreter)?;
 
+        Ok(obj.get_field(field.to_string()))
+    }
+}
 
