@@ -176,12 +176,16 @@ fn json_stringify_function_replacer_propogate_error() {
 }
 
 #[test]
-fn json_stringify_with_no_args() {
+fn json_stringify_return_undefined() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward(&mut engine, r#"JSON.stringify()"#);
+    let actual_no_args = forward(&mut engine, r#"JSON.stringify()"#);
+    let actual_function = forward(&mut engine, r#"JSON.stringify(() => {})"#);
+    let actual_symbol = forward(&mut engine, r#"JSON.stringify(Symbol())"#);
     let expected = forward(&mut engine, r#"undefined"#);
 
-    assert_eq!(actual, expected);
+    assert_eq!(actual_no_args, expected);
+    assert_eq!(actual_function, expected);
+    assert_eq!(actual_symbol, expected);
 }

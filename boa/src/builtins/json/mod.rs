@@ -68,7 +68,11 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
-    if let Some(object) = args.get(0) {
+    let object = match args.get(0) {
+        Some(obj) if obj.is_symbol() || obj.is_function() => return Ok(Value::undefined()),
+        None => return Ok(Value::undefined()),
+        Some(obj) => obj,
+    };
         let replacer = match args.get(1) {
             Some(replacer) if replacer.is_object() => replacer,
             _ => return Ok(Value::from(object.to_json().to_string())),
@@ -125,9 +129,7 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
         } else {
             Ok(Value::from(object.to_json().to_string()))
         }
-    } else {
-        Ok(Value::undefined())
-    }
+
 }
 
 /// Create a new `JSON` object.
