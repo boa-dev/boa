@@ -145,10 +145,10 @@ impl Value {
     }
 }
 
-impl<'vd> Value {
+impl<'value> Value {
     /// Returns a REPL representation of the contained `ValueData`
-    pub fn display(&'vd self) -> DisplayValueData<'vd> {
-        self.data().display()
+    pub fn display(&'value self) -> ValueDisplay<'value> {
+        ValueDisplay::new(self)
     }
 }
 
@@ -770,13 +770,6 @@ impl ValueData {
     }
 }
 
-impl<'vd> ValueData {
-    /// Returns a REPL representation of the `ValueData`
-    fn display(&'vd self) -> DisplayValueData<'vd> {
-        DisplayValueData::new(self)
-    }
-}
-
 impl Default for ValueData {
     fn default() -> Self {
         Self::Undefined
@@ -908,7 +901,7 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
             }
         }
 
-        _ => format!("{}", x.display()),
+        _ => format!("{}", x),
     }
 }
 
@@ -961,7 +954,7 @@ pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
             // Every other type of data is printed as is
-            format!("{}", data.display())
+            format!("{}", data)
         }
     }
 
@@ -998,17 +991,17 @@ impl Display for ValueData {
 }
 
 #[derive(Debug, Clone)]
-pub struct DisplayValueData<'vd>(pub(crate) &'vd ValueData);
+pub struct ValueDisplay<'value>(&'value Value);
 
-impl<'vd> DisplayValueData<'vd> {
-    fn new(vd: &'vd ValueData) -> Self {
-        DisplayValueData(vd)
+impl<'value> ValueDisplay<'value> {
+    fn new(vd: &'value Value) -> Self {
+        ValueDisplay(vd)
     }
 }
 
-impl<'vd> Display for DisplayValueData<'vd> {
+impl<'value> Display for ValueDisplay<'value> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.0 {
+        match self.0.data() {
             ValueData::String(ref v) => write!(f, "\"{}\"", v),
             _ => self.0.fmt(f),
         }
