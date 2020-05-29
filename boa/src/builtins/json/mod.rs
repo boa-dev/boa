@@ -73,63 +73,62 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
         None => return Ok(Value::undefined()),
         Some(obj) => obj,
     };
-        let replacer = match args.get(1) {
-            Some(replacer) if replacer.is_object() => replacer,
-            _ => return Ok(Value::from(object.to_json().to_string())),
-        };
+    let replacer = match args.get(1) {
+        Some(replacer) if replacer.is_object() => replacer,
+        _ => return Ok(Value::from(object.to_json().to_string())),
+    };
 
-        let replacer_as_object = replacer
+    let replacer_as_object = replacer
+        .as_object()
+        .expect("JSON.stringify replacer was an object");
+    if replacer_as_object.is_callable() {
+        object
             .as_object()
-            .expect("JSON.stringify replacer was an object");
-        if replacer_as_object.is_callable() {
-            object
-                .as_object()
-                .map(|obj| {
-                    let object_to_return = Value::new_object(None);
-                    for (key, val) in obj.properties.iter().filter_map(|(key, v)| {
-                        if let Some(value) = &v.value {
-                            Some((key, value))
-                        } else {
-                            None
-                        }
-                    }) {
-                        let mut this_arg = object.clone();
-                        object_to_return.set_property(
-                            key.to_owned(),
-                            Property::default().value(interpreter.call(
-                                replacer,
-                                &mut this_arg,
-                                &[Value::string(key), val.clone()],
-                            )?),
-                        );
+            .map(|obj| {
+                let object_to_return = Value::new_object(None);
+                for (key, val) in obj.properties.iter().filter_map(|(key, v)| {
+                    if let Some(value) = &v.value {
+                        Some((key, value))
+                    } else {
+                        None
                     }
-                    Ok(Value::from(object_to_return.to_json().to_string()))
-                })
-                .ok_or_else(Value::undefined)?
-        } else if replacer_as_object.kind == ObjectKind::Array {
-            let mut obj_to_return =
-                serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
-            let fields = replacer_as_object.properties.keys().filter_map(|key| {
-                if key == "length" {
-                    None
-                } else {
-                    Some(replacer.get_field(key.to_string()))
+                }) {
+                    let mut this_arg = object.clone();
+                    object_to_return.set_property(
+                        key.to_owned(),
+                        Property::default().value(interpreter.call(
+                            replacer,
+                            &mut this_arg,
+                            &[Value::string(key), val.clone()],
+                        )?),
+                    );
                 }
-            });
-            for field in fields {
-                if let Some(value) = object
-                    .get_property(&field.to_string())
-                    .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
-                    .flatten()
-                {
-                    obj_to_return.insert(field.to_string(), value);
-                }
+                Ok(Value::from(object_to_return.to_json().to_string()))
+            })
+            .ok_or_else(Value::undefined)?
+    } else if replacer_as_object.kind == ObjectKind::Array {
+        let mut obj_to_return =
+            serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
+        let fields = replacer_as_object.properties.keys().filter_map(|key| {
+            if key == "length" {
+                None
+            } else {
+                Some(replacer.get_field(key.to_string()))
             }
-            Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
-        } else {
-            Ok(Value::from(object.to_json().to_string()))
+        });
+        for field in fields {
+            if let Some(value) = object
+                .get_property(&field.to_string())
+                .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
+                .flatten()
+            {
+                obj_to_return.insert(field.to_string(), value);
+            }
         }
-
+        Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
+    } else {
+        Ok(Value::from(object.to_json().to_string()))
+    }
 }
 
 /// Create a new `JSON` object.
