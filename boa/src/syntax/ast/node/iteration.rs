@@ -183,6 +183,12 @@ impl WhileLoop {
     }
 }
 
+impl fmt::Display for WhileLoop {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display(f, 0)
+    }
+}
+
 impl From<WhileLoop> for Node {
     fn from(while_loop: WhileLoop) -> Self {
         Self::WhileLoop(while_loop)
