@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [# 0.8.0 (2020-05-23) - BigInt, Modularized Parser, Faster Hashing](https://github.com/jasonwilliams/boa/compare/v0.7.0...HEAD)
+# [# 0.8.0 (2020-05-23) - BigInt, Modularized Parser, Faster Hashing](https://github.com/boa-dev/boa/compare/v0.7.0...v0.8.0)
 
 `v0.8.0` brings more language implementations, such as do..while, function objects and also more recent EcmaScript additions, like BigInt.  
 We have now moved the Web Assembly build into the `wasm` package, plus added a code of conduct for those contributing.
@@ -11,83 +11,83 @@ Boa has migrated it's object implemention to FXHash which brings much improved r
 
 Feature Enhancements:
 
-- [FEATURE #121](https://github.com/jasonwilliams/boa/issues/121):
+- [FEATURE #121](https://github.com/boa-dev/boa/issues/121):
   `BigInt` Implemented (@HalidOdat)
-- [FEATURE #293](https://github.com/jasonwilliams/boa/pull/293):
+- [FEATURE #293](https://github.com/boa-dev/boa/pull/293):
   Improved documentation of all modules (@HalidOdat)
-- [FEATURE #302](https://github.com/jasonwilliams/boa/issues/302):
+- [FEATURE #302](https://github.com/boa-dev/boa/issues/302):
   Implement do..while loop (@ptasz3k)
-- [FEATURE #318](https://github.com/jasonwilliams/boa/pull/318):
+- [FEATURE #318](https://github.com/boa-dev/boa/pull/318):
   Added continous integration for windows (@HalidOdat)
-- [FEATURE #290](https://github.com/jasonwilliams/boa/pull/290):
+- [FEATURE #290](https://github.com/boa-dev/boa/pull/290):
   Added more build profiles (@Razican)
-- [FEATURE #323](https://github.com/jasonwilliams/boa/pull/323):
+- [FEATURE #323](https://github.com/boa-dev/boa/pull/323):
   Aded more benchmarks (@Razican)
-- [FEATURE #326](https://github.com/jasonwilliams/boa/pull/326):
+- [FEATURE #326](https://github.com/boa-dev/boa/pull/326):
   Rename Boa CLI (@sphinxc0re)
-- [FEATURE #312](https://github.com/jasonwilliams/boa/pull/312):
+- [FEATURE #312](https://github.com/boa-dev/boa/pull/312):
   Added jemallocator for linux targets (@Razican)
-- [FEATURE #339](https://github.com/jasonwilliams/boa/pull/339):
+- [FEATURE #339](https://github.com/boa-dev/boa/pull/339):
   Improved Method parsing (@muskuloes)
-- [FEATURE #352](https://github.com/jasonwilliams/boa/pull/352):
+- [FEATURE #352](https://github.com/boa-dev/boa/pull/352):
   create boa-wasm package (@muskuloes)
-- [FEATURE #304](https://github.com/jasonwilliams/boa/pull/304):
+- [FEATURE #304](https://github.com/boa-dev/boa/pull/304):
   Modularized parser
-- [FEATURE #141](https://github.com/jasonwilliams/boa/issues/141):
+- [FEATURE #141](https://github.com/boa-dev/boa/issues/141):
   Implement function objects (@jasonwilliams)
-- [FEATURE #365](https://github.com/jasonwilliams/boa/issues/365):
+- [FEATURE #365](https://github.com/boa-dev/boa/issues/365):
   Implement for loop execution (@Razican)
-- [FEATURE #356](https://github.com/jasonwilliams/boa/issues/356):
+- [FEATURE #356](https://github.com/boa-dev/boa/issues/356):
   Use Fx Hash to speed up hash maps in the compiler (@Razican)
-- [FEATURE #321](https://github.com/jasonwilliams/boa/issues/321):
+- [FEATURE #321](https://github.com/boa-dev/boa/issues/321):
   Implement unary operator execution (@akryvomaz)
-- [FEATURE #379](https://github.com/jasonwilliams/boa/issues/379):
+- [FEATURE #379](https://github.com/boa-dev/boa/issues/379):
   Automatic auditing of Boa (@n14little)
-- [FEATURE #264](https://github.com/jasonwilliams/boa/issues/264):
+- [FEATURE #264](https://github.com/boa-dev/boa/issues/264):
   Implement `this` (@jasonwilliams)
-- [FEATURE #395](https://github.com/jasonwilliams/boa/pull/395):
+- [FEATURE #395](https://github.com/boa-dev/boa/pull/395):
   impl abstract-equality-comparison (@hello2dj)
-- [FEATURE #359](https://github.com/jasonwilliams/boa/issues/359):
+- [FEATURE #359](https://github.com/boa-dev/boa/issues/359):
   impl typeof (@RestitutorOrbis)
-- [FEATURE #390](https://github.com/jasonwilliams/boa/pull/390):
+- [FEATURE #390](https://github.com/boa-dev/boa/pull/390):
   Modularize try statement parsing (@abhijeetbhagat)
 
 Bug fixes:
 
-- [BUG #308](https://github.com/jasonwilliams/boa/issues/308):
+- [BUG #308](https://github.com/boa-dev/boa/issues/308):
   Assignment operator not working in tests (a = a +1) (@ptasz3k)
-- [BUG #322](https://github.com/jasonwilliams/boa/issues/322):
+- [BUG #322](https://github.com/boa-dev/boa/issues/322):
   Benchmarks are failing in master (@Razican)
-- [BUG #325](https://github.com/jasonwilliams/boa/pull/325):
+- [BUG #325](https://github.com/boa-dev/boa/pull/325):
   Put JSON functions on the object, not the prototype (@coolreader18)
-- [BUG #331](https://github.com/jasonwilliams/boa/issues/331):
+- [BUG #331](https://github.com/boa-dev/boa/issues/331):
   We only get `Const::Num`, never `Const::Int` (@HalidOdat)
-- [BUG #209](https://github.com/jasonwilliams/boa/issues/209):
+- [BUG #209](https://github.com/boa-dev/boa/issues/209):
   Calling `new Array` with 1 argument doesn't work properly (@HalidOdat)
-- [BUG #266](https://github.com/jasonwilliams/boa/issues/266):
+- [BUG #266](https://github.com/boa-dev/boa/issues/266):
   Panic assigning named function to variable (@Razican)
-- [BUG #397](https://github.com/jasonwilliams/boa/pull/397):
+- [BUG #397](https://github.com/boa-dev/boa/pull/397):
   fix `NaN` is lexed as identifier, not as a number (@attliaLin)
-- [BUG #362](https://github.com/jasonwilliams/boa/pull/362):
+- [BUG #362](https://github.com/boa-dev/boa/pull/362):
   Remove Monaco Editor Webpack Plugin and Manually Vendor Editor Workers (@subhankar-panda)
-- [BUG #406](https://github.com/jasonwilliams/boa/pull/406):
+- [BUG #406](https://github.com/boa-dev/boa/pull/406):
   Dependency Upgrade (@Razican)
-- [BUG #407](https://github.com/jasonwilliams/boa/pull/407):
+- [BUG #407](https://github.com/boa-dev/boa/pull/407):
   `String()` wasn't defaulting to empty string on call (@jasonwilliams)
-- [BUG #404](https://github.com/jasonwilliams/boa/pull/404):
+- [BUG #404](https://github.com/boa-dev/boa/pull/404):
   Fix for 0 length new String(@tylermorten)
 
 Code Of Conduct:
 
-- [COC #384](https://github.com/jasonwilliams/boa/pull/384):
+- [COC #384](https://github.com/boa-dev/boa/pull/384):
   Code of conduct added (@Razican)
 
 Security:
 
-- [SEC #391](https://github.com/jasonwilliams/boa/pull/391):
+- [SEC #391](https://github.com/boa-dev/boa/pull/391):
   run security audit daily at midnight. (@n14little)
 
-# [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/jasonwilliams/boa/compare/v0.6.0...v0.7.0)
+# [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/boa-dev/boa/compare/v0.6.0...v0.7.0)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
 This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.  
@@ -97,7 +97,7 @@ Tests have also been moved to their own files, we had a lot of tests in some mod
 
 Most of the work in this release has been on rewriting the parser. A big task taken on by [HalidOdat](https://github.com/HalidOdat), [Razican](https://github.com/Razican) and [myself](https://github.com/jasonwilliams).
 
-The majority of the old parser was 1 big function (called [`parse`](https://github.com/jasonwilliams/boa/blob/019033eff066e8c6ba9456139690eb214a0bf61d/boa/src/syntax/parser.rs#L353)) which had some pattern matching on each token coming in.\
+The majority of the old parser was 1 big function (called [`parse`](https://github.com/boa-dev/boa/blob/019033eff066e8c6ba9456139690eb214a0bf61d/boa/src/syntax/parser.rs#L353)) which had some pattern matching on each token coming in.\
 The easy branches could generate expressions (which were basically AST Nodes), the more involved branches would recursively call into the same function, until eventually you had an expression generated.
 
 This only worked so far, eventually debugging parsing problems were difficult, also more bugs were being raised against the parser which couldn't be fixed.
@@ -114,52 +114,52 @@ What this brings is a huge performance boost, the parser is 67% faster than befo
 
 Feature enhancements:
 
-- [FEATURE #281](https://github.com/jasonwilliams/boa/pull/281):
+- [FEATURE #281](https://github.com/boa-dev/boa/pull/281):
   Rebuild the parser (@jasonwilliams, @Razican, @HalidOdat)
-- [FEATURE #278](https://github.com/jasonwilliams/boa/pull/278):
+- [FEATURE #278](https://github.com/boa-dev/boa/pull/278):
   Added the ability to dump the token stream or ast in bin. (@HalidOdat)
-- [FEATURE #253](https://github.com/jasonwilliams/boa/pull/253):
+- [FEATURE #253](https://github.com/boa-dev/boa/pull/253):
   Implement Array.isArray (@cisen)
-- [FEATURE](https://github.com/jasonwilliams/boa/commit/edab5ca6cc10d13265f82fa4bc05d6b432a362fc)
+- [FEATURE](https://github.com/boa-dev/boa/commit/edab5ca6cc10d13265f82fa4bc05d6b432a362fc)
   Switch to normal output instead of debugged output (stdout/stdout) (@jasonwilliams)
-- [FEATURE #258](https://github.com/jasonwilliams/boa/pull/258):
+- [FEATURE #258](https://github.com/boa-dev/boa/pull/258):
   Moved test modules to their own files (@Razican)
-- [FEATURE #267](https://github.com/jasonwilliams/boa/pull/267):
+- [FEATURE #267](https://github.com/boa-dev/boa/pull/267):
   Add print & REPL functionality to CLI (@JohnDoneth)
-- [FEATURE #268](https://github.com/jasonwilliams/boa/pull/268):
+- [FEATURE #268](https://github.com/boa-dev/boa/pull/268):
   Addition of forEach() (@jasonwilliams) (@xSke)
-- [FEATURE #262](https://github.com/jasonwilliams/boa/pull/262):
+- [FEATURE #262](https://github.com/boa-dev/boa/pull/262):
   Implement Array.prototype.filter (@Nickforall)
-- [FEATURE #261](https://github.com/jasonwilliams/boa/pull/261):
+- [FEATURE #261](https://github.com/boa-dev/boa/pull/261):
   Improved parser error messages (@Razican)
-- [FEATURE #277](https://github.com/jasonwilliams/boa/pull/277):
+- [FEATURE #277](https://github.com/boa-dev/boa/pull/277):
   Add a logo to the project (@HalidOdat)
-- [FEATURE #260](https://github.com/jasonwilliams/boa/pull/260):
+- [FEATURE #260](https://github.com/boa-dev/boa/pull/260):
   Add methods with f64 std equivelant to Math object (@Nickforall)
 
 Bug fixes:
 
-- [BUG #249](https://github.com/jasonwilliams/boa/pull/249):
+- [BUG #249](https://github.com/boa-dev/boa/pull/249):
   fix(parser): handle trailing comma in object literals (@gomesalexandre)
-- [BUG #244](https://github.com/jasonwilliams/boa/pull/244):
+- [BUG #244](https://github.com/boa-dev/boa/pull/244):
   Fixed more Lexer Panics (@adumbidiot)
-- [BUG #256](https://github.com/jasonwilliams/boa/pull/256):
+- [BUG #256](https://github.com/boa-dev/boa/pull/256):
   Fixed comments lexing (@Razican)
-- [BUG #251](https://github.com/jasonwilliams/boa/issues/251):
+- [BUG #251](https://github.com/boa-dev/boa/issues/251):
   Fixed empty returns (@Razican)
-- [BUG #272](https://github.com/jasonwilliams/boa/pull/272):
+- [BUG #272](https://github.com/boa-dev/boa/pull/272):
   Fix parsing of floats that start with a zero (@Nickforall)
-- [BUG #240](https://github.com/jasonwilliams/boa/issues/240):
+- [BUG #240](https://github.com/boa-dev/boa/issues/240):
   Fix parser panic
-- [BUG #273](https://github.com/jasonwilliams/boa/issues/273):
+- [BUG #273](https://github.com/boa-dev/boa/issues/273):
   new Class().method() has incorrect precedence
 
 Documentation Updates:
 
-- [DOC #297](https://github.com/jasonwilliams/boa/pull/297):
+- [DOC #297](https://github.com/boa-dev/boa/pull/297):
   Better user contributed documentation
 
-# [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/jasonwilliams/boa/compare/v0.5.1...v0.6.0)
+# [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/boa-dev/boa/compare/v0.5.1...v0.6.0)
 
 The lexer has had several fixes in this release, including how it parses numbers, scientific notation should be improved.  
 On top of that the lexer no longer panics on errors including Syntax Errors (thanks @adumbidiot), instead you get some output on where the error happened.
@@ -174,110 +174,110 @@ Cargo has great support for workspaces, so this shouldn't be an issue.
 
 ## Benchmarks
 
-We now have [benchmarks which run against master](https://jasonwilliams.github.io/boa/dev/bench)!  
+We now have [benchmarks which run against master](https://boa-dev.github.io/boa/dev/bench)!  
 Thanks to Github Actions these will run automatically a commit is merged.
 
 Feature enhancements:
 
-- [FEATURE #218](https://github.com/jasonwilliams/boa/pull/218):
+- [FEATURE #218](https://github.com/boa-dev/boa/pull/218):
   Implement Array.prototype.toString (@cisen)
-- [FEATURE #216](https://github.com/jasonwilliams/boa/commit/85e9a3526105a600358bd53811e2b022987c6fc8):
+- [FEATURE #216](https://github.com/boa-dev/boa/commit/85e9a3526105a600358bd53811e2b022987c6fc8):
   Keep accepting new array elements after spread.
-- [FEATURE #220](https://github.com/jasonwilliams/boa/pull/220):
+- [FEATURE #220](https://github.com/boa-dev/boa/pull/220):
   Documentation updates. (@croraf)
-- [FEATURE #226](https://github.com/jasonwilliams/boa/pull/226):
+- [FEATURE #226](https://github.com/boa-dev/boa/pull/226):
   add parser benchmark for expressions. (@jasonwilliams)
-- [FEATURE #217](https://github.com/jasonwilliams/boa/pull/217):
+- [FEATURE #217](https://github.com/boa-dev/boa/pull/217):
   String.prototype.replace() implemented
-- [FEATURE #247](https://github.com/jasonwilliams/boa/pull/247):
+- [FEATURE #247](https://github.com/boa-dev/boa/pull/247):
   Moved to a workspace architecture (@Razican)
 
 Bug fixes:
 
-- [BUG #222](https://github.com/jasonwilliams/boa/pull/222):
+- [BUG #222](https://github.com/boa-dev/boa/pull/222):
   Fixed clippy errors (@IovoslavIovchev)
-- [BUG #228](https://github.com/jasonwilliams/boa/pull/228):
+- [BUG #228](https://github.com/boa-dev/boa/pull/228):
   [lexer: single-line-comment] Fix bug when single line comment is last line of file (@croraf)
-- [BUG #229](https://github.com/jasonwilliams/boa/pull/229):
+- [BUG #229](https://github.com/boa-dev/boa/pull/229):
   Replace error throwing with panic in "Lexer::next()" (@croraf)
-- [BUG #232/BUG #238](https://github.com/jasonwilliams/boa/pull/232):
+- [BUG #232/BUG #238](https://github.com/boa-dev/boa/pull/232):
   Clippy checking has been scaled right back to just Perf and Style (@jasonwilliams)
-- [BUG #227](https://github.com/jasonwilliams/boa/pull/227):
+- [BUG #227](https://github.com/boa-dev/boa/pull/227):
   Array.prototype.toString should be called by ES value (@cisen)
-- [BUG #242](https://github.com/jasonwilliams/boa/pull/242):
+- [BUG #242](https://github.com/boa-dev/boa/pull/242):
   Fixed some panics in the lexer (@adumbidiot)
-- [BUG #235](https://github.com/jasonwilliams/boa/pull/235):
+- [BUG #235](https://github.com/boa-dev/boa/pull/235):
   Fixed arithmetic operations with no space (@gomesalexandre)
-- [BUG #245](https://github.com/jasonwilliams/boa/pull/245):
+- [BUG #245](https://github.com/boa-dev/boa/pull/245):
   Fixed parsing of floats with scientific notation (@adumbidiot)
 
-# [# 0.5.1 (2019-12-02) - Rest / Spread (almost)](https://github.com/jasonwilliams/boa/compare/v0.5.0...v0.5.1)
+# [# 0.5.1 (2019-12-02) - Rest / Spread (almost)](https://github.com/boa-dev/boa/compare/v0.5.0...v0.5.1)
 
 Feature enhancements:
 
-- [FEATURE #151](https://github.com/jasonwilliams/boa/issues/151):
+- [FEATURE #151](https://github.com/boa-dev/boa/issues/151):
   Implement the Rest/Spread operator (functions and arrays).
-- [FEATURE #193](https://github.com/jasonwilliams/boa/issues/193):
+- [FEATURE #193](https://github.com/boa-dev/boa/issues/193):
   Implement macro for setting builtin functions
-- [FEATURE #211](https://github.com/jasonwilliams/boa/pull/211):
+- [FEATURE #211](https://github.com/boa-dev/boa/pull/211):
   Better Display support for all Objects (pretty printing)
 
-# [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/jasonwilliams/boa/compare/v0.4.0...v0.5.1)
+# [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/boa-dev/boa/compare/v0.4.0...v0.5.1)
 
 Feature enhancements:
 
-- [FEATURE #119](https://github.com/jasonwilliams/boa/issues/119):
+- [FEATURE #119](https://github.com/boa-dev/boa/issues/119):
   Introduce realm struct to hold realm context and global object.
-- [FEATURE #89](https://github.com/jasonwilliams/boa/issues/89):
+- [FEATURE #89](https://github.com/boa-dev/boa/issues/89):
   Implement exponentiation operator. Thanks @arbroween
-- [FEATURE #47](https://github.com/jasonwilliams/boa/issues/47):
+- [FEATURE #47](https://github.com/boa-dev/boa/issues/47):
   Add tests for comments in source code. Thanks @Emanon42
-- [FEATURE #137](https://github.com/jasonwilliams/boa/issues/137):
+- [FEATURE #137](https://github.com/boa-dev/boa/issues/137):
   Use Monaco theme for the demo page
-- [FEATURE #114](https://github.com/jasonwilliams/boa/issues/114):
+- [FEATURE #114](https://github.com/boa-dev/boa/issues/114):
   String.match(regExp) is implemented (@muskuloes)
-- [FEATURE #115](https://github.com/jasonwilliams/boa/issues/115):
+- [FEATURE #115](https://github.com/boa-dev/boa/issues/115):
   String.matchAll(regExp) is implemented (@bojan88)
-- [FEATURE #163](https://github.com/jasonwilliams/boa/issues/163):
+- [FEATURE #163](https://github.com/boa-dev/boa/issues/163):
   Implement Array.prototype.every() (@letmutx)
-- [FEATURE #165](https://github.com/jasonwilliams/boa/issues/165):
+- [FEATURE #165](https://github.com/boa-dev/boa/issues/165):
   Implement Array.prototype.find() (@letmutx)
-- [FEATURE #166](https://github.com/jasonwilliams/boa/issues/166):
+- [FEATURE #166](https://github.com/boa-dev/boa/issues/166):
   Implement Array.prototype.findIndex() (@felipe-fg)
-- [FEATURE #39](https://github.com/jasonwilliams/boa/issues/39):
+- [FEATURE #39](https://github.com/boa-dev/boa/issues/39):
   Implement block scoped variable declarations (@barskern)
-- [FEATURE #161](https://github.com/jasonwilliams/boa/pull/161):
+- [FEATURE #161](https://github.com/boa-dev/boa/pull/161):
   Enable obj[key] = value syntax.
-- [FEATURE #179](https://github.com/jasonwilliams/boa/issues/179):
+- [FEATURE #179](https://github.com/boa-dev/boa/issues/179):
   Implement the Tilde operator (@letmutx)
-- [FEATURE #189](https://github.com/jasonwilliams/boa/pull/189):
+- [FEATURE #189](https://github.com/boa-dev/boa/pull/189):
   Implement Array.prototype.includes (incl tests) (@simonbrahan)
-- [FEATURE #180](https://github.com/jasonwilliams/boa/pull/180):
+- [FEATURE #180](https://github.com/boa-dev/boa/pull/180):
   Implement Array.prototype.slice (@muskuloes @letmutx)
-- [FEATURE #152](https://github.com/jasonwilliams/boa/issues/152):
+- [FEATURE #152](https://github.com/boa-dev/boa/issues/152):
   Short Function syntax (no arguments)
-- [FEATURE #164](https://github.com/jasonwilliams/boa/issues/164):
+- [FEATURE #164](https://github.com/boa-dev/boa/issues/164):
   Implement Array.prototype.fill() (@bojan88)
 - Array tests: Tests implemented for shift, unshift and reverse, pop and push (@muskuloes)
 - Demo page has been improved, new font plus change on input. Thanks @WofWca
-- [FEATURE #182](https://github.com/jasonwilliams/boa/pull/182):
+- [FEATURE #182](https://github.com/boa-dev/boa/pull/182):
   Implement some Number prototype methods (incl tests) (@pop)
-- [FEATURE #34](https://github.com/jasonwilliams/boa/issues/34):
+- [FEATURE #34](https://github.com/boa-dev/boa/issues/34):
   Number object and Constructore are implemented (including methods) (@pop)
-- [FEATURE #194](https://github.com/jasonwilliams/boa/pull/194):
+- [FEATURE #194](https://github.com/boa-dev/boa/pull/194):
   Array.prototype.map (@IovoslavIovchev)
-- [FEATURE #90](https://github.com/jasonwilliams/boa/issues/90):
+- [FEATURE #90](https://github.com/boa-dev/boa/issues/90):
   Symbol Implementation (@jasonwilliams)
 
 Bug fixes:
 
-- [BUG #113](https://github.com/jasonwilliams/boa/issues/113):
+- [BUG #113](https://github.com/boa-dev/boa/issues/113):
   Unassigned variables have default of undefined (@pop)
-- [BUG #61](https://github.com/jasonwilliams/boa/issues/61):
+- [BUG #61](https://github.com/boa-dev/boa/issues/61):
   Clippy warnings/errors fixed (@korpen)
-- [BUG #147](https://github.com/jasonwilliams/boa/pull/147):
+- [BUG #147](https://github.com/boa-dev/boa/pull/147):
   Updated object global
-- [BUG #154](https://github.com/jasonwilliams/boa/issues/154):
+- [BUG #154](https://github.com/boa-dev/boa/issues/154):
   Correctly handle all whitespaces within the lexer
 - Tidy up Globals being added to Global Object. Thanks @DomParfitt
 
@@ -288,9 +288,9 @@ Functions now have the arguments object supported and we have a [`debugging`](do
 
 Feature enhancements:
 
-- [FEATURE #6](https://github.com/jasonwilliams/boa/issues/6):
+- [FEATURE #6](https://github.com/boa-dev/boa/issues/6):
   Support for regex literals. (Big thanks @999eagle)
-- [FEATURE #13](https://github.com/jasonwilliams/boa/issues/13):
+- [FEATURE #13](https://github.com/boa-dev/boa/issues/13):
   toLowerCase, toUpperCase, substring, substr and valueOf implemented (thanks @arbroween)
 - Support for `arguments` object within functions
 - `StringData` instead of `PrimitieData` to match spec
@@ -303,13 +303,13 @@ Feature enhancements:
 
 Bug fixes:
 
-- [BUG #57](https://github.com/jasonwilliams/boa/issues/57):
+- [BUG #57](https://github.com/boa-dev/boa/issues/57):
   Fixed issue with stackoverflow by implementing early returns.
 - Allow to re-assign value to an existing binding. (Thanks @oll3)
 
 # 0.3.0 (2019-07-26)
 
-- UnexpectedKeyword(Else) bug fixed https://github.com/jasonwilliams/boa/issues/38
+- UnexpectedKeyword(Else) bug fixed https://github.com/boa-dev/boa/issues/38
 - Contributing guide added
 - Ability to specify file - Thanks @callumquick
 - Travis fixes
