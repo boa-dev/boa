@@ -393,13 +393,7 @@ impl Executable for Node {
             Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
             Node::GetField(ref get_field) => get_field.run(interpreter),
             Node::Call(ref expr) => expr.run(interpreter),
-            Node::WhileLoop(ref cond, ref expr) => {
-                let mut result = Value::undefined();
-                while cond.run(interpreter)?.borrow().is_true() {
-                    result = expr.run(interpreter)?;
-                }
-                Ok(result)
-            }
+            Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
             Node::DoWhileLoop(ref body, ref cond) => {
                 let mut result = body.run(interpreter)?;
                 while cond.run(interpreter)?.borrow().is_true() {

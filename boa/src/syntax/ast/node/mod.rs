@@ -23,7 +23,7 @@ pub use self::{
     expression::{Call, New},
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::ForLoop,
+    iteration::{ForLoop, WhileLoop},
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     statement_list::StatementList,
@@ -261,18 +261,7 @@ pub enum Node {
     /// Array declaration node. [More information](./declaration/struct.VarDeclList.html).
     VarDeclList(VarDeclList),
 
-    /// The `while` statement creates a loop that executes a specified statement as long as the
-    /// test condition evaluates to `true`.
-    ///
-    /// The condition is evaluated before executing the statement.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
-    WhileLoop(Box<Node>, Box<Node>),
+    WhileLoop(WhileLoop),
 }
 
 impl Display for Node {
@@ -385,15 +374,6 @@ impl Node {
         Self::This
     }
 
-    /// Creates a `WhileLoop` AST node.
-    pub fn while_loop<C, B>(condition: C, body: B) -> Self
-    where
-        C: Into<Self>,
-        B: Into<Self>,
-    {
-        Self::WhileLoop(Box::new(condition.into()), Box::new(body.into()))
-    }
-
     /// Implements the display formatting with indentation.
     fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         let indent = "    ".repeat(indentation);
@@ -435,10 +415,7 @@ impl Node {
             Self::GetField(ref get_field) => Display::fmt(get_field, f),
             Self::Call(ref expr) => Display::fmt(expr, f),
             Self::New(ref expr) => Display::fmt(expr, f),
-            Self::WhileLoop(ref cond, ref node) => {
-                write!(f, "while ({}) ", cond)?;
-                node.display(f, indentation)
-            }
+            Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
             Self::DoWhileLoop(ref node, ref cond) => {
                 write!(f, "do")?;
                 node.display(f, indentation)?;

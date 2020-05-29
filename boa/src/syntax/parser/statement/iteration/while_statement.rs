@@ -1,5 +1,5 @@
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator},
+    ast::{node::WhileLoop, Keyword, Node, Punctuator},
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         ParseResult, TokenParser,
@@ -55,6 +55,6 @@ impl TokenParser for WhileStatement {
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        Ok(Node::while_loop(cond, body))
+        Ok(WhileLoop::new(cond, body).into())
     }
 }
