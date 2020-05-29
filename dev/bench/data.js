@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1590503370720,
+  "lastUpdate": 1590751711019,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -7887,6 +7887,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 12.265,
             "range": "+/- 0.276",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "32345702+pedropaulosuzuki@users.noreply.github.com",
+            "name": "Pedro Paulo",
+            "username": "pedropaulosuzuki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c8218dd91ef3181e048e7a2659a4fbf8d53c7174",
+          "message": "Replacement of dead links (#423)\n\n* Update repository link on Cargo.toml\n\n* Update repository for Cargo.toml [WASM]\n\n* Update link on CONTRIBUTING.md\n\nMoving <https://github.com/jasonwilliams/boa/issues> to <https://github.com/boa-dev/boa/issues>\n\n* Remove dead links on CHANGELOG.md\n\nChanges all dead links from <https://github.com/jasonwilliams/boa> to <https://github.com/boa-dev/boa>.\n\n* Fix dead link on boa/Cargo.toml\n\nFrom <https://github.com/jasonwilliams/boa> to <https://github.com/boa-dev/boa>\n\n* CHANGELOG.md - Fix link on comparing v0.7.0 with v0.8.0\n\nPreviously comparing v0.7.0...HEAD",
+          "timestamp": "2020-05-29T13:19:14+02:00",
+          "tree_id": "4ce63a0e563697be85e26c402307948815e056e5",
+          "url": "https://github.com/boa-dev/boa/commit/c8218dd91ef3181e048e7a2659a4fbf8d53c7174"
+        },
+        "date": 1590751705299,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 456.18,
+            "range": "+/- 11.470",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 502.3,
+            "range": "+/- 15.240",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 514.74,
+            "range": "+/- 21.230",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.9229,
+            "range": "+/- 0.081",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.2748,
+            "range": "+/- 0.088",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.068,
+            "range": "+/- 0.020",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.8619,
+            "range": "+/- 0.152",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.1347,
+            "range": "+/- 0.178",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.4002,
+            "range": "+/- 0.071",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.722,
+            "range": "+/- 0.697",
             "unit": "us"
           }
         ]
