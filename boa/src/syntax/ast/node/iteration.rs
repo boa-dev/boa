@@ -194,3 +194,63 @@ impl From<WhileLoop> for Node {
         Self::WhileLoop(while_loop)
     }
 }
+
+/// The `do...while` statement creates a loop that executes a specified statement until the
+/// test condition evaluates to false.
+///
+/// The condition is evaluated after executing the statement, resulting in the specified
+/// statement executing at least once.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-do-while-statement
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct DoWhileLoop {
+    body: Box<Node>, 
+    cond: Box<Node>,
+}
+
+impl DoWhileLoop {
+    pub fn body(&self) -> &Node {
+        &self.body
+    }
+
+    pub fn cond(&self) -> &Node {
+        &self.cond
+    }
+
+    /// Creates a `DoWhileLoop` AST node.
+    pub fn new<B, C>(body: B, condition: C) -> Self
+    where
+        B: Into<Node>,
+        C: Into<Node>,
+    {
+        Self {
+            body: Box::new(body.into()), 
+            cond: Box::new(condition.into()),
+        }
+    }
+
+    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+        write!(f, "do")?;
+        self.body().display(f, indentation)?;
+        write!(f, "while ({})", self.cond())
+    }
+    
+}
+
+impl fmt::Display for DoWhileLoop {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display(f, 0)
+    }   
+}
+
+impl From<DoWhileLoop> for Node {
+    fn from(do_while: DoWhileLoop) -> Self {
+        Self::DoWhileLoop(do_while)
+    }
+}

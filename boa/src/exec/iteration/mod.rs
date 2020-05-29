@@ -51,3 +51,7 @@ impl Executable for WhileLoop {
         Ok(result)
     }
 }
+
+impl Executable for DoWhileLoop {
+
+}
