@@ -210,7 +210,7 @@ impl From<WhileLoop> for Node {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct DoWhileLoop {
-    body: Box<Node>, 
+    body: Box<Node>,
     cond: Box<Node>,
 }
 
@@ -230,7 +230,7 @@ impl DoWhileLoop {
         C: Into<Node>,
     {
         Self {
-            body: Box::new(body.into()), 
+            body: Box::new(body.into()),
             cond: Box::new(condition.into()),
         }
     }
@@ -240,13 +240,12 @@ impl DoWhileLoop {
         self.body().display(f, indentation)?;
         write!(f, "while ({})", self.cond())
     }
-    
 }
 
 impl fmt::Display for DoWhileLoop {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.display(f, 0)
-    }   
+    }
 }
 
 impl From<DoWhileLoop> for Node {

@@ -23,7 +23,7 @@ pub use self::{
     expression::{Call, New},
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{ForLoop, WhileLoop, DoWhileLoop},
+    iteration::{DoWhileLoop, ForLoop, WhileLoop},
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     statement_list::StatementList,

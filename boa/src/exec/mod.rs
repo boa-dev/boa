@@ -394,13 +394,7 @@ impl Executable for Node {
             Node::GetField(ref get_field) => get_field.run(interpreter),
             Node::Call(ref expr) => expr.run(interpreter),
             Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
-            Node::DoWhileLoop(ref body, ref cond) => {
-                let mut result = body.run(interpreter)?;
-                while cond.run(interpreter)?.borrow().is_true() {
-                    result = body.run(interpreter)?;
-                }
-                Ok(result)
-            }
+            Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
             Node::If(ref cond, ref expr, None) => {
                 Ok(if cond.run(interpreter)?.borrow().is_true() {

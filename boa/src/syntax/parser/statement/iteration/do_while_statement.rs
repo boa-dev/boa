@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
+    ast::{node::DoWhileLoop, Keyword, Node, Punctuator, TokenKind},
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         ParseError, ParseResult, TokenParser,
@@ -77,6 +77,6 @@ impl TokenParser for DoWhileStatement {
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
         cursor.expect_semicolon(true, "do while statement")?;
 
-        Ok(Node::do_while_loop(body, cond))
+        Ok(DoWhileLoop::new(body, cond).into())
     }
 }
