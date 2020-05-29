@@ -68,66 +68,65 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
-    let object = match args.get(0) {
-        Some(obj) => obj,
-        None => return Ok(Value::undefined()),
-    };
+    if let Some(object) = args.get(0) {
+        let replacer = match args.get(1) {
+            Some(replacer) if replacer.is_object() => replacer,
+            _ => return Ok(Value::from(object.to_json().to_string())),
+        };
 
-    let replacer = match args.get(1) {
-        Some(replacer) if replacer.is_object() => replacer,
-        _ => return Ok(Value::from(object.to_json().to_string())),
-    };
-
-    let replacer_as_object = replacer
-        .as_object()
-        .expect("JSON.stringify replacer was an object");
-    if replacer_as_object.is_callable() {
-        object
+        let replacer_as_object = replacer
             .as_object()
-            .map(|obj| {
-                let object_to_return = Value::new_object(None);
-                for (key, val) in obj.properties.iter().filter_map(|(key, v)| {
-                    if let Some(value) = &v.value {
-                        Some((key, value))
-                    } else {
-                        None
+            .expect("JSON.stringify replacer was an object");
+        if replacer_as_object.is_callable() {
+            object
+                .as_object()
+                .map(|obj| {
+                    let object_to_return = Value::new_object(None);
+                    for (key, val) in obj.properties.iter().filter_map(|(key, v)| {
+                        if let Some(value) = &v.value {
+                            Some((key, value))
+                        } else {
+                            None
+                        }
+                    }) {
+                        let mut this_arg = object.clone();
+                        object_to_return.set_property(
+                            key.to_owned(),
+                            Property::default().value(interpreter.call(
+                                replacer,
+                                &mut this_arg,
+                                &[Value::string(key), val.clone()],
+                            )?),
+                        );
                     }
-                }) {
-                    let mut this_arg = object.clone();
-                    object_to_return.set_property(
-                        key.to_owned(),
-                        Property::default().value(interpreter.call(
-                            replacer,
-                            &mut this_arg,
-                            &[Value::string(key), val.clone()],
-                        )?),
-                    );
+                    Ok(Value::from(object_to_return.to_json().to_string()))
+                })
+                .ok_or_else(Value::undefined)?
+        } else if replacer_as_object.kind == ObjectKind::Array {
+            let mut obj_to_return =
+                serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
+            let fields = replacer_as_object.properties.keys().filter_map(|key| {
+                if key == "length" {
+                    None
+                } else {
+                    Some(replacer.get_field(key.to_string()))
                 }
-                Ok(Value::from(object_to_return.to_json().to_string()))
-            })
-            .ok_or_else(Value::undefined)?
-    } else if replacer_as_object.kind == ObjectKind::Array {
-        let mut obj_to_return =
-            serde_json::Map::with_capacity(replacer_as_object.properties.len() - 1);
-        let fields = replacer_as_object.properties.keys().filter_map(|key| {
-            if key == "length" {
-                None
-            } else {
-                Some(replacer.get_field(key.to_string()))
+            });
+            for field in fields {
+                if let Some(value) = object
+                    .get_property(&field.to_string())
+                    .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
+                    .flatten()
+                {
+                    obj_to_return.insert(field.to_string(), value);
+                }
             }
-        });
-        for field in fields {
-            if let Some(value) = object
-                .get_property(&field.to_string())
-                .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
-                .flatten()
-            {
-                obj_to_return.insert(field.to_string(), value);
-            }
+            Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
+        } else {
+            Ok(Value::from(object.to_json().to_string()))
         }
-        Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
     } else {
-        Ok(Value::from(object.to_json().to_string()))
+        Ok(Value::undefined())
     }
 }
 
