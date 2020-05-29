@@ -4,8 +4,8 @@ use super::Parser;
 use crate::syntax::{
     ast::{
         node::{
-            Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, StatementList, UnaryOp,
-            VarDecl, VarDeclList, field::GetConstField,
+            field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node,
+            StatementList, UnaryOp, VarDecl, VarDeclList,
         },
         op::{self, NumOp},
         Const,
@@ -46,7 +46,10 @@ fn check_construct_call_precedence() {
     check_parser(
         "new Date().getTime()",
         vec![Node::from(Call::new(
-            GetConstField::new(New::from(Call::new(Identifier::from("Date"), vec![])), "getTime",),
+            GetConstField::new(
+                New::from(Call::new(Identifier::from("Date"), vec![])),
+                "getTime",
+            ),
             vec![],
         ))],
     );

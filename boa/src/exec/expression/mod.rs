@@ -20,7 +20,7 @@ impl Executable for Call {
                         .expect("failed to convert to object");
                 }
                 (obj.clone(), obj.get_field(get_const_field.field()))
-            },
+            }
             Node::GetField(ref get_field) => {
                 let obj = get_field.obj().run(interpreter)?;
                 let field = get_field.field().run(interpreter)?;

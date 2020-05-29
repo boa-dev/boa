@@ -18,7 +18,7 @@ pub use self::{
     block::Block,
     declaration::{
         ArrowFunctionDecl, ConstDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDecl,
-        LetDeclList, VarDecl, VarDeclList
+        LetDeclList, VarDecl, VarDeclList,
     },
     expression::{Call, New},
     field::{GetConstField, GetField},

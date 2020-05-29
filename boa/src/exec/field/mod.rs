@@ -13,7 +13,6 @@ impl Executable for GetConstField {
                 .expect("failed to convert to object");
         }
 
-
         Ok(obj.get_field(self.field()))
     }
 }
@@ -26,4 +25,3 @@ impl Executable for GetField {
         Ok(obj.get_field(field.to_string()))
     }
 }
-

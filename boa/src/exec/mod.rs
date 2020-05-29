@@ -356,8 +356,14 @@ impl Interpreter {
                     .set_mutable_binding(name.as_ref(), value.clone(), true);
                 Ok(value)
             }
-            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node.obj().run(self)?.set_field(get_const_field_node.field(), value)),
-            Node::GetField(ref get_field) => Ok(get_field.obj().run(self)?.set_field(get_field.field().run(self)?, value)),
+            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
+                .obj()
+                .run(self)?
+                .set_field(get_const_field_node.field(), value)),
+            Node::GetField(ref get_field) => Ok(get_field
+                .obj()
+                .run(self)?
+                .set_field(get_field.field().run(self)?, value)),
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }

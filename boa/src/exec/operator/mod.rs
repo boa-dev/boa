@@ -5,7 +5,7 @@ use crate::{
     builtins::value::{ResultValue, Value},
     environment::lexical_environment::VariableScope,
     syntax::ast::{
-        node::{Assign, BinOp, Node, UnaryOp, field::GetConstField},
+        node::{field::GetConstField, Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
 };
@@ -191,8 +191,18 @@ impl Executable for UnaryOp {
             }
             op::UnaryOp::Void => Value::undefined(),
             op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref get_const_field) => Value::boolean(get_const_field.obj().run(interpreter)?.remove_property(get_const_field.field())),
-                Node::GetField(ref get_field) => Value::boolean(get_field.obj().run(interpreter)?.remove_property(&get_field.field().run(interpreter)?.to_string())),
+                Node::GetConstField(ref get_const_field) => Value::boolean(
+                    get_const_field
+                        .obj()
+                        .run(interpreter)?
+                        .remove_property(get_const_field.field()),
+                ),
+                Node::GetField(ref get_field) => Value::boolean(
+                    get_field
+                        .obj()
+                        .run(interpreter)?
+                        .remove_property(&get_field.field().run(interpreter)?.to_string()),
+                ),
                 Node::Identifier(_) => Value::boolean(false),
                 Node::ArrayDecl(_)
                 | Node::Block(_)

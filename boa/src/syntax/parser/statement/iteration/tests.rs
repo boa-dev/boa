@@ -1,6 +1,9 @@
 use crate::syntax::{
     ast::{
-        node::{BinOp, Block, Call, Identifier, Node, UnaryOp, VarDecl, VarDeclList, field::GetConstField},
+        node::{
+            field::GetConstField, BinOp, Block, Call, Identifier, Node, UnaryOp, VarDecl,
+            VarDeclList,
+        },
         op::{self, AssignOp, CompOp},
         Const,
     },

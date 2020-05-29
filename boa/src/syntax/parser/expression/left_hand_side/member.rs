@@ -8,7 +8,10 @@
 use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
-        node::{Call, New, Node, field::{GetConstField, GetField}},
+        node::{
+            field::{GetConstField, GetField},
+            Call, New, Node,
+        },
         Keyword, Punctuator, TokenKind,
     },
     parser::{
@@ -67,7 +70,9 @@ impl TokenParser for MemberExpression {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into()
                         }
-                        TokenKind::Keyword(kw) => lhs = GetConstField::new(lhs, kw.to_string()).into(),
+                        TokenKind::Keyword(kw) => {
+                            lhs = GetConstField::new(lhs, kw.to_string()).into()
+                        }
                         _ => {
                             return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],

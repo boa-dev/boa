@@ -10,7 +10,10 @@
 use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
-        node::{Call, Node, field::{GetConstField, GetField}},
+        node::{
+            field::{GetConstField, GetField},
+            Call, Node,
+        },
         Punctuator, TokenKind,
     },
     parser::{

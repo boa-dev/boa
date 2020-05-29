@@ -31,8 +31,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GetConstField {
-    obj: Box<Node>, 
-    field: Box<str>
+    obj: Box<Node>,
+    field: Box<str>,
 }
 
 impl GetConstField {
@@ -94,10 +94,9 @@ impl From<GetConstField> for Node {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GetField {
-    obj: Box<Node>, 
+    obj: Box<Node>,
     field: Box<Node>,
 }
-
 
 impl GetField {
     pub fn obj(&self) -> &Node {
