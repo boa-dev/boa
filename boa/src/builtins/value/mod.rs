@@ -755,7 +755,7 @@ impl ValueData {
                 panic!("TypeError: \"BigInt value can't be serialized in JSON\"");
             }
             Self::Symbol(_) | Self::Undefined => {
-                panic!("Symbols and Undefined JSON Values depend on parent type");
+                unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
         }
     }
