@@ -4,7 +4,7 @@ use super::{Executable, Interpreter};
 use crate::{
     builtins::value::{ResultValue, Value},
     environment::lexical_environment::new_declarative_environment,
-    syntax::ast::node::{ForLoop, WhileLoop},
+    syntax::ast::node::{DoWhileLoop, ForLoop, WhileLoop},
 };
 use std::borrow::Borrow;
 
@@ -47,6 +47,16 @@ impl Executable for WhileLoop {
         let mut result = Value::undefined();
         while self.cond().run(interpreter)?.borrow().is_true() {
             result = self.expr().run(interpreter)?;
+        }
+        Ok(result)
+    }
+}
+
+impl Executable for DoWhileLoop {
+    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let mut result = self.body().run(interpreter)?;
+        while self.cond().run(interpreter)?.borrow().is_true() {
+            result = self.body().run(interpreter)?;
         }
         Ok(result)
     }

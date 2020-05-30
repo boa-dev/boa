@@ -1,8 +1,8 @@
 use crate::syntax::{
     ast::{
         node::{
-            field::GetConstField, BinOp, Block, Call, Identifier, Node, UnaryOp, VarDecl,
-            VarDeclList,
+            field::GetConstField, BinOp, Block, Call, DoWhileLoop, Identifier, Node, UnaryOp,
+            VarDecl, VarDeclList,
         },
         op::{self, AssignOp, CompOp},
         Const,
@@ -17,7 +17,7 @@ fn check_do_while() {
         r#"do {
             a += 1;
         } while (true)"#,
-        vec![Node::do_while_loop(
+        vec![DoWhileLoop::new(
             Block::from(vec![BinOp::new(
                 AssignOp::Add,
                 Identifier::from("a"),
@@ -25,7 +25,8 @@ fn check_do_while() {
             )
             .into()]),
             Const::from(true),
-        )],
+        )
+        .into()],
     );
 }
 
@@ -37,7 +38,7 @@ fn check_do_while_semicolon_insertion() {
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
         vec![
             VarDeclList::from(vec![VarDecl::new("i", Some(Const::from(0).into()))]).into(),
-            Node::do_while_loop(
+            DoWhileLoop::new(
                 Block::from(vec![Call::new(
                     GetConstField::new(Identifier::from("console"), "log"),
                     vec![Const::from("hello").into()],
@@ -48,7 +49,8 @@ fn check_do_while_semicolon_insertion() {
                     UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("i")),
                     Const::from(10),
                 ),
-            ),
+            )
+            .into(),
             Call::new(
                 GetConstField::new(Identifier::from("console"), "log"),
                 vec![Const::from("end").into()],

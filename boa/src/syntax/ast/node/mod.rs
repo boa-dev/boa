@@ -23,7 +23,7 @@ pub use self::{
     expression::{Call, New},
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{ForLoop, WhileLoop},
+    iteration::{DoWhileLoop, ForLoop, WhileLoop},
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     statement_list::StatementList,
@@ -123,19 +123,7 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
     Continue(Option<Box<str>>),
 
-    /// The `do...while` statement creates a loop that executes a specified statement until the
-    /// test condition evaluates to false.
-    ///
-    /// The condition is evaluated after executing the statement, resulting in the specified
-    /// statement executing at least once.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-do-while-statement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
-    DoWhileLoop(Box<Node>, Box<Node>),
+    DoWhileLoop(DoWhileLoop),
 
     /// A function declaration node. [More information](./declaration/struct.FunctionDecl.html).
     FunctionDecl(FunctionDecl),
@@ -320,15 +308,6 @@ impl Node {
         Self::Continue(label.into().map(L::into))
     }
 
-    /// Creates a `DoWhileLoop` AST node.
-    pub fn do_while_loop<B, C>(body: B, condition: C) -> Self
-    where
-        B: Into<Self>,
-        C: Into<Self>,
-    {
-        Self::DoWhileLoop(Box::new(body.into()), Box::new(condition.into()))
-    }
-
     /// Creates an `If` AST node.
     pub fn if_node<C, B, E, OE>(condition: C, body: B, else_node: OE) -> Self
     where
@@ -416,11 +395,7 @@ impl Node {
             Self::Call(ref expr) => Display::fmt(expr, f),
             Self::New(ref expr) => Display::fmt(expr, f),
             Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
-            Self::DoWhileLoop(ref node, ref cond) => {
-                write!(f, "do")?;
-                node.display(f, indentation)?;
-                write!(f, "while ({})", cond)
-            }
+            Self::DoWhileLoop(ref do_while) => do_while.display(f, indentation),
             Self::If(ref cond, ref node, None) => {
                 write!(f, "if ({}) ", cond)?;
                 node.display(f, indentation)
