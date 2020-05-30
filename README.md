@@ -19,15 +19,15 @@ Currently, it has support for some of the language.
 
 <https://boa-dev.github.io/boa/>
 
-You can get more verbose errors when running from the command line
+You can get more verbose errors when running from the command line.
 
 ## Development documentation
 
-You can check the internal development docs at <https://boa-dev.github.io/boa/doc>
+You can check the internal development docs at <https://boa-dev.github.io/boa/doc>.
 
 ## Benchmarks
 
-<https://boa-dev.github.io/boa/dev/bench/>
+See [Benchmarks](https://boa-dev.github.io/boa/dev/bench/).
 
 ## Contributing
 
@@ -37,7 +37,7 @@ some configurations ready for VSCode.
 
 ### Debugging
 
-See [Debugging](./docs/debugging.md).
+Check [debugging.md](./docs/debugging.md) for more info on debugging.
 
 ### Web Assembly
 
@@ -49,21 +49,21 @@ $ yarn install
 $ yarn serve
 ```
 
-In the console you can use `window.evaluate` to pass JavaScript in
-To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`
+In the console you can use `window.evaluate` to pass JavaScript in.
+To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`.
 
 ## Roadmap
 
-See Milestones
+See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 ## Changelog
 
-see [CHANGELOG](./CHANGELOG.md)
+See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Usage
 
-- Clone this repo
-- Run with `cargo run -- test.js` where `test.js` is an existing JS file
+- Clone this repo.
+- Run with `cargo run -- test.js` where `test.js` is an existing JS file.
 - If any JS doesn't work then it's a bug. Please raise an issue!
 
 ## Command-line Options
@@ -88,7 +88,7 @@ ARGS:
 
 ## Communication
 
-Feel free to contact us on Discord https://discord.gg/tUFFk9Y
+Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y).
 
 ## Example
 
@@ -96,4 +96,4 @@ Feel free to contact us on Discord https://discord.gg/tUFFk9Y
 
 ## License
 
-This project is licensed under the Unlicense or MIT licenses, at your option.
+This project is licensed under the [Unlicense](./LICENSE-UNLICENSE) or [MIT](./LICENSE-MIT) licenses, at your option.
