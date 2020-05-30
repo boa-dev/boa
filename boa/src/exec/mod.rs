@@ -421,15 +421,7 @@ impl Executable for Node {
             Node::BinOp(ref op) => op.run(interpreter),
             Node::UnaryOp(ref op) => op.run(interpreter),
             Node::New(ref call) => call.run(interpreter),
-            Node::Return(ref ret) => {
-                let result = match *ret {
-                    Some(ref v) => v.run(interpreter),
-                    None => Ok(Value::undefined()),
-                };
-                // Set flag for return
-                interpreter.is_return = true;
-                result
-            }
+            Node::Return(ref ret) => ret.run(interpreter),
             Node::Throw(ref ex) => Err(ex.run(interpreter)?),
             Node::Assign(ref op) => op.run(interpreter),
             Node::VarDeclList(ref decl) => decl.run(interpreter),

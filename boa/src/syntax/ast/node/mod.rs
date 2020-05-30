@@ -11,6 +11,7 @@ pub mod object;
 pub mod operator;
 pub mod statement_list;
 pub mod switch;
+pub mod return_smt;
 pub mod try_node;
 
 pub use self::{
@@ -28,6 +29,7 @@ pub use self::{
     operator::{Assign, BinOp, UnaryOp},
     statement_list::StatementList,
     switch::Switch,
+    return_smt::Return,
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
@@ -170,25 +172,8 @@ pub enum Node {
     /// An object. [More information](./object/struct.Object.html).
     Object(Object),
 
-    /// The `return` statement ends function execution and specifies a value to be returned to the
-    /// function caller.
-    ///
-    /// Syntax: `return [expression];`
-    ///
-    /// `expression`:
-    ///  > The expression whose value is to be returned. If omitted, `undefined` is returned
-    ///  > nstead.
-    ///
-    /// When a `return` statement is used in a function body, the execution of the function is
-    /// stopped. If specified, a given value is returned to the function caller.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
-    Return(Option<Box<Node>>),
+    /// A return statement. [More information](./object/struct.Return.html).
+    Return(Return),
 
     Switch(Switch),
 
@@ -321,15 +306,6 @@ impl Node {
             Box::new(body.into()),
             else_node.into().map(E::into).map(Box::new),
         )
-    }
-
-    /// Creates a `Return` AST node.
-    pub fn return_node<E, OE>(expr: OE) -> Self
-    where
-        E: Into<Self>,
-        OE: Into<Option<E>>,
-    {
-        Self::Return(expr.into().map(E::into).map(Box::new))
     }
 
     /// Creates a `Spread` AST node.
