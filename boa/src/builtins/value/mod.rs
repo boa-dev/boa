@@ -13,7 +13,7 @@ use crate::builtins::{
     },
     property::Property,
 };
-use crate::syntax::ast::bigint::BigInt;
+use crate::{syntax::ast::bigint::BigInt, BoaProfiler};
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
@@ -122,6 +122,7 @@ impl Value {
 
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
+        let _timer = BoaProfiler::global().start_event("new_object", "value");
         if let Some(global) = global {
             let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
 
@@ -488,6 +489,7 @@ impl ValueData {
     where
         F: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("get_field", "value");
         match *field.into() {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
@@ -586,6 +588,7 @@ impl ValueData {
 
     /// Check to see if the Value has the field, mainly used by environment records
     pub fn has_field(&self, field: &str) -> bool {
+        let _timer = BoaProfiler::global().start_event("has_field", "value");
         self.get_property(field).is_some()
     }
 
@@ -596,6 +599,7 @@ impl ValueData {
         F: Into<Value>,
         V: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("set_field", "value");
         let field = field.into();
         let val = val.into();
 
@@ -625,6 +629,7 @@ impl ValueData {
 
     /// Set the private field in the value
     pub fn set_internal_slot(&self, field: &str, val: Value) -> Value {
+        let _timer = BoaProfiler::global().start_event("set_internal_slot", "exec");
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .internal_slots

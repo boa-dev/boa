@@ -508,6 +508,7 @@ pub fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 
 /// Create a new `Math` object
 pub fn create(global: &Value) -> Value {
+    let _timer = BoaProfiler::global().start_event("math:create", "init");
     let math = Value::new_object(Some(global));
 
     math.set_field("E", Value::from(f64::consts::E));

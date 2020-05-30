@@ -129,6 +129,7 @@ impl ObjectInternalMethods for Object {
 
     /// Helper function to get an immutable internal slot or Null
     fn get_internal_slot(&self, name: &str) -> Value {
+        let _timer = BoaProfiler::global().start_event("Object::get_internal_slot", "object");
         match self.internal_slots.get(name) {
             Some(v) => v.clone(),
             None => Value::null(),
@@ -144,6 +145,7 @@ impl ObjectInternalMethods for Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     fn get_own_property(&self, prop: &Value) -> Property {
+        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
         debug_assert!(Property::is_property_key(prop));
         // Prop could either be a String or Symbol
         match *(*prop) {
@@ -350,6 +352,7 @@ impl Object {
 
     /// Return a new ObjectData struct, with `kind` set to Ordinary
     pub fn function() -> Self {
+        let _timer = BoaProfiler::global().start_event("Object::Function", "object");
         let mut object = Self {
             kind: ObjectKind::Function,
             internal_slots: FxHashMap::default(),

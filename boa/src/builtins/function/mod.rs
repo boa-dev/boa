@@ -143,6 +143,7 @@ impl Function {
     where
         P: Into<Box<[FormalParameter]>>,
     {
+        let _timer = BoaProfiler::global().start_event("function::builtin", "function");
         Self::new(
             parameter_list.into(),
             None,
@@ -164,6 +165,7 @@ impl Function {
         interpreter: &mut Interpreter,
         this_obj: &mut Value,
     ) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("function::call", "function");
         if self.callable {
             match self.body {
                 FunctionBody::BuiltIn(func) => func(this_obj, args_list, interpreter),
