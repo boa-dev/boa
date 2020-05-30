@@ -74,7 +74,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// The str is consumed and the state of the Interpreter is changed
 /// Similar to `forward`, except the current value is returned instad of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
-#[allow(clippy::unit_arg)]
+#[allow(clippy::unit_arg, clippy::drop_copy)]
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
