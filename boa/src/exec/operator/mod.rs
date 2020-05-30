@@ -5,7 +5,7 @@ use crate::{
     builtins::value::{ResultValue, Value},
     environment::lexical_environment::VariableScope,
     syntax::ast::{
-        node::{field::GetConstField, Assign, BinOp, Node, UnaryOp},
+        node::{Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
 };

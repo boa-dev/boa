@@ -1,4 +1,4 @@
-use super::{join_nodes, FormalParameter, Identifier, Node, StatementList};
+use super::Node;
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -61,7 +61,7 @@ impl If {
         write!(f, "if ({}) ", self.cond())?;
         match self.else_node() {
             Some(else_e) => {
-                self.body().display(f, indent);
+                self.body().display(f, indent)?;
                 f.write_str(" else ")?;
                 else_e.display(f, indent)
             }
