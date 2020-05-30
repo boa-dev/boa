@@ -1,8 +1,11 @@
 #![allow(missing_copy_implementations, missing_debug_implementations)]
 
+#[cfg(feature = "profiler")]
 use measureme::{EventId, Profiler, TimingGuard};
+#[cfg(feature = "profiler")]
 use once_cell::sync::OnceCell;
 use std::fmt::{self, Debug};
+#[cfg(feature = "profiler")]
 use std::{
     path::Path,
     thread::{current, ThreadId},
@@ -11,14 +14,17 @@ use std::{
 /// MmapSerializatioSink is faster on macOS and Linux
 /// but FileSerializationSink is faster on Windows
 #[cfg(not(windows))]
+#[cfg(feature = "profiler")]
 type SerializationSink = measureme::MmapSerializationSink;
 #[cfg(windows)]
+#[cfg(feature = "profiler")]
 type SerializationSink = measureme::FileSerializationSink;
 #[cfg(feature = "profiler")]
 pub struct BoaProfiler {
     profiler: Profiler<SerializationSink>,
 }
 
+#[cfg(feature = "profiler")]
 pub static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
 
 #[cfg(feature = "profiler")]
