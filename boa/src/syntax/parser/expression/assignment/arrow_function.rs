@@ -10,7 +10,7 @@
 use super::AssignmentExpression;
 use crate::syntax::{
     ast::{
-        node::{ArrowFunctionDecl, FormalParameter, Node, StatementList},
+        node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
         Punctuator, TokenKind,
     },
     parser::{
@@ -113,9 +113,10 @@ impl TokenParser for ConciseBody {
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }
-            _ => Ok(StatementList::from(vec![Node::return_node(
+            _ => Ok(StatementList::from(vec![Return::new(
                 ExpressionBody::new(self.allow_in, false).parse(cursor)?,
-            )])),
+            )
+            .into()])),
         }
     }
 }

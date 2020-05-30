@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
+    ast::{node::Return, Keyword, Node, Punctuator, TokenKind},
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
 
@@ -51,13 +51,13 @@ impl TokenParser for ReturnStatement {
                 _ => {}
             }
 
-            return Ok(Node::Return(None));
+            return Ok(Return::new::<Node, Option<_>>(None).into());
         }
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect_semicolon(false, "return statement")?;
 
-        Ok(Node::return_node(expr))
+        Ok(Return::new(expr).into())
     }
 }

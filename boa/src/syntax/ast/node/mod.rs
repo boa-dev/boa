@@ -9,9 +9,9 @@ pub mod identifier;
 pub mod iteration;
 pub mod object;
 pub mod operator;
+pub mod return_smt;
 pub mod statement_list;
 pub mod switch;
-pub mod return_smt;
 pub mod try_node;
 
 pub use self::{
@@ -27,9 +27,9 @@ pub use self::{
     iteration::{DoWhileLoop, ForLoop, WhileLoop},
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
+    return_smt::Return,
     statement_list::StatementList,
     switch::Switch,
-    return_smt::Return,
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
@@ -392,8 +392,7 @@ impl Node {
             Self::ArrowFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::BinOp(ref op) => Display::fmt(op, f),
             Self::UnaryOp(ref op) => Display::fmt(op, f),
-            Self::Return(Some(ref ex)) => write!(f, "return {}", ex),
-            Self::Return(None) => write!(f, "return"),
+            Self::Return(ref ret) => Display::fmt(ret, f),
             Self::Throw(ref ex) => write!(f, "throw {}", ex),
             Self::Assign(ref op) => Display::fmt(op, f),
             Self::LetDeclList(ref decl) => Display::fmt(decl, f),

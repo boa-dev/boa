@@ -4,7 +4,7 @@ use super::Parser;
 use crate::syntax::{
     ast::{
         node::{
-            field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node,
+            field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
             StatementList, UnaryOp, VarDecl, VarDeclList,
         },
         op::{self, NumOp},
@@ -79,7 +79,7 @@ fn hoisting() {
             FunctionDecl::new(
                 Box::from("hello"),
                 vec![],
-                vec![Node::return_node(Const::from(10))],
+                vec![Return::new(Const::from(10)).into()],
             )
             .into(),
             VarDeclList::from(vec![VarDecl::new(

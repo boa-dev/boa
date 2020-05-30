@@ -22,17 +22,17 @@ use serde::{Deserialize, Serialize};
 ///  - [MDN documentation][mdn]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Return {
-    value: Option<Box<Node>>,
+    expr: Option<Box<Node>>,
 }
 
 impl Return {
-    pub fn value(&self) -> &Option<Box<Node>> {
-        &self.value
+    pub fn expr(&self) -> &Option<Box<Node>> {
+        &self.expr
     }
 
     /// Creates a `Return` AST node.
@@ -42,7 +42,7 @@ impl Return {
         OE: Into<Option<E>>,
     {
         Self {
-            value: expr.into().map(E::into).map(Box::new)
+            expr: expr.into().map(E::into).map(Box::new),
         }
     }
 }
@@ -50,5 +50,14 @@ impl Return {
 impl From<Return> for Node {
     fn from(return_smt: Return) -> Node {
         Node::Return(return_smt)
+    }
+}
+
+impl fmt::Display for Return {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.expr() {
+            Some(ex) => write!(f, "return {}", ex),
+            None => write!(f, "return"),
+        }
     }
 }

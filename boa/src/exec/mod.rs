@@ -8,6 +8,7 @@ mod field;
 mod iteration;
 mod object;
 mod operator;
+mod return_smt;
 mod statement_list;
 mod switch;
 #[cfg(test)]
