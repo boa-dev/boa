@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Node, WhileLoop},
+        node::{Block, Node, WhileLoop, Break},
         Const,
     },
     parser::tests::check_parser,
@@ -39,7 +39,7 @@ fn new_line_semicolon_insertion() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("test")]),
+            Block::from(vec![Break::new("test").into()]),
         )
         .into()],
     );
@@ -49,7 +49,7 @@ fn new_line_semicolon_insertion() {
 fn inline_block() {
     check_parser(
         "while (true) {break;}",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Break(None)])).into()],
+        vec![WhileLoop::new(Const::from(true), Block::from(vec![Break::new(None).into()])).into()],
     );
 }
 
@@ -61,7 +61,7 @@ fn new_line_block() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("test")]),
+            Block::from(vec![Break::new("test").into()]),
         )
         .into()],
     );
@@ -75,7 +75,7 @@ fn reserved_label() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("await")]),
+            Block::from(vec![Break::new("await").into()]),
         )
         .into()],
     );
@@ -86,7 +86,7 @@ fn reserved_label() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("yield")]),
+            Block::from(vec![Break::new("yield").into()]),
         )
         .into()],
     );
@@ -98,7 +98,7 @@ fn new_line_block_empty() {
         "while (true) {
             break;
         }",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Break(None)])).into()],
+        vec![WhileLoop::new(Const::from(true), Block::from(vec![Break::new(None).into()])).into()],
     );
 }
 
@@ -108,6 +108,6 @@ fn new_line_block_empty_semicolon_insertion() {
         "while (true) {
             break
         }",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Break(None)])).into()],
+        vec![WhileLoop::new(Const::from(true), Block::from(vec![Break::new(None).into()])).into()],
     );
 }

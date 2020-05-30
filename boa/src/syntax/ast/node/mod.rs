@@ -2,6 +2,7 @@
 
 pub mod array;
 pub mod block;
+pub mod break_node;
 pub mod conditional;
 pub mod declaration;
 pub mod expression;
@@ -18,6 +19,7 @@ pub mod try_node;
 pub use self::{
     array::ArrayDecl,
     block::Block,
+    break_node::Break,
     conditional::If,
     declaration::{
         ArrowFunctionDecl, ConstDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDecl,
@@ -62,21 +64,8 @@ pub enum Node {
     /// A Block node. [More information](./block/struct.Block.html).
     Block(Block),
 
-    /// The `break` statement terminates the current loop, switch, or label statement and transfers
-    /// program control to the statement following the terminated statement.
-    ///
-    /// The break statement includes an optional label that allows the program to break out of a
-    /// labeled statement. The break statement needs to be nested within the referenced label. The
-    /// labeled statement can be any block statement; it does not have to be preceded by a loop
-    /// statement.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
-    Break(Option<Box<str>>),
+    /// A break node. [More information](./break/struct.Break.html).
+    Break(Break),
 
     /// A function call. [More information](./expression/struct.Call.html).
     Call(Call),
@@ -248,15 +237,6 @@ impl Node {
         }
     }
 
-    /// Creates a `Break` AST node.
-    pub fn break_node<OL, L>(label: OL) -> Self
-    where
-        L: Into<Box<str>>,
-        OL: Into<Option<L>>,
-    {
-        Self::Break(label.into().map(L::into))
-    }
-
     /// Creates a `ConditionalOp` AST node.
     pub fn conditional_op<C, T, F>(condition: C, if_true: T, if_false: F) -> Self
     where
@@ -317,15 +297,7 @@ impl Node {
             Self::ForLoop(ref for_loop) => for_loop.display(f, indentation),
             Self::This => write!(f, "this"),
             Self::Try(ref try_catch) => try_catch.display(f, indentation),
-            Self::Break(ref l) => write!(
-                f,
-                "break{}",
-                if let Some(label) = l {
-                    format!(" {}", label)
-                } else {
-                    String::new()
-                }
-            ),
+            Self::Break(ref break_smt) => Display::fmt(break_smt, f),
             Self::Continue(ref l) => write!(
                 f,
                 "continue{}",

@@ -12,7 +12,7 @@ mod tests;
 
 use super::LabelIdentifier;
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
+    ast::{Keyword, Node, Punctuator, TokenKind, node::Break},
     parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
 
@@ -66,6 +66,6 @@ impl TokenParser for BreakStatement {
             Some(label)
         };
 
-        Ok(Node::Break(label))
+        Ok(Break::new(label).into())
     }
 }
