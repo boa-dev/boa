@@ -2,6 +2,7 @@
 
 mod array;
 mod block;
+mod conditional;
 mod declaration;
 mod expression;
 mod field;
@@ -397,20 +398,7 @@ impl Executable for Node {
             Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
             Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
-            Node::If(ref cond, ref expr, None) => {
-                Ok(if cond.run(interpreter)?.borrow().is_true() {
-                    expr.run(interpreter)?
-                } else {
-                    Value::undefined()
-                })
-            }
-            Node::If(ref cond, ref expr, Some(ref else_e)) => {
-                Ok(if cond.run(interpreter)?.borrow().is_true() {
-                    expr.run(interpreter)?
-                } else {
-                    else_e.run(interpreter)?
-                })
-            }
+            Node::If(ref if_smt) => if_smt.run(interpreter),
             Node::Switch(ref switch) => switch.run(interpreter),
             Node::Object(ref obj) => obj.run(interpreter),
             Node::ArrayDecl(ref arr) => arr.run(interpreter),

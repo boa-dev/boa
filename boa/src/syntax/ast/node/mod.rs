@@ -2,6 +2,7 @@
 
 pub mod array;
 pub mod block;
+pub mod conditional;
 pub mod declaration;
 pub mod expression;
 pub mod field;
@@ -17,6 +18,7 @@ pub mod try_node;
 pub use self::{
     array::ArrayDecl,
     block::Block,
+    conditional::If,
     declaration::{
         ArrowFunctionDecl, ConstDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDecl,
         LetDeclList, VarDecl, VarDeclList,
@@ -142,23 +144,8 @@ pub enum Node {
     /// A `for` statement. [More information](./iteration.struct.ForLoop.html).
     ForLoop(ForLoop),
 
-    /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
-    /// the condition is [`falsy`][falsy], another statement can be executed.
-    ///
-    /// Multiple `if...else` statements can be nested to create an else if clause.
-    ///
-    /// Note that there is no elseif (in one word) keyword in JavaScript.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
-    /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/truthy
-    /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
-    /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
-    If(Box<Node>, Box<Node>, Option<Box<Node>>),
+    /// An 'if' statement. [More information](./conditional.struct.If.html).
+    If(If),
 
     /// A `let` declaration list. [More information](./declaration/struct.LetDeclList.html).
     LetDeclList(LetDeclList),
@@ -293,21 +280,6 @@ impl Node {
         Self::Continue(label.into().map(L::into))
     }
 
-    /// Creates an `If` AST node.
-    pub fn if_node<C, B, E, OE>(condition: C, body: B, else_node: OE) -> Self
-    where
-        C: Into<Self>,
-        B: Into<Self>,
-        E: Into<Self>,
-        OE: Into<Option<E>>,
-    {
-        Self::If(
-            Box::new(condition.into()),
-            Box::new(body.into()),
-            else_node.into().map(E::into).map(Box::new),
-        )
-    }
-
     /// Creates a `Spread` AST node.
     pub fn spread<V>(val: V) -> Self
     where
@@ -372,17 +344,7 @@ impl Node {
             Self::New(ref expr) => Display::fmt(expr, f),
             Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
             Self::DoWhileLoop(ref do_while) => do_while.display(f, indentation),
-            Self::If(ref cond, ref node, None) => {
-                write!(f, "if ({}) ", cond)?;
-                node.display(f, indentation)
-            }
-            Self::If(ref cond, ref node, Some(ref else_e)) => {
-                write!(f, "if ({}) ", cond)?;
-                node.display(f, indentation)?;
-                f.write_str(" else ")?;
-                else_e.display(f, indentation)
-            }
-
+            Self::If(ref if_smt) => if_smt.display(f, indentation),
             Self::Switch(ref switch) => switch.display(f, indentation),
             Self::Object(ref obj) => obj.display(f, indentation),
             Self::ArrayDecl(ref arr) => Display::fmt(arr, f),

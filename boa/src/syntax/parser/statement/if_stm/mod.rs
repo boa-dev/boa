@@ -3,7 +3,7 @@ mod tests;
 
 use super::Statement;
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
+    ast::{node::If, Keyword, Node, Punctuator, TokenKind},
     parser::{
         expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
         TokenParser,
@@ -68,6 +68,6 @@ impl TokenParser for IfStatement {
             _ => None,
         };
 
-        Ok(Node::if_node::<_, _, Node, _>(cond, then_stm, else_stm))
+        Ok(If::new::<_, _, Node, _>(cond, then_stm, else_stm).into())
     }
 }
