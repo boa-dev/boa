@@ -86,13 +86,11 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
             .as_object()
             .map(|obj| {
                 let object_to_return = Value::new_object(None);
-                for (key, val) in obj.properties.iter().filter_map(|(key, v)| {
-                    if let Some(value) = &v.value {
-                        Some((key, value))
-                    } else {
-                        None
-                    }
-                }) {
+                for (key, val) in obj
+                    .properties
+                    .iter()
+                    .filter_map(|(k, v)| v.value.as_ref().map(|value| (k, value)))
+                {
                     let mut this_arg = object.clone();
                     object_to_return.set_property(
                         key.to_owned(),
