@@ -434,6 +434,9 @@ pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value,
 where
     N: Into<String>,
 {
+    let name_copy: String = name.into();
+    let label = format!("{}{}", String::from("make_builtin_fn: "), &name_copy);
+    let _timer = BoaProfiler::global().start_event(&label, "init");
     let func = Function::builtin(Vec::new(), function);
 
     let mut new_func = Object::function();
@@ -442,7 +445,7 @@ where
     let new_func_obj = Value::from(new_func);
     new_func_obj.set_field("length", length);
 
-    parent.set_field(name.into(), new_func_obj);
+    parent.set_field(Value::from(name_copy), new_func_obj);
 }
 
 /// Initialise the `Function` object on the global object.
