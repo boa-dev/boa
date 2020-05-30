@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1590833296601,
+  "lastUpdate": 1590842404401,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -8055,6 +8055,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 12.198,
             "range": "+/- 0.312",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "32345702+pedropaulosuzuki@users.noreply.github.com",
+            "name": "Pedro Paulo",
+            "username": "pedropaulosuzuki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "87aea64c1f6965b4994d780da5f3e4e7fa4c02d0",
+          "message": "Consistency at README.md (#424)\n\nTries to make the README.md file more consistent. In some places the lines ended with a \".\", while in others it did not. The licenses at the ended were missing some links and some sessions, such as [Benchmark] did not have any text besides the main link, among other things.",
+          "timestamp": "2020-05-30T14:32:02+02:00",
+          "tree_id": "87b81996bf0fe23408b0d769341db092d01b6e01",
+          "url": "https://github.com/boa-dev/boa/commit/87aea64c1f6965b4994d780da5f3e4e7fa4c02d0"
+        },
+        "date": 1590842399120,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 423.42,
+            "range": "+/- 7.790",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 448.93,
+            "range": "+/- 9.080",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 440.33,
+            "range": "+/- 7.120",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.5463,
+            "range": "+/- 0.033",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.054,
+            "range": "+/- 0.033",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 964.27,
+            "range": "+/- 16.990",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.4633,
+            "range": "+/- 0.095",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.9743,
+            "range": "+/- 0.112",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.2021,
+            "range": "+/- 0.047",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13.634,
+            "range": "+/- 0.375",
             "unit": "us"
           }
         ]
