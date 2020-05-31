@@ -14,6 +14,7 @@ pub mod operator;
 pub mod return_smt;
 pub mod statement_list;
 pub mod switch;
+pub mod throw;
 pub mod try_node;
 
 pub use self::{
@@ -34,6 +35,7 @@ pub use self::{
     return_smt::Return,
     statement_list::StatementList,
     switch::Switch,
+    throw::Throw,
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
@@ -148,21 +150,8 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
     Spread(Box<Node>),
 
-    /// The `throw` statement throws a user-defined exception.
-    ///
-    /// Syntax: `throw expression;`
-    ///
-    /// Execution of the current function will stop (the statements after throw won't be executed),
-    /// and control will be passed to the first catch block in the call stack. If no catch block
-    /// exists among caller functions, the program will terminate.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
-    Throw(Box<Node>),
+    /// A throw statement. [More information](./throw/struct.Throw.html).
+    Throw(Throw),
 
     /// A `try...catch` node. [More information](./try_node/struct.Try.htl).
     Try(Try),
@@ -222,14 +211,6 @@ impl Node {
         Self::Spread(Box::new(val.into()))
     }
 
-    /// Creates a `Throw` AST node.
-    pub fn throw<V>(val: V) -> Self
-    where
-        V: Into<Self>,
-    {
-        Self::Throw(Box::new(val.into()))
-    }
-
     /// Creates a `This` AST node.
     pub fn this() -> Self {
         Self::This
@@ -271,7 +252,7 @@ impl Node {
             Self::BinOp(ref op) => Display::fmt(op, f),
             Self::UnaryOp(ref op) => Display::fmt(op, f),
             Self::Return(ref ret) => Display::fmt(ret, f),
-            Self::Throw(ref ex) => write!(f, "throw {}", ex),
+            Self::Throw(ref throw) => Display::fmt(throw, f),
             Self::Assign(ref op) => Display::fmt(op, f),
             Self::LetDeclList(ref decl) => Display::fmt(decl, f),
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),

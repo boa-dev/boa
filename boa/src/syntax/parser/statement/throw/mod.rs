@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
+    ast::{node::Throw, Keyword, Node, Punctuator, TokenKind},
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
 
@@ -49,6 +49,6 @@ impl TokenParser for ThrowStatement {
             }
         }
 
-        Ok(Node::throw(expr))
+        Ok(Throw::new(expr).into())
     }
 }

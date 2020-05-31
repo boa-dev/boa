@@ -14,6 +14,7 @@ mod statement_list;
 mod switch;
 #[cfg(test)]
 mod tests;
+mod throw;
 mod try_node;
 
 use crate::{
@@ -411,7 +412,7 @@ impl Executable for Node {
             Node::UnaryOp(ref op) => op.run(interpreter),
             Node::New(ref call) => call.run(interpreter),
             Node::Return(ref ret) => ret.run(interpreter),
-            Node::Throw(ref ex) => Err(ex.run(interpreter)?),
+            Node::Throw(ref throw) => throw.run(interpreter),
             Node::Assign(ref op) => op.run(interpreter),
             Node::VarDeclList(ref decl) => decl.run(interpreter),
             Node::LetDeclList(ref decl) => decl.run(interpreter),
