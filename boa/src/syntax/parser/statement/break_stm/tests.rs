@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Node, WhileLoop, Break},
+        node::{Block, Break, Node, WhileLoop},
         Const,
     },
     parser::tests::check_parser,
@@ -10,7 +10,11 @@ use crate::syntax::{
 fn inline() {
     check_parser(
         "while (true) break;",
-        vec![WhileLoop::new(Const::from(true), Node::Break(None)).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Node::Break(Break::new::<_, Box<str>>(None)),
+        )
+        .into()],
     );
 }
 
@@ -19,7 +23,7 @@ fn new_line() {
     check_parser(
         "while (true)
             break;",
-        vec![WhileLoop::new(Const::from(true), Node::Break(None)).into()],
+        vec![WhileLoop::new(Const::from(true), Break::new::<_, Box<str>>(None)).into()],
     );
 }
 
@@ -27,7 +31,11 @@ fn new_line() {
 fn inline_block_semicolon_insertion() {
     check_parser(
         "while (true) {break}",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Break(None)])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -49,7 +57,11 @@ fn new_line_semicolon_insertion() {
 fn inline_block() {
     check_parser(
         "while (true) {break;}",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Break::new(None).into()])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -98,7 +110,11 @@ fn new_line_block_empty() {
         "while (true) {
             break;
         }",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Break::new(None).into()])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -108,6 +124,10 @@ fn new_line_block_empty_semicolon_insertion() {
         "while (true) {
             break
         }",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Break::new(None).into()])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }

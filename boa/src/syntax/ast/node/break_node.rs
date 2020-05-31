@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Break {
-    label: Option<Box<str>>
+    label: Option<Box<str>>,
 }
 
 impl Break {
@@ -37,16 +37,18 @@ impl Break {
         OL: Into<Option<L>>,
     {
         Self {
-            label: label.into().map(L::into)
+            label: label.into().map(L::into),
         }
     }
 }
 
 impl fmt::Display for Break {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "break{}",
+        write!(
+            f,
+            "break{}",
             if self.label().is_some() {
-                format!(" {}", self.label().unwrap())
+                format!(" {}", self.label().as_ref().unwrap())
             } else {
                 String::new()
             }
