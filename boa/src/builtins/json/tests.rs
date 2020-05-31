@@ -1,4 +1,4 @@
-use crate::{exec::Interpreter, forward, realm::Realm};
+use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[test]
 fn json_sanity() {
@@ -194,7 +194,7 @@ fn json_stringify_return_undefined() {
 fn json_parse_array_with_reviver() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    let result = forward(
+    let result = forward_val(
         &mut engine,
         r#"JSON.parse('[1,2,3,4]', function(k, v){
             if (typeof v == 'number') {
@@ -202,11 +202,12 @@ fn json_parse_array_with_reviver() {
             } else {
                 v
         }})"#,
-    );
-    assert_eq!(
-        result,
-        "{\n    3: 8,\n    2: 6,\n    0: 2,\n    1: 4,\n    length: 4,\n    extensible: true\n}"
-    );
+    )
+    .unwrap();
+    assert_eq!(result.get_field("0").to_number() as u8, 2u8);
+    assert_eq!(result.get_field("1").to_number() as u8, 4u8);
+    assert_eq!(result.get_field("2").to_number() as u8, 6u8);
+    assert_eq!(result.get_field("3").to_number() as u8, 8u8);
 }
 
 #[test]

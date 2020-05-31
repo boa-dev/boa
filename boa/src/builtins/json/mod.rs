@@ -37,7 +37,6 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-json.parse
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-// TODO: implement optional revever argument.
 pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     match serde_json::from_str::<JSONValue>(
         &args
@@ -62,8 +61,10 @@ pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> Re
 }
 
 /// This is a translation of the [Polyfill implementation][polyfill]
-/// This function recursively walks the structure. passing each key-value pair to the reviver function
-/// for possible transformation
+///
+/// This function recursively walks the structure, passing each key-value pair to the reviver function
+/// for possible transformation.
+///
 /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
 fn walk(
     reviver: &Value,
