@@ -1,12 +1,12 @@
 #![allow(clippy::float_cmp)]
 
-use crate::{exec::Executor, forward, forward_val, realm::Realm};
+use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 use std::f64;
 
 #[test]
 fn abs() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.abs(3 - 5);
         var b = Math.abs(1.23456 - 7.89012);
@@ -24,7 +24,7 @@ fn abs() {
 #[test]
 fn acos() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.acos(8 / 10);
         var b = Math.acos(5 / 3);
@@ -48,7 +48,7 @@ fn acos() {
 #[test]
 fn acosh() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.acosh(2);
         var b = Math.acosh(-1);
@@ -69,7 +69,7 @@ fn acosh() {
 #[test]
 fn asin() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.asin(6 / 10);
         var b = Math.asin(5 / 3);
@@ -87,7 +87,7 @@ fn asin() {
 #[test]
 fn asinh() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.asinh(1);
         var b = Math.asinh(0);
@@ -105,7 +105,7 @@ fn asinh() {
 #[test]
 fn atan() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.atan(1);
         var b = Math.atan(0);
@@ -126,7 +126,7 @@ fn atan() {
 #[test]
 fn atan2() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.atan2(90, 15);
         var b = Math.atan2(15, 90);
@@ -144,7 +144,7 @@ fn atan2() {
 #[test]
 fn cbrt() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.cbrt(64);
         var b = Math.cbrt(-1);
@@ -165,7 +165,7 @@ fn cbrt() {
 #[test]
 fn ceil() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.ceil(1.95);
         var b = Math.ceil(4);
@@ -186,7 +186,7 @@ fn ceil() {
 #[test]
 fn cos() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.cos(0);
         var b = Math.cos(1);
@@ -204,7 +204,7 @@ fn cos() {
 #[test]
 fn cosh() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.cosh(0);
         var b = Math.cosh(1);
@@ -225,7 +225,7 @@ fn cosh() {
 #[test]
 fn exp() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.exp(0);
         var b = Math.exp(-1);
@@ -246,7 +246,7 @@ fn exp() {
 #[test]
 fn floor() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.floor(1.95);
         var b = Math.floor(-3.01);
@@ -267,7 +267,7 @@ fn floor() {
 #[test]
 fn log() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.log(1);
         var b = Math.log(10);
@@ -288,7 +288,7 @@ fn log() {
 #[test]
 fn log10() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.log10(2);
         var b = Math.log10(1);
@@ -309,7 +309,7 @@ fn log10() {
 #[test]
 fn log2() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.log2(3);
         var b = Math.log2(1);
@@ -330,7 +330,7 @@ fn log2() {
 #[test]
 fn max() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.max(10, 20);
         var b = Math.max(-10, -20);
@@ -351,7 +351,7 @@ fn max() {
 #[test]
 fn min() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.min(10, 20);
         var b = Math.min(-10, -20);
@@ -372,7 +372,7 @@ fn min() {
 #[test]
 fn pow() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.pow(2, 10);
         var b = Math.pow(-7, 2);
@@ -396,7 +396,7 @@ fn pow() {
 #[test]
 fn round() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.round(20.5);
         var b = Math.round(-20.3);
@@ -414,7 +414,7 @@ fn round() {
 #[test]
 fn sign() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.sign(3);
         var b = Math.sign(-3);
@@ -435,7 +435,7 @@ fn sign() {
 #[test]
 fn sin() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.sin(0);
         var b = Math.sin(1);
@@ -453,7 +453,7 @@ fn sin() {
 #[test]
 fn sinh() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.sinh(0);
         var b = Math.sinh(1);
@@ -471,7 +471,7 @@ fn sinh() {
 #[test]
 fn sqrt() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.sqrt(0);
         var b = Math.sqrt(2);
@@ -494,7 +494,7 @@ fn sqrt() {
 // #[test]
 // fn tan() {
 //     let realm = Realm::create();
-//     let mut engine = Executor::new(realm);
+//     let mut engine = Interpreter::new(realm);
 //     let init = r#"
 //         var a = Math.tan(1.1);
 //         "#;
@@ -509,7 +509,7 @@ fn sqrt() {
 #[test]
 fn tanh() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.tanh(1);
         var b = Math.tanh(0);
@@ -527,7 +527,7 @@ fn tanh() {
 #[test]
 fn trunc() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = Math.trunc(13.37);
         var b = Math.trunc(0.123);

@@ -123,7 +123,7 @@ impl Value {
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
         if let Some(global) = global {
-            let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
+            let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
 
             let object = Object::create(object_prototype);
             Self::object(object)
@@ -217,7 +217,7 @@ impl ValueData {
         match *self {
             Self::Object(ref o) => {
                 let borrowed_obj = o.borrow();
-                borrowed_obj.is_callable() || borrowed_obj.is_constructor()
+                borrowed_obj.is_callable() || borrowed_obj.is_constructable()
             }
             _ => false,
         }
@@ -484,8 +484,11 @@ impl ValueData {
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field(&self, field: Value) -> Value {
-        match *field {
+    pub fn get_field<F>(&self, field: F) -> Value
+    where
+        F: Into<Value>,
+    {
+        match *field.into() {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
                 match self.get_property(s) {
@@ -586,24 +589,23 @@ impl ValueData {
         self.get_property(field).is_some()
     }
 
-    /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
-    pub fn get_field_slice(&self, field: &str) -> Value {
-        // get_field used to accept strings, but now Symbols accept it needs to accept a value
-        // So this function will now need to Box strings back into values (at least for now)
-        let f = Value::string(field.to_string());
-        self.get_field(f)
-    }
-
     /// Set the field in the value
     /// Field could be a Symbol, so we need to accept a Value (not a string)
-    pub fn set_field(&self, field: Value, val: Value) -> Value {
+    pub fn set_field<F, V>(&self, field: F, val: V) -> Value
+    where
+        F: Into<Value>,
+        V: Into<Value>,
+    {
+        let field = field.into();
+        let val = val.into();
+
         if let Self::Object(ref obj) = *self {
             if obj.borrow().kind == ObjectKind::Array {
                 if let Ok(num) = field.to_string().parse::<usize>() {
                     if num > 0 {
-                        let len = i32::from(&self.get_field_slice("length"));
+                        let len = i32::from(&self.get_field("length"));
                         if len < (num + 1) as i32 {
-                            self.set_field_slice("length", Value::from(num + 1));
+                            self.set_field("length", Value::from(num + 1));
                         }
                     }
                 }
@@ -619,14 +621,6 @@ impl ValueData {
         }
 
         val
-    }
-
-    /// Set the field in the value
-    pub fn set_field_slice(&self, field: &str, val: Value) -> Value {
-        // set_field used to accept strings, but now Symbols accept it needs to accept a value
-        // So this function will now need to Box strings back into values (at least for now)
-        let f = Value::string(field.to_string());
-        self.set_field(f, val)
     }
 
     /// Set the private field in the value
@@ -679,7 +673,7 @@ impl ValueData {
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters
-        new_func_val.set_field_slice("length", Value::from(length));
+        new_func_val.set_field("length", Value::from(length));
         new_func_val
     }
 
@@ -729,16 +723,33 @@ impl ValueData {
     /// Conversts the `Value` to `JSON`.
     pub fn to_json(&self) -> JSONValue {
         match *self {
-            Self::Null | Self::Symbol(_) | Self::Undefined => JSONValue::Null,
+            Self::Null => JSONValue::Null,
             Self::Boolean(b) => JSONValue::Bool(b),
             Self::Object(ref obj) => {
-                let new_obj = obj
-                    .borrow()
-                    .properties
-                    .iter()
-                    .map(|(k, _)| (k.clone(), self.get_field_slice(k).to_json()))
-                    .collect::<Map<String, JSONValue>>();
-                JSONValue::Object(new_obj)
+                if obj.borrow().kind == ObjectKind::Array {
+                    let mut arr: Vec<JSONValue> = Vec::new();
+                    obj.borrow().properties.keys().for_each(|k| {
+                        if k != "length" {
+                            let value = self.get_field(k.to_string());
+                            if value.is_undefined() || value.is_function() {
+                                arr.push(JSONValue::Null);
+                            } else {
+                                arr.push(self.get_field(k.to_string()).to_json());
+                            }
+                        }
+                    });
+                    JSONValue::Array(arr)
+                } else {
+                    let mut new_obj = Map::new();
+                    obj.borrow().properties.keys().for_each(|k| {
+                        let key = k.clone();
+                        let value = self.get_field(k.to_string());
+                        if !value.is_undefined() && !value.is_function() {
+                            new_obj.insert(key, value.to_json());
+                        }
+                    });
+                    JSONValue::Object(new_obj)
+                }
             }
             Self::String(ref str) => JSONValue::String(str.clone()),
             Self::Rational(num) => JSONValue::Number(
@@ -748,6 +759,9 @@ impl ValueData {
             Self::BigInt(_) => {
                 // TODO: throw TypeError
                 panic!("TypeError: \"BigInt value can't be serialized in JSON\"");
+            }
+            Self::Symbol(_) | Self::Undefined => {
+                unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
         }
     }

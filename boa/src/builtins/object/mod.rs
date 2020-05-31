@@ -29,7 +29,7 @@ use std::{
     ops::Deref,
 };
 
-use super::function::make_constructor_fn;
+use super::function::{make_builtin_fn, make_constructor_fn};
 pub use internal_methods_trait::ObjectInternalMethods;
 pub use internal_state::{InternalState, InternalStateCell};
 
@@ -471,7 +471,10 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     pub fn is_callable(&self) -> bool {
-        self.func.is_some()
+        match self.func {
+            Some(ref function) => function.is_callable(),
+            None => false,
+        }
     }
 
     /// It determines if Object is a function object with a [[Construct]] internal method.
@@ -480,8 +483,11 @@ impl Object {
     /// - [EcmaScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
-    pub fn is_constructor(&self) -> bool {
-        self.func.is_some()
+    pub fn is_constructable(&self) -> bool {
+        match self.func {
+            Some(ref function) => function.is_constructable(),
+            None => false,
+        }
     }
 }
 
@@ -548,7 +554,7 @@ pub fn make_object(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 /// Get the `prototype` of an object.
 pub fn get_prototype_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
+    Ok(obj.get_field(INSTANCE_PROTOTYPE))
 }
 
 /// Set the `prototype` of an object.
@@ -611,15 +617,15 @@ pub fn has_own_property(this: &mut Value, args: &[Value], _: &mut Interpreter) -
 pub fn create(global: &Value) -> Value {
     let prototype = Value::new_object(None);
 
-    make_builtin_fn!(has_own_property, named "hasOwnProperty", of prototype);
-    make_builtin_fn!(to_string, named "toString", of prototype);
+    make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
+    make_builtin_fn(to_string, "toString", &prototype, 0);
 
-    let object = make_constructor_fn(make_object, global, prototype);
+    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
 
-    object.set_field_slice("length", Value::from(1));
-    make_builtin_fn!(set_prototype_of, named "setPrototypeOf", with length 2, of object);
-    make_builtin_fn!(get_prototype_of, named "getPrototypeOf", with length 1, of object);
-    make_builtin_fn!(define_property, named "defineProperty", with length 3, of object);
+    object.set_field("length", Value::from(1));
+    make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
+    make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
+    make_builtin_fn(define_property, "defineProperty", &object, 3);
 
     object
 }
@@ -627,5 +633,5 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `Object` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
-    global.set_field_slice("Object", create(global));
+    global.set_field("Object", create(global));
 }

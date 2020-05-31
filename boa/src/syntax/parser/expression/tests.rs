@@ -1,6 +1,9 @@
 use crate::syntax::{
-    ast::node::Node,
-    ast::op::{AssignOp, BinOp, BitOp, CompOp, NumOp},
+    ast::op::{AssignOp, BitOp, CompOp, NumOp},
+    ast::{
+        node::{BinOp, Identifier},
+        Const,
+    },
     parser::tests::check_parser,
 };
 
@@ -9,75 +12,51 @@ use crate::syntax::{
 fn check_numeric_operations() {
     check_parser(
         "a + b",
-        vec![Node::bin_op(NumOp::Add, Node::local("a"), Node::local("b"))],
+        vec![BinOp::new(NumOp::Add, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a+1",
-        vec![Node::bin_op(
-            NumOp::Add,
-            Node::local("a"),
-            Node::const_node(1),
-        )],
+        vec![BinOp::new(NumOp::Add, Identifier::from("a"), Const::from(1)).into()],
     );
     check_parser(
         "a - b",
-        vec![Node::bin_op(NumOp::Sub, Node::local("a"), Node::local("b"))],
+        vec![BinOp::new(NumOp::Sub, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a-1",
-        vec![Node::bin_op(
-            NumOp::Sub,
-            Node::local("a"),
-            Node::const_node(1),
-        )],
+        vec![BinOp::new(NumOp::Sub, Identifier::from("a"), Const::from(1)).into()],
     );
     check_parser(
         "a / b",
-        vec![Node::bin_op(NumOp::Div, Node::local("a"), Node::local("b"))],
+        vec![BinOp::new(NumOp::Div, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a/2",
-        vec![Node::bin_op(
-            NumOp::Div,
-            Node::local("a"),
-            Node::const_node(2),
-        )],
+        vec![BinOp::new(NumOp::Div, Identifier::from("a"), Const::from(2)).into()],
     );
     check_parser(
         "a * b",
-        vec![Node::bin_op(NumOp::Mul, Node::local("a"), Node::local("b"))],
+        vec![BinOp::new(NumOp::Mul, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a*2",
-        vec![Node::bin_op(
-            NumOp::Mul,
-            Node::local("a"),
-            Node::const_node(2),
-        )],
+        vec![BinOp::new(NumOp::Mul, Identifier::from("a"), Const::from(2)).into()],
     );
     check_parser(
         "a ** b",
-        vec![Node::bin_op(NumOp::Exp, Node::local("a"), Node::local("b"))],
+        vec![BinOp::new(NumOp::Exp, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a**2",
-        vec![Node::bin_op(
-            NumOp::Exp,
-            Node::local("a"),
-            Node::const_node(2),
-        )],
+        vec![BinOp::new(NumOp::Exp, Identifier::from("a"), Const::from(2)).into()],
     );
     check_parser(
         "a % b",
-        vec![Node::bin_op(NumOp::Mod, Node::local("a"), Node::local("b"))],
+        vec![BinOp::new(NumOp::Mod, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a%2",
-        vec![Node::bin_op(
-            NumOp::Mod,
-            Node::local("a"),
-            Node::const_node(2),
-        )],
+        vec![BinOp::new(NumOp::Mod, Identifier::from("a"), Const::from(2)).into()],
     );
 }
 
@@ -86,19 +65,20 @@ fn check_numeric_operations() {
 fn check_complex_numeric_operations() {
     check_parser(
         "a + d*(b-3)+1",
-        vec![Node::bin_op(
+        vec![BinOp::new(
             NumOp::Add,
-            Node::bin_op(
+            BinOp::new(
                 NumOp::Add,
-                Node::local("a"),
-                Node::bin_op(
+                Identifier::from("a"),
+                BinOp::new(
                     NumOp::Mul,
-                    Node::local("d"),
-                    Node::bin_op(NumOp::Sub, Node::local("b"), Node::const_node(3)),
+                    Identifier::from("d"),
+                    BinOp::new(NumOp::Sub, Identifier::from("b"), Const::from(3)),
                 ),
             ),
-            Node::const_node(1),
-        )],
+            Const::from(1),
+        )
+        .into()],
     );
 }
 
@@ -107,87 +87,47 @@ fn check_complex_numeric_operations() {
 fn check_bitwise_operations() {
     check_parser(
         "a & b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::And),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::And, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a&b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::And),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::And, Identifier::from("a"), Identifier::from("b")).into()],
     );
 
     check_parser(
         "a | b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Or),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Or, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a|b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Or),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Or, Identifier::from("a"), Identifier::from("b")).into()],
     );
 
     check_parser(
         "a ^ b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Xor),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Xor, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a^b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Xor),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Xor, Identifier::from("a"), Identifier::from("b")).into()],
     );
 
     check_parser(
         "a << b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Shl),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Shl, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a<<b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Shl),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Shl, Identifier::from("a"), Identifier::from("b")).into()],
     );
 
     check_parser(
         "a >> b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Shr),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Shr, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a>>b",
-        vec![Node::bin_op(
-            BinOp::Bit(BitOp::Shr),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(BitOp::Shr, Identifier::from("a"), Identifier::from("b")).into()],
     );
 }
 
@@ -196,99 +136,56 @@ fn check_bitwise_operations() {
 fn check_assign_operations() {
     check_parser(
         "a += b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Add),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Add, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a -= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Sub),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Sub, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a *= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Mul),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Mul, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a **= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Exp),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Exp, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a /= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Div),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Div, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a %= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Mod),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Mod, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a &= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::And),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::And, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a |= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Or),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Or, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a ^= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Xor),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Xor, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a <<= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Shl),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Shl, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a >>= b",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Shr),
-            Node::local("a"),
-            Node::local("b"),
-        )],
+        vec![BinOp::new(AssignOp::Shr, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
         "a %= 10 / 2",
-        vec![Node::bin_op(
-            BinOp::Assign(AssignOp::Mod),
-            Node::local("a"),
-            Node::bin_op(NumOp::Div, Node::const_node(10), Node::const_node(2)),
-        )],
+        vec![BinOp::new(
+            AssignOp::Mod,
+            Identifier::from("a"),
+            BinOp::new(NumOp::Div, Const::from(10), Const::from(2)),
+        )
+        .into()],
     );
 }
 
@@ -296,42 +193,42 @@ fn check_assign_operations() {
 fn check_relational_operations() {
     check_parser(
         "a < b",
-        vec![Node::bin_op(
-            BinOp::Comp(CompOp::LessThan),
-            Node::Local(String::from("a")),
-            Node::Local(String::from("b")),
-        )],
+        vec![BinOp::new(
+            CompOp::LessThan,
+            Identifier::from("a"),
+            Identifier::from("b"),
+        )
+        .into()],
     );
     check_parser(
         "a > b",
-        vec![Node::bin_op(
-            BinOp::Comp(CompOp::GreaterThan),
-            Node::Local(String::from("a")),
-            Node::Local(String::from("b")),
-        )],
+        vec![BinOp::new(
+            CompOp::GreaterThan,
+            Identifier::from("a"),
+            Identifier::from("b"),
+        )
+        .into()],
     );
     check_parser(
         "a <= b",
-        vec![Node::bin_op(
-            BinOp::Comp(CompOp::LessThanOrEqual),
-            Node::Local(String::from("a")),
-            Node::Local(String::from("b")),
-        )],
+        vec![BinOp::new(
+            CompOp::LessThanOrEqual,
+            Identifier::from("a"),
+            Identifier::from("b"),
+        )
+        .into()],
     );
     check_parser(
         "a >= b",
-        vec![Node::bin_op(
-            BinOp::Comp(CompOp::GreaterThanOrEqual),
-            Node::Local(String::from("a")),
-            Node::Local(String::from("b")),
-        )],
+        vec![BinOp::new(
+            CompOp::GreaterThanOrEqual,
+            Identifier::from("a"),
+            Identifier::from("b"),
+        )
+        .into()],
     );
     check_parser(
         "p in o",
-        vec![Node::bin_op(
-            BinOp::Comp(CompOp::In),
-            Node::Local(String::from("p")),
-            Node::Local(String::from("o")),
-        )],
+        vec![BinOp::new(CompOp::In, Identifier::from("p"), Identifier::from("o")).into()],
     );
 }

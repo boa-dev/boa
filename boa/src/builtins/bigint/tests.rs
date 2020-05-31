@@ -1,9 +1,9 @@
-use crate::{forward, Executor, Realm};
+use crate::{forward, Interpreter, Realm};
 
 #[test]
 fn equality() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "0n == 0n"), "true");
     assert_eq!(forward(&mut engine, "1n == 0n"), "false");
@@ -57,7 +57,7 @@ fn equality() {
 #[test]
 fn bigint_function_conversion() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "BigInt(1000)"), "1000n");
     assert_eq!(
@@ -73,7 +73,7 @@ fn bigint_function_conversion() {
 #[test]
 fn add() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "10000n + 1000n"), "11000n");
 }
@@ -81,7 +81,7 @@ fn add() {
 #[test]
 fn sub() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "10000n - 1000n"), "9000n");
 }
@@ -89,7 +89,7 @@ fn sub() {
 #[test]
 fn mul() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(
         forward(&mut engine, "123456789n * 102030n"),
@@ -100,7 +100,7 @@ fn mul() {
 #[test]
 fn div() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "15000n / 50n"), "300n");
 }
@@ -108,7 +108,7 @@ fn div() {
 #[test]
 fn div_with_truncation() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "15001n / 50n"), "300n");
 }
@@ -116,7 +116,7 @@ fn div_with_truncation() {
 #[test]
 fn r#mod() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "15007n % 10n"), "7n");
 }
@@ -124,7 +124,7 @@ fn r#mod() {
 #[test]
 fn pow() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(
         forward(&mut engine, "100n ** 10n"),
@@ -135,7 +135,7 @@ fn pow() {
 #[test]
 fn to_string() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "1000n.toString()"), "1000");
 

@@ -12,9 +12,9 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{self, MethodDefinitionKind, Node},
-        punc::Punctuator,
+        node::{self, FunctionExpr, MethodDefinitionKind, Node},
         token::{Token, TokenKind},
+        Punctuator,
     },
     parser::{
         expression::AssignmentExpression,
@@ -71,7 +71,7 @@ impl TokenParser for ObjectLiteral {
 
             if cursor.next_if(Punctuator::Comma).is_none() {
                 let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-                return Err(ParseError::Expected(
+                return Err(ParseError::expected(
                     vec![
                         TokenKind::Punctuator(Punctuator::Comma),
                         TokenKind::Punctuator(Punctuator::CloseBlock),
@@ -129,7 +129,7 @@ impl TokenParser for PropertyDefinition {
         if cursor.next_if(Punctuator::Colon).is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
-            return Ok(node::PropertyDefinition::Property(prop_name, val));
+            return Ok(node::PropertyDefinition::property(prop_name, val));
         }
 
         if cursor
@@ -143,12 +143,9 @@ impl TokenParser for PropertyDefinition {
 
         let pos = cursor
             .peek(0)
-            .map(|tok| tok.pos)
+            .map(|tok| tok.span().start())
             .ok_or(ParseError::AbruptEnd)?;
-        Err(ParseError::General(
-            "expected property definition",
-            Some(pos),
-        ))
+        Err(ParseError::general("expected property definition", pos))
     }
 }
 
@@ -200,17 +197,17 @@ impl TokenParser for MethodDefinition {
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {
                     if !params.is_empty() {
-                        return Err(ParseError::Unexpected(
+                        return Err(ParseError::unexpected(
                             first_param,
-                            Some("getter functions must have no arguments"),
+                            "getter functions must have no arguments",
                         ));
                     }
                     (MethodDefinitionKind::Get, prop_name, params)
                 } else {
                     if params.len() != 1 {
-                        return Err(ParseError::Unexpected(
+                        return Err(ParseError::unexpected(
                             first_param,
-                            Some("setter functions must have one argument"),
+                            "setter functions must have one argument",
                         ));
                     }
                     (MethodDefinitionKind::Set, prop_name, params)
@@ -231,18 +228,16 @@ impl TokenParser for MethodDefinition {
             TokenKind::Punctuator(Punctuator::OpenBlock),
             "property method definition",
         )?;
-        let body = FunctionBody::new(false, false)
-            .parse(cursor)
-            .map(Node::statement_list)?;
+        let body = FunctionBody::new(false, false).parse(cursor)?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "property method definition",
         )?;
 
-        Ok(node::PropertyDefinition::MethodDefinition(
+        Ok(node::PropertyDefinition::method_definition(
             methodkind,
             prop_name,
-            Node::function_expr::<_, String, _, _>(None, params, body),
+            FunctionExpr::new(None, params, body),
         ))
     }
 }

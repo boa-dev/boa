@@ -1,12 +1,10 @@
 use super::*;
-use crate::exec::Executor;
-use crate::realm::Realm;
-use crate::{builtins::value::same_value, forward, forward_val};
+use crate::{builtins::value::same_value, exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[test]
 fn check_boolean_constructor_is_function() {
     let global = Value::new_object(None);
-    let boolean_constructor = create(&global);
+    let boolean_constructor = Boolean::create(&global);
     assert_eq!(boolean_constructor.is_function(), true);
 }
 
@@ -15,7 +13,7 @@ fn check_boolean_constructor_is_function() {
 #[test]
 fn construct_and_call() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var one = new Boolean(1);
         var zero = Boolean(0);
@@ -31,7 +29,7 @@ fn construct_and_call() {
 #[test]
 fn constructor_gives_true_instance() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var trueVal = new Boolean(true);
         var trueNum = new Boolean(1);
@@ -61,7 +59,7 @@ fn constructor_gives_true_instance() {
 #[test]
 fn instances_have_correct_proto_set() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var boolInstance = new Boolean(true);
         var boolProto = Boolean.prototype;
