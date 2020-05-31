@@ -52,9 +52,9 @@ impl ObjectLiteral {
 }
 
 impl TokenParser for ObjectLiteral {
-    type Output = Node;
+    type Output = Object;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let mut elements = Vec::new();
 
         loop {
@@ -82,7 +82,7 @@ impl TokenParser for ObjectLiteral {
             }
         }
 
-        Ok(Object::from(elements).into())
+        Ok(Object::from(elements))
     }
 }
 
