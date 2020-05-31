@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
 use crate::syntax::{
-    ast::{Node, Punctuator, TokenKind},
+    ast::{node::ConditionalOp, Node, Punctuator, TokenKind},
     parser::{
         expression::{AssignmentExpression, LogicalORExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
@@ -68,7 +68,7 @@ impl TokenParser for ConditionalExpression {
                 let else_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
-                return Ok(Node::conditional_op(lhs, then_clause, else_clause));
+                return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
             } else {
                 cursor.back();
             }

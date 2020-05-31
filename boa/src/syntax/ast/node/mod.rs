@@ -20,7 +20,7 @@ pub use self::{
     array::ArrayDecl,
     block::Block,
     break_node::Break,
-    conditional::If,
+    conditional::{ConditionalOp, If},
     declaration::{
         ArrowFunctionDecl, ConstDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDecl,
         LetDeclList, VarDecl, VarDeclList,
@@ -70,21 +70,8 @@ pub enum Node {
     /// A function call. [More information](./expression/struct.Call.html).
     Call(Call),
 
-    /// The `conditional` (ternary) operator is the only JavaScript operator that takes three
-    /// operands.
-    ///
-    /// This operator is the only JavaScript operator that takes three operands: a condition
-    /// followed by a question mark (`?`), then an expression to execute `if` the condition is
-    /// truthy followed by a colon (`:`), and finally the expression to execute if the condition
-    /// is `false`. This operator is frequently used as a shortcut for the `if` statement.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
-    ConditionalOp(Box<Node>, Box<Node>, Box<Node>),
+    /// A javascript conditional operand ( x ? y : z ). [More information](./conditional/struct.ConditionalOp.html).
+    ConditionalOp(ConditionalOp),
 
     /// Literals represent values in JavaScript.
     ///
@@ -237,20 +224,6 @@ impl Node {
         }
     }
 
-    /// Creates a `ConditionalOp` AST node.
-    pub fn conditional_op<C, T, F>(condition: C, if_true: T, if_false: F) -> Self
-    where
-        C: Into<Self>,
-        T: Into<Self>,
-        F: Into<Self>,
-    {
-        Self::ConditionalOp(
-            Box::new(condition.into()),
-            Box::new(if_true.into()),
-            Box::new(if_false.into()),
-        )
-    }
-
     /// Creates a `Continue` AST node.
     pub fn continue_node<OL, L>(label: OL) -> Self
     where
@@ -291,9 +264,7 @@ impl Node {
 
         match *self {
             Self::Const(ref c) => write!(f, "{}", c),
-            Self::ConditionalOp(ref cond, ref if_true, ref if_false) => {
-                write!(f, "{} ? {} : {}", cond, if_true, if_false)
-            }
+            Self::ConditionalOp(ref cond_op) => Display::fmt(cond_op, f),
             Self::ForLoop(ref for_loop) => for_loop.display(f, indentation),
             Self::This => write!(f, "this"),
             Self::Try(ref try_catch) => try_catch.display(f, indentation),
