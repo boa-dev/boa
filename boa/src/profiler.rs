@@ -25,7 +25,7 @@ pub struct BoaProfiler {
 }
 
 #[cfg(feature = "profiler")]
-pub static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
+static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
 
 #[cfg(feature = "profiler")]
 impl BoaProfiler {
@@ -40,16 +40,6 @@ impl BoaProfiler {
     pub fn default() -> BoaProfiler {
         let profiler = Profiler::new(Path::new("./my_trace")).unwrap();
         BoaProfiler { profiler }
-    }
-
-    // init creates a global instance of BoaProfiler which can be used across the whole application
-    pub fn init() {
-        let profiler = Self::default();
-        unsafe {
-            INSTANCE
-                .set(profiler)
-                .expect("Failed to set BoaProfiler globally");
-        }
     }
 
     pub fn global() -> &'static BoaProfiler {

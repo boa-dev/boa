@@ -7,11 +7,11 @@ Sometimes this is needed to figure out where it is spending most of it's time.
 
 We use a crate called [measureme](https://github.com/rust-lang/measureme), which helps us keep track of timing functions during runtime.
 
+## Prerequesites
+
+- [Crox](https://github.com/rust-lang/measureme/blob/master/crox/Readme.md)
+
 ## How To Use
-
-### Prerequesites
-
-- [Crox](https://github.com/rust-lang/measureme/blob/master/crox/Readme.md) installed
 
 You can run boa using the "profiler" feature flag to enable profiling. Seeing as you'll most likely be using boa_cli you can pass this through, like so:
 
