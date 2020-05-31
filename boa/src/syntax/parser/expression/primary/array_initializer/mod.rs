@@ -12,7 +12,7 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{ArrayDecl, Node},
+        node::{ArrayDecl, Node, Spread},
         Const, Punctuator,
     },
     parser::{
@@ -69,7 +69,7 @@ impl TokenParser for ArrayLiteral {
             if cursor.next_if(Punctuator::Spread).is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor)?;
-                elements.push(Node::spread(node));
+                elements.push(Spread::new(node).into());
             } else {
                 elements.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)

@@ -10,6 +10,7 @@ mod iteration;
 mod object;
 mod operator;
 mod return_smt;
+mod spread;
 mod statement_list;
 mod switch;
 #[cfg(test)]
@@ -417,10 +418,7 @@ impl Executable for Node {
             Node::VarDeclList(ref decl) => decl.run(interpreter),
             Node::LetDeclList(ref decl) => decl.run(interpreter),
             Node::ConstDeclList(ref decl) => decl.run(interpreter),
-            Node::Spread(ref node) => {
-                // TODO: for now we can do nothing but return the value as-is
-                node.run(interpreter)
-            }
+            Node::Spread(ref spread) => spread.run(interpreter),
             Node::This => {
                 // Will either return `this` binding or undefined
                 Ok(interpreter.realm().environment.get_this_binding())

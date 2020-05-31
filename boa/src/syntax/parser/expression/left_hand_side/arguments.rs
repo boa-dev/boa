@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
 use crate::syntax::{
-    ast::{Node, Punctuator, TokenKind},
+    ast::{node::Spread, Node, Punctuator, TokenKind},
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
@@ -78,10 +78,13 @@ impl TokenParser for Arguments {
             }
 
             if cursor.next_if(Punctuator::Spread).is_some() {
-                args.push(Node::spread(
-                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
-                ));
+                args.push(
+                    Spread::new(
+                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor)?,
+                    )
+                    .into(),
+                );
             } else {
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)

@@ -12,6 +12,7 @@ pub mod iteration;
 pub mod object;
 pub mod operator;
 pub mod return_smt;
+pub mod spread;
 pub mod statement_list;
 pub mod switch;
 pub mod throw;
@@ -33,6 +34,7 @@ pub use self::{
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     return_smt::Return,
+    spread::Spread,
     statement_list::StatementList,
     switch::Switch,
     throw::Throw,
@@ -129,26 +131,11 @@ pub enum Node {
     /// A return statement. [More information](./object/struct.Return.html).
     Return(Return),
 
-    /// A switch {case...} statement. [More information](./switch/struct.Switch.html).
+    /// A switch {case} statement. [More information](./switch/struct.Switch.html).
     Switch(Switch),
 
-    /// The `spread` operator allows an iterable such as an array expression or string to be
-    /// expanded.
-    ///
-    /// Syntax: `...x`
-    ///
-    /// It expands array expressions or strings in places where zero or more arguments (for
-    /// function calls) or elements (for array literals)
-    /// are expected, or an object expression to be expanded in places where zero or more key-value
-    /// pairs (for object literals) are expected.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-SpreadElement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
-    Spread(Box<Node>),
+    /// A spread (...x) statement. [More information](./spread/struct.Spread.html).
+    Spread(Spread),
 
     /// A throw statement. [More information](./throw/struct.Throw.html).
     Throw(Throw),
@@ -203,14 +190,6 @@ impl Node {
         }
     }
 
-    /// Creates a `Spread` AST node.
-    pub fn spread<V>(val: V) -> Self
-    where
-        V: Into<Self>,
-    {
-        Self::Spread(Box::new(val.into()))
-    }
-
     /// Creates a `This` AST node.
     pub fn this() -> Self {
         Self::This
@@ -232,7 +211,7 @@ impl Node {
             Self::Try(ref try_catch) => try_catch.display(f, indentation),
             Self::Break(ref break_smt) => Display::fmt(break_smt, f),
             Self::Continue(ref cont) => Display::fmt(cont, f),
-            Self::Spread(ref node) => write!(f, "...{}", node),
+            Self::Spread(ref spread) => Display::fmt(spread, f),
             Self::Block(ref block) => block.display(f, indentation),
             Self::Identifier(ref s) => Display::fmt(s, f),
             Self::GetConstField(ref get_const_field) => Display::fmt(get_const_field, f),
