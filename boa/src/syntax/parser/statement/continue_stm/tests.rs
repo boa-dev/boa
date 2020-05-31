@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Node, WhileLoop},
+        node::{Block, Continue, WhileLoop},
         Const,
     },
     parser::tests::check_parser,
@@ -10,7 +10,7 @@ use crate::syntax::{
 fn inline() {
     check_parser(
         "while (true) continue;",
-        vec![WhileLoop::new(Const::from(true), Node::Continue(None)).into()],
+        vec![WhileLoop::new(Const::from(true), Continue::new::<_, Box<str>>(None)).into()],
     );
 }
 
@@ -19,7 +19,7 @@ fn new_line() {
     check_parser(
         "while (true)
             continue;",
-        vec![WhileLoop::new(Const::from(true), Node::Continue(None)).into()],
+        vec![WhileLoop::new(Const::from(true), Continue::new::<_, Box<str>>(None)).into()],
     );
 }
 
@@ -27,7 +27,11 @@ fn new_line() {
 fn inline_block_semicolon_insertion() {
     check_parser(
         "while (true) {continue}",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Continue(None)])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Continue::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -39,7 +43,7 @@ fn new_line_semicolon_insertion() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::continue_node("test")]),
+            Block::from(vec![Continue::new("test").into()]),
         )
         .into()],
     );
@@ -49,7 +53,11 @@ fn new_line_semicolon_insertion() {
 fn inline_block() {
     check_parser(
         "while (true) {continue;}",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Continue(None)])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Continue::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -61,7 +69,7 @@ fn new_line_block() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::continue_node("test")]),
+            Block::from(vec![Continue::new("test").into()]),
         )
         .into()],
     );
@@ -75,7 +83,7 @@ fn reserved_label() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::continue_node("await")]),
+            Block::from(vec![Continue::new("await").into()]),
         )
         .into()],
     );
@@ -86,7 +94,7 @@ fn reserved_label() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::continue_node("yield")]),
+            Block::from(vec![Continue::new("yield").into()]),
         )
         .into()],
     );
@@ -98,7 +106,11 @@ fn new_line_block_empty() {
         "while (true) {
             continue;
         }",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Continue(None)])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Continue::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -108,6 +120,10 @@ fn new_line_block_empty_semicolon_insertion() {
         "while (true) {
             continue
         }",
-        vec![WhileLoop::new(Const::from(true), Block::from(vec![Node::Continue(None)])).into()],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Block::from(vec![Continue::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }

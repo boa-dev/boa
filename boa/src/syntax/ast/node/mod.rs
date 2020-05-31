@@ -28,7 +28,7 @@ pub use self::{
     expression::{Call, New},
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{DoWhileLoop, ForLoop, WhileLoop},
+    iteration::{Continue, DoWhileLoop, ForLoop, WhileLoop},
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     return_smt::Return,
@@ -88,21 +88,10 @@ pub enum Node {
     /// A constant declaration list. [More information](./declaration/struct.ConstDeclList.html).
     ConstDeclList(ConstDeclList),
 
-    /// The `continue` statement terminates execution of the statements in the current iteration of
-    /// the current or labeled loop, and continues execution of the loop with the next iteration.
-    ///
-    /// The continue statement can include an optional label that allows the program to jump to the
-    /// next iteration of a labeled loop statement instead of the current loop. In this case, the
-    /// continue statement needs to be nested within this labeled statement.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
-    Continue(Option<Box<str>>),
+    /// A continue statement. [More information](./iteration/struct.Continue.html).
+    Continue(Continue),
 
+    /// A do ... while statement. [More information](./iteration/struct.DoWhileLoop.html).
     DoWhileLoop(DoWhileLoop),
 
     /// A function declaration node. [More information](./declaration/struct.FunctionDecl.html).
@@ -117,10 +106,10 @@ pub enum Node {
     /// Provides access to object fields. [More information](./declaration/struct.GetField.html).
     GetField(GetField),
 
-    /// A `for` statement. [More information](./iteration.struct.ForLoop.html).
+    /// A `for` statement. [More information](./iteration/struct.ForLoop.html).
     ForLoop(ForLoop),
 
-    /// An 'if' statement. [More information](./conditional.struct.If.html).
+    /// An 'if' statement. [More information](./conditional/struct.If.html).
     If(If),
 
     /// A `let` declaration list. [More information](./declaration/struct.LetDeclList.html).
@@ -138,6 +127,7 @@ pub enum Node {
     /// A return statement. [More information](./object/struct.Return.html).
     Return(Return),
 
+    /// A switch {case...} statement. [More information](./switch/struct.Switch.html).
     Switch(Switch),
 
     /// The `spread` operator allows an iterable such as an array expression or string to be
@@ -224,15 +214,6 @@ impl Node {
         }
     }
 
-    /// Creates a `Continue` AST node.
-    pub fn continue_node<OL, L>(label: OL) -> Self
-    where
-        L: Into<Box<str>>,
-        OL: Into<Option<L>>,
-    {
-        Self::Continue(label.into().map(L::into))
-    }
-
     /// Creates a `Spread` AST node.
     pub fn spread<V>(val: V) -> Self
     where
@@ -269,15 +250,7 @@ impl Node {
             Self::This => write!(f, "this"),
             Self::Try(ref try_catch) => try_catch.display(f, indentation),
             Self::Break(ref break_smt) => Display::fmt(break_smt, f),
-            Self::Continue(ref l) => write!(
-                f,
-                "continue{}",
-                if let Some(label) = l {
-                    format!(" {}", label)
-                } else {
-                    String::new()
-                }
-            ),
+            Self::Continue(ref cont) => Display::fmt(cont, f),
             Self::Spread(ref node) => write!(f, "...{}", node),
             Self::Block(ref block) => block.display(f, indentation),
             Self::Identifier(ref s) => Display::fmt(s, f),
