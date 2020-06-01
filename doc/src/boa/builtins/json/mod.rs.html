@@ -176,15 +176,6 @@
 <span id="176">176</span>
 <span id="177">177</span>
 <span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -225,13 +216,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.parse</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">match</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;cannot get argument for JSON.parse&quot;</span>)
-            .<span class="ident">clone</span>()
-            .<span class="ident">to_string</span>(),
+        <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;cannot get argument for JSON.parse&quot;</span>))<span class="question-mark">?</span>,
     ) {
         <span class="prelude-val">Ok</span>(<span class="ident">json</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">json</span>);
@@ -239,7 +226,7 @@
                 <span class="prelude-val">Some</span>(<span class="ident">reviver</span>) <span class="kw">if</span> <span class="ident">reviver</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holder</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
                     <span class="ident">holder</span>.<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>), <span class="ident">j</span>);
-                    <span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">interpreter</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">holder</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>))
+                    <span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">holder</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>))
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">j</span>),
             }
@@ -254,18 +241,13 @@
 <span class="doccomment">/// for possible transformation.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-<span class="kw">fn</span> <span class="ident">walk</span>(
-    <span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-    <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
-    <span class="ident">key</span>: <span class="ident">Value</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">fn</span> <span class="ident">walk</span>(<span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>, <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">key</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">clone</span>());
 
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">as_deref</span>().<span class="ident">cloned</span>();
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">obj</span> {
         <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">properties</span>.<span class="ident">keys</span>() {
-            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">interpreter</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">key</span>.<span class="ident">as_str</span>()));
+            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">key</span>.<span class="ident">as_str</span>()));
             <span class="kw">match</span> <span class="ident">v</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">v</span>.<span class="ident">is_undefined</span>() <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">value</span>.<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">key</span>.<span class="ident">as_str</span>()), <span class="ident">v</span>);
@@ -277,7 +259,7 @@
             }
         }
     }
-    <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">reviver</span>, <span class="ident">holder</span>, <span class="kw-2">&amp;</span>[<span class="ident">key</span>, <span class="ident">value</span>])
+    <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="ident">reviver</span>, <span class="ident">holder</span>, <span class="kw-2">&amp;</span>[<span class="ident">key</span>, <span class="ident">value</span>])
 }
 
 <span class="doccomment">/// `JSON.stringify( value[, replacer[, space]] )`</span>
@@ -296,7 +278,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.stringify</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
         <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_symbol</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
@@ -323,7 +305,7 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">clone</span>();
                     <span class="ident">object_to_return</span>.<span class="ident">set_property</span>(
                         <span class="ident">key</span>.<span class="ident">to_owned</span>(),
-                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">interpreter</span>.<span class="ident">call</span>(
+                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">ctx</span>.<span class="ident">call</span>(
                             <span class="ident">replacer</span>,
                             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this_arg</span>,
                             <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">key</span>), <span class="ident">val</span>.<span class="ident">clone</span>()],
@@ -340,12 +322,12 @@
             <span class="kw">if</span> <span class="ident">key</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;length&quot;</span> {
                 <span class="prelude-val">None</span>
             } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">replacer</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">to_string</span>()))
+                <span class="prelude-val">Some</span>(<span class="ident">replacer</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">to_owned</span>()))
             }
         });
         <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">object</span>
-                .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">to_string</span>())
+                .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>)<span class="question-mark">?</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">prop</span><span class="op">|</span> <span class="ident">prop</span>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_json</span>()))
                 .<span class="ident">flatten</span>()
             {

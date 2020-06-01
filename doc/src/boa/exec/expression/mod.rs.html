@@ -106,7 +106,7 @@
             <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>, <span class="kw-2">ref</span> <span class="ident">field</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                (<span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">obj</span>.<span class="ident">get_field</span>(<span class="ident">field</span>.<span class="ident">to_string</span>()))
+                (<span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">obj</span>.<span class="ident">get_field</span>(<span class="ident">field</span>))
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (
                 <span class="ident">interpreter</span>.<span class="ident">realm</span>().<span class="ident">global_obj</span>.<span class="ident">clone</span>(),

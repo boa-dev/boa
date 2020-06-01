@@ -1153,8 +1153,11 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// Get String from String Object and send it back as a new value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;StringData&quot;</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">primitive_val</span>)))
+        <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;StringData&quot;</span>).<span class="ident">data</span>() {
+            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">string</span>.<span class="ident">clone</span>())),
+            <span class="comment">// Throw expection here:</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;TypeError: this is not a string&quot;</span>),
+        }
     }
 
     <span class="doccomment">/// `String.prototype.charAt( index )`</span>
@@ -1176,7 +1179,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">char_at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
@@ -1222,7 +1225,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points</span>
         <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.</span>
@@ -1262,7 +1265,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
             <span class="kw">let</span> <span class="ident">concat_str</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_string</span>();
@@ -1286,7 +1289,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">repeat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">repeat_times</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
@@ -1309,7 +1312,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
@@ -1360,13 +1363,13 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Should throw TypeError if pattern is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">StdString</span>::<span class="ident">from</span>(
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
-        );
+        )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1407,13 +1410,13 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">StdString</span>::<span class="ident">from</span>(
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
-        );
+        )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1451,13 +1454,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">includes</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">StdString</span>::<span class="ident">from</span>(
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
-        );
+        )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -1511,7 +1514,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">replace</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// TODO: Support Symbol replacer</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive_val</span>));
         }
@@ -1584,7 +1587,7 @@
 
                     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replace_object</span>, <span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">results</span>).<span class="ident">unwrap</span>();
 
-                    <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)
+                    <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)<span class="question-mark">?</span>
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_string</span>(),
             }
@@ -1614,13 +1617,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">StdString</span>::<span class="ident">from</span>(
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
-        );
+        )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -1667,13 +1670,13 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">StdString</span>::<span class="ident">from</span>(
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(
             <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
-        );
+        )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -1716,7 +1719,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">r#match</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">re</span> <span class="op">=</span>
             <span class="ident">RegExp</span>::<span class="ident">make_regexp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>()), <span class="kw-2">&amp;</span>[<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>()], <span class="ident">ctx</span>)<span class="question-mark">?</span>;
-        <span class="ident">RegExp</span>::<span class="ident">r#match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>), <span class="ident">ctx</span>)
+        <span class="ident">RegExp</span>::<span class="ident">r#match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>, <span class="ident">ctx</span>)
     }
 
     <span class="doccomment">/// Abstract method `StringPad`.</span>
@@ -1773,7 +1776,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pad_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;padEnd requires maxLength argument&quot;</span>));
         }
@@ -1782,11 +1785,10 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
         );
 
-        <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">StdString</span>::<span class="ident">from</span>(
-                <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>),
-            )),
+        <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))<span class="question-mark">?</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
         };
 
         <span class="self">Self</span>::<span class="ident">string_pad</span>(<span class="ident">primitive_val</span>, <span class="ident">max_length</span>, <span class="ident">fill_string</span>, <span class="bool-val">false</span>)
@@ -1809,7 +1811,7 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;padStart requires maxLength argument&quot;</span>));
         }
@@ -1820,9 +1822,7 @@
 
         <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
             <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">StdString</span>::<span class="ident">from</span>(
-                <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>),
-            )),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))<span class="question-mark">?</span>),
         };
 
         <span class="self">Self</span>::<span class="ident">string_pad</span>(<span class="ident">primitive_val</span>, <span class="ident">max_length</span>, <span class="ident">fill_string</span>, <span class="bool-val">true</span>)
@@ -1860,7 +1860,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
             <span class="ident">this_str</span>.<span class="ident">trim_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
         ))
@@ -1879,7 +1879,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
             <span class="ident">this_str</span>.<span class="ident">trim_start_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
         ))
@@ -1898,7 +1898,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
             <span class="ident">this_str</span>.<span class="ident">trim_end_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
         ))
@@ -1922,7 +1922,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_lowercase().</span>
         <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str</span>.<span class="ident">to_lowercase</span>()))
@@ -1948,7 +1948,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_uppercase().</span>
         <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_str</span>.<span class="ident">to_uppercase</span>()))
@@ -1971,7 +1971,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="comment">// If no args are specified, start is &#39;undefined&#39;, defaults to 0</span>
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="number">0</span>
@@ -2019,7 +2019,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">substr</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>);
+        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="comment">// If no args are specified, start is &#39;undefined&#39;, defaults to 0</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="number">0</span>
@@ -2099,7 +2099,7 @@
                 <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_null</span>() {
                     <span class="ident">RegExp</span>::<span class="ident">make_regexp</span>(
                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
-                        <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">arg</span>)), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>)],
+                        <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">arg</span>)<span class="question-mark">?</span>), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;g&quot;</span>)],
                         <span class="ident">ctx</span>,
                     )
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_undefined</span>() {
@@ -2119,7 +2119,7 @@
             ),
         }<span class="question-mark">?</span>;
 
-        <span class="ident">RegExp</span>::<span class="ident">match_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">value_to_rust_string</span>(<span class="ident">this</span>))
+        <span class="ident">RegExp</span>::<span class="ident">match_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">re</span>, <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Create a new `String` object.</span>
