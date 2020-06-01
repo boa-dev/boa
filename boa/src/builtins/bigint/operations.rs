@@ -17,6 +17,12 @@ impl BigInt {
             ),
         )
     }
+
+    #[inline]
+    pub fn mod_floor(self, other: &Self) -> Self {
+        use num_integer::Integer;
+        Self(self.0.mod_floor(&other.0))
+    }
 }
 
 macro_rules! impl_bigint_operator {

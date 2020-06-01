@@ -146,6 +146,63 @@ impl BigInt {
         Ok(Value::from(Self::this_bigint_value(this, ctx)?))
     }
 
+    // /// `BigInt.asIntN()`
+    // ///
+    // /// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed integer between `-2**(width - 1)` and `2**(width-1) - 1`
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn as_int_n(
+        _this: &mut Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> ResultValue {
+        let (modulo, bits) = Self::calculate_integral(args, ctx)?;
+
+        if bits > 0 && modulo >= BigInt::from(2).pow(&BigInt::from(bits as i64 - 1)) {
+            Ok(Value::from(
+                modulo - BigInt::from(2).pow(&BigInt::from(bits as i64)),
+            ))
+        } else {
+            Ok(Value::from(modulo))
+        }
+    }
+
+    // /// `BigInt.asUintN()`
+    // ///
+    // /// The `BigInt.asUintN()` method wraps the value of a `BigInt` to an unsigned integer between `0` and `2**(width) - 1`
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn as_uint_n(
+        _this: &mut Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> ResultValue {
+        let (modulo, _) = Self::calculate_integral(args, ctx)?;
+
+        Ok(Value::from(modulo))
+    }
+
+    fn calculate_integral(args: &[Value], ctx: &mut Interpreter) -> Result<(BigInt, u32), Value> {
+        use std::convert::TryFrom;
+
+        let undefined_value = Value::undefined();
+
+        let bits_arg = args.get(0).unwrap_or(&undefined_value);
+        let bigint_arg = args.get(1).unwrap_or(&undefined_value);
+
+        let bits = ctx.to_index(bits_arg)?;
+        let bits = u32::try_from(bits).unwrap_or(u32::MAX);
+
+        let bigint = ctx.to_bigint(bigint_arg)?;
+
+        Ok((
+            bigint.mod_floor(&BigInt::from(2).pow(&BigInt::from(bits as i64))),
+            bits,
+        ))
+    }
+
     /// Create a new `Number` object
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
@@ -154,7 +211,12 @@ impl BigInt {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_constructor_fn("BigInt", 1, Self::make_bigint, global, prototype, false)
+        let big_int = make_constructor_fn("BigInt", 1, Self::make_bigint, global, prototype, false);
+
+        make_builtin_fn(Self::as_int_n, "asIntN", &big_int, 2);
+        make_builtin_fn(Self::as_uint_n, "asUintN", &big_int, 2);
+
+        big_int
     }
 
     /// Initialise the `BigInt` object on the global object.

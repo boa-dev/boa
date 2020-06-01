@@ -10,6 +10,7 @@ dependencies = [
  "jemallocator",
  "measureme",
  "num-bigint",
+ "num-integer",
  "num-traits",
  "once_cell",
  "rand",
