@@ -44,15 +44,17 @@ impl Switch {
         &self.default
     }
 
-    pub fn new(
-        val: Box<Node>,
-        cases: Box<[(Node, Box<[Node]>)]>,
-        default: Option<Box<Node>>,
-    ) -> Switch {
+    /// Creates a `Switch` AST node.
+    pub fn new<V, C, D>(val: V, cases: C, default: D) -> Self
+    where
+        V: Into<Node>,
+        C: Into<Box<[(Node, Box<[Node]>)]>>,
+        D: Into<Option<Box<Node>>>,
+    {
         Self {
-            val,
-            cases,
-            default,
+            val: Box::new(val.into()),
+            cases: cases.into(),
+            default: default.into(),
         }
     }
 

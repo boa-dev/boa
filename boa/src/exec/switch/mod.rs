@@ -23,6 +23,8 @@ impl Executable for Switch {
                     }
                 }
             }
+
+            // TODO: break out of switch on a break statement.
         }
         if !matched {
             if let Some(default) = default {
