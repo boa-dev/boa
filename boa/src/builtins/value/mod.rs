@@ -5,7 +5,9 @@
 #[cfg(test)]
 mod tests;
 
-mod val_type;
+pub mod val_type;
+
+pub use crate::builtins::value::val_type::Type;
 
 use crate::builtins::{
     function::Function,
@@ -14,7 +16,6 @@ use crate::builtins::{
         ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE,
     },
     property::Property,
-    value::val_type::Type,
 };
 use crate::syntax::ast::bigint::BigInt;
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
@@ -744,7 +745,7 @@ impl ValueData {
     }
 
     /// Get the type of the value.
-    /// 
+    ///
     /// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of
     /// returning a string it returns a Type enum which implements fmt::Display to allow getting the string if
     /// required using to_string().

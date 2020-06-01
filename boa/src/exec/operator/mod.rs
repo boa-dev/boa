@@ -214,7 +214,7 @@ impl Executable for UnaryOp {
                 | Node::UnaryOp(_) => Value::boolean(true),
                 _ => panic!("SyntaxError: wrong delete argument {}", self),
             },
-            op::UnaryOp::TypeOf => Value::from(v_a.get_type()),
+            op::UnaryOp::TypeOf => Value::from(v_a.get_type().to_string()),
         })
     }
 }

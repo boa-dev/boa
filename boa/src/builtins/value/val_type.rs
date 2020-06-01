@@ -2,8 +2,8 @@ use std::fmt;
 
 /// Possible types of val as defined at https://tc39.es/ecma262/#sec-typeof-operator.
 /// Note that an object which implements call is referred to here as 'Function'.
-#[derive(Eq, PartialEq)]
-pub enum Type{
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
+pub enum Type {
     Undefined,
     Null,
     Boolean,
@@ -14,7 +14,6 @@ pub enum Type{
     Object,
     Function,
 }
-
 
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

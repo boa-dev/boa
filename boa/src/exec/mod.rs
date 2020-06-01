@@ -26,7 +26,7 @@ use crate::{
             PROTOTYPE,
         },
         property::Property,
-        value::{ResultValue, Value, ValueData},
+        value::{ResultValue, Type, Value, ValueData},
     },
     realm::Realm,
     syntax::ast::{
@@ -165,7 +165,7 @@ impl Interpreter {
 
     /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
     pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: &str) -> Value {
-        debug_assert!(o.get_type() == "object");
+        debug_assert!(o.get_type() == Type::Object);
         debug_assert!(hint == "string" || hint == "number");
         let method_names: Vec<&str> = if hint == "string" {
             vec!["toString", "valueOf"]
