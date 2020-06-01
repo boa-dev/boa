@@ -42,7 +42,7 @@ impl Return {
         OE: Into<Option<E>>,
     {
         Self {
-            expr: Box::new(expr.into().map(E::into)),
+            expr: expr.into().map(E::into).map(Box::new),
         }
     }
 }
