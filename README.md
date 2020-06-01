@@ -11,9 +11,14 @@
 This is an experimental Javascript lexer, parser and compiler written in Rust.
 Currently, it has support for some of the language.
 
-[![Build Status](https://travis-ci.com/jasonwilliams/boa.svg?branch=master)](https://travis-ci.com/jasonwilliams/boa)
+[![Build Status][build_badge]][build_link]
+[![codecov](https://codecov.io/gh/boa-dev/boa/branch/master/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
+
+[build_badge]: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fboa-dev%2Fboa%2Fbadge&style=flat
+[build_link]: https://actions-badge.atrox.dev/boa-dev/boa/goto
+
 
 ## Live Demo (WASM)
 
