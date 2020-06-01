@@ -8,7 +8,7 @@ pub enum Type {
     Null,
     Boolean,
     Number,
-    Str,
+    String,
     Symbol,
     BigInt,
     Object,
@@ -19,7 +19,7 @@ impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Number => write!(f, "number"),
-            Self::Str => write!(f, "string"),
+            Self::String => write!(f, "string"),
             Self::Boolean => write!(f, "boolean"),
             Self::Symbol => write!(f, "symbol"),
             Self::Null => write!(f, "object"),

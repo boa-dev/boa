@@ -774,7 +774,7 @@ impl ValueData {
     pub fn get_type(&self) -> Type {
         match *self {
             Self::Rational(_) | Self::Integer(_) => Type::Number,
-            Self::String(_) => Type::Str,
+            Self::String(_) => Type::String,
             Self::Boolean(_) => Type::Boolean,
             Self::Symbol(_) => Type::Symbol,
             Self::Null => Type::Null,

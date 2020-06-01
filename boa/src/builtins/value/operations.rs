@@ -160,7 +160,7 @@ pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
     match x.get_type() {
         Type::Undefined => true,
         Type::Null => true,
-        Type::Str => {
+        Type::String => {
             if x.to_string() == y.to_string() {
                 return true;
             }
