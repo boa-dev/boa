@@ -38,8 +38,8 @@ impl If {
         &self.body
     }
 
-    pub fn else_node(&self) -> &Option<Box<Node>> {
-        &self.else_node
+    pub fn else_node(&self) -> Option<&Node> {
+        self.else_node.as_ref().map(Box::as_ref)
     }
 
     /// Creates an `If` AST node.
