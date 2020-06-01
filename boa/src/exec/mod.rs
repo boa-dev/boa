@@ -20,6 +20,7 @@ use crate::{
         },
         property::Property,
         value::{ResultValue, Value, ValueData},
+        BigInt, Number,
     },
     realm::Realm,
     syntax::ast::{
@@ -55,6 +56,11 @@ impl Interpreter {
     /// Retrieves the `Realm` of this executor.
     pub(crate) fn realm(&self) -> &Realm {
         &self.realm
+    }
+
+    /// Retrieves the `Realm` of this executor as a mutable reference.
+    pub(crate) fn realm_mut(&mut self) -> &mut Realm {
+        &mut self.realm
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
@@ -107,11 +113,6 @@ impl Interpreter {
         val
     }
 
-    /// Retrieves the `Realm` of this executor as a mutable reference.
-    pub(crate) fn realm_mut(&mut self) -> &mut Realm {
-        &mut self.realm
-    }
-
     /// <https://tc39.es/ecma262/#sec-call>
     pub(crate) fn call(
         &mut self,
@@ -130,18 +131,21 @@ impl Interpreter {
     }
 
     /// Converts a value into a rust heap allocated string.
-    pub(crate) fn value_to_rust_string(&mut self, value: &Value) -> String {
-        match *value.deref().borrow() {
-            ValueData::Null => String::from("null"),
-            ValueData::Boolean(ref boolean) => boolean.to_string(),
-            ValueData::Rational(ref num) => num.to_string(),
-            ValueData::Integer(ref num) => num.to_string(),
-            ValueData::String(ref string) => string.clone(),
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_string(&mut self, value: &Value) -> Result<String, Value> {
+        match value.data() {
+            ValueData::Null => Ok("null".to_owned()),
+            ValueData::Undefined => Ok("undefined".to_owned()),
+            ValueData::Boolean(boolean) => Ok(boolean.to_string()),
+            ValueData::Rational(rational) => Ok(Number::to_native_string(*rational)),
+            ValueData::Integer(integer) => Ok(integer.to_string()),
+            ValueData::String(string) => Ok(string.clone()),
+            ValueData::Symbol(_) => panic!("TypeError exception."),
+            ValueData::BigInt(ref bigint) => Ok(BigInt::to_native_string(bigint)),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), Some("string"));
-                self.to_string(&prim_value).to_string()
+                let primitive = self.to_primitive(&mut value.clone(), Some("string"));
+                self.to_string(&primitive)
             }
-            _ => String::from("undefined"),
         }
     }
 
@@ -227,36 +231,16 @@ impl Interpreter {
         }
     }
 
-    /// Converts a value into a `String`.
-    ///
-    /// https://tc39.es/ecma262/#sec-tostring
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(&mut self, value: &Value) -> Value {
-        match *value.deref().borrow() {
-            ValueData::Undefined => Value::from("undefined"),
-            ValueData::Null => Value::from("null"),
-            ValueData::Boolean(ref boolean) => Value::from(boolean.to_string()),
-            ValueData::Rational(ref num) => Value::from(num.to_string()),
-            ValueData::Integer(ref num) => Value::from(num.to_string()),
-            ValueData::String(ref string) => Value::from(string.clone()),
-            ValueData::BigInt(ref bigint) => Value::from(bigint.to_string()),
-            ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), Some("string"));
-                self.to_string(&prim_value)
-            }
-            _ => Value::from("function(){...}"),
-        }
-    }
-
     /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
+    ///
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_property_key(&mut self, value: &mut Value) -> Value {
+    pub(crate) fn to_property_key(&mut self, value: &mut Value) -> ResultValue {
         let key = self.to_primitive(value, Some("string"));
         if key.is_symbol() {
-            key
+            Ok(key)
         } else {
-            self.to_string(&key)
+            self.to_string(&key).map(Value::from)
         }
     }
 
@@ -343,9 +327,9 @@ impl Interpreter {
             ValueData::Object(_) => {
                 let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
                 self.to_string(&prim_value)
-                    .to_string()
+                    .expect("cannot convert value to string")
                     .parse::<f64>()
-                    .expect("cannot parse valur to x64")
+                    .expect("cannot parse value to f64")
             }
             _ => {
                 // TODO: Make undefined?
