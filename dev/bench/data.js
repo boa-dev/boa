@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1591001315154,
+  "lastUpdate": 1591016309664,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -8223,6 +8223,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.019,
             "range": "+/- 0.289",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "paul@lancasterzone.com",
+            "name": "Paul Lancaster",
+            "username": "Lan2u"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ce0d801685953384ac762e62540019a2f530a299",
+          "message": "Add code coverage: tarpaulin / codecov (#411)\n\n* Adding tarpaulin code coverage step\r\nCo-authored-by: Iban Eguia <razican@protonmail.ch>",
+          "timestamp": "2020-06-01T13:49:36+01:00",
+          "tree_id": "8a54605a17f06e3f64a826bafbd423e3f33d52fd",
+          "url": "https://github.com/boa-dev/boa/commit/ce0d801685953384ac762e62540019a2f530a299"
+        },
+        "date": 1591016304287,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 441.4,
+            "range": "+/- 5.970",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 467.53,
+            "range": "+/- 3.230",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 478.37,
+            "range": "+/- 5.860",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.8247,
+            "range": "+/- 0.017",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.1599,
+            "range": "+/- 0.025",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0325,
+            "range": "+/- 0.016",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.5447,
+            "range": "+/- 0.078",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.9392,
+            "range": "+/- 0.058",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.328,
+            "range": "+/- 0.039",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.154,
+            "range": "+/- 0.167",
             "unit": "us"
           }
         ]
