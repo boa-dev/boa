@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1591025920391,
+  "lastUpdate": 1591026323708,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -8727,6 +8727,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.997,
             "range": "+/- 0.193",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "razican@protonmail.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d003ad3b6d98a463e6237551b29868b0b759e926",
+          "message": "Fixed badges in README (#437)",
+          "timestamp": "2020-06-01T17:37:09+02:00",
+          "tree_id": "e55247beab34ee8574a423acc379af71bc00d395",
+          "url": "https://github.com/boa-dev/boa/commit/d003ad3b6d98a463e6237551b29868b0b759e926"
+        },
+        "date": 1591026318342,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 429.81,
+            "range": "+/- 8.730",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 466.69,
+            "range": "+/- 9.330",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 467.21,
+            "range": "+/- 8.920",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.6067,
+            "range": "+/- 0.050",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.1131,
+            "range": "+/- 0.038",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0224,
+            "range": "+/- 0.020",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.6601,
+            "range": "+/- 0.088",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.1469,
+            "range": "+/- 0.084",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.2802,
+            "range": "+/- 0.030",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13.142,
+            "range": "+/- 0.760",
             "unit": "us"
           }
         ]
