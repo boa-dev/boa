@@ -89,7 +89,7 @@ impl Statement {
 impl TokenParser for Statement {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 
@@ -269,7 +269,7 @@ impl StatementListItem {
 impl TokenParser for StatementListItem {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {

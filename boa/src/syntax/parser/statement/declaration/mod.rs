@@ -46,7 +46,7 @@ impl Declaration {
 impl TokenParser for Declaration {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {

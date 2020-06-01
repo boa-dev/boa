@@ -2,7 +2,7 @@ use crate::syntax::{
     ast::{node::WhileLoop, Keyword, Node, Punctuator},
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseResult, TokenParser,
+        ParseError, TokenParser,
     },
 };
 
@@ -42,9 +42,9 @@ impl WhileStatement {
 }
 
 impl TokenParser for WhileStatement {
-    type Output = Node;
+    type Output = WhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::While, "while statement")?;
         cursor.expect(Punctuator::OpenParen, "while statement")?;
 
@@ -55,6 +55,6 @@ impl TokenParser for WhileStatement {
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        Ok(WhileLoop::new(cond, body).into())
+        Ok(WhileLoop::new(cond, body))
     }
 }

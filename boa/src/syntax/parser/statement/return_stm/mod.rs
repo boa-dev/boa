@@ -3,7 +3,7 @@ mod tests;
 
 use crate::syntax::{
     ast::{node::Return, Keyword, Node, Punctuator, TokenKind},
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
 };
 
 /// Return statement parsing
@@ -35,9 +35,9 @@ impl ReturnStatement {
 }
 
 impl TokenParser for ReturnStatement {
-    type Output = Node;
+    type Output = Return;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Return, "return statement")?;
 
         if let (true, tok) = cursor.peek_semicolon(false) {
@@ -58,6 +58,6 @@ impl TokenParser for ReturnStatement {
 
         cursor.expect_semicolon(false, "return statement")?;
 
-        Ok(Return::new(expr).into())
+        Ok(Return::new(expr))
     }
 }

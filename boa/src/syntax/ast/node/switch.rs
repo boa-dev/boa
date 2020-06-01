@@ -54,7 +54,7 @@ impl Switch {
         Self {
             val: Box::new(val.into()),
             cases: cases.into(),
-            default: default.into(),
+            default: default.into().map(V::into).map(Box::new),
         }
     }
 

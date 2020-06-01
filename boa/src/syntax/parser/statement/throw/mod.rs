@@ -2,8 +2,8 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::Throw, Keyword, Node, Punctuator, TokenKind},
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    ast::{node::Throw, Keyword, Punctuator, TokenKind},
+    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
 };
 
 /// For statement parsing
@@ -35,9 +35,9 @@ impl ThrowStatement {
 }
 
 impl TokenParser for ThrowStatement {
-    type Output = Node;
+    type Output = Throw;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Throw, "throw statement")?;
 
         cursor.peek_expect_no_lineterminator(0)?;
@@ -49,6 +49,6 @@ impl TokenParser for ThrowStatement {
             }
         }
 
-        Ok(Throw::new(expr).into())
+        Ok(Throw::new(expr))
     }
 }

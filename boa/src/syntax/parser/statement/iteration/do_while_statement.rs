@@ -51,9 +51,9 @@ impl DoWhileStatement {
 }
 
 impl TokenParser for DoWhileStatement {
-    type Output = Node;
+    type Output = DoWhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Do, "do while statement")?;
 
         let body =
@@ -77,6 +77,6 @@ impl TokenParser for DoWhileStatement {
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
         cursor.expect_semicolon(true, "do while statement")?;
 
-        Ok(DoWhileLoop::new(body, cond).into())
+        Ok(DoWhileLoop::new(body, cond))
     }
 }

@@ -13,7 +13,7 @@ mod tests;
 use super::LabelIdentifier;
 use crate::syntax::{
     ast::{node::Continue, Keyword, Node, Punctuator, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
 };
 
 /// For statement parsing
@@ -45,9 +45,9 @@ impl ContinueStatement {
 }
 
 impl TokenParser for ContinueStatement {
-    type Output = Node;
+    type Output = Continue;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Continue, "continue statement")?;
 
         let label = if let (true, tok) = cursor.peek_semicolon(false) {
@@ -66,6 +66,6 @@ impl TokenParser for ContinueStatement {
             Some(label)
         };
 
-        Ok(Continue::new::<_, Box<str>>(label).into())
+        Ok(Continue::new::<_, Box<str>>(label))
     }
 }

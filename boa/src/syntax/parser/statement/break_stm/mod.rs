@@ -12,8 +12,8 @@ mod tests;
 
 use super::LabelIdentifier;
 use crate::syntax::{
-    ast::{node::Break, Keyword, Node, Punctuator, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    ast::{node::Break, Keyword, Punctuator, TokenKind},
+    parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
 };
 
 /// Break statement parsing
@@ -45,9 +45,9 @@ impl BreakStatement {
 }
 
 impl TokenParser for BreakStatement {
-    type Output = Node;
+    type Output = Break;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Break, "break statement")?;
 
         let label = if let (true, tok) = cursor.peek_semicolon(false) {
@@ -66,6 +66,6 @@ impl TokenParser for BreakStatement {
             Some(label)
         };
 
-        Ok(Break::new::<_, Box<str>>(label).into())
+        Ok(Break::new::<_, Box<str>>(label))
     }
 }

@@ -58,7 +58,7 @@ impl ForStatement {
 impl TokenParser for ForStatement {
     type Output = ForLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<ForLoop, ParseError> {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 

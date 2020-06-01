@@ -3,9 +3,9 @@ mod tests;
 
 use super::Statement;
 use crate::syntax::{
-    ast::{node::If, Keyword, Node, Punctuator, TokenKind},
+    ast::{node::If, Keyword, Punctuator, TokenKind, Node},
     parser::{
-        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
+        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
         TokenParser,
     },
 };
@@ -44,9 +44,9 @@ impl IfStatement {
 }
 
 impl TokenParser for IfStatement {
-    type Output = Node;
+    type Output = If;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::If, "if statement")?;
         cursor.expect(Punctuator::OpenParen, "if statement")?;
 
@@ -62,12 +62,12 @@ impl TokenParser for IfStatement {
                 cursor.next();
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor)?,
+                        .parse(cursor),
                 )
             }
             _ => None,
         };
 
-        Ok(If::new::<_, _, Node, _>(cond, then_stm, else_stm).into())
+        Ok(If::new(cond, then_stm, else_stm))
     }
 }

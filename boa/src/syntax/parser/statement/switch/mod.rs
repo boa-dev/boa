@@ -41,9 +41,9 @@ impl SwitchStatement {
 }
 
 impl TokenParser for SwitchStatement {
-    type Output = Node;
+    type Output = Switch;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
 
@@ -53,11 +53,8 @@ impl TokenParser for SwitchStatement {
 
         let (cases, default) =
             CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
-
-        match default {
-            Some(s) => Ok(Switch::new(Box::new(condition), cases, Some(Box::new(s))).into()),
-            None => Ok(Switch::new(Box::new(condition), cases, None).into()),
-        }
+        
+        Ok(Switch::new(condition, cases, default))
     }
 }
 
