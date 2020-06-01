@@ -274,8 +274,8 @@ pub struct Continue {
 }
 
 impl Continue {
-    pub fn label(&self) -> &Option<Box<str>> {
-        &self.label
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
     }
 
     /// Creates a `Continue` AST node.
