@@ -70,7 +70,7 @@ Start VSCode in container mode (you may need the docker container plugin) and us
 We have a Discord server, feel free to ask questions here:
 https://discord.gg/tUFFk9Y
 
-[issues]: https://github.com/jasonwilliams/boa/issues
+[issues]: https://github.com/boa-dev/boa/issues
 [rustup]: https://rustup.rs/
 [rls_vscode]: https://marketplace.visualstudio.com/items?itemName=rust-lang.rust
 [rust-analyzer_vscode]: https://marketplace.visualstudio.com/items?itemName=matklad.rust-analyzer

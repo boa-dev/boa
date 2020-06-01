@@ -83,6 +83,10 @@ jobs:
         with:
           command: test
           args: -v
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
 
   test_on_windows:
     name: Test Suite on Windows

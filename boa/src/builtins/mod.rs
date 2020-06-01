@@ -1,4 +1,4 @@
-//! Builtins live here, such as Object, String, Math etc
+//! Builtins live here, such as Object, String, Math, etc.
 
 pub mod array;
 pub mod bigint;

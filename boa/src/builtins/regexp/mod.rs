@@ -64,7 +64,7 @@ impl RegExp {
     pub(crate) fn make_regexp(
         this: &mut Value,
         args: &[Value],
-        _: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
         if args.is_empty() {
             return Err(Value::undefined());
@@ -82,10 +82,10 @@ impl RegExp {
                 if slots.get("RegExpMatcher").is_some() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
                     if let Some(body) = slots.get("OriginalSource") {
-                        regex_body = String::from(body);
+                        regex_body = ctx.to_string(body)?;
                     }
                     if let Some(flags) = slots.get("OriginalFlags") {
-                        regex_flags = String::from(flags);
+                        regex_flags = ctx.to_string(flags)?;
                     }
                 }
             }
@@ -295,8 +295,8 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
-    pub(crate) fn test(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        let arg_str = String::from(args.get(0).expect("could not get argument"));
+    pub(crate) fn test(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let arg_str = ctx.to_string(args.get(0).expect("could not get argument"))?;
         let mut last_index = usize::from(&this.get_field("lastIndex"));
         let result = this.with_internal_state_ref(|regex: &RegExp| {
             let result = if let Some(m) = regex.matcher.find_at(arg_str.as_str(), last_index) {
@@ -328,8 +328,8 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
-    pub(crate) fn exec(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        let arg_str = String::from(args.get(0).expect("could not get argument"));
+    pub(crate) fn exec(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let arg_str = ctx.to_string(args.get(0).expect("could not get argument"))?;
         let mut last_index = usize::from(&this.get_field("lastIndex"));
         let result = this.with_internal_state_ref(|regex: &RegExp| {
             let mut locations = regex.matcher.capture_locations();
@@ -407,8 +407,8 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let body = String::from(&this.get_internal_slot("OriginalSource"));
+    pub(crate) fn to_string(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let body = ctx.to_string(&this.get_internal_slot("OriginalSource"))?;
         let flags = this.with_internal_state_ref(|regex: &RegExp| regex.flags.clone());
         Ok(Value::from(format!("/{}/{}", body, flags)))
     }
@@ -485,7 +485,7 @@ impl RegExp {
         make_builtin_fn(Self::get_sticky, "sticky", &prototype, 0);
         make_builtin_fn(Self::get_unicode, "unicode", &prototype, 0);
 
-        make_constructor_fn(Self::make_regexp, global, prototype)
+        make_constructor_fn("RegExp", 1, Self::make_regexp, global, prototype, true)
     }
 
     /// Initialise the `RegExp` object on the global object.

@@ -92,8 +92,9 @@ pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
 pub fn create(global: &Value) -> Value {
     // Create prototype object
     let prototype = Value::new_object(Some(global));
+
     make_builtin_fn(to_string, "toString", &prototype, 0);
-    make_constructor_fn(call_symbol, global, prototype)
+    make_constructor_fn("Symbol", 1, call_symbol, global, prototype, false)
 }
 
 /// Initialise the `Symbol` object on the global object.

@@ -89,7 +89,7 @@ impl Executable for BinOp {
                         if !v_b.is_object() {
                             panic!("TypeError: {} is not an Object.", v_b);
                         }
-                        let key = interpreter.to_property_key(&mut v_a);
+                        let key = interpreter.to_property_key(&mut v_a)?;
                         interpreter.has_property(&mut v_b, &key)
                     }
                 }))
