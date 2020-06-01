@@ -18,7 +18,7 @@ fn check_string_to_value() {
 #[test]
 fn check_undefined() {
     let u = ValueData::Undefined;
-    assert_eq!(u.get_type(), "undefined");
+    assert_eq!(u.get_type(), Type::Undefined);
     assert_eq!(u.to_string(), "undefined");
 }
 

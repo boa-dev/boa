@@ -158,17 +158,17 @@ pub fn same_value(x: &Value, y: &Value, strict: bool) -> bool {
 pub fn same_value_non_number(x: &Value, y: &Value) -> bool {
     debug_assert!(x.get_type() == y.get_type());
     match x.get_type() {
-        "undefined" => true,
-        "null" => true,
-        "string" => {
+        Type::Undefined => true,
+        Type::Null => true,
+        Type::Str => {
             if x.to_string() == y.to_string() {
                 return true;
             }
             false
         }
-        "bigint" => BigInt::try_from(x).unwrap() == BigInt::try_from(y).unwrap(),
-        "boolean" => bool::from(x) == bool::from(y),
-        "object" => std::ptr::eq(x, y),
+        Type::BigInt => BigInt::try_from(x).unwrap() == BigInt::try_from(y).unwrap(),
+        Type::Boolean => bool::from(x) == bool::from(y),
+        Type::Object => std::ptr::eq(x, y),
         _ => false,
     }
 }

@@ -5,6 +5,8 @@
 #[cfg(test)]
 mod tests;
 
+mod val_type;
+
 use crate::builtins::{
     function::Function,
     object::{
@@ -12,6 +14,7 @@ use crate::builtins::{
         ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE,
     },
     property::Property,
+    value::val_type::Type,
 };
 use crate::syntax::ast::bigint::BigInt;
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
@@ -740,25 +743,27 @@ impl ValueData {
         }
     }
 
-    /// Get the type of the value
-    ///
-    /// https://tc39.es/ecma262/#sec-typeof-operator
-    pub fn get_type(&self) -> &'static str {
+    /// Get the type of the value.
+    /// 
+    /// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of
+    /// returning a string it returns a Type enum which implements fmt::Display to allow getting the string if
+    /// required using to_string().
+    pub fn get_type(&self) -> Type {
         match *self {
-            Self::Rational(_) | Self::Integer(_) => "number",
-            Self::String(_) => "string",
-            Self::Boolean(_) => "boolean",
-            Self::Symbol(_) => "symbol",
-            Self::Null => "object",
-            Self::Undefined => "undefined",
+            Self::Rational(_) | Self::Integer(_) => Type::Number,
+            Self::String(_) => Type::Str,
+            Self::Boolean(_) => Type::Boolean,
+            Self::Symbol(_) => Type::Symbol,
+            Self::Null => Type::Null,
+            Self::Undefined => Type::Undefined,
             Self::Object(ref o) => {
                 if o.deref().borrow().is_callable() {
-                    "function"
+                    Type::Function
                 } else {
-                    "object"
+                    Type::Object
                 }
             }
-            Self::BigInt(_) => "bigint",
+            Self::BigInt(_) => Type::BigInt,
         }
     }
 }
