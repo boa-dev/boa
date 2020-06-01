@@ -59,8 +59,8 @@ impl Switch {
         &self.cases
     }
 
-    pub fn default(&self) -> &Option<Box<Node>> {
-        &self.default
+    pub fn default(&self) -> Option<&Node> {
+        self.default.as_ref().map(Box::as_ref)
     }
 
     /// Creates a `Switch` AST node.
