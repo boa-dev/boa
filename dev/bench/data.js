@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1590842404401,
+  "lastUpdate": 1591001315154,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -8139,6 +8139,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.634,
             "range": "+/- 0.375",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abhijeet.bhagat@gmx.com",
+            "name": "abhi",
+            "username": "abhijeetbhagat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8255c3a83a12db6f4affdf44167bde2745cecf39",
+          "message": "Add support for the reviver function to JSON.parse (#410)",
+          "timestamp": "2020-06-01T10:40:41+02:00",
+          "tree_id": "29aa368334ad2e60c84c34f02707d9734ac278c4",
+          "url": "https://github.com/boa-dev/boa/commit/8255c3a83a12db6f4affdf44167bde2745cecf39"
+        },
+        "date": 1591001309954,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 415.52,
+            "range": "+/- 7.080",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 439.02,
+            "range": "+/- 8.240",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 430.45,
+            "range": "+/- 6.700",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.4571,
+            "range": "+/- 0.034",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.0139,
+            "range": "+/- 0.039",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 956.39,
+            "range": "+/- 11.640",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.1945,
+            "range": "+/- 0.104",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.8512,
+            "range": "+/- 0.089",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.1442,
+            "range": "+/- 0.033",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13.019,
+            "range": "+/- 0.289",
             "unit": "us"
           }
         ]
