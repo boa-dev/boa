@@ -1,20 +1,7 @@
-//! Builtins live here, such as Object, String, Math etc
-
-/// Macro to create a new member function of a prototype.
-///
-/// If no length is provided, the length will be set to 0.
-macro_rules! make_builtin_fn {
-    ($fn:ident, named $name:expr, with length $l:tt, of $p:ident) => {
-        let $fn = to_value($fn as NativeFunctionData);
-        $fn.set_field_slice("length", to_value($l));
-        $p.set_field_slice($name, $fn);
-    };
-    ($fn:ident, named $name:expr, of $p:ident) => {
-        make_builtin_fn!($fn, named $name, with length 0, of $p);
-    };
-}
+//! Builtins live here, such as Object, String, Math, etc.
 
 pub mod array;
+pub mod bigint;
 pub mod boolean;
 pub mod console;
 pub mod error;
@@ -28,3 +15,33 @@ pub mod regexp;
 pub mod string;
 pub mod symbol;
 pub mod value;
+
+pub(crate) use self::{
+    array::Array,
+    bigint::BigInt,
+    boolean::Boolean,
+    error::{Error, RangeError},
+    number::Number,
+    regexp::RegExp,
+    string::String,
+    value::{ResultValue, Value},
+};
+
+/// Initializes builtin objects and functions
+#[inline]
+pub fn init(global: &Value) {
+    Array::init(global);
+    BigInt::init(global);
+    Boolean::init(global);
+    json::init(global);
+    math::init(global);
+    Number::init(global);
+    object::init(global);
+    function::init(global);
+    RegExp::init(global);
+    String::init(global);
+    symbol::init(global);
+    console::init(global);
+    Error::init(global);
+    RangeError::init(global);
+}

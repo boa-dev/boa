@@ -6,11 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::builtins::{
-    object::{Object, PROTOTYPE},
+    object::{Object, INSTANCE_PROTOTYPE},
     property::Property,
-    value::{to_value, Value, ValueData},
+    value::{same_value, Value, ValueData},
 };
-use gc::Gc;
 use std::borrow::Borrow;
 use std::ops::Deref;
 
@@ -39,7 +38,7 @@ pub trait ObjectInternalMethods {
                 // the parent value variant should be an object
                 // In the unlikely event it isn't return false
                 return match *parent {
-                    ValueData::Object(ref obj) => obj.borrow().has_property(val),
+                    ValueData::Object(ref obj) => (*obj).deref().borrow().has_property(val),
                     _ => false,
                 };
             }
@@ -70,7 +69,7 @@ pub trait ObjectInternalMethods {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     fn prevent_extensions(&mut self) -> bool {
-        self.set_internal_slot("extensible", to_value(false));
+        self.set_internal_slot("extensible", Value::from(false));
         true
     }
 
@@ -108,7 +107,7 @@ pub trait ObjectInternalMethods {
             // parent will either be null or an Object
             let parent = self.get_prototype_of();
             if parent.is_null() {
-                return Gc::new(ValueData::Undefined);
+                return Value::undefined();
             }
 
             let parent_obj = Object::from(&parent).expect("Failed to get object");
@@ -122,11 +121,11 @@ pub trait ObjectInternalMethods {
 
         let getter = desc.get.clone();
         if getter.is_none() || getter.expect("Failed to get object").is_undefined() {
-            return Gc::new(ValueData::Undefined);
+            return Value::undefined();
         }
 
         // TODO!!!!! Call getter from here
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     /// [[Set]]
@@ -168,6 +167,116 @@ pub trait ObjectInternalMethods {
         }
     }
 
+    fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
+        let mut current = self.get_own_property(&Value::from(property_key.to_string()));
+        let extensible = self.is_extensible();
+
+        // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
+        // There currently isn't a property, lets create a new one
+        if current.value.is_none() || current.value.as_ref().expect("failed").is_undefined() {
+            if !extensible {
+                return false;
+            }
+
+            self.insert_property(property_key, desc);
+            return true;
+        }
+        // If every field is absent we don't need to set anything
+        if desc.is_none() {
+            return true;
+        }
+
+        // 4
+        if !current.configurable.unwrap_or(false) {
+            if desc.configurable.is_some() && desc.configurable.expect("unable to get prop desc") {
+                return false;
+            }
+
+            if desc.enumerable.is_some()
+                && (desc.enumerable.as_ref().expect("unable to get prop desc")
+                    != current
+                        .enumerable
+                        .as_ref()
+                        .expect("unable to get prop desc"))
+            {
+                return false;
+            }
+        }
+
+        // 5
+        if desc.is_generic_descriptor() {
+            // 6
+        } else if current.is_data_descriptor() != desc.is_data_descriptor() {
+            // a
+            if !current.configurable.expect("unable to get prop desc") {
+                return false;
+            }
+            // b
+            if current.is_data_descriptor() {
+                // Convert to accessor
+                current.value = None;
+                current.writable = None;
+            } else {
+                // c
+                // convert to data
+                current.get = None;
+                current.set = None;
+            }
+
+            self.insert_property(property_key.clone(), current);
+        // 7
+        } else if current.is_data_descriptor() && desc.is_data_descriptor() {
+            // a
+            if !current.configurable.expect("unable to get prop desc")
+                && !current.writable.expect("unable to get prop desc")
+            {
+                if desc.writable.is_some() && desc.writable.expect("unable to get prop desc") {
+                    return false;
+                }
+
+                if desc.value.is_some()
+                    && !same_value(
+                        &desc.value.clone().unwrap(),
+                        &current.value.clone().unwrap(),
+                        false,
+                    )
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        // 8
+        } else {
+            if !current.configurable.unwrap() {
+                if desc.set.is_some()
+                    && !same_value(
+                        &desc.set.clone().unwrap(),
+                        &current.set.clone().unwrap(),
+                        false,
+                    )
+                {
+                    return false;
+                }
+
+                if desc.get.is_some()
+                    && !same_value(
+                        &desc.get.clone().unwrap(),
+                        &current.get.clone().unwrap(),
+                        false,
+                    )
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        // 9
+        self.insert_property(property_key, desc);
+        true
+    }
+
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
     fn get_own_property(&self, prop: &Value) -> Property;
@@ -178,10 +287,8 @@ pub trait ObjectInternalMethods {
     /// Returns either the prototype or null
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     fn get_prototype_of(&self) -> Value {
-        self.get_internal_slot(PROTOTYPE)
+        self.get_internal_slot(INSTANCE_PROTOTYPE)
     }
-
-    fn define_own_property(&mut self, property_key: String, desc: Property) -> bool;
 
     /// Utility function to get an immutable internal slot or Null
     fn get_internal_slot(&self, name: &str) -> Value;

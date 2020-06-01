@@ -4,20 +4,20 @@
 //!
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
-//!
 
-use crate::builtins::value::{Value, ValueData};
-use crate::environment::declarative_environment_record::DeclarativeEnvironmentRecord;
-use crate::environment::environment_record_trait::EnvironmentRecordTrait;
-use crate::environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord};
-use crate::environment::global_environment_record::GlobalEnvironmentRecord;
-use crate::environment::object_environment_record::ObjectEnvironmentRecord;
+use crate::{
+    builtins::value::Value,
+    environment::{
+        declarative_environment_record::DeclarativeEnvironmentRecord,
+        environment_record_trait::EnvironmentRecordTrait,
+        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
+        global_environment_record::GlobalEnvironmentRecord,
+        object_environment_record::ObjectEnvironmentRecord,
+    },
+};
 use gc::{Gc, GcCell};
-use std::collections::hash_map::HashMap;
-use std::collections::{HashSet, VecDeque};
-use std::debug_assert;
-use std::error;
-use std::fmt;
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::{collections::VecDeque, error, fmt};
 
 /// Environments are wrapped in a Box and then in a GC wrapper
 pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
@@ -99,10 +99,8 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back()
     }
 
-    pub fn environments(&self) -> impl Iterator<Item = Environment> {
-        std::iter::successors(Some(self.get_current_environment_ref().clone()), |env| {
-            env.borrow().get_outer_environment()
-        })
+    pub fn environments(&self) -> impl Iterator<Item = &Environment> {
+        self.environment_stack.iter().rev()
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
@@ -111,6 +109,13 @@ impl LexicalEnvironment {
             .expect("")
             .borrow()
             .get_global_object()
+    }
+
+    pub fn get_this_binding(&self) -> Value {
+        self.environments()
+            .find(|env| env.borrow().has_this_binding())
+            .map(|env| env.borrow().get_this_binding())
+            .unwrap_or_else(Value::undefined)
     }
 
     pub fn create_mutable_binding(&mut self, name: String, deletion: bool, scope: VariableScope) {
@@ -187,10 +192,8 @@ impl LexicalEnvironment {
     /// get_current_environment_ref is used when you only need to borrow the environment
     /// (you only need to add a new variable binding, or you want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
-        let index = self.environment_stack.len().wrapping_sub(1);
-        &self
-            .environment_stack
-            .get(index)
+        self.environment_stack
+            .back()
             .expect("Could not get current environment")
     }
 
@@ -211,13 +214,13 @@ impl LexicalEnvironment {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or_else(|| Gc::new(ValueData::Undefined))
+            .unwrap_or_else(Value::undefined)
     }
 }
 
 pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
     let boxed_env = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: FxHashMap::default(),
         outer_env: env,
     });
 
@@ -226,19 +229,18 @@ pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
 
 pub fn new_function_environment(
     f: Value,
-    new_target: Value,
+    this: Option<Value>,
     outer: Option<Environment>,
+    binding_status: BindingStatus,
 ) -> Environment {
-    debug_assert!(f.is_function());
-    debug_assert!(new_target.is_object() || new_target.is_undefined());
     Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
-        env_rec: HashMap::new(),
-        function_object: f,
-        this_binding_status: BindingStatus::Uninitialized, // hardcoding to unitialized for now until short functions are properly supported
-        home_object: Gc::new(ValueData::Undefined),
-        new_target,
+        env_rec: FxHashMap::default(),
+        function: f,
+        this_binding_status: binding_status,
+        home_object: Value::undefined(),
+        new_target: Value::undefined(),
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-        this_value: Gc::new(ValueData::Undefined), // TODO: this_value should start as an Option as its not always there to begin with
+        this_value: this.unwrap_or_else(Value::undefined),
     })))
 }
 
@@ -268,7 +270,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
     });
 
     let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: FxHashMap::default(),
         outer_env: None,
     });
 
@@ -276,7 +278,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
-        var_names: HashSet::new(),
+        var_names: FxHashSet::default(),
     })))
 }
 

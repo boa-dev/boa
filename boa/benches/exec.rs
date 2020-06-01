@@ -29,19 +29,15 @@ fn symbol_creation(c: &mut Criterion) {
 static FOR_LOOP: &str = r#"
 let a = 10;
 let b = "hello";
-for (;;) {
+for (;a > 100;) {
     a += 5;
 
-    if a < 50 {
+    if (a < 50) {
         b += "world";
     }
-
-    if (a > 100) {
-        break;
-    }
 }
-let c = a;
-let d = b;
+
+b
 "#;
 
 fn for_loop_execution(c: &mut Criterion) {

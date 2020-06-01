@@ -1,5 +1,5 @@
 use crate::syntax::{
-    ast::node::{FormalParameter, Node},
+    ast::node::{ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, Node},
     ast::op::NumOp,
     parser::tests::check_parser,
 };
@@ -9,11 +9,12 @@ use crate::syntax::{
 fn check_basic() {
     check_parser(
         "function foo(a) { return a; }",
-        &[Node::function_decl(
-            "foo",
+        vec![FunctionDecl::new(
+            Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            Node::StatementList(vec![Node::return_node(Node::local("a"))]),
-        )],
+            vec![Node::return_node(Identifier::from("a"))],
+        )
+        .into()],
     );
 }
 
@@ -22,11 +23,12 @@ fn check_basic() {
 fn check_basic_semicolon_insertion() {
     check_parser(
         "function foo(a) { return a }",
-        &[Node::function_decl(
-            "foo",
+        vec![FunctionDecl::new(
+            Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            Node::StatementList(vec![Node::return_node(Node::local("a"))]),
-        )],
+            vec![Node::return_node(Identifier::from("a"))],
+        )
+        .into()],
     );
 }
 
@@ -35,11 +37,12 @@ fn check_basic_semicolon_insertion() {
 fn check_empty_return() {
     check_parser(
         "function foo(a) { return; }",
-        &[Node::function_decl(
-            "foo",
+        vec![FunctionDecl::new(
+            Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            Node::StatementList(vec![Node::Return(None)]),
-        )],
+            vec![Node::Return(None)],
+        )
+        .into()],
     );
 }
 
@@ -48,11 +51,12 @@ fn check_empty_return() {
 fn check_empty_return_semicolon_insertion() {
     check_parser(
         "function foo(a) { return }",
-        &[Node::function_decl(
-            "foo",
+        vec![FunctionDecl::new(
+            Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            Node::StatementList(vec![Node::Return(None)]),
-        )],
+            vec![Node::Return(None)],
+        )
+        .into()],
     );
 }
 
@@ -61,14 +65,15 @@ fn check_empty_return_semicolon_insertion() {
 fn check_rest_operator() {
     check_parser(
         "function foo(a, ...b) {}",
-        &[Node::function_decl(
-            "foo",
+        vec![FunctionDecl::new(
+            Box::from("foo"),
             vec![
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, true),
             ],
-            Node::StatementList(Vec::new()),
-        )],
+            vec![],
+        )
+        .into()],
     );
 }
 
@@ -77,10 +82,7 @@ fn check_rest_operator() {
 fn check_arrow_only_rest() {
     check_parser(
         "(...a) => {}",
-        &[Node::arrow_function_decl(
-            vec![FormalParameter::new("a", None, true)],
-            Node::StatementList(Vec::new()),
-        )],
+        vec![ArrowFunctionDecl::new(vec![FormalParameter::new("a", None, true)], vec![]).into()],
     );
 }
 
@@ -89,14 +91,15 @@ fn check_arrow_only_rest() {
 fn check_arrow_rest() {
     check_parser(
         "(a, b, ...c) => {}",
-        &[Node::arrow_function_decl(
+        vec![ArrowFunctionDecl::new(
             vec![
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
                 FormalParameter::new("c", None, true),
             ],
-            Node::StatementList(Vec::new()),
-        )],
+            vec![],
+        )
+        .into()],
     );
 }
 
@@ -105,17 +108,18 @@ fn check_arrow_rest() {
 fn check_arrow() {
     check_parser(
         "(a, b) => { return a + b; }",
-        &[Node::arrow_function_decl(
+        vec![ArrowFunctionDecl::new(
             vec![
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            Node::StatementList(vec![Node::return_node(Node::bin_op(
+            vec![Node::return_node(BinOp::new(
                 NumOp::Add,
-                Node::local("a"),
-                Node::local("b"),
-            ))]),
-        )],
+                Identifier::from("a"),
+                Identifier::from("b"),
+            ))],
+        )
+        .into()],
     );
 }
 
@@ -124,17 +128,18 @@ fn check_arrow() {
 fn check_arrow_semicolon_insertion() {
     check_parser(
         "(a, b) => { return a + b }",
-        &[Node::arrow_function_decl(
+        vec![ArrowFunctionDecl::new(
             vec![
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            Node::StatementList(vec![Node::return_node(Node::bin_op(
+            vec![Node::return_node(BinOp::new(
                 NumOp::Add,
-                Node::local("a"),
-                Node::local("b"),
-            ))]),
-        )],
+                Identifier::from("a"),
+                Identifier::from("b"),
+            ))],
+        )
+        .into()],
     );
 }
 
@@ -143,13 +148,14 @@ fn check_arrow_semicolon_insertion() {
 fn check_arrow_epty_return() {
     check_parser(
         "(a, b) => { return; }",
-        &[Node::arrow_function_decl(
+        vec![ArrowFunctionDecl::new(
             vec![
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            Node::StatementList(vec![Node::Return(None)]),
-        )],
+            vec![Node::Return(None)],
+        )
+        .into()],
     );
 }
 
@@ -158,12 +164,13 @@ fn check_arrow_epty_return() {
 fn check_arrow_empty_return_semicolon_insertion() {
     check_parser(
         "(a, b) => { return }",
-        &[Node::arrow_function_decl(
+        vec![ArrowFunctionDecl::new(
             vec![
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            Node::StatementList(vec![Node::Return(None)]),
-        )],
+            vec![Node::Return(None)],
+        )
+        .into()],
     );
 }

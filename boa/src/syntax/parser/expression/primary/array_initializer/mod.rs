@@ -11,10 +11,12 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{constant::Const, node::Node, punc::Punctuator},
+    ast::{
+        node::{ArrayDecl, Node},
+        Const, Punctuator,
+    },
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 
@@ -47,9 +49,9 @@ impl ArrayLiteral {
 }
 
 impl TokenParser for ArrayLiteral {
-    type Output = Node;
+    type Output = ArrayDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let mut elements = Vec::new();
 
         loop {
@@ -77,6 +79,6 @@ impl TokenParser for ArrayLiteral {
             cursor.next_if(Punctuator::Comma);
         }
 
-        Ok(Node::ArrayDecl(elements))
+        Ok(elements.into())
     }
 }

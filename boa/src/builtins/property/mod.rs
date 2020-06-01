@@ -14,8 +14,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
-use crate::builtins::value::{from_value, to_value, FromValue, ToValue, Value, ValueData};
-use gc_derive::{Finalize, Trace};
+use crate::builtins::value::Value;
+use gc::{Finalize, Trace};
 
 /// This represents a Javascript Property AKA The Property Descriptor.
 ///
@@ -170,59 +170,33 @@ impl Default for Property {
     }
 }
 
-impl ToValue for Property {
-    fn to_value(&self) -> Value {
-        let prop = ValueData::new_obj(None);
-        prop.set_field_slice("configurable", to_value(self.configurable));
-        prop.set_field_slice("enumerable", to_value(self.enumerable));
-        prop.set_field_slice("writable", to_value(self.writable));
-        prop.set_field_slice("value", to_value(self.value.clone()));
-        prop.set_field_slice("get", to_value(self.get.clone()));
-        prop.set_field_slice("set", to_value(self.set.clone()));
-        prop
+impl From<&Property> for Value {
+    fn from(value: &Property) -> Value {
+        let property = Value::new_object(None);
+        property.set_field("configurable", Value::from(value.configurable));
+        property.set_field("enumerable", Value::from(value.enumerable));
+        property.set_field("writable", Value::from(value.writable));
+        property.set_field("value", value.value.clone().unwrap_or_else(Value::null));
+        property.set_field("get", value.get.clone().unwrap_or_else(Value::null));
+        property.set_field("set", value.set.clone().unwrap_or_else(Value::null));
+        property
     }
 }
 
-impl FromValue for Property {
+impl<'a> From<&'a Value> for Property {
     /// Attempt to fetch values "configurable", "enumerable", "writable" from the value,
     /// if they're not there default to false
-    fn from_value(v: Value) -> Result<Self, &'static str> {
-        Ok(Self {
-            configurable: {
-                match from_value::<bool>(v.get_field_slice("configurable")) {
-                    Ok(v) => Some(v),
-                    Err(_) => Some(false),
-                }
-            },
-            enumerable: {
-                match from_value::<bool>(v.get_field_slice("enumerable")) {
-                    Ok(v) => Some(v),
-                    Err(_) => Some(false),
-                }
-            },
-            writable: {
-                match from_value(v.get_field_slice("writable")) {
-                    Ok(v) => Some(v),
-                    Err(_) => Some(false),
-                }
-            },
-            value: Some(v.get_field_slice("value")),
-            get: Some(v.get_field_slice("get")),
-            set: Some(v.get_field_slice("set")),
-        })
+    fn from(value: &Value) -> Self {
+        Self {
+            configurable: { Some(bool::from(&value.get_field("configurable"))) },
+            enumerable: { Some(bool::from(&value.get_field("enumerable"))) },
+            writable: { Some(bool::from(&value.get_field("writable"))) },
+            value: Some(value.get_field("value")),
+            get: Some(value.get_field("get")),
+            set: Some(value.get_field("set")),
+        }
     }
 }
 
 #[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn is_property_key_test() {
-        let v = Value::new(ValueData::String(String::from("Boop")));
-        assert!(Property::is_property_key(&v));
-
-        let v = Value::new(ValueData::Boolean(true));
-        assert!(!Property::is_property_key(&v));
-    }
-}
+mod tests;

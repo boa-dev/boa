@@ -7,17 +7,13 @@
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
 use crate::{
-    builtins::{
-        property::Property,
-        value::{Value, ValueData},
-    },
+    builtins::{property::Property, value::Value},
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
+use gc::{Finalize, Trace};
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {
@@ -43,12 +39,12 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;
         let prop = Property::default()
-            .value(Gc::new(ValueData::Undefined))
+            .value(Value::undefined())
             .writable(true)
             .enumerable(true)
             .configurable(deletion);
 
-        bindings.set_prop(name, prop);
+        bindings.set_property(name, prop);
     }
 
     fn create_immutable_binding(&mut self, _name: String, _strict: bool) -> bool {
@@ -67,28 +63,32 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         debug_assert!(value.is_object() || value.is_function());
 
         let bindings = &mut self.bindings;
-        bindings.update_prop(name, Some(value), None, None, Some(strict));
+        bindings.update_property(name, Some(value), None, None, Some(strict));
     }
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {
         if self.bindings.has_field(name) {
-            self.bindings.get_field_slice(name)
+            self.bindings.get_field(name)
         } else {
             if strict {
                 // TODO: throw error here
                 // Error handling not implemented yet
             }
-            Gc::new(ValueData::Undefined)
+            Value::undefined()
         }
     }
 
     fn delete_binding(&mut self, name: &str) -> bool {
-        self.bindings.remove_prop(name);
+        self.bindings.remove_property(name);
         true
     }
 
     fn has_this_binding(&self) -> bool {
         false
+    }
+
+    fn get_this_binding(&self) -> Value {
+        Value::undefined()
     }
 
     fn has_super_binding(&self) -> bool {
@@ -102,7 +102,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
             return self.bindings.clone();
         }
 
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {

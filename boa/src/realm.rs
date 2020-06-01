@@ -2,13 +2,13 @@
 //! all of the ECMAScript code that is loaded within the scope of that global environment,
 //! and other associated state and resources.
 //!
-//!A realm is represented in this implementation as a Realm struct with the fields specified from the spec
+//! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
+
 use crate::{
     builtins::{
-        array, boolean, console, function,
-        function::NativeFunctionData,
-        json, math, number, object, regexp, string, symbol,
-        value::{ToValue, Value, ValueData},
+        self,
+        function::{Function, NativeFunctionData},
+        value::{Value, ValueData},
     },
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -18,9 +18,10 @@ use crate::{
     },
 };
 use gc::{Gc, GcCell};
-use std::collections::{hash_map::HashMap, hash_set::HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 
-/// Representation of a Realm.   
+/// Representation of a Realm.
+///
 /// In the specification these are called Realm Records.
 #[derive(Debug)]
 pub struct Realm {
@@ -33,7 +34,7 @@ impl Realm {
     pub fn create() -> Self {
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
-        let global = ValueData::new_obj(None);
+        let global = Value::new_object(None);
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = new_global_environment(global.clone(), global.clone());
 
@@ -54,24 +55,14 @@ impl Realm {
     fn create_instrinsics(&self) {
         let global = &self.global_obj;
         // Create intrinsics, add global objects here
-        function::init(global);
-
-        global.set_field_slice("Array", array::create_constructor(global));
-        global.set_field_slice("Boolean", boolean::create_constructor(global));
-        global.set_field_slice("JSON", json::create_constructor(global));
-        global.set_field_slice("Math", math::create_constructor(global));
-        global.set_field_slice("Number", number::create_constructor(global));
-        global.set_field_slice("Object", object::create_constructor(global));
-        global.set_field_slice("RegExp", regexp::create_constructor(global));
-        global.set_field_slice("String", string::create_constructor(global));
-        global.set_field_slice("Symbol", symbol::create_constructor(global));
-        global.set_field_slice("console", console::create_constructor(global));
+        builtins::init(global);
     }
 
     /// Utility to add a function to the global object
     pub fn register_global_func(self, func_name: &str, func: NativeFunctionData) -> Self {
+        let func = Function::builtin(Vec::new(), func);
         self.global_obj
-            .set_field(func_name.to_value(), func.to_value());
+            .set_field(Value::from(func_name), ValueData::from_func(func));
 
         self
     }
@@ -94,7 +85,7 @@ fn new_global_environment(
     });
 
     let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: FxHashMap::default(),
         outer_env: None,
     });
 
@@ -102,6 +93,6 @@ fn new_global_environment(
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
-        var_names: HashSet::new(),
+        var_names: FxHashSet::default(),
     })))
 }

@@ -7,11 +7,8 @@
 //! [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
-use std::{
-    error,
-    fmt::{Display, Error, Formatter},
-    str::FromStr,
-};
+use crate::syntax::ast::op::{BinOp, CompOp};
+use std::{convert::TryInto, error, fmt, str::FromStr};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -433,10 +430,70 @@ pub enum Keyword {
     Yield,
 }
 
+impl Keyword {
+    /// Gets the keyword as a binary operation, if this keyword is the `in` keyword.
+    pub fn as_binop(self) -> Option<BinOp> {
+        match self {
+            Keyword::In => Some(BinOp::Comp(CompOp::In)),
+            _ => None,
+        }
+    }
+
+    /// Gets the keyword as a string.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Await => "await",
+            Self::Break => "break",
+            Self::Case => "case",
+            Self::Catch => "catch",
+            Self::Class => "class",
+            Self::Continue => "continue",
+            Self::Const => "const",
+            Self::Debugger => "debugger",
+            Self::Default => "default",
+            Self::Delete => "delete",
+            Self::Do => "do",
+            Self::Else => "else",
+            Self::Enum => "enum",
+            Self::Extends => "extends",
+            Self::Export => "export",
+            Self::Finally => "finally",
+            Self::For => "for",
+            Self::Function => "function",
+            Self::If => "if",
+            Self::In => "in",
+            Self::InstanceOf => "instanceof",
+            Self::Import => "import",
+            Self::Let => "let",
+            Self::New => "new",
+            Self::Return => "return",
+            Self::Super => "super",
+            Self::Switch => "switch",
+            Self::This => "this",
+            Self::Throw => "throw",
+            Self::Try => "try",
+            Self::TypeOf => "typeof",
+            Self::Var => "var",
+            Self::Void => "void",
+            Self::While => "while",
+            Self::With => "with",
+            Self::Yield => "yield",
+        }
+    }
+}
+
+impl TryInto<BinOp> for Keyword {
+    type Error = String;
+    fn try_into(self) -> Result<BinOp, Self::Error> {
+        self.as_binop()
+            .ok_or_else(|| format!("No binary operation for {}", self))
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct KeywordError;
-impl Display for KeywordError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+impl fmt::Display for KeywordError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid token")
     }
 }
@@ -496,49 +553,9 @@ impl FromStr for Keyword {
         }
     }
 }
-impl Display for Keyword {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::Await => "await",
-                Self::Break => "break",
-                Self::Case => "case",
-                Self::Catch => "catch",
-                Self::Class => "class",
-                Self::Continue => "continue",
-                Self::Const => "const",
-                Self::Debugger => "debugger",
-                Self::Default => "default",
-                Self::Delete => "delete",
-                Self::Do => "do",
-                Self::Else => "else",
-                Self::Enum => "enum",
-                Self::Extends => "extends",
-                Self::Export => "export",
-                Self::Finally => "finally",
-                Self::For => "for",
-                Self::Function => "function",
-                Self::If => "if",
-                Self::In => "in",
-                Self::InstanceOf => "instanceof",
-                Self::Import => "import",
-                Self::Let => "let",
-                Self::New => "new",
-                Self::Return => "return",
-                Self::Super => "super",
-                Self::Switch => "switch",
-                Self::This => "this",
-                Self::Throw => "throw",
-                Self::Try => "try",
-                Self::TypeOf => "typeof",
-                Self::Var => "var",
-                Self::Void => "void",
-                Self::While => "while",
-                Self::With => "with",
-                Self::Yield => "yield",
-            }
-        )
+
+impl fmt::Display for Keyword {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self.as_str(), f)
     }
 }

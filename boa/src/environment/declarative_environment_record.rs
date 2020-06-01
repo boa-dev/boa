@@ -6,15 +6,14 @@
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)
 
 use crate::{
-    builtins::value::{Value, ValueData},
+    builtins::value::Value,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
-use std::collections::hash_map::HashMap;
+use gc::{Finalize, Trace};
+use rustc_hash::FxHashMap;
 
 /// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
 /// Can it be deleted? and strict mode.
@@ -33,7 +32,7 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
     pub outer_env: Option<Environment>,
 }
 
@@ -150,12 +149,16 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
+    fn get_this_binding(&self) -> Value {
+        Value::undefined()
+    }
+
     fn has_super_binding(&self) -> bool {
         false
     }
 
     fn with_base_object(&self) -> Value {
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {

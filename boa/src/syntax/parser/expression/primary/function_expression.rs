@@ -8,10 +8,11 @@
 //! [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 
 use crate::syntax::{
-    ast::{node::Node, punc::Punctuator, token::TokenKind},
+    ast::{node::FunctionExpr, Punctuator},
     parser::{
         function::{FormalParameters, FunctionBody},
-        Cursor, ParseError, ParseResult, TokenParser,
+        statement::BindingIdentifier,
+        Cursor, ParseError, TokenParser,
     },
 };
 
@@ -27,20 +28,10 @@ use crate::syntax::{
 pub(super) struct FunctionExpression;
 
 impl TokenParser for FunctionExpression {
-    type Output = Node;
+    type Output = FunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        let name = if let TokenKind::Identifier(name) =
-            &cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
-        {
-            Some(name)
-        } else {
-            None
-        };
-        if name.is_some() {
-            // We move the cursor forward.
-            let _ = cursor.next().expect("nex token disappeared");
-        }
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let name = BindingIdentifier::new(false, false).try_parse(cursor);
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;
 
@@ -49,12 +40,10 @@ impl TokenParser for FunctionExpression {
         cursor.expect(Punctuator::CloseParen, "function expression")?;
         cursor.expect(Punctuator::OpenBlock, "function expression")?;
 
-        let body = FunctionBody::new(false, false)
-            .parse(cursor)
-            .map(Node::StatementList)?;
+        let body = FunctionBody::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "function expression")?;
 
-        Ok(Node::function_decl::<_, &String, _, _>(name, params, body))
+        Ok(FunctionExpr::new(name, params, body))
     }
 }

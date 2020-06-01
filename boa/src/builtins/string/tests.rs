@@ -1,20 +1,18 @@
 use super::*;
-use crate::exec::Executor;
-use crate::realm::Realm;
-use crate::{forward, forward_val};
+use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[test]
 fn check_string_constructor_is_function() {
-    let global = ValueData::new_obj(None);
-    let string_constructor = create_constructor(&global);
+    let global = Value::new_object(None);
+    let string_constructor = String::create(&global);
     assert_eq!(string_constructor.is_function(), true);
 }
 
-#[test]
+// #[test]
 // TODO: re-enable when getProperty() is finished;
 // fn length() {
 //     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
-//     let mut engine = Executor::new();
+//     let mut engine = Interpreter::new();
 //     let init = r#"
 //     const a = new String(' ');
 //     const b = new String('\ud834\udf06');
@@ -35,10 +33,37 @@ fn check_string_constructor_is_function() {
 //     let d = forward(&mut engine, "d.length");
 //     assert_eq!(d, String::from("4"));
 // }
+
+#[test]
+fn new_string_has_length() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        let a = new String("1234");
+        a
+        "#;
+
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "a.length"), "4");
+}
+
+#[test]
+fn new_utf8_string_has_length() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        let a = new String("中文");
+        a
+        "#;
+
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "a.length"), "2");
+}
+
 #[test]
 fn concat() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var hello = new String('Hello, ');
         var world = new String('world! ');
@@ -58,12 +83,14 @@ fn concat() {
 /// Test the correct type is returned from call and construct
 fn construct_and_call() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var hello = new String('Hello');
         var world = String('world');
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+
+    forward(&mut engine, init);
+
     let hello = forward_val(&mut engine, "hello").unwrap();
     let world = forward_val(&mut engine, "world").unwrap();
 
@@ -74,50 +101,44 @@ fn construct_and_call() {
 #[test]
 fn repeat() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = new String('');
         var en = new String('english');
         var zh = new String('中文');
         "#;
-    eprintln!("{}", forward(&mut engine, init));
 
-    let empty = String::from("");
-    assert_eq!(forward(&mut engine, "empty.repeat(0)"), empty);
-    assert_eq!(forward(&mut engine, "empty.repeat(1)"), empty);
+    forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "en.repeat(0)"), empty);
-    assert_eq!(forward(&mut engine, "zh.repeat(0)"), empty);
+    assert_eq!(forward(&mut engine, "empty.repeat(0)"), "");
+    assert_eq!(forward(&mut engine, "empty.repeat(1)"), "");
 
-    assert_eq!(
-        forward(&mut engine, "en.repeat(1)"),
-        String::from("english")
-    );
-    assert_eq!(
-        forward(&mut engine, "zh.repeat(2)"),
-        String::from("中文中文")
-    );
+    assert_eq!(forward(&mut engine, "en.repeat(0)"), "");
+    assert_eq!(forward(&mut engine, "zh.repeat(0)"), "");
+
+    assert_eq!(forward(&mut engine, "en.repeat(1)"), "english");
+    assert_eq!(forward(&mut engine, "zh.repeat(2)"), "中文中文");
 }
 
 #[test]
 fn replace() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = "abc";
         a = a.replace("a", "2");
         a
         "#;
-    eprintln!("{}", forward(&mut engine, init));
 
-    let empty = String::from("2bc");
-    assert_eq!(forward(&mut engine, "a"), empty);
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "a"), "2bc");
 }
 
 #[test]
 fn replace_with_function() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = "ecmascript is cool";
         var p1, p2, p3;
@@ -131,21 +152,20 @@ fn replace_with_function() {
         a = a.replace(/c(o)(o)(l)/, replacer);
         a;
         "#;
-    eprintln!("{}", forward(&mut engine, init));
-    assert_eq!(
-        forward(&mut engine, "a"),
-        String::from("ecmascript is awesome!")
-    );
 
-    assert_eq!(forward(&mut engine, "p1"), String::from("o"));
-    assert_eq!(forward(&mut engine, "p2"), String::from("o"));
-    assert_eq!(forward(&mut engine, "p3"), String::from("l"));
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "a"), "ecmascript is awesome!");
+
+    assert_eq!(forward(&mut engine, "p1"), "o");
+    assert_eq!(forward(&mut engine, "p2"), "o");
+    assert_eq!(forward(&mut engine, "p3"), "l");
 }
 
 #[test]
 fn starts_with() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -155,21 +175,22 @@ fn starts_with() {
         var enLiteral = 'english';
         var zhLiteral = '中文';
         "#;
-    eprintln!("{}", forward(&mut engine, init));
-    let pass = String::from("true");
-    assert_eq!(forward(&mut engine, "empty.startsWith('')"), pass);
-    assert_eq!(forward(&mut engine, "en.startsWith('e')"), pass);
-    assert_eq!(forward(&mut engine, "zh.startsWith('中')"), pass);
 
-    assert_eq!(forward(&mut engine, "emptyLiteral.startsWith('')"), pass);
-    assert_eq!(forward(&mut engine, "enLiteral.startsWith('e')"), pass);
-    assert_eq!(forward(&mut engine, "zhLiteral.startsWith('中')"), pass);
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "empty.startsWith('')"), "true");
+    assert_eq!(forward(&mut engine, "en.startsWith('e')"), "true");
+    assert_eq!(forward(&mut engine, "zh.startsWith('中')"), "true");
+
+    assert_eq!(forward(&mut engine, "emptyLiteral.startsWith('')"), "true");
+    assert_eq!(forward(&mut engine, "enLiteral.startsWith('e')"), "true");
+    assert_eq!(forward(&mut engine, "zhLiteral.startsWith('中')"), "true");
 }
 
 #[test]
 fn ends_with() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -179,70 +200,45 @@ fn ends_with() {
         var enLiteral = 'english';
         var zhLiteral = '中文';
         "#;
-    eprintln!("{}", forward(&mut engine, init));
-    let pass = String::from("true");
-    assert_eq!(forward(&mut engine, "empty.endsWith('')"), pass);
-    assert_eq!(forward(&mut engine, "en.endsWith('h')"), pass);
-    assert_eq!(forward(&mut engine, "zh.endsWith('文')"), pass);
 
-    assert_eq!(forward(&mut engine, "emptyLiteral.endsWith('')"), pass);
-    assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), pass);
-    assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), pass);
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "empty.endsWith('')"), "true");
+    assert_eq!(forward(&mut engine, "en.endsWith('h')"), "true");
+    assert_eq!(forward(&mut engine, "zh.endsWith('文')"), "true");
+
+    assert_eq!(forward(&mut engine, "emptyLiteral.endsWith('')"), "true");
+    assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), "true");
+    assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), "true");
 }
 
 #[test]
 fn match_all() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
 
-    assert_eq!(
-        forward(&mut engine, "'aa'.matchAll(null).length"),
-        String::from("0")
-    );
-    assert_eq!(
-        forward(&mut engine, "'aa'.matchAll(/b/).length"),
-        String::from("0")
-    );
-    assert_eq!(
-        forward(&mut engine, "'aa'.matchAll(/a/).length"),
-        String::from("1")
-    );
-    assert_eq!(
-        forward(&mut engine, "'aa'.matchAll(/a/g).length"),
-        String::from("2")
-    );
+    assert_eq!(forward(&mut engine, "'aa'.matchAll(null).length"), "0");
+    assert_eq!(forward(&mut engine, "'aa'.matchAll(/b/).length"), "0");
+    assert_eq!(forward(&mut engine, "'aa'.matchAll(/a/).length"), "1");
+    assert_eq!(forward(&mut engine, "'aa'.matchAll(/a/g).length"), "2");
 
     forward(
         &mut engine,
         "var groupMatches = 'test1test2'.matchAll(/t(e)(st(\\d?))/g)",
     );
-    assert_eq!(
-        forward(&mut engine, "groupMatches.length"),
-        String::from("2")
-    );
-    assert_eq!(
-        forward(&mut engine, "groupMatches[0][1]"),
-        String::from("e")
-    );
-    assert_eq!(
-        forward(&mut engine, "groupMatches[0][2]"),
-        String::from("st1")
-    );
-    assert_eq!(
-        forward(&mut engine, "groupMatches[0][3]"),
-        String::from("1")
-    );
-    assert_eq!(
-        forward(&mut engine, "groupMatches[1][3]"),
-        String::from("2")
-    );
+
+    assert_eq!(forward(&mut engine, "groupMatches.length"), "2");
+    assert_eq!(forward(&mut engine, "groupMatches[0][1]"), "e");
+    assert_eq!(forward(&mut engine, "groupMatches[0][2]"), "st1");
+    assert_eq!(forward(&mut engine, "groupMatches[0][3]"), "1");
+    assert_eq!(forward(&mut engine, "groupMatches[1][3]"), "2");
 
     assert_eq!(
         forward(
             &mut engine,
             "'test1test2'.matchAll(/t(e)(st(\\d?))/).length"
         ),
-        String::from("1")
+        "1"
     );
 
     let init = r#"
@@ -250,23 +246,19 @@ fn match_all() {
         var str = 'table football, foosball';
         var matches = str.matchAll(regexp);
         "#;
-    eprintln!("{}", forward(&mut engine, init));
-    assert_eq!(
-        forward(&mut engine, "matches[0][0]"),
-        String::from("football")
-    );
-    assert_eq!(forward(&mut engine, "matches[0].index"), String::from("6"));
-    assert_eq!(
-        forward(&mut engine, "matches[1][0]"),
-        String::from("foosball")
-    );
-    assert_eq!(forward(&mut engine, "matches[1].index"), String::from("16"));
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "matches[0][0]"), "football");
+    assert_eq!(forward(&mut engine, "matches[0].index"), "6");
+    assert_eq!(forward(&mut engine, "matches[1][0]"), "foosball");
+    assert_eq!(forward(&mut engine, "matches[1].index"), "16");
 }
 
 #[test]
 fn test_match() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         var str = new String('The Quick Brown Fox Jumps Over The Lazy Dog');
         var result1 = str.match(/quick\s(brown).+?(jumps)/i);
@@ -275,7 +267,8 @@ fn test_match() {
         var result4 = str.match(RegExp("B", 'g'));
         "#;
 
-    eprintln!("{}", forward(&mut engine, init));
+    forward(&mut engine, init);
+
     assert_eq!(forward(&mut engine, "result1[0]"), "Quick Brown Fox Jumps");
     assert_eq!(forward(&mut engine, "result1[1]"), "Brown");
     assert_eq!(forward(&mut engine, "result1[2]"), "Jumps");

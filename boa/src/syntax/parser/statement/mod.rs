@@ -36,7 +36,7 @@ use super::{
     expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
     TokenParser,
 };
-use crate::syntax::ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind};
+use crate::syntax::ast::{node, Keyword, Node, Punctuator, TokenKind};
 
 /// Statement parsing.
 ///
@@ -99,7 +99,9 @@ impl TokenParser for Statement {
                     .parse(cursor)
             }
             TokenKind::Keyword(Keyword::Var) => {
-                VariableStatement::new(self.allow_yield, self.allow_await).parse(cursor)
+                VariableStatement::new(self.allow_yield, self.allow_await)
+                    .parse(cursor)
+                    .map(Node::from)
             }
             TokenKind::Keyword(Keyword::While) => {
                 WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -112,12 +114,13 @@ impl TokenParser for Statement {
             TokenKind::Keyword(Keyword::For) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
+                    .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Return) => {
                 if self.allow_return.0 {
                     ReturnStatement::new(self.allow_yield, self.allow_await).parse(cursor)
                 } else {
-                    Err(ParseError::Unexpected(tok.clone(), Some("statement")))
+                    Err(ParseError::unexpected(tok.clone(), "statement"))
                 }
             }
             TokenKind::Keyword(Keyword::Break) => {
@@ -129,6 +132,7 @@ impl TokenParser for Statement {
             TokenKind::Keyword(Keyword::Try) => {
                 TryStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
+                    .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Throw) => {
                 ThrowStatement::new(self.allow_yield, self.allow_await).parse(cursor)
@@ -140,6 +144,7 @@ impl TokenParser for Statement {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 BlockStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
+                    .map(Node::from)
             }
             // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
             // TokenKind::Punctuator(Punctuator::Semicolon) => {
@@ -189,9 +194,9 @@ impl StatementList {
 }
 
 impl TokenParser for StatementList {
-    type Output = Vec<Node>;
+    type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Vec<Node>, ParseError> {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let mut items = Vec::new();
 
         loop {
@@ -200,7 +205,7 @@ impl TokenParser for StatementList {
                     if self.break_when_closingbrase {
                         break;
                     } else {
-                        return Err(ParseError::Unexpected(token.clone(), None));
+                        return Err(ParseError::unexpected(token.clone(), None));
                     }
                 }
                 None => {
@@ -222,7 +227,9 @@ impl TokenParser for StatementList {
             while cursor.next_if(Punctuator::Semicolon).is_some() {}
         }
 
-        Ok(items)
+        items.sort_by(Node::hoistable_order);
+
+        Ok(items.into())
     }
 }
 
@@ -314,5 +321,62 @@ impl TokenParser for ExpressionStatement {
         cursor.expect_semicolon(false, "expression statement")?;
 
         Ok(expr)
+    }
+}
+
+/// Label identifier parsing.
+///
+/// This seems to be the same as a `BindingIdentifier`.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
+type LabelIdentifier = BindingIdentifier;
+
+/// Binding identifier parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-BindingIdentifier
+#[derive(Debug, Clone, Copy)]
+pub(super) struct BindingIdentifier {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl BindingIdentifier {
+    /// Creates a new `BindingIdentifier` parser.
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl TokenParser for BindingIdentifier {
+    type Output = Box<str>;
+
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        // TODO: strict mode.
+
+        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+
+        match next_token.kind {
+            TokenKind::Identifier(ref s) => Ok(s.clone()),
+            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.as_str().into()),
+            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.as_str().into()),
+            _ => Err(ParseError::expected(
+                vec![TokenKind::identifier("identifier")],
+                next_token.clone(),
+                "binding identifier",
+            )),
+        }
     }
 }

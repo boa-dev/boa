@@ -15,16 +15,21 @@
 
 use crate::{
     builtins::{
-        function::NativeFunctionData,
+        function::Function,
         property::Property,
-        value::{from_value, same_value, to_value, ResultValue, Value, ValueData},
+        value::{same_value, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
-use gc::Gc;
-use gc_derive::{Finalize, Trace};
-use std::{borrow::Borrow, collections::HashMap, ops::Deref};
+use gc::{unsafe_empty_trace, Finalize, Trace};
+use rustc_hash::FxHashMap;
+use std::{
+    borrow::Borrow,
+    fmt::{self, Debug, Display, Error, Formatter},
+    ops::Deref,
+};
 
+use super::function::{make_builtin_fn, make_constructor_fn};
 pub use internal_methods_trait::ObjectInternalMethods;
 pub use internal_state::{InternalState, InternalStateCell};
 
@@ -38,18 +43,35 @@ pub static PROTOTYPE: &str = "prototype";
 pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 
 /// The internal representation of an JavaScript object.
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Trace, Finalize, Clone)]
 pub struct Object {
     /// The type of the object.
     pub kind: ObjectKind,
-    /// Intfiernal Slots
-    pub internal_slots: Box<HashMap<String, Value>>,
+    /// Internal Slots
+    pub internal_slots: FxHashMap<String, Value>,
     /// Properties
-    pub properties: Box<HashMap<String, Property>>,
+    pub properties: FxHashMap<String, Property>,
     /// Symbol Properties
-    pub sym_properties: Box<HashMap<i32, Property>>,
+    pub sym_properties: FxHashMap<i32, Property>,
     /// Some rust object that stores internal state
-    pub state: Option<Box<InternalStateCell>>,
+    pub state: Option<InternalStateCell>,
+    /// Function
+    pub func: Option<Function>,
+}
+
+impl Debug for Object {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{{")?;
+        writeln!(f, "\tkind: {}", self.kind)?;
+        writeln!(f, "\tstate: {:?}", self.state)?;
+        writeln!(f, "\tfunc: {:?}", self.func)?;
+        writeln!(f, "\tproperties: {{")?;
+        for (key, _) in self.properties.iter() {
+            writeln!(f, "\t\t{}", key)?;
+        }
+        writeln!(f, "\t }}")?;
+        write!(f, "}}")
+    }
 }
 
 impl ObjectInternalMethods for Object {
@@ -67,7 +89,7 @@ impl ObjectInternalMethods for Object {
     fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.get_internal_slot(PROTOTYPE);
-        if current == val {
+        if same_value(&current, &val, false) {
             return true;
         }
         let extensible = self.get_internal_slot("extensible");
@@ -79,7 +101,7 @@ impl ObjectInternalMethods for Object {
         while !done {
             if p.is_null() {
                 done = true
-            } else if same_value(&to_value(self.clone()), &p, false) {
+            } else if same_value(&Value::from(self.clone()), &p, false) {
                 return false;
             } else {
                 p = p.get_internal_slot(PROTOTYPE);
@@ -108,7 +130,7 @@ impl ObjectInternalMethods for Object {
     fn get_internal_slot(&self, name: &str) -> Value {
         match self.internal_slots.get(name) {
             Some(v) => v.clone(),
-            None => Gc::new(ValueData::Null),
+            None => Value::null(),
         }
     }
 
@@ -146,7 +168,7 @@ impl ObjectInternalMethods for Object {
                 }
             }
             ValueData::Symbol(ref sym) => {
-                let sym_id = sym
+                let sym_id = (**sym)
                     .borrow()
                     .get_internal_slot("SymbolData")
                     .to_string()
@@ -184,7 +206,7 @@ impl ObjectInternalMethods for Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
     #[allow(clippy::option_unwrap_used)]
     fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
-        let mut current = self.get_own_property(&to_value(property_key.to_string()));
+        let mut current = self.get_own_property(&Value::from(property_key.to_string()));
         let extensible = self.is_extensible();
 
         // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
@@ -314,13 +336,29 @@ impl Object {
     pub fn default() -> Self {
         let mut object = Self {
             kind: ObjectKind::Ordinary,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
+            func: None,
         };
 
-        object.set_internal_slot("extensible", to_value(true));
+        object.set_internal_slot("extensible", Value::from(true));
+        object
+    }
+
+    /// Return a new ObjectData struct, with `kind` set to Ordinary
+    pub fn function() -> Self {
+        let mut object = Self {
+            kind: ObjectKind::Function,
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
+            state: None,
+            func: None,
+        };
+
+        object.set_internal_slot("extensible", Value::from(true));
         object
     }
 
@@ -336,31 +374,24 @@ impl Object {
         obj.internal_slots
             .insert(INSTANCE_PROTOTYPE.to_string(), proto);
         obj.internal_slots
-            .insert("extensible".to_string(), to_value(true));
+            .insert("extensible".to_string(), Value::from(true));
         obj
     }
 
-    /// Utility function to set an internal slot which is a function.
-    pub fn set_internal_method(&mut self, name: &str, val: NativeFunctionData) {
-        self.internal_slots.insert(name.to_string(), to_value(val));
-    }
-
-    /// Utility function to set a method on this object.
-    ///
-    /// The native function will live in the `properties` field of the Object.
-    pub fn set_method(&mut self, name: &str, val: NativeFunctionData) {
-        self.properties
-            .insert(name.to_string(), Property::default().value(to_value(val)));
+    /// Set the function this object wraps
+    pub fn set_func(&mut self, val: Function) {
+        self.func = Some(val);
     }
 
     /// Return a new Boolean object whose `[[BooleanData]]` internal slot is set to argument.
     fn from_boolean(argument: &Value) -> Self {
         let mut obj = Self {
             kind: ObjectKind::Boolean,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
+            func: None,
         };
 
         obj.internal_slots
@@ -372,10 +403,11 @@ impl Object {
     fn from_number(argument: &Value) -> Self {
         let mut obj = Self {
             kind: ObjectKind::Number,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
+            func: None,
         };
 
         obj.internal_slots
@@ -387,14 +419,31 @@ impl Object {
     fn from_string(argument: &Value) -> Self {
         let mut obj = Self {
             kind: ObjectKind::String,
-            internal_slots: Box::new(HashMap::new()),
-            properties: Box::new(HashMap::new()),
-            sym_properties: Box::new(HashMap::new()),
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
             state: None,
+            func: None,
         };
 
         obj.internal_slots
             .insert("StringData".to_string(), argument.clone());
+        obj
+    }
+
+    /// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set to argument.
+    fn from_bigint(argument: &Value) -> Self {
+        let mut obj = Self {
+            kind: ObjectKind::BigInt,
+            internal_slots: FxHashMap::default(),
+            properties: FxHashMap::default(),
+            sym_properties: FxHashMap::default(),
+            state: None,
+            func: None,
+        };
+
+        obj.internal_slots
+            .insert("BigIntData".to_string(), argument.clone());
         obj
     }
 
@@ -409,14 +458,41 @@ impl Object {
             ValueData::Boolean(_) => Ok(Self::from_boolean(value)),
             ValueData::Rational(_) => Ok(Self::from_number(value)),
             ValueData::String(_) => Ok(Self::from_string(value)),
-            ValueData::Object(ref obj) => Ok(obj.borrow().clone()),
+            ValueData::BigInt(_) => Ok(Self::from_bigint(value)),
+            ValueData::Object(ref obj) => Ok((*obj).deref().borrow().clone()),
             _ => Err(()),
+        }
+    }
+
+    /// It determines if Object is a callable function with a [[Call]] internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    pub fn is_callable(&self) -> bool {
+        match self.func {
+            Some(ref function) => function.is_callable(),
+            None => false,
+        }
+    }
+
+    /// It determines if Object is a function object with a [[Construct]] internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
+    pub fn is_constructable(&self) -> bool {
+        match self.func {
+            Some(ref function) => function.is_constructable(),
+            None => false,
         }
     }
 }
 
 /// Defines the different types of objects.
-#[derive(Trace, Finalize, Clone, Debug, Eq, PartialEq)]
+#[derive(Finalize, Debug, Copy, Clone, Eq, PartialEq)]
 pub enum ObjectKind {
     Function,
     Array,
@@ -426,21 +502,63 @@ pub enum ObjectKind {
     Ordinary,
     Boolean,
     Number,
+    BigInt,
+}
+
+impl Display for ObjectKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Function => "Function",
+                Self::Array => "Array",
+                Self::String => "String",
+                Self::Symbol => "Symbol",
+                Self::Error => "Error",
+                Self::Ordinary => "Ordinary",
+                Self::Boolean => "Boolean",
+                Self::Number => "Number",
+                Self::BigInt => "BigInt",
+            }
+        )
+    }
+}
+
+/// `Trace` implementation for `ObjectKind`.
+///
+/// This is indeed safe, but we need to mark this as an empty trace because neither
+// `NativeFunctionData` nor Node hold any GC'd objects, but Gc doesn't know that. So we need to
+/// signal it manually. `rust-gc` does not have a `Trace` implementation for `fn(_, _, _)`.
+///
+/// <https://github.com/Manishearth/rust-gc/blob/master/gc/src/trace.rs>
+/// Waiting on <https://github.com/Manishearth/rust-gc/issues/87> until we can derive Copy
+unsafe impl Trace for ObjectKind {
+    unsafe_empty_trace!();
 }
 
 /// Create a new object.
-pub fn make_object(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Gc::new(ValueData::Undefined))
+pub fn make_object(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    if let Some(arg) = args.get(0) {
+        if !arg.is_null_or_undefined() {
+            return Ok(Value::object(Object::from(arg).unwrap()));
+        }
+    }
+    let global = &ctx.realm.global_obj;
+
+    let object = Value::new_object(Some(global));
+
+    Ok(object)
 }
 
 /// Get the `prototype` of an object.
-pub fn get_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn get_prototype_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    Ok(obj.get_field_slice(INSTANCE_PROTOTYPE))
+    Ok(obj.get_field(INSTANCE_PROTOTYPE))
 }
 
 /// Set the `prototype` of an object.
-pub fn set_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn set_prototype_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
     obj.set_internal_slot(INSTANCE_PROTOTYPE, proto);
@@ -448,14 +566,12 @@ pub fn set_proto_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultVal
 }
 
 /// Define a property in an object
-pub fn define_prop(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn define_property(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    let prop = from_value::<String>(args.get(1).expect("Cannot get object").clone())
-        .expect("Cannot get object");
-    let desc = from_value::<Property>(args.get(2).expect("Cannot get object").clone())
-        .expect("Cannot get object");
-    obj.set_prop(prop, desc);
-    Ok(Gc::new(ValueData::Undefined))
+    let prop = ctx.to_string(args.get(1).expect("Cannot get object"))?;
+    let desc = Property::from(args.get(2).expect("Cannot get object"));
+    obj.set_property(prop, desc);
+    Ok(Value::undefined())
 }
 
 /// `Object.prototype.toString()`
@@ -468,8 +584,8 @@ pub fn define_prop(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
-pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(to_value(this.to_string()))
+pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    Ok(Value::from(this.to_string()))
 }
 
 /// `Object.prototype.hasOwnPrototype( property )`
@@ -483,29 +599,39 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
-pub fn has_own_prop(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn has_own_property(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let prop = if args.is_empty() {
         None
     } else {
-        from_value::<String>(args.get(0).expect("Cannot get object").clone()).ok()
+        Some(ctx.to_string(args.get(0).expect("Cannot get object"))?)
     };
-    Ok(to_value(
-        prop.is_some() && this.get_prop(&prop.expect("Cannot get object")).is_some(),
+    Ok(Value::from(
+        prop.is_some()
+            && this
+                .get_property(&prop.expect("Cannot get object"))
+                .is_some(),
     ))
 }
 
 /// Create a new `Object` object.
-pub fn create_constructor(_: &Value) -> Value {
-    let object = to_value(make_object as NativeFunctionData);
-    // Prototype chain ends here VV
-    let mut prototype = Object::default();
-    prototype.set_method("hasOwnProperty", has_own_prop);
-    prototype.set_method("toString", to_string);
+pub fn create(global: &Value) -> Value {
+    let prototype = Value::new_object(None);
 
-    object.set_field_slice("length", to_value(1_i32));
-    object.set_field_slice(PROTOTYPE, to_value(prototype));
-    make_builtin_fn!(set_proto_of, named "setPrototypeOf", with length 2, of object);
-    make_builtin_fn!(get_proto_of, named "getPrototypeOf", with length 1, of object);
-    make_builtin_fn!(define_prop, named "defineProperty", with length 3, of object);
+    make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
+    make_builtin_fn(to_string, "toString", &prototype, 0);
+
+    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
+
+    object.set_field("length", Value::from(1));
+    make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
+    make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
+    make_builtin_fn(define_property, "defineProperty", &object, 3);
+
     object
+}
+
+/// Initialise the `Object` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field("Object", create(global));
 }

@@ -18,13 +18,14 @@
 #[cfg(test)]
 mod tests;
 
+use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{
             internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
             PROTOTYPE,
         },
-        value::{to_value, ResultValue, Value, ValueData},
+        value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
 };
@@ -41,7 +42,7 @@ use rand::random;
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
-pub fn call_symbol(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn call_symbol(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     // From an implementation and specificaition perspective Symbols are similar to Objects.
     // They have internal slots to hold the SymbolData and Description, they also have methods and a prototype.
     // So we start by creating an Object
@@ -51,22 +52,24 @@ pub fn call_symbol(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 
     // Set description which should either be undefined or a string
     let desc_string = match args.get(0) {
-        Some(value) => to_value(value.to_string()),
-        None => Gc::new(ValueData::Undefined),
+        Some(value) => Value::from(value.to_string()),
+        None => Value::undefined(),
     };
 
     sym_instance.set_internal_slot("Description", desc_string);
-    sym_instance.set_internal_slot("SymbolData", to_value(random::<i32>()));
+    sym_instance.set_internal_slot("SymbolData", Value::from(random::<i32>()));
 
     // Set __proto__ internal slot
     let proto = ctx
         .realm
         .global_obj
-        .get_field_slice("Symbol")
-        .get_field_slice(PROTOTYPE);
+        .get_field("Symbol")
+        .get_field(PROTOTYPE);
     sym_instance.set_internal_slot(INSTANCE_PROTOTYPE, proto);
 
-    Ok(Gc::new(ValueData::Symbol(GcCell::new(sym_instance))))
+    Ok(Value(Gc::new(ValueData::Symbol(Box::new(GcCell::new(
+        sym_instance,
+    ))))))
 }
 
 /// `Symbol.prototype.toString()`
@@ -79,41 +82,23 @@ pub fn call_symbol(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
-pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     let s: Value = this.get_internal_slot("Description");
     let full_string = format!(r#"Symbol({})"#, s.to_string());
-    Ok(to_value(full_string))
+    Ok(Value::from(full_string))
 }
 
-/// The `Symbol()` constructor returns a value of type **symbol**.
-///
-/// It is incomplete as a constructor because it does not support the syntax "`new Symbol()`".
-///
-/// More information:
-/// - [MDN documentation][mdn]
-/// - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-symbol-constructor
-/// [mdn]:
-pub fn create_constructor(global: &Value) -> Value {
-    // Create Symbol constructor (or function in Symbol's case)
-    let mut symbol_constructor = Object::default();
-    symbol_constructor.set_internal_method("call", call_symbol);
+/// Create a new `Symbol` object.
+pub fn create(global: &Value) -> Value {
+    // Create prototype object
+    let prototype = Value::new_object(Some(global));
 
-    // Create prototype
-    let mut symbol_prototype = Object::default();
+    make_builtin_fn(to_string, "toString", &prototype, 0);
+    make_constructor_fn("Symbol", 1, call_symbol, global, prototype, false)
+}
 
-    // Symbol.prototype[[Prototype]] points to Object.prototype
-    // Symbol Constructor -> Symbol Prototype -> Object Prototype
-    let object_prototype = global.get_field_slice("Object").get_field_slice(PROTOTYPE);
-    symbol_prototype.set_internal_slot(INSTANCE_PROTOTYPE, object_prototype);
-    symbol_prototype.set_method("toString", to_string);
-
-    let symbol_prototype_val = to_value(symbol_prototype);
-
-    let symbol_constructor_value = to_value(symbol_constructor);
-    symbol_prototype_val.set_field_slice("construcotor", symbol_constructor_value.clone());
-    symbol_constructor_value.set_field_slice(PROTOTYPE, symbol_prototype_val);
-
-    symbol_constructor_value
+/// Initialise the `Symbol` object on the global object.
+#[inline]
+pub fn init(global: &Value) {
+    global.set_field("Symbol", create(global));
 }

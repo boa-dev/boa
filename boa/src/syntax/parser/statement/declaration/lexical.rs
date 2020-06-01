@@ -8,10 +8,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::syntax::{
-    ast::{keyword::Keyword, node::Node, punc::Punctuator, token::TokenKind},
+    ast::{
+        node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
+        Keyword, Punctuator, TokenKind,
+    },
     parser::{
-        expression::Initializer, AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
+        expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
+        Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 
@@ -69,7 +72,10 @@ impl TokenParser for LexicalDeclaration {
 /// It will return an error if a `const` declaration is being parsed and there is no
 /// initializer.
 ///
-/// More information: <https://tc39.es/ecma262/#prod-BindingList>.
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-BindingList
 #[derive(Debug, Clone, Copy)]
 struct BindingList {
     allow_in: AllowIn,
@@ -105,44 +111,22 @@ impl TokenParser for BindingList {
         let mut const_decls = Vec::new();
 
         loop {
-            let token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-            let name = if let TokenKind::Identifier(ref name) = token.kind {
-                name.clone()
-            } else {
-                return Err(ParseError::Expected(
-                    vec![TokenKind::identifier("identifier")],
-                    token.clone(),
-                    if self.is_const {
-                        "const declaration"
-                    } else {
-                        "let declaration"
-                    },
-                ));
-            };
+            let (ident, init) =
+                LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
+                    .parse(cursor)?;
 
-            match cursor.peek(0) {
-                Some(token) if token.kind == TokenKind::Punctuator(Punctuator::Assign) => {
-                    let init = Some(
-                        Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor)?,
-                    );
-                    if self.is_const {
-                        const_decls.push((name, init.unwrap()));
-                    } else {
-                        let_decls.push((name, init));
-                    };
+            if self.is_const {
+                if let Some(init) = init {
+                    const_decls.push(ConstDecl::new(ident, init));
+                } else {
+                    return Err(ParseError::expected(
+                        vec![TokenKind::Punctuator(Punctuator::Assign)],
+                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        "const declaration",
+                    ));
                 }
-                _ => {
-                    if self.is_const {
-                        return Err(ParseError::Expected(
-                            vec![TokenKind::Punctuator(Punctuator::Assign)],
-                            cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
-                            "const declaration",
-                        ));
-                    } else {
-                        let_decls.push((name, None));
-                    }
-                }
+            } else {
+                let_decls.push(LetDecl::new(ident, init));
             }
 
             match cursor.peek_semicolon(false) {
@@ -151,7 +135,7 @@ impl TokenParser for BindingList {
                     let _ = cursor.next();
                 }
                 _ => {
-                    return Err(ParseError::Expected(
+                    return Err(ParseError::expected(
                         vec![
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
@@ -164,9 +148,49 @@ impl TokenParser for BindingList {
         }
 
         if self.is_const {
-            Ok(Node::ConstDecl(const_decls))
+            Ok(ConstDeclList::from(const_decls).into())
         } else {
-            Ok(Node::LetDecl(let_decls))
+            Ok(LetDeclList::from(let_decls).into())
         }
+    }
+}
+
+/// Lexical binding parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-LexicalBinding
+struct LexicalBinding {
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl LexicalBinding {
+    /// Creates a new `BindingList` parser.
+    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    where
+        I: Into<AllowIn>,
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl TokenParser for LexicalBinding {
+    type Output = (Box<str>, Option<Node>);
+
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let initializer =
+            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
+
+        Ok((ident, initializer))
     }
 }

@@ -1,670 +1,176 @@
 //! Execution of the AST, this is where the interpreter actually runs
 
+mod array;
+mod block;
+mod declaration;
+mod expression;
+mod iteration;
+mod operator;
+mod statement_list;
 #[cfg(test)]
 mod tests;
+mod try_node;
 
 use crate::{
     builtins::{
-        array,
-        function::{create_unmapped_arguments_object, Function, RegularFunction},
+        function::{Function as FunctionObject, FunctionBody, ThisMode},
         object::{
-            internal_methods_trait::ObjectInternalMethods, ObjectKind, INSTANCE_PROTOTYPE,
+            internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
             PROTOTYPE,
         },
-        value::{from_value, to_value, ResultValue, Value, ValueData},
-    },
-    environment::lexical_environment::{
-        new_declarative_environment, new_function_environment, VariableScope,
+        property::Property,
+        value::{ResultValue, Value, ValueData},
+        BigInt, Number,
     },
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::{MethodDefinitionKind, Node, PropertyDefinition},
-        op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
+        node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition, StatementList},
     },
 };
-use gc::{Gc, GcCell};
-use std::{
-    borrow::Borrow,
-    ops::{Deref, DerefMut},
-};
+use std::{borrow::Borrow, ops::Deref};
 
-/// An execution engine
-pub trait Executor {
-    /// Make a new execution engine
-    fn new(realm: Realm) -> Self;
-    /// Run an expression
-    fn run(&mut self, expr: &Node) -> ResultValue;
+pub trait Executable {
+    /// Runs this executable in the given executor.
+    fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
 }
 
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
+    /// Wether it's running a return statement.
     is_return: bool,
     /// realm holds both the global object and the environment
     pub realm: Realm,
 }
 
-fn exec_assign_op(op: &AssignOp, v_a: ValueData, v_b: ValueData) -> Value {
-    Gc::new(match *op {
-        AssignOp::Add => v_a + v_b,
-        AssignOp::Sub => v_a - v_b,
-        AssignOp::Mul => v_a * v_b,
-        AssignOp::Exp => v_a.as_num_to_power(v_b),
-        AssignOp::Div => v_a / v_b,
-        AssignOp::Mod => v_a % v_b,
-        AssignOp::And => v_a & v_b,
-        AssignOp::Or => v_a | v_b,
-        AssignOp::Xor => v_a ^ v_b,
-        AssignOp::Shl => v_a << v_b,
-        AssignOp::Shr => v_a << v_b,
-    })
-}
-
-impl Executor for Interpreter {
-    fn new(realm: Realm) -> Self {
+impl Interpreter {
+    /// Creates a new interpreter.
+    pub fn new(realm: Realm) -> Self {
         Self {
             realm,
             is_return: false,
         }
     }
 
-    #[allow(clippy::match_same_arms)]
-    fn run(&mut self, node: &Node) -> ResultValue {
-        match *node {
-            Node::Const(Const::Null) => Ok(to_value(None::<()>)),
-            Node::Const(Const::Undefined) => Ok(Gc::new(ValueData::Undefined)),
-            Node::Const(Const::Num(num)) => Ok(to_value(num)),
-            Node::Const(Const::Int(num)) => Ok(to_value(num)),
-            // we can't move String from Const into value, because const is a garbage collected value
-            // Which means Drop() get's called on Const, but str will be gone at that point.
-            // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            Node::Const(Const::String(ref str)) => Ok(to_value(str.to_owned())),
-            Node::Const(Const::Bool(val)) => Ok(to_value(val)),
-            Node::Block(ref es) => {
-                {
-                    let env = &mut self.realm.environment;
-                    env.push(new_declarative_environment(Some(
-                        env.get_current_environment_ref().clone(),
-                    )));
-                }
-
-                let mut obj = to_value(None::<()>);
-                for e in es.iter() {
-                    let val = self.run(e)?;
-                    // early return
-                    if self.is_return {
-                        obj = val;
-                        break;
-                    }
-                    if e == es.last().expect("unable to get last value") {
-                        obj = val;
-                    }
-                }
-
-                // pop the block env
-                let _ = self.realm.environment.pop();
-
-                Ok(obj)
-            }
-            Node::Local(ref name) => {
-                let val = self.realm.environment.get_binding_value(name);
-                Ok(val)
-            }
-            Node::GetConstField(ref obj, ref field) => {
-                let val_obj = self.run(obj)?;
-                Ok(val_obj.borrow().get_field_slice(field))
-            }
-            Node::GetField(ref obj, ref field) => {
-                let val_obj = self.run(obj)?;
-                let val_field = self.run(field)?;
-                Ok(val_obj
-                    .borrow()
-                    .get_field_slice(&val_field.borrow().to_string()))
-            }
-            Node::Call(ref callee, ref args) => {
-                let (this, func) = match callee.deref() {
-                    Node::GetConstField(ref obj, ref field) => {
-                        let mut obj = self.run(obj)?;
-                        if obj.get_type() != "object" || obj.get_type() != "symbol" {
-                            obj = self.to_object(&obj).expect("failed to convert to object");
-                        }
-                        (obj.clone(), obj.borrow().get_field_slice(field))
-                    }
-                    Node::GetField(ref obj, ref field) => {
-                        let obj = self.run(obj)?;
-                        let field = self.run(field)?;
-                        (
-                            obj.clone(),
-                            obj.borrow().get_field_slice(&field.borrow().to_string()),
-                        )
-                    }
-                    _ => (self.realm.global_obj.clone(), self.run(&callee.clone())?), // 'this' binding should come from the function's self-contained environment
-                };
-                let mut v_args = Vec::with_capacity(args.len());
-                for arg in args.iter() {
-                    if let Node::Spread(ref x) = arg.deref() {
-                        let val = self.run(x)?;
-                        let mut vals = self.extract_array_properties(&val).unwrap();
-                        v_args.append(&mut vals);
-                        break; // after spread we don't accept any new arguments
-                    }
-                    v_args.push(self.run(arg)?);
-                }
-
-                // execute the function call itself
-                let fnct_result = self.call(&func, &this, v_args);
-
-                // unset the early return flag
-                self.is_return = false;
-
-                fnct_result
-            }
-            Node::WhileLoop(ref cond, ref expr) => {
-                let mut result = Gc::new(ValueData::Undefined);
-                while self.run(cond)?.borrow().is_true() {
-                    result = self.run(expr)?;
-                }
-                Ok(result)
-            }
-            Node::DoWhileLoop(ref body, ref cond) => {
-                let mut result = self.run(body)?;
-                while self.run(cond)?.borrow().is_true() {
-                    result = self.run(body)?;
-                }
-                Ok(result)
-            }
-            Node::If(ref cond, ref expr, None) => Ok(if self.run(cond)?.borrow().is_true() {
-                self.run(expr)?
-            } else {
-                Gc::new(ValueData::Undefined)
-            }),
-            Node::If(ref cond, ref expr, Some(ref else_e)) => {
-                Ok(if self.run(cond)?.borrow().is_true() {
-                    self.run(expr)?
-                } else {
-                    self.run(else_e)?
-                })
-            }
-            Node::Switch(ref val_e, ref vals, ref default) => {
-                let val = self.run(val_e)?;
-                let mut result = Gc::new(ValueData::Null);
-                let mut matched = false;
-                for tup in vals.iter() {
-                    let tup: &(Node, Vec<Node>) = tup;
-                    let cond = &tup.0;
-                    let block = &tup.1;
-                    if val == self.run(cond)? {
-                        matched = true;
-                        let last_expr = block.last().expect("Block has no expressions");
-                        for expr in block.iter() {
-                            let e_result = self.run(expr)?;
-                            if expr == last_expr {
-                                result = e_result;
-                            }
-                        }
-                    }
-                }
-                if !matched && default.is_some() {
-                    result = self.run(
-                        default
-                            .as_ref()
-                            .expect("Could not get default as reference"),
-                    )?;
-                }
-                Ok(result)
-            }
-            Node::Object(ref properties) => {
-                let global_val = &self
-                    .realm
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let obj = ValueData::new_obj(Some(global_val));
-
-                // TODO: Implement the rest of the property types.
-                for property in properties {
-                    match property {
-                        PropertyDefinition::Property(key, value) => {
-                            obj.borrow().set_field_slice(&key.clone(), self.run(value)?);
-                        }
-                        PropertyDefinition::MethodDefinition(kind, name, func) => {
-                            if let MethodDefinitionKind::Ordinary = kind {
-                                obj.borrow().set_field_slice(&name.clone(), self.run(func)?);
-                            } else {
-                                // TODO: Implement other types of MethodDefinitionKinds.
-                                unimplemented!("other types of property method definitions.");
-                            }
-                        }
-                        i => unimplemented!("{:?} type of property", i),
-                    }
-                }
-
-                Ok(obj)
-            }
-            Node::ArrayDecl(ref arr) => {
-                let array = array::new_array(self)?;
-                let mut elements: Vec<Value> = vec![];
-                for elem in arr.iter() {
-                    if let Node::Spread(ref x) = elem.deref() {
-                        let val = self.run(x)?;
-                        let mut vals = self.extract_array_properties(&val).unwrap();
-                        elements.append(&mut vals);
-                        continue; // Don't push array after spread
-                    }
-                    elements.push(self.run(elem)?);
-                }
-                array::add_to_array_object(&array, &elements)?;
-                Ok(array)
-            }
-            Node::FunctionDecl(ref name, ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.to_vec()));
-                let val = Gc::new(ValueData::Function(Box::new(GcCell::new(function))));
-                if name.is_some() {
-                    self.realm.environment.create_mutable_binding(
-                        name.clone().expect("No name was supplied"),
-                        false,
-                        VariableScope::Function,
-                    );
-                    self.realm.environment.initialize_binding(
-                        name.as_ref().expect("Could not get name as reference"),
-                        val.clone(),
-                    )
-                }
-                Ok(val)
-            }
-            Node::ArrowFunctionDecl(ref args, ref expr) => {
-                let function =
-                    Function::RegularFunc(RegularFunction::new(*expr.clone(), args.to_vec()));
-                Ok(Gc::new(ValueData::Function(Box::new(GcCell::new(
-                    function,
-                )))))
-            }
-            Node::BinOp(BinOp::Num(ref op), ref a, ref b) => {
-                let v_r_a = self.run(a)?;
-                let v_r_b = self.run(b)?;
-                let v_a = (*v_r_a).clone();
-                let v_b = (*v_r_b).clone();
-                Ok(Gc::new(match *op {
-                    NumOp::Add => v_a + v_b,
-                    NumOp::Sub => v_a - v_b,
-                    NumOp::Mul => v_a * v_b,
-                    NumOp::Exp => v_a.as_num_to_power(v_b),
-                    NumOp::Div => v_a / v_b,
-                    NumOp::Mod => v_a % v_b,
-                }))
-            }
-            Node::UnaryOp(ref op, ref a) => {
-                let v_r_a = self.run(a)?;
-                let v_a = (*v_r_a).clone();
-                Ok(match *op {
-                    UnaryOp::Minus => to_value(-v_a.to_num()),
-                    UnaryOp::Plus => to_value(v_a.to_num()),
-                    UnaryOp::Not => Gc::new(!v_a),
-                    UnaryOp::Tilde => {
-                        let num_v_a = v_a.to_num();
-                        // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
-                        to_value(if num_v_a.is_nan() {
-                            -1
-                        } else {
-                            !(num_v_a as i32)
-                        })
-                    }
-                    _ => unimplemented!(),
-                })
-            }
-            Node::BinOp(BinOp::Bit(ref op), ref a, ref b) => {
-                let v_r_a = self.run(a)?;
-                let v_r_b = self.run(b)?;
-                let v_a = (*v_r_a).clone();
-                let v_b = (*v_r_b).clone();
-                Ok(Gc::new(match *op {
-                    BitOp::And => v_a & v_b,
-                    BitOp::Or => v_a | v_b,
-                    BitOp::Xor => v_a ^ v_b,
-                    BitOp::Shl => v_a << v_b,
-                    BitOp::Shr => v_a >> v_b,
-                    // TODO Fix
-                    BitOp::UShr => v_a >> v_b,
-                }))
-            }
-            Node::BinOp(BinOp::Comp(ref op), ref a, ref b) => {
-                let v_r_a = self.run(a)?;
-                let v_r_b = self.run(b)?;
-                let v_a = v_r_a.borrow();
-                let v_b = v_r_b.borrow();
-                Ok(to_value(match *op {
-                    CompOp::Equal if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::Equal => v_a == v_b,
-                    CompOp::NotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::NotEqual => v_a != v_b,
-                    CompOp::StrictEqual if v_a.is_object() => v_r_a == v_r_b,
-                    CompOp::StrictEqual => v_a == v_b,
-                    CompOp::StrictNotEqual if v_a.is_object() => v_r_a != v_r_b,
-                    CompOp::StrictNotEqual => v_a != v_b,
-                    CompOp::GreaterThan => v_a.to_num() > v_b.to_num(),
-                    CompOp::GreaterThanOrEqual => v_a.to_num() >= v_b.to_num(),
-                    CompOp::LessThan => v_a.to_num() < v_b.to_num(),
-                    CompOp::LessThanOrEqual => v_a.to_num() <= v_b.to_num(),
-                }))
-            }
-            Node::BinOp(BinOp::Log(ref op), ref a, ref b) => {
-                // turn a `Value` into a `bool`
-                let to_bool =
-                    |val| from_value::<bool>(val).expect("Could not convert JS value to bool");
-                Ok(match *op {
-                    LogOp::And => to_value(to_bool(self.run(a)?) && to_bool(self.run(b)?)),
-                    LogOp::Or => to_value(to_bool(self.run(a)?) || to_bool(self.run(b)?)),
-                })
-            }
-            Node::BinOp(BinOp::Assign(ref op), ref a, ref b) => match a.deref() {
-                Node::Local(ref name) => {
-                    let v_a = (*self.realm.environment.get_binding_value(&name)).clone();
-                    let v_b = (*self.run(b)?).clone();
-                    let value = exec_assign_op(op, v_a, v_b);
-                    self.realm
-                        .environment
-                        .set_mutable_binding(&name, value.clone(), true);
-                    Ok(value)
-                }
-                Node::GetConstField(ref obj, ref field) => {
-                    let v_r_a = self.run(obj)?;
-                    let v_a = (*v_r_a.borrow().get_field_slice(field)).clone();
-                    let v_b = (*self.run(b)?).clone();
-                    let value = exec_assign_op(op, v_a, v_b);
-                    v_r_a
-                        .borrow()
-                        .set_field_slice(&field.clone(), value.clone());
-                    Ok(value)
-                }
-                _ => Ok(Gc::new(ValueData::Undefined)),
-            },
-            Node::New(ref call) => {
-                let (callee, args) = match call.as_ref() {
-                    Node::Call(callee, args) => (callee, args),
-                    _ => unreachable!("Node::New(ref call): 'call' must only be Node::Call type."),
-                };
-
-                let func_object = self.run(callee)?;
-                let mut v_args = Vec::with_capacity(args.len());
-                for arg in args.iter() {
-                    v_args.push(self.run(arg)?);
-                }
-                let this = ValueData::new_obj(None);
-                // Create a blank object, then set its __proto__ property to the [Constructor].prototype
-                this.borrow().set_internal_slot(
-                    INSTANCE_PROTOTYPE,
-                    func_object.borrow().get_field_slice(PROTOTYPE),
-                );
-
-                let construct = func_object.get_internal_slot("construct");
-
-                match *construct {
-                    ValueData::Function(ref inner_func) => match inner_func.clone().into_inner() {
-                        Function::NativeFunc(ref ntv) => {
-                            let func = ntv.data;
-                            match func(&this, &v_args, self) {
-                                Ok(_) => Ok(this),
-                                Err(ref v) => Err(v.clone()),
-                            }
-                        }
-                        Function::RegularFunc(ref data) => {
-                            // Create new scope
-                            let env = &mut self.realm.environment;
-                            env.push(new_function_environment(
-                                construct.clone(),
-                                this,
-                                Some(env.get_current_environment_ref().clone()),
-                            ));
-
-                            for i in 0..data.args.len() {
-                                let arg_expr =
-                                    data.args.get(i).expect("Could not get data argument");
-                                let name = match arg_expr.deref() {
-                                    Node::Local(ref n) => Some(n),
-                                    _ => None,
-                                }
-                                .expect("Could not get argument");
-                                let expr = v_args.get(i).expect("Could not get argument");
-                                env.create_mutable_binding(
-                                    name.clone(),
-                                    false,
-                                    VariableScope::Function,
-                                );
-                                env.initialize_binding(name, expr.to_owned());
-                            }
-                            let result = self.run(&data.node);
-                            self.realm.environment.pop();
-                            result
-                        }
-                    },
-                    _ => Ok(Gc::new(ValueData::Undefined)),
-                }
-            }
-            Node::Return(ref ret) => {
-                let result = match *ret {
-                    Some(ref v) => self.run(v),
-                    None => Ok(Gc::new(ValueData::Undefined)),
-                };
-                // Set flag for return
-                self.is_return = true;
-                result
-            }
-            Node::Throw(ref ex) => Err(self.run(ex)?),
-            Node::Assign(ref ref_e, ref val_e) => {
-                let val = self.run(val_e)?;
-                match ref_e.deref() {
-                    Node::Local(ref name) => {
-                        if self.realm.environment.has_binding(name) {
-                            // Binding already exists
-                            self.realm
-                                .environment
-                                .set_mutable_binding(&name, val.clone(), true);
-                        } else {
-                            self.realm.environment.create_mutable_binding(
-                                name.clone(),
-                                true,
-                                VariableScope::Function,
-                            );
-                            self.realm.environment.initialize_binding(name, val.clone());
-                        }
-                    }
-                    Node::GetConstField(ref obj, ref field) => {
-                        let val_obj = self.run(obj)?;
-                        val_obj
-                            .borrow()
-                            .set_field_slice(&field.clone(), val.clone());
-                    }
-                    Node::GetField(ref obj, ref field) => {
-                        let val_obj = self.run(obj)?;
-                        let val_field = self.run(field)?;
-                        val_obj.borrow().set_field(val_field, val.clone());
-                    }
-                    _ => (),
-                }
-                Ok(val)
-            }
-            Node::VarDecl(ref vars) => {
-                for var in vars.iter() {
-                    let (name, value) = var.clone();
-                    let val = match value {
-                        Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Undefined),
-                    };
-                    self.realm.environment.create_mutable_binding(
-                        name.clone(),
-                        false,
-                        VariableScope::Function,
-                    );
-                    self.realm.environment.initialize_binding(&name, val);
-                }
-                Ok(Gc::new(ValueData::Undefined))
-            }
-            Node::LetDecl(ref vars) => {
-                for var in vars.iter() {
-                    let (name, value) = var.clone();
-                    let val = match value {
-                        Some(v) => self.run(&v)?,
-                        None => Gc::new(ValueData::Undefined),
-                    };
-                    self.realm.environment.create_mutable_binding(
-                        name.clone(),
-                        false,
-                        VariableScope::Block,
-                    );
-                    self.realm.environment.initialize_binding(&name, val);
-                }
-                Ok(Gc::new(ValueData::Undefined))
-            }
-            Node::ConstDecl(ref vars) => {
-                for (name, value) in vars.iter() {
-                    self.realm.environment.create_immutable_binding(
-                        name.clone(),
-                        false,
-                        VariableScope::Block,
-                    );
-                    let val = self.run(&value)?;
-                    self.realm.environment.initialize_binding(&name, val);
-                }
-                Ok(Gc::new(ValueData::Undefined))
-            }
-            Node::TypeOf(ref val_e) => {
-                let val = self.run(val_e)?;
-                Ok(to_value(match *val {
-                    ValueData::Undefined => "undefined",
-                    ValueData::Symbol(_) => "symbol",
-                    ValueData::Null | ValueData::Object(_) => "object",
-                    ValueData::Boolean(_) => "boolean",
-                    ValueData::Rational(_) | ValueData::Integer(_) => "number",
-                    ValueData::String(_) => "string",
-                    ValueData::Function(_) => "function",
-                }))
-            }
-            Node::StatementList(ref list) => {
-                {
-                    let env = &mut self.realm.environment;
-                    env.push(new_declarative_environment(Some(
-                        env.get_current_environment_ref().clone(),
-                    )));
-                }
-
-                let mut obj = to_value(None::<()>);
-                for (i, item) in list.iter().enumerate() {
-                    let val = self.run(item)?;
-                    // early return
-                    if self.is_return {
-                        obj = val;
-                        break;
-                    }
-                    if i + 1 == list.len() {
-                        obj = val;
-                    }
-                }
-
-                // pop the block env
-                let _ = self.realm.environment.pop();
-
-                Ok(obj)
-            }
-            Node::Spread(ref node) => {
-                // TODO: for now we can do nothing but return the value as-is
-                Ok(Gc::new((*self.run(node)?).clone()))
-            }
-            ref i => unimplemented!("{}", i),
-        }
-    }
-}
-
-impl Interpreter {
-    /// Get the Interpreter's realm
-    pub(crate) fn get_realm(&self) -> &Realm {
+    /// Retrieves the `Realm` of this executor.
+    pub(crate) fn realm(&self) -> &Realm {
         &self.realm
     }
 
-    /// https://tc39.es/ecma262/#sec-call
-    pub(crate) fn call(&mut self, f: &Value, v: &Value, arguments_list: Vec<Value>) -> ResultValue {
-        // All functions should be objects, and eventually will be.
-        // During this transition call will support both native functions and function objects
-        match (*f).deref() {
+    /// Retrieves the `Realm` of this executor as a mutable reference.
+    pub(crate) fn realm_mut(&mut self) -> &mut Realm {
+        &mut self.realm
+    }
+
+    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
+    pub(crate) fn create_function<P, B>(
+        &mut self,
+        params: P,
+        body: B,
+        this_mode: ThisMode,
+        constructable: bool,
+        callable: bool,
+    ) -> Value
+    where
+        P: Into<Box<[FormalParameter]>>,
+        B: Into<StatementList>,
+    {
+        let function_prototype = &self
+            .realm
+            .environment
+            .get_global_object()
+            .expect("Could not get the global object")
+            .get_field("Function")
+            .get_field(PROTOTYPE);
+
+        // Every new function has a prototype property pre-made
+        let global_val = &self
+            .realm
+            .environment
+            .get_global_object()
+            .expect("Could not get the global object");
+        let proto = Value::new_object(Some(global_val));
+
+        let params = params.into();
+        let params_len = params.len();
+        let func = FunctionObject::new(
+            params,
+            Some(self.realm.environment.get_current_environment().clone()),
+            FunctionBody::Ordinary(body.into()),
+            this_mode,
+            constructable,
+            callable,
+        );
+
+        let mut new_func = Object::function();
+        new_func.set_func(func);
+        let val = Value::from(new_func);
+        val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
+        val.set_field(PROTOTYPE, proto);
+        val.set_field("length", Value::from(params_len));
+
+        val
+    }
+
+    /// <https://tc39.es/ecma262/#sec-call>
+    pub(crate) fn call(
+        &mut self,
+        f: &Value,
+        this: &mut Value,
+        arguments_list: &[Value],
+    ) -> ResultValue {
+        match *f.data() {
             ValueData::Object(ref obj) => {
-                let func: Value = obj.borrow_mut().deref_mut().get_internal_slot("call");
-                if !func.is_undefined() {
-                    return self.call(&func, v, arguments_list);
-                }
-                // TODO: error object should be here
-                Err(Gc::new(ValueData::Undefined))
+                let obj = (**obj).borrow();
+                let func = obj.func.as_ref().expect("Expected function");
+                func.call(&mut f.clone(), arguments_list, self, this)
             }
-            ValueData::Function(ref inner_func) => match *inner_func.deref().borrow() {
-                Function::NativeFunc(ref ntv) => {
-                    let func = ntv.data;
-                    func(v, &arguments_list, self)
-                }
-                Function::RegularFunc(ref data) => {
-                    let env = &mut self.realm.environment;
-                    // New target (second argument) is only needed for constructors, just pass undefined
-                    let undefined = Gc::new(ValueData::Undefined);
-                    env.push(new_function_environment(
-                        f.clone(),
-                        undefined,
-                        Some(env.get_current_environment_ref().clone()),
-                    ));
-                    for i in 0..data.args.len() {
-                        let arg_expr = data.args.get(i).expect("Could not get data argument");
-                        match arg_expr.deref() {
-                            Node::Local(ref name) => {
-                                let expr: &Value =
-                                    arguments_list.get(i).expect("Could not get argument");
-                                self.realm.environment.create_mutable_binding(
-                                    name.clone(),
-                                    false,
-                                    VariableScope::Function,
-                                );
-                                self.realm
-                                    .environment
-                                    .initialize_binding(name, expr.clone());
-                            }
-                            Node::Spread(ref expr) => {
-                                if let Node::Local(ref name) = expr.deref() {
-                                    let array = array::new_array(self)?;
-                                    array::add_to_array_object(&array, &arguments_list[i..])?;
-
-                                    self.realm.environment.create_mutable_binding(
-                                        name.clone(),
-                                        false,
-                                        VariableScope::Function,
-                                    );
-                                    self.realm.environment.initialize_binding(name, array);
-                                } else {
-                                    panic!("Unsupported function argument declaration")
-                                }
-                            }
-                            _ => panic!("Unsupported function argument declaration"),
-                        }
-                    }
-
-                    // Add arguments object
-                    let arguments_obj = create_unmapped_arguments_object(arguments_list);
-                    self.realm.environment.create_mutable_binding(
-                        "arguments".to_string(),
-                        false,
-                        VariableScope::Function,
-                    );
-                    self.realm
-                        .environment
-                        .initialize_binding("arguments", arguments_obj);
-
-                    let result = self.run(&data.node);
-                    self.realm.environment.pop();
-                    result
-                }
-            },
-            _ => Err(Gc::new(ValueData::Undefined)),
+            _ => Err(Value::undefined()),
         }
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinarytoprimitive
-    fn ordinary_to_primitive(&mut self, o: &Value, hint: &str) -> Value {
+    /// Converts a value into a rust heap allocated string.
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_string(&mut self, value: &Value) -> Result<String, Value> {
+        match value.data() {
+            ValueData::Null => Ok("null".to_owned()),
+            ValueData::Undefined => Ok("undefined".to_owned()),
+            ValueData::Boolean(boolean) => Ok(boolean.to_string()),
+            ValueData::Rational(rational) => Ok(Number::to_native_string(*rational)),
+            ValueData::Integer(integer) => Ok(integer.to_string()),
+            ValueData::String(string) => Ok(string.clone()),
+            ValueData::Symbol(_) => panic!("TypeError exception."),
+            ValueData::BigInt(ref bigint) => Ok(BigInt::to_native_string(bigint)),
+            ValueData::Object(_) => {
+                let primitive = self.to_primitive(&mut value.clone(), Some("string"));
+                self.to_string(&primitive)
+            }
+        }
+    }
+
+    /// Converts an array object into a rust vector of values.
+    ///
+    /// This is useful for the spread operator, for any other object an `Err` is returned
+    pub(crate) fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Value>, ()> {
+        if let ValueData::Object(ref x) = *value.deref().borrow() {
+            // Check if object is array
+            if x.deref().borrow().kind == ObjectKind::Array {
+                let length: i32 = self.value_to_rust_number(&value.get_field("length")) as i32;
+                let values: Vec<Value> = (0..length)
+                    .map(|idx| value.get_field(idx.to_string()))
+                    .collect();
+                return Ok(values);
+            }
+
+            return Err(());
+        }
+
+        Err(())
+    }
+
+    /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
+    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: &str) -> Value {
         debug_assert!(o.get_type() == "object");
         debug_assert!(hint == "string" || hint == "number");
         let method_names: Vec<&str> = if hint == "string" {
@@ -673,9 +179,9 @@ impl Interpreter {
             vec!["valueOf", "toString"]
         };
         for name in method_names.iter() {
-            let method: Value = o.get_field_slice(name);
+            let method: Value = o.get_field(*name);
             if method.is_function() {
-                let result = self.call(&method, &o, vec![]);
+                let result = self.call(&method, o, &[]);
                 match result {
                     Ok(val) => {
                         if val.is_object() {
@@ -690,13 +196,17 @@ impl Interpreter {
             }
         }
 
-        Gc::new(ValueData::Undefined)
+        Value::undefined()
     }
 
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
-    /// https://tc39.es/ecma262/#sec-toprimitive
+    /// <https://tc39.es/ecma262/#sec-toprimitive>
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_primitive(&mut self, input: &Value, preferred_type: Option<&str>) -> Value {
+    pub(crate) fn to_primitive(
+        &mut self,
+        input: &mut Value,
+        preferred_type: Option<&str>,
+    ) -> Value {
         let mut hint: &str;
         match (*input).deref() {
             ValueData::Object(_) => {
@@ -715,47 +225,54 @@ impl Interpreter {
                     hint = "number";
                 };
 
-                self.ordinary_to_primitive(&input, hint)
+                self.ordinary_to_primitive(input, hint)
             }
             _ => input.clone(),
         }
     }
-    /// to_string() converts a value into a String
-    /// https://tc39.es/ecma262/#sec-tostring
+
+    /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
+    ///
+    /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(&mut self, value: &Value) -> Value {
-        match *value.deref().borrow() {
-            ValueData::Undefined => to_value("undefined"),
-            ValueData::Null => to_value("null"),
-            ValueData::Boolean(ref boolean) => to_value(boolean.to_string()),
-            ValueData::Rational(ref num) => to_value(num.to_string()),
-            ValueData::Integer(ref num) => to_value(num.to_string()),
-            ValueData::String(ref string) => to_value(string.clone()),
-            ValueData::Object(_) => {
-                let prim_value = self.to_primitive(value, Some("string"));
-                self.to_string(&prim_value)
+    pub(crate) fn to_property_key(&mut self, value: &mut Value) -> ResultValue {
+        let key = self.to_primitive(value, Some("string"));
+        if key.is_symbol() {
+            Ok(key)
+        } else {
+            self.to_string(&key).map(Value::from)
+        }
+    }
+
+    /// https://tc39.es/ecma262/#sec-hasproperty
+    pub(crate) fn has_property(&self, obj: &mut Value, key: &Value) -> bool {
+        if let Some(obj) = obj.as_object() {
+            if !Property::is_property_key(key) {
+                false
+            } else {
+                obj.has_property(key)
             }
-            _ => to_value("function(){...}"),
+        } else {
+            false
         }
     }
 
     /// The abstract operation ToObject converts argument to a value of type Object
     /// https://tc39.es/ecma262/#sec-toobject
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_object(&mut self, value: &Value) -> ResultValue {
+    pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
         match *value.deref().borrow() {
-            ValueData::Undefined
-            | ValueData::Function(_)
-            | ValueData::Integer(_)
-            | ValueData::Null => Err(Gc::new(ValueData::Undefined)),
+            ValueData::Undefined | ValueData::Integer(_) | ValueData::Null => {
+                Err(Value::undefined())
+            }
             ValueData::Boolean(_) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("Boolean")
-                    .get_field_slice(PROTOTYPE);
+                    .get_field(PROTOTYPE);
 
-                let bool_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::Boolean);
+                let bool_obj = Value::new_object_from_prototype(proto, ObjectKind::Boolean);
                 bool_obj.set_internal_slot("BooleanData", value.clone());
                 Ok(bool_obj)
             }
@@ -764,8 +281,8 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Number")
-                    .get_field_slice(PROTOTYPE);
-                let number_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::Number);
+                    .get_field(PROTOTYPE);
+                let number_obj = Value::new_object_from_prototype(proto, ObjectKind::Number);
                 number_obj.set_internal_slot("NumberData", value.clone());
                 Ok(number_obj)
             }
@@ -774,32 +291,26 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("String")
-                    .get_field_slice(PROTOTYPE);
-                let string_obj = ValueData::new_obj_from_prototype(proto, ObjectKind::String);
+                    .get_field(PROTOTYPE);
+                let string_obj = Value::new_object_from_prototype(proto, ObjectKind::String);
                 string_obj.set_internal_slot("StringData", value.clone());
                 Ok(string_obj)
             }
             ValueData::Object(_) | ValueData::Symbol(_) => Ok(value.clone()),
-        }
-    }
-
-    /// value_to_rust_string() converts a value into a rust heap allocated string
-    pub fn value_to_rust_string(&mut self, value: &Value) -> String {
-        match *value.deref().borrow() {
-            ValueData::Null => String::from("null"),
-            ValueData::Boolean(ref boolean) => boolean.to_string(),
-            ValueData::Rational(ref num) => num.to_string(),
-            ValueData::Integer(ref num) => num.to_string(),
-            ValueData::String(ref string) => string.clone(),
-            ValueData::Object(_) => {
-                let prim_value = self.to_primitive(value, Some("string"));
-                self.to_string(&prim_value).to_string()
+            ValueData::BigInt(_) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("BigInt")
+                    .get_field(PROTOTYPE);
+                let bigint_obj = Value::new_object_from_prototype(proto, ObjectKind::BigInt);
+                bigint_obj.set_internal_slot("BigIntData", value.clone());
+                Ok(bigint_obj)
             }
-            _ => String::from("undefined"),
         }
     }
 
-    pub fn value_to_rust_number(&mut self, value: &Value) -> f64 {
+    pub(crate) fn value_to_rust_number(&mut self, value: &Value) -> f64 {
         match *value.deref().borrow() {
             ValueData::Null => f64::from(0),
             ValueData::Boolean(boolean) => {
@@ -812,12 +323,13 @@ impl Interpreter {
             ValueData::Rational(num) => num,
             ValueData::Integer(num) => f64::from(num),
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
+            ValueData::BigInt(ref bigint) => bigint.to_f64(),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(value, Some("number"));
+                let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
                 self.to_string(&prim_value)
-                    .to_string()
+                    .expect("cannot convert value to string")
                     .parse::<f64>()
-                    .expect("cannot parse valur to x64")
+                    .expect("cannot parse value to f64")
             }
             _ => {
                 // TODO: Make undefined?
@@ -826,23 +338,171 @@ impl Interpreter {
         }
     }
 
-    /// `extract_array_properties` converts an array object into a rust vector of Values.
-    /// This is useful for the spread operator, for any other object an `Err` is returned
-    fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Gc<ValueData>>, ()> {
-        if let ValueData::Object(ref x) = *value.deref().borrow() {
-            // Check if object is array
-            if x.deref().borrow().kind == ObjectKind::Array {
-                let length: i32 =
-                    self.value_to_rust_number(&value.get_field_slice("length")) as i32;
-                let values: Vec<Gc<ValueData>> = (0..length)
-                    .map(|idx| value.get_field_slice(&idx.to_string()))
-                    .collect::<Vec<Value>>();
-                return Ok(values);
+    fn set_value(&mut self, node: &Node, value: Value) -> ResultValue {
+        match node {
+            Node::Identifier(ref name) => {
+                self.realm
+                    .environment
+                    .set_mutable_binding(name.as_ref(), value.clone(), true);
+                Ok(value)
             }
-
-            return Err(());
+            Node::GetConstField(ref obj, ref field) => Ok(obj.run(self)?.set_field(field, value)),
+            Node::GetField(ref obj, ref field) => {
+                Ok(obj.run(self)?.set_field(field.run(self)?, value))
+            }
+            _ => panic!("TypeError: invalid assignment to {}", node),
         }
+    }
+}
 
-        Err(())
+impl Executable for Node {
+    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        match *self {
+            Node::Const(Const::Null) => Ok(Value::null()),
+            Node::Const(Const::Undefined) => Ok(Value::undefined()),
+            Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
+            Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
+            Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
+            // we can't move String from Const into value, because const is a garbage collected value
+            // Which means Drop() get's called on Const, but str will be gone at that point.
+            // Do Const values need to be garbage collected? We no longer need them once we've generated Values
+            Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
+            Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
+            Node::Block(ref block) => block.run(interpreter),
+            Node::Identifier(ref name) => {
+                let val = interpreter
+                    .realm()
+                    .environment
+                    .get_binding_value(name.as_ref());
+                Ok(val)
+            }
+            Node::GetConstField(ref obj, ref field) => {
+                let val_obj = obj.run(interpreter)?;
+                Ok(val_obj.borrow().get_field(field))
+            }
+            Node::GetField(ref obj, ref field) => {
+                let val_obj = obj.run(interpreter)?;
+                let val_field = field.run(interpreter)?;
+                Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
+            }
+            Node::Call(ref expr) => expr.run(interpreter),
+            Node::WhileLoop(ref cond, ref expr) => {
+                let mut result = Value::undefined();
+                while cond.run(interpreter)?.borrow().is_true() {
+                    result = expr.run(interpreter)?;
+                }
+                Ok(result)
+            }
+            Node::DoWhileLoop(ref body, ref cond) => {
+                let mut result = body.run(interpreter)?;
+                while cond.run(interpreter)?.borrow().is_true() {
+                    result = body.run(interpreter)?;
+                }
+                Ok(result)
+            }
+            Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
+            Node::If(ref cond, ref expr, None) => {
+                Ok(if cond.run(interpreter)?.borrow().is_true() {
+                    expr.run(interpreter)?
+                } else {
+                    Value::undefined()
+                })
+            }
+            Node::If(ref cond, ref expr, Some(ref else_e)) => {
+                Ok(if cond.run(interpreter)?.borrow().is_true() {
+                    expr.run(interpreter)?
+                } else {
+                    else_e.run(interpreter)?
+                })
+            }
+            Node::Switch(ref val_e, ref vals, ref default) => {
+                let val = val_e.run(interpreter)?;
+                let mut result = Value::null();
+                let mut matched = false;
+                for tup in vals.iter() {
+                    let cond = &tup.0;
+                    let block = &tup.1;
+                    if val.strict_equals(&cond.run(interpreter)?) {
+                        matched = true;
+                        let last_expr = block.last().expect("Block has no expressions");
+                        for expr in block.iter() {
+                            let e_result = expr.run(interpreter)?;
+                            if expr == last_expr {
+                                result = e_result;
+                            }
+                        }
+                    }
+                }
+                if !matched {
+                    if let Some(default) = default {
+                        result = default.run(interpreter)?;
+                    }
+                }
+                Ok(result)
+            }
+            Node::Object(ref properties) => {
+                let global_val = &interpreter
+                    .realm()
+                    .environment
+                    .get_global_object()
+                    .expect("Could not get the global object");
+                let obj = Value::new_object(Some(global_val));
+
+                // TODO: Implement the rest of the property types.
+                for property in properties.iter() {
+                    match property {
+                        PropertyDefinition::Property(key, value) => {
+                            obj.borrow()
+                                .set_field(&key.clone(), value.run(interpreter)?);
+                        }
+                        PropertyDefinition::MethodDefinition(kind, name, func) => {
+                            if let MethodDefinitionKind::Ordinary = kind {
+                                obj.borrow()
+                                    .set_field(&name.clone(), func.run(interpreter)?);
+                            } else {
+                                // TODO: Implement other types of MethodDefinitionKinds.
+                                unimplemented!("other types of property method definitions.");
+                            }
+                        }
+                        i => unimplemented!("{:?} type of property", i),
+                    }
+                }
+
+                Ok(obj)
+            }
+            Node::ArrayDecl(ref arr) => arr.run(interpreter),
+            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
+            Node::FunctionDecl(ref decl) => decl.run(interpreter),
+            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
+            Node::FunctionExpr(ref expr) => expr.run(interpreter),
+            Node::ArrowFunctionDecl(ref decl) => decl.run(interpreter),
+            Node::BinOp(ref op) => op.run(interpreter),
+            Node::UnaryOp(ref op) => op.run(interpreter),
+            Node::New(ref call) => call.run(interpreter),
+            Node::Return(ref ret) => {
+                let result = match *ret {
+                    Some(ref v) => v.run(interpreter),
+                    None => Ok(Value::undefined()),
+                };
+                // Set flag for return
+                interpreter.is_return = true;
+                result
+            }
+            Node::Throw(ref ex) => Err(ex.run(interpreter)?),
+            Node::Assign(ref op) => op.run(interpreter),
+            Node::VarDeclList(ref decl) => decl.run(interpreter),
+            Node::LetDeclList(ref decl) => decl.run(interpreter),
+            Node::ConstDeclList(ref decl) => decl.run(interpreter),
+            Node::Spread(ref node) => {
+                // TODO: for now we can do nothing but return the value as-is
+                node.run(interpreter)
+            }
+            Node::This => {
+                // Will either return `this` binding or undefined
+                Ok(interpreter.realm().environment.get_this_binding())
+            }
+            Node::Try(ref try_node) => try_node.run(interpreter),
+            ref i => unimplemented!("{:?}", i),
+        }
     }
 }
