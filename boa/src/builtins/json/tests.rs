@@ -1,4 +1,4 @@
-use crate::{exec::Interpreter, forward, realm::Realm};
+use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[test]
 fn json_sanity() {
@@ -188,4 +188,51 @@ fn json_stringify_return_undefined() {
     assert_eq!(actual_no_args, expected);
     assert_eq!(actual_function, expected);
     assert_eq!(actual_symbol, expected);
+}
+
+#[test]
+fn json_parse_array_with_reviver() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let result = forward_val(
+        &mut engine,
+        r#"JSON.parse('[1,2,3,4]', function(k, v){
+            if (typeof v == 'number') {
+                return v * 2;
+            } else {
+                v
+        }})"#,
+    )
+    .unwrap();
+    assert_eq!(result.get_field("0").to_number() as u8, 2u8);
+    assert_eq!(result.get_field("1").to_number() as u8, 4u8);
+    assert_eq!(result.get_field("2").to_number() as u8, 6u8);
+    assert_eq!(result.get_field("3").to_number() as u8, 8u8);
+}
+
+#[test]
+fn json_parse_object_with_reviver() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let result = forward(
+        &mut engine,
+        r#"
+        var myObj = new Object();
+        myObj.firstname = "boa";
+        myObj.lastname = "snake";
+        var jsonString = JSON.stringify(myObj);
+
+        function dataReviver(key, value) {
+            if (key == 'lastname') {
+                return 'interpreter';
+            } else {
+                return value;
+            }
+        }
+
+        var jsonObj = JSON.parse(jsonString, dataReviver);
+
+        JSON.stringify(jsonObj);"#,
+    );
+    assert_eq!(result, r#"{"firstname":"boa","lastname":"interpreter"}"#);
 }

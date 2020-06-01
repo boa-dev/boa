@@ -37,8 +37,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-json.parse
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-// TODO: implement optional revever argument.
-pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     match serde_json::from_str::<JSONValue>(
         &args
             .get(0)
@@ -46,9 +45,51 @@ pub fn parse(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
             .clone()
             .to_string(),
     ) {
-        Ok(json) => Ok(Value::from(json)),
+        Ok(json) => {
+            let j = Value::from(json);
+            match args.get(1) {
+                Some(reviver) if reviver.is_function() => {
+                    let mut holder = Value::new_object(None);
+                    holder.set_field(Value::from(""), j);
+                    walk(reviver, interpreter, &mut holder, Value::from(""))
+                }
+                _ => Ok(j),
+            }
+        }
         Err(err) => Err(Value::from(err.to_string())),
     }
+}
+
+/// This is a translation of the [Polyfill implementation][polyfill]
+///
+/// This function recursively walks the structure, passing each key-value pair to the reviver function
+/// for possible transformation.
+///
+/// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+fn walk(
+    reviver: &Value,
+    interpreter: &mut Interpreter,
+    holder: &mut Value,
+    key: Value,
+) -> ResultValue {
+    let mut value = holder.get_field(key.clone());
+
+    let obj = value.as_object().as_deref().cloned();
+    if let Some(obj) = obj {
+        for key in obj.properties.keys() {
+            let v = walk(reviver, interpreter, &mut value, Value::from(key.as_str()));
+            match v {
+                Ok(v) if !v.is_undefined() => {
+                    value.set_field(Value::from(key.as_str()), v);
+                }
+                Ok(_) => {
+                    value.remove_property(key.as_str());
+                }
+                Err(_v) => {}
+            }
+        }
+    }
+    interpreter.call(reviver, holder, &[key, value])
 }
 
 /// `JSON.stringify( value[, replacer[, space]] )`

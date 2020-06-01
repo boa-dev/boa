@@ -690,7 +690,10 @@ impl ValueData {
                 for (idx, json) in vs.iter().enumerate() {
                     new_obj.properties.insert(
                         idx.to_string(),
-                        Property::default().value(Value::from(json.clone())),
+                        Property::default()
+                            .value(Value::from(json.clone()))
+                            .writable(true)
+                            .configurable(true),
                     );
                 }
                 new_obj.properties.insert(
@@ -704,7 +707,10 @@ impl ValueData {
                 for (key, json) in obj.iter() {
                     new_obj.properties.insert(
                         key.clone(),
-                        Property::default().value(Value::from(json.clone())),
+                        Property::default()
+                            .value(Value::from(json.clone()))
+                            .writable(true)
+                            .configurable(true),
                     );
                 }
 
