@@ -11,23 +11,28 @@
 This is an experimental Javascript lexer, parser and compiler written in Rust.
 Currently, it has support for some of the language.
 
-[![Build Status](https://travis-ci.com/jasonwilliams/boa.svg?branch=master)](https://travis-ci.com/jasonwilliams/boa)
+[![Build Status][build_badge]][build_link]
+[![codecov](https://codecov.io/gh/boa-dev/boa/branch/master/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
+
+[build_badge]: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fboa-dev%2Fboa%2Fbadge&style=flat
+[build_link]: https://actions-badge.atrox.dev/boa-dev/boa/goto
+
 
 ## Live Demo (WASM)
 
 <https://boa-dev.github.io/boa/>
 
-You can get more verbose errors when running from the command line
+You can get more verbose errors when running from the command line.
 
 ## Development documentation
 
-You can check the internal development docs at <https://boa-dev.github.io/boa/doc>
+You can check the internal development docs at <https://boa-dev.github.io/boa/doc>.
 
 ## Benchmarks
 
-<https://boa-dev.github.io/boa/dev/bench/>
+See [Benchmarks](https://boa-dev.github.io/boa/dev/bench/).
 
 ## Contributing
 
@@ -37,7 +42,7 @@ some configurations ready for VSCode.
 
 ### Debugging
 
-See [Debugging](./docs/debugging.md).
+Check [debugging.md](./docs/debugging.md) for more info on debugging.
 
 ### Web Assembly
 
@@ -49,21 +54,21 @@ $ yarn install
 $ yarn serve
 ```
 
-In the console you can use `window.evaluate` to pass JavaScript in
-To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`
+In the console you can use `window.evaluate` to pass JavaScript in.
+To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`.
 
 ## Roadmap
 
-See Milestones
+See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 ## Changelog
 
-see [CHANGELOG](./CHANGELOG.md)
+See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Usage
 
-- Clone this repo
-- Run with `cargo run -- test.js` where `test.js` is an existing JS file
+- Clone this repo.
+- Run with `cargo run -- test.js` where `test.js` is an existing JS file.
 - If any JS doesn't work then it's a bug. Please raise an issue!
 
 ## Command-line Options
@@ -88,7 +93,7 @@ ARGS:
 
 ## Communication
 
-Feel free to contact us on Discord https://discord.gg/tUFFk9Y
+Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y).
 
 ## Example
 
@@ -96,4 +101,4 @@ Feel free to contact us on Discord https://discord.gg/tUFFk9Y
 
 ## License
 
-This project is licensed under the Unlicense or MIT licenses, at your option.
+This project is licensed under the [Unlicense](./LICENSE-UNLICENSE) or [MIT](./LICENSE-MIT) licenses, at your option.

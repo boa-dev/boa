@@ -53,7 +53,7 @@ impl BigInt {
                     return Err(RangeError::run_new(
                         format!(
                             "{} can't be converted to BigInt because it isn't an integer",
-                            value
+                            ctx.to_string(value)?
                         ),
                         ctx,
                     )?);
@@ -62,6 +62,18 @@ impl BigInt {
             None => Value::from(AstBigInt::from(0)),
         };
         Ok(data)
+    }
+
+    #[inline]
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_native_string_radix(bigint: &AstBigInt, radix: u32) -> String {
+        bigint.to_str_radix(radix)
+    }
+
+    #[inline]
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_native_string(bigint: &AstBigInt) -> String {
+        bigint.to_string()
     }
 
     /// `BigInt.prototype.toString( [radix] )`
@@ -91,19 +103,20 @@ impl BigInt {
                 ctx,
             )?);
         }
-        Ok(Value::from(
-            this.to_bigint().unwrap().to_str_radix(radix as u32),
-        ))
+        Ok(Value::from(Self::to_native_string_radix(
+            &this.to_bigint().unwrap(),
+            radix as u32,
+        )))
     }
 
-    // /// `BigInt.prototype.valueOf()`
-    // ///
-    // /// The `valueOf()` method returns the wrapped primitive value of a Number object.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
+    /// `BigInt.prototype.valueOf()`
+    ///
+    /// The `valueOf()` method returns the wrapped primitive value of a Number object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
     pub(crate) fn value_of(
@@ -124,7 +137,7 @@ impl BigInt {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_constructor_fn(Self::make_bigint, global, prototype)
+        make_constructor_fn("BigInt", 1, Self::make_bigint, global, prototype, false)
     }
 
     /// Initialise the `BigInt` object on the global object.

@@ -19,12 +19,6 @@ impl From<Box<str>> for Value {
     }
 }
 
-impl From<&Value> for String {
-    fn from(value: &Value) -> Self {
-        value.to_string()
-    }
-}
-
 impl From<&str> for Value {
     fn from(value: &str) -> Value {
         Value::string(value)
