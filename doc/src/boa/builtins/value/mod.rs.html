@@ -1002,6 +1002,12 @@
 <span id="1002">1002</span>
 <span id="1003">1003</span>
 <span id="1004">1004</span>
+<span id="1005">1005</span>
+<span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1695,7 +1701,10 @@
                 <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">json</span>) <span class="kw">in</span> <span class="ident">vs</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                     <span class="ident">new_obj</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(
                         <span class="ident">idx</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">json</span>.<span class="ident">clone</span>())),
+                        <span class="ident">Property</span>::<span class="ident">default</span>()
+                            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">json</span>.<span class="ident">clone</span>()))
+                            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
                     );
                 }
                 <span class="ident">new_obj</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(
@@ -1709,7 +1718,10 @@
                 <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">json</span>) <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">iter</span>() {
                     <span class="ident">new_obj</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(
                         <span class="ident">key</span>.<span class="ident">clone</span>(),
-                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">json</span>.<span class="ident">clone</span>())),
+                        <span class="ident">Property</span>::<span class="ident">default</span>()
+                            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">json</span>.<span class="ident">clone</span>()))
+                            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
                     );
                 }
 

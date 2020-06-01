@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["create","Create a new `JSON` object."],["init","Initialise the `JSON` object on the global object."],["parse","`JSON.parse( text[, reviver] )`"],["stringify","`JSON.stringify( value[, replacer[, space]] )`"]]});
+initSidebarItems({"fn":[["create","Create a new `JSON` object."],["init","Initialise the `JSON` object on the global object."],["parse","`JSON.parse( text[, reviver] )`"],["stringify","`JSON.stringify( value[, replacer[, space]] )`"],["walk","This is a translation of the [Polyfill implementation][polyfill]"]]});
