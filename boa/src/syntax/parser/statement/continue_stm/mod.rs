@@ -12,7 +12,7 @@ mod tests;
 
 use super::LabelIdentifier;
 use crate::syntax::{
-    ast::{node::Continue, Keyword, Node, Punctuator, TokenKind},
+    ast::{node::Continue, Keyword, Punctuator, TokenKind},
     parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
 };
 

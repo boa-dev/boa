@@ -10,18 +10,12 @@ impl Executable for Switch {
         let val = self.val().run(interpreter)?;
         let mut result = Value::null();
         let mut matched = false;
-        for tup in self.cases().iter() {
-            let cond = &tup.0;
-            let block = &tup.1;
+        for case in self.cases().iter() {
+            let cond = case.condition();
+            let block = case.body();
             if val.strict_equals(&cond.run(interpreter)?) {
                 matched = true;
-                let last_expr = block.last().expect("Block has no expressions");
-                for expr in block.iter() {
-                    let e_result = expr.run(interpreter)?;
-                    if expr == last_expr {
-                        result = e_result;
-                    }
-                }
+                block.run(interpreter)?;
             }
 
             // TODO: break out of switch on a break statement.

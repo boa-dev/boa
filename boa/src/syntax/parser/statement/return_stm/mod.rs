@@ -51,7 +51,7 @@ impl TokenParser for ReturnStatement {
                 _ => {}
             }
 
-            return Ok(Return::new::<Node, Option<_>>(None).into());
+            return Ok(Return::new::<Node, Option<_>>(None));
         }
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;

@@ -36,7 +36,7 @@ pub use self::{
     return_smt::Return,
     spread::Spread,
     statement_list::StatementList,
-    switch::{Switch, Case},
+    switch::{Case, Switch},
     throw::Throw,
     try_node::{Catch, Finally, Try},
 };

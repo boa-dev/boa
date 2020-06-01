@@ -12,17 +12,17 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Case {
-    cond: Node,
-    statements: StatementList
+    condition: Node,
+    body: StatementList,
 }
 
 impl Case {
-    pub fn cond(&self) -> &Node {
-        &self.cond
+    pub fn condition(&self) -> &Node {
+        &self.condition
     }
 
-    pub fn statements(&self) -> &StatementList {
-        &self.statements
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 }
 
@@ -80,8 +80,8 @@ impl Switch {
     pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indent: usize) -> fmt::Result {
         writeln!(f, "switch ({}) {{", self.val())?;
         for e in self.cases().iter() {
-            writeln!(f, "{}case {}:", indent, e.cond())?;
-            e.statements().display(f, indent);
+            writeln!(f, "{}case {}:", indent, e.condition())?;
+            e.body().display(f, indent)?;
         }
 
         if self.default().is_some() {

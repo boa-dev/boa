@@ -2,9 +2,12 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::{Switch, Case}, Keyword, Node, Punctuator},
+    ast::{
+        node::{Case, Switch},
+        Keyword, Node, Punctuator,
+    },
     parser::{
-        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, 
+        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
         TokenParser,
     },
 };
@@ -53,7 +56,7 @@ impl TokenParser for SwitchStatement {
 
         let (cases, default) =
             CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
-        
+
         Ok(Switch::new(condition, cases, default))
     }
 }
