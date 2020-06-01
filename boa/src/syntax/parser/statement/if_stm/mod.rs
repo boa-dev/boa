@@ -62,12 +62,12 @@ impl TokenParser for IfStatement {
                 cursor.next();
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor),
+                        .parse(cursor)?,
                 )
             }
             _ => None,
         };
 
-        Ok(If::new(cond, then_stm, else_stm))
+        Ok(If::new::<_, _, Node, _>(cond, then_stm, else_stm))
     }
 }

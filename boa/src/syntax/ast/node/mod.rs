@@ -36,7 +36,7 @@ pub use self::{
     return_smt::Return,
     spread::Spread,
     statement_list::StatementList,
-    switch::Switch,
+    switch::{Switch, Case},
     throw::Throw,
     try_node::{Catch, Finally, Try},
 };
@@ -163,6 +163,7 @@ pub enum Node {
     /// Array declaration node. [More information](./declaration/struct.VarDeclList.html).
     VarDeclList(VarDeclList),
 
+    /// A 'while {...}' node. [More information](./iteration/struct.WhileLoop.html).
     WhileLoop(WhileLoop),
 }
 

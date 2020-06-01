@@ -1,18 +1,29 @@
 //! Switch node.
 //!
-use super::{join_nodes, Node};
+use super::Node;
 use gc::{Finalize, Trace};
 use std::fmt;
+
+use crate::syntax::ast::node::StatementList;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-pub struct Switch {
-    val: Box<Node>,
-    cases: Box<[(Node, Box<[Node]>)]>,
-    default: Option<Box<Node>>,
+pub struct Case {
+    cond: Node,
+    statements: StatementList
+}
+
+impl Case {
+    pub fn cond(&self) -> &Node {
+        &self.cond
+    }
+
+    pub fn statements(&self) -> &StatementList {
+        &self.statements
+    }
 }
 
 /// The `switch` statement evaluates an expression, matching the expression's value to a case
@@ -31,12 +42,20 @@ pub struct Switch {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct Switch {
+    val: Box<Node>,
+    cases: Box<[Case]>,
+    default: Option<Box<Node>>,
+}
+
 impl Switch {
     pub fn val(&self) -> &Node {
         &self.val
     }
 
-    pub fn cases(&self) -> &[(Node, Box<[Node]>)] {
+    pub fn cases(&self) -> &[Case] {
         &self.cases
     }
 
@@ -45,16 +64,15 @@ impl Switch {
     }
 
     /// Creates a `Switch` AST node.
-    pub fn new<V, C, D>(val: V, cases: C, default: D) -> Self
+    pub fn new<V, C>(val: V, cases: C, default: Option<V>) -> Self
     where
         V: Into<Node>,
-        C: Into<Box<[(Node, Box<[Node]>)]>>,
-        D: Into<Option<Box<Node>>>,
+        C: Into<Box<[Case]>>,
     {
         Self {
             val: Box::new(val.into()),
             cases: cases.into(),
-            default: default.into().map(V::into).map(Box::new),
+            default: default.map(V::into).map(Box::new),
         }
     }
 
@@ -62,8 +80,8 @@ impl Switch {
     pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indent: usize) -> fmt::Result {
         writeln!(f, "switch ({}) {{", self.val())?;
         for e in self.cases().iter() {
-            writeln!(f, "{}case {}:", indent, e.0)?;
-            join_nodes(f, &e.1)?;
+            writeln!(f, "{}case {}:", indent, e.cond())?;
+            e.statements().display(f, indent);
         }
 
         if self.default().is_some() {

@@ -2,10 +2,10 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::Switch, Keyword, Node, Punctuator},
+    ast::{node::{Switch, Case}, Keyword, Node, Punctuator},
     parser::{
-        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, 
+        TokenParser,
     },
 };
 
@@ -86,9 +86,6 @@ impl CaseBlock {
         }
     }
 }
-
-/// Type used for case definition in a switch.
-type Case = (Node, Box<[Node]>);
 
 impl TokenParser for CaseBlock {
     type Output = (Box<[Case]>, Option<Node>);
