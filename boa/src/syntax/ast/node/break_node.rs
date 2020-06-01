@@ -26,8 +26,8 @@ pub struct Break {
 }
 
 impl Break {
-    pub fn label(&self) -> &Option<Box<str>> {
-        &self.label
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
     }
 
     /// Creates a `Break` AST node.
