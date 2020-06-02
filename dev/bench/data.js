@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1591098804377,
+  "lastUpdate": 1591110163040,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -8979,6 +8979,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 12.844,
             "range": "+/- 0.203",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "HalidOdat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bb2b6f638cba59269694d44424d16c9a5ede6a81",
+          "message": "Added `TypeError` implementation (#442)",
+          "timestamp": "2020-06-02T16:52:28+02:00",
+          "tree_id": "3f631a09a4431081a4c2679fc4c3f858a8af52e1",
+          "url": "https://github.com/boa-dev/boa/commit/bb2b6f638cba59269694d44424d16c9a5ede6a81"
+        },
+        "date": 1591110157018,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 471.5,
+            "range": "+/- 7.450",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 501.75,
+            "range": "+/- 10.070",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 487.01,
+            "range": "+/- 6.110",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.7653,
+            "range": "+/- 0.024",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.2077,
+            "range": "+/- 0.021",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0971,
+            "range": "+/- 0.016",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 6.0621,
+            "range": "+/- 0.084",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.3378,
+            "range": "+/- 0.061",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.4081,
+            "range": "+/- 0.026",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.571,
+            "range": "+/- 0.205",
             "unit": "us"
           }
         ]
