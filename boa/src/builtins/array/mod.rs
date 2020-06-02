@@ -15,7 +15,6 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        error::RangeError,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{same_value_zero, ResultValue, Value, ValueData},
@@ -130,7 +129,7 @@ impl Array {
                 }
             }
             1 if args[0].is_double() => {
-                return Err(RangeError::run_new("invalid array length", ctx)?);
+                return ctx.throw_range_error("invalid array length");
             }
             _ => {
                 for (n, value) in args.iter().enumerate() {
