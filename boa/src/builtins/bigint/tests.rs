@@ -1,4 +1,4 @@
-use crate::{forward, Interpreter, Realm};
+use crate::{forward, forward_val, Interpreter, Realm};
 
 #[test]
 fn equality() {
@@ -55,7 +55,7 @@ fn equality() {
 }
 
 #[test]
-fn bigint_function_conversion() {
+fn bigint_function_conversion_from_integer() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
@@ -67,6 +67,83 @@ fn bigint_function_conversion() {
     assert_eq!(
         forward(&mut engine, "BigInt(1000000000000000000000000000000000)"),
         "999999999999999945575230987042816n"
+    );
+}
+
+#[test]
+fn bigint_function_conversion_from_rational() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(forward(&mut engine, "BigInt(0.0)"), "0n");
+    assert_eq!(forward(&mut engine, "BigInt(1.0)"), "1n");
+    assert_eq!(forward(&mut engine, "BigInt(10000.0)"), "10000n");
+}
+
+#[test]
+fn bigint_function_conversion_from_rational_with_fractional_part() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let scenario = r#"
+        var x = false;
+        try {
+            BigInt(0.1);
+        } catch (e) {
+            x = true;
+        }
+    "#;
+    forward_val(&mut engine, scenario).unwrap();
+    assert_eq!(forward(&mut engine, "x"), "true");
+}
+
+#[test]
+fn bigint_function_conversion_from_null() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let scenario = r#"
+        var x = false;
+        try {
+            BigInt(null);
+        } catch (e) {
+            x = true;
+        }
+    "#;
+    forward_val(&mut engine, scenario).unwrap();
+    assert_eq!(forward(&mut engine, "x"), "true");
+}
+
+#[test]
+fn bigint_function_conversion_from_undefined() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let scenario = r#"
+        var x = false;
+        try {
+            BigInt(undefined);
+        } catch (e) {
+            x = true;
+        }
+    "#;
+    forward_val(&mut engine, scenario).unwrap();
+    assert_eq!(forward(&mut engine, "x"), "true");
+}
+
+#[test]
+fn bigint_function_conversion_from_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(forward(&mut engine, "BigInt('')"), "0n");
+    assert_eq!(
+        forward(&mut engine, "BigInt('200000000000000000')"),
+        "200000000000000000n"
+    );
+    assert_eq!(
+        forward(&mut engine, "BigInt('1000000000000000000000000000000000')"),
+        "1000000000000000000000000000000000n"
     );
 }
 
@@ -138,10 +215,7 @@ fn to_string() {
     let mut engine = Interpreter::new(realm);
 
     assert_eq!(forward(&mut engine, "1000n.toString()"), "1000");
-
     assert_eq!(forward(&mut engine, "1000n.toString(2)"), "1111101000");
-
     assert_eq!(forward(&mut engine, "255n.toString(16)"), "ff");
-
     assert_eq!(forward(&mut engine, "1000n.toString(36)"), "rs");
 }
