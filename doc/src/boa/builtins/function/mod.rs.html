@@ -676,7 +676,7 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">constructable</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">body</span> {
                 <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">func</span>(<span class="ident">this_obj</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>).<span class="ident">unwrap</span>();
+                    <span class="ident">func</span>(<span class="ident">this_obj</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(<span class="ident">this_obj</span>.<span class="ident">clone</span>())
                 }
                 <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {

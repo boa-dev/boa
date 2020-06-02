@@ -506,19 +506,26 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
 <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">mod</span> <span class="ident">block</span>;
 <span class="kw">mod</span> <span class="ident">declaration</span>;
+<span class="kw">mod</span> <span class="ident">exception</span>;
 <span class="kw">mod</span> <span class="ident">expression</span>;
 <span class="kw">mod</span> <span class="ident">iteration</span>;
 <span class="kw">mod</span> <span class="ident">operator</span>;
 <span class="kw">mod</span> <span class="ident">statement_list</span>;
+<span class="kw">mod</span> <span class="ident">try_node</span>;
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
-<span class="kw">mod</span> <span class="ident">try_node</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
@@ -649,7 +656,10 @@
             <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Number</span>::<span class="ident">to_native_string</span>(<span class="kw-2">*</span><span class="ident">rational</span>)),
             <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">integer</span>.<span class="ident">to_string</span>()),
             <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;TypeError exception.&quot;</span>),
+            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">unreachable</span><span class="macro">!</span>();
+            }
             <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">BigInt</span>::<span class="ident">to_native_string</span>(<span class="ident">bigint</span>)),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;string&quot;</span>));
@@ -770,7 +780,7 @@
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-toobject</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
+        <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">data</span>() {
             <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
             }

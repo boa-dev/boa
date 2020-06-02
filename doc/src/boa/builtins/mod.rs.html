@@ -45,6 +45,7 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
+<span id="48">48</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -68,7 +69,7 @@
     <span class="ident">array</span>::<span class="ident">Array</span>,
     <span class="ident">bigint</span>::<span class="ident">BigInt</span>,
     <span class="ident">boolean</span>::<span class="ident">Boolean</span>,
-    <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">RangeError</span>},
+    <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">RangeError</span>, <span class="ident">TypeError</span>},
     <span class="ident">number</span>::<span class="ident">Number</span>,
     <span class="ident">regexp</span>::<span class="ident">RegExp</span>,
     <span class="ident">string</span>::<span class="ident">String</span>,
@@ -92,6 +93,7 @@
     <span class="ident">console</span>::<span class="ident">init</span>(<span class="ident">global</span>);
     <span class="ident">Error</span>::<span class="ident">init</span>(<span class="ident">global</span>);
     <span class="ident">RangeError</span>::<span class="ident">init</span>(<span class="ident">global</span>);
+    <span class="ident">TypeError</span>::<span class="ident">init</span>(<span class="ident">global</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "boa";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

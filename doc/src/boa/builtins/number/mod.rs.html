@@ -482,9 +482,6 @@
 <span id="482">482</span>
 <span id="483">483</span>
 <span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -512,12 +509,11 @@
     <span class="ident">builtins</span>::{
         <span class="ident">object</span>::<span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
-        <span class="ident">RangeError</span>,
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
 };
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">float</span>::<span class="ident">FloatCore</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Borrow</span>, <span class="ident">f64</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Borrow</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>};
 
 <span class="kw">const</span> <span class="ident">BUF_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2200</span>;
 
@@ -842,10 +838,8 @@
 
         <span class="comment">// 4. If radixNumber &lt; 2 or radixNumber &gt; 36, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">radix</span> <span class="op">&lt;</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">&gt;</span> <span class="number">36</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RangeError</span>::<span class="ident">run_new</span>(
-                <span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>,
-                <span class="ident">ctx</span>,
-            )<span class="question-mark">?</span>);
+            <span class="kw">return</span> <span class="ident">ctx</span>
+                .<span class="ident">throw_range_error</span>(<span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>);
         }
 
         <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">0.</span> {
@@ -911,11 +905,11 @@
 
         <span class="comment">// Constants from:</span>
         <span class="comment">// https://tc39.es/ecma262/#sec-properties-of-the-number-constructor</span>
-        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;EPSILON&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">f64</span>::<span class="ident">EPSILON</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;EPSILON&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">EPSILON</span>));
         <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">9_007_199_254_740_991_f64</span>));
         <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MIN_SAFE_INTEGER&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="number">9_007_199_254_740_991_f64</span>));
-        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MAX_VALUE&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">f64</span>::<span class="ident">MAX</span>));
-        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MIN_VALUE&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">f64</span>::<span class="ident">MIN</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MAX_VALUE&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">MAX</span>));
+        <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;MIN_VALUE&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">MIN</span>));
         <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;NEGATIVE_INFINITY&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NEG_INFINITY</span>));
         <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;POSITIVE_INFINITY&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">INFINITY</span>));
         <span class="ident">number</span>.<span class="ident">set_field</span>(<span class="string">&quot;NaN&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>));

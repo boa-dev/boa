@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["TypeError","JavaScript `TypeError` implementation."]]});

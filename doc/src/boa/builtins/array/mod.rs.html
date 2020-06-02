@@ -1044,7 +1044,6 @@
 <span id="1044">1044</span>
 <span id="1045">1045</span>
 <span id="1046">1046</span>
-<span id="1047">1047</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1063,7 +1062,6 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">error</span>::<span class="ident">RangeError</span>,
         <span class="ident">object</span>::{<span class="ident">ObjectKind</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
@@ -1178,7 +1176,7 @@
                 }
             }
             <span class="number">1</span> <span class="kw">if</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">is_double</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RangeError</span>::<span class="ident">run_new</span>(<span class="string">&quot;invalid array length&quot;</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>);
+                <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;invalid array length&quot;</span>);
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {

@@ -74,26 +74,6 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
-<span id="90">90</span>
-<span id="91">91</span>
-<span id="92">92</span>
-<span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `RangeError` object.</span>
 <span class="doccomment">//!</span>
@@ -136,7 +116,7 @@
         <span class="comment">// This value is used by console.log and other routines to match Object type</span>
         <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
         <span class="ident">this</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Error</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
+        <span class="prelude-val">Err</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// `Error.prototype.toString()`</span>
@@ -164,26 +144,6 @@
         <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
 
         <span class="ident">make_constructor_fn</span>(<span class="string">&quot;RangeError&quot;</span>, <span class="number">1</span>, <span class="self">Self</span>::<span class="ident">make_error</span>, <span class="ident">global</span>, <span class="ident">prototype</span>, <span class="bool-val">true</span>)
-    }
-
-    <span class="doccomment">/// Runs a `new RangeError(message)`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run_new</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">M</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span>
-    <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    {
-        <span class="kw">use</span> <span class="kw">crate</span>::{
-            <span class="ident">exec</span>::<span class="ident">Executable</span>,
-            <span class="ident">syntax</span>::<span class="ident">ast</span>::{
-                <span class="ident">node</span>::{<span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>},
-                <span class="ident">Const</span>,
-            },
-        };
-
-        <span class="ident">New</span>::<span class="ident">from</span>(<span class="ident">Call</span>::<span class="ident">new</span>(
-            <span class="ident">Identifier</span>::<span class="ident">from</span>(<span class="string">&quot;RangeError&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="ident">interpreter</span>)
     }
 
     <span class="doccomment">/// Initialise the global object with the `RangeError` object.</span>
