@@ -36,6 +36,9 @@ pub use internal_state::{InternalState, InternalStateCell};
 pub mod internal_methods_trait;
 mod internal_state;
 
+#[cfg(test)]
+mod tests;
+
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
@@ -605,12 +608,13 @@ pub fn has_own_property(this: &mut Value, args: &[Value], ctx: &mut Interpreter)
     } else {
         Some(ctx.to_string(args.get(0).expect("Cannot get object"))?)
     };
-    Ok(Value::from(
-        prop.is_some()
-            && this
-                .get_property(&prop.expect("Cannot get object"))
-                .is_some(),
-    ))
+    let own_property =
+        this
+        .as_object()
+        .as_deref()
+        .expect("Cannot get THIS object")
+        .get_own_property(&Value::string(&prop.expect("cannot get prop")));
+    own_property.value.as_ref().map_or_else(|| Ok(Value::from(false)), |val| Ok(!Value::from(val.is_undefined())))
 }
 
 /// Create a new `Object` object.
