@@ -20,3 +20,21 @@ fn object_has_own_property() {
         "false"
     );
 }
+
+#[test]
+fn object_property_is_enumerable() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        let x = { enumerableProp: 'yes' };
+    "#;
+    eprintln!("{}", forward(&mut engine, init));
+    assert_eq!(
+        forward(&mut engine, r#"x.propertyIsEnumerable('enumerableProp')"#),
+        "true"
+    );
+    assert_eq!(
+        forward(&mut engine, r#"x.propertyIsEnumerable('hasOwnProperty')"#),
+        "false"
+    );
+}

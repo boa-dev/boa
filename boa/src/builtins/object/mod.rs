@@ -472,11 +472,39 @@ pub fn has_own_property(this: &mut Value, args: &[Value], ctx: &mut Interpreter)
     }
 }
 
+pub fn property_is_enumerable(
+    this: &mut Value,
+    args: &[Value],
+    ctx: &mut Interpreter,
+) -> ResultValue {
+    let key = if args.is_empty() {
+        None
+    } else {
+        Some(args.get(0).expect("Cannot get object"))
+    };
+
+    let property_key = ctx.to_property_key(&mut key.unwrap().clone())?;
+    let own_property = ctx.to_object(this).map(|obj| {
+        obj.as_object()
+            .as_deref()
+            .expect("got an error here")
+            .get_own_property(&property_key)
+    });
+    println!("calling here");
+    let unwrapped_own_prop = own_property.expect("bummer");
+    if unwrapped_own_prop.is_none() {
+        Ok(Value::from(false))
+    } else {
+        Ok(Value::from(unwrapped_own_prop.enumerable.unwrap()))
+    }
+}
+
 /// Create a new `Object` object.
 pub fn create(global: &Value) -> Value {
     let prototype = Value::new_object(None);
 
     make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
+    make_builtin_fn(property_is_enumerable, "propertyIsEnumerable", &prototype, 0);
     make_builtin_fn(to_string, "toString", &prototype, 0);
 
     let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
