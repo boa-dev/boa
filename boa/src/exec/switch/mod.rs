@@ -4,6 +4,9 @@ use crate::{
     syntax::ast::node::Switch,
 };
 
+#[cfg(test)]
+mod tests;
+
 impl Executable for Switch {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let default = self.default();

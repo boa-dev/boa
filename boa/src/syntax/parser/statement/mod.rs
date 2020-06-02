@@ -54,6 +54,7 @@ use crate::syntax::ast::{node, Keyword, Node, Punctuator, TokenKind};
 ///  - `WithStatement`
 ///  - `LabelledStatement`
 ///  - `ThrowStatement`
+///  - `SwitchStatement`
 ///  - `TryStatement`
 ///  - `DebuggerStatement`
 ///
