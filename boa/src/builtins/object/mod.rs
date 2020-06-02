@@ -614,7 +614,11 @@ pub fn has_own_property(this: &mut Value, args: &[Value], ctx: &mut Interpreter)
         .as_deref()
         .expect("Cannot get THIS object")
         .get_own_property(&Value::string(&prop.expect("cannot get prop")));
-    own_property.value.as_ref().map_or_else(|| Ok(Value::from(false)), |val| Ok(!Value::from(val.is_undefined())))
+    if own_property.is_none() {
+        Ok(Value::from(false))
+    } else {
+        Ok(Value::from(true))
+    }
 }
 
 /// Create a new `Object` object.
