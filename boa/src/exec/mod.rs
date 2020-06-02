@@ -143,7 +143,7 @@ impl Interpreter {
             ValueData::Integer(integer) => Ok(integer.to_string()),
             ValueData::String(string) => Ok(string.clone()),
             ValueData::Symbol(_) => {
-                self.throw_type_error("TypeError: \"can't convert symbol to string\"")?;
+                self.throw_type_error("can't convert symbol to string")?;
                 unreachable!();
             }
             ValueData::BigInt(ref bigint) => Ok(BigInt::to_native_string(bigint)),
