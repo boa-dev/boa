@@ -10,7 +10,13 @@ fn object_has_own_property() {
 
     eprintln!("{}", forward(&mut engine, init));
     assert_eq!(forward(&mut engine, "x.hasOwnProperty('someProp')"), "true");
-    assert_eq!(forward(&mut engine, "x.hasOwnProperty('undefinedProp')"), "true");
+    assert_eq!(
+        forward(&mut engine, "x.hasOwnProperty('undefinedProp')"),
+        "true"
+    );
     assert_eq!(forward(&mut engine, "x.hasOwnProperty('nullProp')"), "true");
-    assert_eq!(forward(&mut engine, "x.hasOwnProperty('hasOwnProperty')"), "false");
+    assert_eq!(
+        forward(&mut engine, "x.hasOwnProperty('hasOwnProperty')"),
+        "false"
+    );
 }

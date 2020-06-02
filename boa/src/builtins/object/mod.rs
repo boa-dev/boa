@@ -608,8 +608,7 @@ pub fn has_own_property(this: &mut Value, args: &[Value], ctx: &mut Interpreter)
     } else {
         Some(ctx.to_string(args.get(0).expect("Cannot get object"))?)
     };
-    let own_property =
-        this
+    let own_property = this
         .as_object()
         .as_deref()
         .expect("Cannot get THIS object")
