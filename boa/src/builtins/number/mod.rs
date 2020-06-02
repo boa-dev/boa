@@ -24,12 +24,11 @@ use crate::{
     builtins::{
         object::internal_methods_trait::ObjectInternalMethods,
         value::{ResultValue, Value, ValueData},
-        RangeError,
     },
     exec::Interpreter,
 };
 use num_traits::float::FloatCore;
-use std::{borrow::Borrow, f64, ops::Deref};
+use std::{borrow::Borrow, ops::Deref};
 
 const BUF_SIZE: usize = 2200;
 
@@ -354,10 +353,8 @@ impl Number {
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
         if radix < 2 || radix > 36 {
-            return Err(RangeError::run_new(
-                "radix must be an integer at least 2 and no greater than 36",
-                ctx,
-            )?);
+            return ctx
+                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }
 
         if x == -0. {
@@ -428,9 +425,9 @@ impl Number {
         number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
         number.set_field("MAX_VALUE", Value::from(std::f64::MAX));
         number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
-        number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
-        number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-        number.set_field("NaN", Value::from(f64::NAN));
+        number.set_field("NEGATIVE_INFINITY", Value::from(std::f64::NEG_INFINITY));
+        number.set_field("POSITIVE_INFINITY", Value::from(std::f64::INFINITY));
+        number.set_field("NaN", Value::from(std::f64::NAN));
 
         number
     }
