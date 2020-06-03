@@ -136,3 +136,65 @@ fn default_not_taken_switch() {
     "#;
     assert_eq!(&exec(scenario), "150");
 }
+
+#[test]
+fn string_switch() {
+    let scenario = r#"
+        let a = "hello";
+
+        switch (a) {
+            case "hello":
+                a = "world";
+                break;
+            default:
+                a = "hi";
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "world");
+}
+
+#[test]
+fn bigger_switch_example() {
+    let expected = ["Mon", "Tue", "Wed", "Thurs", "Fri", "Sat", "Sun"];
+
+    for (i, val) in expected.iter().enumerate() {
+        let scenario = format!(
+            r#"
+            let a = {};
+            let b = "unknown";
+
+            switch (a) {{
+                case 0:
+                    b = "Mon";
+                    break;
+                case 1:
+                    b = "Tue";
+                    break;
+                case 2:
+                    b = "Wed";
+                    break;
+                case 3:
+                    b = "Thurs";
+                    break;
+                case 4:
+                    b = "Fri";
+                    break;
+                case 5:
+                    b = "Sat";
+                    break;
+                case 6:
+                    b = "Sun";
+                    break; 
+            }}
+
+            b;
+
+            "#,
+            i
+        );
+
+        assert_eq!(&exec(&scenario), val);
+    }
+}
