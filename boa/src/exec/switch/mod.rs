@@ -13,15 +13,25 @@ impl Executable for Switch {
         let val = self.val().run(interpreter)?;
         let mut result = Value::null();
         let mut matched = false;
+        interpreter.is_break = false;
+
+        // If a case block does not end with a break statement then subsequent cases will be run without
+        // checking their conditions until a break is encountered.
+        let mut fall_through: bool = false;
+
         for case in self.cases().iter() {
             let cond = case.condition();
             let block = case.body();
-            if val.strict_equals(&cond.run(interpreter)?) {
+            if fall_through || val.strict_equals(&cond.run(interpreter)?) {
                 matched = true;
                 block.run(interpreter)?;
+                if interpreter.is_break {
+                    // Break statement encountered so therefore end switch statement.
+                    break;
+                } else {
+                    fall_through = true;
+                }
             }
-
-            // TODO: break out of switch on a break statement.
         }
         if !matched {
             if let Some(default) = default {
