@@ -118,7 +118,7 @@ impl TokenParser for CaseBlock {
                         self.allow_return,
                         true,
                     )
-                    .parse_generalised(cursor, Box::new(CASE_BREAK_TOKENS))?;
+                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
@@ -147,7 +147,7 @@ impl TokenParser for CaseBlock {
                         self.allow_return,
                         true,
                     )
-                    .parse_generalised(cursor, Box::new(CASE_BREAK_TOKENS))?;
+                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
 
                     default = Some(node::Block::from(statement_list).into());
                 }

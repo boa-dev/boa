@@ -219,7 +219,7 @@ impl StatementList {
     pub(crate) fn parse_generalised(
         self,
         cursor: &mut Cursor<'_>,
-        break_nodes: Box<[TokenKind]>,
+        break_nodes: &[TokenKind],
     ) -> Result<node::StatementList, ParseError> {
         let mut items = Vec::new();
 
