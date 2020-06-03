@@ -4,6 +4,7 @@ mod array;
 mod block;
 mod conditional;
 mod declaration;
+mod exception;
 mod expression;
 mod field;
 mod iteration;
@@ -147,7 +148,10 @@ impl Interpreter {
             ValueData::Rational(rational) => Ok(Number::to_native_string(*rational)),
             ValueData::Integer(integer) => Ok(integer.to_string()),
             ValueData::String(string) => Ok(string.clone()),
-            ValueData::Symbol(_) => panic!("TypeError exception."),
+            ValueData::Symbol(_) => {
+                self.throw_type_error("can't convert symbol to string")?;
+                unreachable!();
+            }
             ValueData::BigInt(ref bigint) => Ok(BigInt::to_native_string(bigint)),
             ValueData::Object(_) => {
                 let primitive = self.to_primitive(&mut value.clone(), Some("string"));
@@ -268,7 +272,7 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-toobject
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
-        match *value.deref().borrow() {
+        match value.data() {
             ValueData::Undefined | ValueData::Integer(_) | ValueData::Null => {
                 Err(Value::undefined())
             }

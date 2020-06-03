@@ -170,7 +170,7 @@ fn json_stringify_function_replacer_propogate_error() {
         thrown
         "#,
     );
-    let expected = forward(&mut engine, r#"1"#);
+    let expected = forward(&mut engine, "1");
 
     assert_eq!(actual, expected);
 }

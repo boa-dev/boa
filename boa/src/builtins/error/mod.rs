@@ -23,9 +23,10 @@ use crate::{
 pub(crate) mod range;
 // mod reference;
 // mod syntax;
-// mod type_err;
+pub(crate) mod r#type;
 // mod uri;
 
+pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
 
 /// Built-in `Error` object.
@@ -48,7 +49,7 @@ impl Error {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_kind(ObjectKind::Error);
-        Ok(Value::undefined())
+        Err(this.clone())
     }
 
     /// `Error.prototype.toString()`
