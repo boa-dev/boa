@@ -2,6 +2,7 @@
 
 mod array;
 mod block;
+mod break_node;
 mod conditional;
 mod declaration;
 mod expression;
@@ -45,8 +46,12 @@ pub trait Executable {
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
-    /// Wether it's running a return statement.
+    /// Whether it's running a return statement.
     is_return: bool,
+
+    /// Whether it's running a break statement.
+    is_break: bool,
+
     /// realm holds both the global object and the environment
     pub realm: Realm,
 }
@@ -57,6 +62,7 @@ impl Interpreter {
         Self {
             realm,
             is_return: false,
+            is_break: false,
         }
     }
 
@@ -417,6 +423,7 @@ impl Executable for Node {
                 Ok(interpreter.realm().environment.get_this_binding())
             }
             Node::Try(ref try_node) => try_node.run(interpreter),
+            Node::Break(ref break_node) => break_node.run(interpreter),
             ref i => unimplemented!("{:?}", i),
         }
     }
