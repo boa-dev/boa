@@ -1,13 +1,19 @@
-//! This module implements the global `RangeError` object.
+//! This module implements the global `TypeError` object.
 //!
-//! Indicates a value that is not in the set or range of allowable values.
+//! The `TypeError` object represents an error when an operation could not be performed,
+//! typically (but not exclusively) when a value is not of the expected type.
+//!
+//! A `TypeError` may be thrown when:
+//!  - an operand or argument passed to a function is incompatible with the type expected by that operator or function.
+//!  - when attempting to modify a value that cannot be changed.
+//!  - when attempting to use a value in an inappropriate way.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
+//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 use crate::{
     builtins::{
@@ -19,11 +25,11 @@ use crate::{
     exec::Interpreter,
 };
 
-/// JavaScript `RangeError` impleentation.
+/// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct RangeError;
+pub(crate) struct TypeError;
 
-impl RangeError {
+impl TypeError {
     /// Create a new error object.
     pub(crate) fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         if !args.is_empty() {
@@ -36,6 +42,7 @@ impl RangeError {
                 ),
             );
         }
+
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_kind(ObjectKind::Error);
@@ -66,11 +73,11 @@ impl RangeError {
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
-        make_constructor_fn("RangeError", 1, Self::make_error, global, prototype, true)
+        make_constructor_fn("TypeError", 1, Self::make_error, global, prototype, true)
     }
 
     /// Initialise the global object with the `RangeError` object.
     pub(crate) fn init(global: &Value) {
-        global.set_field("RangeError", Self::create(global));
+        global.set_field("TypeError", Self::create(global));
     }
 }

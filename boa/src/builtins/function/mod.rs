@@ -224,7 +224,7 @@ impl Function {
         if self.constructable {
             match self.body {
                 FunctionBody::BuiltIn(func) => {
-                    func(this_obj, args_list, interpreter).unwrap();
+                    func(this_obj, args_list, interpreter)?;
                     Ok(this_obj.clone())
                 }
                 FunctionBody::Ordinary(ref body) => {
