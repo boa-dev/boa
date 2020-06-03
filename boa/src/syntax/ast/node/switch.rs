@@ -29,7 +29,7 @@ impl Case {
     pub fn new<C, B>(condition: C, body: B) -> Self
     where
         C: Into<Node>,
-        B: Into<StatementList>
+        B: Into<StatementList>,
     {
         Self {
             condition: condition.into(),

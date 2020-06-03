@@ -181,7 +181,7 @@ pub(super) struct StatementList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    break_when_closingbrase: bool,
+    break_when_closingbraces: bool,
 }
 
 impl StatementList {
@@ -190,7 +190,7 @@ impl StatementList {
         allow_yield: Y,
         allow_await: A,
         allow_return: R,
-        break_when_closingbrase: bool,
+        break_when_closingbraces: bool,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -201,8 +201,47 @@ impl StatementList {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
-            break_when_closingbrase,
+            break_when_closingbraces,
         }
+    }
+
+    /// The function parses a node::StatementList using the given break_nodes to know when to terminate.
+    ///
+    /// This ignores the break_when_closingbraces flag.
+    ///
+    /// Returns a ParseError::AbruptEnd if end of stream is reached before a break token.
+    ///
+    /// This is a more general version of the TokenParser parse function for StatementList which can exit based on multiple
+    /// different tokens. This may eventually replace the parse() function but is currently seperate to allow testing the
+    /// performance impact of this more general mechanism.
+    ///
+    /// Note that the last token which causes the parse to finish is not consumed.
+    pub(crate) fn parse_generalised(
+        self,
+        cursor: &mut Cursor<'_>,
+        break_nodes: Box<[TokenKind]>,
+    ) -> Result<node::StatementList, ParseError> {
+        let mut items = Vec::new();
+
+        loop {
+            match cursor.peek(0) {
+                Some(token) if break_nodes.contains(&token.kind) => break,
+                None => return Err(ParseError::AbruptEnd),
+                _ => {}
+            }
+
+            let item =
+                StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor)?;
+            items.push(item);
+
+            // move the cursor forward for any consecutive semicolon.
+            while cursor.next_if(Punctuator::Semicolon).is_some() {}
+        }
+
+        items.sort_by(Node::hoistable_order);
+
+        Ok(items.into())
     }
 }
 
@@ -215,14 +254,14 @@ impl TokenParser for StatementList {
         loop {
             match cursor.peek(0) {
                 Some(token) if token.kind == TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    if self.break_when_closingbrase {
+                    if self.break_when_closingbraces {
                         break;
                     } else {
                         return Err(ParseError::unexpected(token.clone(), None));
                     }
                 }
                 None => {
-                    if self.break_when_closingbrase {
+                    if self.break_when_closingbraces {
                         return Err(ParseError::AbruptEnd);
                     } else {
                         break;
