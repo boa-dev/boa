@@ -389,6 +389,8 @@ impl Number {
         Ok(Value::from(Self::to_native_string_radix(x, radix)))
     }
 
+    co
+
     /// `Number.prototype.toString()`
     ///
     /// The `valueOf()` method returns the wrapped primitive value of a Number object.
@@ -407,6 +409,26 @@ impl Number {
         Ok(Self::to_number(this))
     }
 
+    pub(crate) fn parseInt(
+        this: &mut Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        if (args.len() > PARSE_INT_ARG_COUNT) {
+
+        }
+    }
+
+    pub(crate) fn parseFloat(
+        this: &mut Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        if (args.len() > PARSE_FLOAT_ARG_COUNT) {
+            
+        }
+    }
+
     /// Create a new `Number` object
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
@@ -418,6 +440,9 @@ impl Number {
         make_builtin_fn(Self::to_precision, "toPrecision", &prototype, 1);
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
+
+        make_builtin_fn(Self::parseInt, "parseInt", global, 1);
+        make_builtin_fn(Self::parseInt, "parseFloat", global, 1);
 
         let number = make_constructor_fn("Number", 1, Self::make_number, global, prototype, true);
 

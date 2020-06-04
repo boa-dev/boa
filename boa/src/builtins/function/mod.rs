@@ -427,7 +427,22 @@ pub fn make_constructor_fn(
 }
 
 /// Macro to create a new member function of a prototype.
+/// 
+/// A function registered using this macro can then be called from Javascript using:
+/// 
+/// parent.name()
+/// 
+/// See the javascript 'Number.toString()' as an example.
 ///
+/// # Arguments
+/// function: The function to register as a built in function.
+/// name: The name of the function (how it will be called but without the ()).
+/// parent: The object to register the function on, if the global object is used then the function is instead called as name() 
+///     without requiring the parent, see parseInt() as an example.
+/// length: As described at https://tc39.es/ecma262/#sec-function-instances-length, The value of the "length" property is an integer that 
+///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with 
+///     some other number of arguments.
+/// 
 /// If no length is provided, the length will be set to 0.
 pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value, length: i32)
 where
