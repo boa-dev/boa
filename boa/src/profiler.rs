@@ -24,6 +24,8 @@ pub struct BoaProfiler {
     profiler: Profiler<SerializationSink>,
 }
 
+/// This static instance should never be public, and its only access should be done through the `global()` and `drop()` methods
+/// This is because `get_or_init` manages synchronisation and the case of an empty value
 #[cfg(feature = "profiler")]
 static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
 
