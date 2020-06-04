@@ -685,7 +685,7 @@ impl ValueData {
                     new_obj.properties.insert(
                         idx.to_string(),
                         Property::default()
-                            .value(Value::from(json.clone()))
+                            .value(Value(Gc::new(ValueData::from_json(json.clone()))))
                             .writable(true)
                             .configurable(true),
                     );
@@ -702,7 +702,7 @@ impl ValueData {
                     new_obj.properties.insert(
                         key.clone(),
                         Property::default()
-                            .value(Value::from(json.clone()))
+                            .value(Value(Gc::new(ValueData::from_json(json.clone()))))
                             .writable(true)
                             .configurable(true),
                     );
