@@ -42,7 +42,10 @@ fn check_template_literal_simple() {
     let s = "`I'm a template literal`";
     let mut lexer = Lexer::new(s);
     lexer.lex().expect("failed to lex");
-    assert_eq!(lexer.tokens[0].kind, TokenKind::template_literal("I'm a template literal"));
+    assert_eq!(
+        lexer.tokens[0].kind,
+        TokenKind::template_literal("I'm a template literal")
+    );
 }
 
 #[test]
