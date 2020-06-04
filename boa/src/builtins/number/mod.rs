@@ -37,6 +37,9 @@ const BUF_SIZE: usize = 2200;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Number;
 
+const PARSE_INT_MAX_ARG_COUNT: i32 = 2;
+const PARSE_FLOAT_MAX_ARG_COUNT: i32 = 2;
+
 impl Number {
     /// Helper function that converts a Value to a Number.
     #[allow(clippy::wrong_self_convention)]
@@ -389,8 +392,6 @@ impl Number {
         Ok(Value::from(Self::to_native_string_radix(x, radix)))
     }
 
-    co
-
     /// `Number.prototype.toString()`
     ///
     /// The `valueOf()` method returns the wrapped primitive value of a Number object.
@@ -409,24 +410,60 @@ impl Number {
         Ok(Self::to_number(this))
     }
 
-    pub(crate) fn parseInt(
-        this: &mut Value,
+    pub(crate) fn parse_int(
+        _this: &mut Value,
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        if (args.len() > PARSE_INT_ARG_COUNT) {
+        let mut radix: u32 = if let Some(r) = args.get(1) {
+            if let ValueData::Integer(i) = r.data() {
+                *i as u32
+            } else {
+                unimplemented!("Handling a second argument that isn't an integer");
+            }
+        } else {
+            0
+        };
 
+        if let Some(v) = args.get(0) {
+            match v.data() {
+                ValueData::String(s) => {
+                    if radix == 0 {
+                        radix = if s.starts_with("0x") || s.starts_with("0X") {
+                            16
+                        } else {
+                            10
+                        };
+                    }
+
+                    if let Ok(i) = i32::from_str_radix(s, radix) {
+                        Ok(Value::integer(i))
+                    } else {
+                        unimplemented!("Handling string that cannot be parsed");
+                    }
+                }
+                ValueData::Integer(i) => Ok(Value::integer(*i)),
+                ValueData::Rational(_f) => {
+                    unimplemented!("Handling rational argument type to parseInt");
+                }
+                _ => {
+                    unimplemented!("Handling wrong argument type to parseInt");
+                }
+            }
+        } else {
+            unimplemented!("Handling wrong argument count to parseInt");
         }
     }
 
-    pub(crate) fn parseFloat(
-        this: &mut Value,
-        args: &[Value],
+    pub(crate) fn parse_float(
+        _this: &mut Value,
+        _args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        if (args.len() > PARSE_FLOAT_ARG_COUNT) {
-            
-        }
+        // if (args.len() > PARSE_FLOAT_MAX_ARG_COUNT || args.len() < 1) {
+        //     unimplemented!("Handling wrong argument count to parseFloat");
+        // }
+        unimplemented!("parseFloat not yet implemented");
     }
 
     /// Create a new `Number` object
@@ -441,8 +478,13 @@ impl Number {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_builtin_fn(Self::parseInt, "parseInt", global, 1);
-        make_builtin_fn(Self::parseInt, "parseFloat", global, 1);
+        make_builtin_fn(Self::parse_int, "parseInt", global, PARSE_INT_MAX_ARG_COUNT);
+        make_builtin_fn(
+            Self::parse_float,
+            "parseFloat",
+            global,
+            PARSE_FLOAT_MAX_ARG_COUNT,
+        );
 
         let number = make_constructor_fn("Number", 1, Self::make_number, global, prototype, true);
 

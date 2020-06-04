@@ -470,3 +470,101 @@ fn number_constants() {
         .unwrap()
         .is_null_or_undefined());
 }
+
+#[test]
+fn parse_int_simple() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(\"6\")"), "6");
+}
+
+#[test]
+fn parse_int_negative() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(\"-9\")"), "-9");
+}
+
+#[test]
+fn parse_int_already_int() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(100)"), "100");
+}
+
+#[test]
+fn parse_int_float() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(100.5)"), "100");
+}
+
+#[test]
+fn parse_int_float_str() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(\"100.5\")"), "100");
+}
+
+#[test]
+fn parse_int_inferred_hex() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(\"0xA\")"), "10");
+}
+
+/// This test demonstrates that this version of parseInt treats strings starting with 0 to be parsed with
+/// a radix 10 if no radix is specified. Some alternative implementations default to a radix of 8.
+#[test]
+fn parse_int_zero_start() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(\"018\")"), "18");
+}
+
+#[test]
+fn parse_int_varying_radix() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let base_str = "1000";
+
+    for radix in 2..36 {
+        let expected = i32::from_str_radix(base_str, radix).unwrap();
+
+        assert_eq!(
+            forward(
+                &mut engine,
+                &format!("parseInt(\"{}\", {} )", base_str, radix)
+            ),
+            expected.to_string()
+        );
+    }
+}
+
+#[test]
+fn parse_int_negative_varying_radix() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let base_str = "-1000";
+
+    for radix in 2..36 {
+        let expected = i32::from_str_radix(base_str, radix).unwrap();
+
+        assert_eq!(
+            forward(
+                &mut engine,
+                &format!("parseInt(\"{}\", {} )", base_str, radix)
+            ),
+            expected.to_string()
+        );
+    }
+}
