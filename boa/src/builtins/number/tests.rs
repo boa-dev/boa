@@ -508,7 +508,7 @@ fn parse_int_float_str() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(&forward(&mut engine, "parseInt(\"100.5\")"), "100");
+    assert_eq!(&forward(&mut engine, "parseInt(\"100.5\")"), "NaN");
 }
 
 #[test]

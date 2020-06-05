@@ -40,9 +40,6 @@ pub(crate) struct Number;
 const PARSE_INT_MAX_ARG_COUNT: i32 = 2;
 const PARSE_FLOAT_MAX_ARG_COUNT: i32 = 2;
 
-
-const NAN_VAL: Value = Value::from(f64::NAN);
-
 impl Number {
     /// Helper function that converts a Value to a Number.
     #[allow(clippy::wrong_self_convention)]
@@ -423,7 +420,7 @@ impl Number {
                 *i as u32
             } else {
                 // Handling a second argument that isn't an integer
-                Err(Value::undefined())
+                return Err(Value::undefined());
             }
         } else {
             0
@@ -433,10 +430,15 @@ impl Number {
             match v.data() {
                 ValueData::String(s) => {
                     if radix == 0 {
-                        radix = if s.starts_with("0x") || s.starts_with("0X") {
-                            16
+                        if s.starts_with("0x") || s.starts_with("0X") {
+                            if let Ok(i) = i32::from_str_radix(&s[2..], 16) {
+                                return Ok(Value::integer(i));
+                            } else {
+                                // String can't be parsed.
+                                return Err(Value::from(f64::NAN));
+                            }
                         } else {
-                            10
+                            radix = 10
                         };
                     }
 
@@ -444,7 +446,7 @@ impl Number {
                         Ok(Value::integer(i))
                     } else {
                         // String can't be parsed.
-                        Err(NAN_VAL)
+                        Err(Value::from(f64::NAN))
                     }
                 }
                 ValueData::Integer(i) => Ok(Value::integer(*i)),
@@ -502,7 +504,7 @@ impl Number {
         number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
         number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
         number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-        number.set_field("NaN", NAN_VAL);
+        number.set_field("NaN", Value::from(f64::NAN));
 
         number
     }
