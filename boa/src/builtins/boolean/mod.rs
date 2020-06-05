@@ -19,6 +19,7 @@ use crate::{
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use std::{borrow::Borrow, ops::Deref};
 
@@ -128,6 +129,7 @@ impl Boolean {
     /// Initialise the `Boolean` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("boolean", "init");
         global.set_field("Boolean", Self::create(global));
     }
 }

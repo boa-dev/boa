@@ -1,9 +1,12 @@
-use crate::syntax::{
-    ast::{Keyword, Node, Punctuator},
-    parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseResult, TokenParser,
+use crate::{
+    syntax::{
+        ast::{Keyword, Node, Punctuator},
+        parser::{
+            expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
+            Cursor, ParseResult, TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// While statement parsing
@@ -45,6 +48,7 @@ impl TokenParser for WhileStatement {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
         cursor.expect(Keyword::While, "while statement")?;
         cursor.expect(Punctuator::OpenParen, "while statement")?;
 

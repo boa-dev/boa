@@ -14,6 +14,7 @@ use crate::{
         global_environment_record::GlobalEnvironmentRecord,
         object_environment_record::ObjectEnvironmentRecord,
     },
+    BoaProfiler,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -79,6 +80,7 @@ impl error::Error for EnvironmentError {
 
 impl LexicalEnvironment {
     pub fn new(global: Value) -> Self {
+        let _timer = BoaProfiler::global().start_event("LexicalEnvironment::new", "env");
         let global_env = new_global_environment(global.clone(), global);
         let mut lexical_env = Self {
             environment_stack: VecDeque::new(),
@@ -219,6 +221,7 @@ impl LexicalEnvironment {
 }
 
 pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
+    let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
     let boxed_env = Box::new(DeclarativeEnvironmentRecord {
         env_rec: FxHashMap::default(),
         outer_env: env,

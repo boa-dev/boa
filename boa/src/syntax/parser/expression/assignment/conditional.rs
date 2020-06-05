@@ -7,12 +7,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
-use crate::syntax::{
-    ast::{Node, Punctuator, TokenKind},
-    parser::{
-        expression::{AssignmentExpression, LogicalORExpression},
-        AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+use crate::{
+    syntax::{
+        ast::{Node, Punctuator, TokenKind},
+        parser::{
+            expression::{AssignmentExpression, LogicalORExpression},
+            AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// Conditional expression parsing.
@@ -54,6 +57,7 @@ impl TokenParser for ConditionalExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("Conditional", "Parsing");
         // TODO: coalesce expression
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;

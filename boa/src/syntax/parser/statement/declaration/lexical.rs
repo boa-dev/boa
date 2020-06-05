@@ -7,15 +7,18 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
-use crate::syntax::{
-    ast::{
-        node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
-        Keyword, Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
+            Keyword, Punctuator, TokenKind,
+        },
+        parser::{
+            expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
+            Cursor, ParseError, ParseResult, TokenParser,
+        },
     },
-    parser::{
-        expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-        Cursor, ParseError, ParseResult, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Parses a lexical declaration.
@@ -51,6 +54,7 @@ impl TokenParser for LexicalDeclaration {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
         let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {

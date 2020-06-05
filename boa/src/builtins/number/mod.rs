@@ -26,6 +26,7 @@ use crate::{
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use num_traits::float::FloatCore;
 use std::{borrow::Borrow, ops::Deref};
@@ -435,6 +436,7 @@ impl Number {
     /// Initialise the `Number` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("number", "init");
         global.set_field("Number", Self::create(global));
     }
 

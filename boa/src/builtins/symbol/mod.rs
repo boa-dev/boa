@@ -28,6 +28,7 @@ use crate::{
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use gc::{Gc, GcCell};
 use rand::random;
@@ -100,5 +101,6 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `Symbol` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
+    let _timer = BoaProfiler::global().start_event("symbol", "init");
     global.set_field("Symbol", create(global));
 }

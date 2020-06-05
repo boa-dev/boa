@@ -19,6 +19,7 @@ use crate::{
     },
     exec::Interpreter,
     syntax::ast::bigint::BigInt as AstBigInt,
+    BoaProfiler,
 };
 
 #[cfg(test)]
@@ -138,6 +139,7 @@ impl BigInt {
     /// Initialise the `BigInt` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("bigint", "init");
         global.set_field("BigInt", Self::create(global));
     }
 }
