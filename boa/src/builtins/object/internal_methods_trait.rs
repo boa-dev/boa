@@ -5,10 +5,13 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
-use crate::builtins::{
-    object::{Object, INSTANCE_PROTOTYPE},
-    property::Property,
-    value::{same_value, Value, ValueData},
+use crate::{
+    builtins::{
+        object::{Object, INSTANCE_PROTOTYPE},
+        property::Property,
+        value::{same_value, Value, ValueData},
+    },
+    BoaProfiler,
 };
 use std::borrow::Borrow;
 use std::ops::Deref;
@@ -131,6 +134,7 @@ pub trait ObjectInternalMethods {
     /// [[Set]]
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
     fn set(&mut self, field: Value, val: Value) -> bool {
+        let _timer = BoaProfiler::global().start_event("Object::set", "object");
         // [1]
         debug_assert!(Property::is_property_key(&field));
 
@@ -168,6 +172,7 @@ pub trait ObjectInternalMethods {
     }
 
     fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
+        let _timer = BoaProfiler::global().start_event("Object::define_own_property", "object");
         let mut current = self.get_own_property(&Value::from(property_key.to_string()));
         let extensible = self.is_extensible();
 

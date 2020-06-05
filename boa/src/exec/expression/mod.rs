@@ -7,10 +7,12 @@ use crate::{
         value::{ResultValue, Type, Value, ValueData},
     },
     syntax::ast::node::{Call, New, Node},
+    BoaProfiler,
 };
 
 impl Executable for Call {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (mut this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(interpreter)?;

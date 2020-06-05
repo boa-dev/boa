@@ -71,6 +71,10 @@ See [CHANGELOG.md](./CHANGELOG.md).
 - Run with `cargo run -- test.js` where `test.js` is an existing JS file.
 - If any JS doesn't work then it's a bug. Please raise an issue!
 
+## Profiling
+
+See [Profiling](./docs/profiling.md)
+
 ## Command-line Options
 
 ```

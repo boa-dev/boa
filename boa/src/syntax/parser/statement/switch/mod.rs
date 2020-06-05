@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests;
 
+
 use crate::syntax::{
     ast::{
         node::{Case, Switch},
@@ -9,7 +10,17 @@ use crate::syntax::{
     parser::{
         expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
         TokenParser,
+
+use crate::{
+    syntax::{
+        ast::{Keyword, Node, Punctuator},
+        parser::{
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+            ParseResult, TokenParser,
+        },
+
     },
+    BoaProfiler,
 };
 
 /// Switch statement parsing.
@@ -47,6 +58,7 @@ impl TokenParser for SwitchStatement {
     type Output = Switch;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
 

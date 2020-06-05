@@ -5,6 +5,7 @@ use crate::{
     builtins::value::ResultValue,
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     syntax::ast::node::Try,
+    BoaProfiler,
 };
 
 #[cfg(test)]
@@ -12,6 +13,7 @@ mod tests;
 
 impl Executable for Try {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Try", "exec");
         let res = self.block().run(interpreter).map_or_else(
             |err| {
                 if let Some(catch) = self.catch() {
