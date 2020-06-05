@@ -8,16 +8,18 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arrow-function-definitions
 
 use super::AssignmentExpression;
-use crate::syntax::{
-    ast::{
-        node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
-        Punctuator, TokenKind,
-    },
-    parser::{
-        error::{ErrorContext, ParseError, ParseResult},
-        function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
-        AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+use crate::{
+    syntax::{
+        ast::{
+            node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
+            Punctuator, TokenKind,
+        },
+        parser::{
+            error::{ErrorContext, ParseError, ParseResult},
+            function::{FormalParameters, FunctionBody},
+            statement::BindingIdentifier,
+            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+        },
     },
     BoaProfiler,
 };

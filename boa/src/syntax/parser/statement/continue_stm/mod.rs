@@ -11,9 +11,10 @@
 mod tests;
 
 use super::LabelIdentifier;
-use crate::syntax::{
-    ast::{node::Continue, Keyword, Punctuator, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+use crate::{
+    syntax::{
+        ast::{node::Continue, Keyword, Punctuator, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };

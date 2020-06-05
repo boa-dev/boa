@@ -10,13 +10,16 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{ArrayDecl, Node, Spread},
-        Const, Punctuator,
-    },
-    parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+use crate::{
+    syntax::{
+        ast::{
+            node::{ArrayDecl, Node, Spread},
+            Const, Punctuator,
+        },
+        parser::{
+            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
+            TokenParser,
+        },
     },
     BoaProfiler,
 };

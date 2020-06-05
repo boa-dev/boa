@@ -7,11 +7,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
-use crate::syntax::{
-    ast::{node::ConditionalOp, Node, Punctuator, TokenKind},
-    parser::{
-        expression::{AssignmentExpression, LogicalORExpression},
-        AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+use crate::{
+    syntax::{
+        ast::{node::ConditionalOp, Node, Punctuator, TokenKind},
+        parser::{
+            expression::{AssignmentExpression, LogicalORExpression},
+            AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+        },
     },
     BoaProfiler,
 };

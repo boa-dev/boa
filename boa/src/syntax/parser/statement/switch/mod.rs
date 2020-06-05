@@ -1,14 +1,16 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{Case, Switch},
-        Keyword, Node, Punctuator,
-    },
-    parser::{
-        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-        TokenParser,
+use crate::{
+    syntax::{
+        ast::{
+            node::{Case, Switch},
+            Keyword, Node, Punctuator,
+        },
+        parser::{
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+            TokenParser,
+        },
     },
     BoaProfiler,
 };
