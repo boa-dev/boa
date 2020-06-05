@@ -1,9 +1,12 @@
-use crate::syntax::{
-    ast::{node, Keyword},
-    parser::{
-        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-        TokenParser,
+use crate::{
+    syntax::{
+        ast::{node, Keyword},
+        parser::{
+            statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+            TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// Finally parsing
@@ -41,6 +44,7 @@ impl TokenParser for Finally {
     type Output = node::Finally;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("Finally", "Parsing");
         cursor.expect(Keyword::Finally, "try statement")?;
         Ok(
             Block::new(self.allow_yield, self.allow_await, self.allow_return)

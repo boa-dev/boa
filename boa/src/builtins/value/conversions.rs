@@ -9,6 +9,7 @@ impl From<&Value> for Value {
 
 impl From<String> for Value {
     fn from(value: String) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<String>", "value");
         Self::string(value)
     }
 }
@@ -164,6 +165,7 @@ where
 
 impl From<Object> for Value {
     fn from(object: Object) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<Object>", "value");
         Value::object(object)
     }
 }

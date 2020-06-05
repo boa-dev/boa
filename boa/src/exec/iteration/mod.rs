@@ -5,12 +5,14 @@ use crate::{
     builtins::value::{ResultValue, Value},
     environment::lexical_environment::new_declarative_environment,
     syntax::ast::node::{DoWhileLoop, ForLoop, WhileLoop},
+    BoaProfiler,
 };
 use std::borrow::Borrow;
 
 impl Executable for ForLoop {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         // Create the block environment.
+        let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
             let env = &mut interpreter.realm_mut().environment;
             env.push(new_declarative_environment(Some(

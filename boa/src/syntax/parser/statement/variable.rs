@@ -1,13 +1,16 @@
 // use super::lexical_declaration_continuation;
-use crate::syntax::{
-    ast::{
-        node::{VarDecl, VarDeclList},
-        Keyword, Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{VarDecl, VarDeclList},
+            Keyword, Punctuator, TokenKind,
+        },
+        parser::{
+            expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
+            Cursor, ParseError, TokenParser,
+        },
     },
-    parser::{
-        expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-        Cursor, ParseError, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Variable statement parsing.
@@ -44,6 +47,7 @@ impl TokenParser for VariableStatement {
     type Output = VarDeclList;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect(Keyword::Var, "variable statement")?;
 
         let decl_list =

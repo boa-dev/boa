@@ -8,6 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#prod-CallExpression
 
 use super::arguments::Arguments;
+
 use crate::syntax::{
     ast::{
         node::{
@@ -19,7 +20,20 @@ use crate::syntax::{
     parser::{
         expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
         TokenParser,
+
+use crate::{
+    syntax::{
+        ast::{
+            node::{Call, Node},
+            Punctuator, TokenKind,
+        },
+        parser::{
+            expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+            TokenParser,
+        },
+
     },
+    BoaProfiler,
 };
 
 /// Parses a call expression.
@@ -54,6 +68,7 @@ impl TokenParser for CallExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
         let mut lhs = match cursor.peek(0) {
             Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;

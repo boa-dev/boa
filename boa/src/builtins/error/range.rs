@@ -17,6 +17,7 @@ use crate::{
         value::{ResultValue, Value},
     },
     exec::Interpreter,
+    profiler::BoaProfiler,
 };
 
 /// JavaScript `RangeError` impleentation.
@@ -71,6 +72,7 @@ impl RangeError {
 
     /// Initialise the global object with the `RangeError` object.
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("rangeerror", "init");
         global.set_field("RangeError", Self::create(global));
     }
 }

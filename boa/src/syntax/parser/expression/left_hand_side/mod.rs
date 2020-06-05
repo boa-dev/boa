@@ -12,9 +12,12 @@ mod call;
 mod member;
 
 use self::{call::CallExpression, member::MemberExpression};
-use crate::syntax::{
-    ast::{Node, Punctuator, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+use crate::{
+    syntax::{
+        ast::{Node, Punctuator, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    },
+    BoaProfiler,
 };
 
 /// Parses a left hand side expression.
@@ -49,6 +52,7 @@ impl TokenParser for LeftHandSideExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
         match cursor.peek(0) {

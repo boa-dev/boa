@@ -17,6 +17,7 @@ use crate::{
         value::{ResultValue, Value},
     },
     exec::Interpreter,
+    profiler::BoaProfiler,
 };
 
 // mod eval;
@@ -81,6 +82,7 @@ impl Error {
 
     /// Initialise the global object with the `Error` object.
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("error", "init");
         global.set_field("Error", Self::create(global));
     }
 }

@@ -7,16 +7,19 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
 //! [spec]: https://tc39.es/ecma262/#sec-exp-operator
 
-use crate::syntax::{
-    ast::{
-        node::{BinOp, Node},
-        op::NumOp,
-        Keyword, Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{BinOp, Node},
+            op::NumOp,
+            Keyword, Punctuator, TokenKind,
+        },
+        parser::{
+            expression::{unary::UnaryExpression, update::UpdateExpression},
+            AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
+        },
     },
-    parser::{
-        expression::{unary::UnaryExpression, update::UpdateExpression},
-        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Parses an exponentiation expression.
@@ -71,6 +74,7 @@ impl TokenParser for ExponentiationExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("ExponentiationExpression", "Parsing");
         if Self::is_unary_expression(cursor) {
             return UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor);
         }

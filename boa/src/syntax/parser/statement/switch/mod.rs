@@ -1,12 +1,23 @@
 #[cfg(test)]
 mod tests;
 
+
 use crate::syntax::{
     ast::{node, node::Switch, Keyword, Node, Punctuator, TokenKind},
     parser::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
         Cursor, ParseError, Token, TokenParser,
+
+use crate::{
+    syntax::{
+        ast::{Keyword, Node, Punctuator},
+        parser::{
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+            ParseResult, TokenParser,
+        },
+
     },
+    BoaProfiler,
 };
 
 /// The possible TokenKind which indicate the end of a case statement.
@@ -51,6 +62,7 @@ impl TokenParser for SwitchStatement {
     type Output = Switch;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
 
