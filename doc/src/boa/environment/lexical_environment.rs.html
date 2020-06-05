@@ -348,6 +348,9 @@
 <span id="348">348</span>
 <span id="349">349</span>
 <span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Lexical Environment</span>
 <span class="doccomment">//!</span>
@@ -365,6 +368,7 @@
         <span class="ident">global_environment_record</span>::<span class="ident">GlobalEnvironmentRecord</span>,
         <span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>,
     },
+    <span class="ident">BoaProfiler</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
@@ -430,6 +434,7 @@
 
 <span class="kw">impl</span> <span class="ident">LexicalEnvironment</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">global</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LexicalEnvironment::new&quot;</span>, <span class="string">&quot;env&quot;</span>);
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexical_env</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">environment_stack</span>: <span class="ident">VecDeque</span>::<span class="ident">new</span>(),
@@ -570,6 +575,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_declarative_environment</span>(<span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
+    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;new_declarative_environment&quot;</span>, <span class="string">&quot;env&quot;</span>);
     <span class="kw">let</span> <span class="ident">boxed_env</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">DeclarativeEnvironmentRecord</span> {
         <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">outer_env</span>: <span class="ident">env</span>,

@@ -40,6 +40,8 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Iteration node execution.</span>
 
@@ -48,11 +50,13 @@
     <span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">new_declarative_environment</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">ForLoop</span>,
+    <span class="ident">BoaProfiler</span>,
 };
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="comment">// Create the block environment.</span>
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ForLoop&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         {
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">interpreter</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
             <span class="ident">env</span>.<span class="ident">push</span>(<span class="ident">new_declarative_environment</span>(<span class="prelude-val">Some</span>(

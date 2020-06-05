@@ -555,6 +555,9 @@
 <span id="555">555</span>
 <span id="556">556</span>
 <span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
@@ -575,6 +578,7 @@
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
+    <span class="ident">BoaProfiler</span>,
 };
 <span class="kw">use</span> <span class="ident">rand</span>::<span class="ident">random</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">f64</span>;
@@ -1065,6 +1069,7 @@
 
 <span class="doccomment">/// Create a new `Math` object</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;math:create&quot;</span>, <span class="string">&quot;init&quot;</span>);
     <span class="kw">let</span> <span class="ident">math</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
 
     <span class="ident">math</span>.<span class="ident">set_field</span>(<span class="string">&quot;E&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">consts</span>::<span class="ident">E</span>));
@@ -1111,6 +1116,7 @@
 <span class="doccomment">/// Initialise the `Math` object on the global object.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;math&quot;</span>, <span class="string">&quot;init&quot;</span>);
     <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;Math&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
 }
 </pre></div>

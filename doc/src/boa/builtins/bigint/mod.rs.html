@@ -141,6 +141,8 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `BigInt` object.</span>
 <span class="doccomment">//!</span>
@@ -163,6 +165,7 @@
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">bigint</span>::<span class="ident">BigInt</span> <span class="kw">as</span> <span class="ident">AstBigInt</span>,
+    <span class="ident">BoaProfiler</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -282,6 +285,7 @@
     <span class="doccomment">/// Initialise the `BigInt` object on the global object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;bigint&quot;</span>, <span class="string">&quot;init&quot;</span>);
         <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;BigInt&quot;</span>, <span class="self">Self</span>::<span class="ident">create</span>(<span class="ident">global</span>));
     }
 }

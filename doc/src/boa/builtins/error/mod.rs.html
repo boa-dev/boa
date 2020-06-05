@@ -84,6 +84,8 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Error` object.</span>
 <span class="doccomment">//!</span>
@@ -104,6 +106,7 @@
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
+    <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
 };
 
 <span class="comment">// mod eval;</span>
@@ -168,6 +171,7 @@
 
     <span class="doccomment">/// Initialise the global object with the `Error` object.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;error&quot;</span>, <span class="string">&quot;init&quot;</span>);
         <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;Error&quot;</span>, <span class="self">Self</span>::<span class="ident">create</span>(<span class="ident">global</span>));
     }
 }

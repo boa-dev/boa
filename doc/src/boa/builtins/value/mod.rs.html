@@ -790,6 +790,15 @@
 <span id="790">790</span>
 <span id="791">791</span>
 <span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -806,7 +815,7 @@
     },
     <span class="ident">property</span>::<span class="ident">Property</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">bigint</span>::<span class="ident">BigInt</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">bigint</span>::<span class="ident">BigInt</span>, <span class="ident">BoaProfiler</span>};
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">GcCell</span>, <span class="ident">GcCellRef</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">map</span>::<span class="ident">Map</span>, <span class="ident">Number</span> <span class="kw">as</span> <span class="ident">JSONNumber</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -917,6 +926,7 @@
 
     <span class="doccomment">/// Returns a new empty object</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_object</span>(<span class="ident">global</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;new_object&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">global</span>) <span class="op">=</span> <span class="ident">global</span> {
             <span class="kw">let</span> <span class="ident">object_prototype</span> <span class="op">=</span> <span class="ident">global</span>.<span class="ident">get_field</span>(<span class="string">&quot;Object&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
@@ -1186,6 +1196,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// A copy of the Property is returned.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Property</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="comment">// Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154</span>
         <span class="comment">// This is only for primitive strings, String() objects have their lengths calculated in string.rs</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_string</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">field</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;length&quot;</span> {
@@ -1232,6 +1243,7 @@
         <span class="ident">writable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
         <span class="ident">configurable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
     ) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::update_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">let</span> <span class="ident">obj</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">deref_mut</span>().<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
@@ -1252,6 +1264,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns a copy of the Property.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_internal_slot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_internal_slot&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">Object</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">clone</span>();
@@ -1277,6 +1290,7 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
     {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_field&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">field</span>.<span class="ident">into</span>() {
             <span class="comment">// Our field will either be a String or a Symbol</span>
             <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1375,6 +1389,7 @@
 
     <span class="doccomment">/// Check to see if the Value has the field, mainly used by environment records</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::has_field&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="self">self</span>.<span class="ident">get_property</span>(<span class="ident">field</span>).<span class="ident">is_some</span>()
     }
 
@@ -1385,6 +1400,7 @@
         <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
         <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
     {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::set_field&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">into</span>();
 
@@ -1414,6 +1430,7 @@
 
     <span class="doccomment">/// Set the private field in the value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_internal_slot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">val</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::set_internal_slot&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">obj</span>.<span class="ident">borrow_mut</span>()
                 .<span class="ident">internal_slots</span>
@@ -1559,6 +1576,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-typeof-operator</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_type&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;number&quot;</span>,
             <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;string&quot;</span>,

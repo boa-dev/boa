@@ -52,6 +52,8 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Try..catch node execution.</span>
 
@@ -60,6 +62,7 @@
     <span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">ResultValue</span>,
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">new_declarative_environment</span>, <span class="ident">VariableScope</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">Try</span>,
+    <span class="ident">BoaProfiler</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -67,6 +70,7 @@
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Try</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Try&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>).<span class="ident">map_or_else</span>(
             <span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">catch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">catch</span>() {

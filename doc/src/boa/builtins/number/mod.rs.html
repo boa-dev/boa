@@ -482,6 +482,8 @@
 <span id="482">482</span>
 <span id="483">483</span>
 <span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -511,6 +513,7 @@
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
+    <span class="ident">BoaProfiler</span>,
 };
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">float</span>::<span class="ident">FloatCore</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Borrow</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>};
@@ -920,6 +923,7 @@
     <span class="doccomment">/// Initialise the `Number` object on the global object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;number&quot;</span>, <span class="string">&quot;init&quot;</span>);
         <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;Number&quot;</span>, <span class="self">Self</span>::<span class="ident">create</span>(<span class="ident">global</span>));
     }
 

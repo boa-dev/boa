@@ -59,6 +59,10 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Left hand side expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -74,9 +78,12 @@
 <span class="kw">mod</span> <span class="ident">member</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">call</span>::<span class="ident">CallExpression</span>, <span class="ident">member</span>::<span class="ident">MemberExpression</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">Node</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">syntax</span>::{
+        <span class="ident">ast</span>::{<span class="ident">Node</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>},
+        <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
+    },
+    <span class="ident">BoaProfiler</span>,
 };
 
 <span class="doccomment">/// Parses a left hand side expression.</span>
@@ -111,6 +118,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LeftHandSIdeExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="comment">// TODO: Implement NewExpression: new MemberExpression</span>
         <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">MemberExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>) {
