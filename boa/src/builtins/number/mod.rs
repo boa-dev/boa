@@ -435,7 +435,7 @@ impl Number {
                                 return Ok(Value::integer(i));
                             } else {
                                 // String can't be parsed.
-                                return Err(Value::from(f64::NAN));
+                                return Ok(Value::from(f64::NAN));
                             }
                         } else {
                             radix = 10
@@ -446,7 +446,7 @@ impl Number {
                         Ok(Value::integer(i))
                     } else {
                         // String can't be parsed.
-                        Err(Value::from(f64::NAN))
+                        Ok(Value::from(f64::NAN))
                     }
                 }
                 ValueData::Integer(i) => Ok(Value::integer(*i)),
