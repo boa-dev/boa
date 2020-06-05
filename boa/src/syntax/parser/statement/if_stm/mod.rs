@@ -3,20 +3,13 @@ mod tests;
 
 use super::Statement;
 
-use crate::syntax::{
-    ast::{node::If, Keyword, Node, Punctuator, TokenKind},
-    parser::{
-        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-        TokenParser,
-
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator, TokenKind},
+        ast::{node::If, Keyword, Node, Punctuator, TokenKind},
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
             TokenParser,
         },
-
     },
     BoaProfiler,
 };

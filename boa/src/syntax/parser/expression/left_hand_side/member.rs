@@ -7,29 +7,19 @@
 
 use super::arguments::Arguments;
 
-use crate::syntax::{
-    ast::{
-        node::{
-            field::{GetConstField, GetField},
-            Call, New, Node,
-        },
-        Keyword, Punctuator, TokenKind,
-    },
-    parser::{
-        expression::{primary::PrimaryExpression, Expression},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-
 use crate::{
     syntax::{
         ast::{
-            node::{Call, New, Node},
+            node::{
+                field::{GetConstField, GetField},
+                Call, New, Node,
+            },
             Keyword, Punctuator, TokenKind,
         },
         parser::{
             expression::{primary::PrimaryExpression, Expression},
             AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
-
     },
     BoaProfiler,
 };

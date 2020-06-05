@@ -12,17 +12,12 @@ mod tests;
 
 use super::LabelIdentifier;
 
-use crate::syntax::{
-    ast::{node::Continue, Keyword, Punctuator, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
-
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator, TokenKind},
-        parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+        ast::{node::Continue, Keyword, Punctuator, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
-
 };
 
 /// For statement parsing

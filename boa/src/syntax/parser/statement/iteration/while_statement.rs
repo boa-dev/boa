@@ -1,18 +1,10 @@
-
-use crate::syntax::{
-    ast::{node::WhileLoop, Keyword, Punctuator},
-    parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, TokenParser,
-
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator},
+        ast::{node::WhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseResult, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
-
     },
     BoaProfiler,
 };

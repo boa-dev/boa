@@ -9,29 +9,19 @@
 
 use super::arguments::Arguments;
 
-use crate::syntax::{
-    ast::{
-        node::{
-            field::{GetConstField, GetField},
-            Call, Node,
-        },
-        Punctuator, TokenKind,
-    },
-    parser::{
-        expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
-
 use crate::{
     syntax::{
         ast::{
-            node::{Call, Node},
+            node::{
+                field::{GetConstField, GetField},
+                Call, Node,
+            },
             Punctuator, TokenKind,
         },
         parser::{
             expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
             TokenParser,
         },
-
     },
     BoaProfiler,
 };

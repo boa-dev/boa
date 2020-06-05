@@ -7,20 +7,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Argument
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
-
-use crate::syntax::{
-    ast::{node::Spread, Node, Punctuator, TokenKind},
-    parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
-
 use crate::{
     syntax::{
-        ast::{Node, Punctuator, TokenKind},
+        ast::{node::Spread, Node, Punctuator, TokenKind},
         parser::{
             expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
             TokenParser,
         },
-
     },
     BoaProfiler,
 };

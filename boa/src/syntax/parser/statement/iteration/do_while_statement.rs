@@ -7,21 +7,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
-
-use crate::syntax::{
-    ast::{node::DoWhileLoop, Keyword, Punctuator, TokenKind},
-    parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, TokenParser,
-
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator, TokenKind},
+        ast::{node::DoWhileLoop, Keyword, Punctuator, TokenKind},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, ParseResult, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
-
     },
     BoaProfiler,
 };
