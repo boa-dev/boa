@@ -10,6 +10,7 @@ use crate::syntax::{
         expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
         TokenParser,
     },
+    BoaProfiler,
 };
 
 /// Switch statement parsing.
@@ -47,6 +48,7 @@ impl TokenParser for SwitchStatement {
     type Output = Switch;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
 

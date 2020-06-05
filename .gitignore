@@ -17,3 +17,9 @@ yarn-error.log
 
 # tests/js/test.js is used for testing changes locally
 tests/js/test.js
+
+# Profiling
+*.string_data
+*.string_index
+*.events
+chrome_profiler.json 

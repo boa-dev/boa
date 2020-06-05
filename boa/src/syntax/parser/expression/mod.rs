@@ -18,9 +18,12 @@ mod update;
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
-use crate::syntax::ast::{
-    node::{BinOp, Node},
-    Keyword, Punctuator, TokenKind,
+use crate::{
+    profiler::BoaProfiler,
+    syntax::ast::{
+        node::{BinOp, Node},
+        Keyword, Punctuator, TokenKind,
+    },
 };
 
 // For use in the expression! macro to allow for both Punctuator and Keyword parameters.
@@ -51,6 +54,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
         type Output = Node;
 
         fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+            let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
             while let Some(tok) = cursor.peek(0) {
                 match tok.kind {

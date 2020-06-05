@@ -19,6 +19,7 @@ use crate::syntax::{
         statement::BindingIdentifier,
         AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
     },
+    BoaProfiler,
 };
 
 /// Arrow function parsing.
@@ -60,6 +61,7 @@ impl TokenParser for ArrowFunction {
     type Output = ArrowFunctionDecl;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind {
             // CoverParenthesizedExpressionAndArrowParameterList

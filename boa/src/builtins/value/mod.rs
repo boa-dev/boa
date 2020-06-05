@@ -13,7 +13,7 @@ use crate::builtins::{
     },
     property::Property,
 };
-use crate::syntax::ast::bigint::BigInt;
+use crate::{syntax::ast::bigint::BigInt, BoaProfiler};
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
@@ -124,6 +124,7 @@ impl Value {
 
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
+        let _timer = BoaProfiler::global().start_event("new_object", "value");
         if let Some(global) = global {
             let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
 
@@ -393,6 +394,7 @@ impl ValueData {
     ///
     /// A copy of the Property is returned.
     pub fn get_property(&self, field: &str) -> Option<Property> {
+        let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
@@ -439,6 +441,7 @@ impl ValueData {
         writable: Option<bool>,
         configurable: Option<bool>,
     ) {
+        let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
         let obj: Option<Object> = match self {
             Self::Object(ref obj) => Some(obj.borrow_mut().deref_mut().clone()),
             _ => None,
@@ -459,6 +462,7 @@ impl ValueData {
     ///
     /// Returns a copy of the Property.
     pub fn get_internal_slot(&self, field: &str) -> Value {
+        let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
         let obj: Object = match *self {
             Self::Object(ref obj) => {
                 let hash = obj.clone();
@@ -484,6 +488,7 @@ impl ValueData {
     where
         F: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
         match *field.into() {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
@@ -582,6 +587,7 @@ impl ValueData {
 
     /// Check to see if the Value has the field, mainly used by environment records
     pub fn has_field(&self, field: &str) -> bool {
+        let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
         self.get_property(field).is_some()
     }
 
@@ -592,6 +598,7 @@ impl ValueData {
         F: Into<Value>,
         V: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         let field = field.into();
         let val = val.into();
 
@@ -621,6 +628,7 @@ impl ValueData {
 
     /// Set the private field in the value
     pub fn set_internal_slot(&self, field: &str, val: Value) -> Value {
+        let _timer = BoaProfiler::global().start_event("Value::set_internal_slot", "exec");
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .internal_slots
@@ -766,6 +774,7 @@ impl ValueData {
     ///
     /// https://tc39.es/ecma262/#sec-typeof-operator
     pub fn get_type(&self) -> &'static str {
+        let _timer = BoaProfiler::global().start_event("Value::get_type", "value");
         match *self {
             Self::Rational(_) | Self::Integer(_) => "number",
             Self::String(_) => "string",

@@ -21,6 +21,7 @@ use crate::syntax::{
         function::{FormalParameters, FunctionBody},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+    BoaProfiler,
 };
 
 /// Parses an object literal.
@@ -55,6 +56,7 @@ impl TokenParser for ObjectLiteral {
     type Output = Object;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ObjectLiteral", "Parsing");
         let mut elements = Vec::new();
 
         loop {

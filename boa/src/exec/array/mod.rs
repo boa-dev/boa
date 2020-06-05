@@ -4,10 +4,12 @@ use super::{Executable, Interpreter};
 use crate::{
     builtins::{Array, ResultValue},
     syntax::ast::node::{ArrayDecl, Node},
+    BoaProfiler,
 };
 
 impl Executable for ArrayDecl {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
         let array = Array::new_array(interpreter)?;
         let mut elements = Vec::new();
         for elem in self.as_ref() {

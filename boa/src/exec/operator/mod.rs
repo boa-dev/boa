@@ -8,11 +8,13 @@ use crate::{
         node::{Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
+    BoaProfiler,
 };
 use std::borrow::BorrowMut;
 
 impl Executable for Assign {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(interpreter)?;
         match self.lhs() {
             Node::Identifier(ref name) => {
