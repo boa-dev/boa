@@ -19,7 +19,7 @@ use crate::builtins::{
     property::Property,
     value::{ResultValue, Value},
 };
-use crate::exec::Interpreter;
+use crate::{exec::Interpreter, BoaProfiler};
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
@@ -37,13 +37,9 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-json.parse
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+pub fn parse(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     match serde_json::from_str::<JSONValue>(
-        &args
-            .get(0)
-            .expect("cannot get argument for JSON.parse")
-            .clone()
-            .to_string(),
+        &ctx.to_string(args.get(0).expect("cannot get argument for JSON.parse"))?,
     ) {
         Ok(json) => {
             let j = Value::from(json);
@@ -51,7 +47,7 @@ pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> Re
                 Some(reviver) if reviver.is_function() => {
                     let mut holder = Value::new_object(None);
                     holder.set_field(Value::from(""), j);
-                    walk(reviver, interpreter, &mut holder, Value::from(""))
+                    walk(reviver, ctx, &mut holder, Value::from(""))
                 }
                 _ => Ok(j),
             }
@@ -66,18 +62,13 @@ pub fn parse(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> Re
 /// for possible transformation.
 ///
 /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-fn walk(
-    reviver: &Value,
-    interpreter: &mut Interpreter,
-    holder: &mut Value,
-    key: Value,
-) -> ResultValue {
+fn walk(reviver: &Value, ctx: &mut Interpreter, holder: &mut Value, key: Value) -> ResultValue {
     let mut value = holder.get_field(key.clone());
 
     let obj = value.as_object().as_deref().cloned();
     if let Some(obj) = obj {
         for key in obj.properties.keys() {
-            let v = walk(reviver, interpreter, &mut value, Value::from(key.as_str()));
+            let v = walk(reviver, ctx, &mut value, Value::from(key.as_str()));
             match v {
                 Ok(v) if !v.is_undefined() => {
                     value.set_field(Value::from(key.as_str()), v);
@@ -89,7 +80,7 @@ fn walk(
             }
         }
     }
-    interpreter.call(reviver, holder, &[key, value])
+    ctx.call(reviver, holder, &[key, value])
 }
 
 /// `JSON.stringify( value[, replacer[, space]] )`
@@ -108,7 +99,7 @@ fn walk(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let object = match args.get(0) {
         Some(obj) if obj.is_symbol() || obj.is_function() => return Ok(Value::undefined()),
         None => return Ok(Value::undefined()),
@@ -135,7 +126,7 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
                     let mut this_arg = object.clone();
                     object_to_return.set_property(
                         key.to_owned(),
-                        Property::default().value(interpreter.call(
+                        Property::default().value(ctx.call(
                             replacer,
                             &mut this_arg,
                             &[Value::string(key), val.clone()],
@@ -152,12 +143,12 @@ pub fn stringify(_: &mut Value, args: &[Value], interpreter: &mut Interpreter) -
             if key == "length" {
                 None
             } else {
-                Some(replacer.get_field(key.to_string()))
+                Some(replacer.get_field(key.to_owned()))
             }
         });
         for field in fields {
             if let Some(value) = object
-                .get_property(&field.to_string())
+                .get_property(&ctx.to_string(&field)?)
                 .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
                 .flatten()
             {
@@ -183,5 +174,6 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `JSON` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
+    let _timer = BoaProfiler::global().start_event("json", "init");
     global.set_field("JSON", create(global));
 }

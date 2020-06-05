@@ -7,17 +7,20 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
-use crate::syntax::{
-    ast::{
-        node::{ForLoop, Node},
-        Const, Keyword, Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{ForLoop, Node},
+            Const, Keyword, Punctuator, TokenKind,
+        },
+        parser::{
+            expression::Expression,
+            statement::declaration::Declaration,
+            statement::{variable::VariableDeclarationList, Statement},
+            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+        },
     },
-    parser::{
-        expression::Expression,
-        statement::declaration::Declaration,
-        statement::{variable::VariableDeclarationList, Statement},
-        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// For statement parsing
@@ -59,6 +62,7 @@ impl TokenParser for ForStatement {
     type Output = ForLoop;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<ForLoop, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 

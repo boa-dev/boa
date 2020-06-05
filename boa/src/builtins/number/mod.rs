@@ -24,12 +24,12 @@ use crate::{
     builtins::{
         object::internal_methods_trait::ObjectInternalMethods,
         value::{ResultValue, Value, ValueData},
-        RangeError,
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use num_traits::float::FloatCore;
-use std::{borrow::Borrow, f64, ops::Deref};
+use std::{borrow::Borrow, ops::Deref};
 
 const BUF_SIZE: usize = 2200;
 
@@ -208,7 +208,8 @@ impl Number {
     }
 
     // https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/numbers/conversions.cc#1230
-    pub(crate) fn num_to_string(mut value: f64, radix: u8) -> String {
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_native_string_radix(mut value: f64, radix: u8) -> String {
         assert!(radix >= 2);
         assert!(radix <= 36);
         assert!(value.is_finite());
@@ -313,6 +314,22 @@ impl Number {
         String::from_utf8_lossy(&buffer[integer_cursor..fraction_cursor]).into()
     }
 
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_native_string(x: f64) -> String {
+        if x == -0. {
+            return "0".to_owned();
+        } else if x.is_nan() {
+            return "NaN".to_owned();
+        } else if x.is_infinite() && x.is_sign_positive() {
+            return "Infinity".to_owned();
+        } else if x.is_infinite() && x.is_sign_negative() {
+            return "-Infinity".to_owned();
+        }
+
+        // FIXME: This is not spec compliant.
+        format!("{}", x)
+    }
+
     /// `Number.prototype.toString( [radix] )`
     ///
     /// The `toString()` method returns a string representing the specified Number object.
@@ -333,7 +350,13 @@ impl Number {
         let x = Self::to_number(this).to_number();
         // 2. If radix is undefined, let radixNumber be 10.
         // 3. Else, let radixNumber be ? ToInteger(radix).
-        let radix_number = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
+        let radix = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
+
+        // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
+        if radix < 2 || radix > 36 {
+            return ctx
+                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
+        }
 
         if x == -0. {
             return Ok(Value::from("0"));
@@ -345,19 +368,11 @@ impl Number {
             return Ok(Value::from("-Infinity"));
         }
 
-        // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
-        if radix_number < 2 || radix_number > 36 {
-            return Err(RangeError::run_new(
-                "radix must be an integer at least 2 and no greater than 36",
-                ctx,
-            )?);
-        }
-
         // 5. If radixNumber = 10, return ! ToString(x).
         // This part should use exponential notations for long integer numbers commented tests
-        if radix_number == 10 {
+        if radix == 10 {
             // return Ok(to_value(format!("{}", Self::to_number(this).to_num())));
-            return Ok(Value::from(format!("{}", x)));
+            return Ok(Value::from(Self::to_native_string(x)));
         }
 
         // This is a Optimization from the v8 source code to print values that can fit in a single character
@@ -369,7 +384,7 @@ impl Number {
         // }
 
         // 6. Return the String representation of this Number value using the radix specified by radixNumber.
-        Ok(Value::from(Self::num_to_string(x, radix_number)))
+        Ok(Value::from(Self::to_native_string_radix(x, radix)))
     }
 
     /// `Number.prototype.toString()`
@@ -406,11 +421,11 @@ impl Number {
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
-        number.set_field("EPSILON", Value::from(std::f64::EPSILON));
+        number.set_field("EPSILON", Value::from(f64::EPSILON));
         number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
         number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
-        number.set_field("MAX_VALUE", Value::from(std::f64::MAX));
-        number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
+        number.set_field("MAX_VALUE", Value::from(f64::MAX));
+        number.set_field("MIN_VALUE", Value::from(f64::MIN));
         number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
         number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
         number.set_field("NaN", Value::from(f64::NAN));
@@ -421,6 +436,7 @@ impl Number {
     /// Initialise the `Number` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("number", "init");
         global.set_field("Number", Self::create(global));
     }
 

@@ -7,10 +7,12 @@ use crate::{
         value::{ResultValue, Value, ValueData},
     },
     syntax::ast::node::{Call, New, Node},
+    BoaProfiler,
 };
 
 impl Executable for Call {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (mut this, func) = match self.expr() {
             Node::GetConstField(ref obj, ref field) => {
                 let mut obj = obj.run(interpreter)?;
@@ -24,7 +26,7 @@ impl Executable for Call {
             Node::GetField(ref obj, ref field) => {
                 let obj = obj.run(interpreter)?;
                 let field = field.run(interpreter)?;
-                (obj.clone(), obj.get_field(field.to_string()))
+                (obj.clone(), obj.get_field(field))
             }
             _ => (
                 interpreter.realm().global_obj.clone(),

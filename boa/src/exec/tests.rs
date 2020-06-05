@@ -609,12 +609,21 @@ mod in_operator {
     }
 
     #[test]
-    #[should_panic(expected = "TypeError: undefined is not an Object.")]
     fn should_type_error_when_rhs_not_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+
         let scenario = r#"
-            'fail' in undefined
+            var x = false;
+            try {
+                'fail' in undefined
+            } catch(e) {
+                x = true;
+            }
         "#;
-        exec(scenario);
+
+        forward(&mut engine, scenario);
+        assert_eq!(forward(&mut engine, "x"), "true");
     }
 
     #[test]
@@ -627,7 +636,7 @@ mod in_operator {
             this.a = "a";
             this.b = "b";
           }
-          
+
           var bar = new Foo();
         "#;
         forward(&mut engine, scenario);
@@ -642,7 +651,7 @@ mod in_operator {
         let mut engine = Interpreter::new(realm);
 
         let scenario = r#"
-            function Foo() {}            
+            function Foo() {}
             var bar = new Foo();
         "#;
         forward(&mut engine, scenario);
@@ -655,7 +664,7 @@ mod in_operator {
 fn var_decl_hoisting() {
     let scenario = r#"
         x = 5;
-        
+
         var x;
         x;
     "#;
@@ -729,7 +738,7 @@ fn function_decl_hoisting() {
 
         function a() {return 5}
         function b() {return a()}
-        
+
         x;
     "#;
     assert_eq!(&exec(scenario), "5");
@@ -739,7 +748,7 @@ fn function_decl_hoisting() {
 
         function b() {return a()}
         function a() {return 5}
-        
+
         x;
     "#;
     assert_eq!(&exec(scenario), "5");

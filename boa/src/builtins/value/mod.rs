@@ -13,7 +13,7 @@ use crate::builtins::{
     },
     property::Property,
 };
-use crate::syntax::ast::bigint::BigInt;
+use crate::{syntax::ast::bigint::BigInt, BoaProfiler};
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
@@ -27,8 +27,10 @@ use std::{
 };
 
 pub mod conversions;
+pub mod display;
 pub mod operations;
 pub use conversions::*;
+pub(crate) use display::display_obj;
 pub use operations::*;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
@@ -122,6 +124,7 @@ impl Value {
 
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
+        let _timer = BoaProfiler::global().start_event("new_object", "value");
         if let Some(global) = global {
             let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
 
@@ -150,12 +153,6 @@ impl Deref for Value {
 
     fn deref(&self) -> &Self::Target {
         self.data()
-    }
-}
-
-impl Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt(&self.0, f)
     }
 }
 
@@ -397,6 +394,7 @@ impl ValueData {
     ///
     /// A copy of the Property is returned.
     pub fn get_property(&self, field: &str) -> Option<Property> {
+        let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
         // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         if self.is_string() && field == "length" {
@@ -443,6 +441,7 @@ impl ValueData {
         writable: Option<bool>,
         configurable: Option<bool>,
     ) {
+        let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
         let obj: Option<Object> = match self {
             Self::Object(ref obj) => Some(obj.borrow_mut().deref_mut().clone()),
             _ => None,
@@ -463,6 +462,7 @@ impl ValueData {
     ///
     /// Returns a copy of the Property.
     pub fn get_internal_slot(&self, field: &str) -> Value {
+        let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
         let obj: Object = match *self {
             Self::Object(ref obj) => {
                 let hash = obj.clone();
@@ -488,6 +488,7 @@ impl ValueData {
     where
         F: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
         match *field.into() {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
@@ -586,6 +587,7 @@ impl ValueData {
 
     /// Check to see if the Value has the field, mainly used by environment records
     pub fn has_field(&self, field: &str) -> bool {
+        let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
         self.get_property(field).is_some()
     }
 
@@ -596,6 +598,7 @@ impl ValueData {
         F: Into<Value>,
         V: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         let field = field.into();
         let val = val.into();
 
@@ -625,6 +628,7 @@ impl ValueData {
 
     /// Set the private field in the value
     pub fn set_internal_slot(&self, field: &str, val: Value) -> Value {
+        let _timer = BoaProfiler::global().start_event("Value::set_internal_slot", "exec");
         if let Self::Object(ref obj) = *self {
             obj.borrow_mut()
                 .internal_slots
@@ -770,6 +774,7 @@ impl ValueData {
     ///
     /// https://tc39.es/ecma262/#sec-typeof-operator
     pub fn get_type(&self) -> &'static str {
+        let _timer = BoaProfiler::global().start_event("Value::get_type", "value");
         match *self {
             Self::Rational(_) | Self::Integer(_) => "number",
             Self::String(_) => "string",
@@ -792,219 +797,5 @@ impl ValueData {
 impl Default for ValueData {
     fn default() -> Self {
         Self::Undefined
-    }
-}
-
-/// A helper macro for printing objects
-/// Can be used to print both properties and internal slots
-/// All of the overloads take:
-/// - The object to be printed
-/// - The function with which to print
-/// - The indentation for the current level (for nested objects)
-/// - A HashSet with the addresses of the already printed objects for the current branch
-///      (used to avoid infinite loops when there are cyclic deps)
-macro_rules! print_obj_value {
-    (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
-        {
-            let mut internals = print_obj_value!(internals of $obj, $display_fn, $indent, $encounters);
-            let mut props = print_obj_value!(props of $obj, $display_fn, $indent, $encounters, true);
-
-            props.reserve(internals.len());
-
-            props.append(&mut internals);
-
-            props
-        }
-    };
-    (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
-        print_obj_value!(impl internal_slots, $obj, |(key, val)| {
-            format!(
-                "{}{}: {}",
-                String::from_utf8(vec![b' '; $indent])
-                                .expect("Could not create indentation string"),
-                key,
-                $display_fn(&val, $encounters, $indent.wrapping_add(4), true)
-            )
-        })
-    };
-    (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
-        print_obj_value!(impl properties, $obj, |(key, val)| {
-            let v = &val
-                .value
-                .as_ref()
-                .expect("Could not get the property's value");
-
-            format!(
-                "{}{}: {}",
-                String::from_utf8(vec![b' '; $indent])
-                                .expect("Could not create indentation string"),
-                key,
-                $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals)
-            )
-        })
-    };
-
-    // A private overload of the macro
-    // DO NOT use directly
-    (impl $field:ident, $v:expr, $f:expr) => {
-        $v
-            .borrow()
-            .$field
-            .iter()
-            .map($f)
-            .collect::<Vec<String>>()
-    };
-}
-
-pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
-    match x {
-        // We don't want to print private (compiler) or prototype properties
-        ValueData::Object(ref v) => {
-            // Can use the private "type" field of an Object to match on
-            // which type of Object it represents for special printing
-            match v.borrow().kind {
-                ObjectKind::String => String::from(
-                    v.borrow()
-                        .internal_slots
-                        .get("StringData")
-                        .expect("Cannot get primitive value from String"),
-                ),
-                ObjectKind::Boolean => {
-                    let bool_data = v.borrow().get_internal_slot("BooleanData").to_string();
-
-                    format!("Boolean {{ {} }}", bool_data)
-                }
-                ObjectKind::Array => {
-                    let len = i32::from(
-                        &v.borrow()
-                            .properties
-                            .get("length")
-                            .unwrap()
-                            .value
-                            .clone()
-                            .expect("Could not borrow value"),
-                    );
-
-                    if len == 0 {
-                        return String::from("[]");
-                    }
-
-                    let arr = (0..len)
-                        .map(|i| {
-                            // Introduce recursive call to stringify any objects
-                            // which are part of the Array
-                            log_string_from(
-                                &v.borrow()
-                                    .properties
-                                    .get(&i.to_string())
-                                    .unwrap()
-                                    .value
-                                    .clone()
-                                    .expect("Could not borrow value"),
-                                print_internals,
-                            )
-                        })
-                        .collect::<Vec<String>>()
-                        .join(", ");
-
-                    format!("[ {} ]", arr)
-                }
-                _ => display_obj(&x, print_internals),
-            }
-        }
-        ValueData::Symbol(ref sym) => {
-            let desc: Value = sym.borrow().get_internal_slot("Description");
-            match *desc {
-                ValueData::String(ref st) => format!("Symbol(\"{}\")", st.to_string()),
-                _ => String::from("Symbol()"),
-            }
-        }
-
-        _ => format!("{}", x),
-    }
-}
-
-/// A helper function for specifically printing object values
-pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
-    // A simple helper for getting the address of a value
-    // TODO: Find a more general place for this, as it can be used in other situations as well
-    fn address_of<T>(t: &T) -> usize {
-        let my_ptr: *const T = t;
-        my_ptr as usize
-    }
-
-    // We keep track of which objects we have encountered by keeping their
-    // in-memory address in this set
-    let mut encounters = HashSet::new();
-
-    fn display_obj_internal(
-        data: &ValueData,
-        encounters: &mut HashSet<usize>,
-        indent: usize,
-        print_internals: bool,
-    ) -> String {
-        if let ValueData::Object(ref v) = *data {
-            // The in-memory address of the current object
-            let addr = address_of(v.borrow().deref());
-
-            // We need not continue if this object has already been
-            // printed up the current chain
-            if encounters.contains(&addr) {
-                return String::from("[Cycle]");
-            }
-
-            // Mark the current object as encountered
-            encounters.insert(addr);
-
-            let result = if print_internals {
-                print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
-            } else {
-                print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
-                        .join(",\n")
-            };
-
-            // If the current object is referenced in a different branch,
-            // it will not cause an infinte printing loop, so it is safe to be printed again
-            encounters.remove(&addr);
-
-            let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
-                .expect("Could not create the closing brace's indentation string");
-
-            format!("{{\n{}\n{}}}", result, closing_indent)
-        } else {
-            // Every other type of data is printed as is
-            format!("{}", data)
-        }
-    }
-
-    display_obj_internal(v, &mut encounters, 4, print_internals)
-}
-
-impl Display for ValueData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Null => write!(f, "null"),
-            Self::Undefined => write!(f, "undefined"),
-            Self::Boolean(v) => write!(f, "{}", v),
-            Self::Symbol(ref v) => match *v.borrow().get_internal_slot("Description") {
-                // If a description exists use it
-                Self::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
-                _ => write!(f, "Symbol()"),
-            },
-            Self::String(ref v) => write!(f, "{}", v),
-            Self::Rational(v) => write!(
-                f,
-                "{}",
-                match v {
-                    _ if v.is_nan() => "NaN".to_string(),
-                    _ if v.is_infinite() && v.is_sign_negative() => "-Infinity".to_string(),
-                    _ if v.is_infinite() => "Infinity".to_string(),
-                    _ => v.to_string(),
-                }
-            ),
-            Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
-            Self::Integer(v) => write!(f, "{}", v),
-            Self::BigInt(ref num) => write!(f, "{}n", num),
-        }
     }
 }

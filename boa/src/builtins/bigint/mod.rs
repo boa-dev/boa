@@ -16,10 +16,10 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         value::{ResultValue, Value},
-        RangeError,
     },
     exec::Interpreter,
     syntax::ast::bigint::BigInt as AstBigInt,
+    BoaProfiler,
 };
 
 #[cfg(test)]
@@ -50,18 +50,28 @@ impl BigInt {
                 if let Some(bigint) = value.to_bigint() {
                     Value::from(bigint)
                 } else {
-                    return Err(RangeError::run_new(
-                        format!(
-                            "{} can't be converted to BigInt because it isn't an integer",
-                            value
-                        ),
-                        ctx,
-                    )?);
+                    let message = format!(
+                        "{} can't be converted to BigInt because it isn't an integer",
+                        ctx.to_string(value)?
+                    );
+                    return ctx.throw_range_error(message);
                 }
             }
             None => Value::from(AstBigInt::from(0)),
         };
         Ok(data)
+    }
+
+    #[inline]
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_native_string_radix(bigint: &AstBigInt, radix: u32) -> String {
+        bigint.to_str_radix(radix)
+    }
+
+    #[inline]
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_native_string(bigint: &AstBigInt) -> String {
+        bigint.to_string()
     }
 
     /// `BigInt.prototype.toString( [radix] )`
@@ -86,14 +96,13 @@ impl BigInt {
             10
         };
         if radix < 2 && radix > 36 {
-            return Err(RangeError::run_new(
-                "radix must be an integer at least 2 and no greater than 36",
-                ctx,
-            )?);
+            return ctx
+                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }
-        Ok(Value::from(
-            this.to_bigint().unwrap().to_str_radix(radix as u32),
-        ))
+        Ok(Value::from(Self::to_native_string_radix(
+            &this.to_bigint().unwrap(),
+            radix as u32,
+        )))
     }
 
     /// `BigInt.prototype.valueOf()`
@@ -130,6 +139,7 @@ impl BigInt {
     /// Initialise the `BigInt` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("bigint", "init");
         global.set_field("BigInt", Self::create(global));
     }
 }

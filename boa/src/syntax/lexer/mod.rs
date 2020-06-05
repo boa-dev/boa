@@ -7,9 +7,12 @@
 mod tests;
 
 use crate::syntax::ast::bigint::BigInt;
-use crate::syntax::ast::{
-    token::{NumericLiteral, Token, TokenKind},
-    Position, Punctuator, Span,
+use crate::{
+    syntax::ast::{
+        token::{NumericLiteral, Token, TokenKind},
+        Position, Punctuator, Span,
+    },
+    BoaProfiler,
 };
 use std::{
     char::{decode_utf16, from_u32},
@@ -486,6 +489,7 @@ impl<'a> Lexer<'a> {
     /// }
     /// ```
     pub fn lex(&mut self) -> Result<(), LexerError> {
+        let _timer = BoaProfiler::global().start_event("lex", "lexing");
         loop {
             // Check if we've reached the end
             if self.preview_next().is_none() {

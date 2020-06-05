@@ -15,12 +15,12 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        error::RangeError,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{same_value_zero, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use std::{
     borrow::Borrow,
@@ -130,7 +130,7 @@ impl Array {
                 }
             }
             1 if args[0].is_double() => {
-                return Err(RangeError::run_new("invalid array length", ctx)?);
+                return ctx.throw_range_error("invalid array length");
             }
             _ => {
                 for (n, value) in args.iter().enumerate() {
@@ -311,17 +311,17 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
-    pub(crate) fn join(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn join(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let separator = if args.is_empty() {
             String::from(",")
         } else {
-            args.get(0).expect("Could not get argument").to_string()
+            ctx.to_string(args.get(0).expect("Could not get argument"))?
         };
 
         let mut elem_strs: Vec<String> = Vec::new();
         let length = i32::from(&this.get_field("length"));
         for n in 0..length {
-            let elem_str: String = this.get_field(n.to_string()).to_string();
+            let elem_str: String = ctx.to_string(&this.get_field(n.to_string()))?;
             elem_strs.push(elem_str);
         }
 
@@ -344,7 +344,7 @@ impl Array {
     pub(crate) fn to_string(
         this: &mut Value,
         _args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
         let method_name = "join";
         let mut arguments = vec![Value::from(",")];
@@ -352,7 +352,7 @@ impl Array {
         let mut method = this.get_field(method_name);
         // 3.
         if !method.is_function() {
-            method = _ctx
+            method = ctx
                 .realm
                 .global_obj
                 .get_field("Object")
@@ -362,15 +362,15 @@ impl Array {
             arguments = Vec::new();
         }
         // 4.
-        let join_result = _ctx.call(&method, this, &arguments);
-        let match_string = match join_result {
-            Ok(v) => match *v {
-                ValueData::String(ref s) => (*s).clone(),
-                _ => "".to_string(),
-            },
-            Err(v) => format!("error: {}", v),
+        let join = ctx.call(&method, this, &arguments)?;
+
+        let string = if let ValueData::String(ref s) = join.data() {
+            Value::from(s.as_str())
+        } else {
+            Value::from("")
         };
-        Ok(Value::from(match_string))
+
+        Ok(string)
     }
 
     /// `Array.prototype.reverse()`
@@ -1042,6 +1042,7 @@ impl Array {
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("array", "init");
         global.set_field("Array", Self::create(global));
     }
 }
