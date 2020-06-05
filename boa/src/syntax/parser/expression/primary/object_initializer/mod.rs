@@ -10,20 +10,10 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
-        token::{Token, TokenKind},
-        Punctuator,
-    },
-    parser::{
-        expression::AssignmentExpression,
-        function::{FormalParameters, FunctionBody},
-        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
 use crate::{
     syntax::{
         ast::{
-            node::{self, FunctionExpr, MethodDefinitionKind, Node},
+            node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
             token::{Token, TokenKind},
             Punctuator,
         },

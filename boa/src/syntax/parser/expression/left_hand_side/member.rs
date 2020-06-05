@@ -6,17 +6,18 @@
 //! [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 
 use super::arguments::Arguments;
-use crate::syntax::{
-    ast::{
-        node::{
-            field::{GetConstField, GetField},
-            Call, New, Node,
+use crate::{
+    syntax::{
+        ast::{
+            node::{
+                field::{GetConstField, GetField},
+                Call, New, Node,
+            },
+            Keyword, Punctuator, TokenKind,
         },
-        Keyword, Punctuator, TokenKind,
-    },
-    parser::{
-        expression::{primary::PrimaryExpression, Expression},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        parser::{
+            expression::{primary::PrimaryExpression, Expression},
+            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,

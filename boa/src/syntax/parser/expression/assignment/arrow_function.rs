@@ -11,7 +11,7 @@ use super::AssignmentExpression;
 use crate::{
     syntax::{
         ast::{
-            node::{ArrowFunctionDecl, FormalParameter, Node,  Return, StatementList},
+            node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
             Punctuator, TokenKind,
         },
         parser::{

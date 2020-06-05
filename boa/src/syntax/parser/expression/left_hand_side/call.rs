@@ -8,17 +8,18 @@
 //! [spec]: https://tc39.es/ecma262/#prod-CallExpression
 
 use super::arguments::Arguments;
-use crate::syntax::{
-    ast::{
-        node::{
-            field::{GetConstField, GetField},
-            Call, Node,
+use crate::{
+    syntax::{
+        ast::{
+            node::{
+                field::{GetConstField, GetField},
+                Call, Node,
+            },
+            Punctuator, TokenKind,
         },
-        Punctuator, TokenKind,
-    },
-    parser::{
-        expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
+        parser::{
+            expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+            TokenParser,
         },
     },
     BoaProfiler,
