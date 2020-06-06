@@ -152,6 +152,7 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
+<span id="155">155</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Arrow function parsing.</span>
 <span class="doccomment">//!</span>
@@ -166,7 +167,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
-            <span class="ident">node</span>::{<span class="ident">ArrowFunctionDecl</span>, <span class="ident">FormalParameter</span>, <span class="ident">Node</span>, <span class="ident">StatementList</span>},
+            <span class="ident">node</span>::{<span class="ident">ArrowFunctionDecl</span>, <span class="ident">FormalParameter</span>, <span class="ident">Node</span>, <span class="ident">Return</span>, <span class="ident">StatementList</span>},
             <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>,
         },
         <span class="ident">parser</span>::{
@@ -272,9 +273,10 @@
                 <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>, <span class="string">&quot;arrow function&quot;</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">body</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">StatementList</span>::<span class="ident">from</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Node</span>::<span class="ident">return_node</span>(
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">StatementList</span>::<span class="ident">from</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Return</span>::<span class="ident">new</span>(
                 <span class="ident">ExpressionBody</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
-            )])),
+            )
+            .<span class="ident">into</span>()])),
         }
     }
 }

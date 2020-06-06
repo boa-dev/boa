@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Return","The `return` statement ends function execution and specifies a value to be returned to the function caller."]]});

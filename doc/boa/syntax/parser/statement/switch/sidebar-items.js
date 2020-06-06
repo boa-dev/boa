@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CaseBlock","Switch case block parsing."],["SwitchStatement","Switch statement parsing."]],"type":[["Case","Type used for case definition in a switch."]]});
+initSidebarItems({"struct":[["CaseBlock","Switch case block parsing."],["SwitchStatement","Switch statement parsing."]]});
