@@ -19,7 +19,7 @@ use crate::builtins::{
     property::Property,
     value::{ResultValue, Value},
 };
-use crate::exec::Interpreter;
+use crate::{exec::Interpreter, BoaProfiler};
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
@@ -174,5 +174,6 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `JSON` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
+    let _timer = BoaProfiler::global().start_event("json", "init");
     global.set_field("JSON", create(global));
 }

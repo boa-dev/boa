@@ -3,13 +3,15 @@
 mod array;
 mod block;
 mod declaration;
+mod exception;
 mod expression;
 mod iteration;
 mod operator;
 mod statement_list;
+mod try_node;
+
 #[cfg(test)]
 mod tests;
-mod try_node;
 
 use crate::{
     builtins::{
@@ -27,7 +29,9 @@ use crate::{
         constant::Const,
         node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition, StatementList},
     },
+    BoaProfiler,
 };
+use std::convert::TryFrom;
 use std::{borrow::Borrow, ops::Deref};
 
 pub trait Executable {
@@ -140,11 +144,52 @@ impl Interpreter {
             ValueData::Rational(rational) => Ok(Number::to_native_string(*rational)),
             ValueData::Integer(integer) => Ok(integer.to_string()),
             ValueData::String(string) => Ok(string.clone()),
-            ValueData::Symbol(_) => panic!("TypeError exception."),
-            ValueData::BigInt(ref bigint) => Ok(BigInt::to_native_string(bigint)),
+            ValueData::Symbol(_) => {
+                self.throw_type_error("can't convert symbol to string")?;
+                unreachable!();
+            }
+            ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
             ValueData::Object(_) => {
                 let primitive = self.to_primitive(&mut value.clone(), Some("string"));
                 self.to_string(&primitive)
+            }
+        }
+    }
+
+    /// Helper function.
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_bigint(&mut self, value: &Value) -> Result<BigInt, Value> {
+        match value.data() {
+            ValueData::Null => {
+                self.throw_type_error("cannot convert null to a BigInt")?;
+                unreachable!();
+            }
+            ValueData::Undefined => {
+                self.throw_type_error("cannot convert undefined to a BigInt")?;
+                unreachable!();
+            }
+            ValueData::String(ref string) => Ok(BigInt::from_string(string, self)?),
+            ValueData::Boolean(true) => Ok(BigInt::from(1)),
+            ValueData::Boolean(false) => Ok(BigInt::from(0)),
+            ValueData::Integer(num) => Ok(BigInt::from(*num)),
+            ValueData::Rational(num) => {
+                if let Ok(bigint) = BigInt::try_from(*num) {
+                    return Ok(bigint);
+                }
+                self.throw_type_error(format!(
+                    "The number {} cannot be converted to a BigInt because it is not an integer",
+                    num
+                ))?;
+                unreachable!();
+            }
+            ValueData::BigInt(b) => Ok(b.clone()),
+            ValueData::Object(_) => {
+                let primitive = self.to_primitive(&mut value.clone(), Some("number"));
+                self.to_bigint(&primitive)
+            }
+            ValueData::Symbol(_) => {
+                self.throw_type_error("cannot convert Symbol to a BigInt")?;
+                unreachable!();
             }
         }
     }
@@ -261,7 +306,7 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-toobject
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
-        match *value.deref().borrow() {
+        match value.data() {
             ValueData::Undefined | ValueData::Integer(_) | ValueData::Null => {
                 Err(Value::undefined())
             }
@@ -357,6 +402,7 @@ impl Interpreter {
 
 impl Executable for Node {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::Const(Const::Null) => Ok(Value::null()),
             Node::Const(Const::Undefined) => Ok(Value::undefined()),

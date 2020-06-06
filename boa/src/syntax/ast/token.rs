@@ -5,8 +5,9 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
+use crate::builtins::BigInt;
 use crate::syntax::{
-    ast::{bigint::BigInt, Keyword, Punctuator, Span},
+    ast::{Keyword, Punctuator, Span},
     lexer::LexerError,
 };
 use bitflags::bitflags;

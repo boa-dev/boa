@@ -1,9 +1,14 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+use crate::{
+    syntax::{
+        ast::{Keyword, Node, Punctuator, TokenKind},
+        parser::{
+            expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
+        },
+    },
+    BoaProfiler,
 };
 
 /// Return statement parsing
@@ -38,6 +43,7 @@ impl TokenParser for ReturnStatement {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect(Keyword::Return, "return statement")?;
 
         if let (true, tok) = cursor.peek_semicolon(false) {

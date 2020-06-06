@@ -5,12 +5,15 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#prod-HoistableDeclaration
 
-use crate::syntax::{
-    ast::{node::FunctionDecl, Keyword, Node, Punctuator},
-    parser::{
-        function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+use crate::{
+    syntax::{
+        ast::{node::FunctionDecl, Keyword, Node, Punctuator},
+        parser::{
+            function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
+            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// Hoistable declaration parsing.
@@ -46,6 +49,7 @@ impl TokenParser for HoistableDeclaration {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
         // TODO: check for generators and async functions + generators
         FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
             .parse(cursor)

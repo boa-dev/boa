@@ -9,6 +9,7 @@ impl From<&Value> for Value {
 
 impl From<String> for Value {
     fn from(value: String) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<String>", "value");
         Self::string(value)
     }
 }
@@ -82,26 +83,6 @@ impl From<&Value> for i32 {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct TryFromBigIntError;
-
-impl Display for TryFromBigIntError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Could not convert value to a BigInt type")
-    }
-}
-
-impl TryFrom<&Value> for BigInt {
-    type Error = TryFromBigIntError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        match value.data() {
-            ValueData::BigInt(ref bigint) => Ok(bigint.clone()),
-            _ => Err(TryFromBigIntError),
-        }
-    }
-}
-
 impl From<BigInt> for Value {
     fn from(value: BigInt) -> Self {
         Value::bigint(value)
@@ -164,6 +145,7 @@ where
 
 impl From<Object> for Value {
     fn from(object: Object) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<Object>", "value");
         Value::object(object)
     }
 }

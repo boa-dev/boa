@@ -15,12 +15,12 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        error::RangeError,
         object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{same_value_zero, ResultValue, Value, ValueData},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use std::{
     borrow::Borrow,
@@ -130,7 +130,7 @@ impl Array {
                 }
             }
             1 if args[0].is_double() => {
-                return Err(RangeError::run_new("invalid array length", ctx)?);
+                return ctx.throw_range_error("invalid array length");
             }
             _ => {
                 for (n, value) in args.iter().enumerate() {
@@ -1042,6 +1042,7 @@ impl Array {
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("array", "init");
         global.set_field("Array", Self::create(global));
     }
 }

@@ -7,12 +7,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
-use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
-    parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
+use crate::{
+    syntax::{
+        ast::{Keyword, Node, Punctuator, TokenKind},
+        parser::{
+            expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
+            Cursor, ParseError, ParseResult, TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// Do...while statement parsing
@@ -54,6 +57,7 @@ impl TokenParser for DoWhileStatement {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
         cursor.expect(Keyword::Do, "do while statement")?;
 
         let body =

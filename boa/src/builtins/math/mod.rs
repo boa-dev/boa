@@ -17,6 +17,7 @@ use crate::{
         value::{ResultValue, Value},
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use rand::random;
 use std::f64;
@@ -507,6 +508,7 @@ pub fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue 
 
 /// Create a new `Math` object
 pub fn create(global: &Value) -> Value {
+    let _timer = BoaProfiler::global().start_event("math:create", "init");
     let math = Value::new_object(Some(global));
 
     math.set_field("E", Value::from(f64::consts::E));
@@ -553,5 +555,6 @@ pub fn create(global: &Value) -> Value {
 /// Initialise the `Math` object on the global object.
 #[inline]
 pub fn init(global: &Value) {
+    let _timer = BoaProfiler::global().start_event("math", "init");
     global.set_field("Math", create(global));
 }
