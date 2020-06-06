@@ -6,7 +6,7 @@ use crate::{
 
 impl Executable for Return {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
-        let result = match *self.expr() {
+        let result = match self.expr() {
             Some(ref v) => v.run(interpreter),
             None => Ok(Value::undefined()),
         };

@@ -1,5 +1,4 @@
 use super::*;
-use crate::{builtins::Number, Interpreter};
 
 impl Add for Value {
     type Output = Self;
