@@ -202,6 +202,52 @@ impl Value {
             JSONValue::Null => Self::null(),
         }
     }
+
+    /// Conversts the `Value` to `JSON`.
+    pub fn to_json(&self) -> JSONValue {
+        match *self.data() {
+            ValueData::Null => JSONValue::Null,
+            ValueData::Boolean(b) => JSONValue::Bool(b),
+            ValueData::Object(ref obj) => {
+                if obj.borrow().kind == ObjectKind::Array {
+                    let mut arr: Vec<JSONValue> = Vec::new();
+                    obj.borrow().properties.keys().for_each(|k| {
+                        if k != "length" {
+                            let value = self.get_field(k.to_string());
+                            if value.is_undefined() || value.is_function() {
+                                arr.push(JSONValue::Null);
+                            } else {
+                                arr.push(self.get_field(k.to_string()).to_json());
+                            }
+                        }
+                    });
+                    JSONValue::Array(arr)
+                } else {
+                    let mut new_obj = Map::new();
+                    obj.borrow().properties.keys().for_each(|k| {
+                        let key = k.clone();
+                        let value = self.get_field(k.to_string());
+                        if !value.is_undefined() && !value.is_function() {
+                            new_obj.insert(key, value.to_json());
+                        }
+                    });
+                    JSONValue::Object(new_obj)
+                }
+            }
+            ValueData::String(ref str) => JSONValue::String(str.clone()),
+            ValueData::Rational(num) => JSONValue::Number(
+                JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
+            ),
+            ValueData::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
+            ValueData::BigInt(_) => {
+                // TODO: throw TypeError
+                panic!("TypeError: \"BigInt value can't be serialized in JSON\"");
+            }
+            ValueData::Symbol(_) | ValueData::Undefined => {
+                unreachable!("Symbols and Undefined JSON Values depend on parent type");
+            }
+        }
+    }
 }
 
 impl Deref for Value {
@@ -722,52 +768,6 @@ impl ValueData {
         // Set length to parameters
         new_func_val.set_field("length", Value::from(length));
         new_func_val
-    }
-
-    /// Conversts the `Value` to `JSON`.
-    pub fn to_json(&self) -> JSONValue {
-        match *self {
-            Self::Null => JSONValue::Null,
-            Self::Boolean(b) => JSONValue::Bool(b),
-            Self::Object(ref obj) => {
-                if obj.borrow().kind == ObjectKind::Array {
-                    let mut arr: Vec<JSONValue> = Vec::new();
-                    obj.borrow().properties.keys().for_each(|k| {
-                        if k != "length" {
-                            let value = self.get_field(k.to_string());
-                            if value.is_undefined() || value.is_function() {
-                                arr.push(JSONValue::Null);
-                            } else {
-                                arr.push(self.get_field(k.to_string()).to_json());
-                            }
-                        }
-                    });
-                    JSONValue::Array(arr)
-                } else {
-                    let mut new_obj = Map::new();
-                    obj.borrow().properties.keys().for_each(|k| {
-                        let key = k.clone();
-                        let value = self.get_field(k.to_string());
-                        if !value.is_undefined() && !value.is_function() {
-                            new_obj.insert(key, value.to_json());
-                        }
-                    });
-                    JSONValue::Object(new_obj)
-                }
-            }
-            Self::String(ref str) => JSONValue::String(str.clone()),
-            Self::Rational(num) => JSONValue::Number(
-                JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
-            ),
-            Self::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
-            Self::BigInt(_) => {
-                // TODO: throw TypeError
-                panic!("TypeError: \"BigInt value can't be serialized in JSON\"");
-            }
-            Self::Symbol(_) | Self::Undefined => {
-                unreachable!("Symbols and Undefined JSON Values depend on parent type");
-            }
-        }
     }
 
     /// Get the type of the value

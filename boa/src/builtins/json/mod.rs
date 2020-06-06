@@ -19,8 +19,7 @@ use crate::builtins::{
     property::Property,
     value::{ResultValue, Value},
 };
-use crate::exec::Interpreter;
-use crate::profiler::BoaProfiler;
+use crate::{exec::Interpreter, BoaProfiler};
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
