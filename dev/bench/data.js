@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1591466589724,
+  "lastUpdate": 1591479737551,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -9315,6 +9315,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 11.411,
             "range": "+/- 0.348",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "691c0d4f3b0fe3731c21b343314fe82ab36bf4c7",
+          "message": "Bump websocket-extensions from 0.1.3 to 0.1.4 (#460)\n\nBumps [websocket-extensions](https://github.com/faye/websocket-extensions-node) from 0.1.3 to 0.1.4.\n- [Release notes](https://github.com/faye/websocket-extensions-node/releases)\n- [Changelog](https://github.com/faye/websocket-extensions-node/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/faye/websocket-extensions-node/compare/0.1.3...0.1.4)\n\nSigned-off-by: dependabot[bot] <support@github.com>\n\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2020-06-06T23:34:33+02:00",
+          "tree_id": "382bc26fb011779e215c26c1db6a6c3297725ea4",
+          "url": "https://github.com/boa-dev/boa/commit/691c0d4f3b0fe3731c21b343314fe82ab36bf4c7"
+        },
+        "date": 1591479730161,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 417.22,
+            "range": "+/- 10.970",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 466.63,
+            "range": "+/- 11.170",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 435.52,
+            "range": "+/- 14.640",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.3212,
+            "range": "+/- 0.054",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 1.8815,
+            "range": "+/- 0.056",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 869.15,
+            "range": "+/- 29.370",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.7111,
+            "range": "+/- 0.155",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.6489,
+            "range": "+/- 0.125",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.009,
+            "range": "+/- 0.063",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 12.203,
+            "range": "+/- 0.403",
             "unit": "us"
           }
         ]
