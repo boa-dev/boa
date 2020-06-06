@@ -150,6 +150,58 @@ impl Value {
 
         Self::object(object)
     }
+
+    /// Convert from a JSON value to a JS value
+    pub fn from_json(json: JSONValue, interpreter: &mut Interpreter) -> Self {
+        match json {
+            JSONValue::Number(v) => {
+                Self::rational(v.as_f64().expect("Could not convert value to f64"))
+            }
+            JSONValue::String(v) => Self::string(v),
+            JSONValue::Bool(v) => Self::boolean(v),
+            JSONValue::Array(vs) => {
+                let mut new_obj = Object::default();
+                for (idx, json) in vs.iter().enumerate() {
+                    new_obj.properties.insert(
+                        idx.to_string(),
+                        Property::default()
+                            .value(Self::from_json(json.clone(), interpreter))
+                            .writable(true)
+                            .configurable(true),
+                    );
+                }
+                new_obj.properties.insert(
+                    "length".to_string(),
+                    Property::default().value(Self::from(vs.len())),
+                );
+                Self::object(new_obj)
+            }
+            JSONValue::Object(obj) => {
+                let mut new_obj = Object::default();
+                for (key, json) in obj.iter() {
+                    let value = Self::from_json(json.clone(), interpreter);
+                    if value.is_object() {
+                        let proto = interpreter
+                            .realm
+                            .global_obj
+                            .get_field("Object")
+                            .get_field(PROTOTYPE);
+                        value.set_internal_slot(INSTANCE_PROTOTYPE, proto);
+                    }
+                    new_obj.properties.insert(
+                        key.clone(),
+                        Property::default()
+                            .value(value)
+                            .writable(true)
+                            .configurable(true),
+                    );
+                }
+
+                Self::object(new_obj)
+            }
+            JSONValue::Null => Self::null(),
+        }
+    }
 }
 
 impl Deref for Value {
@@ -670,55 +722,6 @@ impl ValueData {
         // Set length to parameters
         new_func_val.set_field("length", Value::from(length));
         new_func_val
-    }
-
-    /// Convert from a JSON value to a JS value
-    pub fn from_json(json: JSONValue, interpreter: &mut Interpreter) -> Self {
-        match json {
-            JSONValue::Number(v) => {
-                Self::Rational(v.as_f64().expect("Could not convert value to f64"))
-            }
-            JSONValue::String(v) => Self::String(v),
-            JSONValue::Bool(v) => Self::Boolean(v),
-            JSONValue::Array(vs) => {
-                let mut new_obj = Object::default();
-                for (idx, json) in vs.iter().enumerate() {
-                    new_obj.properties.insert(
-                        idx.to_string(),
-                        Property::default()
-                            .value(Value(Gc::new(ValueData::from_json(
-                                json.clone(),
-                                interpreter,
-                            ))))
-                            .writable(true)
-                            .configurable(true),
-                    );
-                }
-                new_obj.properties.insert(
-                    "length".to_string(),
-                    Property::default().value(Value::from(vs.len())),
-                );
-                Self::Object(Box::new(GcCell::new(new_obj)))
-            }
-            JSONValue::Object(obj) => {
-                let mut new_obj = Object::default();
-                for (key, json) in obj.iter() {
-                    new_obj.properties.insert(
-                        key.clone(),
-                        Property::default()
-                            .value(Value(Gc::new(ValueData::from_json(
-                                json.clone(),
-                                interpreter,
-                            ))))
-                            .writable(true)
-                            .configurable(true),
-                    );
-                }
-
-                Self::Object(Box::new(GcCell::new(new_obj)))
-            }
-            JSONValue::Null => Self::Null,
-        }
     }
 
     /// Conversts the `Value` to `JSON`.
