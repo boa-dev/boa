@@ -10,20 +10,20 @@ pub mod val_type;
 pub use crate::builtins::value::val_type::Type;
 
 use crate::builtins::{
-    function::Function,
     object::{
         internal_methods_trait::ObjectInternalMethods, InternalState, InternalStateCell, Object,
         ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE,
     },
     property::Property,
+    BigInt, Function,
 };
-use crate::{syntax::ast::bigint::BigInt, BoaProfiler};
+use crate::BoaProfiler;
+
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
     collections::HashSet,
-    convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
@@ -32,9 +32,12 @@ use std::{
 
 pub mod conversions;
 pub mod display;
+pub mod equality;
 pub mod operations;
+
 pub use conversions::*;
 pub(crate) use display::display_obj;
+pub use equality::*;
 pub use operations::*;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
@@ -224,7 +227,7 @@ impl ValueData {
         }
     }
 
-    /// Returns true if the value is undefined
+    /// Returns true if the value is undefined.
     pub fn is_undefined(&self) -> bool {
         match *self {
             Self::Undefined => true,
@@ -232,7 +235,7 @@ impl ValueData {
         }
     }
 
-    /// Returns true if the value is null
+    /// Returns true if the value is null.
     pub fn is_null(&self) -> bool {
         match *self {
             Self::Null => true,
@@ -240,7 +243,7 @@ impl ValueData {
         }
     }
 
-    /// Returns true if the value is null or undefined
+    /// Returns true if the value is null or undefined.
     pub fn is_null_or_undefined(&self) -> bool {
         match *self {
             Self::Null | Self::Undefined => true,
@@ -248,7 +251,7 @@ impl ValueData {
         }
     }
 
-    /// Returns true if the value is a 64-bit floating-point number
+    /// Returns true if the value is a 64-bit floating-point number.
     pub fn is_double(&self) -> bool {
         match *self {
             Self::Rational(_) => true,
@@ -290,6 +293,14 @@ impl ValueData {
     pub fn is_boolean(&self) -> bool {
         match *self {
             Self::Boolean(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns true if the value is a bigint
+    pub fn is_bigint(&self) -> bool {
+        match *self {
+            Self::BigInt(_) => true,
             _ => false,
         }
     }
@@ -351,27 +362,6 @@ impl ValueData {
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
             }
-        }
-    }
-
-    /// Helper function.
-    pub fn to_bigint(&self) -> Option<BigInt> {
-        match self {
-            Self::String(ref string) => string_to_bigint(string),
-            Self::Boolean(true) => Some(BigInt::from(1)),
-            Self::Boolean(false) | Self::Null => Some(BigInt::from(0)),
-            Self::Rational(num) => BigInt::try_from(*num).ok(),
-            Self::Integer(num) => Some(BigInt::from(*num)),
-            ValueData::BigInt(b) => Some(b.clone()),
-            ValueData::Object(ref o) => {
-                let object = (o).deref().borrow();
-                if object.kind == ObjectKind::BigInt {
-                    object.get_internal_slot("BigIntData").to_bigint()
-                } else {
-                    None
-                }
-            }
-            _ => None,
         }
     }
 

@@ -1,4 +1,4 @@
-use crate::{exec, exec::Interpreter, forward, realm::Realm};
+use crate::{builtins::Value, exec, exec::Interpreter, forward, realm::Realm};
 
 #[test]
 fn empty_let_decl_undefined() {
@@ -752,4 +752,28 @@ fn function_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "5");
+}
+
+#[test]
+fn to_bigint() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert!(engine.to_bigint(&Value::null()).is_err());
+    assert!(engine.to_bigint(&Value::undefined()).is_err());
+    assert!(engine.to_bigint(&Value::integer(55)).is_ok());
+    assert!(engine.to_bigint(&Value::rational(10.0)).is_ok());
+    assert!(engine.to_bigint(&Value::string("100")).is_ok());
+}
+
+#[test]
+fn to_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(engine.to_string(&Value::null()).unwrap(), "null");
+    assert_eq!(engine.to_string(&Value::undefined()).unwrap(), "undefined");
+    assert_eq!(engine.to_string(&Value::integer(55)).unwrap(), "55");
+    assert_eq!(engine.to_string(&Value::rational(55.0)).unwrap(), "55");
+    assert_eq!(engine.to_string(&Value::string("hello")).unwrap(), "hello");
 }

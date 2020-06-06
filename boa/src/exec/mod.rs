@@ -37,6 +37,7 @@ use crate::{
     },
     BoaProfiler,
 };
+use std::convert::TryFrom;
 use std::{borrow::Borrow, ops::Deref};
 
 pub trait Executable {
@@ -153,10 +154,48 @@ impl Interpreter {
                 self.throw_type_error("can't convert symbol to string")?;
                 unreachable!();
             }
-            ValueData::BigInt(ref bigint) => Ok(BigInt::to_native_string(bigint)),
+            ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
             ValueData::Object(_) => {
                 let primitive = self.to_primitive(&mut value.clone(), Some("string"));
                 self.to_string(&primitive)
+            }
+        }
+    }
+
+    /// Helper function.
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_bigint(&mut self, value: &Value) -> Result<BigInt, Value> {
+        match value.data() {
+            ValueData::Null => {
+                self.throw_type_error("cannot convert null to a BigInt")?;
+                unreachable!();
+            }
+            ValueData::Undefined => {
+                self.throw_type_error("cannot convert undefined to a BigInt")?;
+                unreachable!();
+            }
+            ValueData::String(ref string) => Ok(BigInt::from_string(string, self)?),
+            ValueData::Boolean(true) => Ok(BigInt::from(1)),
+            ValueData::Boolean(false) => Ok(BigInt::from(0)),
+            ValueData::Integer(num) => Ok(BigInt::from(*num)),
+            ValueData::Rational(num) => {
+                if let Ok(bigint) = BigInt::try_from(*num) {
+                    return Ok(bigint);
+                }
+                self.throw_type_error(format!(
+                    "The number {} cannot be converted to a BigInt because it is not an integer",
+                    num
+                ))?;
+                unreachable!();
+            }
+            ValueData::BigInt(b) => Ok(b.clone()),
+            ValueData::Object(_) => {
+                let primitive = self.to_primitive(&mut value.clone(), Some("number"));
+                self.to_bigint(&primitive)
+            }
+            ValueData::Symbol(_) => {
+                self.throw_type_error("cannot convert Symbol to a BigInt")?;
+                unreachable!();
             }
         }
     }

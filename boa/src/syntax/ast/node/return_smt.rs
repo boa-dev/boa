@@ -31,8 +31,8 @@ pub struct Return {
 }
 
 impl Return {
-    pub fn expr(&self) -> &Option<Box<Node>> {
-        &self.expr
+    pub fn expr(&self) -> Option<&Node> {
+        self.expr.as_ref().map(Box::as_ref)
     }
 
     /// Creates a `Return` AST node.
