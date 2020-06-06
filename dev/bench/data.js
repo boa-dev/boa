@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1591364874591,
+  "lastUpdate": 1591409741703,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -9147,6 +9147,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 14.886,
             "range": "+/- 0.411",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "HalidOdat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d847ff826b5164791191163f3e273cb1d2c247a0",
+          "message": "Specification compliant `ToBigInt` (`to_bigint`) (#450)\n\n- Merged Ast `BigInt` to Builtin `BigInt`.\r\n - Split `BigInt` logic to separate files.\r\n - Added `builtins/bigint/operations.rs` for `BigInt` operations.\r\n - Added `builtins/bigint/conversions.rs` for `BigInt` conversions.\r\n - Added` builtins/bigint/equality.rs` for `BigInt` equality checking.\r\n - Added tests.",
+          "timestamp": "2020-06-06T04:07:42+02:00",
+          "tree_id": "3ee9d481622b8e83e8c5a0bf7cdb7776171c06d7",
+          "url": "https://github.com/boa-dev/boa/commit/d847ff826b5164791191163f3e273cb1d2c247a0"
+        },
+        "date": 1591409734644,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 390.76,
+            "range": "+/- 12.270",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 417.87,
+            "range": "+/- 10.610",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 424.38,
+            "range": "+/- 12.980",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.4078,
+            "range": "+/- 0.057",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.034,
+            "range": "+/- 0.067",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 839.87,
+            "range": "+/- 22.040",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 4.5478,
+            "range": "+/- 0.117",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.9334,
+            "range": "+/- 0.106",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 1.9566,
+            "range": "+/- 0.059",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 12.686,
+            "range": "+/- 0.567",
             "unit": "us"
           }
         ]
