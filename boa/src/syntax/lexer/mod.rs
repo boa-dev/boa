@@ -6,7 +6,7 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::ast::bigint::BigInt;
+use crate::builtins::BigInt;
 use crate::{
     syntax::ast::{
         token::{NumericLiteral, Token, TokenKind},
@@ -442,7 +442,7 @@ impl<'a> Lexer<'a> {
         let num = match kind {
                 NumericKind::BigInt(base) => {
                     NumericLiteral::BigInt(
-                        BigInt::from_str_radix(&buf, base as u32).expect("Could not conver to BigInt")
+                        BigInt::from_string_radix(&buf, base as u32).expect("Could not conver to BigInt")
                         )
                 }
                 NumericKind::Rational /* base: 10 */ => {
