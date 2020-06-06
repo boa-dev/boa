@@ -21,6 +21,7 @@ use crate::{
         RegExp,
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use regex::Regex;
 use std::string::String as StdString;
@@ -68,12 +69,12 @@ impl String {
 
     /// Get the string value to a primitive string
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
         // Get String from String Object and send it back as a new value
         match this.get_internal_slot("StringData").data() {
             ValueData::String(ref string) => Ok(Value::from(string.clone())),
             // Throw expection here:
-            _ => panic!("TypeError: this is not a string"),
+            _ => ctx.throw_type_error("'this' is not a string"),
         }
     }
 
@@ -1077,6 +1078,7 @@ impl String {
     /// Initialise the `String` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("string", "init");
         global.set_field("String", Self::create(global));
     }
 }

@@ -7,13 +7,16 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 //! [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 
-use crate::syntax::{
-    ast::{node::FunctionExpr, Punctuator},
-    parser::{
-        function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
-        Cursor, ParseError, TokenParser,
+use crate::{
+    syntax::{
+        ast::{node::FunctionExpr, Punctuator},
+        parser::{
+            function::{FormalParameters, FunctionBody},
+            statement::BindingIdentifier,
+            Cursor, ParseError, TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// Function expression parsing.
@@ -31,6 +34,7 @@ impl TokenParser for FunctionExpression {
     type Output = FunctionExpr;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
         let name = BindingIdentifier::new(false, false).try_parse(cursor);
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;

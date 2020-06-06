@@ -6,15 +6,18 @@
 //! [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 
 use super::arguments::Arguments;
-use crate::syntax::{
-    ast::{
-        node::{Call, New, Node},
-        Keyword, Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{Call, New, Node},
+            Keyword, Punctuator, TokenKind,
+        },
+        parser::{
+            expression::{primary::PrimaryExpression, Expression},
+            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        },
     },
-    parser::{
-        expression::{primary::PrimaryExpression, Expression},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Parses a member expression.
@@ -47,6 +50,7 @@ impl TokenParser for MemberExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
         let mut lhs = if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
             == TokenKind::Keyword(Keyword::New)
         {

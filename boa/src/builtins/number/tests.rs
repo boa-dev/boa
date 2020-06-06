@@ -403,13 +403,13 @@ fn value_of() {
 
 #[test]
 fn equal() {
-    assert_eq!(Number::equals(0.0, 0.0), true);
-    assert_eq!(Number::equals(-0.0, 0.0), true);
-    assert_eq!(Number::equals(0.0, -0.0), true);
-    assert_eq!(Number::equals(f64::NAN, -0.0), false);
-    assert_eq!(Number::equals(0.0, f64::NAN), false);
+    assert_eq!(Number::equal(0.0, 0.0), true);
+    assert_eq!(Number::equal(-0.0, 0.0), true);
+    assert_eq!(Number::equal(0.0, -0.0), true);
+    assert_eq!(Number::equal(f64::NAN, -0.0), false);
+    assert_eq!(Number::equal(0.0, f64::NAN), false);
 
-    assert_eq!(Number::equals(1.0, 1.0), true);
+    assert_eq!(Number::equal(1.0, 1.0), true);
 }
 
 #[test]
@@ -419,7 +419,7 @@ fn same_value() {
     assert_eq!(Number::same_value(0.0, -0.0), false);
     assert_eq!(Number::same_value(f64::NAN, -0.0), false);
     assert_eq!(Number::same_value(0.0, f64::NAN), false);
-    assert_eq!(Number::equals(1.0, 1.0), true);
+    assert_eq!(Number::equal(1.0, 1.0), true);
 }
 
 #[test]
@@ -429,7 +429,7 @@ fn same_value_zero() {
     assert_eq!(Number::same_value_zero(0.0, -0.0), true);
     assert_eq!(Number::same_value_zero(f64::NAN, -0.0), false);
     assert_eq!(Number::same_value_zero(0.0, f64::NAN), false);
-    assert_eq!(Number::equals(1.0, 1.0), true);
+    assert_eq!(Number::equal(1.0, 1.0), true);
 }
 
 #[test]

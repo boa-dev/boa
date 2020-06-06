@@ -6,10 +6,13 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::ast::bigint::BigInt;
-use crate::syntax::ast::{
-    token::{NumericLiteral, Token, TokenKind},
-    Position, Punctuator, Span,
+use crate::builtins::BigInt;
+use crate::{
+    syntax::ast::{
+        token::{NumericLiteral, Token, TokenKind},
+        Position, Punctuator, Span,
+    },
+    BoaProfiler,
 };
 use std::{
     char::{decode_utf16, from_u32},
@@ -439,7 +442,7 @@ impl<'a> Lexer<'a> {
         let num = match kind {
                 NumericKind::BigInt(base) => {
                     NumericLiteral::BigInt(
-                        BigInt::from_str_radix(&buf, base as u32).expect("Could not conver to BigInt")
+                        BigInt::from_string_radix(&buf, base as u32).expect("Could not conver to BigInt")
                         )
                 }
                 NumericKind::Rational /* base: 10 */ => {
@@ -486,6 +489,7 @@ impl<'a> Lexer<'a> {
     /// }
     /// ```
     pub fn lex(&mut self) -> Result<(), LexerError> {
+        let _timer = BoaProfiler::global().start_event("lex", "lexing");
         loop {
             // Check if we've reached the end
             if self.preview_next().is_none() {

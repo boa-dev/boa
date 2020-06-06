@@ -7,9 +7,12 @@ mod tests;
 use self::catch::Catch;
 use self::finally::Finally;
 use super::block::Block;
-use crate::syntax::{
-    ast::{node::Try, Keyword, TokenKind},
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+use crate::{
+    syntax::{
+        ast::{node::Try, Keyword, TokenKind},
+        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+    },
+    BoaProfiler,
 };
 
 /// Try...catch statement parsing
@@ -47,6 +50,7 @@ impl TokenParser for TryStatement {
     type Output = Try;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Try, ParseError> {
+        let _timer = BoaProfiler::global().start_event("TryStatement", "Parsing");
         // TRY
         cursor.expect(Keyword::Try, "try statement")?;
 

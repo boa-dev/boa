@@ -8,11 +8,13 @@ use crate::{
         node::{Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
+    BoaProfiler,
 };
 use std::borrow::BorrowMut;
 
 impl Executable for Assign {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(interpreter)?;
         match self.lhs() {
             Node::Identifier(ref name) => {
@@ -87,7 +89,10 @@ impl Executable for BinOp {
                     CompOp::LessThanOrEqual => v_a.to_number() <= v_b.to_number(),
                     CompOp::In => {
                         if !v_b.is_object() {
-                            panic!("TypeError: {} is not an Object.", v_b);
+                            return interpreter.throw_type_error(format!(
+                                "right-hand side of 'in' should be an object, got {}",
+                                v_b.get_type()
+                            ));
                         }
                         let key = interpreter.to_property_key(&mut v_a)?;
                         interpreter.has_property(&mut v_b, &key)

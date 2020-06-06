@@ -24,9 +24,9 @@ use crate::{
     builtins::{
         object::internal_methods_trait::ObjectInternalMethods,
         value::{ResultValue, Value, ValueData},
-        RangeError,
     },
     exec::Interpreter,
+    BoaProfiler,
 };
 use num_traits::float::FloatCore;
 use std::{borrow::Borrow, f64, ops::Deref, str::FromStr};
@@ -357,10 +357,8 @@ impl Number {
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
         if radix < 2 || radix > 36 {
-            return Err(RangeError::run_new(
-                "radix must be an integer at least 2 and no greater than 36",
-                ctx,
-            )?);
+            return ctx
+                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }
 
         if x == -0. {
@@ -532,11 +530,11 @@ impl Number {
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
-        number.set_field("EPSILON", Value::from(std::f64::EPSILON));
+        number.set_field("EPSILON", Value::from(f64::EPSILON));
         number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
         number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
-        number.set_field("MAX_VALUE", Value::from(std::f64::MAX));
-        number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
+        number.set_field("MAX_VALUE", Value::from(f64::MAX));
+        number.set_field("MIN_VALUE", Value::from(f64::MIN));
         number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
         number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
         number.set_field("NaN", Value::from(f64::NAN));
@@ -547,6 +545,7 @@ impl Number {
     /// Initialise the `Number` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) {
+        let _timer = BoaProfiler::global().start_event("number", "init");
         global.set_field("Number", Self::create(global));
     }
 
@@ -555,8 +554,8 @@ impl Number {
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
     #[allow(clippy::float_cmp)]
-    pub(crate) fn equals(a: f64, b: f64) -> bool {
-        a == b
+    pub(crate) fn equal(x: f64, y: f64) -> bool {
+        x == y
     }
 
     /// The abstract operation Number::sameValue takes arguments
@@ -586,11 +585,11 @@ impl Number {
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
     #[allow(clippy::float_cmp)]
-    pub(crate) fn same_value_zero(a: f64, b: f64) -> bool {
-        if a.is_nan() && b.is_nan() {
+    pub(crate) fn same_value_zero(x: f64, y: f64) -> bool {
+        if x.is_nan() && y.is_nan() {
             return true;
         }
 
-        a == b
+        x == y
     }
 }
