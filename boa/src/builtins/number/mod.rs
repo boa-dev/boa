@@ -415,20 +415,23 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        let mut radix: u32 = if let Some(r) = args.get(1) {
-            if let ValueData::Integer(i) = r.data() {
-                *i as u32
+        if let (Some(val), r) = (args.get(0), args.get(1)) {
+            let mut radix = if let Some(rx) = r {
+                if let ValueData::Integer(i) = rx.data() {
+                    *i as u32
+                } else {
+                    // Handling a second argument that isn't an integer but was provided so cannot be defaulted.
+                    return Ok(Value::from(f64::NAN));
+                }
             } else {
-                // Handling a second argument that isn't an integer
-                return Err(Value::undefined());
-            }
-        } else {
-            0
-        };
+                // No second argument provided therefore radix is unknown
+                0
+            };
 
-        if let Some(v) = args.get(0) {
-            match v.data() {
+            match val.data() {
                 ValueData::String(s) => {
+                    // Attempt to infer radix from given string.
+
                     if radix == 0 {
                         if s.starts_with("0x") || s.starts_with("0X") {
                             if let Ok(i) = i32::from_str_radix(&s[2..], 16) {
@@ -457,7 +460,7 @@ impl Number {
                 }
             }
         } else {
-            // Handling wrong argument count to parseInt.
+            // Not enough arguments to parseInt.
             Err(Value::undefined())
         }
     }
