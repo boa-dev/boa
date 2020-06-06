@@ -65,11 +65,58 @@ fn fibonacci(c: &mut Criterion) {
     });
 }
 
+static ARRAY_ACCESS: &str = r#"
+let testArr = [1,2,3,4,5];
+
+let res = testArr[2];
+
+res;
+"#;
+
+fn array_access(c: &mut Criterion) {
+    c.bench_function("Array access (Execution)", move |b| {
+        b.iter(|| exec(black_box(ARRAY_ACCESS)))
+    });
+}
+
+static ARRAY_CREATE: &str = r#"
+var testArr = [];
+for (var a = 0; a <= 10000; a++) {
+    testArr[a] = ('p' + a);
+}
+
+testArr;
+"#;
+
+fn array_creation(c: &mut Criterion) {
+    c.bench_function("Array creation (Execution)", move |b| {
+        b.iter(|| exec(black_box(ARRAY_CREATE)))
+    });
+}
+
+static ARRAY_POP: &str = r#"
+var testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28];
+while (testArray.length > 0) {
+  testArray.pop();
+}
+
+testArray;
+"#;
+
+fn array_pop(c: &mut Criterion) {
+    c.bench_function("Array pop (Execution)", move |b| {
+        b.iter(|| exec(black_box(ARRAY_POP)))
+    });
+}
+
 criterion_group!(
     execution,
     create_realm,
     symbol_creation,
     for_loop_execution,
-    fibonacci
+    fibonacci,
+    array_access,
+    array_creation,
+    array_pop
 );
 criterion_main!(execution);
