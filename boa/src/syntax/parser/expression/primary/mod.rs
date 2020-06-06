@@ -80,7 +80,9 @@ impl TokenParser for PrimaryExpression {
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                ObjectLiteral::new(self.allow_yield, self.allow_await).parse(cursor)
+                Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
+                    .parse(cursor)?
+                    .into())
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             // TODO: ADD TokenKind::UndefinedLiteral

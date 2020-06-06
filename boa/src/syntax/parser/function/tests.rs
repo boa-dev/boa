@@ -1,5 +1,7 @@
 use crate::syntax::{
-    ast::node::{ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, Node},
+    ast::node::{
+        ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, Node, Return,
+    },
     ast::op::NumOp,
     parser::tests::check_parser,
 };
@@ -12,7 +14,7 @@ fn check_basic() {
         vec![FunctionDecl::new(
             Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            vec![Node::return_node(Identifier::from("a"))],
+            vec![Return::new(Identifier::from("a")).into()],
         )
         .into()],
     );
@@ -26,7 +28,7 @@ fn check_basic_semicolon_insertion() {
         vec![FunctionDecl::new(
             Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            vec![Node::return_node(Identifier::from("a"))],
+            vec![Return::new(Identifier::from("a")).into()],
         )
         .into()],
     );
@@ -40,7 +42,7 @@ fn check_empty_return() {
         vec![FunctionDecl::new(
             Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            vec![Node::Return(None)],
+            vec![Return::new::<Node, Option<Node>>(None).into()],
         )
         .into()],
     );
@@ -54,7 +56,7 @@ fn check_empty_return_semicolon_insertion() {
         vec![FunctionDecl::new(
             Box::from("foo"),
             vec![FormalParameter::new("a", None, false)],
-            vec![Node::Return(None)],
+            vec![Return::new::<Node, Option<Node>>(None).into()],
         )
         .into()],
     );
@@ -113,11 +115,12 @@ fn check_arrow() {
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            vec![Node::return_node(BinOp::new(
+            vec![Return::new(BinOp::new(
                 NumOp::Add,
                 Identifier::from("a"),
                 Identifier::from("b"),
-            ))],
+            ))
+            .into()],
         )
         .into()],
     );
@@ -133,11 +136,12 @@ fn check_arrow_semicolon_insertion() {
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            vec![Node::return_node(BinOp::new(
+            vec![Return::new(BinOp::new(
                 NumOp::Add,
                 Identifier::from("a"),
                 Identifier::from("b"),
-            ))],
+            ))
+            .into()],
         )
         .into()],
     );
@@ -153,7 +157,7 @@ fn check_arrow_epty_return() {
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            vec![Node::Return(None)],
+            vec![Return::new::<Node, Option<_>>(None).into()],
         )
         .into()],
     );
@@ -169,7 +173,7 @@ fn check_arrow_empty_return_semicolon_insertion() {
                 FormalParameter::new("a", None, false),
                 FormalParameter::new("b", None, false),
             ],
-            vec![Node::Return(None)],
+            vec![Return::new::<Node, Option<_>>(None).into()],
         )
         .into()],
     );

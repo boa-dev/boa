@@ -13,8 +13,8 @@ mod tests;
 use super::LabelIdentifier;
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator, TokenKind},
-        parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+        ast::{node::Continue, Keyword, Punctuator, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -48,9 +48,9 @@ impl ContinueStatement {
 }
 
 impl TokenParser for ContinueStatement {
-    type Output = Node;
+    type Output = Continue;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
         cursor.expect(Keyword::Continue, "continue statement")?;
 
@@ -70,6 +70,6 @@ impl TokenParser for ContinueStatement {
             Some(label)
         };
 
-        Ok(Node::Continue(label))
+        Ok(Continue::new::<_, Box<str>>(label))
     }
 }

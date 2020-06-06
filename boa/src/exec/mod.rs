@@ -2,16 +2,22 @@
 
 mod array;
 mod block;
+mod conditional;
 mod declaration;
 mod exception;
 mod expression;
+mod field;
 mod iteration;
+mod object;
 mod operator;
+mod return_smt;
+mod spread;
 mod statement_list;
-mod try_node;
-
+mod switch;
 #[cfg(test)]
 mod tests;
+mod throw;
+mod try_node;
 
 use crate::{
     builtins::{
@@ -27,7 +33,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition, StatementList},
+        node::{FormalParameter, Node, StatementList},
     },
     BoaProfiler,
 };
@@ -391,10 +397,14 @@ impl Interpreter {
                     .set_mutable_binding(name.as_ref(), value.clone(), true);
                 Ok(value)
             }
-            Node::GetConstField(ref obj, ref field) => Ok(obj.run(self)?.set_field(field, value)),
-            Node::GetField(ref obj, ref field) => {
-                Ok(obj.run(self)?.set_field(field.run(self)?, value))
-            }
+            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
+                .obj()
+                .run(self)?
+                .set_field(get_const_field_node.field(), value)),
+            Node::GetField(ref get_field) => Ok(get_field
+                .obj()
+                .run(self)?
+                .set_field(get_field.field().run(self)?, value)),
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }
@@ -422,100 +432,15 @@ impl Executable for Node {
                     .get_binding_value(name.as_ref());
                 Ok(val)
             }
-            Node::GetConstField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                Ok(val_obj.borrow().get_field(field))
-            }
-            Node::GetField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                let val_field = field.run(interpreter)?;
-                Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
-            }
+            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
+            Node::GetField(ref get_field) => get_field.run(interpreter),
             Node::Call(ref expr) => expr.run(interpreter),
-            Node::WhileLoop(ref cond, ref expr) => {
-                let mut result = Value::undefined();
-                while cond.run(interpreter)?.borrow().is_true() {
-                    result = expr.run(interpreter)?;
-                }
-                Ok(result)
-            }
-            Node::DoWhileLoop(ref body, ref cond) => {
-                let mut result = body.run(interpreter)?;
-                while cond.run(interpreter)?.borrow().is_true() {
-                    result = body.run(interpreter)?;
-                }
-                Ok(result)
-            }
+            Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
+            Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
-            Node::If(ref cond, ref expr, None) => {
-                Ok(if cond.run(interpreter)?.borrow().is_true() {
-                    expr.run(interpreter)?
-                } else {
-                    Value::undefined()
-                })
-            }
-            Node::If(ref cond, ref expr, Some(ref else_e)) => {
-                Ok(if cond.run(interpreter)?.borrow().is_true() {
-                    expr.run(interpreter)?
-                } else {
-                    else_e.run(interpreter)?
-                })
-            }
-            Node::Switch(ref val_e, ref vals, ref default) => {
-                let val = val_e.run(interpreter)?;
-                let mut result = Value::null();
-                let mut matched = false;
-                for tup in vals.iter() {
-                    let cond = &tup.0;
-                    let block = &tup.1;
-                    if val.strict_equals(&cond.run(interpreter)?) {
-                        matched = true;
-                        let last_expr = block.last().expect("Block has no expressions");
-                        for expr in block.iter() {
-                            let e_result = expr.run(interpreter)?;
-                            if expr == last_expr {
-                                result = e_result;
-                            }
-                        }
-                    }
-                }
-                if !matched {
-                    if let Some(default) = default {
-                        result = default.run(interpreter)?;
-                    }
-                }
-                Ok(result)
-            }
-            Node::Object(ref properties) => {
-                let global_val = &interpreter
-                    .realm()
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let obj = Value::new_object(Some(global_val));
-
-                // TODO: Implement the rest of the property types.
-                for property in properties.iter() {
-                    match property {
-                        PropertyDefinition::Property(key, value) => {
-                            obj.borrow()
-                                .set_field(&key.clone(), value.run(interpreter)?);
-                        }
-                        PropertyDefinition::MethodDefinition(kind, name, func) => {
-                            if let MethodDefinitionKind::Ordinary = kind {
-                                obj.borrow()
-                                    .set_field(&name.clone(), func.run(interpreter)?);
-                            } else {
-                                // TODO: Implement other types of MethodDefinitionKinds.
-                                unimplemented!("other types of property method definitions.");
-                            }
-                        }
-                        i => unimplemented!("{:?} type of property", i),
-                    }
-                }
-
-                Ok(obj)
-            }
+            Node::If(ref if_smt) => if_smt.run(interpreter),
+            Node::Switch(ref switch) => switch.run(interpreter),
+            Node::Object(ref obj) => obj.run(interpreter),
             Node::ArrayDecl(ref arr) => arr.run(interpreter),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref decl) => decl.run(interpreter),
@@ -525,24 +450,13 @@ impl Executable for Node {
             Node::BinOp(ref op) => op.run(interpreter),
             Node::UnaryOp(ref op) => op.run(interpreter),
             Node::New(ref call) => call.run(interpreter),
-            Node::Return(ref ret) => {
-                let result = match *ret {
-                    Some(ref v) => v.run(interpreter),
-                    None => Ok(Value::undefined()),
-                };
-                // Set flag for return
-                interpreter.is_return = true;
-                result
-            }
-            Node::Throw(ref ex) => Err(ex.run(interpreter)?),
+            Node::Return(ref ret) => ret.run(interpreter),
+            Node::Throw(ref throw) => throw.run(interpreter),
             Node::Assign(ref op) => op.run(interpreter),
             Node::VarDeclList(ref decl) => decl.run(interpreter),
             Node::LetDeclList(ref decl) => decl.run(interpreter),
             Node::ConstDeclList(ref decl) => decl.run(interpreter),
-            Node::Spread(ref node) => {
-                // TODO: for now we can do nothing but return the value as-is
-                node.run(interpreter)
-            }
+            Node::Spread(ref spread) => spread.run(interpreter),
             Node::This => {
                 // Will either return `this` binding or undefined
                 Ok(interpreter.realm().environment.get_this_binding())
