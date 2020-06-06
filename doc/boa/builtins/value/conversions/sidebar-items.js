@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TryFromBigIntError",""],["TryFromCharError",""],["TryFromObjectError",""]]});
+initSidebarItems({"struct":[["TryFromCharError",""],["TryFromObjectError",""]]});

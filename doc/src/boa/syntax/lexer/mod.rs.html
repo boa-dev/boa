@@ -856,7 +856,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">bigint</span>::<span class="ident">BigInt</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">BigInt</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::<span class="ident">ast</span>::{
         <span class="ident">token</span>::{<span class="ident">NumericLiteral</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
@@ -1292,7 +1292,7 @@
         <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
                 <span class="ident">NumericKind</span>::<span class="ident">BigInt</span>(<span class="ident">base</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">NumericLiteral</span>::<span class="ident">BigInt</span>(
-                        <span class="ident">BigInt</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">base</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not conver to BigInt&quot;</span>)
+                        <span class="ident">BigInt</span>::<span class="ident">from_string_radix</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>, <span class="ident">base</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not conver to BigInt&quot;</span>)
                         )
                 }
                 <span class="ident">NumericKind</span>::<span class="ident">Rational</span> <span class="comment">/* base: 10 */</span> <span class="op">=</span><span class="op">&gt;</span> {

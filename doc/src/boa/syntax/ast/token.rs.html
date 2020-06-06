@@ -341,6 +341,7 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
@@ -349,8 +350,9 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-tokens</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">BigInt</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">bigint</span>::<span class="ident">BigInt</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
+    <span class="ident">ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
     <span class="ident">lexer</span>::<span class="ident">LexerError</span>,
 };
 <span class="kw">use</span> <span class="ident">bitflags</span>::<span class="ident">bitflags</span>;
