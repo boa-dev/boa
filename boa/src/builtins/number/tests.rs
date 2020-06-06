@@ -568,3 +568,113 @@ fn parse_int_negative_varying_radix() {
         );
     }
 }
+
+#[test]
+fn parse_int_malformed_str() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(\"hello\")"), "NaN");
+}
+
+#[test]
+fn parse_int_undefined() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt(undefined)"), "NaN");
+}
+
+#[test]
+fn parse_int_no_args() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseInt()"), "Error: undefined");
+}
+
+#[test]
+fn parse_int_too_many_args() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        &forward(&mut engine, "parseInt(\"100\", 10, 10)"),
+        "Error: undefined"
+    );
+}
+
+#[test]
+fn parse_float_simple() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat(\"6.5\")"), "6.5");
+}
+
+#[test]
+fn parse_float_int() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat(10)"), "10");
+}
+
+#[test]
+fn parse_float_int_str() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat(\"8\")"), "8");
+}
+
+#[test]
+fn parse_float_already_float() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat(17.5)"), "17.5");
+}
+
+#[test]
+fn parse_float_negative() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat(\"-99.7\")"), "-99.7");
+}
+
+#[test]
+fn parse_float_malformed_str() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat(\"hello\")"), "NaN");
+}
+
+#[test]
+fn parse_float_undefined() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat(undefined)"), "NaN");
+}
+
+#[test]
+fn parse_float_no_args() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(&forward(&mut engine, "parseFloat()"), "Error: undefined");
+}
+
+#[test]
+fn parse_float_too_many_args() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        &forward(&mut engine, "parseFloat(\"100.5\", 10)"),
+        "Error: undefined"
+    );
+}

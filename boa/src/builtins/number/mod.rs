@@ -29,7 +29,7 @@ use crate::{
     exec::Interpreter,
 };
 use num_traits::float::FloatCore;
-use std::{borrow::Borrow, f64, ops::Deref};
+use std::{borrow::Borrow, f64, ops::Deref, str::FromStr};
 
 const BUF_SIZE: usize = 2200;
 
@@ -37,8 +37,8 @@ const BUF_SIZE: usize = 2200;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Number;
 
-const PARSE_INT_MAX_ARG_COUNT: i32 = 2;
-const PARSE_FLOAT_MAX_ARG_COUNT: i32 = 2;
+const PARSE_INT_MAX_ARG_COUNT: usize = 2;
+const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 
 impl Number {
     /// Helper function that converts a Value to a Number.
@@ -415,6 +415,11 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
+        if args.len() > PARSE_INT_MAX_ARG_COUNT {
+            // Too many arguments.
+            return Err(Value::undefined());
+        }
+
         if let (Some(val), r) = (args.get(0), args.get(1)) {
             let mut radix = if let Some(rx) = r {
                 if let ValueData::Integer(i) = rx.data() {
@@ -456,7 +461,7 @@ impl Number {
                 ValueData::Rational(f) => Ok(Value::integer(*f as i32)),
                 _ => {
                     // Wrong argument type to parseInt.
-                    Err(Value::undefined())
+                    Ok(Value::from(f64::NAN))
                 }
             }
         } else {
@@ -467,13 +472,35 @@ impl Number {
 
     pub(crate) fn parse_float(
         _this: &mut Value,
-        _args: &[Value],
+        args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        // if (args.len() > PARSE_FLOAT_MAX_ARG_COUNT || args.len() < 1) {
-        //     unimplemented!("Handling wrong argument count to parseFloat");
-        // }
-        unimplemented!("parseFloat not yet implemented");
+        if args.len() > PARSE_FLOAT_MAX_ARG_COUNT {
+            // Too many arguments.
+            return Err(Value::undefined());
+        }
+
+        if let Some(val) = args.get(0) {
+            match val.data() {
+                ValueData::String(s) => {
+                    if let Ok(f) = f64::from_str(s) {
+                        Ok(Value::rational(f))
+                    } else {
+                        // String can't be parsed.
+                        Ok(Value::from(f64::NAN))
+                    }
+                }
+                ValueData::Integer(i) => Ok(Value::rational(*i as f64)),
+                ValueData::Rational(f) => Ok(Value::rational(*f)),
+                _ => {
+                    // Wrong argument type to parseFloat.
+                    Ok(Value::from(f64::NAN))
+                }
+            }
+        } else {
+            // Not enough arguments to parseFloat.
+            Err(Value::undefined())
+        }
     }
 
     /// Create a new `Number` object
@@ -488,12 +515,17 @@ impl Number {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_builtin_fn(Self::parse_int, "parseInt", global, PARSE_INT_MAX_ARG_COUNT);
+        make_builtin_fn(
+            Self::parse_int,
+            "parseInt",
+            global,
+            PARSE_INT_MAX_ARG_COUNT as i32,
+        );
         make_builtin_fn(
             Self::parse_float,
             "parseFloat",
             global,
-            PARSE_FLOAT_MAX_ARG_COUNT,
+            PARSE_FLOAT_MAX_ARG_COUNT as i32,
         );
 
         let number = make_constructor_fn("Number", 1, Self::make_number, global, prototype, true);
