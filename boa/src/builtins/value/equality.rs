@@ -202,12 +202,7 @@ pub fn same_value_non_numeric(x: &Value, y: &Value) -> bool {
     match x.get_type() {
         Type::Undefined => true,
         Type::Null => true,
-        Type::String => {
-            if x.to_string() == y.to_string() {
-                return true;
-            }
-            false
-        }
+        Type::String => x.to_string() == y.to_string(),
         Type::Boolean => bool::from(x) == bool::from(y),
         Type::Object => std::ptr::eq(x, y),
         _ => false,
