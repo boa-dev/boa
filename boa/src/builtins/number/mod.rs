@@ -29,7 +29,7 @@ use crate::{
     BoaProfiler,
 };
 use num_traits::float::FloatCore;
-use std::{borrow::Borrow, f64, ops::Deref};
+use std::{borrow::Borrow, ops::Deref};
 
 const BUF_SIZE: usize = 2200;
 
