@@ -29,7 +29,7 @@ use crate::{
     BoaProfiler,
 };
 use num_traits::float::FloatCore;
-use std::{borrow::Borrow, f64, ops::Deref, str::FromStr};
+use std::{borrow::Borrow, f64, ops::Deref};
 
 const BUF_SIZE: usize = 2200;
 
@@ -37,7 +37,10 @@ const BUF_SIZE: usize = 2200;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Number;
 
+/// Maximum number of arguments expected to the builtin parseInt() function.
 const PARSE_INT_MAX_ARG_COUNT: usize = 2;
+
+/// Maximum number of arguments expected to the builtin parseFloat() function.
 const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 
 impl Number {
@@ -408,6 +411,20 @@ impl Number {
         Ok(Self::to_number(this))
     }
 
+    /// Builtin javascript 'parseInt(str, radix)' function.
+    ///
+    /// Parses the given string as an integer using the given radix as a base.
+    ///
+    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
+    ///
+    /// The radix must be an integer in the range [2, 36] inclusive.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
     pub(crate) fn parse_int(
         _this: &mut Value,
         args: &[Value],
@@ -468,6 +485,21 @@ impl Number {
         }
     }
 
+    /// Builtin javascript 'parseFloat(str)' function.
+    ///
+    /// Parses the given string as a floating point value.
+    ///
+    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
+    ///
+    /// To improve performance an Integer type Number is returned in place of a Rational if the given
+    /// string can be parsed and stored as an Integer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
     pub(crate) fn parse_float(
         _this: &mut Value,
         args: &[Value],
@@ -481,14 +513,18 @@ impl Number {
         if let Some(val) = args.get(0) {
             match val.data() {
                 ValueData::String(s) => {
-                    if let Ok(f) = f64::from_str(s) {
+                    if let Ok(i) = s.parse::<i32>() {
+                        // Attempt to parse an integer first so that it can be stored as an integer
+                        // to improve performance
+                        Ok(Value::integer(i))
+                    } else if let Ok(f) = s.parse::<f64>() {
                         Ok(Value::rational(f))
                     } else {
                         // String can't be parsed.
                         Ok(Value::from(f64::NAN))
                     }
                 }
-                ValueData::Integer(i) => Ok(Value::rational(*i as f64)),
+                ValueData::Integer(i) => Ok(Value::integer(*i)),
                 ValueData::Rational(f) => Ok(Value::rational(*f)),
                 _ => {
                     // Wrong argument type to parseFloat.
