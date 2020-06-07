@@ -15,21 +15,67 @@
 use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
-        value::{ResultValue, Value},
+        value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
-    syntax::ast::bigint::BigInt as AstBigInt,
     BoaProfiler,
 };
+
+use gc::{unsafe_empty_trace, Finalize, Trace};
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+pub mod conversions;
+pub mod equality;
+pub mod operations;
+
+pub use conversions::*;
+pub use equality::*;
+pub use operations::*;
 
 #[cfg(test)]
 mod tests;
 
 /// `BigInt` implementation.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct BigInt;
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct BigInt(num_bigint::BigInt);
 
 impl BigInt {
+    /// The abstract operation thisBigIntValue takes argument value.
+    ///
+    /// The phrase “this BigInt value” within the specification of a method refers to the
+    /// result returned by calling the abstract operation thisBigIntValue with the `this` value
+    /// of the method invocation passed as the argument.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
+    #[inline]
+    fn this_bigint_value(value: &Value, ctx: &mut Interpreter) -> Result<Self, Value> {
+        match value.data() {
+            // 1. If Type(value) is BigInt, return value.
+            ValueData::BigInt(ref bigint) => return Ok(bigint.clone()),
+
+            // 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then
+            //    a. Assert: Type(value.[[BigIntData]]) is BigInt.
+            //    b. Return value.[[BigIntData]].
+            ValueData::Object(_) => {
+                let bigint = value.get_internal_slot("BigIntData");
+                if let ValueData::BigInt(bigint) = bigint.data() {
+                    return Ok(bigint.clone());
+                }
+            }
+            _ => {}
+        }
+
+        // 3. Throw a TypeError exception.
+        ctx.throw_type_error("'this' is not a BigInt")?;
+        unreachable!();
+    }
+
     /// `BigInt()`
     ///
     /// The `BigInt()` constructor is used to create BigInt objects.
@@ -46,32 +92,10 @@ impl BigInt {
         ctx: &mut Interpreter,
     ) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => {
-                if let Some(bigint) = value.to_bigint() {
-                    Value::from(bigint)
-                } else {
-                    let message = format!(
-                        "{} can't be converted to BigInt because it isn't an integer",
-                        ctx.to_string(value)?
-                    );
-                    return ctx.throw_range_error(message);
-                }
-            }
-            None => Value::from(AstBigInt::from(0)),
+            Some(ref value) => Value::from(ctx.to_bigint(value)?),
+            None => Value::from(Self::from(0)),
         };
         Ok(data)
-    }
-
-    #[inline]
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_native_string_radix(bigint: &AstBigInt, radix: u32) -> String {
-        bigint.to_str_radix(radix)
-    }
-
-    #[inline]
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_native_string(bigint: &AstBigInt) -> String {
-        bigint.to_string()
     }
 
     /// `BigInt.prototype.toString( [radix] )`
@@ -99,10 +123,9 @@ impl BigInt {
             return ctx
                 .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }
-        Ok(Value::from(Self::to_native_string_radix(
-            &this.to_bigint().unwrap(),
-            radix as u32,
-        )))
+        Ok(Value::from(
+            Self::this_bigint_value(this, ctx)?.to_string_radix(radix as u32),
+        ))
     }
 
     /// `BigInt.prototype.valueOf()`
@@ -118,17 +141,15 @@ impl BigInt {
     pub(crate) fn value_of(
         this: &mut Value,
         _args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok(Value::from(
-            this.to_bigint().expect("BigInt.prototype.valueOf"),
-        ))
+        Ok(Value::from(Self::this_bigint_value(this, ctx)?))
     }
 
     /// Create a new `Number` object
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
-        prototype.set_internal_slot("BigIntData", Value::from(AstBigInt::from(0)));
+        prototype.set_internal_slot("BigIntData", Value::from(Self::from(0)));
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
@@ -142,4 +163,12 @@ impl BigInt {
         let _timer = BoaProfiler::global().start_event("bigint", "init");
         global.set_field("BigInt", Self::create(global));
     }
+}
+
+impl Finalize for BigInt {}
+unsafe impl Trace for BigInt {
+    // BigInt type implements an empty trace becasue the inner structure
+    // `num_bigint::BigInt` does not implement `Trace` trait.
+    // If it did this would be unsound.
+    unsafe_empty_trace!();
 }

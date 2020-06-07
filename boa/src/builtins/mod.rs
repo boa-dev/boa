@@ -21,6 +21,7 @@ pub(crate) use self::{
     bigint::BigInt,
     boolean::Boolean,
     error::{Error, RangeError, TypeError},
+    function::Function,
     number::Number,
     regexp::RegExp,
     string::String,
