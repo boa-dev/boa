@@ -41,6 +41,9 @@ pub mod profiler;
 pub mod realm;
 pub mod syntax;
 
+#[cfg(feature = "vm")]
+pub mod vm;
+
 use crate::{builtins::value::ResultValue, syntax::ast::node::StatementList};
 pub use crate::{
     exec::{Executable, Interpreter},
