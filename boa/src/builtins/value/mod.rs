@@ -177,18 +177,10 @@ impl Value {
                 Self::object(new_obj)
             }
             JSONValue::Object(obj) => {
-                let mut new_obj = Object::default();
+                let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
                 for (key, json) in obj.iter() {
                     let value = Self::from_json(json.clone(), interpreter);
-                    if value.is_object() {
-                        let proto = interpreter
-                            .realm
-                            .global_obj
-                            .get_field("Object")
-                            .get_field(PROTOTYPE);
-                        value.set_internal_slot(INSTANCE_PROTOTYPE, proto);
-                    }
-                    new_obj.properties.insert(
+                    new_obj.set_property(
                         key.clone(),
                         Property::default()
                             .value(value)
@@ -196,8 +188,7 @@ impl Value {
                             .configurable(true),
                     );
                 }
-
-                Self::object(new_obj)
+                new_obj
             }
             JSONValue::Null => Self::null(),
         }
