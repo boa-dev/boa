@@ -52,6 +52,9 @@ pub use crate::{
     syntax::{lexer::Lexer, parser::Parser},
 };
 
+#[cfg(feature = "vm")]
+pub use crate::vm::VM;
+
 fn parser_expr(src: &str) -> Result<StatementList, String> {
     let mut lexer = Lexer::new(src);
     lexer.lex().map_err(|e| format!("Syntax Error: {}", e))?;
@@ -77,12 +80,38 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// The str is consumed and the state of the Interpreter is changed
 /// Similar to `forward`, except the current value is returned instad of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
+#[cfg(not(feature = "vm"))]
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
     let result = match parser_expr(src) {
         Ok(expr) => expr.run(engine),
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    };
+
+    // The main_timer needs to be dropped before the BoaProfiler is.
+    drop(main_timer);
+    BoaProfiler::global().drop();
+
+    result
+}
+
+/// Execute the code using an existing VM.
+#[cfg(feature = "vm")]
+#[allow(clippy::unit_arg, clippy::drop_copy)]
+pub fn forward_val(vm: &mut VM, src: &str) -> ResultValue {
+    let main_timer = BoaProfiler::global().start_event("Main", "Main");
+
+    // Setup executor
+    let result = match parser_expr(src) {
+        Ok(expr) => {
+            let instrs = vm::compilation::Compiler::new().compile(&expr);
+            vm.run(&instrs)
+        }
         Err(e) => {
             eprintln!("{}", e);
             std::process::exit(1);

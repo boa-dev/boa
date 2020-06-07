@@ -6,7 +6,7 @@ use crate::{
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 
-pub mod compilation;
+pub(crate) mod compilation;
 
 #[cfg(test)]
 mod tests;
@@ -42,7 +42,7 @@ impl VM {
         v
     }
 
-    fn new(realm: Realm) -> Self {
+    pub fn new(realm: Realm) -> Self {
         VM {
             realm,
             regs: vec![Value::undefined(); 8],
@@ -53,7 +53,7 @@ impl VM {
         self.regs[reg.0 as usize] = val;
     }
 
-    fn run(&mut self, instrs: &[In]) -> ResultValue {
+    pub fn run(&mut self, instrs: &[In]) -> ResultValue {
         let mut idx = 0;
 
         while idx < instrs.len() {

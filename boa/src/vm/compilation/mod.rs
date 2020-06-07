@@ -4,23 +4,23 @@ use crate::syntax::ast::{constant::Const, node::*, Node};
 
 // this..?
 #[derive(Debug, Default)]
-pub struct Compiler {
+pub(crate) struct Compiler {
     res: Vec<In>,
     next_free: u8,
 }
 
 // or maybe..
 // `impl CodeGen for BinOp` ?
-pub trait CodeGen {
+trait CodeGen {
     fn compile(&self);
 }
 
 impl Compiler {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Default::default()
     }
 
-    pub fn compile(&mut self, list: &StatementList) -> Vec<In> {
+    pub(crate) fn compile(&mut self, list: &StatementList) -> Vec<In> {
         for stmt in list.statements() {
             self.compile_node(stmt);
         }

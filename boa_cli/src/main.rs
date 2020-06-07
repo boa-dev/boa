@@ -32,6 +32,10 @@ use boa::{
     realm::Realm,
     syntax::ast::{node::StatementList, token::Token},
 };
+
+#[cfg(feature = "vm")]
+use boa::vm::VM;
+
 use std::{
     fs::read_to_string,
     io::{self, Write},
@@ -47,7 +51,7 @@ use structopt::{clap::arg_enum, StructOpt};
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
-//
+
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
@@ -172,12 +176,26 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(feature = "vm")]
+fn create_engine(realm: Realm) -> VM {
+    VM::new(realm)
+}
+
+#[cfg(not(feature = "vm"))]
+fn create_engine(realm: Realm) -> Interpreter {
+    Interpreter::new(realm)
+}
+
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
     let realm = Realm::create().register_global_func("print", log);
 
-    let mut engine = Interpreter::new(realm);
+    let mut engine = create_engine(realm);
+
+    if cfg!(feature = "vm") {
+        println!("=== experimental VM in use ===");
+    }
 
     for file in &args.files {
         let buffer = read_to_string(file)?;
