@@ -71,6 +71,12 @@ impl Realm {
     }
 }
 
+impl Default for Realm {
+    fn default() -> Self {
+        Self::create()
+    }
+}
+
 // Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment
 fn new_global_environment(
     global: Value,

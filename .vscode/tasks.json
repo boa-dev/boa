@@ -40,6 +40,24 @@
     },
     {
       "type": "process",
+      "label": "Cargo Run (VM)",
+      "command": "cargo",
+      "args": ["run", "--features", "vm", "../tests/js/test.js"],
+      "problemMatcher": ["$rustc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "env": { "RUST_BACKTRACE": "full" },
+        "cwd": "${workspaceFolder}/boa_cli"
+      },
+      "presentation": {
+        "clear": true
+      }
+    },
+    {
+      "type": "process",
       "label": "Get Tokens",
       "command": "cargo",
       "args": ["run", "--", "-t=Debug", "./tests/js/test.js"],

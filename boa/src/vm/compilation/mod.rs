@@ -1,18 +1,18 @@
 use super::*;
-
 use crate::syntax::ast::{constant::Const, node::*, Node};
+use crate::BoaProfiler;
 
 // this..?
 #[derive(Debug, Default)]
 pub(crate) struct Compiler {
-    res: Vec<In>,
+    res: Vec<Instruction>,
     next_free: u8,
 }
 
 // or maybe..
 // `impl CodeGen for BinOp` ?
 trait CodeGen {
-    fn compile(&self);
+    fn compile(&self, compiler: &mut Compiler);
 }
 
 impl Compiler {
@@ -20,51 +20,57 @@ impl Compiler {
         Default::default()
     }
 
-    pub(crate) fn compile(&mut self, list: &StatementList) -> Vec<In> {
+    pub(crate) fn compile(&mut self, list: &StatementList) -> Vec<Instruction> {
         for stmt in list.statements() {
-            self.compile_node(stmt);
+            stmt.compile(self);
         }
 
         std::mem::replace(&mut self.res, Vec::new())
     }
+}
 
-    fn compile_node(&mut self, node: &Node) {
-        match node {
-            Node::Const(Const::Int(x)) => self
+impl CodeGen for Node {
+    fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("NodeCodeGen", "codeGen");
+        match *self {
+            Node::Const(Const::Int(x)) => compiler
                 .res
-                .push(In::Ld(Reg(self.next_free), Value::integer(*x))),
+                .push(Instruction::Ld(Reg(compiler.next_free), Value::integer(x))),
 
-            Node::Const(Const::Num(x)) => self
+            Node::Const(Const::Num(x)) => compiler
                 .res
-                .push(In::Ld(Reg(self.next_free), Value::number(*x))),
+                .push(Instruction::Ld(Reg(compiler.next_free), Value::number(x))),
 
-            Node::BinOp(node) => {
-                let dest = self.next_free;
+            Node::BinOp(ref node) => {
+                let dest = compiler.next_free;
                 let src = dest + 1;
 
-                self.compile_node(node.lhs());
-                self.next_free = src;
-                self.compile_node(node.rhs());
-                self.next_free = dest;
+                node.lhs().compile(compiler);
+                compiler.next_free = src;
+                node.rhs().compile(compiler);
+                compiler.next_free = dest;
 
-                self.res.push(In::Add {
+                compiler.res.push(Instruction::Add {
                     dest: Reg(dest),
                     src: Reg(src),
                 });
             }
 
-            Node::ConstDeclList(xs) => {
+            Node::ConstDeclList(ref xs) => {
                 for x in xs.as_ref() {
-                    self.compile_node(x.init());
+                    // compiler.compile_node(x.init());
+                    x.init().compile(compiler);
 
-                    self.res
-                        .push(In::Bind(Reg(self.next_free), x.name().to_owned()));
+                    compiler.res.push(Instruction::Bind(
+                        Reg(compiler.next_free),
+                        x.name().to_owned(),
+                    ));
                     // FIXME: remove .to_owned()
                 }
             }
 
             _ => {
-                dbg!(node);
+                dbg!(self);
                 panic!("unsupported Node");
             }
         }

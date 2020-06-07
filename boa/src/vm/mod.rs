@@ -1,3 +1,4 @@
+use self::instructions::Instruction;
 use crate::{
     builtins::value::{ResultValue, Value},
     environment::lexical_environment::VariableScope,
@@ -7,7 +8,7 @@ use crate::{
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 
 pub(crate) mod compilation;
-
+pub(crate) mod instructions;
 #[cfg(test)]
 mod tests;
 
@@ -15,22 +16,11 @@ mod tests;
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Reg(u8);
 
-#[derive(Debug, Clone)]
-pub enum In {
-    /// Loads a value into a register
-    Ld(Reg, Value),
-
-    /// Binds a value from a register to an ident
-    Bind(Reg, String),
-
-    /// Adds the values from destination and source and stores the result in destination
-    Add { dest: Reg, src: Reg },
-}
-
 // === Execution
 #[derive(Debug)]
 pub struct VM {
     realm: Realm,
+    accumulator: Value,
     regs: Vec<Value>, // TODO: find a possible way of this being an array
 }
 
@@ -45,6 +35,7 @@ impl VM {
     pub fn new(realm: Realm) -> Self {
         VM {
             realm,
+            accumulator: Value::undefined(),
             regs: vec![Value::undefined(); 8],
         }
     }
@@ -53,14 +44,18 @@ impl VM {
         self.regs[reg.0 as usize] = val;
     }
 
-    pub fn run(&mut self, instrs: &[In]) -> ResultValue {
+    fn set_accumulator(&mut self, reg: Reg, val: Value) {
+        self.accumulator = val;
+    }
+
+    pub fn run(&mut self, instrs: &[Instruction]) -> ResultValue {
         let mut idx = 0;
 
         while idx < instrs.len() {
             match &instrs[idx] {
-                In::Ld(r, v) => self.set(*r, v.clone()),
+                Instruction::Ld(r, v) => self.set(*r, v.clone()),
 
-                In::Bind(r, ident) => {
+                Instruction::Bind(r, ident) => {
                     let val = self.clear(*r);
 
                     if self.realm.environment.has_binding(ident) {
@@ -75,7 +70,7 @@ impl VM {
                     }
                 }
 
-                In::Add { dest, src } => {
+                Instruction::Add { dest, src } => {
                     let l = self.clear(*dest);
                     let r = self.clear(*src);
 
