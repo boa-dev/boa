@@ -430,11 +430,6 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        if args.len() > PARSE_INT_MAX_ARG_COUNT {
-            // Too many arguments.
-            return Err(Value::undefined());
-        }
-
         if let (Some(val), r) = (args.get(0), args.get(1)) {
             let mut radix = if let Some(rx) = r {
                 if let ValueData::Integer(i) = rx.data() {
@@ -481,7 +476,7 @@ impl Number {
             }
         } else {
             // Not enough arguments to parseInt.
-            Err(Value::undefined())
+            Ok(Value::from(f64::NAN))
         }
     }
 
@@ -505,11 +500,6 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        if args.len() > PARSE_FLOAT_MAX_ARG_COUNT {
-            // Too many arguments.
-            return Err(Value::undefined());
-        }
-
         if let Some(val) = args.get(0) {
             match val.data() {
                 ValueData::String(s) => {
@@ -533,7 +523,7 @@ impl Number {
             }
         } else {
             // Not enough arguments to parseFloat.
-            Err(Value::undefined())
+            Ok(Value::from(f64::NAN))
         }
     }
 

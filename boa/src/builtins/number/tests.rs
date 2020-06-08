@@ -585,23 +585,23 @@ fn parse_int_undefined() {
     assert_eq!(&forward(&mut engine, "parseInt(undefined)"), "NaN");
 }
 
+/// Shows that no arguments to parseInt is treated the same as if undefined was
+/// passed as the first argument.
 #[test]
 fn parse_int_no_args() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(&forward(&mut engine, "parseInt()"), "Error: undefined");
+    assert_eq!(&forward(&mut engine, "parseInt()"), "NaN");
 }
 
+/// Shows that extra arguments to parseInt are ignored.
 #[test]
 fn parse_int_too_many_args() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(
-        &forward(&mut engine, "parseInt(\"100\", 10, 10)"),
-        "Error: undefined"
-    );
+    assert_eq!(&forward(&mut engine, "parseInt(\"100\", 10, 10)"), "100");
 }
 
 #[test]
@@ -660,21 +660,20 @@ fn parse_float_undefined() {
     assert_eq!(&forward(&mut engine, "parseFloat(undefined)"), "NaN");
 }
 
+/// No arguments to parseFloat is treated the same as passing undefined as the first argument.
 #[test]
 fn parse_float_no_args() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(&forward(&mut engine, "parseFloat()"), "Error: undefined");
+    assert_eq!(&forward(&mut engine, "parseFloat()"), "NaN");
 }
 
+/// Shows that the parseFloat function ignores extra arguments.
 #[test]
 fn parse_float_too_many_args() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(
-        &forward(&mut engine, "parseFloat(\"100.5\", 10)"),
-        "Error: undefined"
-    );
+    assert_eq!(&forward(&mut engine, "parseFloat(\"100.5\", 10)"), "100.5");
 }
