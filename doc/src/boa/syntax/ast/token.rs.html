@@ -342,6 +342,17 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
@@ -585,6 +596,8 @@
     <span class="doccomment">/// A string literal.</span>
     <span class="ident">StringLiteral</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
 
+    <span class="ident">TemplateLiteral</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
+
     <span class="doccomment">/// A regular expression, consisting of body and flags.</span>
     <span class="ident">RegularExpressionLiteral</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">RegExpFlags</span>),
 
@@ -655,6 +668,14 @@
         <span class="self">Self</span>::<span class="ident">StringLiteral</span>(<span class="ident">lit</span>.<span class="ident">into</span>())
     }
 
+    <span class="doccomment">/// Creates a `TemplateLiteral` token type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_literal</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">lit</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span>::<span class="ident">TemplateLiteral</span>(<span class="ident">lit</span>.<span class="ident">into</span>())
+    }
+
     <span class="doccomment">/// Creates a `RegularExpressionLiteral` token kind.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regular_expression_literal</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">B</span>, <span class="ident">flags</span>: <span class="ident">RegExpFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -682,6 +703,7 @@
             <span class="self">Self</span>::<span class="ident">NumericLiteral</span>(<span class="ident">NumericLiteral</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
             <span class="self">Self</span>::<span class="ident">Punctuator</span>(<span class="kw-2">ref</span> <span class="ident">punc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">punc</span>),
             <span class="self">Self</span>::<span class="ident">StringLiteral</span>(<span class="kw-2">ref</span> <span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">lit</span>),
+            <span class="self">Self</span>::<span class="ident">TemplateLiteral</span>(<span class="kw-2">ref</span> <span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">lit</span>),
             <span class="self">Self</span>::<span class="ident">RegularExpressionLiteral</span>(<span class="kw-2">ref</span> <span class="ident">body</span>, <span class="kw-2">ref</span> <span class="ident">flags</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>),
             <span class="self">Self</span>::<span class="ident">LineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;line terminator&quot;</span>),
         }

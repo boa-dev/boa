@@ -847,6 +847,29 @@
 <span id="847">847</span>
 <span id="848">848</span>
 <span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -1349,6 +1372,7 @@
             <span class="self">self</span>.<span class="ident">next_column</span>();
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>();
             <span class="kw">match</span> <span class="ident">ch</span> {
+                 <span class="comment">// StringLiteral</span>
                 <span class="string">&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
                     <span class="kw">loop</span> {
@@ -1472,6 +1496,28 @@
                     <span class="comment">// to compensate for the incrementing at the top</span>
                     <span class="self">self</span>.<span class="ident">move_columns</span>( <span class="ident">str_length</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>));
                     <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">string_literal</span>(<span class="ident">buf</span>), <span class="ident">start_pos</span>);
+                }
+                <span class="comment">// TemplateLiteral</span>
+                <span class="string">&#39;`&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+                    <span class="kw">loop</span> {
+                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">preview_next</span>().<span class="ident">is_none</span>() {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexerError</span>::<span class="ident">new</span>(<span class="string">&quot;Unterminated template literal&quot;</span>));
+                        }
+                        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next</span>() {
+                            <span class="string">&#39;`&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="kw">break</span>;
+                            }
+                            <span class="ident">next_ch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">next_ch</span>),
+                            <span class="comment">// TODO when there is an expression inside the literal</span>
+                        }
+                    }
+                    <span class="kw">let</span> <span class="ident">str_length</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+                    <span class="comment">// Why +1? Quotation marks are not included,</span>
+                    <span class="comment">// So technically it would be +2, (for both &quot; &quot;) but we want to be 1 less</span>
+                    <span class="comment">// to compensate for the incrementing at the top</span>
+                    <span class="self">self</span>.<span class="ident">move_columns</span>( <span class="ident">str_length</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>));
+                    <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">TokenKind</span>::<span class="ident">template_literal</span>(<span class="ident">buf</span>), <span class="ident">start_pos</span>);
                 }
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">reed_numerical_literal</span>(<span class="ident">ch</span>)<span class="question-mark">?</span>,
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_alphabetic</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;$&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
