@@ -21,6 +21,7 @@ use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
     collections::HashSet,
+    convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
@@ -155,7 +156,11 @@ impl Value {
     pub fn from_json(json: JSONValue, interpreter: &mut Interpreter) -> Self {
         match json {
             JSONValue::Number(v) => {
-                Self::rational(v.as_f64().expect("Could not convert value to f64"))
+                if let Some(Ok(integer_32)) = v.as_i64().map(i32::try_from) {
+                    Self::integer(integer_32)
+                } else {
+                    Self::rational(v.as_f64().expect("Could not convert value to f64"))
+                }
             }
             JSONValue::String(v) => Self::string(v),
             JSONValue::Bool(v) => Self::boolean(v),
