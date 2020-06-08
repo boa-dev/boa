@@ -161,27 +161,28 @@ impl Value {
             JSONValue::Bool(v) => Self::boolean(v),
             JSONValue::Array(vs) => {
                 let mut new_obj = Object::default();
-                for (idx, json) in vs.iter().enumerate() {
+                let length = vs.len();
+                for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.properties.insert(
                         idx.to_string(),
                         Property::default()
-                            .value(Self::from_json(json.clone(), interpreter))
+                            .value(Self::from_json(json, interpreter))
                             .writable(true)
                             .configurable(true),
                     );
                 }
                 new_obj.properties.insert(
                     "length".to_string(),
-                    Property::default().value(Self::from(vs.len())),
+                    Property::default().value(Self::from(length)),
                 );
                 Self::object(new_obj)
             }
             JSONValue::Object(obj) => {
                 let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
-                for (key, json) in obj.iter() {
-                    let value = Self::from_json(json.clone(), interpreter);
+                for (key, json) in obj.into_iter() {
+                    let value = Self::from_json(json, interpreter);
                     new_obj.set_property(
-                        key.clone(),
+                        key,
                         Property::default()
                             .value(value)
                             .writable(true)
