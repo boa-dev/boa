@@ -49,8 +49,8 @@ pub trait Executable {
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) enum InterpreterState {
     Executing,
-    Return(String),
-    Break(String),
+    Return(Option<String>),
+    Break(Option<String>),
 }
 
 /// A Javascript intepreter
@@ -419,6 +419,10 @@ impl Interpreter {
 
     pub(crate) fn set_current_state(&mut self, new_state: InterpreterState) {
         self.current_state = new_state
+    }
+
+    pub(crate) fn get_current_state(&self) -> &InterpreterState {
+        &self.current_state
     }
 
     /// Whether the interpreter is currently executing statements.

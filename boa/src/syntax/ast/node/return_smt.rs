@@ -24,25 +24,31 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Return {
     expr: Option<Box<Node>>,
+    label: Option<Box<str>>,
 }
 
 impl Return {
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
+    }
+
     pub fn expr(&self) -> Option<&Node> {
         self.expr.as_ref().map(Box::as_ref)
     }
 
     /// Creates a `Return` AST node.
-    pub fn new<E, OE>(expr: OE) -> Self
+    pub fn new<E, OE, L>(expr: OE, label: L) -> Self
     where
         E: Into<Node>,
         OE: Into<Option<E>>,
+        L: Into<Option<Box<str>>>,
     {
         Self {
             expr: expr.into().map(E::into).map(Box::new),
+            label: label.into(),
         }
     }
 }
