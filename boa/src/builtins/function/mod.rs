@@ -429,7 +429,7 @@ pub fn make_constructor_fn(
     constructor_val
 }
 
-/// Macro to create a new member function of a prototype.
+/// Creates a new member function of a `Object` or `prototype`.
 ///
 /// A function registered using this macro can then be called from Javascript using:
 ///
