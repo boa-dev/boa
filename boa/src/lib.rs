@@ -110,6 +110,7 @@ pub fn forward_val(vm: &mut VM, src: &str) -> ResultValue {
     let result = match parser_expr(src) {
         Ok(expr) => {
             let instrs = vm::compilation::Compiler::new().compile(&expr);
+            dbg!(&instrs);
             vm.run(&instrs)
         }
         Err(e) => {

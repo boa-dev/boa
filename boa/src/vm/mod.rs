@@ -6,6 +6,7 @@ use crate::{
     syntax::ast::{self, Node},
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
+use std::fmt::{Display, Formatter, Result};
 
 pub(crate) mod compilation;
 pub(crate) mod instructions;
@@ -15,6 +16,12 @@ mod tests;
 // === Misc
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Reg(u8);
+
+impl Display for Reg {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 // === Execution
 #[derive(Debug)]
@@ -44,7 +51,7 @@ impl VM {
         self.regs[reg.0 as usize] = val;
     }
 
-    fn set_accumulator(&mut self, reg: Reg, val: Value) {
+    fn set_accumulator(&mut self, val: Value) {
         self.accumulator = val;
     }
 
@@ -54,6 +61,8 @@ impl VM {
         while idx < instrs.len() {
             match &instrs[idx] {
                 Instruction::Ld(r, v) => self.set(*r, v.clone()),
+
+                Instruction::Lda(v) => self.set_accumulator(v.clone()),
 
                 Instruction::Bind(r, ident) => {
                     let val = self.clear(*r);
