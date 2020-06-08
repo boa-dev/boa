@@ -1,4 +1,4 @@
-use super::{Executable, Interpreter};
+use super::{Executable, Interpreter, InterpreterState};
 use crate::{
     builtins::value::{ResultValue, Value},
     syntax::ast::node::Switch,
@@ -13,7 +13,7 @@ impl Executable for Switch {
         let val = self.val().run(interpreter)?;
         let mut result = Value::null();
         let mut matched = false;
-        interpreter.is_break = false;
+        interpreter.set_current_state(InterpreterState::Executing);
 
         // If a case block does not end with a break statement then subsequent cases will be run without
         // checking their conditions until a break is encountered.
@@ -25,7 +25,7 @@ impl Executable for Switch {
             if fall_through || val.strict_equals(&cond.run(interpreter)?) {
                 matched = true;
                 block.run(interpreter)?;
-                if interpreter.is_break {
+                if interpreter.is_break() {
                     // Break statement encountered so therefore end switch statement.
                     break;
                 } else {

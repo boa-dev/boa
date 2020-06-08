@@ -46,14 +46,17 @@ pub trait Executable {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub(crate) enum InterpreterState {
+    Executing,
+    Return(String),
+    Break(String),
+}
+
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
-    /// Whether it's running a return statement.
-    is_return: bool,
-
-    /// Whether it's running a break statement.
-    is_break: bool,
+    current_state: InterpreterState,
 
     /// realm holds both the global object and the environment
     pub realm: Realm,
@@ -63,9 +66,8 @@ impl Interpreter {
     /// Creates a new interpreter.
     pub fn new(realm: Realm) -> Self {
         Self {
+            current_state: InterpreterState::Executing,
             realm,
-            is_return: false,
-            is_break: false,
         }
     }
 
@@ -412,6 +414,34 @@ impl Interpreter {
                 .run(self)?
                 .set_field(get_field.field().run(self)?, value)),
             _ => panic!("TypeError: invalid assignment to {}", node),
+        }
+    }
+
+    pub(crate) fn set_current_state(&mut self, new_state: InterpreterState) {
+        self.current_state = new_state
+    }
+
+    /// Whether the interpreter is currently executing statements.
+    #[inline]
+    pub(crate) fn is_executing(&self) -> bool {
+        self.current_state == InterpreterState::Executing
+    }
+
+    /// Whether the interpreter is currently in a return state from a previous execution.
+    #[inline]
+    pub(crate) fn is_return(&self) -> bool {
+        match self.current_state {
+            InterpreterState::Return(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Whether it's running a break statement.
+    #[inline]
+    pub(crate) fn is_break(&self) -> bool {
+        match self.current_state {
+            InterpreterState::Break(_) => true,
+            _ => false,
         }
     }
 }

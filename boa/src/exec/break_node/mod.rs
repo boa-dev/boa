@@ -1,4 +1,4 @@
-use super::{Executable, Interpreter};
+use super::{Executable, Interpreter, InterpreterState};
 use crate::{
     builtins::value::{ResultValue, Value},
     syntax::ast::node::Break,
@@ -6,7 +6,7 @@ use crate::{
 
 impl Executable for Break {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
-        interpreter.is_break = true;
+        interpreter.set_current_state(InterpreterState::Break("".to_string()));
         Ok(Value::undefined())
     }
 }

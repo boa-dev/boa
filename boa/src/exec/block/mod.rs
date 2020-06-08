@@ -23,7 +23,7 @@ impl Executable for Block {
             obj = statement.run(interpreter)?;
 
             // early return
-            if interpreter.is_return {
+            if interpreter.is_return() {
                 break;
             }
         }

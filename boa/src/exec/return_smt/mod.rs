@@ -1,4 +1,4 @@
-use super::{Executable, Interpreter};
+use super::{Executable, Interpreter, InterpreterState};
 use crate::{
     builtins::value::{ResultValue, Value},
     syntax::ast::node::Return,
@@ -11,7 +11,7 @@ impl Executable for Return {
             None => Ok(Value::undefined()),
         };
         // Set flag for return
-        interpreter.is_return = true;
+        interpreter.set_current_state(InterpreterState::Return("".to_string()));
         result
     }
 }
