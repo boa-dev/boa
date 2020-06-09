@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1591641460427,
+  "lastUpdate": 1591712766342,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -9567,6 +9567,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.719,
             "range": "+/- 0.212",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "paul@lancasterzone.com",
+            "name": "Paul Lancaster",
+            "username": "Lan2u"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a78934d424f17bc8b9132fdb14704b61e240bd40",
+          "message": "parseInt, parseFloat implementation (#459)\n\n* Added documentation to make_builtin_fn\r\n\r\n* Simple impl of parseInt()\r\n\r\n* Impl rest of parse_int\r\n\r\n* Fixed handling of strings starting 0x\r\n\r\n* Made NaN return as per js spec\r\n\r\n* Rework to improve clarity\r\n\r\n* parseFloat impl, added tests\r\n\r\n* Addressed comments to PR\r\n\r\n* Removed f64 import\r\n\r\n* Fixed handling of too many/few arguments to parseInt/Float\r\n\r\nCo-authored-by: HalidOdat <halidodat@gmail.com>",
+          "timestamp": "2020-06-09T16:16:57+02:00",
+          "tree_id": "43525f5d8132c87f8de1343ba81f82d994291d5b",
+          "url": "https://github.com/boa-dev/boa/commit/a78934d424f17bc8b9132fdb14704b61e240bd40"
+        },
+        "date": 1591712760546,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 517.25,
+            "range": "+/- 11.160",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 19.715,
+            "range": "+/- 0.392",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 74.043,
+            "range": "+/- 1.048",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.4571,
+            "range": "+/- 0.052",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.3045,
+            "range": "+/- 0.040",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0979,
+            "range": "+/- 0.020",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.8721,
+            "range": "+/- 0.118",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.403,
+            "range": "+/- 0.070",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.5127,
+            "range": "+/- 0.053",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 15.382,
+            "range": "+/- 0.266",
             "unit": "us"
           }
         ]
