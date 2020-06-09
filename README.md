@@ -102,7 +102,7 @@ Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y).
 
 ![Example](docs/img/latestDemo.gif)
 
-test
+test1234
 
 ## License
 
