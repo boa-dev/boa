@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1591733981546,
+  "lastUpdate": 1591734320662,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -9735,6 +9735,90 @@ window.BENCHMARK_DATA = {
             "name": "For loop (Parser)",
             "value": 13.948,
             "range": "+/- 0.215",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "n14little@gmail.com",
+            "name": "n14little",
+            "username": "n14little"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4763907fbfc0d3ea85a4d145022b5eada29ee6df",
+          "message": "Add proto object to from json (#462)\n\n* remove From<JSONValue> for Value. Going from JSONValue to Value will soon need the interpreter\n\n* pass interpreter to from_json\n\n* move from_json to Value impl\n\n* move to_json to Value impl alongside from_json\n\n* add prototype to objects created from json\n\n* consume the object and don't clone\n\n* if it fits into i32, use integer; otherwise, use a rational\n\n* WIP: throwing type error\n\n* address most of the error cases\n\n* cargo fmt\n\n* address the rest of the error cases\n\n* return null when JSONNumber::from_f64() returns None\n\n* cargo fmt\n\n* Update boa/src/builtins/value/mod.rs\n\n* use JSONValue and use Result\n\n* Update boa/src/builtins/json/mod.rs\r\n\r\nUse and_then to avoid flatten\n\nCo-authored-by: HalidOdat <halidodat@gmail.com>\n\nCo-authored-by: Iban Eguia <razican@protonmail.ch>\nCo-authored-by: HalidOdat <halidodat@gmail.com>",
+          "timestamp": "2020-06-09T22:16:11+02:00",
+          "tree_id": "66509e16e727664dc7d45db64a3323bd70421e80",
+          "url": "https://github.com/boa-dev/boa/commit/4763907fbfc0d3ea85a4d145022b5eada29ee6df"
+        },
+        "date": 1591734313068,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 493.07,
+            "range": "+/- 15.970",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 18.522,
+            "range": "+/- 0.580",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 73.799,
+            "range": "+/- 2.660",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2.3081,
+            "range": "+/- 0.080",
+            "unit": "ms"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.1658,
+            "range": "+/- 0.087",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0717,
+            "range": "+/- 0.039",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.7907,
+            "range": "+/- 0.207",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.9903,
+            "range": "+/- 0.117",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.4298,
+            "range": "+/- 0.090",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.793,
+            "range": "+/- 0.481",
             "unit": "us"
           }
         ]
