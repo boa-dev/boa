@@ -214,9 +214,7 @@ impl Value {
                             if value.is_undefined() || value.is_function() {
                                 arr.push(JSONValue::Null);
                             } else {
-                                arr.push(
-                                    self.get_field(k.to_string()).to_json(interpreter)?
-                                );
+                                arr.push(self.get_field(k.to_string()).to_json(interpreter)?);
                             }
                         }
                     }
@@ -240,7 +238,7 @@ impl Value {
                 } else {
                     Ok(JSONValue::Null)
                 }
-            },
+            }
             ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             ValueData::BigInt(_) => Err(interpreter
                 .throw_type_error("BigInt value can't be serialized in JSON")
