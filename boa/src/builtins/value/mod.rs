@@ -208,30 +208,28 @@ impl Value {
             ValueData::Object(ref obj) => {
                 if obj.borrow().kind == ObjectKind::Array {
                     let mut arr: Vec<JSONValue> = Vec::new();
-                    obj.borrow().properties.keys().for_each(|k| {
+                    for k in obj.borrow().properties.keys() {
                         if k != "length" {
                             let value = self.get_field(k.to_string());
                             if value.is_undefined() || value.is_function() {
                                 arr.push(JSONValue::Null);
                             } else {
                                 arr.push(
-                                    // TODO: Handle the errors
-                                    self.get_field(k.to_string()).to_json(interpreter).unwrap(),
+                                    self.get_field(k.to_string()).to_json(interpreter)?
                                 );
                             }
                         }
-                    });
+                    }
                     Ok(JSONValue::Array(arr))
                 } else {
                     let mut new_obj = Map::new();
-                    obj.borrow().properties.keys().for_each(|k| {
+                    for k in obj.borrow().properties.keys() {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
                         if !value.is_undefined() && !value.is_function() {
-                            // TODO: Handle the errors
-                            new_obj.insert(key, value.to_json(interpreter).unwrap());
+                            new_obj.insert(key, value.to_json(interpreter)?);
                         }
-                    });
+                    }
                     Ok(JSONValue::Object(new_obj))
                 }
             }
