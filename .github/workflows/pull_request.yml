@@ -26,7 +26,7 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      - uses: boa-dev/criterion-compare-action@67ce5d12a11182e90273acbad5dbc6cc4562f0e0
+      - uses: boa-dev/criterion-compare-action@cbdb9749de29ead1b74e1e83b2a436b5308b6e32
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           cwd: "boa"
