@@ -133,9 +133,7 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
                         )?),
                     );
                 }
-                Ok(Value::from(
-                    object_to_return.to_json(ctx)?.to_string(),
-                ))
+                Ok(Value::from(object_to_return.to_json(ctx)?.to_string()))
             })
             .ok_or_else(Value::undefined)?
     } else if replacer_as_object.kind == ObjectKind::Array {
