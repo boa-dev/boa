@@ -149,8 +149,7 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
         for field in fields {
             if let Some(value) = object
                 .get_property(&ctx.to_string(&field)?)
-                .map(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
-                .flatten()
+                .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
                 .transpose()?
             {
                 obj_to_return.insert(field.to_string(), value);
