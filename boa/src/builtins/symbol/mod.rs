@@ -27,7 +27,7 @@ use crate::{
 use gc::{Finalize, Trace};
 
 #[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Symbol(Option<String>, u32);
+pub struct Symbol(Option<Box<str>>, u32);
 
 impl Symbol {
     /// Returns the `Symbol`s description.
@@ -69,7 +69,9 @@ impl Symbol {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
     pub(crate) fn call(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let description = match args.get(0) {
-            Some(ref value) if !value.is_undefined() => Some(ctx.to_string(value)?),
+            Some(ref value) if !value.is_undefined() => {
+                Some(ctx.to_string(value)?.into_boxed_str())
+            }
             _ => None,
         };
 
