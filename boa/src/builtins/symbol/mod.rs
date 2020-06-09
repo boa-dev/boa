@@ -25,10 +25,9 @@ use crate::{
     BoaProfiler,
 };
 use gc::{Finalize, Trace};
-use rand::random;
 
 #[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Symbol(Option<String>, i32);
+pub struct Symbol(Option<String>, u32);
 
 impl Symbol {
     /// Returns the `Symbol`s description.
@@ -37,7 +36,7 @@ impl Symbol {
     }
 
     /// Returns the `Symbol`s hash.
-    pub fn hash(&self) -> i32 {
+    pub fn hash(&self) -> u32 {
         self.1
     }
 
@@ -74,7 +73,7 @@ impl Symbol {
             _ => None,
         };
 
-        Ok(Value::symbol(Symbol(description, random::<i32>())))
+        Ok(Value::symbol(Symbol(description, ctx.generate_hash())))
     }
 
     /// `Symbol.prototype.toString()`

@@ -59,18 +59,23 @@ pub enum PreferredType {
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
-    current_state: InterpreterState,
+    /// the current state of the interpreter.
+    state: InterpreterState,
 
     /// realm holds both the global object and the environment
     pub realm: Realm,
+
+    /// This is for generating an unique internal `Symbol` hash.
+    symbol_count: u32,
 }
 
 impl Interpreter {
     /// Creates a new interpreter.
     pub fn new(realm: Realm) -> Self {
         Self {
-            current_state: InterpreterState::Executing,
+            state: InterpreterState::Executing,
             realm,
+            symbol_count: 0,
         }
     }
 
@@ -82,6 +87,12 @@ impl Interpreter {
     /// Retrieves the `Realm` of this executor as a mutable reference.
     pub(crate) fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
+    }
+
+    pub(crate) fn generate_hash(&mut self) -> u32 {
+        let hash = self.symbol_count;
+        self.symbol_count += 1;
+        hash
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
@@ -511,11 +522,11 @@ impl Interpreter {
     }
 
     pub(crate) fn set_current_state(&mut self, new_state: InterpreterState) {
-        self.current_state = new_state
+        self.state = new_state
     }
 
     pub(crate) fn get_current_state(&self) -> &InterpreterState {
-        &self.current_state
+        &self.state
     }
     /// Check if the `Value` can be converted to an `Object`
     ///

@@ -55,7 +55,7 @@ pub struct Object {
     /// Properties
     properties: FxHashMap<String, Property>,
     /// Symbol Properties
-    symbol_properties: FxHashMap<i32, Property>,
+    symbol_properties: FxHashMap<u32, Property>,
     /// Some rust object that stores internal state
     state: Option<InternalStateCell>,
 }
@@ -370,12 +370,12 @@ impl Object {
     }
 
     #[inline]
-    pub fn symbol_properties(&self) -> &FxHashMap<i32, Property> {
+    pub fn symbol_properties(&self) -> &FxHashMap<u32, Property> {
         &self.symbol_properties
     }
 
     #[inline]
-    pub fn symbol_properties_mut(&mut self) -> &mut FxHashMap<i32, Property> {
+    pub fn symbol_properties_mut(&mut self) -> &mut FxHashMap<u32, Property> {
         &mut self.symbol_properties
     }
 

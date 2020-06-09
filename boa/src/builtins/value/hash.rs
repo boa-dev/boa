@@ -46,7 +46,8 @@ impl Hash for Value {
             ValueData::Integer(integer) => integer.hash(state),
             ValueData::BigInt(ref bigint) => bigint.hash(state),
             ValueData::Rational(rational) => RationalHashable(*rational).hash(state),
-            ValueData::Symbol(_) | ValueData::Object(_) => std::ptr::hash(data, state),
+            ValueData::Symbol(ref symbol) => Hash::hash(symbol, state),
+            ValueData::Object(_) => std::ptr::hash(data, state),
         }
     }
 }
