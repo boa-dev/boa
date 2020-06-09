@@ -215,6 +215,7 @@ impl Value {
                                 arr.push(JSONValue::Null);
                             } else {
                                 arr.push(
+                                    // TODO: Handle the errors
                                     self.get_field(k.to_string()).to_json(interpreter).unwrap(),
                                 );
                             }
@@ -239,11 +240,10 @@ impl Value {
                 JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
             )),
             ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
-            ValueData::BigInt(_) => {
-                Err(interpreter.throw_type_error("BigInt value can't be serialized in JSON")?)
-            }
+            ValueData::BigInt(_) => Err(interpreter
+                .throw_type_error("BigInt value can't be serialized in JSON")
+                .expect_err("throw_type_error should always return an error")),
             ValueData::Symbol(_) | ValueData::Undefined => {
-                // TODO: What should this return?
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
         }
