@@ -234,9 +234,13 @@ impl Value {
                 }
             }
             ValueData::String(ref str) => Ok(JSONValue::String(str.clone())),
-            ValueData::Rational(num) => Ok(JSONValue::Number(
-                JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
-            )),
+            ValueData::Rational(num) => {
+                if let Some(number) = JSONNumber::from_f64(num) {
+                    Ok(JSONValue::Number(number))
+                } else {
+                    Ok(JSONValue::Null)
+                }
+            },
             ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             ValueData::BigInt(_) => Err(interpreter
                 .throw_type_error("BigInt value can't be serialized in JSON")
