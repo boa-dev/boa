@@ -107,7 +107,8 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
     };
     let replacer = match args.get(1) {
         Some(replacer) if replacer.is_object() => replacer,
-        _ => return Ok(Value::from(object.to_json().to_string())),
+        // TODO: handle the error case
+        _ => return Ok(Value::from(object.to_json(ctx).unwrap().to_string())),
     };
 
     let replacer_as_object = replacer
@@ -133,7 +134,10 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
                         )?),
                     );
                 }
-                Ok(Value::from(object_to_return.to_json().to_string()))
+                // TODO: Handle the error case
+                Ok(Value::from(
+                    object_to_return.to_json(ctx).unwrap().to_string(),
+                ))
             })
             .ok_or_else(Value::undefined)?
     } else if replacer_as_object.kind == ObjectKind::Array {
@@ -149,7 +153,8 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
         for field in fields {
             if let Some(value) = object
                 .get_property(&ctx.to_string(&field)?)
-                .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
+                // TODO: handle the error case
+                .map(|prop| prop.value.as_ref().map(|v| v.to_json(ctx).unwrap()))
                 .flatten()
             {
                 obj_to_return.insert(field.to_string(), value);
@@ -157,7 +162,8 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
         }
         Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
     } else {
-        Ok(Value::from(object.to_json().to_string()))
+        // TODO: handle the error case
+        Ok(Value::from(object.to_json(ctx).unwrap().to_string()))
     }
 }
 

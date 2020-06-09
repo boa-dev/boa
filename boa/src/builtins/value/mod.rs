@@ -201,10 +201,10 @@ impl Value {
     }
 
     /// Conversts the `Value` to `JSON`.
-    pub fn to_json(&self) -> JSONValue {
+    pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue, Value> {
         match *self.data() {
-            ValueData::Null => JSONValue::Null,
-            ValueData::Boolean(b) => JSONValue::Bool(b),
+            ValueData::Null => Ok(JSONValue::Null),
+            ValueData::Boolean(b) => Ok(JSONValue::Bool(b)),
             ValueData::Object(ref obj) => {
                 if obj.borrow().kind == ObjectKind::Array {
                     let mut arr: Vec<JSONValue> = Vec::new();
@@ -214,33 +214,36 @@ impl Value {
                             if value.is_undefined() || value.is_function() {
                                 arr.push(JSONValue::Null);
                             } else {
-                                arr.push(self.get_field(k.to_string()).to_json());
+                                arr.push(
+                                    self.get_field(k.to_string()).to_json(interpreter).unwrap(),
+                                );
                             }
                         }
                     });
-                    JSONValue::Array(arr)
+                    Ok(JSONValue::Array(arr))
                 } else {
                     let mut new_obj = Map::new();
                     obj.borrow().properties.keys().for_each(|k| {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
                         if !value.is_undefined() && !value.is_function() {
-                            new_obj.insert(key, value.to_json());
+                            // TODO: Handle the errors
+                            new_obj.insert(key, value.to_json(interpreter).unwrap());
                         }
                     });
-                    JSONValue::Object(new_obj)
+                    Ok(JSONValue::Object(new_obj))
                 }
             }
-            ValueData::String(ref str) => JSONValue::String(str.clone()),
-            ValueData::Rational(num) => JSONValue::Number(
+            ValueData::String(ref str) => Ok(JSONValue::String(str.clone())),
+            ValueData::Rational(num) => Ok(JSONValue::Number(
                 JSONNumber::from_f64(num).expect("Could not convert to JSONNumber"),
-            ),
-            ValueData::Integer(val) => JSONValue::Number(JSONNumber::from(val)),
+            )),
+            ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             ValueData::BigInt(_) => {
-                // TODO: throw TypeError
-                panic!("TypeError: \"BigInt value can't be serialized in JSON\"");
+                Err(interpreter.throw_type_error("BigInt value can't be serialized in JSON")?)
             }
             ValueData::Symbol(_) | ValueData::Undefined => {
+                // TODO: What should this return?
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
         }

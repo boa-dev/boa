@@ -170,12 +170,6 @@ impl TryFrom<&Value> for Object {
     }
 }
 
-impl From<&Value> for JSONValue {
-    fn from(value: &Value) -> Self {
-        value.to_json()
-    }
-}
-
 impl From<()> for Value {
     fn from(_: ()) -> Self {
         Value::null()
