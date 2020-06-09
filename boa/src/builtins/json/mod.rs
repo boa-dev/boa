@@ -42,7 +42,7 @@ pub fn parse(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValu
         &ctx.to_string(args.get(0).expect("cannot get argument for JSON.parse"))?,
     ) {
         Ok(json) => {
-            let j = Value::from(json);
+            let j = Value::from_json(json, ctx);
             match args.get(1) {
                 Some(reviver) if reviver.is_function() => {
                     let mut holder = Value::new_object(None);
@@ -107,7 +107,7 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
     };
     let replacer = match args.get(1) {
         Some(replacer) if replacer.is_object() => replacer,
-        _ => return Ok(Value::from(object.to_json().to_string())),
+        _ => return Ok(Value::from(object.to_json(ctx)?.to_string())),
     };
 
     let replacer_as_object = replacer
@@ -133,7 +133,7 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
                         )?),
                     );
                 }
-                Ok(Value::from(object_to_return.to_json().to_string()))
+                Ok(Value::from(object_to_return.to_json(ctx)?.to_string()))
             })
             .ok_or_else(Value::undefined)?
     } else if replacer_as_object.kind == ObjectKind::Array {
@@ -149,15 +149,15 @@ pub fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
         for field in fields {
             if let Some(value) = object
                 .get_property(&ctx.to_string(&field)?)
-                .map(|prop| prop.value.as_ref().map(|v| v.to_json()))
-                .flatten()
+                .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
+                .transpose()?
             {
                 obj_to_return.insert(field.to_string(), value);
             }
         }
         Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
     } else {
-        Ok(Value::from(object.to_json().to_string()))
+        Ok(Value::from(object.to_json(ctx)?.to_string()))
     }
 }
 
