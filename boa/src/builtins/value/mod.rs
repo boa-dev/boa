@@ -232,9 +232,9 @@ impl Value {
                 }
             }
             ValueData::String(ref str) => Ok(JSONValue::String(str.clone())),
-            ValueData::Rational(num) => {
-                JSONNumber::from_f64(num).map(JsonValue::Number).unwrap_or(JSONValue::Null)
-            }
+            ValueData::Rational(num) => Ok(JSONNumber::from_f64(num)
+                .map(JSONValue::Number)
+                .unwrap_or(JSONValue::Null)),
             ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             ValueData::BigInt(_) => Err(interpreter
                 .throw_type_error("BigInt value can't be serialized in JSON")
