@@ -233,11 +233,7 @@ impl Value {
             }
             ValueData::String(ref str) => Ok(JSONValue::String(str.clone())),
             ValueData::Rational(num) => {
-                if let Some(number) = JSONNumber::from_f64(num) {
-                    Ok(JSONValue::Number(number))
-                } else {
-                    Ok(JSONValue::Null)
-                }
+                JSONNumber::from_f64(num).map(JsonValue::Number).unwrap_or(JSONValue::Null)
             }
             ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             ValueData::BigInt(_) => Err(interpreter
