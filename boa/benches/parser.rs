@@ -67,10 +67,55 @@ fn for_loop_parser(c: &mut Criterion) {
     });
 }
 
+static LONG_REPETITION: &str = r#"
+for (let a = 10; a < 100; a++) {
+    if (a < 10) {
+        console.log("impossible D:");
+    } else if (a < 50) {
+        console.log("starting");
+    } else {
+        console.log("finishing");
+    }
+}
+"#;
+
+fn long_file_parser(c: &mut Criterion) {
+    use std::{
+        fs::{self, File},
+        io::{BufWriter, Write},
+    };
+    // We include the lexing in the benchmarks, since they will get together soon, anyways.
+    const FILE_NAME: &str = "long_file_test.js";
+
+    {
+        let mut file = BufWriter::new(
+            File::create(FILE_NAME).unwrap_or_else(|_| panic!("could not create {}", FILE_NAME)),
+        );
+        for _ in 0..400 {
+            file.write_all(LONG_REPETITION.as_bytes())
+                .unwrap_or_else(|_| panic!("could not write {}", FILE_NAME));
+        }
+    }
+    c.bench_function("Long file (Parser)", move |b| {
+        b.iter(|| {
+            let file_str = fs::read_to_string(FILE_NAME)
+                .unwrap_or_else(|_| panic!("could not read {}", FILE_NAME));
+
+            let mut lexer = Lexer::new(black_box(&file_str));
+            lexer.lex().expect("failed to lex");
+
+            Parser::new(&black_box(lexer.tokens)).parse_all()
+        })
+    });
+
+    fs::remove_file(FILE_NAME).unwrap_or_else(|_| panic!("could not remove {}", FILE_NAME));
+}
+
 criterion_group!(
     parser,
     expression_parser,
     hello_world_parser,
-    for_loop_parser
+    for_loop_parser,
+    long_file_parser,
 );
 criterion_main!(parser);
