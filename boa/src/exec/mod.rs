@@ -200,6 +200,9 @@ impl Interpreter {
         }
     }
 
+    /// Converts a value to a non-negative integer if it is a valid integer index value.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toindex
     #[allow(clippy::wrong_self_convention)]
     pub fn to_index(&mut self, value: &Value) -> Result<usize, Value> {
         if value.is_undefined() {
@@ -221,6 +224,9 @@ impl Interpreter {
         Ok(integer_index as usize)
     }
 
+    /// Converts a value to an integral 64 bit signed integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tointeger
     #[allow(clippy::wrong_self_convention)]
     pub fn to_integer(&mut self, value: &Value) -> Result<i64, Value> {
         let number = self.to_number(value)?;
@@ -232,6 +238,9 @@ impl Interpreter {
         Ok(number as i64)
     }
 
+    /// Converts a value to a double precision floating point.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumber
     #[allow(clippy::wrong_self_convention)]
     pub fn to_number(&mut self, value: &Value) -> Result<f64, Value> {
         match *value.deref().borrow() {

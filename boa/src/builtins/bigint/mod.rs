@@ -158,7 +158,7 @@ impl BigInt {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        let (modulo, bits) = Self::calculate_integral(args, ctx)?;
+        let (modulo, bits) = Self::calculate_as_uint_n(args, ctx)?;
 
         if bits > 0 && modulo >= BigInt::from(2).pow(&BigInt::from(bits as i64 - 1)) {
             Ok(Value::from(
@@ -181,12 +181,17 @@ impl BigInt {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        let (modulo, _) = Self::calculate_integral(args, ctx)?;
+        let (modulo, _) = Self::calculate_as_uint_n(args, ctx)?;
 
         Ok(Value::from(modulo))
     }
 
-    fn calculate_integral(args: &[Value], ctx: &mut Interpreter) -> Result<(BigInt, u32), Value> {
+    /// Helper function to wrap the value of a `BigInt` to an unsigned integer.
+    ///
+    /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
+    /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
+    /// can be reused from the `as_int_n` method.
+    fn calculate_as_uint_n(args: &[Value], ctx: &mut Interpreter) -> Result<(BigInt, u32), Value> {
         use std::convert::TryFrom;
 
         let undefined_value = Value::undefined();
