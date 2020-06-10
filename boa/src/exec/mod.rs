@@ -45,6 +45,13 @@ pub trait Executable {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PreferredType {
+    String,
+    Number,
+    Default,
+}
+
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
@@ -156,7 +163,7 @@ impl Interpreter {
             }
             ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some("string"));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::String);
                 self.to_string(&primitive)
             }
         }
@@ -190,7 +197,7 @@ impl Interpreter {
             }
             ValueData::BigInt(b) => Ok(b.clone()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some("number"));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::Number);
                 self.to_bigint(&primitive)
             }
             ValueData::Symbol(_) => {
@@ -221,10 +228,10 @@ impl Interpreter {
     }
 
     /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
-    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: &str) -> Value {
+    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: PreferredType) -> Value {
         debug_assert!(o.get_type() == Type::Object);
-        debug_assert!(hint == "string" || hint == "number");
-        let method_names: Vec<&str> = if hint == "string" {
+        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
+        let method_names: Vec<&str> = if hint == PreferredType::String {
             vec!["toString", "valueOf"]
         } else {
             vec!["valueOf", "toString"]
@@ -256,24 +263,17 @@ impl Interpreter {
     pub(crate) fn to_primitive(
         &mut self,
         input: &mut Value,
-        preferred_type: Option<&str>,
+        preferred_type: PreferredType,
     ) -> Value {
-        let mut hint: &str;
+        let mut hint: PreferredType;
         match (*input).deref() {
             ValueData::Object(_) => {
-                hint = match preferred_type {
-                    None => "default",
-                    Some(pt) => match pt {
-                        "string" => "string",
-                        "number" => "number",
-                        _ => "default",
-                    },
-                };
+                hint = preferred_type;
 
                 // Skip d, e we don't support Symbols yet
                 // TODO: add when symbols are supported
-                if hint == "default" {
-                    hint = "number";
+                if hint == PreferredType::Default {
+                    hint = PreferredType::Number;
                 };
 
                 self.ordinary_to_primitive(input, hint)
@@ -287,7 +287,7 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_property_key(&mut self, value: &mut Value) -> ResultValue {
-        let key = self.to_primitive(value, Some("string"));
+        let key = self.to_primitive(value, PreferredType::String);
         if key.is_symbol() {
             Ok(key)
         } else {
@@ -376,7 +376,7 @@ impl Interpreter {
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
             ValueData::BigInt(ref bigint) => bigint.to_f64(),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
+                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
                 self.to_string(&prim_value)
                     .expect("cannot convert value to string")
                     .parse::<f64>()
