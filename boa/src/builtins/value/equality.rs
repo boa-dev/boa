@@ -1,5 +1,5 @@
 use super::*;
-use crate::{builtins::Number, Interpreter};
+use crate::{builtins::Number, Interpreter, exec::PreferredType};
 
 use std::borrow::Borrow;
 
@@ -94,14 +94,14 @@ impl Value {
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
             (ValueData::Object(_), _) => {
-                let mut primitive = interpreter.to_primitive(self, None);
+                let mut primitive = interpreter.to_primitive(self, PreferredType::Default);
                 primitive.equals(other, interpreter)
             }
 
             // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
             // of the comparison ? ToPrimitive(x) == y.
             (_, ValueData::Object(_)) => {
-                let mut primitive = interpreter.to_primitive(other, None);
+                let mut primitive = interpreter.to_primitive(other, PreferredType::Default);
                 primitive.equals(self, interpreter)
             }
 

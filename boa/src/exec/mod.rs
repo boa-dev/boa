@@ -163,7 +163,7 @@ impl Interpreter {
             }
             ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some(PreferredType::String));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::String);
                 self.to_string(&primitive)
             }
         }
@@ -197,7 +197,7 @@ impl Interpreter {
             }
             ValueData::BigInt(b) => Ok(b.clone()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some(PreferredType::Number));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::Number);
                 self.to_bigint(&primitive)
             }
             ValueData::Symbol(_) => {
@@ -263,18 +263,15 @@ impl Interpreter {
     pub(crate) fn to_primitive(
         &mut self,
         input: &mut Value,
-        preferred_type: Option<PreferredType>,
+        preferred_type: PreferredType,
     ) -> Value {
         let mut hint: &str;
         match (*input).deref() {
             ValueData::Object(_) => {
                 hint = match preferred_type {
-                    None => "default",
-                    Some(pt) => match pt {
-                        PreferredType::String => "string",
-                        PreferredType::Number => "number",
-                        PreferredType::Default => "default",
-                    },
+                    PreferredType::String => "string",
+                    PreferredType::Number => "number",
+                    PreferredType::Default => "default",
                 };
 
                 // Skip d, e we don't support Symbols yet
@@ -294,7 +291,7 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_property_key(&mut self, value: &mut Value) -> ResultValue {
-        let key = self.to_primitive(value, Some(PreferredType::String));
+        let key = self.to_primitive(value, PreferredType::String);
         if key.is_symbol() {
             Ok(key)
         } else {
@@ -384,7 +381,7 @@ impl Interpreter {
             ValueData::BigInt(ref bigint) => bigint.to_f64(),
             ValueData::Object(_) => {
                 let prim_value =
-                    self.to_primitive(&mut (value.clone()), Some(PreferredType::Number));
+                    self.to_primitive(&mut (value.clone()), PreferredType::Number);
                 self.to_string(&prim_value)
                     .expect("cannot convert value to string")
                     .parse::<f64>()
