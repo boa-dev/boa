@@ -17,6 +17,41 @@ fn empty_var_decl_undefined() {
         "#;
 
     assert_eq!(&exec(scenario), "true");
+fn property_accessor_member_expression_dot_notation_on_string_literal() {
+    let scenario = r#"
+        typeof 'asd'.matchAll;
+        "#;
+
+    assert_eq!(&exec(scenario), "function");
+}
+
+#[test]
+fn property_accessor_member_expression_bracket_notation_on_string_literal() {
+    let scenario = r#"
+        typeof 'asd'['matchAll'];
+        "#;
+
+    assert_eq!(&exec(scenario), "function");
+}
+
+#[test]
+fn property_accessor_member_expression_dot_notation_on_function() {
+    let scenario = r#"
+        function asd () {};
+        asd.name;
+        "#;
+
+    assert_eq!(&exec(scenario), "asd");
+}
+
+#[test]
+fn property_accessor_member_expression_bracket_notation_on_function() {
+    let scenario = r#"
+        function asd () {};
+        asd['name'];
+        "#;
+
+    assert_eq!(&exec(scenario), "asd");
 }
 
 #[test]

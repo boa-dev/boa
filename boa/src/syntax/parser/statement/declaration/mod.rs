@@ -13,6 +13,7 @@ mod lexical;
 mod tests;
 
 use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
+
 use crate::{
     syntax::{
         ast::{Keyword, Node, TokenKind},

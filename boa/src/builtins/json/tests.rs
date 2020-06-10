@@ -1,4 +1,12 @@
-use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{
+    builtins::{
+        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
+        value::same_value,
+    },
+    exec::Interpreter,
+    forward, forward_val,
+    realm::Realm,
+};
 
 #[test]
 fn json_sanity() {
@@ -235,4 +243,28 @@ fn json_parse_object_with_reviver() {
         JSON.stringify(jsonObj);"#,
     );
     assert_eq!(result, r#"{"firstname":"boa","lastname":"interpreter"}"#);
+}
+
+#[test]
+fn json_parse_sets_prototypes() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        const jsonString = "{
+            \"ob\":{\"ject\":1}
+        }";
+        const jsonObj = JSON.parse(jsonString);
+    "#;
+    eprintln!("{}", forward(&mut engine, init));
+    let object = forward_val(&mut engine, r#"jsonObj.ob"#).unwrap();
+    let object_prototype = object.get_internal_slot(INSTANCE_PROTOTYPE);
+    let global_object_prototype = engine
+        .realm
+        .global_obj
+        .get_field("Object")
+        .get_field(PROTOTYPE);
+    assert_eq!(
+        same_value(&object_prototype, &global_object_prototype, true),
+        true
+    );
 }

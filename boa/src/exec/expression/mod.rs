@@ -4,7 +4,7 @@ use super::{Executable, Interpreter};
 use crate::{
     builtins::{
         object::{INSTANCE_PROTOTYPE, PROTOTYPE},
-        value::{ResultValue, Value, ValueData},
+        value::{ResultValue, Type, Value, ValueData},
     },
     syntax::ast::node::{Call, New, Node},
     BoaProfiler,
@@ -16,7 +16,7 @@ impl Executable for Call {
         let (mut this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(interpreter)?;
-                if obj.get_type() != "object" || obj.get_type() != "symbol" {
+                if obj.get_type() != Type::Object || obj.get_type() != Type::Symbol {
                     obj = interpreter
                         .to_object(&obj)
                         .expect("failed to convert to object");
