@@ -8,6 +8,7 @@ pub mod error;
 pub mod function;
 pub mod json;
 pub mod math;
+pub mod nan;
 pub mod number;
 pub mod object;
 pub mod property;
@@ -36,6 +37,7 @@ pub fn init(global: &Value) {
     Boolean::init(global);
     json::init(global);
     math::init(global);
+    nan::init(global);
     Number::init(global);
     object::init(global);
     function::init(global);
