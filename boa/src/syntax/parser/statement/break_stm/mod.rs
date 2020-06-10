@@ -11,6 +11,7 @@
 mod tests;
 
 use super::LabelIdentifier;
+
 use crate::{
     syntax::{
         ast::{node::Break, Keyword, Punctuator, TokenKind},
