@@ -1,7 +1,7 @@
 use crate::{builtins::Value, exec, exec::Interpreter, forward, realm::Realm};
 
 #[test]
-fn property_accessor_member_expression_dot_notation_on_string_literal() {
+fn nan_exists_on_global_object_and_evaluates_to_nan_value() {
     let scenario = r#"
         NaN;
         "#;
