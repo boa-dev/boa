@@ -91,8 +91,39 @@ impl Executable for WhileLoop {
 impl Executable for DoWhileLoop {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let mut result = self.body().run(interpreter)?;
+        match interpreter.get_current_state() {
+            InterpreterState::Break(_label) => {
+                // TODO break to label.
+
+                // Loops 'consume' breaks.
+                interpreter.set_current_state(InterpreterState::Executing);
+                return Ok(result);
+            }
+            InterpreterState::Return => {
+                return Ok(result);
+            }
+            _ => {
+                // Continue execution.
+            }
+        }
+
         while self.cond().run(interpreter)?.borrow().is_true() {
             result = self.body().run(interpreter)?;
+            match interpreter.get_current_state() {
+                InterpreterState::Break(_label) => {
+                    // TODO break to label.
+
+                    // Loops 'consume' breaks.
+                    interpreter.set_current_state(InterpreterState::Executing);
+                    break;
+                }
+                InterpreterState::Return => {
+                    return Ok(result);
+                }
+                _ => {
+                    // Continue execution.
+                }
+            }
         }
         Ok(result)
     }

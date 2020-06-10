@@ -65,3 +65,37 @@ fn for_loop_return() {
 
     assert_eq!(&exec(scenario), "3");
 }
+
+#[test]
+fn do_loop_late_break() {
+    // Ordering with statement before the break.
+    let scenario = r#"
+        let a = 1;
+        do {
+            a++;
+            if (a == 3) {
+                break;
+            }
+        } while (a < 5);
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn do_loop_early_break() {
+    // Ordering with statements after the break.
+    let scenario = r#"
+        let a = 1;
+        do {
+            if (a == 3) {
+                break;
+            }
+            a++;
+        } while (a < 5);
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
