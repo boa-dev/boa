@@ -45,7 +45,7 @@ pub trait Executable {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PreferredType {
     String,
     Number,
@@ -228,10 +228,10 @@ impl Interpreter {
     }
 
     /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
-    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: &str) -> Value {
+    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: PreferredType) -> Value {
         debug_assert!(o.get_type() == "object");
-        debug_assert!(hint == "string" || hint == "number");
-        let method_names: Vec<&str> = if hint == "string" {
+        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
+        let method_names: Vec<&str> = if hint == PreferredType::String {
             vec!["toString", "valueOf"]
         } else {
             vec!["valueOf", "toString"]
@@ -265,19 +265,15 @@ impl Interpreter {
         input: &mut Value,
         preferred_type: PreferredType,
     ) -> Value {
-        let mut hint: &str;
+        let mut hint: PreferredType;
         match (*input).deref() {
             ValueData::Object(_) => {
-                hint = match preferred_type {
-                    PreferredType::String => "string",
-                    PreferredType::Number => "number",
-                    PreferredType::Default => "default",
-                };
+                hint = preferred_type;
 
                 // Skip d, e we don't support Symbols yet
                 // TODO: add when symbols are supported
-                if hint == "default" {
-                    hint = "number";
+                if hint == PreferredType::Default {
+                    hint = PreferredType::Number;
                 };
 
                 self.ordinary_to_primitive(input, hint)
