@@ -17,6 +17,8 @@ fn empty_var_decl_undefined() {
         "#;
 
     assert_eq!(&exec(scenario), "true");
+}
+
 fn property_accessor_member_expression_dot_notation_on_string_literal() {
     let scenario = r#"
         typeof 'asd'.matchAll;
