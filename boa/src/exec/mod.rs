@@ -27,7 +27,7 @@ use crate::{
             PROTOTYPE,
         },
         property::Property,
-        value::{ResultValue, Value, ValueData},
+        value::{ResultValue, Type, Value, ValueData},
         BigInt, Number,
     },
     realm::Realm,
@@ -229,7 +229,7 @@ impl Interpreter {
 
     /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
     pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: PreferredType) -> Value {
-        debug_assert!(o.get_type() == "object");
+        debug_assert!(o.get_type() == Type::Object);
         debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
         let method_names: Vec<&str> = if hint == PreferredType::String {
             vec!["toString", "valueOf"]

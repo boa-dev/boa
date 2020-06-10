@@ -5,6 +5,10 @@
 #[cfg(test)]
 mod tests;
 
+pub mod val_type;
+
+pub use crate::builtins::value::val_type::Type;
+
 use crate::builtins::{
     object::{
         internal_methods_trait::ObjectInternalMethods, InternalState, InternalStateCell, Object,
@@ -165,10 +169,16 @@ impl Value {
             JSONValue::String(v) => Self::string(v),
             JSONValue::Bool(v) => Self::boolean(v),
             JSONValue::Array(vs) => {
-                let mut new_obj = Object::default();
+                let global_array_prototype = interpreter
+                    .realm
+                    .global_obj
+                    .get_field("Array")
+                    .get_field(PROTOTYPE);
+                let new_obj =
+                    Value::new_object_from_prototype(global_array_prototype, ObjectKind::Array);
                 let length = vs.len();
                 for (idx, json) in vs.into_iter().enumerate() {
-                    new_obj.properties.insert(
+                    new_obj.set_property(
                         idx.to_string(),
                         Property::default()
                             .value(Self::from_json(json, interpreter))
@@ -176,11 +186,11 @@ impl Value {
                             .configurable(true),
                     );
                 }
-                new_obj.properties.insert(
+                new_obj.set_property(
                     "length".to_string(),
                     Property::default().value(Self::from(length)),
                 );
-                Self::object(new_obj)
+                new_obj
             }
             JSONValue::Object(obj) => {
                 let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
@@ -764,29 +774,6 @@ impl ValueData {
         // Set length to parameters
         new_func_val.set_field("length", Value::from(length));
         new_func_val
-    }
-
-    /// Get the type of the value
-    ///
-    /// https://tc39.es/ecma262/#sec-typeof-operator
-    pub fn get_type(&self) -> &'static str {
-        let _timer = BoaProfiler::global().start_event("Value::get_type", "value");
-        match *self {
-            Self::Rational(_) | Self::Integer(_) => "number",
-            Self::String(_) => "string",
-            Self::Boolean(_) => "boolean",
-            Self::Symbol(_) => "symbol",
-            Self::Null => "object",
-            Self::Undefined => "undefined",
-            Self::Object(ref o) => {
-                if o.deref().borrow().is_callable() {
-                    "function"
-                } else {
-                    "object"
-                }
-            }
-            Self::BigInt(_) => "bigint",
-        }
     }
 }
 
