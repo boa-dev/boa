@@ -805,6 +805,26 @@ fn to_bigint() {
 }
 
 #[test]
+fn to_index() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(engine.to_index(&Value::undefined()).unwrap(), 0);
+    assert!(engine.to_index(&Value::integer(-1)).is_err());
+}
+
+#[test]
+fn to_integer() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(engine.to_integer(&Value::number(f64::NAN)).unwrap(), 0);
+    assert_eq!(engine.to_integer(&Value::number(0.0f64)).unwrap(), 0);
+    assert_eq!(engine.to_integer(&Value::number(20.9)).unwrap(), 20);
+    assert_eq!(engine.to_integer(&Value::number(-20.9)).unwrap(), -20);
+}
+
+#[test]
 fn to_string() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

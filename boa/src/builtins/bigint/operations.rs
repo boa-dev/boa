@@ -17,6 +17,20 @@ impl BigInt {
             ),
         )
     }
+
+    /// Floored integer modulo.
+    ///
+    /// # Examples
+    /// ```
+    /// # use num_integer::Integer;
+    /// assert_eq!((8).mod_floor(&3), 2);
+    /// assert_eq!((8).mod_floor(&-3), -1);
+    /// ```
+    #[inline]
+    pub fn mod_floor(self, other: &Self) -> Self {
+        use num_integer::Integer;
+        Self(self.0.mod_floor(&other.0))
+    }
 }
 
 macro_rules! impl_bigint_operator {

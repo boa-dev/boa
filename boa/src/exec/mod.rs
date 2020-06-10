@@ -52,6 +52,12 @@ pub(crate) enum InterpreterState {
     Return,
     Break(Option<String>),
 }
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PreferredType {
+    String,
+    Number,
+    Default,
+}
 
 /// A Javascript intepreter
 #[derive(Debug)]
@@ -164,7 +170,7 @@ impl Interpreter {
             }
             ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some("string"));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::String);
                 self.to_string(&primitive)
             }
         }
@@ -198,12 +204,80 @@ impl Interpreter {
             }
             ValueData::BigInt(b) => Ok(b.clone()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some("number"));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::Number);
                 self.to_bigint(&primitive)
             }
             ValueData::Symbol(_) => {
                 self.throw_type_error("cannot convert Symbol to a BigInt")?;
                 unreachable!();
+            }
+        }
+    }
+
+    /// Converts a value to a non-negative integer if it is a valid integer index value.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toindex
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_index(&mut self, value: &Value) -> Result<usize, Value> {
+        if value.is_undefined() {
+            return Ok(0);
+        }
+
+        let integer_index = self.to_integer(value)?;
+
+        if integer_index < 0 {
+            self.throw_range_error("Integer index must be >= 0")?;
+            unreachable!();
+        }
+
+        if integer_index > 2i64.pow(53) - 1 {
+            self.throw_range_error("Integer index must be less than 2**(53) - 1")?;
+            unreachable!()
+        }
+
+        Ok(integer_index as usize)
+    }
+
+    /// Converts a value to an integral 64 bit signed integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tointeger
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_integer(&mut self, value: &Value) -> Result<i64, Value> {
+        let number = self.to_number(value)?;
+
+        if number.is_nan() {
+            return Ok(0);
+        }
+
+        Ok(number as i64)
+    }
+
+    /// Converts a value to a double precision floating point.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumber
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_number(&mut self, value: &Value) -> Result<f64, Value> {
+        match *value.deref().borrow() {
+            ValueData::Null => Ok(0.0),
+            ValueData::Undefined => Ok(f64::NAN),
+            ValueData::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            ValueData::String(ref string) => match string.parse::<f64>() {
+                Ok(number) => Ok(number),
+                Err(_) => Ok(0.0),
+            }, // this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            ValueData::Rational(number) => Ok(number),
+            ValueData::Integer(integer) => Ok(f64::from(integer)),
+            ValueData::Symbol(_) => {
+                self.throw_type_error("argument must not be a symbol")?;
+                unreachable!()
+            }
+            ValueData::BigInt(_) => {
+                self.throw_type_error("argument must not be a bigint")?;
+                unreachable!()
+            }
+            ValueData::Object(_) => {
+                let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
+                self.to_number(&prim_value)
             }
         }
     }
@@ -229,10 +303,10 @@ impl Interpreter {
     }
 
     /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
-    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: &str) -> Value {
+    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: PreferredType) -> Value {
         debug_assert!(o.get_type() == Type::Object);
-        debug_assert!(hint == "string" || hint == "number");
-        let method_names: Vec<&str> = if hint == "string" {
+        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
+        let method_names: Vec<&str> = if hint == PreferredType::String {
             vec!["toString", "valueOf"]
         } else {
             vec!["valueOf", "toString"]
@@ -264,24 +338,17 @@ impl Interpreter {
     pub(crate) fn to_primitive(
         &mut self,
         input: &mut Value,
-        preferred_type: Option<&str>,
+        preferred_type: PreferredType,
     ) -> Value {
-        let mut hint: &str;
+        let mut hint: PreferredType;
         match (*input).deref() {
             ValueData::Object(_) => {
-                hint = match preferred_type {
-                    None => "default",
-                    Some(pt) => match pt {
-                        "string" => "string",
-                        "number" => "number",
-                        _ => "default",
-                    },
-                };
+                hint = preferred_type;
 
                 // Skip d, e we don't support Symbols yet
                 // TODO: add when symbols are supported
-                if hint == "default" {
-                    hint = "number";
+                if hint == PreferredType::Default {
+                    hint = PreferredType::Number;
                 };
 
                 self.ordinary_to_primitive(input, hint)
@@ -295,7 +362,7 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_property_key(&mut self, value: &mut Value) -> ResultValue {
-        let key = self.to_primitive(value, Some("string"));
+        let key = self.to_primitive(value, PreferredType::String);
         if key.is_symbol() {
             Ok(key)
         } else {
@@ -384,12 +451,13 @@ impl Interpreter {
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
             ValueData::BigInt(ref bigint) => bigint.to_f64(),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
+                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
                 self.to_string(&prim_value)
                     .expect("cannot convert value to string")
                     .parse::<f64>()
                     .expect("cannot parse value to f64")
             }
+            ValueData::Undefined => f64::NAN,
             _ => {
                 // TODO: Make undefined?
                 f64::from(0)
