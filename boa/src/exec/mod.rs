@@ -45,6 +45,12 @@ pub trait Executable {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
 }
 
+enum PreferredType {
+    String,
+    Number,
+    Default,
+}
+
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
@@ -256,7 +262,7 @@ impl Interpreter {
     pub(crate) fn to_primitive(
         &mut self,
         input: &mut Value,
-        preferred_type: Option<&str>,
+        preferred_type: Option<PreferredType>,
     ) -> Value {
         let mut hint: &str;
         match (*input).deref() {
@@ -264,9 +270,9 @@ impl Interpreter {
                 hint = match preferred_type {
                     None => "default",
                     Some(pt) => match pt {
-                        "string" => "string",
-                        "number" => "number",
-                        _ => "default",
+                        PreferredType::String => "string",
+                        PreferredType::Number => "number",
+                        PreferredType::Default => "default",
                     },
                 };
 
