@@ -7,23 +7,22 @@ mod comment;
 mod cursor;
 pub mod error;
 mod string;
-#[cfg(test)]
-mod tests;
+
+#[macro_use]
+mod template;
+
+// Temporary disabled while lexer in progress.
+// #[cfg(test)]
+// mod tests;
 
 pub use self::error::Error;
-use self::{cursor::Cursor, string::StringLiteral};
-use crate::syntax::ast::bigint::BigInt;
+
+use self::{cursor::Cursor, string::StringLiteral, template::TemplateLiteral};
 use crate::syntax::ast::{
-    token::{NumericLiteral, Token, TokenKind},
-    Position, Punctuator, Span,
+    token::{Token, TokenKind},
+    Position, Span,
 };
-use std::{
-    char::{decode_utf16, from_u32},
-    fmt,
-    io::{self, BufRead, Bytes, Read, Seek},
-    iter::Peekable,
-    str::{Chars, FromStr},
-};
+use std::io::Read;
 
 trait Tokenizer<R> {
     /// Lexes the next token.
@@ -34,7 +33,7 @@ trait Tokenizer<R> {
 
 /// Lexer or tokenizer for the Boa JavaScript Engine.
 #[derive(Debug)]
-pub(crate) struct Lexer<R> {
+pub struct Lexer<R> {
     cursor: Cursor<R>,
     goal_symbol: InputElement,
 }
@@ -69,7 +68,7 @@ where
 {
     /// Creates a new lexer.
     #[inline]
-    pub(crate) fn new(reader: R) -> Self {
+    pub fn new(reader: R) -> Self {
         Self {
             cursor: Cursor::new(reader),
             goal_symbol: Default::default(),
@@ -120,6 +119,7 @@ where
                 Span::new(start, self.cursor.pos()),
             )),
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
+            template_match!() => TemplateLiteral::new().lex(&mut self.cursor, start),
             _ => unimplemented!(),
         };
 
@@ -128,9 +128,25 @@ where
 }
 
 // impl<R> Tokenizer<R> for Lexer<R> {
-//     fn lex(&mut self, cursor: &mut Cursor<R>) -> io::Result<Token>
+//     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> io::Result<Token>
 //     where
 //         R: Read,
 //     {
+
 //     }
 // }
+
+
+// Temporarily moved.
+use crate::syntax::ast::Keyword;
+
+#[test]
+fn check_single_line_comment() {
+    let s1 = "var \n//This is a comment\ntrue";
+    let mut lexer = Lexer::new(s1.as_bytes());
+
+    assert_eq!(lexer.next().unwrap().unwrap().kind, TokenKind::Keyword(Keyword::Var));
+    assert_eq!(lexer.next().unwrap().unwrap().kind, TokenKind::LineTerminator);
+    assert_eq!(lexer.next().unwrap().unwrap().kind, TokenKind::BooleanLiteral(true));
+    assert!(lexer.next().is_none());
+}

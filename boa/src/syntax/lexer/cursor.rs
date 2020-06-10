@@ -1,14 +1,6 @@
-use crate::syntax::ast::bigint::BigInt;
-use crate::syntax::ast::{
-    token::{NumericLiteral, Token, TokenKind},
-    Position, Punctuator, Span,
-};
+use crate::syntax::ast::Position;
 use std::{
-    char::{decode_utf16, from_u32},
-    error, fmt,
-    io::{self, BufRead, Bytes, Read, Seek},
-    iter::Peekable,
-    str::{Chars, FromStr},
+    io::{self, Bytes, Read}
 };
 
 /// Cursor over the source code.

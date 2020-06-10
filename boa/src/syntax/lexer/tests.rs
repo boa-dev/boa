@@ -543,4 +543,4 @@ fn addition_no_spaces_e_number() {
         lexer.tokens[2].kind,
         TokenKind::numeric_literal(100_000_000_000.0)
     );
-}
+} */

@@ -31,6 +31,7 @@ use boa::{
     forward_val,
     realm::Realm,
     syntax::ast::{node::StatementList, token::Token},
+    syntax::lexer::Lexer,
 };
 use std::{
     fs::read_to_string,
@@ -115,11 +116,16 @@ arg_enum! {
 /// Returns a error of type String with a message,
 /// if the source has a syntax error.
 fn lex_source(src: &str) -> Result<Vec<Token>, String> {
-    use boa::syntax::lexer::Lexer;
+    let mut lexer = Lexer::new(src.as_bytes());
 
-    let mut lexer = Lexer::new(src);
-    lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
-    Ok(lexer.tokens)
+    // Goes through and lexes entire given string.
+    let mut tokens = Vec::new();
+
+    for token in lexer {
+        tokens.push(token.map_err(|e| format!("Lexing Error: {}", e))?);
+    }
+
+    Ok(tokens)
 }
 
 /// Parses the the token stream into a ast and returns it.

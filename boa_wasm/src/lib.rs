@@ -3,12 +3,15 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
-    let mut lexer = Lexer::new(src);
-    lexer
-        .lex()
-        .map_err(|e| JsValue::from(format!("Syntax Error: {}", e)))?;
+    let mut lexer = Lexer::new(src.as_bytes());
 
-    let tokens = lexer.tokens;
+    // Goes through and lexes entire given string.
+    let mut tokens = Vec::new();
+
+    for token in lexer {
+        tokens.push(token.map_err(|e| format!("Lexing Error: {}", e))?);
+    }
+    
     let expr = Parser::new(&tokens)
         .parse_all()
         .map_err(|e| JsValue::from(format!("Parsing Error: {}", e)))?;
