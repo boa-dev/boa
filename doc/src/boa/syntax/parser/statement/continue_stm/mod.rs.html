@@ -73,6 +73,7 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Continue expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -86,11 +87,12 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">LabelIdentifier</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{<span class="ident">node</span>::<span class="ident">Continue</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>},
-        <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>},
+        <span class="ident">parser</span>::{
+            <span class="ident">statement</span>::<span class="ident">LabelIdentifier</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        },
     },
     <span class="ident">BoaProfiler</span>,
 };
