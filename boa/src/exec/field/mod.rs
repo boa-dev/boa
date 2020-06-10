@@ -19,7 +19,12 @@ impl Executable for GetConstField {
 
 impl Executable for GetField {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
-        let obj = self.obj().run(interpreter)?;
+        let mut obj = self.obj().run(interpreter)?;
+        if obj.get_type() != "object" || obj.get_type() != "symbol" {
+            obj = interpreter
+                .to_object(&obj)
+                .expect("failed to convert to object");
+        }
         let field = self.field().run(interpreter)?;
 
         Ok(obj.get_field(field.to_string()))
