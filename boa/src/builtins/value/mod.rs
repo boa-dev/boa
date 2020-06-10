@@ -169,10 +169,16 @@ impl Value {
             JSONValue::String(v) => Self::string(v),
             JSONValue::Bool(v) => Self::boolean(v),
             JSONValue::Array(vs) => {
-                let mut new_obj = Object::default();
+                let global_array_prototype = interpreter
+                    .realm
+                    .global_obj
+                    .get_field("Array")
+                    .get_field(PROTOTYPE);
+                let new_obj =
+                    Value::new_object_from_prototype(global_array_prototype, ObjectKind::Array);
                 let length = vs.len();
                 for (idx, json) in vs.into_iter().enumerate() {
-                    new_obj.properties.insert(
+                    new_obj.set_property(
                         idx.to_string(),
                         Property::default()
                             .value(Self::from_json(json, interpreter))
@@ -180,11 +186,11 @@ impl Value {
                             .configurable(true),
                     );
                 }
-                new_obj.properties.insert(
+                new_obj.set_property(
                     "length".to_string(),
                     Property::default().value(Self::from(length)),
                 );
-                Self::object(new_obj)
+                new_obj
             }
             JSONValue::Object(obj) => {
                 let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
