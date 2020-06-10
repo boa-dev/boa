@@ -37,6 +37,12 @@ const BUF_SIZE: usize = 2200;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Number;
 
+/// Maximum number of arguments expected to the builtin parseInt() function.
+const PARSE_INT_MAX_ARG_COUNT: usize = 2;
+
+/// Maximum number of arguments expected to the builtin parseFloat() function.
+const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
+
 impl Number {
     /// Helper function that converts a Value to a Number.
     #[allow(clippy::wrong_self_convention)]
@@ -405,6 +411,122 @@ impl Number {
         Ok(Self::to_number(this))
     }
 
+    /// Builtin javascript 'parseInt(str, radix)' function.
+    ///
+    /// Parses the given string as an integer using the given radix as a base.
+    ///
+    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
+    ///
+    /// The radix must be an integer in the range [2, 36] inclusive.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
+    pub(crate) fn parse_int(
+        _this: &mut Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        if let (Some(val), r) = (args.get(0), args.get(1)) {
+            let mut radix = if let Some(rx) = r {
+                if let ValueData::Integer(i) = rx.data() {
+                    *i as u32
+                } else {
+                    // Handling a second argument that isn't an integer but was provided so cannot be defaulted.
+                    return Ok(Value::from(f64::NAN));
+                }
+            } else {
+                // No second argument provided therefore radix is unknown
+                0
+            };
+
+            match val.data() {
+                ValueData::String(s) => {
+                    // Attempt to infer radix from given string.
+
+                    if radix == 0 {
+                        if s.starts_with("0x") || s.starts_with("0X") {
+                            if let Ok(i) = i32::from_str_radix(&s[2..], 16) {
+                                return Ok(Value::integer(i));
+                            } else {
+                                // String can't be parsed.
+                                return Ok(Value::from(f64::NAN));
+                            }
+                        } else {
+                            radix = 10
+                        };
+                    }
+
+                    if let Ok(i) = i32::from_str_radix(s, radix) {
+                        Ok(Value::integer(i))
+                    } else {
+                        // String can't be parsed.
+                        Ok(Value::from(f64::NAN))
+                    }
+                }
+                ValueData::Integer(i) => Ok(Value::integer(*i)),
+                ValueData::Rational(f) => Ok(Value::integer(*f as i32)),
+                _ => {
+                    // Wrong argument type to parseInt.
+                    Ok(Value::from(f64::NAN))
+                }
+            }
+        } else {
+            // Not enough arguments to parseInt.
+            Ok(Value::from(f64::NAN))
+        }
+    }
+
+    /// Builtin javascript 'parseFloat(str)' function.
+    ///
+    /// Parses the given string as a floating point value.
+    ///
+    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
+    ///
+    /// To improve performance an Integer type Number is returned in place of a Rational if the given
+    /// string can be parsed and stored as an Integer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
+    pub(crate) fn parse_float(
+        _this: &mut Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        if let Some(val) = args.get(0) {
+            match val.data() {
+                ValueData::String(s) => {
+                    if let Ok(i) = s.parse::<i32>() {
+                        // Attempt to parse an integer first so that it can be stored as an integer
+                        // to improve performance
+                        Ok(Value::integer(i))
+                    } else if let Ok(f) = s.parse::<f64>() {
+                        Ok(Value::rational(f))
+                    } else {
+                        // String can't be parsed.
+                        Ok(Value::from(f64::NAN))
+                    }
+                }
+                ValueData::Integer(i) => Ok(Value::integer(*i)),
+                ValueData::Rational(f) => Ok(Value::rational(*f)),
+                _ => {
+                    // Wrong argument type to parseFloat.
+                    Ok(Value::from(f64::NAN))
+                }
+            }
+        } else {
+            // Not enough arguments to parseFloat.
+            Ok(Value::from(f64::NAN))
+        }
+    }
+
     /// Create a new `Number` object
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
@@ -416,6 +538,19 @@ impl Number {
         make_builtin_fn(Self::to_precision, "toPrecision", &prototype, 1);
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
+
+        make_builtin_fn(
+            Self::parse_int,
+            "parseInt",
+            global,
+            PARSE_INT_MAX_ARG_COUNT as i32,
+        );
+        make_builtin_fn(
+            Self::parse_float,
+            "parseFloat",
+            global,
+            PARSE_FLOAT_MAX_ARG_COUNT as i32,
+        );
 
         let number = make_constructor_fn("Number", 1, Self::make_number, global, prototype, true);
 

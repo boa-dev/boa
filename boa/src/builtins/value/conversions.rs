@@ -170,18 +170,6 @@ impl TryFrom<&Value> for Object {
     }
 }
 
-impl From<JSONValue> for Value {
-    fn from(value: JSONValue) -> Self {
-        Self(Gc::new(ValueData::from_json(value)))
-    }
-}
-
-impl From<&Value> for JSONValue {
-    fn from(value: &Value) -> Self {
-        value.to_json()
-    }
-}
-
 impl From<()> for Value {
     fn from(_: ()) -> Self {
         Value::null()

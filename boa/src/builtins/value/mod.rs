@@ -19,11 +19,13 @@ use crate::builtins::{
 };
 use crate::BoaProfiler;
 
+use crate::exec::Interpreter;
 use gc::{Finalize, Gc, GcCell, GcCellRef, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
     collections::HashSet,
+    convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Deref, DerefMut, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
@@ -152,6 +154,99 @@ impl Value {
             .insert(INSTANCE_PROTOTYPE.to_string(), proto);
 
         Self::object(object)
+    }
+
+    /// Convert from a JSON value to a JS value
+    pub fn from_json(json: JSONValue, interpreter: &mut Interpreter) -> Self {
+        match json {
+            JSONValue::Number(v) => {
+                if let Some(Ok(integer_32)) = v.as_i64().map(i32::try_from) {
+                    Self::integer(integer_32)
+                } else {
+                    Self::rational(v.as_f64().expect("Could not convert value to f64"))
+                }
+            }
+            JSONValue::String(v) => Self::string(v),
+            JSONValue::Bool(v) => Self::boolean(v),
+            JSONValue::Array(vs) => {
+                let mut new_obj = Object::default();
+                let length = vs.len();
+                for (idx, json) in vs.into_iter().enumerate() {
+                    new_obj.properties.insert(
+                        idx.to_string(),
+                        Property::default()
+                            .value(Self::from_json(json, interpreter))
+                            .writable(true)
+                            .configurable(true),
+                    );
+                }
+                new_obj.properties.insert(
+                    "length".to_string(),
+                    Property::default().value(Self::from(length)),
+                );
+                Self::object(new_obj)
+            }
+            JSONValue::Object(obj) => {
+                let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
+                for (key, json) in obj.into_iter() {
+                    let value = Self::from_json(json, interpreter);
+                    new_obj.set_property(
+                        key,
+                        Property::default()
+                            .value(value)
+                            .writable(true)
+                            .configurable(true),
+                    );
+                }
+                new_obj
+            }
+            JSONValue::Null => Self::null(),
+        }
+    }
+
+    /// Conversts the `Value` to `JSON`.
+    pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue, Value> {
+        match *self.data() {
+            ValueData::Null => Ok(JSONValue::Null),
+            ValueData::Boolean(b) => Ok(JSONValue::Bool(b)),
+            ValueData::Object(ref obj) => {
+                if obj.borrow().kind == ObjectKind::Array {
+                    let mut arr: Vec<JSONValue> = Vec::new();
+                    for k in obj.borrow().properties.keys() {
+                        if k != "length" {
+                            let value = self.get_field(k.to_string());
+                            if value.is_undefined() || value.is_function() {
+                                arr.push(JSONValue::Null);
+                            } else {
+                                arr.push(self.get_field(k.to_string()).to_json(interpreter)?);
+                            }
+                        }
+                    }
+                    Ok(JSONValue::Array(arr))
+                } else {
+                    let mut new_obj = Map::new();
+                    for k in obj.borrow().properties.keys() {
+                        let key = k.clone();
+                        let value = self.get_field(k.to_string());
+                        if !value.is_undefined() && !value.is_function() {
+                            new_obj.insert(key, value.to_json(interpreter)?);
+                        }
+                    }
+                    Ok(JSONValue::Object(new_obj))
+                }
+            }
+            ValueData::String(ref str) => Ok(JSONValue::String(str.clone())),
+            ValueData::Rational(num) => Ok(JSONNumber::from_f64(num)
+                .map(JSONValue::Number)
+                .unwrap_or(JSONValue::Null)),
+            ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
+            ValueData::BigInt(_) => Err(interpreter
+                .throw_type_error("BigInt value can't be serialized in JSON")
+                .expect_err("throw_type_error should always return an error")),
+            ValueData::Symbol(_) | ValueData::Undefined => {
+                unreachable!("Symbols and Undefined JSON Values depend on parent type");
+            }
+        }
     }
 }
 
