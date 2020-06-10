@@ -20,7 +20,7 @@ impl Executable for GetConstField {
 impl Executable for GetField {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let mut obj = self.obj().run(interpreter)?;
-        if obj.get_type() != "object" || obj.get_type() != "symbol" {
+        if obj.get_type() != Type::Object || obj.get_type() != Type::Symbol {
             obj = interpreter
                 .to_object(&obj)
                 .expect("failed to convert to object");
