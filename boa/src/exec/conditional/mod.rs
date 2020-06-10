@@ -9,11 +9,10 @@ impl Executable for If {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         Ok(if self.cond().run(interpreter)?.borrow().is_true() {
             self.body().run(interpreter)?
+        } else if let Some(ref else_e) = self.else_node() {
+            else_e.run(interpreter)?
         } else {
-            match self.else_node() {
-                Some(ref else_e) => else_e.run(interpreter)?,
-                None => Value::undefined(),
-            }
+            Value::undefined()
         })
     }
 }

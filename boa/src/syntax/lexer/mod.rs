@@ -499,6 +499,7 @@ impl<'a> Lexer<'a> {
             self.next_column();
             let ch = self.next();
             match ch {
+                 // StringLiteral
                 '"' | '\'' => {
                     let mut buf = String::new();
                     loop {
@@ -622,6 +623,28 @@ impl<'a> Lexer<'a> {
                     // to compensate for the incrementing at the top
                     self.move_columns( str_length.wrapping_add(1));
                     self.push_token(TokenKind::string_literal(buf), start_pos);
+                }
+                // TemplateLiteral
+                '`' => {
+                    let mut buf = String::new();
+                    loop {
+                        if self.preview_next().is_none() {
+                            return Err(LexerError::new("Unterminated template literal"));
+                        }
+                        match self.next() {
+                            '`' => {
+                                break;
+                            }
+                            next_ch => buf.push(next_ch),
+                            // TODO when there is an expression inside the literal
+                        }
+                    }
+                    let str_length = buf.len() as u32;
+                    // Why +1? Quotation marks are not included,
+                    // So technically it would be +2, (for both " ") but we want to be 1 less
+                    // to compensate for the incrementing at the top
+                    self.move_columns( str_length.wrapping_add(1));
+                    self.push_token(TokenKind::template_literal(buf), start_pos);
                 }
                 _ if ch.is_digit(10) => self.reed_numerical_literal(ch)?,
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
