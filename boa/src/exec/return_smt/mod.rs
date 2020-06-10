@@ -11,7 +11,7 @@ impl Executable for Return {
             None => Ok(Value::undefined()),
         };
         // Set flag for return
-        interpreter.set_current_state(InterpreterState::Return(self.label().map(String::from)));
+        interpreter.set_current_state(InterpreterState::Return);
         result
     }
 }

@@ -49,7 +49,7 @@ pub trait Executable {
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) enum InterpreterState {
     Executing,
-    Return(Option<String>),
+    Return,
     Break(Option<String>),
 }
 
@@ -435,7 +435,7 @@ impl Interpreter {
     #[inline]
     pub(crate) fn is_return(&self) -> bool {
         match self.current_state {
-            InterpreterState::Return(_) => true,
+            InterpreterState::Return => true,
             _ => false,
         }
     }
