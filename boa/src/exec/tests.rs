@@ -1,6 +1,25 @@
 use crate::{builtins::Value, exec, exec::Interpreter, forward, realm::Realm};
 
 #[test]
+fn function_declaration_returns_undefined() {
+    let scenario = r#"
+        function abc() {}
+        "#;
+
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn empty_var_decl_undefined() {
+    let scenario = r#"
+        let b;
+        b == undefined;
+        "#;
+
+    assert_eq!(&exec(scenario), "true");
+}
+
+#[test]
 fn empty_let_decl_undefined() {
     let scenario = r#"
         let a;
@@ -19,16 +38,6 @@ fn semicolon_expression_stop() {
         "#;
 
     assert_eq!(&exec(scenario), "1");
-}
-
-#[test]
-fn empty_var_decl_undefined() {
-    let scenario = r#"
-        let b;
-        b == undefined;
-        "#;
-
-    assert_eq!(&exec(scenario), "true");
 }
 
 #[test]

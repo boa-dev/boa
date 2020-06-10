@@ -37,7 +37,7 @@ impl Executable for FunctionDecl {
             .environment
             .initialize_binding(self.name(), val.clone());
 
-        Ok(val)
+        Ok(Value::undefined())
     }
 }
 
