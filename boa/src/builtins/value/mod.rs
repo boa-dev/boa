@@ -163,7 +163,17 @@ impl Value {
                 }
             }
             JSONValue::String(v) => Self::string(v),
-            JSONValue::Bool(v) => Self::boolean(v),
+            JSONValue::Bool(v) => {
+                let boolean_prototype = interpreter
+                    .realm
+                    .global_obj
+                    .get_field("Boolean")
+                    .get_field(PROTOTYPE);
+                let boolean_value =
+                    Self::new_object_from_prototype(boolean_prototype, ObjectKind::Boolean);
+                boolean_value.set_internal_slot("BooleanData", Self::boolean(v));
+                boolean_value
+            }
             JSONValue::Array(vs) => {
                 let mut new_obj = Object::default();
                 let length = vs.len();

@@ -19,7 +19,7 @@ fn json_sanity() {
     assert_eq!(
         forward(
             &mut engine,
-            r#"JSON.stringify({aaa: 'bbb'}) == '{"aaa":"bbb"}'"#
+            r#"JSON.stringify({aaa: 'bbb', ccc: true}) == '{"aaa":"bbb","ccc":true}'"#
         ),
         "true"
     );
@@ -251,20 +251,33 @@ fn json_parse_sets_prototypes() {
     let mut engine = Interpreter::new(realm);
     let init = r#"
         const jsonString = "{
-            \"ob\":{\"ject\":1}
+            \"ob\":{\"ject\":1},
+            \"booleanTrue\": true
         }";
         const jsonObj = JSON.parse(jsonString);
     "#;
     eprintln!("{}", forward(&mut engine, init));
     let object = forward_val(&mut engine, r#"jsonObj.ob"#).unwrap();
     let object_prototype = object.get_internal_slot(INSTANCE_PROTOTYPE);
+    let boolean_true_prototype = forward_val(&mut engine, r#"jsonObj.booleanTrue"#)
+        .unwrap()
+        .get_internal_slot(INSTANCE_PROTOTYPE);
     let global_object_prototype = engine
         .realm
         .global_obj
         .get_field("Object")
         .get_field(PROTOTYPE);
+    let global_boolean_prototype = engine
+        .realm
+        .global_obj
+        .get_field("Boolean")
+        .get_field(PROTOTYPE);
     assert_eq!(
         same_value(&object_prototype, &global_object_prototype, true),
+        true
+    );
+    assert_eq!(
+        same_value(&boolean_true_prototype, &global_boolean_prototype, true),
         true
     );
 }
