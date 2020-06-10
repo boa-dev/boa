@@ -243,7 +243,7 @@ impl Interpreter {
                 Err(_) => Ok(0.0),
             }, // this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
             ValueData::Rational(number) => Ok(number),
-            ValueData::Integer(integer) => Ok(integer as f64),
+            ValueData::Integer(integer) => Ok(f64::from(*integer)),
             ValueData::Symbol(_) => {
                 self.throw_type_error("argument must not be a symbol")?;
                 unreachable!()
