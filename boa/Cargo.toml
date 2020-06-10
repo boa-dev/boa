@@ -21,6 +21,7 @@ num-traits = "0.2.11"
 regex = "1.3.9"
 rustc-hash = "1.1.0"
 num-bigint = { version = "0.2.6", features = ["serde"] }
+num-integer = "0.1.42"
 bitflags = "1.2.1"
 
 # Optional Dependencies
