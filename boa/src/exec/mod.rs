@@ -45,7 +45,8 @@ pub trait Executable {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
 }
 
-enum PreferredType {
+#[derive(Clone, Copy, Debug)]
+pub enum PreferredType {
     String,
     Number,
     Default,
