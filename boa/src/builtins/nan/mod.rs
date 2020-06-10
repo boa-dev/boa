@@ -1,7 +1,4 @@
-use crate::{
-  builtins::value::Value,
-  BoaProfiler,
-};
+use crate::{builtins::value::Value, BoaProfiler};
 
 /// Initialise the `Math` object on the global object.
 #[inline]
