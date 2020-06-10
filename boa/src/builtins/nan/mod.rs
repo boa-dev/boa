@@ -1,4 +1,5 @@
-#[cfg(test)] mod tests;
+#[cfg(test)]
+mod tests;
 
 use crate::{builtins::value::Value, BoaProfiler};
 
