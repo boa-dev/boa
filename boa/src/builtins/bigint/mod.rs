@@ -146,9 +146,10 @@ impl BigInt {
         Ok(Value::from(Self::this_bigint_value(this, ctx)?))
     }
 
-    // /// `BigInt.asIntN()`
-    // ///
-    // /// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed integer between `-2**(width - 1)` and `2**(width-1) - 1`
+    /// `BigInt.asIntN()`
+    ///
+    /// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed integer between `-2**(width - 1)` and `2**(width-1) - 1`.
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
     #[allow(clippy::wrong_self_convention)]
