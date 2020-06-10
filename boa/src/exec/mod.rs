@@ -269,7 +269,7 @@ impl Interpreter {
                 unreachable!()
             }
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
+                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
                 self.to_number(&prim_value)
             }
         }
