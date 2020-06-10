@@ -172,6 +172,75 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `BigInt` object.</span>
 <span class="doccomment">//!</span>
@@ -321,6 +390,70 @@
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="self">Self</span>::<span class="ident">this_bigint_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>))
     }
 
+    <span class="doccomment">/// `BigInt.asIntN()`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed integer between `-2**(width - 1)` and `2**(width-1) - 1`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_int_n</span>(
+        <span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> (<span class="ident">modulo</span>, <span class="ident">bits</span>) <span class="op">=</span> <span class="self">Self</span>::<span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">modulo</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>).<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">1</span>)) {
+            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
+                <span class="ident">modulo</span> <span class="op">-</span> <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>).<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span>)),
+            ))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">modulo</span>))
+        }
+    }
+
+    <span class="doccomment">/// `BigInt.asUintN()`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `BigInt.asUintN()` method wraps the value of a `BigInt` to an unsigned integer between `0` and `2**(width) - 1`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_uint_n</span>(
+        <span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> (<span class="ident">modulo</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">Self</span>::<span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">modulo</span>))
+    }
+
+    <span class="doccomment">/// Helper function to wrap the value of a `BigInt` to an unsigned integer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.</span>
+    <span class="doccomment">/// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it</span>
+    <span class="doccomment">/// can be reused from the `as_int_n` method.</span>
+    <span class="kw">fn</span> <span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BigInt</span>, <span class="ident">u32</span>), <span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
+
+        <span class="kw">let</span> <span class="ident">undefined_value</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">undefined</span>();
+
+        <span class="kw">let</span> <span class="ident">bits_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">undefined_value</span>);
+        <span class="kw">let</span> <span class="ident">bigint_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">undefined_value</span>);
+
+        <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_index</span>(<span class="ident">bits_arg</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">try_from</span>(<span class="ident">bits</span>).<span class="ident">unwrap_or</span>(<span class="ident">u32</span>::<span class="ident">MAX</span>);
+
+        <span class="kw">let</span> <span class="ident">bigint</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_bigint</span>(<span class="ident">bigint_arg</span>)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>((
+            <span class="ident">bigint</span>.<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>).<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span>))),
+            <span class="ident">bits</span>,
+        ))
+    }
+
     <span class="doccomment">/// Create a new `Number` object</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
@@ -329,7 +462,12 @@
         <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
         <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
 
-        <span class="ident">make_constructor_fn</span>(<span class="string">&quot;BigInt&quot;</span>, <span class="number">1</span>, <span class="self">Self</span>::<span class="ident">make_bigint</span>, <span class="ident">global</span>, <span class="ident">prototype</span>, <span class="bool-val">false</span>)
+        <span class="kw">let</span> <span class="ident">big_int</span> <span class="op">=</span> <span class="ident">make_constructor_fn</span>(<span class="string">&quot;BigInt&quot;</span>, <span class="number">1</span>, <span class="self">Self</span>::<span class="ident">make_bigint</span>, <span class="ident">global</span>, <span class="ident">prototype</span>, <span class="bool-val">false</span>);
+
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">as_int_n</span>, <span class="string">&quot;asIntN&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">big_int</span>, <span class="number">2</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">as_uint_n</span>, <span class="string">&quot;asUintN&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">big_int</span>, <span class="number">2</span>);
+
+        <span class="ident">big_int</span>
     }
 
     <span class="doccomment">/// Initialise the `BigInt` object on the global object.</span>

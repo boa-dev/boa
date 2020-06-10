@@ -102,6 +102,20 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `BigInt` operations.</span>
 
@@ -121,6 +135,20 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;RangeError: \&quot;BigInt negative exponent\&quot;&quot;</span>),
             ),
         )
+    }
+
+    <span class="doccomment">/// Floored integer modulo.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use num_integer::Integer;</span>
+    <span class="doccomment">/// assert_eq!((8).mod_floor(&amp;3), 2);</span>
+    <span class="doccomment">/// assert_eq!((8).mod_floor(&amp;-3), -1);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mod_floor</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">num_integer</span>::<span class="ident">Integer</span>;
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="number">0</span>))
     }
 }
 
