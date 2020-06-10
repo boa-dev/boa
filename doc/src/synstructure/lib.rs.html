@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/synstructure-0.12.3/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/synstructure-0.12.4/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2363,6 +2363,83 @@
 <span id="2363">2363</span>
 <span id="2364">2364</span>
 <span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
+<span id="2370">2370</span>
+<span id="2371">2371</span>
+<span id="2372">2372</span>
+<span id="2373">2373</span>
+<span id="2374">2374</span>
+<span id="2375">2375</span>
+<span id="2376">2376</span>
+<span id="2377">2377</span>
+<span id="2378">2378</span>
+<span id="2379">2379</span>
+<span id="2380">2380</span>
+<span id="2381">2381</span>
+<span id="2382">2382</span>
+<span id="2383">2383</span>
+<span id="2384">2384</span>
+<span id="2385">2385</span>
+<span id="2386">2386</span>
+<span id="2387">2387</span>
+<span id="2388">2388</span>
+<span id="2389">2389</span>
+<span id="2390">2390</span>
+<span id="2391">2391</span>
+<span id="2392">2392</span>
+<span id="2393">2393</span>
+<span id="2394">2394</span>
+<span id="2395">2395</span>
+<span id="2396">2396</span>
+<span id="2397">2397</span>
+<span id="2398">2398</span>
+<span id="2399">2399</span>
+<span id="2400">2400</span>
+<span id="2401">2401</span>
+<span id="2402">2402</span>
+<span id="2403">2403</span>
+<span id="2404">2404</span>
+<span id="2405">2405</span>
+<span id="2406">2406</span>
+<span id="2407">2407</span>
+<span id="2408">2408</span>
+<span id="2409">2409</span>
+<span id="2410">2410</span>
+<span id="2411">2411</span>
+<span id="2412">2412</span>
+<span id="2413">2413</span>
+<span id="2414">2414</span>
+<span id="2415">2415</span>
+<span id="2416">2416</span>
+<span id="2417">2417</span>
+<span id="2418">2418</span>
+<span id="2419">2419</span>
+<span id="2420">2420</span>
+<span id="2421">2421</span>
+<span id="2422">2422</span>
+<span id="2423">2423</span>
+<span id="2424">2424</span>
+<span id="2425">2425</span>
+<span id="2426">2426</span>
+<span id="2427">2427</span>
+<span id="2428">2428</span>
+<span id="2429">2429</span>
+<span id="2430">2430</span>
+<span id="2431">2431</span>
+<span id="2432">2432</span>
+<span id="2433">2433</span>
+<span id="2434">2434</span>
+<span id="2435">2435</span>
+<span id="2436">2436</span>
+<span id="2437">2437</span>
+<span id="2438">2438</span>
+<span id="2439">2439</span>
+<span id="2440">2440</span>
+<span id="2441">2441</span>
+<span id="2442">2442</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This crate provides helper types for matching against enum variants, and</span>
 <span class="doccomment">//! extracting bindings to each of the fields in the deriving Struct or Enum in</span>
@@ -3298,6 +3375,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Structure</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">variants</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">omitted_variants</span>: <span class="ident">bool</span>,
+    <span class="ident">underscore_const</span>: <span class="ident">bool</span>,
     <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span>,
     <span class="ident">extra_impl</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericParam</span><span class="op">&gt;</span>,
     <span class="ident">extra_predicates</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">WherePredicate</span><span class="op">&gt;</span>,
@@ -3370,6 +3448,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">Structure</span> {
             <span class="ident">variants</span>,
             <span class="ident">omitted_variants</span>: <span class="bool-val">false</span>,
+            <span class="ident">underscore_const</span>: <span class="bool-val">false</span>,
             <span class="ident">ast</span>,
             <span class="ident">extra_impl</span>: <span class="macro">vec</span><span class="macro">!</span>[],
             <span class="ident">extra_predicates</span>: <span class="macro">vec</span><span class="macro">!</span>[],
@@ -3977,6 +4056,52 @@
         }
     }
 
+    <span class="doccomment">/// Configure whether to use `const _` instead of a generated const name in</span>
+    <span class="doccomment">/// code generated by `gen_impl` and `bound_impl`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This syntax is only supported by rust 1.37, and later versions.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `false` for backwards compatibility reasons.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use synstructure::*;</span>
+    <span class="doccomment">/// let di: syn::DeriveInput = syn::parse_quote! {</span>
+    <span class="doccomment">///     struct MyStruct;</span>
+    <span class="doccomment">/// };</span>
+    <span class="doccomment">/// let mut s = Structure::new(&amp;di);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     s.underscore_const(true)</span>
+    <span class="doccomment">///         .gen_impl(quote! { gen impl Trait for @Self { } })</span>
+    <span class="doccomment">///         .to_string(),</span>
+    <span class="doccomment">///     quote! {</span>
+    <span class="doccomment">///         const _: () = {</span>
+    <span class="doccomment">///             impl Trait for MyStruct { }</span>
+    <span class="doccomment">///         };</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">///     .to_string()</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     s.underscore_const(false)</span>
+    <span class="doccomment">///         .gen_impl(quote! { gen impl Trait for @Self { } })</span>
+    <span class="doccomment">///         .to_string(),</span>
+    <span class="doccomment">///     quote! {</span>
+    <span class="doccomment">///         #[allow(non_upper_case_globals)]</span>
+    <span class="doccomment">///         const _DERIVE_Trait_FOR_MyStruct: () = {</span>
+    <span class="doccomment">///             impl Trait for MyStruct { }</span>
+    <span class="doccomment">///         };</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">///     .to_string()</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">underscore_const</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">underscore_const</span> <span class="op">=</span> <span class="ident">enabled</span>;
+        <span class="self">self</span>
+    }
+
     <span class="doccomment">/// &gt; NOTE: This methods&#39; features are superceded by `Structure::gen_impl`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Creates an `impl` block with the required generic type fields filled in</span>
@@ -4258,12 +4383,6 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">where_clause</span> <span class="op">=</span> <span class="ident">where_clause</span>.<span class="ident">cloned</span>();
         <span class="self">self</span>.<span class="ident">add_trait_bounds</span>(<span class="kw-2">&amp;</span><span class="ident">bound</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">where_clause</span>, <span class="ident">mode</span>);
 
-        <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;_DERIVE_{}_FOR_{}&quot;</span>,
-            (<span class="kw-2">&amp;</span><span class="ident">bound</span>).<span class="ident">into_token_stream</span>(),
-            <span class="ident">name</span>.<span class="ident">into_token_stream</span>(),
-        ));
-
         <span class="comment">// This function is smart. If a global path is passed, no extern crate</span>
         <span class="comment">// statement will be generated, however, a relative path will cause the</span>
         <span class="comment">// crate which it is relative to to be imported within the current</span>
@@ -4276,15 +4395,30 @@
             }
         }
 
-        <span class="macro">quote</span><span class="macro">!</span> {
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
-            <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-            <span class="kw">const</span> #<span class="ident">dummy_const</span>: () <span class="op">=</span> {
-                #<span class="ident">extern_crate</span>
-                #<span class="ident">safety</span> <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">bound</span> <span class="kw">for</span> #<span class="ident">name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
-                    #<span class="ident">body</span>
-                }
-            };
+        <span class="kw">let</span> <span class="ident">generated</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
+            #<span class="ident">extern_crate</span>
+            #<span class="ident">safety</span> <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">bound</span> <span class="kw">for</span> #<span class="ident">name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
+                #<span class="ident">body</span>
+            }
+        };
+
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">underscore_const</span> {
+            <span class="macro">quote</span><span class="macro">!</span> {
+                <span class="kw">const</span> <span class="kw">_</span>: () <span class="op">=</span> { #<span class="ident">generated</span> }
+            }
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;_DERIVE_{}_FOR_{}&quot;</span>,
+                (<span class="kw-2">&amp;</span><span class="ident">bound</span>).<span class="ident">into_token_stream</span>(),
+                <span class="ident">name</span>.<span class="ident">into_token_stream</span>(),
+            ));
+            <span class="macro">quote</span><span class="macro">!</span> {
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
+                <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+                <span class="kw">const</span> #<span class="ident">dummy_const</span>: () <span class="op">=</span> {
+                    #<span class="ident">generated</span>
+                };
+            }
         }
     }
 
@@ -4336,11 +4470,26 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The output of every `gen_impl` function is wrapped in a dummy `const`</span>
     <span class="doccomment">/// value, to ensure that it is given its own scope, and any values brought</span>
-    <span class="doccomment">/// into scope are not leaked to the calling crate. For example, the above</span>
-    <span class="doccomment">/// invocation may generate an output like the following:</span>
+    <span class="doccomment">/// into scope are not leaked to the calling crate.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// By default, the above invocation may generate an output like the</span>
+    <span class="doccomment">/// following:</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```ignore</span>
     <span class="doccomment">/// const _DERIVE_krate_Trait_FOR_Struct: () = {</span>
+    <span class="doccomment">///     extern crate krate;</span>
+    <span class="doccomment">///     use krate::Trait as MyTrait;</span>
+    <span class="doccomment">///     impl&lt;T&gt; MyTrait for Struct&lt;T&gt; where T: MyTrait {</span>
+    <span class="doccomment">///         fn f(&amp;self) { ... }</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">/// };</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `Structure` may also be confired with the [`underscore_const`] method</span>
+    <span class="doccomment">/// to generate `const _` instead.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```ignore</span>
+    <span class="doccomment">/// const _: () = {</span>
     <span class="doccomment">///     extern crate krate;</span>
     <span class="doccomment">///     use krate::Trait as MyTrait;</span>
     <span class="doccomment">///     impl&lt;T&gt; MyTrait for Struct&lt;T&gt; where T: MyTrait {</span>
@@ -4573,18 +4722,23 @@
         };
 
         <span class="kw">if</span> <span class="ident">wrap</span> {
-            <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;_DERIVE_{}_FOR_{}&quot;</span>,
-                (<span class="kw-2">&amp;</span><span class="ident">bound</span>).<span class="ident">into_token_stream</span>(),
-                <span class="ident">name</span>.<span class="ident">into_token_stream</span>(),
-            ));
-
-            <span class="prelude-val">Ok</span>(<span class="macro">quote</span><span class="macro">!</span> {
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
-                <span class="kw">const</span> #<span class="ident">dummy_const</span>: () <span class="op">=</span> {
-                    #<span class="ident">generated</span>
-                };
-            })
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">underscore_const</span> {
+                <span class="prelude-val">Ok</span>(<span class="macro">quote</span><span class="macro">!</span> {
+                    <span class="kw">const</span> <span class="kw">_</span>: () <span class="op">=</span> { #<span class="ident">generated</span> };
+                })
+            } <span class="kw">else</span> {
+                <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;_DERIVE_{}_FOR_{}&quot;</span>,
+                    (<span class="kw-2">&amp;</span><span class="ident">bound</span>).<span class="ident">into_token_stream</span>(),
+                    <span class="ident">name</span>.<span class="ident">into_token_stream</span>(),
+                ));
+                <span class="prelude-val">Ok</span>(<span class="macro">quote</span><span class="macro">!</span> {
+                    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
+                    <span class="kw">const</span> #<span class="ident">dummy_const</span>: () <span class="op">=</span> {
+                        #<span class="ident">generated</span>
+                    };
+                })
+            }
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">generated</span>)
         }

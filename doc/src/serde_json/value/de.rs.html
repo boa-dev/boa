@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../serde_json/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.55/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../serde_json/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1474,12 +1474,6 @@
 <span id="1474">1474</span>
 <span id="1475">1475</span>
 <span id="1476">1476</span>
-<span id="1477">1477</span>
-<span id="1478">1478</span>
-<span id="1479">1479</span>
-<span id="1480">1480</span>
-<span id="1481">1481</span>
-<span id="1482">1482</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">lib</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
@@ -1620,7 +1614,7 @@
     }
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">deserialize_prim_number</span> {
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">deserialize_number</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
@@ -1701,20 +1695,20 @@
         }
     }
 
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_i8</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_i16</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_i32</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_i64</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_u8</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_u16</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_u32</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_u64</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_f32</span>);
-    <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_f64</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_i8</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_i16</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_i32</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_i64</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_u8</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_u16</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_u32</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_u64</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_f32</span>);
+    <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_f64</span>);
 
     <span class="macro">serde_if_integer128</span><span class="macro">!</span> {
-        <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_i128</span>);
-        <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_u128</span>);
+        <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_i128</span>);
+        <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_u128</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1768,10 +1762,7 @@
             }
         };
 
-        <span class="ident">visitor</span>.<span class="ident">visit_enum</span>(<span class="ident">EnumDeserializer</span> {
-            <span class="ident">variant</span>: <span class="ident">variant</span>,
-            <span class="ident">value</span>: <span class="ident">value</span>,
-        })
+        <span class="ident">visitor</span>.<span class="ident">visit_enum</span>(<span class="ident">EnumDeserializer</span> { <span class="ident">variant</span>, <span class="ident">value</span> })
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2027,7 +2018,7 @@
                 <span class="ident">other</span>.<span class="ident">unexpected</span>(),
                 <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
             )),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">Error</span>::<span class="ident">invalid_type</span>(
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">Error</span>::<span class="ident">invalid_type</span>(
                 <span class="ident">Unexpected</span>::<span class="ident">UnitVariant</span>,
                 <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
             )),
@@ -2260,8 +2251,8 @@
     <span class="macro">deserialize_value_ref_number</span><span class="macro">!</span>(<span class="ident">deserialize_f64</span>);
 
     <span class="macro">serde_if_integer128</span><span class="macro">!</span> {
-        <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_i128</span>);
-        <span class="macro">deserialize_prim_number</span><span class="macro">!</span>(<span class="ident">deserialize_u128</span>);
+        <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_i128</span>);
+        <span class="macro">deserialize_number</span><span class="macro">!</span>(<span class="ident">deserialize_u128</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
@@ -2313,10 +2304,7 @@
             }
         };
 
-        <span class="ident">visitor</span>.<span class="ident">visit_enum</span>(<span class="ident">EnumRefDeserializer</span> {
-            <span class="ident">variant</span>: <span class="ident">variant</span>,
-            <span class="ident">value</span>: <span class="ident">value</span>,
-        })
+        <span class="ident">visitor</span>.<span class="ident">visit_enum</span>(<span class="ident">EnumRefDeserializer</span> { <span class="ident">variant</span>, <span class="ident">value</span> })
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2561,7 +2549,7 @@
                 <span class="ident">other</span>.<span class="ident">unexpected</span>(),
                 <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
             )),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">Error</span>::<span class="ident">invalid_type</span>(
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">Error</span>::<span class="ident">invalid_type</span>(
                 <span class="ident">Unexpected</span>::<span class="ident">UnitVariant</span>,
                 <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
             )),
@@ -2870,7 +2858,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">BorrowedCowStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">BorrowedCowStrDeserializer</span> { <span class="ident">value</span>: <span class="ident">value</span> }
+        <span class="ident">BorrowedCowStrDeserializer</span> { <span class="ident">value</span> }
     }
 }
 

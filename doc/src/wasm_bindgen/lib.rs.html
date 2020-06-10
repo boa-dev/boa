@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.62/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.63/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1167,6 +1167,11 @@
 <span id="1167">1167</span>
 <span id="1168">1168</span>
 <span id="1169">1169</span>
+<span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
+<span id="1173">1173</span>
+<span id="1174">1174</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Runtime support for the `wasm-bindgen` tool</span>
 <span class="doccomment">//!</span>
@@ -1238,7 +1243,7 @@
     <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">prelude</span>::<span class="ident">v1</span>::<span class="kw-2">*</span>;
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">closure</span>;
-    <span class="kw">mod</span> <span class="ident">anyref</span>;
+    <span class="kw">mod</span> <span class="ident">externref</span>;
 
     <span class="kw">mod</span> <span class="ident">cache</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cache</span>::<span class="ident">intern</span>::{<span class="ident">intern</span>, <span class="ident">unintern</span>};
@@ -1665,7 +1670,7 @@
         <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_named_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_anonymous_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_anyref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_externref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 
         <span class="kw">fn</span> <span class="ident">__wbindgen_is_null</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_is_undefined</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
@@ -1829,7 +1834,7 @@
     }
 }
 
-<span class="doccomment">/// Get the count of live `anyref`s / `JsValue`s in `wasm-bindgen`&#39;s heap.</span>
+<span class="doccomment">/// Get the count of live `externref`s / `JsValue`s in `wasm-bindgen`&#39;s heap.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Usage</span>
 <span class="doccomment">///</span>
@@ -1841,7 +1846,7 @@
 <span class="doccomment">/// * get an initial live count,</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// * perform some series of operations or function calls that should clean up</span>
-<span class="doccomment">///   after themselves, and should not keep holding onto `anyref`s / `JsValue`s</span>
+<span class="doccomment">///   after themselves, and should not keep holding onto `externref`s / `JsValue`s</span>
 <span class="doccomment">///   after completion,</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// * get the final live count,</span>
@@ -1850,8 +1855,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## What is Counted</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Note that this only counts the *owned* `anyref`s / `JsValue`s that end up in</span>
-<span class="doccomment">/// `wasm-bindgen`&#39;s heap. It does not count borrowed `anyref`s / `JsValue`s</span>
+<span class="doccomment">/// Note that this only counts the *owned* `externref`s / `JsValue`s that end up in</span>
+<span class="doccomment">/// `wasm-bindgen`&#39;s heap. It does not count borrowed `externref`s / `JsValue`s</span>
 <span class="doccomment">/// that are on its stack.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For example, these `JsValue`s are accounted for:</span>
@@ -1860,7 +1865,7 @@
 <span class="doccomment">/// #[wasm_bindgen]</span>
 <span class="doccomment">/// pub fn my_function(this_is_counted: JsValue) {</span>
 <span class="doccomment">///     let also_counted = JsValue::from_str(&quot;hi&quot;);</span>
-<span class="doccomment">///     assert!(wasm_bindgen::anyref_heap_live_count() &gt;= 2);</span>
+<span class="doccomment">///     assert!(wasm_bindgen::externref_heap_live_count() &gt;= 2);</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
@@ -1873,8 +1878,13 @@
 <span class="doccomment">///     // ...</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">externref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">unsafe</span> { <span class="ident">__wbindgen_externref_heap_live_count</span>() }
+}
+
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anyref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-    <span class="kw">unsafe</span> { <span class="ident">__wbindgen_anyref_heap_live_count</span>() }
+    <span class="ident">externref_heap_live_count</span>()
 }
 
 <span class="doccomment">/// An extension trait for `Option&lt;T&gt;` and `Result&lt;T, E&gt;` for unwraping the `T`</span>
@@ -2225,7 +2235,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Ideas for how to improve this are most welcome!</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">link_mem_intrinsics</span>() {
-        <span class="kw">crate</span>::<span class="ident">anyref</span>::<span class="ident">link_intrinsics</span>();
+        <span class="kw">crate</span>::<span class="ident">externref</span>::<span class="ident">link_intrinsics</span>();
     }
 
     <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">GLOBAL_EXNDATA</span>: [<span class="ident">u32</span>; <span class="number">2</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.23/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.31/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3198,6 +3198,95 @@
 <span id="3198">3198</span>
 <span id="3199">3199</span>
 <span id="3200">3200</span>
+<span id="3201">3201</span>
+<span id="3202">3202</span>
+<span id="3203">3203</span>
+<span id="3204">3204</span>
+<span id="3205">3205</span>
+<span id="3206">3206</span>
+<span id="3207">3207</span>
+<span id="3208">3208</span>
+<span id="3209">3209</span>
+<span id="3210">3210</span>
+<span id="3211">3211</span>
+<span id="3212">3212</span>
+<span id="3213">3213</span>
+<span id="3214">3214</span>
+<span id="3215">3215</span>
+<span id="3216">3216</span>
+<span id="3217">3217</span>
+<span id="3218">3218</span>
+<span id="3219">3219</span>
+<span id="3220">3220</span>
+<span id="3221">3221</span>
+<span id="3222">3222</span>
+<span id="3223">3223</span>
+<span id="3224">3224</span>
+<span id="3225">3225</span>
+<span id="3226">3226</span>
+<span id="3227">3227</span>
+<span id="3228">3228</span>
+<span id="3229">3229</span>
+<span id="3230">3230</span>
+<span id="3231">3231</span>
+<span id="3232">3232</span>
+<span id="3233">3233</span>
+<span id="3234">3234</span>
+<span id="3235">3235</span>
+<span id="3236">3236</span>
+<span id="3237">3237</span>
+<span id="3238">3238</span>
+<span id="3239">3239</span>
+<span id="3240">3240</span>
+<span id="3241">3241</span>
+<span id="3242">3242</span>
+<span id="3243">3243</span>
+<span id="3244">3244</span>
+<span id="3245">3245</span>
+<span id="3246">3246</span>
+<span id="3247">3247</span>
+<span id="3248">3248</span>
+<span id="3249">3249</span>
+<span id="3250">3250</span>
+<span id="3251">3251</span>
+<span id="3252">3252</span>
+<span id="3253">3253</span>
+<span id="3254">3254</span>
+<span id="3255">3255</span>
+<span id="3256">3256</span>
+<span id="3257">3257</span>
+<span id="3258">3258</span>
+<span id="3259">3259</span>
+<span id="3260">3260</span>
+<span id="3261">3261</span>
+<span id="3262">3262</span>
+<span id="3263">3263</span>
+<span id="3264">3264</span>
+<span id="3265">3265</span>
+<span id="3266">3266</span>
+<span id="3267">3267</span>
+<span id="3268">3268</span>
+<span id="3269">3269</span>
+<span id="3270">3270</span>
+<span id="3271">3271</span>
+<span id="3272">3272</span>
+<span id="3273">3273</span>
+<span id="3274">3274</span>
+<span id="3275">3275</span>
+<span id="3276">3276</span>
+<span id="3277">3277</span>
+<span id="3278">3278</span>
+<span id="3279">3279</span>
+<span id="3280">3280</span>
+<span id="3281">3281</span>
+<span id="3282">3282</span>
+<span id="3283">3283</span>
+<span id="3284">3284</span>
+<span id="3285">3285</span>
+<span id="3286">3286</span>
+<span id="3287">3287</span>
+<span id="3288">3288</span>
+<span id="3289">3289</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">punctuated</span>::<span class="ident">Punctuated</span>;
@@ -4392,7 +4481,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>))]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">requires_terminator</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="comment">// see https://github.com/rust-lang/rust/blob/eb8f2586e/src/libsyntax/parse/classify.rs#L17-L37</span>
+    <span class="comment">// see https://github.com/rust-lang/rust/blob/2679c38fc/src/librustc_ast/util/classify.rs#L7-L25</span>
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span> {
         <span class="ident">Expr</span>::<span class="ident">Unsafe</span>(..)
         <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Block</span>(..)
@@ -4479,9 +4568,91 @@
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">expr_no_struct</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span> {
-        <span class="ident">ambiguous_expr</span>(<span class="ident">input</span>, <span class="ident">AllowStruct</span>(<span class="bool-val">false</span>))
+    <span class="kw">impl</span> <span class="ident">Expr</span> {
+        <span class="doccomment">/// An alternative to the primary `Expr::parse` parser (from the</span>
+        <span class="doccomment">/// [`Parse`] trait) for ambiguous syntactic positions in which a</span>
+        <span class="doccomment">/// trailing brace should not be taken as part of the expression.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Rust grammar has an ambiguity where braces sometimes turn a path</span>
+        <span class="doccomment">/// expression into a struct initialization and sometimes do not. In the</span>
+        <span class="doccomment">/// following code, the expression `S {}` is one expression. Presumably</span>
+        <span class="doccomment">/// there is an empty struct `struct S {}` defined somewhere which it is</span>
+        <span class="doccomment">/// instantiating.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// # struct S;</span>
+        <span class="doccomment">/// # impl std::ops::Deref for S {</span>
+        <span class="doccomment">/// #     type Target = bool;</span>
+        <span class="doccomment">/// #     fn deref(&amp;self) -&gt; &amp;Self::Target {</span>
+        <span class="doccomment">/// #         &amp;true</span>
+        <span class="doccomment">/// #     }</span>
+        <span class="doccomment">/// # }</span>
+        <span class="doccomment">/// let _ = *S {};</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// // parsed by rustc as: `*(S {})`</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// We would want to parse the above using `Expr::parse` after the `=`</span>
+        <span class="doccomment">/// token.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// But in the following, `S {}` is *not* a struct init expression.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// # const S: &amp;bool = &amp;true;</span>
+        <span class="doccomment">/// if *S {} {}</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// // parsed by rustc as:</span>
+        <span class="doccomment">/// //</span>
+        <span class="doccomment">/// //    if (*S) {</span>
+        <span class="doccomment">/// //        /* empty block */</span>
+        <span class="doccomment">/// //    }</span>
+        <span class="doccomment">/// //    {</span>
+        <span class="doccomment">/// //        /* another empty block */</span>
+        <span class="doccomment">/// //    }</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// For that reason we would want to parse if-conditions using</span>
+        <span class="doccomment">/// `Expr::parse_without_eager_brace` after the `if` token. Same for</span>
+        <span class="doccomment">/// similar syntactic positions such as the condition expr after a</span>
+        <span class="doccomment">/// `while` token or the expr at the top of a `match`.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// The Rust grammar&#39;s choices around which way this ambiguity is</span>
+        <span class="doccomment">/// resolved at various syntactic positions is fairly arbitrary. Really</span>
+        <span class="doccomment">/// either parse behavior could work in most positions, and language</span>
+        <span class="doccomment">/// designers just decide each case based on which is more likely to be</span>
+        <span class="doccomment">/// what the programmer had in mind most of the time.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// # struct S;</span>
+        <span class="doccomment">/// # fn doc() -&gt; S {</span>
+        <span class="doccomment">/// if return S {} {}</span>
+        <span class="doccomment">/// # unreachable!()</span>
+        <span class="doccomment">/// # }</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// // parsed by rustc as:</span>
+        <span class="doccomment">/// //</span>
+        <span class="doccomment">/// //    if (return (S {})) {</span>
+        <span class="doccomment">/// //    }</span>
+        <span class="doccomment">/// //</span>
+        <span class="doccomment">/// // but could equally well have been this other arbitrary choice:</span>
+        <span class="doccomment">/// //</span>
+        <span class="doccomment">/// //    if (return S) {</span>
+        <span class="doccomment">/// //    }</span>
+        <span class="doccomment">/// //    {}</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Note the grammar ambiguity on trailing braces is distinct from</span>
+        <span class="doccomment">/// precedence and is not captured by assigning a precedence level to</span>
+        <span class="doccomment">/// the braced struct init expr in relation to other operators. This can</span>
+        <span class="doccomment">/// be illustrated by `return 0..S {}` vs `match 0..S {}`. The former</span>
+        <span class="doccomment">/// parses as `return (0..(S {}))` implying tighter precedence for</span>
+        <span class="doccomment">/// struct init than `..`, while the latter parses as `match (0..S) {}`</span>
+        <span class="doccomment">/// implying tighter precedence for `..` than struct init, a</span>
+        <span class="doccomment">/// contradiction.</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_without_eager_brace</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span> {
+            <span class="ident">ambiguous_expr</span>(<span class="ident">input</span>, <span class="ident">AllowStruct</span>(<span class="bool-val">false</span>))
+        }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -4746,10 +4917,6 @@
     <span class="comment">// &lt;atom&gt; ? ...</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">trailer_expr</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">allow_struct</span>: <span class="ident">AllowStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Group</span>) {
-            <span class="kw">return</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">expr_group</span>).<span class="ident">map</span>(<span class="ident">Expr</span>::<span class="ident">Group</span>);
-        }
-
         <span class="kw">let</span> <span class="ident">outer_attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">atom</span> <span class="op">=</span> <span class="ident">atom_expr</span>(<span class="ident">input</span>, <span class="ident">allow_struct</span>)<span class="question-mark">?</span>;
@@ -4896,7 +5063,11 @@
     <span class="comment">// interactions, as they are fully contained.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">atom_expr</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">allow_struct</span>: <span class="ident">AllowStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Group</span>) {
+        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Group</span>)
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token</span><span class="macro">!</span>[::])
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">!</span>])
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek2</span>(<span class="ident">token</span>::<span class="ident">Brace</span>)
+        {
             <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">expr_group</span>).<span class="ident">map</span>(<span class="ident">Expr</span>::<span class="ident">Group</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Lit</span>) {
             <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Expr</span>::<span class="ident">Lit</span>)
@@ -4918,7 +5089,6 @@
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>])
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">Self</span>])
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">super</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">crate</span>])
         {
             <span class="ident">path_or_macro_or_struct</span>(<span class="ident">input</span>, <span class="ident">allow_struct</span>)
@@ -4990,7 +5160,6 @@
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>])
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">Self</span>])
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">super</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">crate</span>])
         {
             <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Expr</span>::<span class="ident">Path</span>)
@@ -5201,7 +5370,16 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">generic_method_argument</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GenericMethodArgument</span><span class="op">&gt;</span> {
-        <span class="comment">// TODO parse const generics as well</span>
+        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Lit</span>) {
+            <span class="kw">let</span> <span class="ident">lit</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">GenericMethodArgument</span>::<span class="ident">Const</span>(<span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">lit</span>)));
+        }
+
+        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Brace</span>) {
+            <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">expr</span>::<span class="ident">parsing</span>::<span class="ident">expr_block</span>)<span class="question-mark">?</span>;
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">GenericMethodArgument</span>::<span class="ident">Const</span>(<span class="ident">Expr</span>::<span class="ident">Block</span>(<span class="ident">block</span>)));
+        }
+
         <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">GenericMethodArgument</span>::<span class="ident">Type</span>)
     }
 
@@ -5212,7 +5390,7 @@
             <span class="ident">let_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
             <span class="ident">pat</span>: <span class="ident">pat</span>::<span class="ident">parsing</span>::<span class="ident">multi_pat_with_leading_vert</span>(<span class="ident">input</span>)<span class="question-mark">?</span>,
             <span class="ident">eq_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-            <span class="ident">expr</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">expr_no_struct</span>)<span class="question-mark">?</span>),
+            <span class="ident">expr</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Expr</span>::<span class="ident">parse_without_eager_brace</span>)<span class="question-mark">?</span>),
         })
     }
 
@@ -5223,7 +5401,7 @@
             <span class="prelude-val">Ok</span>(<span class="ident">ExprIf</span> {
                 <span class="ident">attrs</span>,
                 <span class="ident">if_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                <span class="ident">cond</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">expr_no_struct</span>)<span class="question-mark">?</span>),
+                <span class="ident">cond</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Expr</span>::<span class="ident">parse_without_eager_brace</span>)<span class="question-mark">?</span>),
                 <span class="ident">then_branch</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">else_branch</span>: {
                     <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">else</span>]) {
@@ -5266,7 +5444,7 @@
             <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">pat</span>::<span class="ident">parsing</span>::<span class="ident">multi_pat_with_leading_vert</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">in_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">in</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">expr</span>: <span class="ident">Expr</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">expr_no_struct</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">expr</span>: <span class="ident">Expr</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Expr</span>::<span class="ident">parse_without_eager_brace</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
@@ -5311,7 +5489,7 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">outer_attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">match_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">match</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">expr_no_struct</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expr</span>::<span class="ident">parse_without_eager_brace</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
@@ -5521,7 +5699,7 @@
             <span class="kw">let</span> <span class="ident">outer_attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Label</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">while_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">while</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">cond</span> <span class="op">=</span> <span class="ident">expr_no_struct</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">cond</span> <span class="op">=</span> <span class="ident">Expr</span>::<span class="ident">parse_without_eager_brace</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
@@ -5664,7 +5842,7 @@
             }
 
             <span class="ident">fields</span>.<span class="ident">push</span>(<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[,]) {
+            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">break</span>;
             }
             <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token</span><span class="macro">!</span>[,] <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../serde_json/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.55/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../serde_json/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -447,6 +447,21 @@
 <span id="447">447</span>
 <span id="448">448</span>
 <span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Serde JSON</span>
 <span class="doccomment">//!</span>
@@ -750,12 +765,15 @@
 <span class="doccomment">//! [macro]: https://docs.serde.rs/serde_json/macro.json.html</span>
 <span class="doccomment">//! [`serde-json-core`]: https://japaric.github.io/serde-json-core/serde_json_core/</span>
 
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/serde_json/1.0.53&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/serde_json/1.0.55&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy</span>::<span class="ident">all</span>, <span class="ident">clippy</span>::<span class="ident">pedantic</span>)]</span>
 <span class="comment">// Ignored clippy lints</span>
 <span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy</span>::<span class="ident">comparison_chain</span>,
     <span class="ident">clippy</span>::<span class="ident">deprecated_cfg_attr</span>,
     <span class="ident">clippy</span>::<span class="ident">doc_markdown</span>,
+    <span class="ident">clippy</span>::<span class="ident">excessive_precision</span>,
+    <span class="ident">clippy</span>::<span class="ident">float_cmp</span>,
     <span class="ident">clippy</span>::<span class="ident">match_single_binding</span>,
     <span class="ident">clippy</span>::<span class="ident">needless_doctest_main</span>,
     <span class="ident">clippy</span>::<span class="ident">transmute_ptr_to_ptr</span>
@@ -765,12 +783,17 @@
     <span class="comment">// Deserializer::from_str, into_iter</span>
     <span class="ident">clippy</span>::<span class="ident">should_implement_trait</span>,
     <span class="comment">// integer and float ser/de requires these sorts of casts</span>
+    <span class="ident">clippy</span>::<span class="ident">cast_possible_truncation</span>,
     <span class="ident">clippy</span>::<span class="ident">cast_possible_wrap</span>,
     <span class="ident">clippy</span>::<span class="ident">cast_precision_loss</span>,
     <span class="ident">clippy</span>::<span class="ident">cast_sign_loss</span>,
     <span class="comment">// correctly used</span>
     <span class="ident">clippy</span>::<span class="ident">enum_glob_use</span>,
+    <span class="ident">clippy</span>::<span class="ident">if_not_else</span>,
     <span class="ident">clippy</span>::<span class="ident">integer_division</span>,
+    <span class="ident">clippy</span>::<span class="ident">match_same_arms</span>,
+    <span class="ident">clippy</span>::<span class="ident">similar_names</span>,
+    <span class="ident">clippy</span>::<span class="ident">unused_self</span>,
     <span class="ident">clippy</span>::<span class="ident">wildcard_imports</span>,
     <span class="comment">// things are often more readable this way</span>
     <span class="ident">clippy</span>::<span class="ident">cast_lossless</span>,
@@ -778,11 +801,13 @@
     <span class="ident">clippy</span>::<span class="ident">shadow_unrelated</span>,
     <span class="ident">clippy</span>::<span class="ident">single_match_else</span>,
     <span class="ident">clippy</span>::<span class="ident">too_many_lines</span>,
+    <span class="ident">clippy</span>::<span class="ident">unreadable_literal</span>,
+    <span class="ident">clippy</span>::<span class="ident">unseparated_literal_suffix</span>,
     <span class="ident">clippy</span>::<span class="ident">use_self</span>,
     <span class="ident">clippy</span>::<span class="ident">zero_prefixed_literal</span>,
     <span class="comment">// we support older compilers</span>
     <span class="ident">clippy</span>::<span class="ident">checked_conversions</span>,
-    <span class="ident">clippy</span>::<span class="ident">redundant_field_names</span>,
+    <span class="ident">clippy</span>::<span class="ident">mem_replace_with_default</span>,
     <span class="comment">// noisy</span>
     <span class="ident">clippy</span>::<span class="ident">missing_errors_doc</span>,
     <span class="ident">clippy</span>::<span class="ident">must_use_candidate</span>,
@@ -873,6 +898,9 @@
             <span class="kw">crate</span>::<span class="ident">lib</span>::<span class="prelude-ty">Result</span>::<span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="kw">crate</span>::<span class="ident">lib</span>::<span class="prelude-ty">Result</span>::<span class="prelude-val">Err</span>(<span class="ident">err</span>),
         }
     };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>,) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro">tri</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>)
+    };
 }
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
@@ -892,6 +920,8 @@
 <span class="kw">mod</span> <span class="ident">io</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">iter</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;float_roundtrip&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">lexical</span>;
 <span class="kw">mod</span> <span class="ident">number</span>;
 <span class="kw">mod</span> <span class="ident">read</span>;
 

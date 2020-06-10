@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.17/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.18/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -854,6 +854,52 @@
 <span id="854">854</span>
 <span id="855">855</span>
 <span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::{<span class="ident">token_stream</span>, <span class="ident">Cursor</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Delimiter</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
@@ -861,8 +907,8 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">FromIterator</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">RangeBounds</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
@@ -905,6 +951,49 @@
 
     <span class="kw">fn</span> <span class="ident">take_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
         <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">Vec</span>::<span class="ident">new</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">push_token</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="ident">TokenTree</span>) {
+        <span class="comment">// https://github.com/alexcrichton/proc-macro2/issues/235</span>
+        <span class="kw">match</span> <span class="ident">token</span> {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">no_bind_by_move_pattern_guard</span>))]</span>
+            <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="kw">crate</span>::<span class="ident">Literal</span> {
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
+                    <span class="ident">inner</span>: <span class="kw">crate</span>::<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">Fallback</span>(<span class="ident">literal</span>),
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">wrap_proc_macro</span>))]</span>
+                    <span class="ident">inner</span>: <span class="ident">literal</span>,
+                ..
+            }) <span class="kw">if</span> <span class="ident">literal</span>.<span class="ident">text</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">push_negative_literal</span>(<span class="self">self</span>, <span class="ident">literal</span>);
+            }
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">no_bind_by_move_pattern_guard</span>)]</span>
+            <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="kw">crate</span>::<span class="ident">Literal</span> {
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
+                    <span class="ident">inner</span>: <span class="kw">crate</span>::<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">Fallback</span>(<span class="ident">literal</span>),
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">wrap_proc_macro</span>))]</span>
+                    <span class="ident">inner</span>: <span class="ident">literal</span>,
+                ..
+            }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">literal</span>.<span class="ident">text</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>) {
+                    <span class="ident">push_negative_literal</span>(<span class="self">self</span>, <span class="ident">literal</span>);
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">inner</span>
+                        .<span class="ident">push</span>(<span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="kw">crate</span>::<span class="ident">Literal</span>::<span class="ident">_new_stable</span>(<span class="ident">literal</span>)));
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">push</span>(<span class="ident">token</span>),
+        }
+
+        <span class="attribute">#[<span class="ident">cold</span>]</span>
+        <span class="kw">fn</span> <span class="ident">push_negative_literal</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>, <span class="kw-2">mut</span> <span class="ident">literal</span>: <span class="ident">Literal</span>) {
+            <span class="ident">literal</span>.<span class="ident">text</span>.<span class="ident">remove</span>(<span class="number">0</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">Punct</span>::<span class="ident">new</span>(<span class="string">&#39;-&#39;</span>, <span class="ident">Spacing</span>::<span class="ident">Alone</span>);
+            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="kw">crate</span>::<span class="ident">Span</span>::<span class="ident">_new_stable</span>(<span class="ident">literal</span>.<span class="ident">span</span>));
+            <span class="ident">stream</span>.<span class="ident">inner</span>.<span class="ident">push</span>(<span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">punct</span>));
+            <span class="ident">stream</span>
+                .<span class="ident">inner</span>
+                .<span class="ident">push</span>(<span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="kw">crate</span>::<span class="ident">Literal</span>::<span class="ident">_new_stable</span>(<span class="ident">literal</span>)));
+        }
     }
 }
 
@@ -962,7 +1051,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">joint</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">tt</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
@@ -1000,7 +1089,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;TokenStream &quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
@@ -1029,27 +1118,25 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tree</span>: <span class="ident">TokenTree</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
-        <span class="ident">TokenStream</span> { <span class="ident">inner</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">tree</span>] }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="ident">stream</span>.<span class="ident">push_token</span>(<span class="ident">tree</span>);
+        <span class="ident">stream</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-
-        <span class="kw">for</span> <span class="ident">token</span> <span class="kw">in</span> <span class="ident">streams</span>.<span class="ident">into_iter</span>() {
-            <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">token</span>);
-        }
-
-        <span class="ident">TokenStream</span> { <span class="ident">inner</span>: <span class="ident">v</span> }
+<span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">tokens</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="ident">stream</span>.<span class="ident">extend</span>(<span class="ident">tokens</span>);
+        <span class="ident">stream</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
+<span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenStream</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
-        <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="kw">in</span> <span class="ident">streams</span>.<span class="ident">into_iter</span>() {
+        <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="kw">in</span> <span class="ident">streams</span> {
             <span class="ident">v</span>.<span class="ident">extend</span>(<span class="ident">stream</span>.<span class="ident">take_inner</span>());
         }
 
@@ -1058,15 +1145,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">streams</span>: <span class="ident">I</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">streams</span>);
+    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tokens</span>: <span class="ident">I</span>) {
+        <span class="ident">tokens</span>.<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">push_token</span>(<span class="ident">token</span>));
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenStream</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">streams</span>: <span class="ident">I</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>
-            .<span class="ident">extend</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <span class="ident">stream</span>));
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">flatten</span>());
     }
 }
 
@@ -1098,7 +1184,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">SourceFile</span> {
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">SourceFile</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;SourceFile&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;path&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>())
@@ -1343,18 +1429,25 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Span</span> {
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Span</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
         <span class="kw">return</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;bytes({}..{})&quot;</span>, <span class="self">self</span>.<span class="ident">lo</span>, <span class="self">self</span>.<span class="ident">hi</span>);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">procmacro2_semver_exempt</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">span_locations</span>))]</span>
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Span&quot;</span>)
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">debug_span_field_if_nontrivial</span>(<span class="ident">debug</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">DebugStruct</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
-    <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">procmacro2_semver_exempt</span>) {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
+    {
+        <span class="kw">if</span> <span class="ident">span</span>.<span class="ident">lo</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">span</span>.<span class="ident">hi</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">return</span>;
+        }
+    }
+
+    <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">span_locations</span>) {
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;span&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">span</span>);
     }
 }
@@ -1400,7 +1493,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Group</span> {
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Group</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> (<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">delimiter</span> {
             <span class="ident">Delimiter</span>::<span class="ident">Parenthesis</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&quot;(&quot;</span>, <span class="string">&quot;)&quot;</span>),
@@ -1410,20 +1503,19 @@
         };
 
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">left</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">stream</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">right</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Group</span> {
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Group</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Group&quot;</span>);
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;delimiter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">delimiter</span>);
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;stream&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">stream</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
-        <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;span&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span</span>);
+        <span class="ident">debug_span_field_if_nontrivial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">debug</span>, <span class="self">self</span>.<span class="ident">span</span>);
         <span class="ident">debug</span>.<span class="ident">finish</span>()
     }
 }
@@ -1527,18 +1619,18 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Ident</span> {
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Ident</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">raw</span> {
-            <span class="string">&quot;r#&quot;</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+            <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;r#&quot;</span>)<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">sym</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sym</span>, <span class="ident">f</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Ident</span> {
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Ident</span> {
     <span class="comment">// Ident(proc_macro), Ident(r#union)</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">procmacro2_semver_exempt</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">span_locations</span>))]</span>
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Ident&quot;</span>);
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>));
@@ -1549,11 +1641,11 @@
     <span class="comment">//     sym: proc_macro,</span>
     <span class="comment">//     span: bytes(128..138)</span>
     <span class="comment">// }</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Ident&quot;</span>);
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;sym&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>));
-        <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;span&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span</span>);
+        <span class="ident">debug_span_field_if_nontrivial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">debug</span>, <span class="self">self</span>.<span class="ident">span</span>);
         <span class="ident">debug</span>.<span class="ident">finish</span>()
     }
 }
@@ -1623,7 +1715,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f32_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">to_string</span>();
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">contains</span>(<span class="string">&quot;.&quot;</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">contains</span>(<span class="string">&#39;.&#39;</span>) {
             <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;.0&quot;</span>);
         }
         <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">s</span>)
@@ -1631,7 +1723,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f64_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">to_string</span>();
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">contains</span>(<span class="string">&quot;.&quot;</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">contains</span>(<span class="string">&#39;.&#39;</span>) {
             <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;.0&quot;</span>);
         }
         <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">s</span>)
@@ -1668,6 +1760,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">escaped</span> <span class="op">=</span> <span class="string">&quot;b\&quot;&quot;</span>.<span class="ident">to_string</span>();
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">bytes</span> {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">match_overlapping_arm</span>)]</span>
             <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">b</span> {
                 <span class="string">b&#39;\0&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">escaped</span>.<span class="ident">push_str</span>(<span class="string">r&quot;\0&quot;</span>),
                 <span class="string">b&#39;\t&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">escaped</span>.<span class="ident">push_str</span>(<span class="string">r&quot;\t&quot;</span>),
@@ -1696,18 +1789,17 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Literal</span> {
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Literal</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="self">self</span>.<span class="ident">text</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">text</span>, <span class="ident">f</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Literal</span> {
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Literal</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Literal&quot;</span>);
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;lit&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">text</span>));
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
-        <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;span&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span</span>);
+        <span class="ident">debug_span_field_if_nontrivial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">debug</span>, <span class="self">self</span>.<span class="ident">span</span>);
         <span class="ident">debug</span>.<span class="ident">finish</span>()
     }
 }

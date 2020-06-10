@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bumpalo-3.3.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../bumpalo/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bumpalo-3.4.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../bumpalo/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1265,6 +1265,70 @@
 <span id="1265">1265</span>
 <span id="1266">1266</span>
 <span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/*!
 
@@ -1299,6 +1363,13 @@ To deallocate all the objects in the arena at once, we can simply reset the bump
 pointer back to the start of the arena&#39;s memory chunk. This makes mass
 deallocation *extremely* fast, but allocated objects&#39; `Drop` implementations are
 not invoked.
+
+&gt; **However:** [`bumpalo::boxed::Box&lt;T&gt;`][crate::boxed::Box] can be used to wrap
+&gt; `T` values allocated in the `Bump` arena, and calls `T`&#39;s `Drop`
+&gt; implementation when the `Box&lt;T&gt;` wrapper goes out of scope. This is similar to
+&gt; how [`std::boxed::Box`] works, except without deallocating its backing memory.
+
+[`std::boxed::Box`]: https://doc.rust-lang.org/std/boxed/struct.Box.html
 
 ## What happens when the memory chunk is full?
 
@@ -1361,6 +1432,49 @@ Eventually [all `std` collection types will be parameterized by an
 allocator](https://github.com/rust-lang/rust/issues/42774) and we can remove
 this `collections` module and use the `std` versions.
 
+## `bumpalo::boxed::Box`
+
+When the `&quot;boxed&quot;` cargo feature is enabled, a fork of `std::boxed::Box` library
+is available in the `boxed` module. This `Box` type is modified to allocate its
+space inside `bumpalo::Bump` arenas.
+
+**A `Box&lt;T&gt;` runs `T`&#39;s drop implementation when the `Box&lt;T&gt;` is dropped.** You
+can use this to work around the fact that `Bump` does not drop values allocated
+in its space itself.
+
+```rust
+# #[cfg(feature = &quot;boxed&quot;)]
+# {
+use bumpalo::{Bump, boxed::Box};
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+static NUM_DROPPED: AtomicUsize = AtomicUsize::new(0);
+
+struct CountDrops;
+
+impl Drop for CountDrops {
+    fn drop(&amp;mut self) {
+        NUM_DROPPED.fetch_add(1, Ordering::SeqCst);
+    }
+}
+
+// Create a new bump arena.
+let bump = Bump::new();
+
+// Create a `CountDrops` inside the bump arena.
+let mut c = Box::new_in(CountDrops, &amp;bump);
+
+// No `CountDrops` have been dropped yet.
+assert_eq!(NUM_DROPPED.load(Ordering::SeqCst), 0);
+
+// Drop our `Box&lt;CountDrops&gt;`.
+drop(c);
+
+// Its `Drop` implementation was run, and so `NUM_DROPS` has been incremented.
+assert_eq!(NUM_DROPPED.load(Ordering::SeqCst), 1);
+# }
+```
+
 ## `#![no_std]` Support
 
 Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
@@ -1371,8 +1485,11 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span> <span class="kw">as</span> <span class="ident">core_alloc</span>;
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span> <span class="kw">as</span> <span class="ident">core_alloc</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;boxed&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">boxed</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;collections&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">collections</span>;
 
@@ -1409,15 +1526,22 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 <span class="doccomment">///</span>
 <span class="doccomment">/// * calling [`drop_in_place`][drop_in_place] or using</span>
 <span class="doccomment">///   [`std::mem::ManuallyDrop`][manuallydrop] to manually drop these types,</span>
-<span class="doccomment">/// * using `bumpalo::collections::Vec` instead of `std::vec::Vec`, or</span>
+<span class="doccomment">/// * using [`bumpalo::collections::Vec`] instead of [`std::vec::Vec`]</span>
+<span class="doccomment">/// * using [`bumpalo::boxed::Box::new_in`] instead of [`Bump::alloc`],</span>
+<span class="doccomment">///   that will drop wrapped values similarly to [`std::boxed::Box`].</span>
 <span class="doccomment">/// * simply avoiding allocating these problematic types within a `Bump`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note that not calling `Drop` is memory safe! Destructors are never</span>
 <span class="doccomment">/// guaranteed to run in Rust, you can&#39;t rely on them for enforcing memory</span>
 <span class="doccomment">/// safety.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [drop_in_place]: https://doc.rust-lang.org/stable/std/ptr/fn.drop_in_place.html</span>
-<span class="doccomment">/// [manuallydrop]: https://doc.rust-lang.org/stable/std/mem/struct.ManuallyDrop.html</span>
+<span class="doccomment">/// [drop_in_place]: https://doc.rust-lang.org/std/ptr/fn.drop_in_place.html</span>
+<span class="doccomment">/// [manuallydrop]: https://doc.rust-lang.org/std/mem/struct.ManuallyDrop.html</span>
+<span class="doccomment">/// [`bumpalo::collections::Vec`]: ./collections/struct.Vec.html</span>
+<span class="doccomment">/// [`std::vec::Vec`]: https://doc.rust-lang.org/std/vec/struct.Vec.html</span>
+<span class="doccomment">/// [`bumpalo::boxed::Box::new_in`]: ./boxed/struct.Box.html#method.new_in</span>
+<span class="doccomment">/// [`Bump::alloc`]: ./struct.Bump.html#method.alloc</span>
+<span class="doccomment">/// [`std::boxed::Box`]: https://doc.rust-lang.org/std/boxed/struct.Box.html</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Example</span>
 <span class="doccomment">///</span>
@@ -2095,7 +2219,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned pointer points at uninitialized memory, and should be</span>
     <span class="doccomment">/// initialized with</span>
-    <span class="doccomment">/// [`std::ptr::write`](https://doc.rust-lang.org/stable/std/ptr/fn.write.html).</span>
+    <span class="doccomment">/// [`std::ptr::write`](https://doc.rust-lang.org/std/ptr/fn.write.html).</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">oom</span>())
@@ -2106,7 +2230,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned pointer points at uninitialized memory, and should be</span>
     <span class="doccomment">/// initialized with</span>
-    <span class="doccomment">/// [`std::ptr::write`](https://doc.rust-lang.org/stable/std/ptr/fn.write.html).</span>
+    <span class="doccomment">/// [`std::ptr::write`](https://doc.rust-lang.org/std/ptr/fn.write.html).</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout_fast</span>(<span class="ident">layout</span>) {
@@ -2242,6 +2366,10 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">/// If you want to use this `iter_allocated_chunks` method, it is *your*</span>
     <span class="doccomment">/// responsibility to ensure that these properties hold before calling</span>
     <span class="doccomment">/// `MaybeUninit::assume_init` or otherwise reading the returned values.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Finally, you must also ensure that any values allocated into the bump</span>
+    <span class="doccomment">/// arena have not had their `Drop` implementations called on them,</span>
+    <span class="doccomment">/// e.g. after dropping a [`bumpalo::boxed::Box&lt;T&gt;`][crate::boxed::Box].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
