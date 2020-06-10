@@ -514,6 +514,13 @@
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span>;
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PreferredType</span> {
+    <span class="ident">String</span>,
+    <span class="ident">Number</span>,
+    <span class="ident">Default</span>,
+}
+
 <span class="doccomment">/// A Javascript intepreter</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interpreter</span> {
@@ -625,7 +632,7 @@
             }
             <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">to_string</span>()),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;string&quot;</span>));
+                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">PreferredType</span>::<span class="ident">String</span>);
                 <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">primitive</span>)
             }
         }
@@ -659,7 +666,7 @@
             }
             <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">b</span>.<span class="ident">clone</span>()),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;number&quot;</span>));
+                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
                 <span class="self">self</span>.<span class="ident">to_bigint</span>(<span class="kw-2">&amp;</span><span class="ident">primitive</span>)
             }
             <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -690,10 +697,10 @@
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinarytoprimitive&gt;</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">hint</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">hint</span>: <span class="ident">PreferredType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">o</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Type</span>::<span class="ident">Object</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;string&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;number&quot;</span>);
-        <span class="kw">let</span> <span class="ident">method_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;string&quot;</span> {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
+        <span class="kw">let</span> <span class="ident">method_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> {
             <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;toString&quot;</span>, <span class="string">&quot;valueOf&quot;</span>]
         } <span class="kw">else</span> {
             <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;valueOf&quot;</span>, <span class="string">&quot;toString&quot;</span>]
@@ -725,24 +732,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_primitive</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
-        <span class="ident">preferred_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
+        <span class="ident">preferred_type</span>: <span class="ident">PreferredType</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hint</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hint</span>: <span class="ident">PreferredType</span>;
         <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">input</span>).<span class="ident">deref</span>() {
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hint</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">preferred_type</span> {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;default&quot;</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">pt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">pt</span> {
-                        <span class="string">&quot;string&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;string&quot;</span>,
-                        <span class="string">&quot;number&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;number&quot;</span>,
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;default&quot;</span>,
-                    },
-                };
+                <span class="ident">hint</span> <span class="op">=</span> <span class="ident">preferred_type</span>;
 
                 <span class="comment">// Skip d, e we don&#39;t support Symbols yet</span>
                 <span class="comment">// TODO: add when symbols are supported</span>
-                <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;default&quot;</span> {
-                    <span class="ident">hint</span> <span class="op">=</span> <span class="string">&quot;number&quot;</span>;
+                <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Default</span> {
+                    <span class="ident">hint</span> <span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Number</span>;
                 };
 
                 <span class="self">self</span>.<span class="ident">ordinary_to_primitive</span>(<span class="ident">input</span>, <span class="ident">hint</span>)
@@ -756,7 +756,7 @@
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-topropertykey</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_property_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;string&quot;</span>));
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">String</span>);
         <span class="kw">if</span> <span class="ident">key</span>.<span class="ident">is_symbol</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">key</span>)
         } <span class="kw">else</span> {
@@ -845,7 +845,7 @@
             <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>(),
             <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bigint</span>.<span class="ident">to_f64</span>(),
             <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="prelude-val">Some</span>(<span class="string">&quot;number&quot;</span>));
+                <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
                 <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">prim_value</span>)
                     .<span class="ident">expect</span>(<span class="string">&quot;cannot convert value to string&quot;</span>)
                     .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>()

@@ -210,7 +210,7 @@
 <span id="210">210</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">Number</span>, <span class="ident">Interpreter</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">Number</span>, <span class="ident">exec</span>::<span class="ident">PreferredType</span>, <span class="ident">Interpreter</span>};
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span>;
 
@@ -305,14 +305,14 @@
             <span class="comment">// 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result</span>
             <span class="comment">// of the comparison x == ? ToPrimitive(y).</span>
             (<span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">to_primitive</span>(<span class="self">self</span>, <span class="prelude-val">None</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">to_primitive</span>(<span class="self">self</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>);
                 <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="ident">other</span>, <span class="ident">interpreter</span>)
             }
 
             <span class="comment">// 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result</span>
             <span class="comment">// of the comparison ? ToPrimitive(x) == y.</span>
             (<span class="kw">_</span>, <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">to_primitive</span>(<span class="ident">other</span>, <span class="prelude-val">None</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">to_primitive</span>(<span class="ident">other</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>);
                 <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="self">self</span>, <span class="ident">interpreter</span>)
             }
 
