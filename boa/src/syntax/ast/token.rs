@@ -8,7 +8,7 @@
 use crate::builtins::BigInt;
 use crate::syntax::{
     ast::{Keyword, Punctuator, Span},
-    lexer::LexerError,
+    lexer::Error as LexerError,
 };
 use bitflags::bitflags;
 use std::{
@@ -114,7 +114,7 @@ impl FromStr for RegExpFlags {
                 b'u' => Self::UNICODE,
                 b'y' => Self::STICKY,
                 _ => {
-                    return Err(LexerError::new(format!(
+                    return Err(LexerError::syntax(format!(
                         "invalid regular expression flag {}",
                         char::from(c)
                     )))
@@ -124,7 +124,7 @@ impl FromStr for RegExpFlags {
             if !flags.contains(new_flag) {
                 flags.insert(new_flag);
             } else {
-                return Err(LexerError::new(format!(
+                return Err(LexerError::syntax(format!(
                     "invalid regular expression flag {}",
                     char::from(c)
                 )));
