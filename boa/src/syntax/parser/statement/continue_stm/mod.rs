@@ -10,7 +10,6 @@
 #[cfg(test)]
 mod tests;
 
-use super::LabelIdentifier;
 use crate::{
     syntax::{
         ast::{node::Continue, Keyword, Punctuator, TokenKind},
