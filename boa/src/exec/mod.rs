@@ -424,30 +424,6 @@ impl Interpreter {
     pub(crate) fn get_current_state(&self) -> &InterpreterState {
         &self.current_state
     }
-
-    /// Whether the interpreter is currently executing statements.
-    #[inline]
-    pub(crate) fn is_executing(&self) -> bool {
-        self.current_state == InterpreterState::Executing
-    }
-
-    /// Whether the interpreter is currently in a return state from a previous execution.
-    #[inline]
-    pub(crate) fn is_return(&self) -> bool {
-        match self.current_state {
-            InterpreterState::Return => true,
-            _ => false,
-        }
-    }
-
-    /// Whether it's running a break statement.
-    #[inline]
-    pub(crate) fn is_break(&self) -> bool {
-        match self.current_state {
-            InterpreterState::Break(_) => true,
-            _ => false,
-        }
-    }
 }
 
 impl Executable for Node {

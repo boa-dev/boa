@@ -8,11 +8,7 @@ fn check_post_state() {
 
     let brk: Break = Break::new("label");
 
-    assert!(engine.is_executing());
-
     brk.run(&mut engine).unwrap();
-
-    assert!(engine.is_break());
 
     assert_eq!(
         engine.get_current_state(),

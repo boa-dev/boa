@@ -24,12 +24,21 @@ impl Executable for Switch {
             let block = case.body();
             if fall_through || val.strict_equals(&cond.run(interpreter)?) {
                 matched = true;
-                block.run(interpreter)?;
-                if interpreter.is_break() {
-                    // Break statement encountered so therefore end switch statement.
-                    break;
-                } else {
-                    fall_through = true;
+                let result = block.run(interpreter)?;
+                match interpreter.get_current_state() {
+                    InterpreterState::Return => {
+                        // Early return.
+                        return Ok(result);
+                    }
+                    InterpreterState::Break(_label) => {
+                        // Break statement encountered so therefore end switch statement.
+                        interpreter.set_current_state(InterpreterState::Executing);
+                        break;
+                    }
+                    _ => {
+                        // Continuing execution / falling through to next case statement(s).
+                        fall_through = true;
+                    }
                 }
             }
         }

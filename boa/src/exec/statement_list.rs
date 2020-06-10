@@ -14,10 +14,21 @@ impl Executable for StatementList {
         interpreter.set_current_state(InterpreterState::Executing);
         for (i, item) in self.statements().iter().enumerate() {
             let val = item.run(interpreter)?;
-            // early return
-            if interpreter.is_return() {
-                obj = val;
-                break;
+            match interpreter.get_current_state() {
+                InterpreterState::Return => {
+                    // Early return.
+                    obj = val;
+                    break;
+                }
+                InterpreterState::Break(_label) => {
+                    // TODO, break to a label.
+
+                    // Early break.
+                    break;
+                }
+                _ => {
+                    // Continue execution
+                }
             }
             if i + 1 == self.statements().len() {
                 obj = val;

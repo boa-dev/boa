@@ -1,21 +1,7 @@
 use crate::exec;
 
 #[test]
-fn while_loop_break() {
-    // Ordering with statements after the break.
-    let scenario = r#"
-        let a = 1;
-        while (a < 5) {
-            if (a == 3) {
-                break;
-            }
-            a++;
-        }
-        a;
-    "#;
-
-    assert_eq!(&exec(scenario), "3");
-
+fn while_loop_late_break() {
     // Ordering with statement before the break.
     let scenario = r#"
         let a = 1;
@@ -24,6 +10,23 @@ fn while_loop_break() {
             if (a == 3) {
                 break;
             }
+        }
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn while_loop_early_break() {
+    // Ordering with statements after the break.
+    let scenario = r#"
+        let a = 1;
+        while (a < 5) {
+            if (a == 3) {
+                break;
+            }
+            a++;
         }
         a;
     "#;

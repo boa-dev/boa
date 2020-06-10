@@ -38,6 +38,9 @@ impl Executable for ForLoop {
             match interpreter.get_current_state() {
                 InterpreterState::Break(_label) => {
                     // TODO break to label.
+
+                    // Loops 'consume' breaks.
+                    interpreter.set_current_state(InterpreterState::Executing);
                     break;
                 }
                 InterpreterState::Return => {
@@ -65,6 +68,21 @@ impl Executable for WhileLoop {
         let mut result = Value::undefined();
         while self.cond().run(interpreter)?.borrow().is_true() {
             result = self.expr().run(interpreter)?;
+            match interpreter.get_current_state() {
+                InterpreterState::Break(_label) => {
+                    // TODO break to label.
+
+                    // Loops 'consume' breaks.
+                    interpreter.set_current_state(InterpreterState::Executing);
+                    break;
+                }
+                InterpreterState::Return => {
+                    return Ok(result);
+                }
+                _ => {
+                    // Continue execution.
+                }
+            }
         }
         Ok(result)
     }
