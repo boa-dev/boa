@@ -1,5 +1,5 @@
 use super::*;
-use crate::{builtins::Number, Interpreter, exec::PreferredType};
+use crate::{builtins::Number, exec::PreferredType, Interpreter};
 
 use std::borrow::Borrow;
 

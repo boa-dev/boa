@@ -376,8 +376,7 @@ impl Interpreter {
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
             ValueData::BigInt(ref bigint) => bigint.to_f64(),
             ValueData::Object(_) => {
-                let prim_value =
-                    self.to_primitive(&mut (value.clone()), PreferredType::Number);
+                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
                 self.to_string(&prim_value)
                     .expect("cannot convert value to string")
                     .parse::<f64>()
