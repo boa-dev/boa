@@ -41,7 +41,7 @@ pub use self::{
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
-use gc::{Finalize, Trace};
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::{
     cmp::Ordering,
     fmt::{self, Display},
@@ -428,7 +428,7 @@ impl PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
+#[derive(Clone, Debug, PartialEq, Copy, Finalize)]
 pub enum MethodDefinitionKind {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
     ///
@@ -471,4 +471,8 @@ pub enum MethodDefinitionKind {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
     Ordinary,
     // TODO: support other method definition kinds, like `Generator`.
+}
+
+unsafe impl Trace for MethodDefinitionKind {
+    unsafe_empty_trace!();
 }
