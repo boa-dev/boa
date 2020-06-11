@@ -1,8 +1,6 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{
-    token::{Token, TokenKind},
-    Position, Span,
-};
+use crate::syntax::ast::{Position, Span};
+use crate::syntax::lexer::{Token, TokenKind};
 use std::{
     char::{decode_utf16, from_u32},
     convert::TryFrom,

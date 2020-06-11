@@ -7,9 +7,10 @@ mod tests;
 use self::catch::Catch;
 use self::finally::Finally;
 use super::block::Block;
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{node::Try, Keyword, TokenKind},
+        ast::{node::Try, Keyword},
         parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,

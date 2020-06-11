@@ -20,13 +20,17 @@ pub(super) fn check_parser<L>(js: &str, expr: L)
 where
     L: Into<Box<[Node]>>,
 {
-    let mut lexer = Lexer::new(js);
-    lexer.lex().expect("failed to lex");
+    let mut lexer = Lexer::new(js.as_bytes());
+
+    // Goes through and lexes entire given string.
+    let mut tokens = Vec::new();
+
+    for token in lexer {
+        tokens.push(token.expect("failed to lex"));
+    }
 
     assert_eq!(
-        Parser::new(&lexer.tokens)
-            .parse_all()
-            .expect("failed to parse"),
+        Parser::new(&tokens).parse_all().expect("failed to parse"),
         StatementList::from(expr)
     );
 }
@@ -34,10 +38,12 @@ where
 /// Checks that the given javascript string creates a parse error.
 // TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_invalid(js: &str) {
-    let mut lexer = Lexer::new(js);
-    lexer.lex().expect("failed to lex");
+    let mut lexer = Lexer::new(js.as_bytes());
+    // lexer.lex().expect("failed to lex");
 
-    assert!(Parser::new(&lexer.tokens).parse_all().is_err());
+    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
+
+    assert!(Parser::new(&tokens).parse_all().is_err());
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`

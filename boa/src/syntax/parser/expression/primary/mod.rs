@@ -18,11 +18,11 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use super::Expression;
+use crate::syntax::lexer::{token::NumericLiteral, TokenKind};
 use crate::syntax::{
     ast::{
         node::{Call, Identifier, New, Node},
-        token::NumericLiteral,
-        Const, Keyword, Punctuator, TokenKind,
+        Const, Keyword, Punctuator,
     },
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };

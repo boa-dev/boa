@@ -36,8 +36,10 @@ use super::{
     expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
     TokenParser,
 };
+
+use crate::syntax::lexer::TokenKind;
 use crate::{
-    syntax::ast::{node, Keyword, Node, Punctuator, TokenKind},
+    syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
 };
 

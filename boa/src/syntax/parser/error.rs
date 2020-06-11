@@ -1,9 +1,6 @@
 //! Error and result implementation for the parser.
-use crate::syntax::ast::{
-    position::Position,
-    token::{Token, TokenKind},
-    Node,
-};
+use crate::syntax::ast::{position::Position, Node};
+use crate::syntax::lexer::{Token, TokenKind};
 use std::fmt;
 
 /// Result of a parsing operation.

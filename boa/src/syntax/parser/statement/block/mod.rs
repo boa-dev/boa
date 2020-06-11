@@ -11,10 +11,12 @@
 mod tests;
 
 use super::StatementList;
+
+use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
     syntax::{
-        ast::{node, Punctuator, TokenKind},
+        ast::{node, Punctuator},
         parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
 };

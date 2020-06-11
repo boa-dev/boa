@@ -1,18 +1,8 @@
 //! Coments lexing.
 
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::bigint::BigInt;
-use crate::syntax::ast::{
-    token::{NumericLiteral, Token, TokenKind},
-    Position, Punctuator, Span,
-};
-use std::{
-    char::{decode_utf16, from_u32},
-    fmt,
-    io::{self, BufRead, Bytes, Read, Seek},
-    iter::Peekable,
-    str::{Chars, FromStr},
-};
+use crate::syntax::ast::Position;
+use crate::syntax::lexer::{Token, TokenKind};
 
 /// Lexes single line comments, starting with `//`.
 #[derive(Debug, Clone, Copy)]

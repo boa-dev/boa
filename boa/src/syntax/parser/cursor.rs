@@ -1,10 +1,8 @@
 //! Cursor implementation for the parser.
 
 use super::ParseError;
-use crate::syntax::ast::{
-    token::{Token, TokenKind},
-    Punctuator,
-};
+use crate::syntax::ast::Punctuator;
+use crate::syntax::lexer::{Token, TokenKind};
 
 /// Token cursor.
 ///

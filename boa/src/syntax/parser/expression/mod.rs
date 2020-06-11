@@ -18,11 +18,12 @@ mod update;
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
+use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
     syntax::ast::{
         node::{BinOp, Node},
-        Keyword, Punctuator, TokenKind,
+        Keyword, Punctuator,
     },
 };
 

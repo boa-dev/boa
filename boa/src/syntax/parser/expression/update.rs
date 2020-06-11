@@ -6,8 +6,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-update-expressions
 
 use super::left_hand_side::LeftHandSideExpression;
+use crate::syntax::lexer::TokenKind;
 use crate::syntax::{
-    ast::{node, op::UnaryOp, Node, Punctuator, TokenKind},
+    ast::{node, op::UnaryOp, Node, Punctuator},
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 

@@ -24,7 +24,7 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
+        match self {
             Self::IO(e) => write!(f, "I/O error: {}", e),
             Self::Syntax(e) => write!(f, "Syntax Error: {}", e),
         }
@@ -33,8 +33,8 @@ impl fmt::Display for Error {
 
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        match *self {
-            Self::IO(err) => Some(&err),
+        match self {
+            Self::IO(err) => Some(err),
             Self::Syntax(_) => None,
         }
     }
