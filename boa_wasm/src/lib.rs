@@ -6,11 +6,9 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
     let mut lexer = Lexer::new(src.as_bytes());
 
     // Goes through and lexes entire given string.
-    let mut tokens = Vec::new();
-
-    for token in lexer {
-        tokens.push(token.map_err(|e| format!("Lexing Error: {}", e))?);
-    }
+    let tokens = lexer
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("Lexing Error: {}", e))?;
 
     let expr = Parser::new(&tokens)
         .parse_all()
