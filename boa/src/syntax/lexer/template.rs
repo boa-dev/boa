@@ -24,9 +24,7 @@ macro_rules! template_match {
 /// [spec]: 
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 #[derive(Debug, Clone, Copy)]
-pub(super) struct TemplateLiteral {
-
-}
+pub(super) struct TemplateLiteral;
 
 impl TemplateLiteral {
     /// Creates a new string literal lexer.
