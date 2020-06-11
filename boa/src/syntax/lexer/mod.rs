@@ -660,7 +660,6 @@ impl<'a> Lexer<'a> {
                         "true" => TokenKind::BooleanLiteral(true),
                         "false" => TokenKind::BooleanLiteral(false),
                         "null" => TokenKind::NullLiteral,
-                        "NaN" => TokenKind::NumericLiteral(NumericLiteral::Rational(f64::NAN)),
                         slice => {
                             if let Ok(keyword) = FromStr::from_str(slice) {
                                 TokenKind::Keyword(keyword)
