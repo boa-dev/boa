@@ -267,13 +267,13 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-tonumber
     #[allow(clippy::wrong_self_convention)]
     pub fn to_number(&mut self, value: &Value) -> Result<f64, Value> {
-        match *value.deref().borrow() {
+        match *value.data() {
             ValueData::Null => Ok(0.0),
             ValueData::Undefined => Ok(f64::NAN),
             ValueData::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            ValueData::String(ref string) => match string.parse::<f64>() {
+            ValueData::String(ref string) => match string.parse() {
                 Ok(number) => Ok(number),
-                Err(_) => Ok(0.0),
+                Err(_) => Ok(f64::NAN),
             }, // this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
             ValueData::Rational(number) => Ok(number),
             ValueData::Integer(integer) => Ok(f64::from(integer)),
@@ -290,6 +290,32 @@ impl Interpreter {
                 self.to_number(&prim_value)
             }
         }
+    }
+
+    /// It returns value converted to a numeric value of type Number or BigInt.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_numeric(&mut self, value: &Value) -> ResultValue {
+        let primitive = self.to_primitive(&mut value.clone(), PreferredType::Number);
+        if primitive.is_bigint() {
+            return Ok(primitive);
+        }
+        Ok(Value::from(self.to_number(&primitive)?))
+    }
+
+    /// This is a more specialized version of `to_numeric`.
+    ///
+    /// It returns value converted to a numeric value of type `Number`.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_numeric_number(&mut self, value: &Value) -> Result<f64, Value> {
+        let primitive = self.to_primitive(&mut value.clone(), PreferredType::Number);
+        if let Some(ref bigint) = primitive.as_bigint() {
+            return Ok(bigint.to_f64());
+        }
+        Ok(self.to_number(&primitive)?)
     }
 
     /// Converts an array object into a rust vector of values.

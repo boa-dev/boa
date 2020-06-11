@@ -408,6 +408,14 @@ impl ValueData {
         matches!(self, Self::BigInt(_))
     }
 
+    /// Returns an optional reference to a `BigInt` if the value is a BigInt primitive.
+    pub fn as_bigint(&self) -> Option<&BigInt> {
+        match self {
+            Self::BigInt(bigint) => Some(bigint),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is true.
     ///
     /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean

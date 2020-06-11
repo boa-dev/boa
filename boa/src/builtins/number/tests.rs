@@ -82,12 +82,12 @@ fn to_exponential() {
     let nan_exp = forward(&mut engine, "nan_exp");
     let noop_exp = forward(&mut engine, "noop_exp");
 
-    assert_eq!(default_exp, String::from("0e+0"));
-    assert_eq!(int_exp, String::from("5e+0"));
-    assert_eq!(float_exp, String::from("1.234e+0"));
-    assert_eq!(big_exp, String::from("1.234e+3"));
-    assert_eq!(nan_exp, String::from("NaN"));
-    assert_eq!(noop_exp, String::from("1.23e+2"));
+    assert_eq!(default_exp, "0e+0");
+    assert_eq!(int_exp, "5e+0");
+    assert_eq!(float_exp, "1.234e+0");
+    assert_eq!(big_exp, "1.234e+3");
+    assert_eq!(nan_exp, "NaN");
+    assert_eq!(noop_exp, "1.23e+2");
 }
 
 #[test]

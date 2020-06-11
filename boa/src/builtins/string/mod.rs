@@ -48,8 +48,9 @@ impl String {
             _ => {}
         }
 
-        ctx.throw_type_error("'this' is not a string")?;
-        unreachable!();
+        Err(ctx
+            .throw_type_error("'this' is not a string")
+            .expect_err("throw_type_error() did not return an error"))
     }
 
     /// [[Construct]] - Creates a new instance `this`
@@ -79,6 +80,7 @@ impl String {
 
     /// Get the string value to a primitive string
     #[allow(clippy::wrong_self_convention)]
+    #[inline]
     pub(crate) fn to_string(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
         // Get String from String Object and send it back as a new value
         Ok(Value::from(Self::this_string_value(this, ctx)?))

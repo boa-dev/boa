@@ -449,7 +449,7 @@ pub fn make_constructor_fn(
 
     constructor
         .as_object_mut()
-        .unwrap()
+        .expect("constructor object")
         .insert_field(PROTOTYPE, prototype);
 
     constructor

@@ -26,7 +26,6 @@ use crate::{
     BoaProfiler,
 };
 use num_traits::float::FloatCore;
-use std::ops::Deref;
 
 const BUF_SIZE: usize = 2200;
 
@@ -41,31 +40,31 @@ const PARSE_INT_MAX_ARG_COUNT: usize = 2;
 const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 
 impl Number {
-    /// Helper function that converts a Value to a Number.
-    #[allow(clippy::wrong_self_convention)]
-    fn to_number(value: &Value) -> Value {
-        match value.data() {
-            ValueData::Boolean(b) => {
-                if *b {
-                    Value::from(1)
-                } else {
-                    Value::from(0)
+    /// This function returns a `Result` of the number `Value`.
+    ///
+    /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
+    /// Otherwise an `TypeError` is thrown.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
+    fn this_number_value(value: &Value, ctx: &mut Interpreter) -> Result<f64, Value> {
+        match *value.data() {
+            ValueData::Integer(integer) => return Ok(f64::from(integer)),
+            ValueData::Rational(rational) => return Ok(rational),
+            ValueData::Object(ref object) => {
+                if let Some(number) = object.borrow().as_number() {
+                    return Ok(number);
                 }
             }
-            ValueData::Symbol(_) | ValueData::Undefined => Value::from(f64::NAN),
-            ValueData::Integer(i) => Value::from(f64::from(*i)),
-            ValueData::Object(ref o) => match (o).deref().borrow().data {
-                ObjectData::Number(num) => Value::from(num),
-                _ => unreachable!(),
-            },
-            ValueData::Null => Value::from(0),
-            ValueData::Rational(n) => Value::from(*n),
-            ValueData::BigInt(ref bigint) => Value::from(bigint.to_f64()),
-            ValueData::String(ref s) => match s.parse::<f64>() {
-                Ok(n) => Value::from(n),
-                Err(_) => Value::from(f64::NAN),
-            },
+            _ => {}
         }
+
+        Err(ctx
+            .throw_type_error("'this' is not a number")
+            .expect_err("throw_type_error() did not return an error"))
     }
 
     /// Helper function that formats a float as a ES6-style exponential number string.
@@ -83,10 +82,10 @@ impl Number {
     pub(crate) fn make_number(
         this: &mut Value,
         args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => Self::to_number(value).to_number(),
+            Some(ref value) => ctx.to_numeric_number(value)?,
             None => 0.0,
         };
         this.set_data(ObjectData::Number(data));
@@ -108,9 +107,9 @@ impl Number {
     pub(crate) fn to_exponential(
         this: &mut Value,
         _args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
-        let this_num = Self::to_number(this).to_number();
+        let this_num = Self::this_number_value(this, ctx)?;
         let this_str_num = Self::num_to_exponential(this_num);
         Ok(Value::from(this_str_num))
     }
@@ -126,12 +125,8 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(
-        this: &mut Value,
-        args: &[Value],
-        _ctx: &mut Interpreter,
-    ) -> ResultValue {
-        let this_num = Self::to_number(this).to_number();
+    pub(crate) fn to_fixed(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let this_num = Self::this_number_value(this, ctx)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer() {
                 x if x > 0 => n.to_integer() as usize,
@@ -160,9 +155,9 @@ impl Number {
     pub(crate) fn to_locale_string(
         this: &mut Value,
         _args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
-        let this_num = Self::to_number(this).to_number();
+        let this_num = Self::this_number_value(this, ctx)?;
         let this_str_num = format!("{}", this_num);
         Ok(Value::from(this_str_num))
     }
@@ -181,10 +176,10 @@ impl Number {
     pub(crate) fn to_precision(
         this: &mut Value,
         args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
-        let this_num = Self::to_number(this);
-        let _num_str_len = format!("{}", this_num.to_number()).len();
+        let this_num = Self::this_number_value(this, ctx)?;
+        let _num_str_len = format!("{}", this_num).len();
         let _precision = match args.get(0) {
             Some(n) => match n.to_integer() {
                 x if x > 0 => n.to_integer() as usize,
@@ -352,7 +347,8 @@ impl Number {
         ctx: &mut Interpreter,
     ) -> ResultValue {
         // 1. Let x be ? thisNumberValue(this value).
-        let x = Self::to_number(this).to_number();
+        let x = Self::this_number_value(this, ctx)?;
+
         // 2. If radix is undefined, let radixNumber be 10.
         // 3. Else, let radixNumber be ? ToInteger(radix).
         let radix = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
@@ -405,9 +401,9 @@ impl Number {
     pub(crate) fn value_of(
         this: &mut Value,
         _args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok(Self::to_number(this))
+        Ok(Value::from(Self::this_number_value(this, ctx)?))
     }
 
     /// Builtin javascript 'parseInt(str, radix)' function.
@@ -555,7 +551,7 @@ impl Number {
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
         {
-            let mut properties = number.as_object_mut().unwrap();
+            let mut properties = number.as_object_mut().expect("'Number' object");
             properties.insert_field("EPSILON", Value::from(f64::EPSILON));
             properties.insert_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
             properties.insert_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
