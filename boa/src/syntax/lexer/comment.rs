@@ -1,10 +1,8 @@
 //! Coments lexing.
 
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{
-    token::Token,
-    Position,
-};
+use crate::syntax::ast::Position;
+use crate::syntax::lexer::{Token, TokenKind};
 
 /// Lexes single line comments, starting with `//`.
 #[derive(Debug, Clone, Copy)]

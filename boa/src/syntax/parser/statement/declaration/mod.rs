@@ -14,9 +14,10 @@ mod tests;
 
 use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{Keyword, Node, TokenKind},
+        ast::{Keyword, Node},
         parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,

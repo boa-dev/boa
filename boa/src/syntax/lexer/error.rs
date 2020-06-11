@@ -14,7 +14,7 @@ impl From<io::Error> for Error {
 
 impl Error {
     /// Creates a new syntax error.
-    pub(crate) fn syntax<M>(err: M) -> Self
+    pub(super) fn syntax<M>(err: M) -> Self
     where
         M: Into<Box<str>>,
     {

@@ -12,9 +12,10 @@ mod call;
 mod member;
 
 use self::{call::CallExpression, member::MemberExpression};
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{Node, Punctuator, TokenKind},
+        ast::{Node, Punctuator},
         parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
     },
     BoaProfiler,

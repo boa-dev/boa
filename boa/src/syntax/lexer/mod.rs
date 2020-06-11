@@ -7,6 +7,7 @@ mod comment;
 mod cursor;
 pub mod error;
 mod string;
+pub mod token;
 
 #[macro_use]
 mod template;
@@ -18,11 +19,9 @@ mod template;
 pub use self::error::Error;
 
 use self::{cursor::Cursor, string::StringLiteral, template::TemplateLiteral};
-use crate::syntax::ast::{
-    token::{Token, TokenKind},
-    Position, Span,
-};
+use crate::syntax::ast::{Position, Span};
 use std::io::Read;
+pub use token::{Token, TokenKind};
 
 trait Tokenizer<R> {
     /// Lexes the next token.
@@ -136,7 +135,6 @@ where
 //     }
 // }
 
-
 // Temporarily moved.
 use crate::syntax::ast::Keyword;
 
@@ -145,8 +143,17 @@ fn check_single_line_comment() {
     let s1 = "var \n//This is a comment\ntrue";
     let mut lexer = Lexer::new(s1.as_bytes());
 
-    assert_eq!(lexer.next().unwrap().unwrap().kind, TokenKind::Keyword(Keyword::Var));
-    assert_eq!(lexer.next().unwrap().unwrap().kind, TokenKind::LineTerminator);
-    assert_eq!(lexer.next().unwrap().unwrap().kind, TokenKind::BooleanLiteral(true));
+    assert_eq!(
+        lexer.next().unwrap().unwrap().kind,
+        TokenKind::Keyword(Keyword::Var)
+    );
+    assert_eq!(
+        lexer.next().unwrap().unwrap().kind,
+        TokenKind::LineTerminator
+    );
+    assert_eq!(
+        lexer.next().unwrap().unwrap().kind,
+        TokenKind::BooleanLiteral(true)
+    );
     assert!(lexer.next().is_none());
 }

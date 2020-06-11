@@ -7,11 +7,12 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
-            Keyword, Punctuator, TokenKind,
+            Keyword, Punctuator,
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,

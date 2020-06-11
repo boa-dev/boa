@@ -9,7 +9,8 @@ mod statement;
 mod tests;
 
 use self::error::{ParseError, ParseResult};
-use crate::syntax::ast::{node::StatementList, Token};
+use crate::syntax::ast::node::StatementList;
+use crate::syntax::lexer::Token;
 use cursor::Cursor;
 
 /// Trait implemented by parsers.

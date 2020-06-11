@@ -10,10 +10,11 @@
 #[cfg(test)]
 mod tests;
 
+use crate::syntax::lexer::TokenKind;
 use crate::syntax::{
     ast::{
         node::{self},
-        Punctuator, TokenKind,
+        Punctuator,
     },
     parser::{
         expression::Initializer,

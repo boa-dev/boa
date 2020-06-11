@@ -1,7 +1,5 @@
 use crate::syntax::ast::Position;
-use std::{
-    io::{self, Bytes, Read}
-};
+use std::io::{self, Bytes, Read};
 
 /// Cursor over the source code.
 #[derive(Debug)]

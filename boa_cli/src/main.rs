@@ -26,12 +26,8 @@
 )]
 
 use boa::{
-    builtins::console::log,
-    exec::Interpreter,
-    forward_val,
-    realm::Realm,
-    syntax::ast::{node::StatementList, token::Token},
-    syntax::lexer::Lexer,
+    builtins::console::log, exec::Interpreter, forward_val, realm::Realm,
+    syntax::ast::node::StatementList, syntax::lexer::Lexer, syntax::lexer::Token,
 };
 use std::{
     fs::read_to_string,

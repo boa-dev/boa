@@ -11,7 +11,7 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
     for token in lexer {
         tokens.push(token.map_err(|e| format!("Lexing Error: {}", e))?);
     }
-    
+
     let expr = Parser::new(&tokens)
         .parse_all()
         .map_err(|e| JsValue::from(format!("Parsing Error: {}", e)))?;

@@ -1,11 +1,7 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{
-    token::{Token, TokenKind},
-    Position, Span,
-};
-use std::{
-    io::{self, ErrorKind, Read}
-};
+use crate::syntax::ast::{Position, Span};
+use crate::syntax::lexer::{Token, TokenKind};
+use std::io::{self, ErrorKind, Read};
 
 macro_rules! template_match {
     () => {
@@ -16,24 +12,20 @@ macro_rules! template_match {
 /// Template literal parsing.
 ///
 /// Expects: Initial ` to already be consumed by cursor.
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: 
+/// [spec]:
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 #[derive(Debug, Clone, Copy)]
-pub(super) struct TemplateLiteral {
-
-}
+pub(super) struct TemplateLiteral {}
 
 impl TemplateLiteral {
     /// Creates a new string literal lexer.
     pub(super) fn new() -> Self {
-        Self {
-
-        }
+        Self {}
     }
 }
 

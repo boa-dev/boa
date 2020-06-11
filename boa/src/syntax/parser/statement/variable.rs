@@ -1,9 +1,10 @@
 // use super::lexical_declaration_continuation;
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{VarDecl, VarDeclList},
-            Keyword, Punctuator, TokenKind,
+            Keyword, Punctuator,
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,

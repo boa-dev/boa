@@ -7,11 +7,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 //! [spec]: https://tc39.es/ecma262/#sec-unary-operators
 
+use crate::syntax::lexer::TokenKind;
 use crate::syntax::{
     ast::{
         node::{self, Node},
         op::UnaryOp,
-        Keyword, Punctuator, TokenKind,
+        Keyword, Punctuator,
     },
     parser::{
         expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,

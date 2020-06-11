@@ -12,11 +12,12 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{Assign, BinOp, Node},
-            Keyword, Punctuator, TokenKind,
+            Keyword, Punctuator,
         },
         parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
