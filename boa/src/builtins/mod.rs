@@ -24,6 +24,8 @@ pub(crate) use self::{
     boolean::Boolean,
     error::{Error, RangeError, TypeError},
     global_this::GlobalThis,
+    json::Json,
+    math::Math,
     nan::NaN,
     number::Number,
     regexp::RegExp,
@@ -41,11 +43,9 @@ pub fn init(global: &Value) {
         Array::init(global),
         BigInt::init(global),
         Boolean::init(global),
-        json::init(global),
-        math::init(global),
+        Json::init(global),
+        Math::init(global),
         Number::init(global),
-        NaN::init(global),
-        GlobalThis::init(global),
         object::init(global),
         RegExp::init(global),
         String::init(global),
@@ -55,6 +55,9 @@ pub fn init(global: &Value) {
         Error::init(global),
         RangeError::init(global),
         TypeError::init(global),
+        // Global properties.
+        NaN::init(global),
+        GlobalThis::init(global),
     ];
 
     let mut global_object = global.as_object_mut().expect("global object");
