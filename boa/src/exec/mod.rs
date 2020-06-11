@@ -89,6 +89,9 @@ impl Interpreter {
         &mut self.realm
     }
 
+    /// Generates a new `Symbol` internal hash.
+    ///
+    /// This currently is an incremented value.
     pub(crate) fn generate_hash(&mut self) -> u32 {
         let hash = self.symbol_count;
         self.symbol_count += 1;
@@ -271,10 +274,8 @@ impl Interpreter {
             ValueData::Null => Ok(0.0),
             ValueData::Undefined => Ok(f64::NAN),
             ValueData::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            ValueData::String(ref string) => match string.parse() {
-                Ok(number) => Ok(number),
-                Err(_) => Ok(f64::NAN),
-            }, // this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            ValueData::String(ref string) => Ok(string.parse().unwrap_or(f64::NAN)),
             ValueData::Rational(number) => Ok(number),
             ValueData::Integer(integer) => Ok(f64::from(integer)),
             ValueData::Symbol(_) => {

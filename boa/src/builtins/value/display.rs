@@ -112,7 +112,7 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
             }
         }
         ValueData::Symbol(ref symbol) => match symbol.description() {
-            Some(description) => format!("Symbol({})", description),
+            Some(ref desc) => format!("Symbol({})", desc),
             None => String::from("Symbol()"),
         },
         _ => format!("{}", x),

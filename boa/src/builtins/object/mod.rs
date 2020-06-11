@@ -252,9 +252,9 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_string(&self) -> Option<&String> {
+    pub fn as_string(&self) -> Option<&str> {
         match self.data {
-            ObjectData::String(ref string) => Some(string),
+            ObjectData::String(ref string) => Some(string.as_str()),
             _ => None,
         }
     }

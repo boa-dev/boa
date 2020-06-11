@@ -30,6 +30,12 @@ use gc::{Finalize, Trace};
 pub struct Symbol(Option<Box<str>>, u32);
 
 impl Symbol {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "Symbol";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: i32 = 0;
+
     /// Returns the `Symbol`s description.
     pub fn description(&self) -> Option<&str> {
         self.0.as_deref()
@@ -101,14 +107,21 @@ impl Symbol {
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
-        make_constructor_fn("Symbol", 1, Self::call, global, prototype, false)
+        make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::call,
+            global,
+            prototype,
+            false,
+        )
     }
 
     /// Initialise the `Symbol` object on the global object.
     #[inline]
     pub fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("symbol", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("Symbol", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }

@@ -27,6 +27,12 @@ use crate::{
 pub(crate) struct Boolean;
 
 impl Boolean {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "Boolean";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: i32 = 1;
+
     /// An Utility function used to get the internal [[BooleanData]].
     ///
     /// More information:
@@ -101,8 +107,8 @@ impl Boolean {
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
         make_constructor_fn(
-            "Boolean",
-            1,
+            Self::NAME,
+            Self::LENGTH,
             Self::construct_boolean,
             global,
             prototype,
@@ -113,8 +119,8 @@ impl Boolean {
     /// Initialise the `Boolean` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("boolean", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("Boolean", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }

@@ -44,6 +44,12 @@ mod tests;
 pub struct BigInt(num_bigint::BigInt);
 
 impl BigInt {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "BigInt";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: i32 = 1;
+
     /// The abstract operation thisBigIntValue takes argument value.
     ///
     /// The phrase “this BigInt value” within the specification of a method refers to the
@@ -213,7 +219,14 @@ impl BigInt {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        let big_int = make_constructor_fn("BigInt", 1, Self::make_bigint, global, prototype, false);
+        let big_int = make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_bigint,
+            global,
+            prototype,
+            false,
+        );
 
         make_builtin_fn(Self::as_int_n, "asIntN", &big_int, 2);
         make_builtin_fn(Self::as_uint_n, "asUintN", &big_int, 2);
@@ -224,9 +237,9 @@ impl BigInt {
     /// Initialise the `BigInt` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("bigint", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("BigInt", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }
 

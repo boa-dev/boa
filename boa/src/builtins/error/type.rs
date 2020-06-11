@@ -31,6 +31,12 @@ use crate::{
 pub(crate) struct TypeError;
 
 impl TypeError {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "TypeError";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: i32 = 1;
+
     /// Create a new error object.
     pub(crate) fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         if !args.is_empty() {
@@ -74,13 +80,20 @@ impl TypeError {
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
-        make_constructor_fn("TypeError", 1, Self::make_error, global, prototype, true)
+        make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_error,
+            global,
+            prototype,
+            true,
+        )
     }
 
     /// Initialise the global object with the `RangeError` object.
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("typeerror", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("TypeError", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }

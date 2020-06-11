@@ -61,6 +61,12 @@ pub(crate) struct RegExp {
 impl InternalState for RegExp {}
 
 impl RegExp {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "RegExp";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: i32 = 2;
+
     /// Create a new `RegExp`
     pub(crate) fn make_regexp(
         this: &mut Value,
@@ -487,14 +493,21 @@ impl RegExp {
         make_builtin_fn(Self::get_sticky, "sticky", &prototype, 0);
         make_builtin_fn(Self::get_unicode, "unicode", &prototype, 0);
 
-        make_constructor_fn("RegExp", 1, Self::make_regexp, global, prototype, true)
+        make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_regexp,
+            global,
+            prototype,
+            true,
+        )
     }
 
     /// Initialise the `RegExp` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("regexp", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("RegExp", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }

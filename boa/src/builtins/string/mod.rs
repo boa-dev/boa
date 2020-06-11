@@ -36,13 +36,19 @@ use std::{
 pub(crate) struct String;
 
 impl String {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "String";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: i32 = 1;
+
     fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<StdString, Value> {
         match this.data() {
             ValueData::String(ref string) => return Ok(string.clone()),
             ValueData::Object(ref object) => {
                 let object = object.borrow();
                 if let Some(string) = object.as_string() {
-                    return Ok(string.clone());
+                    return Ok(string.to_owned());
                 }
             }
             _ => {}
@@ -1082,14 +1088,21 @@ impl String {
         make_builtin_fn(Self::match_all, "matchAll", &prototype, 1);
         make_builtin_fn(Self::replace, "replace", &prototype, 2);
 
-        make_constructor_fn("String", 1, Self::make_string, global, prototype, true)
+        make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_string,
+            global,
+            prototype,
+            true,
+        )
     }
 
     /// Initialise the `String` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("string", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("String", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }

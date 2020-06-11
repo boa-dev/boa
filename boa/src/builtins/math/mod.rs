@@ -28,6 +28,9 @@ mod tests;
 pub(crate) struct Math;
 
 impl Math {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "Math";
+
     /// Get the absolute value of a number.
     ///
     /// More information:
@@ -561,8 +564,8 @@ impl Math {
     /// Initialise the `Math` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("math", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("Math", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }

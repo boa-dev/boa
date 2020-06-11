@@ -20,11 +20,14 @@ use crate::{builtins::value::Value, BoaProfiler};
 pub(crate) struct NaN;
 
 impl NaN {
+    /// The name of the property.
+    pub(crate) const NAME: &'static str = "NaN";
+
     /// Initialize the `NaN` property on the global object.
     #[inline]
     pub(crate) fn init(_: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("NaN", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("NaN", Value::from(f64::NAN))
+        (Self::NAME, Value::from(f64::NAN))
     }
 }

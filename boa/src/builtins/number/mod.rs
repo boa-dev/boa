@@ -40,6 +40,12 @@ const PARSE_INT_MAX_ARG_COUNT: usize = 2;
 const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 
 impl Number {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "Number";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: i32 = 1;
+
     /// This function returns a `Result` of the number `Value`.
     ///
     /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
@@ -546,7 +552,14 @@ impl Number {
             PARSE_FLOAT_MAX_ARG_COUNT as i32,
         );
 
-        let number = make_constructor_fn("Number", 1, Self::make_number, global, prototype, true);
+        let number = make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_number,
+            global,
+            prototype,
+            true,
+        );
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
@@ -568,9 +581,9 @@ impl Number {
     /// Initialise the `Number` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("number", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("Number", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 
     /// The abstract operation Number::equal takes arguments

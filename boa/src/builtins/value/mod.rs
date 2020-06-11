@@ -418,7 +418,7 @@ impl ValueData {
 
     /// Returns true if the value is true.
     ///
-    /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean
+    /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
     pub fn is_true(&self) -> bool {
         match *self {
             Self::Object(_) => true,
@@ -515,10 +515,10 @@ impl ValueData {
                 let object = object.borrow();
                 match object.properties().get(field) {
                     Some(value) => Some(value.clone()),
-                    None => match object.internal_slots().get(INSTANCE_PROTOTYPE) {
-                        Some(value) => value.get_property(field),
-                        None => None,
-                    },
+                    None => object
+                        .internal_slots()
+                        .get(INSTANCE_PROTOTYPE)
+                        .and_then(|value| value.get_property(field)),
                 }
             }
             _ => None,
@@ -555,17 +555,9 @@ impl ValueData {
     pub fn get_internal_slot(&self, field: &str) -> Value {
         let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
 
-        let property = self
-            .as_object()
-            .and_then(|x| match x.internal_slots().get(field) {
-                Some(value) => Some(value.clone()),
-                None => None,
-            });
-
-        match property {
-            Some(value) => value,
-            None => Value::undefined(),
-        }
+        self.as_object()
+            .and_then(|x| x.internal_slots().get(field).cloned())
+            .unwrap_or_else(Value::undefined)
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
@@ -608,18 +600,13 @@ impl ValueData {
 
     /// Check whether an object has an internal state set.
     pub fn has_internal_state(&self) -> bool {
-        match self.as_object() {
-            Some(object) => object.state().is_some(),
-            None => false,
-        }
+        matches!(self.as_object(), Some(object) if object.state().is_some())
     }
 
     /// Get the internal state of an object.
     pub fn get_internal_state(&self) -> Option<InternalStateCell> {
-        match self.as_object() {
-            Some(object) => object.state().clone(),
-            None => None,
-        }
+        self.as_object()
+            .and_then(|object| object.state().as_ref().cloned())
     }
 
     /// Run a function with a reference to the internal state.

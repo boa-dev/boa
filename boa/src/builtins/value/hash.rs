@@ -11,12 +11,13 @@ impl PartialEq for Value {
 
 impl Eq for Value {}
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct UndefinedHashable;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct NullHashable;
 
+#[derive(Debug, Clone, Copy)]
 struct RationalHashable(f64);
 
 impl PartialEq for RationalHashable {

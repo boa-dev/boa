@@ -29,6 +29,9 @@ mod tests;
 pub(crate) struct Json;
 
 impl Json {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "JSON";
+
     /// `JSON.parse( text[, reviver] )`
     ///
     /// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.
@@ -178,8 +181,8 @@ impl Json {
     /// Initialise the `JSON` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event("json", "init");
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        ("JSON", Self::create(global))
+        (Self::NAME, Self::create(global))
     }
 }

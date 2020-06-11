@@ -392,10 +392,11 @@ impl Object {
     #[inline]
     pub fn get_internal_slot(&self, name: &str) -> Value {
         let _timer = BoaProfiler::global().start_event("Object::get_internal_slot", "object");
-        match self.internal_slots.get(name) {
-            Some(v) => v.clone(),
-            None => Value::null(),
-        }
+
+        self.internal_slots()
+            .get(name)
+            .cloned()
+            .unwrap_or_else(Value::null)
     }
 
     /// Helper function to set an internal slot.
@@ -406,7 +407,7 @@ impl Object {
 
     /// Helper function for property insertion.
     #[inline]
-    pub fn insert_property<N>(&mut self, name: N, p: Property)
+    pub(crate) fn insert_property<N>(&mut self, name: N, p: Property)
     where
         N: Into<String>,
     {
@@ -415,12 +416,16 @@ impl Object {
 
     /// Helper function for property removal.
     #[inline]
-    pub fn remove_property(&mut self, name: &str) {
+    pub(crate) fn remove_property(&mut self, name: &str) {
         self.properties.remove(name);
     }
 
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name that a `Some` is returned
+    /// with that field, otherwise None is retuned.
     #[inline]
-    pub fn insert_field<N>(&mut self, name: N, value: Value) -> Option<Property>
+    pub(crate) fn insert_field<N>(&mut self, name: N, value: Value) -> Option<Property>
     where
         N: Into<String>,
     {
@@ -434,6 +439,10 @@ impl Object {
         )
     }
 
+    /// This function returns an Optional reference value to the objects field.
+    ///
+    /// if it exist `Some` is returned with a reference to that fields value.
+    /// Otherwise `None` is retuned.
     #[inline]
     pub fn get_field(&self, name: &str) -> Option<&Value> {
         self.properties.get(name).and_then(|x| x.value.as_ref())
