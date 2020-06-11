@@ -557,7 +557,8 @@ pub fn create(global: &Value) -> Value {
 
 /// Initialise the `Math` object on the global object.
 #[inline]
-pub fn init(global: &Value) {
+pub fn init(global: &Value) -> (&str, Value) {
     let _timer = BoaProfiler::global().start_event("math", "init");
-    global.set_field("Math", create(global));
+
+    ("Math", create(global))
 }

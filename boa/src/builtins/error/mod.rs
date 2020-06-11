@@ -81,10 +81,9 @@ impl Error {
     }
 
     /// Initialise the global object with the `Error` object.
-    pub(crate) fn init(global: &Value) {
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("error", "init");
 
-        let error = Self::create(global);
-        global.as_object_mut().unwrap().insert_field("Error", error);
+        ("Error", Self::create(global))
     }
 }

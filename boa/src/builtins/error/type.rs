@@ -78,9 +78,9 @@ impl TypeError {
     }
 
     /// Initialise the global object with the `RangeError` object.
-    pub(crate) fn init(global: &Value) {
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("typeerror", "init");
 
-        global.set_field("TypeError", Self::create(global));
+        ("TypeError", Self::create(global))
     }
 }

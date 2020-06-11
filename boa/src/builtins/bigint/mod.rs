@@ -223,14 +223,10 @@ impl BigInt {
 
     /// Initialise the `BigInt` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) {
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("bigint", "init");
 
-        let bigint = Self::create(global);
-        global
-            .as_object_mut()
-            .unwrap()
-            .insert_field("BigInt", bigint);
+        ("BigInt", Self::create(global))
     }
 }
 

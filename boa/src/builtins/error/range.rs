@@ -71,13 +71,9 @@ impl RangeError {
     }
 
     /// Initialise the global object with the `RangeError` object.
-    pub(crate) fn init(global: &Value) {
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("rangeerror", "init");
 
-        let range_error = Self::create(global);
-        global
-            .as_object_mut()
-            .unwrap()
-            .insert_field("RangeError", range_error);
+        ("RangeError", Self::create(global))
     }
 }

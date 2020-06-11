@@ -111,13 +111,9 @@ impl Boolean {
 
     /// Initialise the `Boolean` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) {
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("boolean", "init");
 
-        let boolean = Self::create(global);
-        global
-            .as_object_mut()
-            .unwrap()
-            .insert_field("Boolean", boolean);
+        ("Boolean", Self::create(global))
     }
 }

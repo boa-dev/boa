@@ -488,12 +488,8 @@ pub fn create(global: &Value) -> Value {
 
 /// Initialise the `Object` object on the global object.
 #[inline]
-pub fn init(global: &Value) {
+pub fn init(global: &Value) -> (&str, Value) {
     let _timer = BoaProfiler::global().start_event("object", "init");
 
-    let object = create(global);
-    global
-        .as_object_mut()
-        .unwrap()
-        .insert_field("Object", object);
+    ("Object", create(global))
 }

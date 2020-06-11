@@ -106,12 +106,9 @@ impl Symbol {
 
     /// Initialise the `Symbol` object on the global object.
     #[inline]
-    pub fn init(global: &Value) {
+    pub fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("symbol", "init");
-        let symbol = Self::create(global);
-        global
-            .as_object_mut()
-            .unwrap()
-            .insert_field("Symbol", symbol);
+
+        ("Symbol", Self::create(global))
     }
 }

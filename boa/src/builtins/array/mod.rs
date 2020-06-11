@@ -1041,10 +1041,9 @@ impl Array {
 
     /// Initialise the `Array` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) {
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("array", "init");
 
-        let array = Self::create(global);
-        global.as_object_mut().unwrap().insert_field("Array", array);
+        ("Array", Self::create(global))
     }
 }

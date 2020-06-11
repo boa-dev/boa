@@ -492,12 +492,9 @@ impl RegExp {
 
     /// Initialise the `RegExp` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) {
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event("regexp", "init");
-        let regexp = Self::create(global);
-        global
-            .as_object_mut()
-            .unwrap()
-            .insert_field("RegExp", regexp);
+
+        ("RegExp", Self::create(global))
     }
 }

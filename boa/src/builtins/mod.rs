@@ -23,6 +23,8 @@ pub(crate) use self::{
     bigint::BigInt,
     boolean::Boolean,
     error::{Error, RangeError, TypeError},
+    global_this::GlobalThis,
+    nan::NaN,
     number::Number,
     regexp::RegExp,
     string::String,
@@ -33,22 +35,28 @@ pub(crate) use self::{
 /// Initializes builtin objects and functions
 #[inline]
 pub fn init(global: &Value) {
-    function::init(global);
-    Array::init(global);
-    BigInt::init(global);
-    Boolean::init(global);
-    global_this::init(global);
-    json::init(global);
-    math::init(global);
-    nan::init(global);
-    Number::init(global);
-    object::init(global);
-    RegExp::init(global);
-    String::init(global);
-    Symbol::init(global);
-    console::init(global);
+    let globals = vec![
+        function::init(global),
+        Array::init(global),
+        BigInt::init(global),
+        Boolean::init(global),
+        json::init(global),
+        math::init(global),
+        Number::init(global),
+        NaN::init(global),
+        GlobalThis::init(global),
+        object::init(global),
+        RegExp::init(global),
+        String::init(global),
+        Symbol::init(global),
+        console::init(global),
+        Error::init(global),
+        RangeError::init(global),
+        TypeError::init(global),
+    ];
 
-    Error::init(global);
-    RangeError::init(global);
-    TypeError::init(global);
+    let mut global_object = global.as_object_mut().expect("global object");
+    for (name, value) in globals {
+        global_object.insert_field(name, value);
+    }
 }
