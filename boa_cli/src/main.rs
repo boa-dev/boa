@@ -119,13 +119,7 @@ fn lex_source(src: &str) -> Result<Vec<Token>, String> {
     let mut lexer = Lexer::new(src.as_bytes());
 
     // Goes through and lexes entire given string.
-    let mut tokens = Vec::new();
-
-    for token in lexer {
-        tokens.push(token.map_err(|e| format!("Lexing Error: {}", e))?);
-    }
-
-    Ok(tokens)
+    lexer.collect::<Result<Vec<_>, _>().map_err(|e| format!("Lexing Error: {}", e))
 }
 
 /// Parses the the token stream into a ast and returns it.
