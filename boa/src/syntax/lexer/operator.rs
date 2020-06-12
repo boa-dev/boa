@@ -1,7 +1,7 @@
 use super::{Cursor, Error, Tokenizer};
 use crate::syntax::ast::{Position, Punctuator, Span};
-use crate::syntax::lexer::{Token, TokenKind};
-use std::io::{self, ErrorKind, Read};
+use crate::syntax::lexer::Token;
+use std::io::Read;
 
 /// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
 ///
