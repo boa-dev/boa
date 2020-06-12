@@ -2,6 +2,7 @@
 
 mod array;
 mod block;
+mod break_node;
 mod conditional;
 mod declaration;
 mod exception;
@@ -45,6 +46,12 @@ pub trait Executable {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub(crate) enum InterpreterState {
+    Executing,
+    Return,
+    Break(Option<String>),
+}
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PreferredType {
     String,
@@ -55,8 +62,8 @@ pub enum PreferredType {
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
-    /// Wether it's running a return statement.
-    is_return: bool,
+    current_state: InterpreterState,
+
     /// realm holds both the global object and the environment
     pub realm: Realm,
 }
@@ -65,8 +72,8 @@ impl Interpreter {
     /// Creates a new interpreter.
     pub fn new(realm: Realm) -> Self {
         Self {
+            current_state: InterpreterState::Executing,
             realm,
-            is_return: false,
         }
     }
 
@@ -485,6 +492,14 @@ impl Interpreter {
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }
+
+    pub(crate) fn set_current_state(&mut self, new_state: InterpreterState) {
+        self.current_state = new_state
+    }
+
+    pub(crate) fn get_current_state(&self) -> &InterpreterState {
+        &self.current_state
+    }
 }
 
 impl Executable for Node {
@@ -539,6 +554,7 @@ impl Executable for Node {
                 Ok(interpreter.realm().environment.get_this_binding())
             }
             Node::Try(ref try_node) => try_node.run(interpreter),
+            Node::Break(ref break_node) => break_node.run(interpreter),
             ref i => unimplemented!("{:?}", i),
         }
     }

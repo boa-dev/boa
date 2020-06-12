@@ -1,6 +1,6 @@
 //! Expression execution.
 
-use super::{Executable, Interpreter};
+use super::{Executable, Interpreter, InterpreterState};
 use crate::{
     builtins::{
         object::{INSTANCE_PROTOTYPE, PROTOTYPE},
@@ -48,7 +48,7 @@ impl Executable for Call {
         let fnct_result = interpreter.call(&func, &mut this, &v_args);
 
         // unset the early return flag
-        interpreter.is_return = false;
+        interpreter.set_current_state(InterpreterState::Executing);
 
         fnct_result
     }

@@ -51,7 +51,7 @@ fn non_empty() {
             FunctionDecl::new(
                 "hello".to_owned().into_boxed_str(),
                 vec![],
-                vec![Return::new(Const::from(10)).into()],
+                vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
             VarDeclList::from(vec![VarDecl::new(
@@ -77,7 +77,7 @@ fn hoisting() {
             FunctionDecl::new(
                 "hello".to_owned().into_boxed_str(),
                 vec![],
-                vec![Return::new(Const::from(10)).into()],
+                vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
             VarDeclList::from(vec![VarDecl::new(
