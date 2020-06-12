@@ -4,6 +4,7 @@ use std::{error::Error as StdError, fmt, io};
 pub enum Error {
     IO(io::Error),
     Syntax(Box<str>),
+    StrictMode(Box<str>), // Not 100% decided on this name.
 }
 
 impl From<io::Error> for Error {
@@ -20,6 +21,18 @@ impl Error {
     {
         Self::Syntax(err.into())
     }
+
+    /// Creates a new StrictMode error.
+    ///
+    /// This error is used to represent the case where a piece of javascript
+    /// cannot be lexed/parsed because it is in invalid when strict mdoe is
+    /// enabled.
+    pub(super) fn strict<M>(err: M) -> Self
+    where
+        M: Into<Box<str>>,
+    {
+        Self::StrictMode(err.into())
+    }
 }
 
 impl fmt::Display for Error {
@@ -27,6 +40,7 @@ impl fmt::Display for Error {
         match self {
             Self::IO(e) => write!(f, "I/O error: {}", e),
             Self::Syntax(e) => write!(f, "Syntax Error: {}", e),
+            Self::StrictMode(e) => write!(f, "Strict Mode Error: {}", e),
         }
     }
 }
@@ -36,6 +50,7 @@ impl StdError for Error {
         match self {
             Self::IO(err) => Some(err),
             Self::Syntax(_) => None,
+            Self::StrictMode(_) => None,
         }
     }
 }

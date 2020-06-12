@@ -477,7 +477,7 @@ impl<'a> Lexer<'a> {
     }
 
     /// Runs the lexer until completion, returning a [LexerError] if there's a syntax issue, or an empty unit result
-    ///
+    //
     /// # Example
     ///
     /// ```

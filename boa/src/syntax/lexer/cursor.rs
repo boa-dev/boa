@@ -16,15 +16,15 @@ impl<R> Cursor<R> {
         self.pos
     }
 
-    /// Advances the position to the next line.
+    /// Advances the position to the next column.
     #[inline]
-    fn next_column(&mut self) {
+    pub(super) fn next_column(&mut self) {
         let current_line = self.pos.line_number();
         let next_column = self.pos.column_number() + 1;
         self.pos = Position::new(current_line, next_column);
     }
 
-    /// Advances the position to the next column.
+    /// Advances the position to the next line.
     #[inline]
     fn next_line(&mut self) {
         let next_line = self.pos.line_number() + 1;

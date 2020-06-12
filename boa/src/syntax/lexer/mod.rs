@@ -3,14 +3,21 @@
 //! The Lexer splits its input source code into a sequence of input elements called tokens, represented by the [Token](../ast/token/struct.Token.html) structure.
 //! It also removes whitespace and comments and attaches them to the next token.
 
+#[macro_use]
 mod comment;
 mod cursor;
 pub mod error;
+
+#[macro_use]
 mod string;
 pub mod token;
 
 #[macro_use]
 mod template;
+
+mod number;
+
+mod identifier;
 
 // Temporary disabled while lexer in progress.
 // #[cfg(test)]
@@ -18,7 +25,10 @@ mod template;
 
 pub use self::error::Error;
 
-use self::{cursor::Cursor, string::StringLiteral, template::TemplateLiteral};
+use self::{
+    cursor::Cursor, identifier::Identifier, number::NumberLiteral, string::StringLiteral,
+    template::TemplateLiteral,
+};
 use crate::syntax::ast::{Position, Span};
 use std::io::Read;
 pub use token::{Token, TokenKind};
@@ -88,7 +98,9 @@ pub(crate) enum InputElement {
 
 impl Default for InputElement {
     fn default() -> Self {
-        todo!("what is the default input element?")
+        InputElement::Div
+        // Decided on InputElementDiv as default for now based on documentation from
+        // <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
     }
 }
 
@@ -119,6 +131,10 @@ where
             )),
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
             template_match!() => TemplateLiteral::new().lex(&mut self.cursor, start),
+            _ if next_chr.is_digit(10) => NumberLiteral::new(next_chr).lex(&mut self.cursor, start),
+            _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
+                Identifier::new(next_chr).lex(&mut self.cursor, start)
+            }
             _ => unimplemented!(),
         };
 

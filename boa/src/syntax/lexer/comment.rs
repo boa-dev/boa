@@ -4,6 +4,12 @@ use super::{Cursor, Error, Tokenizer};
 use crate::syntax::ast::Position;
 use crate::syntax::lexer::{Token, TokenKind};
 
+macro_rules! comment_match {
+    () => {{
+        '/'
+    }};
+}
+
 /// Lexes single line comments, starting with `//`.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct SingleLineComment;
