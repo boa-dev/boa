@@ -21,7 +21,7 @@ pub(super) struct NumberLiteral {
 impl NumberLiteral {
     /// Creates a new string literal lexer.
     pub(super) fn new(init: char) -> Self {
-        Self { init: init }
+        Self { init }
     }
 }
 

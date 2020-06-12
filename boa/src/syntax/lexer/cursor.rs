@@ -169,7 +169,7 @@ where
                 4
             };
 
-            for i in 1..num_bytes {
+            for b in buf.iter_mut().take(num_bytes).skip(1) {
                 let next = match self.iter.next() {
                     Some(Ok(b)) => b,
                     Some(Err(e)) => return Some(Err(e)),
@@ -181,7 +181,7 @@ where
                     }
                 };
 
-                buf[i] = next;
+                *b = next;
             }
 
             let int = u32::from_le_bytes(buf);

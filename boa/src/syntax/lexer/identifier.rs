@@ -23,7 +23,7 @@ pub(super) struct Identifier {
 impl Identifier {
     /// Creates a new identifier/keyword lexer.
     pub(super) fn new(init: char) -> Self {
-        Self { init: init }
+        Self { init }
     }
 }
 
