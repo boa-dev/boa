@@ -128,7 +128,7 @@ fn get_types() {
         forward_val(&mut engine, "function foo() {console.log(\"foo\");}")
             .unwrap()
             .get_type(),
-        Type::Function
+        Type::Undefined
     );
     assert_eq!(
         forward_val(&mut engine, "null").unwrap().get_type(),
