@@ -19,10 +19,12 @@ fn expression_parser(c: &mut Criterion) {
 
     c.bench_function("Expression (Parser)", move |b| {
         b.iter(|| {
-            let mut lexer = Lexer::new(black_box(EXPRESSION));
-            lexer.lex().expect("failed to lex");
+            let lexer = Lexer::new(black_box(EXPRESSION.as_bytes()));
 
-            Parser::new(&black_box(lexer.tokens)).parse_all()
+            // Goes through and lexes entire given string.
+            let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
+
+            Parser::new(&black_box(tokens)).parse_all()
         })
     });
 }
@@ -34,10 +36,11 @@ fn hello_world_parser(c: &mut Criterion) {
 
     c.bench_function("Hello World (Parser)", move |b| {
         b.iter(|| {
-            let mut lexer = Lexer::new(black_box(HELLO_WORLD));
-            lexer.lex().expect("failed to lex");
+            let lexer = Lexer::new(black_box(HELLO_WORLD.as_bytes()));
+            // Goes through and lexes entire given string.
+            let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
 
-            Parser::new(&black_box(lexer.tokens)).parse_all()
+            Parser::new(&black_box(tokens)).parse_all()
         })
     });
 }
@@ -59,10 +62,12 @@ fn for_loop_parser(c: &mut Criterion) {
 
     c.bench_function("For loop (Parser)", move |b| {
         b.iter(|| {
-            let mut lexer = Lexer::new(black_box(FOR_LOOP));
-            lexer.lex().expect("failed to lex");
+            let lexer = Lexer::new(black_box(FOR_LOOP.as_bytes()));
 
-            Parser::new(&black_box(lexer.tokens)).parse_all()
+            // Goes through and lexes entire given string.
+            let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
+
+            Parser::new(&black_box(tokens)).parse_all()
         })
     });
 }
@@ -101,10 +106,12 @@ fn long_file_parser(c: &mut Criterion) {
             let file_str = fs::read_to_string(FILE_NAME)
                 .unwrap_or_else(|_| panic!("could not read {}", FILE_NAME));
 
-            let mut lexer = Lexer::new(black_box(&file_str));
-            lexer.lex().expect("failed to lex");
+            let lexer = Lexer::new(black_box(file_str.as_bytes()));
 
-            Parser::new(&black_box(lexer.tokens)).parse_all()
+            // Goes through and lexes entire given string.
+            let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
+
+            Parser::new(&black_box(tokens)).parse_all()
         })
     });
 

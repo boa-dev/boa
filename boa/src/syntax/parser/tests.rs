@@ -23,11 +23,7 @@ where
     let lexer = Lexer::new(js.as_bytes());
 
     // Goes through and lexes entire given string.
-    let mut tokens = Vec::new();
-
-    for token in lexer {
-        tokens.push(token.expect("failed to lex"));
-    }
+    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
 
     assert_eq!(
         Parser::new(&tokens).parse_all().expect("failed to parse"),
@@ -40,6 +36,7 @@ where
 pub(super) fn check_invalid(js: &str) {
     let lexer = Lexer::new(js.as_bytes());
 
+    // Goes through and lexes entire given string.
     let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
 
     assert!(Parser::new(&tokens).parse_all().is_err());
