@@ -8,6 +8,18 @@ use crate::{
 };
 
 #[test]
+fn integer_number_primitive_to_number_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let scenario = r#"
+        (100).toString() === "100"
+    "#;
+
+    assert_eq!(forward(&mut engine, scenario), "true");
+}
+
+#[test]
 fn check_number_constructor_is_function() {
     let global = Value::new_object(None);
     let number_constructor = Number::create(&global);
