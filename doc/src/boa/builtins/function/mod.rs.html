@@ -471,6 +471,10 @@
 <span id="471">471</span>
 <span id="472">472</span>
 <span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -514,10 +518,14 @@
 <span class="doccomment">/// Defines how this references are interpreted within the formal parameters and code body of the function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Arrow functions don&#39;t define a `this` and thus are lexical, `function`s do define a this and thus are NonLexical</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ThisMode</span> {
     <span class="ident">Lexical</span>,
     <span class="ident">NonLexical</span>,
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ThisMode</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
 }
 
 <span class="doccomment">/// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)</span>

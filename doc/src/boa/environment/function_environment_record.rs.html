@@ -245,6 +245,10 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Function Environment Records</span>
 <span class="doccomment">//!</span>
@@ -264,12 +268,12 @@
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
 <span class="doccomment">/// Different binding status for `this`.</span>
 <span class="doccomment">/// Usually set on a function environment record</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BindingStatus</span> {
     <span class="doccomment">/// If the value is &quot;lexical&quot;, this is an ArrowFunction and does not have a local this value.</span>
     <span class="ident">Lexical</span>,
@@ -277,6 +281,10 @@
     <span class="ident">Initialized</span>,
     <span class="doccomment">/// If uninitialized the function environment record has not been bouned with a `this` value</span>
     <span class="ident">Uninitialized</span>,
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">BindingStatus</span> {
+    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
 }
 
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#table-16&gt;</span>
