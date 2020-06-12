@@ -33,4 +33,17 @@ impl Interpreter {
         ))
         .run(self)
     }
+
+    /// Throws a `Reference` with the specified message.
+    pub fn throw_reference_error<M>(&mut self, message: M) -> ResultValue
+    where
+        M: Into<String>,
+    {
+        // Runs a `new ReferenceError(message)`.
+        New::from(Call::new(
+            Identifier::from("ReferenceError"),
+            vec![Const::from(message.into()).into()],
+        ))
+        .run(self)
+    }
 }
