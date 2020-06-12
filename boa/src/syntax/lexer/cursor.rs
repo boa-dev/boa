@@ -26,7 +26,7 @@ impl<R> Cursor<R> {
 
     /// Advances the position to the next line.
     #[inline]
-    fn next_line(&mut self) {
+    pub(super) fn next_line(&mut self) {
         let next_line = self.pos.line_number() + 1;
         self.pos = Position::new(next_line, 1);
     }
