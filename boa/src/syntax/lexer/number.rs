@@ -3,9 +3,9 @@ use crate::syntax::ast::Position;
 use crate::syntax::lexer::Token;
 use std::io::Read;
 
-/// Number literal parsing.
+/// Number literal lexing.
 ///
-///
+/// Assumes the digit is consumed by the cursor (stored in init).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
