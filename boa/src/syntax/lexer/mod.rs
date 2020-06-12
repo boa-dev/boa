@@ -22,6 +22,8 @@ mod operator;
 
 mod spread;
 
+mod regex;
+
 mod identifier;
 
 // Temporary disabled while lexer in progress.
@@ -32,7 +34,8 @@ pub use self::error::Error;
 
 use self::{
     comment::Comment, cursor::Cursor, identifier::Identifier, number::NumberLiteral,
-    operator::Operator, spread::SpreadLiteral, string::StringLiteral, template::TemplateLiteral,
+    operator::Operator, regex::RegexLiteral, spread::SpreadLiteral, string::StringLiteral,
+    template::TemplateLiteral,
 };
 use crate::syntax::ast::{Position, Punctuator, Span};
 use std::io::Read;

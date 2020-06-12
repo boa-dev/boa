@@ -9,7 +9,7 @@ macro_rules! template_match {
     };
 }
 
-/// Template literal parsing.
+/// Template literal lexing.
 ///
 /// Expects: Initial ` to already be consumed by cursor.
 ///
@@ -23,7 +23,7 @@ macro_rules! template_match {
 pub(super) struct TemplateLiteral;
 
 impl TemplateLiteral {
-    /// Creates a new string literal lexer.
+    /// Creates a new template literal lexer.
     pub(super) fn new() -> Self {
         Self {}
     }
