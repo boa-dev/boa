@@ -38,6 +38,29 @@ fn check_string() {
 }
 
 #[test]
+fn check_template_literal_simple() {
+    let s = "`I'm a template literal`";
+    let mut lexer = Lexer::new(s);
+    lexer.lex().expect("failed to lex");
+    assert_eq!(
+        lexer.tokens[0].kind,
+        TokenKind::template_literal("I'm a template literal")
+    );
+}
+
+#[test]
+fn check_template_literal_unterminated() {
+    let s = "`I'm a template";
+    let mut lexer = Lexer::new(s);
+    match lexer.lex() {
+        Ok(_) => panic!("Lexer did not detect end of stream"),
+        Err(e) => {
+            assert_eq!(e.to_string(), "Unterminated template literal");
+        }
+    }
+}
+
+#[test]
 fn check_punctuators() {
     // https://tc39.es/ecma262/#sec-punctuators
     let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
@@ -362,19 +385,6 @@ fn check_decrement_advances_lexer_2_places() {
         lexer.tokens[5].kind,
         TokenKind::Punctuator(Punctuator::Semicolon)
     );
-}
-
-#[test]
-fn check_nan() {
-    let mut lexer = Lexer::new("let a = NaN;");
-    lexer.lex().expect("failed to lex");
-
-    match lexer.tokens[3].kind {
-        TokenKind::NumericLiteral(NumericLiteral::Rational(a)) => {
-            assert!(a.is_nan());
-        }
-        ref other => panic!("Incorrect token kind found for NaN: {}", other),
-    }
 }
 
 #[test]

@@ -1,6 +1,44 @@
 use crate::{builtins::Value, exec, exec::Interpreter, forward, realm::Realm};
 
 #[test]
+fn property_accessor_member_expression_dot_notation_on_string_literal() {
+    let scenario = r#"
+        typeof 'asd'.matchAll;
+        "#;
+
+    assert_eq!(&exec(scenario), "function");
+}
+
+#[test]
+fn property_accessor_member_expression_bracket_notation_on_string_literal() {
+    let scenario = r#"
+        typeof 'asd'['matchAll'];
+        "#;
+
+    assert_eq!(&exec(scenario), "function");
+}
+
+#[test]
+fn property_accessor_member_expression_dot_notation_on_function() {
+    let scenario = r#"
+        function asd () {};
+        asd.name;
+        "#;
+
+    assert_eq!(&exec(scenario), "asd");
+}
+
+#[test]
+fn property_accessor_member_expression_bracket_notation_on_function() {
+    let scenario = r#"
+        function asd () {};
+        asd['name'];
+        "#;
+
+    assert_eq!(&exec(scenario), "asd");
+}
+
+#[test]
 fn empty_let_decl_undefined() {
     let scenario = r#"
         let a;
@@ -764,6 +802,26 @@ fn to_bigint() {
     assert!(engine.to_bigint(&Value::integer(55)).is_ok());
     assert!(engine.to_bigint(&Value::rational(10.0)).is_ok());
     assert!(engine.to_bigint(&Value::string("100")).is_ok());
+}
+
+#[test]
+fn to_index() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(engine.to_index(&Value::undefined()).unwrap(), 0);
+    assert!(engine.to_index(&Value::integer(-1)).is_err());
+}
+
+#[test]
+fn to_integer() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(engine.to_integer(&Value::number(f64::NAN)).unwrap(), 0);
+    assert_eq!(engine.to_integer(&Value::number(0.0f64)).unwrap(), 0);
+    assert_eq!(engine.to_integer(&Value::number(20.9)).unwrap(), 20);
+    assert_eq!(engine.to_integer(&Value::number(-20.9)).unwrap(), -20);
 }
 
 #[test]

@@ -32,13 +32,13 @@ impl Executable for Assign {
                     environment.initialize_binding(name.as_ref(), val.clone());
                 }
             }
-            Node::GetConstField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                val_obj.set_field(field, val.clone());
+            Node::GetConstField(ref get_const_field) => {
+                let val_obj = get_const_field.obj().run(interpreter)?;
+                val_obj.set_field(get_const_field.field(), val.clone());
             }
-            Node::GetField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                let val_field = field.run(interpreter)?;
+            Node::GetField(ref get_field) => {
+                let val_obj = get_field.obj().run(interpreter)?;
+                let val_field = get_field.field().run(interpreter)?;
                 val_obj.set_field(val_field, val.clone());
             }
             _ => (),
@@ -91,7 +91,7 @@ impl Executable for BinOp {
                         if !v_b.is_object() {
                             return interpreter.throw_type_error(format!(
                                 "right-hand side of 'in' should be an object, got {}",
-                                v_b.get_type()
+                                v_b.get_type().as_str()
                             ));
                         }
                         let key = interpreter.to_property_key(&mut v_a)?;
@@ -128,12 +128,12 @@ impl Executable for BinOp {
                     );
                     Ok(value)
                 }
-                Node::GetConstField(ref obj, ref field) => {
-                    let v_r_a = obj.run(interpreter)?;
-                    let v_a = v_r_a.get_field(field);
+                Node::GetConstField(ref get_const_field) => {
+                    let v_r_a = get_const_field.obj().run(interpreter)?;
+                    let v_a = v_r_a.get_field(get_const_field.field());
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b);
-                    v_r_a.set_field(&field.clone(), value.clone());
+                    v_r_a.set_field(get_const_field.field(), value.clone());
                     Ok(value)
                 }
                 _ => Ok(Value::undefined()),
@@ -196,12 +196,17 @@ impl Executable for UnaryOp {
             }
             op::UnaryOp::Void => Value::undefined(),
             op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref obj, ref field) => {
-                    Value::boolean(obj.run(interpreter)?.remove_property(field))
-                }
-                Node::GetField(ref obj, ref field) => Value::boolean(
-                    obj.run(interpreter)?
-                        .remove_property(&field.run(interpreter)?.to_string()),
+                Node::GetConstField(ref get_const_field) => Value::boolean(
+                    get_const_field
+                        .obj()
+                        .run(interpreter)?
+                        .remove_property(get_const_field.field()),
+                ),
+                Node::GetField(ref get_field) => Value::boolean(
+                    get_field
+                        .obj()
+                        .run(interpreter)?
+                        .remove_property(&get_field.field().run(interpreter)?.to_string()),
                 ),
                 Node::Identifier(_) => Value::boolean(false),
                 Node::ArrayDecl(_)
@@ -214,7 +219,7 @@ impl Executable for UnaryOp {
                 | Node::UnaryOp(_) => Value::boolean(true),
                 _ => panic!("SyntaxError: wrong delete argument {}", self),
             },
-            op::UnaryOp::TypeOf => Value::from(v_a.get_type()),
+            op::UnaryOp::TypeOf => Value::from(v_a.get_type().as_str()),
         })
     }
 }

@@ -2,16 +2,22 @@
 
 mod array;
 mod block;
+mod conditional;
 mod declaration;
 mod exception;
 mod expression;
+mod field;
 mod iteration;
+mod object;
 mod operator;
+mod return_smt;
+mod spread;
 mod statement_list;
-mod try_node;
-
+mod switch;
 #[cfg(test)]
 mod tests;
+mod throw;
+mod try_node;
 
 use crate::{
     builtins::{
@@ -21,13 +27,13 @@ use crate::{
             PROTOTYPE,
         },
         property::Property,
-        value::{ResultValue, Value, ValueData},
+        value::{ResultValue, Type, Value, ValueData},
         BigInt, Number,
     },
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::{FormalParameter, MethodDefinitionKind, Node, PropertyDefinition, StatementList},
+        node::{FormalParameter, Node, StatementList},
     },
     BoaProfiler,
 };
@@ -37,6 +43,13 @@ use std::{borrow::Borrow, ops::Deref};
 pub trait Executable {
     /// Runs this executable in the given executor.
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PreferredType {
+    String,
+    Number,
+    Default,
 }
 
 /// A Javascript intepreter
@@ -150,7 +163,7 @@ impl Interpreter {
             }
             ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some("string"));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::String);
                 self.to_string(&primitive)
             }
         }
@@ -184,12 +197,80 @@ impl Interpreter {
             }
             ValueData::BigInt(b) => Ok(b.clone()),
             ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), Some("number"));
+                let primitive = self.to_primitive(&mut value.clone(), PreferredType::Number);
                 self.to_bigint(&primitive)
             }
             ValueData::Symbol(_) => {
                 self.throw_type_error("cannot convert Symbol to a BigInt")?;
                 unreachable!();
+            }
+        }
+    }
+
+    /// Converts a value to a non-negative integer if it is a valid integer index value.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toindex
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_index(&mut self, value: &Value) -> Result<usize, Value> {
+        if value.is_undefined() {
+            return Ok(0);
+        }
+
+        let integer_index = self.to_integer(value)?;
+
+        if integer_index < 0 {
+            self.throw_range_error("Integer index must be >= 0")?;
+            unreachable!();
+        }
+
+        if integer_index > 2i64.pow(53) - 1 {
+            self.throw_range_error("Integer index must be less than 2**(53) - 1")?;
+            unreachable!()
+        }
+
+        Ok(integer_index as usize)
+    }
+
+    /// Converts a value to an integral 64 bit signed integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tointeger
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_integer(&mut self, value: &Value) -> Result<i64, Value> {
+        let number = self.to_number(value)?;
+
+        if number.is_nan() {
+            return Ok(0);
+        }
+
+        Ok(number as i64)
+    }
+
+    /// Converts a value to a double precision floating point.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumber
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_number(&mut self, value: &Value) -> Result<f64, Value> {
+        match *value.deref().borrow() {
+            ValueData::Null => Ok(0.0),
+            ValueData::Undefined => Ok(f64::NAN),
+            ValueData::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            ValueData::String(ref string) => match string.parse::<f64>() {
+                Ok(number) => Ok(number),
+                Err(_) => Ok(0.0),
+            }, // this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            ValueData::Rational(number) => Ok(number),
+            ValueData::Integer(integer) => Ok(f64::from(integer)),
+            ValueData::Symbol(_) => {
+                self.throw_type_error("argument must not be a symbol")?;
+                unreachable!()
+            }
+            ValueData::BigInt(_) => {
+                self.throw_type_error("argument must not be a bigint")?;
+                unreachable!()
+            }
+            ValueData::Object(_) => {
+                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
+                self.to_number(&prim_value)
             }
         }
     }
@@ -215,10 +296,10 @@ impl Interpreter {
     }
 
     /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
-    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: &str) -> Value {
-        debug_assert!(o.get_type() == "object");
-        debug_assert!(hint == "string" || hint == "number");
-        let method_names: Vec<&str> = if hint == "string" {
+    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: PreferredType) -> Value {
+        debug_assert!(o.get_type() == Type::Object);
+        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
+        let method_names: Vec<&str> = if hint == PreferredType::String {
             vec!["toString", "valueOf"]
         } else {
             vec!["valueOf", "toString"]
@@ -250,24 +331,17 @@ impl Interpreter {
     pub(crate) fn to_primitive(
         &mut self,
         input: &mut Value,
-        preferred_type: Option<&str>,
+        preferred_type: PreferredType,
     ) -> Value {
-        let mut hint: &str;
+        let mut hint: PreferredType;
         match (*input).deref() {
             ValueData::Object(_) => {
-                hint = match preferred_type {
-                    None => "default",
-                    Some(pt) => match pt {
-                        "string" => "string",
-                        "number" => "number",
-                        _ => "default",
-                    },
-                };
+                hint = preferred_type;
 
                 // Skip d, e we don't support Symbols yet
                 // TODO: add when symbols are supported
-                if hint == "default" {
-                    hint = "number";
+                if hint == PreferredType::Default {
+                    hint = PreferredType::Number;
                 };
 
                 self.ordinary_to_primitive(input, hint)
@@ -281,7 +355,7 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_property_key(&mut self, value: &mut Value) -> ResultValue {
-        let key = self.to_primitive(value, Some("string"));
+        let key = self.to_primitive(value, PreferredType::String);
         if key.is_symbol() {
             Ok(key)
         } else {
@@ -370,12 +444,13 @@ impl Interpreter {
             ValueData::String(ref string) => string.parse::<f64>().unwrap(),
             ValueData::BigInt(ref bigint) => bigint.to_f64(),
             ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), Some("number"));
+                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
                 self.to_string(&prim_value)
                     .expect("cannot convert value to string")
                     .parse::<f64>()
                     .expect("cannot parse value to f64")
             }
+            ValueData::Undefined => f64::NAN,
             _ => {
                 // TODO: Make undefined?
                 f64::from(0)
@@ -391,10 +466,14 @@ impl Interpreter {
                     .set_mutable_binding(name.as_ref(), value.clone(), true);
                 Ok(value)
             }
-            Node::GetConstField(ref obj, ref field) => Ok(obj.run(self)?.set_field(field, value)),
-            Node::GetField(ref obj, ref field) => {
-                Ok(obj.run(self)?.set_field(field.run(self)?, value))
-            }
+            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
+                .obj()
+                .run(self)?
+                .set_field(get_const_field_node.field(), value)),
+            Node::GetField(ref get_field) => Ok(get_field
+                .obj()
+                .run(self)?
+                .set_field(get_field.field().run(self)?, value)),
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }
@@ -422,100 +501,15 @@ impl Executable for Node {
                     .get_binding_value(name.as_ref());
                 Ok(val)
             }
-            Node::GetConstField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                Ok(val_obj.borrow().get_field(field))
-            }
-            Node::GetField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                let val_field = field.run(interpreter)?;
-                Ok(val_obj.borrow().get_field(val_field.borrow().to_string()))
-            }
+            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
+            Node::GetField(ref get_field) => get_field.run(interpreter),
             Node::Call(ref expr) => expr.run(interpreter),
-            Node::WhileLoop(ref cond, ref expr) => {
-                let mut result = Value::undefined();
-                while cond.run(interpreter)?.borrow().is_true() {
-                    result = expr.run(interpreter)?;
-                }
-                Ok(result)
-            }
-            Node::DoWhileLoop(ref body, ref cond) => {
-                let mut result = body.run(interpreter)?;
-                while cond.run(interpreter)?.borrow().is_true() {
-                    result = body.run(interpreter)?;
-                }
-                Ok(result)
-            }
+            Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
+            Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
-            Node::If(ref cond, ref expr, None) => {
-                Ok(if cond.run(interpreter)?.borrow().is_true() {
-                    expr.run(interpreter)?
-                } else {
-                    Value::undefined()
-                })
-            }
-            Node::If(ref cond, ref expr, Some(ref else_e)) => {
-                Ok(if cond.run(interpreter)?.borrow().is_true() {
-                    expr.run(interpreter)?
-                } else {
-                    else_e.run(interpreter)?
-                })
-            }
-            Node::Switch(ref val_e, ref vals, ref default) => {
-                let val = val_e.run(interpreter)?;
-                let mut result = Value::null();
-                let mut matched = false;
-                for tup in vals.iter() {
-                    let cond = &tup.0;
-                    let block = &tup.1;
-                    if val.strict_equals(&cond.run(interpreter)?) {
-                        matched = true;
-                        let last_expr = block.last().expect("Block has no expressions");
-                        for expr in block.iter() {
-                            let e_result = expr.run(interpreter)?;
-                            if expr == last_expr {
-                                result = e_result;
-                            }
-                        }
-                    }
-                }
-                if !matched {
-                    if let Some(default) = default {
-                        result = default.run(interpreter)?;
-                    }
-                }
-                Ok(result)
-            }
-            Node::Object(ref properties) => {
-                let global_val = &interpreter
-                    .realm()
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get the global object");
-                let obj = Value::new_object(Some(global_val));
-
-                // TODO: Implement the rest of the property types.
-                for property in properties.iter() {
-                    match property {
-                        PropertyDefinition::Property(key, value) => {
-                            obj.borrow()
-                                .set_field(&key.clone(), value.run(interpreter)?);
-                        }
-                        PropertyDefinition::MethodDefinition(kind, name, func) => {
-                            if let MethodDefinitionKind::Ordinary = kind {
-                                obj.borrow()
-                                    .set_field(&name.clone(), func.run(interpreter)?);
-                            } else {
-                                // TODO: Implement other types of MethodDefinitionKinds.
-                                unimplemented!("other types of property method definitions.");
-                            }
-                        }
-                        i => unimplemented!("{:?} type of property", i),
-                    }
-                }
-
-                Ok(obj)
-            }
+            Node::If(ref if_smt) => if_smt.run(interpreter),
+            Node::Switch(ref switch) => switch.run(interpreter),
+            Node::Object(ref obj) => obj.run(interpreter),
             Node::ArrayDecl(ref arr) => arr.run(interpreter),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref decl) => decl.run(interpreter),
@@ -525,24 +519,13 @@ impl Executable for Node {
             Node::BinOp(ref op) => op.run(interpreter),
             Node::UnaryOp(ref op) => op.run(interpreter),
             Node::New(ref call) => call.run(interpreter),
-            Node::Return(ref ret) => {
-                let result = match *ret {
-                    Some(ref v) => v.run(interpreter),
-                    None => Ok(Value::undefined()),
-                };
-                // Set flag for return
-                interpreter.is_return = true;
-                result
-            }
-            Node::Throw(ref ex) => Err(ex.run(interpreter)?),
+            Node::Return(ref ret) => ret.run(interpreter),
+            Node::Throw(ref throw) => throw.run(interpreter),
             Node::Assign(ref op) => op.run(interpreter),
             Node::VarDeclList(ref decl) => decl.run(interpreter),
             Node::LetDeclList(ref decl) => decl.run(interpreter),
             Node::ConstDeclList(ref decl) => decl.run(interpreter),
-            Node::Spread(ref node) => {
-                // TODO: for now we can do nothing but return the value as-is
-                node.run(interpreter)
-            }
+            Node::Spread(ref spread) => spread.run(interpreter),
             Node::This => {
                 // Will either return `this` binding or undefined
                 Ok(interpreter.realm().environment.get_this_binding())

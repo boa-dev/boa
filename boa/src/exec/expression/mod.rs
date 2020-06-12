@@ -4,7 +4,7 @@ use super::{Executable, Interpreter};
 use crate::{
     builtins::{
         object::{INSTANCE_PROTOTYPE, PROTOTYPE},
-        value::{ResultValue, Value, ValueData},
+        value::{ResultValue, Type, Value, ValueData},
     },
     syntax::ast::node::{Call, New, Node},
     BoaProfiler,
@@ -14,19 +14,19 @@ impl Executable for Call {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (mut this, func) = match self.expr() {
-            Node::GetConstField(ref obj, ref field) => {
-                let mut obj = obj.run(interpreter)?;
-                if obj.get_type() != "object" || obj.get_type() != "symbol" {
+            Node::GetConstField(ref get_const_field) => {
+                let mut obj = get_const_field.obj().run(interpreter)?;
+                if obj.get_type() != Type::Object || obj.get_type() != Type::Symbol {
                     obj = interpreter
                         .to_object(&obj)
                         .expect("failed to convert to object");
                 }
-                (obj.clone(), obj.get_field(field))
+                (obj.clone(), obj.get_field(get_const_field.field()))
             }
-            Node::GetField(ref obj, ref field) => {
-                let obj = obj.run(interpreter)?;
-                let field = field.run(interpreter)?;
-                (obj.clone(), obj.get_field(field))
+            Node::GetField(ref get_field) => {
+                let obj = get_field.obj().run(interpreter)?;
+                let field = get_field.field().run(interpreter)?;
+                (obj.clone(), obj.get_field(field.to_string()))
             }
             _ => (
                 interpreter.realm().global_obj.clone(),

@@ -9,10 +9,10 @@
 
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator, TokenKind},
+        ast::{node::DoWhileLoop, Keyword, Punctuator, TokenKind},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, ParseResult, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -54,9 +54,9 @@ impl DoWhileStatement {
 }
 
 impl TokenParser for DoWhileStatement {
-    type Output = Node;
+    type Output = DoWhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
         cursor.expect(Keyword::Do, "do while statement")?;
 
@@ -81,6 +81,6 @@ impl TokenParser for DoWhileStatement {
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
         cursor.expect_semicolon(true, "do while statement")?;
 
-        Ok(Node::do_while_loop(body, cond))
+        Ok(DoWhileLoop::new(body, cond))
     }
 }

@@ -1,5 +1,5 @@
 use super::*;
-use crate::{builtins::Number, Interpreter};
+use crate::{builtins::Number, exec::PreferredType, Interpreter};
 
 use std::borrow::Borrow;
 
@@ -94,14 +94,14 @@ impl Value {
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
             (ValueData::Object(_), _) => {
-                let mut primitive = interpreter.to_primitive(self, None);
+                let mut primitive = interpreter.to_primitive(self, PreferredType::Default);
                 primitive.equals(other, interpreter)
             }
 
             // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
             // of the comparison ? ToPrimitive(x) == y.
             (_, ValueData::Object(_)) => {
-                let mut primitive = interpreter.to_primitive(other, None);
+                let mut primitive = interpreter.to_primitive(other, PreferredType::Default);
                 primitive.equals(self, interpreter)
             }
 
@@ -200,16 +200,11 @@ pub fn same_value_zero(x: &Value, y: &Value) -> bool {
 pub fn same_value_non_numeric(x: &Value, y: &Value) -> bool {
     debug_assert!(x.get_type() == y.get_type());
     match x.get_type() {
-        "undefined" => true,
-        "null" => true,
-        "string" => {
-            if x.to_string() == y.to_string() {
-                return true;
-            }
-            false
-        }
-        "boolean" => bool::from(x) == bool::from(y),
-        "object" => std::ptr::eq(x, y),
+        Type::Undefined => true,
+        Type::Null => true,
+        Type::String => x.to_string() == y.to_string(),
+        Type::Boolean => bool::from(x) == bool::from(y),
+        Type::Object => std::ptr::eq(x, y),
         _ => false,
     }
 }

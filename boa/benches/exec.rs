@@ -1,6 +1,6 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa::{exec, realm::Realm};
+use boa::{exec::Interpreter, realm::Realm, Executable, Lexer, Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -11,9 +11,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 static SYMBOL_CREATION: &str = r#"
-let a = Symbol();
-let b = Symbol();
-let c = Symbol();
+(function () {
+    return Symbol();
+})();
 "#;
 
 fn create_realm(c: &mut Criterion) {
@@ -21,91 +21,347 @@ fn create_realm(c: &mut Criterion) {
 }
 
 fn symbol_creation(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(SYMBOL_CREATION));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Symbols (Execution)", move |b| {
-        b.iter(|| exec(black_box(SYMBOL_CREATION)))
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
 
 static FOR_LOOP: &str = r#"
-let a = 10;
-let b = "hello";
-for (;a > 100;) {
-    a += 5;
-
-    if (a < 50) {
-        b += "world";
+(function () {
+    let b = "hello";
+    for (let a = 10; a < 100; a += 5) {
+        if (a < 50) {
+            b += "world";
+        }
     }
-}
 
-b
+    return b;
+})();
 "#;
 
 fn for_loop_execution(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(FOR_LOOP));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("For loop (Execution)", move |b| {
-        b.iter(|| exec(black_box(FOR_LOOP)))
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
 
 static FIBONACCI: &str = r#"
-let num = 12;
+(function () {
+    let num = 12;
 
-function fib(n) {
-  if (n <= 1) return 1;
-  return fib(n - 1) + fib(n - 2);
-}
+    function fib(n) {
+        if (n <= 1) return 1;
+        return fib(n - 1) + fib(n - 2);
+    }
 
-let res = fib(num);
-
-res;
+    return fib(num);
+})();
 "#;
 
 fn fibonacci(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(FIBONACCI));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Fibonacci (Execution)", move |b| {
-        b.iter(|| exec(black_box(FIBONACCI)))
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static OBJECT_CREATION: &str = r#"
+(function () {
+    let test = {
+        my_prop: "hello",
+        another: 65,
+    };
+
+    return test;
+})();
+"#;
+
+fn object_creation(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(OBJECT_CREATION));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    c.bench_function("Object Creation (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static OBJECT_PROP_ACCESS_CONST: &str = r#"
+(function () {
+    let test = {
+        my_prop: "hello",
+        another: 65,
+    };
+
+    return test.my_prop;
+})();
+"#;
+
+fn object_prop_access_const(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(OBJECT_PROP_ACCESS_CONST));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    c.bench_function("Static Object Property Access (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static OBJECT_PROP_ACCESS_DYN: &str = r#"
+(function () {
+    let test = {
+        my_prop: "hello",
+        another: 65,
+    };
+
+    return test["my" + "_prop"];
+})();
+"#;
+
+fn object_prop_access_dyn(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(OBJECT_PROP_ACCESS_DYN));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    c.bench_function("Dynamic Object Property Access (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static REGEXP_LITERAL_CREATION: &str = r#"
+(function () {
+    let regExp = /hello/i;
+
+    return regExp;
+})();
+"#;
+
+fn regexp_literal_creation(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(REGEXP_LITERAL_CREATION));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    c.bench_function("RegExp Literal Creation (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static REGEXP_CREATION: &str = r#"
+(function () {
+    let regExp = new RegExp('hello', 'i');
+
+    return regExp;
+})();
+"#;
+
+fn regexp_creation(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(REGEXP_CREATION));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    c.bench_function("RegExp (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static REGEXP_LITERAL: &str = r#"
+(function () {
+    let regExp = /hello/i;
+
+    return regExp.test("Hello World");
+})();
+"#;
+
+fn regexp_literal(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(REGEXP_LITERAL));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    c.bench_function("RegExp Literal (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static REGEXP: &str = r#"
+(function () {
+    let regExp = new RegExp('hello', 'i');
+
+    return regExp.test("Hello World");
+})();
+"#;
+
+fn regexp(c: &mut Criterion) {
+    // Create new Realm and interpreter.
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Lex all the tokens.
+    let mut lexer = Lexer::new(black_box(REGEXP));
+    lexer.lex().expect("failed to lex");
+
+    // Parse the AST nodes.
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    c.bench_function("RegExp (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
 
 static ARRAY_ACCESS: &str = r#"
-let testArr = [1,2,3,4,5];
+(function () {
+    let testArr = [1,2,3,4,5];
 
-let res = testArr[2];
+    let res = testArr[2];
 
-res;
+    return res;
+})();
 "#;
 
 fn array_access(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(ARRAY_ACCESS));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
     c.bench_function("Array access (Execution)", move |b| {
-        b.iter(|| exec(black_box(ARRAY_ACCESS)))
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
 
 static ARRAY_CREATE: &str = r#"
-var testArr = [];
-for (var a = 0; a <= 10000; a++) {
-    testArr[a] = ('p' + a);
-}
+(function(){
+    let testArr = [];
+    for (let a = 0; a <= 500; a++) {
+        testArr[a] = ('p' + a);
+    }
 
-testArr;
+    return testArr;
+})();
 "#;
 
 fn array_creation(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(ARRAY_CREATE));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
     c.bench_function("Array creation (Execution)", move |b| {
-        b.iter(|| exec(black_box(ARRAY_CREATE)))
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
 
 static ARRAY_POP: &str = r#"
-var testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28];
-while (testArray.length > 0) {
-  testArray.pop();
-}
+(function(){
+    let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28];
+    while (testArray.length > 0) {
+        testArray.pop();
+    }
 
-testArray;
+    return testArray;
+})();
 "#;
 
 fn array_pop(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(ARRAY_POP));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
     c.bench_function("Array pop (Execution)", move |b| {
-        b.iter(|| exec(black_box(ARRAY_POP)))
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
 
@@ -117,6 +373,13 @@ criterion_group!(
     fibonacci,
     array_access,
     array_creation,
-    array_pop
+    array_pop,
+    object_creation,
+    object_prop_access_const,
+    object_prop_access_dyn,
+    regexp_literal_creation,
+    regexp_creation,
+    regexp_literal,
+    regexp,
 );
 criterion_main!(execution);

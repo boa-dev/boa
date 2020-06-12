@@ -3,10 +3,13 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator},
+        ast::{
+            node::{Case, Switch},
+            Keyword, Node, Punctuator,
+        },
         parser::{
             expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-            ParseResult, TokenParser,
+            TokenParser,
         },
     },
     BoaProfiler,
@@ -44,9 +47,9 @@ impl SwitchStatement {
 }
 
 impl TokenParser for SwitchStatement {
-    type Output = Node;
+    type Output = Switch;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
@@ -58,7 +61,7 @@ impl TokenParser for SwitchStatement {
         let (cases, default) =
             CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        Ok(Node::switch::<_, _, _, Node>(condition, cases, default))
+        Ok(Switch::new(condition, cases, default))
     }
 }
 
@@ -90,9 +93,6 @@ impl CaseBlock {
         }
     }
 }
-
-/// Type used for case definition in a switch.
-type Case = (Node, Box<[Node]>);
 
 impl TokenParser for CaseBlock {
     type Output = (Box<[Case]>, Option<Node>);

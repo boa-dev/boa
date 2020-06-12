@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Node},
+        node::{Block, Break, Node, WhileLoop},
         Const,
     },
     parser::tests::check_parser,
@@ -10,7 +10,11 @@ use crate::syntax::{
 fn inline() {
     check_parser(
         "while (true) break;",
-        vec![Node::while_loop(Const::from(true), Node::Break(None))],
+        vec![WhileLoop::new(
+            Const::from(true),
+            Node::Break(Break::new::<_, Box<str>>(None)),
+        )
+        .into()],
     );
 }
 
@@ -19,7 +23,7 @@ fn new_line() {
     check_parser(
         "while (true)
             break;",
-        vec![Node::while_loop(Const::from(true), Node::Break(None))],
+        vec![WhileLoop::new(Const::from(true), Break::new::<_, Box<str>>(None)).into()],
     );
 }
 
@@ -27,10 +31,11 @@ fn new_line() {
 fn inline_block_semicolon_insertion() {
     check_parser(
         "while (true) {break}",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::Break(None)]),
-        )],
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -40,10 +45,11 @@ fn new_line_semicolon_insertion() {
         "while (true) {
             break test
         }",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("test")]),
-        )],
+            Block::from(vec![Break::new("test").into()]),
+        )
+        .into()],
     );
 }
 
@@ -51,10 +57,11 @@ fn new_line_semicolon_insertion() {
 fn inline_block() {
     check_parser(
         "while (true) {break;}",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::Break(None)]),
-        )],
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -64,10 +71,11 @@ fn new_line_block() {
         "while (true) {
             break test;
         }",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("test")]),
-        )],
+            Block::from(vec![Break::new("test").into()]),
+        )
+        .into()],
     );
 }
 
@@ -77,20 +85,22 @@ fn reserved_label() {
         "while (true) {
             break await;
         }",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("await")]),
-        )],
+            Block::from(vec![Break::new("await").into()]),
+        )
+        .into()],
     );
 
     check_parser(
         "while (true) {
             break yield;
         }",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::break_node("yield")]),
-        )],
+            Block::from(vec![Break::new("yield").into()]),
+        )
+        .into()],
     );
 }
 
@@ -100,10 +110,11 @@ fn new_line_block_empty() {
         "while (true) {
             break;
         }",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::Break(None)]),
-        )],
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
 
@@ -113,9 +124,10 @@ fn new_line_block_empty_semicolon_insertion() {
         "while (true) {
             break
         }",
-        vec![Node::while_loop(
+        vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![Node::Break(None)]),
-        )],
+            Block::from(vec![Break::new::<_, Box<str>>(None).into()]),
+        )
+        .into()],
     );
 }
