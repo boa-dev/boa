@@ -174,9 +174,9 @@
         <span class="ident">interpreter</span>
             .<span class="ident">realm_mut</span>()
             .<span class="ident">environment</span>
-            .<span class="ident">initialize_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>.<span class="ident">clone</span>());
+            .<span class="ident">initialize_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
     }
 }
 
