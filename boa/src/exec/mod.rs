@@ -381,9 +381,7 @@ impl Interpreter {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
         match value.data() {
-            ValueData::Undefined | ValueData::Null => {
-                Err(Value::undefined())
-            }
+            ValueData::Undefined | ValueData::Null => Err(Value::undefined()),
             ValueData::Integer(_) => {
                 let proto = self
                     .realm
