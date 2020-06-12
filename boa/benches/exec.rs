@@ -340,31 +340,6 @@ fn array_creation(c: &mut Criterion) {
     });
 }
 
-static ARRAY_POP: &str = r#"
-(function(){
-    let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28];
-    while (testArray.length > 0) {
-        testArray.pop();
-    }
-
-    return testArray;
-})();
-"#;
-
-fn array_pop(c: &mut Criterion) {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
-
-    let mut lexer = Lexer::new(black_box(ARRAY_POP));
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
-
-    c.bench_function("Array pop (Execution)", move |b| {
-        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
-    });
-}
-
 criterion_group!(
     execution,
     create_realm,
@@ -373,7 +348,6 @@ criterion_group!(
     fibonacci,
     array_access,
     array_creation,
-    array_pop,
     object_creation,
     object_prop_access_const,
     object_prop_access_dyn,
