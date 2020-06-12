@@ -543,11 +543,28 @@
 <span id="543">543</span>
 <span id="544">544</span>
 <span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
 <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">mod</span> <span class="ident">block</span>;
+<span class="kw">mod</span> <span class="ident">break_node</span>;
 <span class="kw">mod</span> <span class="ident">conditional</span>;
 <span class="kw">mod</span> <span class="ident">declaration</span>;
 <span class="kw">mod</span> <span class="ident">exception</span>;
@@ -591,6 +608,12 @@
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span>;
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">InterpreterState</span> {
+    <span class="ident">Executing</span>,
+    <span class="ident">Return</span>,
+    <span class="ident">Break</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>),
+}
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PreferredType</span> {
     <span class="ident">String</span>,
@@ -601,8 +624,8 @@
 <span class="doccomment">/// A Javascript intepreter</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interpreter</span> {
-    <span class="doccomment">/// Wether it&#39;s running a return statement.</span>
-    <span class="ident">is_return</span>: <span class="ident">bool</span>,
+    <span class="ident">current_state</span>: <span class="ident">InterpreterState</span>,
+
     <span class="doccomment">/// realm holds both the global object and the environment</span>
     <span class="kw">pub</span> <span class="ident">realm</span>: <span class="ident">Realm</span>,
 }
@@ -611,8 +634,8 @@
     <span class="doccomment">/// Creates a new interpreter.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">realm</span>: <span class="ident">Realm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
+            <span class="ident">current_state</span>: <span class="ident">InterpreterState</span>::<span class="ident">Executing</span>,
             <span class="ident">realm</span>,
-            <span class="ident">is_return</span>: <span class="bool-val">false</span>,
         }
     }
 
@@ -1031,6 +1054,14 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;TypeError: invalid assignment to {}&quot;</span>, <span class="ident">node</span>),
         }
     }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_current_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_state</span>: <span class="ident">InterpreterState</span>) {
+        <span class="self">self</span>.<span class="ident">current_state</span> <span class="op">=</span> <span class="ident">new_state</span>
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_current_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">InterpreterState</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">current_state</span>
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Node</span> {
@@ -1085,6 +1116,7 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">interpreter</span>.<span class="ident">realm</span>().<span class="ident">environment</span>.<span class="ident">get_this_binding</span>())
             }
             <span class="ident">Node</span>::<span class="ident">Try</span>(<span class="kw-2">ref</span> <span class="ident">try_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_node</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Break</span>(<span class="kw-2">ref</span> <span class="ident">break_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">break_node</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="kw-2">ref</span> <span class="ident">i</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">i</span>),
         }
     }

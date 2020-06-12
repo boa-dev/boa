@@ -34,10 +34,21 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Block statement execution.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>, <span class="ident">InterpreterState</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">new_declarative_environment</span>,
@@ -59,9 +70,20 @@
         <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>() {
             <span class="ident">obj</span> <span class="op">=</span> <span class="ident">statement</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
 
-            <span class="comment">// early return</span>
-            <span class="kw">if</span> <span class="ident">interpreter</span>.<span class="ident">is_return</span> {
-                <span class="kw">break</span>;
+            <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">get_current_state</span>() {
+                <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// Early return.</span>
+                    <span class="kw">break</span>;
+                }
+                <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// TODO, break to a label.</span>
+
+                    <span class="comment">// Early break.</span>
+                    <span class="kw">break</span>;
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// Continue execution</span>
+                }
             }
         }
 

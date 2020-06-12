@@ -400,6 +400,46 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -460,6 +500,7 @@
 <span class="doccomment">///  - `WithStatement`</span>
 <span class="doccomment">///  - `LabelledStatement`</span>
 <span class="doccomment">///  - `ThrowStatement`</span>
+<span class="doccomment">///  - `SwitchStatement`</span>
 <span class="doccomment">///  - `TryStatement`</span>
 <span class="doccomment">///  - `DebuggerStatement`</span>
 <span class="doccomment">///</span>
@@ -587,7 +628,7 @@
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
     <span class="ident">allow_return</span>: <span class="ident">AllowReturn</span>,
-    <span class="ident">break_when_closingbrase</span>: <span class="ident">bool</span>,
+    <span class="ident">break_when_closingbraces</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">StatementList</span> {
@@ -596,7 +637,7 @@
         <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
         <span class="ident">allow_return</span>: <span class="ident">R</span>,
-        <span class="ident">break_when_closingbrase</span>: <span class="ident">bool</span>,
+        <span class="ident">break_when_closingbraces</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
@@ -607,8 +648,47 @@
             <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
             <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
             <span class="ident">allow_return</span>: <span class="ident">allow_return</span>.<span class="ident">into</span>(),
-            <span class="ident">break_when_closingbrase</span>,
+            <span class="ident">break_when_closingbraces</span>,
         }
+    }
+
+    <span class="doccomment">/// The function parses a node::StatementList using the given break_nodes to know when to terminate.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This ignores the break_when_closingbraces flag.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns a ParseError::AbruptEnd if end of stream is reached before a break token.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a more general version of the TokenParser parse function for StatementList which can exit based on multiple</span>
+    <span class="doccomment">/// different tokens. This may eventually replace the parse() function but is currently seperate to allow testing the</span>
+    <span class="doccomment">/// performance impact of this more general mechanism.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the last token which causes the parse to finish is not consumed.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_generalised</span>(
+        <span class="self">self</span>,
+        <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">break_nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">TokenKind</span>],
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">node</span>::<span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>) {
+                <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="kw">if</span> <span class="ident">break_nodes</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">token</span>.<span class="ident">kind</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            }
+
+            <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span>
+                <span class="ident">StatementListItem</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+            <span class="ident">items</span>.<span class="ident">push</span>(<span class="ident">item</span>);
+
+            <span class="comment">// move the cursor forward for any consecutive semicolon.</span>
+            <span class="kw">while</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>).<span class="ident">is_some</span>() {}
+        }
+
+        <span class="ident">items</span>.<span class="ident">sort_by</span>(<span class="ident">Node</span>::<span class="ident">hoistable_order</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="ident">items</span>.<span class="ident">into</span>())
     }
 }
 
@@ -622,14 +702,14 @@
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>) {
                 <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">break_when_closingbrase</span> {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">break_when_closingbraces</span> {
                         <span class="kw">break</span>;
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">unexpected</span>(<span class="ident">token</span>.<span class="ident">clone</span>(), <span class="prelude-val">None</span>));
                     }
                 }
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">break_when_closingbrase</span> {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">break_when_closingbraces</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>);
                     } <span class="kw">else</span> {
                         <span class="kw">break</span>;

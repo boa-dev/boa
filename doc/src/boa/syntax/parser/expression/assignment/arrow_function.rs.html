@@ -153,6 +153,7 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Arrow function parsing.</span>
 <span class="doccomment">//!</span>
@@ -275,6 +276,7 @@
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">StatementList</span>::<span class="ident">from</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Return</span>::<span class="ident">new</span>(
                 <span class="ident">ExpressionBody</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                <span class="prelude-val">None</span>,
             )
             .<span class="ident">into</span>()])),
         }
