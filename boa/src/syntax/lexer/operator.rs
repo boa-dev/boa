@@ -8,16 +8,15 @@ use std::{
     str,
 };
 
-
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Operator {
-    init: char
+    init: char,
 }
 
 impl Operator {
     /// Creates a new string literal lexer.
     pub(super) fn new(init: char) -> Self {
-        Self {init}
+        Self { init }
     }
 }
 

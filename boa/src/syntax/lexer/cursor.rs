@@ -33,7 +33,7 @@ impl<R> Cursor<R> {
 
     /// Performs a carriage return to modify the position in the source.
     #[inline]
-    fn carriage_return(&mut self) {
+    pub(super) fn carriage_return(&mut self) {
         let current_line = self.pos.line_number();
         self.pos = Position::new(current_line, 1);
     }

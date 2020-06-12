@@ -1,5 +1,5 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{Position, Span, Punctuator};
+use crate::syntax::ast::{Position, Punctuator, Span};
 use crate::syntax::lexer::{Token, TokenKind};
 use std::{
     char::{decode_utf16, from_u32},
@@ -28,26 +28,19 @@ impl<R> Tokenizer<R> for SpreadLiteral {
     {
         // . or ...
         match cursor.next_is('.') {
-            Err(e) => {
-                Err(e.into())
+            Err(e) => Err(e.into()),
+            Ok(true) => match cursor.next_is('.') {
+                Err(e) => Err(e.into()),
+                Ok(true) => Ok(Token::new(
+                    Punctuator::Spread.into(),
+                    Span::new(start_pos, cursor.pos()),
+                )),
+                Ok(false) => Err(Error::syntax("Expecting Token .")),
             },
-            Ok(true) => {
-                match cursor.next_is('.') {
-                    Err(e) => {
-                        Err(e.into())
-                    },
-                    Ok(true) => {
-                        Ok(Token::new(Punctuator::Spread.into(), Span::new(start_pos, cursor.pos())))
-                    },
-                    Ok(false) => {
-                        Err(Error::syntax("Expecting Token ."))
-                    }
-                }
-            },
-            Ok(false) => {
-                Ok(Token::new(Punctuator::Dot.into(), Span::new(start_pos, cursor.pos())))
-            }
+            Ok(false) => Ok(Token::new(
+                Punctuator::Dot.into(),
+                Span::new(start_pos, cursor.pos()),
+            )),
         }
     }
 }
-

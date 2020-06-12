@@ -247,6 +247,9 @@ pub enum TokenKind {
 
     /// Indicates the end of a line (`\n`).
     LineTerminator,
+
+    /// Indicates a comment, the content isn't stored.
+    Comment,
 }
 
 impl From<bool> for TokenKind {
@@ -332,6 +335,11 @@ impl TokenKind {
     pub fn line_terminator() -> Self {
         Self::LineTerminator
     }
+
+    /// Creates a 'Comment' token kind.
+    pub fn comment() -> Self {
+        Self::Comment
+    }
 }
 
 impl Display for TokenKind {
@@ -350,6 +358,7 @@ impl Display for TokenKind {
             Self::TemplateLiteral(ref lit) => write!(f, "{}", lit),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
             Self::LineTerminator => write!(f, "line terminator"),
+            Self::Comment => write!(f, "comment"),
         }
     }
 }

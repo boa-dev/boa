@@ -30,10 +30,10 @@ mod identifier;
 pub use self::error::Error;
 
 use self::{
-    cursor::Cursor, identifier::Identifier, number::NumberLiteral, string::StringLiteral,
-    template::TemplateLiteral, spread::SpreadLiteral, comment::Comment, operator::Operator,
+    comment::Comment, cursor::Cursor, identifier::Identifier, number::NumberLiteral,
+    operator::Operator, spread::SpreadLiteral, string::StringLiteral, template::TemplateLiteral,
 };
-use crate::syntax::ast::{Position, Span, Punctuator};
+use crate::syntax::ast::{Position, Punctuator, Span};
 use std::io::Read;
 pub use token::{Token, TokenKind};
 
@@ -139,21 +139,60 @@ where
             _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
                 Identifier::new(next_chr).lex(&mut self.cursor, start)
             }
-            ';' => Ok(Token::new(Punctuator::Semicolon.into(), Span::new(start, self.cursor.pos()))),
-            ':' => Ok(Token::new(Punctuator::Colon.into(), Span::new(start, self.cursor.pos()))),
+            ';' => Ok(Token::new(
+                Punctuator::Semicolon.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            ':' => Ok(Token::new(
+                Punctuator::Colon.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
             '.' => SpreadLiteral::new().lex(&mut self.cursor, start),
-            '(' => Ok(Token::new(Punctuator::OpenParen.into(), Span::new(start, self.cursor.pos()))),
-            ')' => Ok(Token::new(Punctuator::CloseParen.into(), Span::new(start, self.cursor.pos()))),
-            ',' => Ok(Token::new(Punctuator::Comma.into(), Span::new(start, self.cursor.pos()))),
-            '{' => Ok(Token::new(Punctuator::OpenBlock.into(), Span::new(start, self.cursor.pos()))),
-            '}' => Ok(Token::new(Punctuator::CloseBlock.into(), Span::new(start, self.cursor.pos()))),
-            '[' => Ok(Token::new(Punctuator::OpenBracket.into(), Span::new(start, self.cursor.pos()))),
-            ']' => Ok(Token::new(Punctuator::CloseBracket.into(), Span::new(start, self.cursor.pos()))),
-            '?' => Ok(Token::new(Punctuator::Question.into(), Span::new(start, self.cursor.pos()))),
+            '(' => Ok(Token::new(
+                Punctuator::OpenParen.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            ')' => Ok(Token::new(
+                Punctuator::CloseParen.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            ',' => Ok(Token::new(
+                Punctuator::Comma.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            '{' => Ok(Token::new(
+                Punctuator::OpenBlock.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            '}' => Ok(Token::new(
+                Punctuator::CloseBlock.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            '[' => Ok(Token::new(
+                Punctuator::OpenBracket.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            ']' => Ok(Token::new(
+                Punctuator::CloseBracket.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
+            '?' => Ok(Token::new(
+                Punctuator::Question.into(),
+                Span::new(start, self.cursor.pos()),
+            )),
             '/' => Comment::new().lex(&mut self.cursor, start),
-            '*' | '+' | '-' | '%' | '|' | '&' | '^' | '=' | '<' | '>' | '!' | '~' => Operator::new(next_chr).lex(&mut self.cursor, start),
-            
-            _ => unimplemented!(),
+            '*' | '+' | '-' | '%' | '|' | '&' | '^' | '=' | '<' | '>' | '!' | '~' => {
+                Operator::new(next_chr).lex(&mut self.cursor, start)
+            }
+            _ => {
+                let details = format!(
+                    "Unexpected '{}' at line {}, column {}",
+                    next_chr,
+                    start.line_number(),
+                    start.column_number()
+                );
+                Err(Error::syntax(details))
+            }
         };
 
         Some(token)

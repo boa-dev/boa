@@ -17,14 +17,14 @@ macro_rules! comment_match {
 }
 
 /// Skips comments.
-/// 
+///
 /// Assumes that the '/' char is already consumed.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: 
+/// [spec]:
 /// [mdn]:
 pub(super) struct Comment;
 
@@ -35,7 +35,6 @@ impl Comment {
     }
 }
 
-
 impl<R> Tokenizer<R> for Comment {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
@@ -44,4 +43,3 @@ impl<R> Tokenizer<R> for Comment {
         unimplemented!()
     }
 }
-
