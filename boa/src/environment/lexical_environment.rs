@@ -213,7 +213,6 @@ impl LexicalEnvironment {
     }
 
     pub fn get_binding_value(&self, name: &str) -> Value {
-        dbg!(&self.environment_stack);
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))

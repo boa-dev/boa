@@ -6,6 +6,7 @@ use crate::{
 
 impl Executable for Identifier {
   fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    dbg!(self.as_ref());
     let reference = resolve_binding(interpreter, self.as_ref());
     match reference.data() {
       ValueData::Undefined => Err(
