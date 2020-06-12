@@ -291,12 +291,105 @@ fn regexp(c: &mut Criterion) {
     });
 }
 
+static ARRAY_ACCESS: &str = r#"
+(function () {
+    let testArr = [1,2,3,4,5];
+
+    let res = testArr[2];
+
+    return res;
+})();
+"#;
+
+fn array_access(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(ARRAY_ACCESS));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("Array access (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static ARRAY_CREATE: &str = r#"
+(function(){
+    let testArr = [];
+    for (let a = 0; a <= 500; a++) {
+        testArr[a] = ('p' + a);
+    }
+
+    return testArr;
+})();
+"#;
+
+fn array_creation(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(ARRAY_CREATE));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("Array creation (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static ARRAY_POP: &str = r#"
+(function(){
+    let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 
+                     45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 
+                     234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 
+                     99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 
+                     77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 
+                     2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 
+                     83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 
+                     56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 
+                     27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 
+                     17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 
+                     56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 
+                     28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 
+                     45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 
+                     23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 
+                     36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 
+                     45, 93, 17, 28, 83, 62, 99, 36, 28];
+
+    while (testArray.length > 0) {
+        testArray.pop();
+    }
+
+    return testArray;
+})();
+"#;
+
+fn array_pop(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(ARRAY_POP));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("Array pop (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
 criterion_group!(
     execution,
     create_realm,
     symbol_creation,
     for_loop_execution,
     fibonacci,
+    array_access,
+    array_creation,
+    array_pop,
     object_creation,
     object_prop_access_const,
     object_prop_access_dyn,
