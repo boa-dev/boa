@@ -1,12 +1,7 @@
 use super::{Cursor, Error, Tokenizer};
 use crate::syntax::ast::{Position, Punctuator, Span};
-use crate::syntax::lexer::{Token, TokenKind};
-use std::{
-    char::{decode_utf16, from_u32},
-    convert::TryFrom,
-    io::{self, ErrorKind, Read},
-    str,
-};
+use crate::syntax::lexer::Token;
+use std::io::Read;
 
 /// String literal lexing.
 ///

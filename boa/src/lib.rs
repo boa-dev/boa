@@ -50,7 +50,7 @@ pub use crate::{
 };
 
 fn parser_expr(src: &str) -> Result<StatementList, String> {
-    let mut lexer = Lexer::new(src.as_bytes());
+    let lexer = Lexer::new(src.as_bytes());
 
     // Goes through and lexes entire given string before starting any parsing.
     let mut tokens = Vec::new();

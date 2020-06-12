@@ -2,18 +2,13 @@
 
 use super::{Cursor, Error, Tokenizer};
 use crate::syntax::ast::Position;
-use crate::syntax::lexer::{Token, TokenKind};
-use std::{
-    char::{decode_utf16, from_u32},
-    convert::TryFrom,
-    io::{self, ErrorKind, Read},
-    str,
-};
+use crate::syntax::lexer::Token;
+use std::io::Read;
 
 macro_rules! comment_match {
-    () => {{
+    () => {
         '/'
-    }};
+    };
 }
 
 /// Skips comments.
@@ -36,7 +31,7 @@ impl Comment {
 }
 
 impl<R> Tokenizer<R> for Comment {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(&mut self, _cursor: &mut Cursor<R>, _start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {

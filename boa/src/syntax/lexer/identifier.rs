@@ -1,9 +1,8 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::builtins::BigInt;
 use crate::syntax::ast::{Position, Span};
 use crate::syntax::lexer::token::NumericLiteral;
 use crate::syntax::lexer::{Token, TokenKind};
-use std::io::{self, ErrorKind, Read};
+use std::io::Read;
 use std::str::FromStr;
 
 /// Identifier or keyword lexing.

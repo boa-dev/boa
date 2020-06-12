@@ -70,31 +70,31 @@ where
                 true
             }
             _ => false,
-            Some(&Err(_)) => return self.peeked.take().unwrap().unwrap().map(|_| false),
+            // Some(&Err(_)) => return self.peeked.take().unwrap().unwrap().map(|_| false),
         })
     }
 
     /// Fills the buffer with all characters until the stop character is found.
     ///
     /// Note: It will not add the stop character to the buffer.
-    pub(super) fn take_until(&mut self, stop: char, buf: &mut String) -> io::Result<()> {
+    pub(super) fn take_until(&mut self, _stop: char, _buf: &mut String) -> io::Result<()> {
         unimplemented!()
     }
 
     /// Retrieves the given number of characters and adds them to the buffer.
-    pub(super) fn take(&mut self, count: usize, buf: &mut String) -> io::Result<()> {
+    pub(super) fn _take(&mut self, _count: usize, _buf: &mut String) -> io::Result<()> {
         unimplemented!()
     }
 
     /// It will fill the buffer with checked ASCII bytes.
-    pub(super) fn fill_bytes(&mut self, buf: &[u8]) -> io::Result<()> {
+    pub(super) fn fill_bytes(&mut self, _buf: &mut [u8]) -> io::Result<()> {
         unimplemented!()
     }
 
     /// Retrieves the next character as an ASCII character.
     ///
     /// It will make sure that the next character is an ASCII byte, or return an error otherwise.
-    pub(super) fn next_as_byte(&mut self) -> Option<io::Result<u8>> {
+    pub(super) fn _next_as_byte(&mut self) -> Option<io::Result<u8>> {
         unimplemented!()
     }
 }
@@ -113,8 +113,11 @@ where
         };
 
         match chr {
-            Some(Ok('\r')) => self.carriage_return(),
-            Some(Ok('\r')) | Some(Ok('\u{2028}')) | Some(Ok('\u{2029}')) => self.next_line(),
+            Some(Ok('\r')) => {
+                self.carriage_return();
+                self.next_line()
+            }
+            Some(Ok('\u{2028}')) | Some(Ok('\u{2029}')) => self.next_line(),
             Some(Ok(_)) => self.next_column(),
             _ => {}
         }

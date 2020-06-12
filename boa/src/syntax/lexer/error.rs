@@ -27,7 +27,7 @@ impl Error {
     /// This error is used to represent the case where a piece of javascript
     /// cannot be lexed/parsed because it is in invalid when strict mdoe is
     /// enabled.
-    pub(super) fn strict<M>(err: M) -> Self
+    pub(super) fn _strict<M>(err: M) -> Self
     where
         M: Into<Box<str>>,
     {

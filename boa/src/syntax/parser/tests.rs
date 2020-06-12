@@ -20,7 +20,7 @@ pub(super) fn check_parser<L>(js: &str, expr: L)
 where
     L: Into<Box<[Node]>>,
 {
-    let mut lexer = Lexer::new(js.as_bytes());
+    let lexer = Lexer::new(js.as_bytes());
 
     // Goes through and lexes entire given string.
     let mut tokens = Vec::new();
@@ -38,8 +38,7 @@ where
 /// Checks that the given javascript string creates a parse error.
 // TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_invalid(js: &str) {
-    let mut lexer = Lexer::new(js.as_bytes());
-    // lexer.lex().expect("failed to lex");
+    let lexer = Lexer::new(js.as_bytes());
 
     let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
 

@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
-    let mut lexer = Lexer::new(src.as_bytes());
+    let lexer = Lexer::new(src.as_bytes());
 
     // Goes through and lexes entire given string.
     let tokens = lexer

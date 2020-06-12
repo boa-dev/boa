@@ -5,6 +5,7 @@
 
 #[macro_use]
 mod comment;
+
 mod cursor;
 pub mod error;
 
@@ -70,7 +71,7 @@ impl<R> Lexer<R> {
     }
 
     /// Sets the goal symbol for the lexer.
-    pub(crate) fn set_goal(&mut self, elm: InputElement) {
+    pub(crate) fn _set_goal(&mut self, elm: InputElement) {
         self.goal_symbol = elm;
     }
 }
@@ -95,9 +96,9 @@ where
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InputElement {
     Div,
-    RegExp,
-    RegExpOrTemplateTail,
-    TemplateTail,
+    _RegExp,
+    _RegExpOrTemplateTail,
+    _TemplateTail,
 }
 
 impl Default for InputElement {
@@ -180,7 +181,7 @@ where
                 Punctuator::Question.into(),
                 Span::new(start, self.cursor.pos()),
             )),
-            '/' => Comment::new().lex(&mut self.cursor, start),
+            comment_match!() => Comment::new().lex(&mut self.cursor, start),
             '*' | '+' | '-' | '%' | '|' | '&' | '^' | '=' | '<' | '>' | '!' | '~' => {
                 Operator::new(next_chr).lex(&mut self.cursor, start)
             }
@@ -207,26 +208,3 @@ where
 
 //     }
 // }
-
-// Temporarily moved.
-use crate::syntax::ast::Keyword;
-
-#[test]
-fn check_single_line_comment() {
-    let s1 = "var \n//This is a comment\ntrue";
-    let mut lexer = Lexer::new(s1.as_bytes());
-
-    assert_eq!(
-        lexer.next().unwrap().unwrap().kind,
-        TokenKind::Keyword(Keyword::Var)
-    );
-    assert_eq!(
-        lexer.next().unwrap().unwrap().kind,
-        TokenKind::LineTerminator
-    );
-    assert_eq!(
-        lexer.next().unwrap().unwrap().kind,
-        TokenKind::BooleanLiteral(true)
-    );
-    assert!(lexer.next().is_none());
-}

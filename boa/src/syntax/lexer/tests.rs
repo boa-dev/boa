@@ -11,6 +11,26 @@ fn span(start: (u32, u32), end: (u32, u32)) -> Span {
 #[test]
 fn check_single_line_comment() {
     let s1 = "var \n//This is a comment\ntrue";
+    let mut lexer = Lexer::new(s1.as_bytes());
+
+    assert_eq!(
+        lexer.next().unwrap().unwrap().kind,
+        TokenKind::Keyword(Keyword::Var)
+    );
+    assert_eq!(
+        lexer.next().unwrap().unwrap().kind,
+        TokenKind::LineTerminator
+    );
+    assert_eq!(
+        lexer.next().unwrap().unwrap().kind,
+        TokenKind::BooleanLiteral(true)
+    );
+    assert!(lexer.next().is_none());
+}
+
+#[test]
+fn check_single_line_comment() {
+    let s1 = "var \n//This is a comment\ntrue";
     let mut lexer = Lexer::new(s1);
     lexer.lex().expect("failed to lex");
     assert_eq!(lexer.tokens[0].kind, TokenKind::Keyword(Keyword::Var));

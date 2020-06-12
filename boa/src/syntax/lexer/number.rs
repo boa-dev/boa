@@ -1,10 +1,7 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::builtins::BigInt;
-use crate::syntax::ast::{Position, Span};
-use crate::syntax::lexer::token::NumericLiteral;
-use crate::syntax::lexer::{Token, TokenKind};
-use std::io::{self, ErrorKind, Read};
-use std::str::FromStr;
+use crate::syntax::ast::Position;
+use crate::syntax::lexer::Token;
+use std::io::Read;
 
 /// Number literal parsing.
 ///
@@ -29,7 +26,7 @@ impl NumberLiteral {
 }
 
 impl<R> Tokenizer<R> for NumberLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(&mut self, _cursor: &mut Cursor<R>, _start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {

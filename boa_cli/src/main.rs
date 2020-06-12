@@ -112,7 +112,7 @@ arg_enum! {
 /// Returns a error of type String with a message,
 /// if the source has a syntax error.
 fn lex_source(src: &str) -> Result<Vec<Token>, String> {
-    let mut lexer = Lexer::new(src.as_bytes());
+    let lexer = Lexer::new(src.as_bytes());
 
     // Goes through and lexes entire given string.
     lexer
