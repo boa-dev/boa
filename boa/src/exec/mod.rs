@@ -381,8 +381,18 @@ impl Interpreter {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
         match value.data() {
-            ValueData::Undefined | ValueData::Integer(_) | ValueData::Null => {
+            ValueData::Undefined | ValueData::Null => {
                 Err(Value::undefined())
+            }
+            ValueData::Integer(_) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .get_field(PROTOTYPE);
+                let number_obj = Value::new_object_from_prototype(proto, ObjectKind::Number);
+                number_obj.set_internal_slot("NumberData", value.clone());
+                Ok(number_obj)
             }
             ValueData::Boolean(_) => {
                 let proto = self
