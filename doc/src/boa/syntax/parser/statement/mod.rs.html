@@ -399,47 +399,6 @@
 <span id="399">399</span>
 <span id="400">400</span>
 <span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -454,6 +413,7 @@
 <span class="kw">mod</span> <span class="ident">break_stm</span>;
 <span class="kw">mod</span> <span class="ident">continue_stm</span>;
 <span class="kw">mod</span> <span class="ident">declaration</span>;
+<span class="kw">mod</span> <span class="ident">expression</span>;
 <span class="kw">mod</span> <span class="ident">if_stm</span>;
 <span class="kw">mod</span> <span class="ident">iteration</span>;
 <span class="kw">mod</span> <span class="ident">return_stm</span>;
@@ -467,6 +427,7 @@
     <span class="ident">break_stm</span>::<span class="ident">BreakStatement</span>,
     <span class="ident">continue_stm</span>::<span class="ident">ContinueStatement</span>,
     <span class="ident">declaration</span>::<span class="ident">Declaration</span>,
+    <span class="ident">expression</span>::<span class="ident">ExpressionStatement</span>,
     <span class="ident">if_stm</span>::<span class="ident">IfStatement</span>,
     <span class="ident">iteration</span>::{<span class="ident">DoWhileStatement</span>, <span class="ident">ForStatement</span>, <span class="ident">WhileStatement</span>},
     <span class="ident">return_stm</span>::<span class="ident">ReturnStatement</span>,
@@ -475,10 +436,7 @@
     <span class="ident">try_stm</span>::<span class="ident">TryStatement</span>,
     <span class="ident">variable</span>::<span class="ident">VariableStatement</span>,
 };
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">expression</span>::<span class="ident">Expression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>,
-    <span class="ident">TokenParser</span>,
-};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>},
     <span class="ident">BoaProfiler</span>,
@@ -783,46 +741,6 @@
                 <span class="ident">Statement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
             }
         }
-    }
-}
-
-<span class="doccomment">/// Expression statement parsing.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript specification][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ExpressionStatement</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ExpressionStatement</span> {
-    <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
-    <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">ExpressionStatement</span> {
-    <span class="doccomment">/// Creates a new `ExpressionStatement` parser.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
-    {
-        <span class="self">Self</span> {
-            <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
-            <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">ExpressionStatement</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
-
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ExpressionStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="comment">// TODO: lookahead</span>
-        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expression</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
-
-        <span class="ident">cursor</span>.<span class="ident">expect_semicolon</span>(<span class="bool-val">false</span>, <span class="string">&quot;expression statement&quot;</span>)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(<span class="ident">expr</span>)
     }
 }
 
