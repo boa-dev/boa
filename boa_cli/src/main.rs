@@ -32,6 +32,7 @@ use boa::{
     realm::Realm,
     syntax::ast::{node::StatementList, token::Token},
 };
+use rustyline::{error::ReadlineError, Editor};
 use std::{
     fs::read_to_string,
     io::{self, Write},
@@ -47,7 +48,8 @@ use structopt::{clap::arg_enum, StructOpt};
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
-//
+static CLI_HISTORY: &'static str = ".boa_history";
+
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
@@ -196,26 +198,38 @@ pub fn main() -> Result<(), std::io::Error> {
     }
 
     if args.files.is_empty() {
+        let mut editor = Editor::<()>::new();
+        let _ = editor.load_history(CLI_HISTORY);
+
         loop {
-            let mut buffer = String::new();
+            match editor.readline("> ") {
+                Ok(line) if line == ".exit" => break,
+                Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
 
-            io::stdin().read_line(&mut buffer)?;
+                Ok(line) => {
+                    editor.add_history_entry(&line);
 
-            if args.has_dump_flag() {
-                match dump(&buffer, &args) {
-                    Ok(_) => {}
-                    Err(e) => eprintln!("{}", e),
+                    if args.has_dump_flag() {
+                        match dump(&line, &args) {
+                            Ok(_) => {}
+                            Err(e) => eprintln!("{}", e),
+                        }
+                    } else {
+                        match forward_val(&mut engine, line.trim_end()) {
+                            Ok(v) => println!("{}", v),
+                            Err(v) => eprintln!("{}", v),
+                        }
+                    }
                 }
-            } else {
-                match forward_val(&mut engine, buffer.trim_end()) {
-                    Ok(v) => println!("{}", v.to_string()),
-                    Err(v) => eprintln!("{}", v.to_string()),
+
+                Err(err) => {
+                    eprintln!("Unknown error: {:?}", err);
+                    break;
                 }
             }
-
-            // The flush is needed because where in a REPL and we do not want buffering.
-            std::io::stdout().flush().unwrap();
         }
+
+        editor.save_history(CLI_HISTORY).unwrap();
     }
 
     Ok(())

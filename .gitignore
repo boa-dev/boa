@@ -17,6 +17,7 @@ yarn-error.log
 
 # tests/js/test.js is used for testing changes locally
 tests/js/test.js
+.boa_history
 
 # Profiling
 *.string_data
