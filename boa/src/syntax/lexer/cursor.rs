@@ -15,7 +15,6 @@ impl<R> Cursor<R> {
     pub(super) fn pos(&self) -> Position {
         self.pos
     }
-
     /// Advances the position to the next column.
     #[inline]
     pub(super) fn next_column(&mut self) {

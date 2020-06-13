@@ -1,6 +1,6 @@
-use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::Position;
-use crate::syntax::lexer::Token;
+use super::{Cursor, Error, TokenKind, Tokenizer};
+use crate::syntax::ast::{Position, Span};
+use crate::syntax::lexer::{token::Numeric, Token};
 use std::io::Read;
 
 /// Number literal lexing.
@@ -16,21 +16,105 @@ use std::io::Read;
 #[derive(Debug, Clone, Copy)]
 pub(super) struct NumberLiteral {
     init: char,
+    strict_mode: bool,
 }
 
 impl NumberLiteral {
     /// Creates a new string literal lexer.
-    pub(super) fn new(init: char) -> Self {
-        Self { init }
+    pub(super) fn new(init: char, strict_mode: bool) -> Self {
+        Self { init, strict_mode }
+    }
+}
+
+/// This is a helper structure
+///
+/// This structure helps with identifying what numerical type it is and what base is it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum NumericKind {
+    Rational,
+    Integer(u8),
+    BigInt(u8),
+}
+
+impl NumericKind {
+    /// Get the base of the number kind.
+    fn base(self) -> u32 {
+        match self {
+            Self::Rational => 10,
+            Self::Integer(base) => base as u32,
+            Self::BigInt(base) => base as u32,
+        }
+    }
+
+    /// Converts `self` to BigInt kind.
+    fn to_bigint(self) -> Self {
+        match self {
+            Self::Rational => unreachable!("can not convert rational number to BigInt"),
+            Self::Integer(base) => Self::BigInt(base),
+            Self::BigInt(base) => Self::BigInt(base),
+        }
     }
 }
 
 impl<R> Tokenizer<R> for NumberLiteral {
-    fn lex(&mut self, _cursor: &mut Cursor<R>, _start_pos: Position) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {
-        unimplemented!("Number literal lexing");
+        let mut buf = self.init.to_string();
+
+        // Default assume the number is a base 10 integer.
+        let mut kind = NumericKind::Integer(10);
+
+        if self.init == '0' {
+            match cursor.next() {
+                None => {
+                    // DecimalLiteral lexing.
+                    // Indicates that the number is just a single 0.
+                    return Ok(Token::new(
+                        TokenKind::NumericLiteral(Numeric::Integer(0)),
+                        Span::new(start_pos, cursor.pos()),
+                    ));
+                }
+                Some(Err(e)) => {
+                    return Err(Error::from(e));
+                }
+                Some(Ok('x')) | Some(Ok('X')) => {
+                    // HexIntegerLiteral
+                    kind = NumericKind::Integer(16);
+                }
+                Some(Ok('o')) | Some(Ok('O')) => {
+                    // OctalIntegerLiteral
+                    kind = NumericKind::Integer(8);
+                }
+                Some(Ok('b')) | Some(Ok('B')) => {
+                    kind = NumericKind::Integer(2);
+                }
+                Some(Ok('n')) => {
+                    // DecimalBigIntegerLiteral '0n'
+                    return Ok(Token::new(
+                        TokenKind::NumericLiteral(Numeric::BigInt(0.into())),
+                        Span::new(start_pos, cursor.pos()),
+                    ));
+                }
+                Some(Ok(ch)) => {
+                    if ch.is_digit(8) {
+                        // LegacyOctalIntegerLiteral
+                        if self.strict_mode {
+                            // LegacyOctalIntegerLiteral is forbidden with strict mode true.
+                            return Err(Error::strict(
+                                "Implicit octal literals are not allowed in strict mode.",
+                            ));
+                        } else {
+                            buf.push(ch);
+                            kind = NumericKind::Integer(8);
+                        }
+                    }
+                }
+            }
+        }
+
+        unimplemented!();
     }
 }
 

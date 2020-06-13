@@ -132,6 +132,9 @@ where
             }
         };
 
+        // TODO, setting strict mode on/off.
+        let strict_mode = false;
+
         let token = match next_chr {
             '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
                 TokenKind::LineTerminator,
@@ -139,7 +142,9 @@ where
             )),
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
             template_match!() => TemplateLiteral::new().lex(&mut self.cursor, start),
-            _ if next_chr.is_digit(10) => NumberLiteral::new(next_chr).lex(&mut self.cursor, start),
+            _ if next_chr.is_digit(10) => {
+                NumberLiteral::new(next_chr, strict_mode).lex(&mut self.cursor, start)
+            }
             _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
                 Identifier::new(next_chr).lex(&mut self.cursor, start)
             }

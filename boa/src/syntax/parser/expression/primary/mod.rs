@@ -18,7 +18,7 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use super::Expression;
-use crate::syntax::lexer::{token::NumericLiteral, TokenKind};
+use crate::syntax::lexer::{token::Numeric, TokenKind};
 use crate::syntax::{
     ast::{
         node::{Call, Identifier, New, Node},
@@ -92,13 +92,9 @@ impl TokenParser for PrimaryExpression {
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
             TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
-            TokenKind::NumericLiteral(NumericLiteral::Integer(num)) => Ok(Const::from(*num).into()),
-            TokenKind::NumericLiteral(NumericLiteral::Rational(num)) => {
-                Ok(Const::from(*num).into())
-            }
-            TokenKind::NumericLiteral(NumericLiteral::BigInt(num)) => {
-                Ok(Const::from(num.clone()).into())
-            }
+            TokenKind::NumericLiteral(Numeric::Integer(num)) => Ok(Const::from(*num).into()),
+            TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
+            TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
             TokenKind::RegularExpressionLiteral(body, flags) => {
                 Ok(Node::from(New::from(Call::new(
                     Identifier::from("RegExp"),
