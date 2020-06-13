@@ -392,6 +392,7 @@ expression!(
         Punctuator::GreaterThan,
         Punctuator::LessThanOrEq,
         Punctuator::GreaterThanOrEq,
+        Keyword::InstanceOf,
         Keyword::In
     ],
     [allow_yield, allow_await]

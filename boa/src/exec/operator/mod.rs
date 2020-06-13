@@ -97,6 +97,17 @@ impl Executable for BinOp {
                         let key = interpreter.to_property_key(&mut v_a)?;
                         interpreter.has_property(&mut v_b, &key)
                     }
+                    CompOp::InstanceOf => {
+                        if !v_b.is_object() {
+                            return interpreter.throw_type_error(format!(
+                                "right-hand side of 'instanceof' should be an object, got {}",
+                                v_b.get_type().as_str()
+                            ));
+                        }
+                        return interpreter.throw_type_error(format!(
+                            "'instanceof' evaluation not yet implemented"
+                        ));
+                    }
                 }))
             }
             op::BinOp::Log(op) => {

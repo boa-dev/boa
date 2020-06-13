@@ -593,6 +593,20 @@ pub enum CompOp {
     /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
     In,
+
+    /// The `instanceof` operator tests whether the prototype property of a constructor appears anywhere in the prototype chain of an object.
+    ///
+    /// Syntax: `object instanceof constructor`
+    ///
+    /// Returns boolean.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+    InstanceOf,
 }
 
 impl Display for CompOp {
@@ -610,6 +624,7 @@ impl Display for CompOp {
                 Self::LessThan => "<",
                 Self::LessThanOrEqual => "<=",
                 Self::In => "in",
+                Self::InstanceOf => "instanceof",
             }
         )
     }

@@ -431,10 +431,11 @@ pub enum Keyword {
 }
 
 impl Keyword {
-    /// Gets the keyword as a binary operation, if this keyword is the `in` keyword.
+    /// Gets the keyword as a binary operation, if this keyword is the `in` or `instanceof` keyword.
     pub fn as_binop(self) -> Option<BinOp> {
         match self {
             Keyword::In => Some(BinOp::Comp(CompOp::In)),
+            Keyword::InstanceOf => Some(BinOp::Comp(CompOp::InstanceOf)),
             _ => None,
         }
     }
