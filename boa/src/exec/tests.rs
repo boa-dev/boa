@@ -63,7 +63,20 @@ fn semicolon_expression_stop() {
 fn empty_var_decl_undefined() {
     let scenario = r#"
         let b;
-        b == undefined;
+        b === undefined;
+        "#;
+
+    assert_eq!(&exec(scenario), "true");
+}
+
+#[test]
+fn identifier_on_global_object_undefined() {
+    let scenario = r#"
+        try {
+            b;
+        } catch (err) {
+            err instanceof ReferenceError;
+        }
         "#;
 
     assert_eq!(&exec(scenario), "true");
