@@ -32,7 +32,7 @@ use boa::{
     realm::Realm,
     syntax::ast::{node::StatementList, token::Token},
 };
-use rustyline::{error::ReadlineError, Editor};
+use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{
     fs::read_to_string,
     io::{self, Write},
@@ -81,6 +81,10 @@ struct Opt {
         case_insensitive = true
     )]
     dump_ast: Option<Option<DumpFormat>>,
+
+    /// Use vi mode in the REPL
+    #[structopt(long = "vi")]
+    vi_mode: bool,
 }
 
 impl Opt {
@@ -198,7 +202,16 @@ pub fn main() -> Result<(), std::io::Error> {
     }
 
     if args.files.is_empty() {
-        let mut editor = Editor::<()>::new();
+        let mut config = Config::builder()
+            .keyseq_timeout(1)
+            .edit_mode(if args.vi_mode {
+                EditMode::Vi
+            } else {
+                EditMode::Emacs
+            })
+            .build();
+
+        let mut editor = Editor::<()>::with_config(config);
         let _ = editor.load_history(CLI_HISTORY);
 
         loop {
