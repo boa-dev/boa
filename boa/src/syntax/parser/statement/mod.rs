@@ -11,6 +11,7 @@ mod block;
 mod break_stm;
 mod continue_stm;
 mod declaration;
+mod expression;
 mod if_stm;
 mod iteration;
 mod return_stm;
@@ -24,6 +25,7 @@ use self::{
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
     declaration::Declaration,
+    expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
     return_stm::ReturnStatement,
@@ -32,10 +34,7 @@ use self::{
     try_stm::TryStatement,
     variable::VariableStatement,
 };
-use super::{
-    expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
-    TokenParser,
-};
+use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 use crate::{
     syntax::ast::{node, Keyword, Node, Punctuator, TokenKind},
     BoaProfiler,
@@ -340,46 +339,6 @@ impl TokenParser for StatementListItem {
                 Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)
             }
         }
-    }
-}
-
-/// Expression statement parsing.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-ExpressionStatement
-#[derive(Debug, Clone, Copy)]
-struct ExpressionStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl ExpressionStatement {
-    /// Creates a new `ExpressionStatement` parser.
-    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl TokenParser for ExpressionStatement {
-    type Output = Node;
-
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
-        // TODO: lookahead
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-
-        cursor.expect_semicolon(false, "expression statement")?;
-
-        Ok(expr)
     }
 }
 
