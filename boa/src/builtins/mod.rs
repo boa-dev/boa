@@ -21,7 +21,7 @@ pub(crate) use self::{
     array::Array,
     bigint::BigInt,
     boolean::Boolean,
-    error::{Error, RangeError, TypeError},
+    error::{Error, RangeError, ReferenceError, TypeError},
     function::Function,
     number::Number,
     regexp::RegExp,
@@ -47,5 +47,6 @@ pub fn init(global: &Value) {
     console::init(global);
     Error::init(global);
     RangeError::init(global);
+    ReferenceError::init(global);
     TypeError::init(global);
 }

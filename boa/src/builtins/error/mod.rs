@@ -22,13 +22,14 @@ use crate::{
 
 // mod eval;
 pub(crate) mod range;
-// mod reference;
+pub(crate) mod reference;
 // mod syntax;
 pub(crate) mod r#type;
 // mod uri;
 
 pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
+pub(crate) use self::reference::ReferenceError;
 
 /// Built-in `Error` object.
 #[derive(Debug, Clone, Copy)]
