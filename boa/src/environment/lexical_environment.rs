@@ -290,24 +290,26 @@ mod tests {
     use crate::exec;
 
     #[test]
+    //#[ignore]
     fn let_is_blockscoped() {
         let scenario = r#"
           {
             let bar = "bar";
           }
-          bar == undefined;
+          bar;
         "#;
 
         assert_eq!(&exec(scenario), "true");
     }
 
     #[test]
+    //#[ignore]
     fn const_is_blockscoped() {
         let scenario = r#"
           {
             const bar = "bar";
           }
-          bar == undefined;
+          bar;
         "#;
 
         assert_eq!(&exec(scenario), "true");
