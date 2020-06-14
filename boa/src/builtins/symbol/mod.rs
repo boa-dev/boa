@@ -34,7 +34,7 @@ impl Symbol {
     pub(crate) const NAME: &'static str = "Symbol";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 0;
+    pub(crate) const LENGTH: usize = 0;
 
     /// Returns the `Symbol`s description.
     pub fn description(&self) -> Option<&str> {

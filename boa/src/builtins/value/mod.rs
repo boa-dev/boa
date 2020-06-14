@@ -404,11 +404,13 @@ impl ValueData {
     }
 
     /// Returns true if the value is a bigint.
+    #[inline]
     pub fn is_bigint(&self) -> bool {
         matches!(self, Self::BigInt(_))
     }
 
     /// Returns an optional reference to a `BigInt` if the value is a BigInt primitive.
+    #[inline]
     pub fn as_bigint(&self) -> Option<&BigInt> {
         match self {
             Self::BigInt(bigint) => Some(bigint),
@@ -552,6 +554,7 @@ impl ValueData {
     /// Resolve the property in the object.
     ///
     /// Returns a copy of the Property.
+    #[inline]
     pub fn get_internal_slot(&self, field: &str) -> Value {
         let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
 
@@ -599,6 +602,7 @@ impl ValueData {
     }
 
     /// Check whether an object has an internal state set.
+    #[inline]
     pub fn has_internal_state(&self) -> bool {
         matches!(self.as_object(), Some(object) if object.state().is_some())
     }
@@ -657,7 +661,8 @@ impl ValueData {
         }
     }
 
-    /// Check to see if the Value has the field, mainly used by environment records
+    /// Check to see if the Value has the field, mainly used by environment records.
+    #[inline]
     pub fn has_field(&self, field: &str) -> bool {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
         self.get_property(field).is_some()
@@ -709,7 +714,8 @@ impl ValueData {
         value
     }
 
-    /// Set the kind of an object
+    /// Set the kind of an object.
+    #[inline]
     pub fn set_data(&self, data: ObjectData) {
         if let Self::Object(ref obj) = *self {
             (*obj.deref().borrow_mut()).data = data;

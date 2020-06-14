@@ -407,7 +407,7 @@ pub fn create(global: &Value) -> Value {
 /// So far this is only used by internal functions
 pub fn make_constructor_fn(
     name: &str,
-    length: i32,
+    length: usize,
     body: NativeFunctionData,
     global: &Value,
     prototype: Value,
@@ -473,7 +473,7 @@ pub fn make_constructor_fn(
 ///     some other number of arguments.
 ///
 /// If no length is provided, the length will be set to 0.
-pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value, length: i32)
+pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value, length: usize)
 where
     N: Into<String>,
 {

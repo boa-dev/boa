@@ -80,11 +80,13 @@ impl Interpreter {
     }
 
     /// Retrieves the `Realm` of this executor.
+    #[inline]
     pub(crate) fn realm(&self) -> &Realm {
         &self.realm
     }
 
     /// Retrieves the `Realm` of this executor as a mutable reference.
+    #[inline]
     pub(crate) fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
     }
@@ -92,6 +94,7 @@ impl Interpreter {
     /// Generates a new `Symbol` internal hash.
     ///
     /// This currently is an incremented value.
+    #[inline]
     pub(crate) fn generate_hash(&mut self) -> u32 {
         let hash = self.symbol_count;
         self.symbol_count += 1;
@@ -548,13 +551,16 @@ impl Interpreter {
         }
     }
 
+    #[inline]
     pub(crate) fn set_current_state(&mut self, new_state: InterpreterState) {
         self.state = new_state
     }
 
+    #[inline]
     pub(crate) fn get_current_state(&self) -> &InterpreterState {
         &self.state
     }
+
     /// Check if the `Value` can be converted to an `Object`
     ///
     /// The abstract operation `RequireObjectCoercible` takes argument argument.
@@ -566,6 +572,7 @@ impl Interpreter {
     ///
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
+    #[inline]
     pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value, Value> {
         if value.is_null_or_undefined() {
             self.throw_type_error("cannot convert null or undefined to Object")?;

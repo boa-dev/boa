@@ -48,7 +48,7 @@ impl BigInt {
     pub(crate) const NAME: &'static str = "BigInt";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 1;
+    pub(crate) const LENGTH: usize = 1;
 
     /// The abstract operation thisBigIntValue takes argument value.
     ///

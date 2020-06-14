@@ -40,7 +40,7 @@ impl String {
     pub(crate) const NAME: &'static str = "String";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 1;
+    pub(crate) const LENGTH: usize = 1;
 
     fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<StdString, Value> {
         match this.data() {

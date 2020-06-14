@@ -31,7 +31,7 @@ impl Boolean {
     pub(crate) const NAME: &'static str = "Boolean";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 1;
+    pub(crate) const LENGTH: usize = 1;
 
     /// An Utility function used to get the internal [[BooleanData]].
     ///
@@ -93,6 +93,7 @@ impl Boolean {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
+    #[inline]
     pub(crate) fn value_of(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(Value::from(Self::this_boolean_value(this, ctx)?))
     }

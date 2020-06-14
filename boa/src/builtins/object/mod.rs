@@ -96,6 +96,7 @@ impl Display for ObjectData {
 
 impl Default for Object {
     /// Return a new ObjectData struct, with `kind` set to Ordinary
+    #[inline]
     fn default() -> Self {
         let mut object = Self {
             data: ObjectData::Ordinary,
@@ -111,6 +112,7 @@ impl Default for Object {
 }
 
 impl Object {
+    #[inline]
     pub fn new() -> Self {
         Default::default()
     }

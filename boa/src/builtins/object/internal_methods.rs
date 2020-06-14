@@ -295,11 +295,9 @@ impl Object {
         // Prop could either be a String or Symbol
         match *(*prop) {
             ValueData::String(ref st) => {
-                match self.properties.get(st) {
-                    // If O does not have an own property with key P, return undefined.
-                    // In this case we return a new empty Property
-                    None => Property::default(),
-                    Some(ref v) => {
+                self.properties()
+                    .get(st)
+                    .map_or_else(Property::default, |v| {
                         let mut d = Property::default();
                         if v.is_data_descriptor() {
                             d.value = v.value.clone();
@@ -312,30 +310,25 @@ impl Object {
                         d.enumerable = v.enumerable;
                         d.configurable = v.configurable;
                         d
-                    }
-                }
+                    })
             }
-            ValueData::Symbol(ref symbol) => {
-                match self.symbol_properties().get(&symbol.hash()) {
-                    // If O does not have an own property with key P, return undefined.
-                    // In this case we return a new empty Property
-                    None => Property::default(),
-                    Some(ref v) => {
-                        let mut d = Property::default();
-                        if v.is_data_descriptor() {
-                            d.value = v.value.clone();
-                            d.writable = v.writable;
-                        } else {
-                            debug_assert!(v.is_accessor_descriptor());
-                            d.get = v.get.clone();
-                            d.set = v.set.clone();
-                        }
-                        d.enumerable = v.enumerable;
-                        d.configurable = v.configurable;
-                        d
+            ValueData::Symbol(ref symbol) => self
+                .symbol_properties()
+                .get(&symbol.hash())
+                .map_or_else(Property::default, |v| {
+                    let mut d = Property::default();
+                    if v.is_data_descriptor() {
+                        d.value = v.value.clone();
+                        d.writable = v.writable;
+                    } else {
+                        debug_assert!(v.is_accessor_descriptor());
+                        d.get = v.get.clone();
+                        d.set = v.set.clone();
                     }
-                }
-            }
+                    d.enumerable = v.enumerable;
+                    d.configurable = v.configurable;
+                    d
+                }),
             _ => Property::default(),
         }
     }

@@ -111,6 +111,7 @@ fn abstract_equality_comparison() {
     );
 }
 
+/// Helper function to get the hash of a `Value`.
 fn hash_value(value: &Value) -> u64 {
     let mut hasher = DefaultHasher::new();
     value.hash(&mut hasher);

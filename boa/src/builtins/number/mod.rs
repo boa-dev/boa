@@ -44,7 +44,7 @@ impl Number {
     pub(crate) const NAME: &'static str = "Number";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 1;
+    pub(crate) const LENGTH: usize = 1;
 
     /// This function returns a `Result` of the number `Value`.
     ///
@@ -539,17 +539,12 @@ impl Number {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_builtin_fn(
-            Self::parse_int,
-            "parseInt",
-            global,
-            PARSE_INT_MAX_ARG_COUNT as i32,
-        );
+        make_builtin_fn(Self::parse_int, "parseInt", global, PARSE_INT_MAX_ARG_COUNT);
         make_builtin_fn(
             Self::parse_float,
             "parseFloat",
             global,
-            PARSE_FLOAT_MAX_ARG_COUNT as i32,
+            PARSE_FLOAT_MAX_ARG_COUNT,
         );
 
         let number = make_constructor_fn(

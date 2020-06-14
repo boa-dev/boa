@@ -65,7 +65,7 @@ impl RegExp {
     pub(crate) const NAME: &'static str = "RegExp";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 2;
+    pub(crate) const LENGTH: usize = 2;
 
     /// Create a new `RegExp`
     pub(crate) fn make_regexp(

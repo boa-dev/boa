@@ -35,7 +35,7 @@ impl TypeError {
     pub(crate) const NAME: &'static str = "TypeError";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 1;
+    pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
     pub(crate) fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
@@ -91,6 +91,7 @@ impl TypeError {
     }
 
     /// Initialise the global object with the `RangeError` object.
+    #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 

@@ -36,7 +36,7 @@ impl Array {
     pub(crate) const NAME: &'static str = "Array";
 
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: i32 = 1;
+    pub(crate) const LENGTH: usize = 1;
 
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
