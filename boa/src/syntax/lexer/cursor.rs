@@ -1,5 +1,5 @@
 use crate::syntax::ast::Position;
-use std::io::{self, Bytes, Read};
+use std::io::{self, Bytes, Read, Error, ErrorKind};
 
 /// Cursor over the source code.
 #[derive(Debug)]
@@ -76,8 +76,29 @@ where
     /// Fills the buffer with all characters until the stop character is found.
     ///
     /// Note: It will not add the stop character to the buffer.
-    pub(super) fn take_until(&mut self, _stop: char, _buf: &mut String) -> io::Result<()> {
-        unimplemented!()
+    ///
+    /// Returns syntax 
+    pub(super) fn take_until(&mut self, stop: char, buf: &mut String) -> io::Result<()> {
+        loop {
+            if self.next_is(stop)? {
+                return Ok(());
+            } else {
+                match self.next() {
+                    None => {
+                        return Err(io::Error::new(
+                            ErrorKind::UnexpectedEof,
+                            format!("Unexpected end of file when looking for character {}", stop),
+                        ));
+                    }
+                    Some(Err(e)) => {
+                        return Err(e);
+                    }
+                    Some(Ok(ch)) => {
+                        buf.push(ch);
+                    }
+                }
+            }
+        }
     }
 
     /// Retrieves the given number of characters and adds them to the buffer.

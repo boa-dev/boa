@@ -5,6 +5,7 @@ use super::token::Numeric;
 use super::*;
 use crate::syntax::ast::Keyword;
 
+
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
 }
@@ -217,36 +218,36 @@ fn check_positions() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     // The first column is 1 (not zero indexed)
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 7)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 8)));
 
     // Dot Token starts on column 8
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 8), (1, 8)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 8), (1, 9)));
 
     // Log Token starts on column 9
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 9), (1, 11)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 9), (1, 12)));
 
     // Open parenthesis token starts on column 12
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 12), (1, 12))
+        span((1, 12), (1, 13))
     );
 
     // String token starts on column 13
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 13), (1, 33))
+        span((1, 13), (1, 34))
     );
 
     // Close parenthesis token starts on column 34
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 34), (1, 34))
+        span((1, 34), (1, 35))
     );
 
     // Semi Colon token starts on column 35
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 35), (1, 35))
+        span((1, 35), (1, 36))
     );
 }
 
