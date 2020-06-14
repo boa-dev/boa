@@ -181,8 +181,7 @@ impl Interpreter {
             ValueData::Integer(integer) => Ok(integer.to_string()),
             ValueData::String(string) => Ok(string.clone()),
             ValueData::Symbol(_) => {
-                self.throw_type_error("can't convert symbol to string")?;
-                unreachable!();
+                Err(self.construct_type_error("can't convert symbol to string"))
             }
             ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
             ValueData::Object(_) => {
@@ -196,13 +195,9 @@ impl Interpreter {
     #[allow(clippy::wrong_self_convention)]
     pub fn to_bigint(&mut self, value: &Value) -> Result<BigInt, Value> {
         match value.data() {
-            ValueData::Null => {
-                self.throw_type_error("cannot convert null to a BigInt")?;
-                unreachable!();
-            }
+            ValueData::Null => Err(self.construct_type_error("cannot convert null to a BigInt")),
             ValueData::Undefined => {
-                self.throw_type_error("cannot convert undefined to a BigInt")?;
-                unreachable!();
+                Err(self.construct_type_error("cannot convert undefined to a BigInt"))
             }
             ValueData::String(ref string) => Ok(BigInt::from_string(string, self)?),
             ValueData::Boolean(true) => Ok(BigInt::from(1)),
@@ -212,11 +207,10 @@ impl Interpreter {
                 if let Ok(bigint) = BigInt::try_from(*num) {
                     return Ok(bigint);
                 }
-                self.throw_type_error(format!(
+                Err(self.construct_type_error(format!(
                     "The number {} cannot be converted to a BigInt because it is not an integer",
                     num
-                ))?;
-                unreachable!();
+                )))
             }
             ValueData::BigInt(b) => Ok(b.clone()),
             ValueData::Object(_) => {
@@ -224,8 +218,7 @@ impl Interpreter {
                 self.to_bigint(&primitive)
             }
             ValueData::Symbol(_) => {
-                self.throw_type_error("cannot convert Symbol to a BigInt")?;
-                unreachable!();
+                Err(self.construct_type_error("cannot convert Symbol to a BigInt"))
             }
         }
     }
@@ -242,13 +235,11 @@ impl Interpreter {
         let integer_index = self.to_integer(value)?;
 
         if integer_index < 0 {
-            self.throw_range_error("Integer index must be >= 0")?;
-            unreachable!();
+            return Err(self.construct_range_error("Integer index must be >= 0"));
         }
 
         if integer_index > 2i64.pow(53) - 1 {
-            self.throw_range_error("Integer index must be less than 2**(53) - 1")?;
-            unreachable!()
+            return Err(self.construct_range_error("Integer index must be less than 2**(53) - 1"));
         }
 
         Ok(integer_index as usize)
@@ -281,14 +272,8 @@ impl Interpreter {
             ValueData::String(ref string) => Ok(string.parse().unwrap_or(f64::NAN)),
             ValueData::Rational(number) => Ok(number),
             ValueData::Integer(integer) => Ok(f64::from(integer)),
-            ValueData::Symbol(_) => {
-                self.throw_type_error("argument must not be a symbol")?;
-                unreachable!()
-            }
-            ValueData::BigInt(_) => {
-                self.throw_type_error("argument must not be a bigint")?;
-                unreachable!()
-            }
+            ValueData::Symbol(_) => Err(self.construct_type_error("argument must not be a symbol")),
+            ValueData::BigInt(_) => Err(self.construct_type_error("argument must not be a bigint")),
             ValueData::Object(_) => {
                 let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
                 self.to_number(&prim_value)
@@ -575,10 +560,10 @@ impl Interpreter {
     #[inline]
     pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value, Value> {
         if value.is_null_or_undefined() {
-            self.throw_type_error("cannot convert null or undefined to Object")?;
-            unreachable!();
+            Err(self.construct_type_error("cannot convert null or undefined to Object"))
+        } else {
+            Ok(value)
         }
-        Ok(value)
     }
 }
 

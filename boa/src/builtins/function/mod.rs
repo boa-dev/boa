@@ -413,6 +413,9 @@ pub fn make_constructor_fn(
     prototype: Value,
     constructable: bool,
 ) -> Value {
+    let _timer =
+        BoaProfiler::global().start_event(&format!("make_constructor_fn: {}", name), "init");
+
     // Create the native function
     let mut function = Function::builtin(Vec::new(), body);
     function.constructable = constructable;
@@ -478,7 +481,7 @@ where
     N: Into<String>,
 {
     let name = name.into();
-    let _timer = BoaProfiler::global().start_event(&name, "make_builtin_fn");
+    let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
     let mut function = Object::function(Function::builtin(Vec::new(), function));
     function.insert_field("length", Value::from(length));

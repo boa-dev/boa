@@ -257,9 +257,9 @@ impl Value {
                 .map(JSONValue::Number)
                 .unwrap_or(JSONValue::Null)),
             ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
-            ValueData::BigInt(_) => Err(interpreter
-                .throw_type_error("BigInt value can't be serialized in JSON")
-                .expect_err("throw_type_error should always return an error")),
+            ValueData::BigInt(_) => {
+                Err(interpreter.construct_type_error("BigInt value can't be serialized in JSON"))
+            }
             ValueData::Symbol(_) | ValueData::Undefined => {
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }

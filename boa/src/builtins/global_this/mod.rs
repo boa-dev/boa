@@ -19,6 +19,7 @@ mod tests;
 pub(crate) struct GlobalThis;
 
 impl GlobalThis {
+    /// The binding name of the property.
     pub(crate) const NAME: &'static str = "globalThis";
 
     /// Initialize the `globalThis` property on the global object.

@@ -20,7 +20,7 @@ use crate::{builtins::value::Value, BoaProfiler};
 pub(crate) struct NaN;
 
 impl NaN {
-    /// The name of the property.
+    /// The binding name of the property.
     pub(crate) const NAME: &'static str = "NaN";
 
     /// Initialize the `NaN` property on the global object.

@@ -51,9 +51,7 @@ impl Boolean {
             _ => {}
         }
 
-        Err(ctx
-            .throw_type_error("'this' is not a boolean")
-            .expect_err("throw_type_error() did not return an error"))
+        Err(ctx.construct_type_error("'this' is not a boolean"))
     }
 
     /// `[[Construct]]` Create a new boolean object

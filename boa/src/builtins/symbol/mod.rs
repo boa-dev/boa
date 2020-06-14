@@ -58,8 +58,7 @@ impl Symbol {
             _ => {}
         }
 
-        ctx.throw_type_error("'this' is not a Symbol")?;
-        unreachable!();
+        Err(ctx.construct_type_error("'this' is not a Symbol"))
     }
 
     /// The `Symbol()` constructor returns a value of type symbol.

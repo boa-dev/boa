@@ -78,8 +78,7 @@ impl BigInt {
         }
 
         // 3. Throw a TypeError exception.
-        ctx.throw_type_error("'this' is not a BigInt")?;
-        unreachable!();
+        Err(ctx.construct_type_error("'this' is not a BigInt"))
     }
 
     /// `BigInt()`
