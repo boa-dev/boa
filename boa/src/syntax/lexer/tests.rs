@@ -17,7 +17,10 @@ where
         assert_eq!(&lexer.next().unwrap().unwrap().kind(), &expect);
     }
 
-    assert!(lexer.next().is_none());
+    assert!(
+        lexer.next().is_none(),
+        "Unexpected extra token lexed at end of input"
+    );
 }
 
 #[test]
@@ -74,10 +77,8 @@ fn check_template_literal_unterminated() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     match lexer.next() {
-        None | Some(Ok(_)) => panic!("Lexer did not detect end of stream"),
-        Some(Err(e)) => {
-            assert_eq!(e.to_string(), "Unterminated template literal");
-        }
+        Some(Err(Error::IO(_))) => {}
+        _ => panic!("Lexer did not handle unterminated literal with error"),
     }
 }
 
@@ -203,6 +204,7 @@ fn check_variable_definition_tokens() {
         TokenKind::identifier("a"),
         TokenKind::Punctuator(Punctuator::Assign),
         TokenKind::string_literal("hello"),
+        TokenKind::Punctuator(Punctuator::Semicolon),
     ];
 
     expect_tokens(&mut lexer, &expected);
