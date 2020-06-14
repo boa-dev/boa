@@ -33,11 +33,7 @@ use boa::{
     syntax::ast::{node::StatementList, token::Token},
 };
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{
-    fs::read_to_string,
-    io::{self, Write},
-    path::PathBuf,
-};
+use std::{fs::read_to_string, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -48,7 +44,7 @@ use structopt::{clap::arg_enum, StructOpt};
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
-static CLI_HISTORY: &'static str = ".boa_history";
+static CLI_HISTORY: &str = ".boa_history";
 
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
@@ -202,7 +198,7 @@ pub fn main() -> Result<(), std::io::Error> {
     }
 
     if args.files.is_empty() {
-        let mut config = Config::builder()
+        let config = Config::builder()
             .keyseq_timeout(1)
             .edit_mode(if args.vi_mode {
                 EditMode::Vi
