@@ -253,10 +253,9 @@ fn check_positions() {
 fn two_divisions_in_expression() {
     let s = "    return a !== 0 || 1 / a === 1 / b;";
     let mut lexer = Lexer::new(s.as_bytes());
-    // dbg!(&lexer.tokens);
 
     assert_eq!(
-        lexer.skip(11).next().unwrap().unwrap().span(),
+        lexer.nth(11).unwrap().unwrap().span(),
         span((1, 37), (1, 37))
     );
 }
@@ -298,7 +297,7 @@ fn check_decrement_advances_lexer_2_places() {
 #[test]
 fn check_nan() {
     let mut lexer = Lexer::new("let a = NaN;".as_bytes());
-    match lexer.skip(3).next() {
+    match lexer.nth(3) {
         None | Some(Err(_)) => panic!("No token found when expecting NaN"),
         Some(Ok(token)) => match token.kind() {
             TokenKind::NumericLiteral(Numeric::Rational(a)) => {
@@ -371,11 +370,10 @@ fn hexadecimal_edge_case() {
 #[test]
 fn single_number_without_semicolon() {
     let mut lexer = Lexer::new("1".as_bytes());
-    match lexer.next() {
-        Some(Ok(_)) => {}
-        _ => {
-            panic!("Failed to lex 1 without semicolon");
-        }
+    if let Some(Ok(x)) = lexer.next() {
+        assert_eq!(x.kind(), &TokenKind::numeric_literal(Numeric::Integer(1)));
+    } else {
+        panic!("Failed to lex 1 without semicolon");
     }
 }
 
