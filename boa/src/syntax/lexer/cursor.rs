@@ -1,5 +1,5 @@
 use crate::syntax::ast::Position;
-use std::io::{self, Bytes, Read, Error, ErrorKind};
+use std::io::{self, Bytes, ErrorKind, Read};
 
 /// Cursor over the source code.
 #[derive(Debug)]
@@ -77,7 +77,7 @@ where
     ///
     /// Note: It will not add the stop character to the buffer.
     ///
-    /// Returns syntax 
+    /// Returns syntax
     pub(super) fn take_until(&mut self, stop: char, buf: &mut String) -> io::Result<()> {
         loop {
             if self.next_is(stop)? {

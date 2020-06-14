@@ -5,7 +5,6 @@ use super::token::Numeric;
 use super::*;
 use crate::syntax::ast::Keyword;
 
-
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
 }
