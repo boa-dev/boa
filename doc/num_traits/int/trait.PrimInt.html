@@ -71,7 +71,7 @@ of <code>self</code>.</p>
 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0b0101000u16</span>;
 
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">trailing_zeros</span>(), <span class="number">3</span>);</pre></div>
-</div><h3 id='tymethod.rotate_left' class='method'><code id='rotate_left.v'>fn <a href='#tymethod.rotate_left' class='fnname'>rotate_left</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the left by a specified amount amount, <code>n</code>, wrapping
+</div><h3 id='tymethod.rotate_left' class='method'><code id='rotate_left.v'>fn <a href='#tymethod.rotate_left' class='fnname'>rotate_left</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the left by a specified amount, <code>n</code>, wrapping
 the truncated bits to the end of the resulting integer.</p>
 <h1 id="examples-4" class="section-header"><a href="#examples-4">Examples</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -81,7 +81,7 @@ the truncated bits to the end of the resulting integer.</p>
 <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="number">0x3456789ABCDEF012u64</span>;
 
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">rotate_left</span>(<span class="number">12</span>), <span class="ident">m</span>);</pre></div>
-</div><h3 id='tymethod.rotate_right' class='method'><code id='rotate_right.v'>fn <a href='#tymethod.rotate_right' class='fnname'>rotate_right</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the right by a specified amount amount, <code>n</code>, wrapping
+</div><h3 id='tymethod.rotate_right' class='method'><code id='rotate_right.v'>fn <a href='#tymethod.rotate_right' class='fnname'>rotate_right</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the right by a specified amount, <code>n</code>, wrapping
 the truncated bits to the beginning of the resulting integer.</p>
 <h1 id="examples-5" class="section-header"><a href="#examples-5">Examples</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -91,7 +91,7 @@ the truncated bits to the beginning of the resulting integer.</p>
 <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="number">0xDEF0123456789ABCu64</span>;
 
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">rotate_right</span>(<span class="number">12</span>), <span class="ident">m</span>);</pre></div>
-</div><h3 id='tymethod.signed_shl' class='method'><code id='signed_shl.v'>fn <a href='#tymethod.signed_shl' class='fnname'>signed_shl</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the left by a specified amount amount, <code>n</code>, filling
+</div><h3 id='tymethod.signed_shl' class='method'><code id='signed_shl.v'>fn <a href='#tymethod.signed_shl' class='fnname'>signed_shl</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the left by a specified amount, <code>n</code>, filling
 zeros in the least significant bits.</p>
 <p>This is bitwise equivalent to signed <code>Shl</code>.</p>
 <h1 id="examples-6" class="section-header"><a href="#examples-6">Examples</a></h1>
@@ -102,7 +102,7 @@ zeros in the least significant bits.</p>
 <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="number">0x3456789ABCDEF000u64</span>;
 
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">signed_shl</span>(<span class="number">12</span>), <span class="ident">m</span>);</pre></div>
-</div><h3 id='tymethod.signed_shr' class='method'><code id='signed_shr.v'>fn <a href='#tymethod.signed_shr' class='fnname'>signed_shr</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the right by a specified amount amount, <code>n</code>, copying
+</div><h3 id='tymethod.signed_shr' class='method'><code id='signed_shr.v'>fn <a href='#tymethod.signed_shr' class='fnname'>signed_shr</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the right by a specified amount, <code>n</code>, copying
 the &quot;sign bit&quot; in the most significant bits even for unsigned types.</p>
 <p>This is bitwise equivalent to signed <code>Shr</code>.</p>
 <h1 id="examples-7" class="section-header"><a href="#examples-7">Examples</a></h1>
@@ -113,7 +113,7 @@ the &quot;sign bit&quot; in the most significant bits even for unsigned types.</
 <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="number">0xFFFFEDCBA9876543u64</span>;
 
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">signed_shr</span>(<span class="number">12</span>), <span class="ident">m</span>);</pre></div>
-</div><h3 id='tymethod.unsigned_shl' class='method'><code id='unsigned_shl.v'>fn <a href='#tymethod.unsigned_shl' class='fnname'>unsigned_shl</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the left by a specified amount amount, <code>n</code>, filling
+</div><h3 id='tymethod.unsigned_shl' class='method'><code id='unsigned_shl.v'>fn <a href='#tymethod.unsigned_shl' class='fnname'>unsigned_shl</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the left by a specified amount, <code>n</code>, filling
 zeros in the least significant bits.</p>
 <p>This is bitwise equivalent to unsigned <code>Shl</code>.</p>
 <h1 id="examples-8" class="section-header"><a href="#examples-8">Examples</a></h1>
@@ -124,7 +124,7 @@ zeros in the least significant bits.</p>
 <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="number">0x3456789ABCDEF000i64</span>;
 
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">unsigned_shl</span>(<span class="number">12</span>), <span class="ident">m</span>);</pre></div>
-</div><h3 id='tymethod.unsigned_shr' class='method'><code id='unsigned_shr.v'>fn <a href='#tymethod.unsigned_shr' class='fnname'>unsigned_shr</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the right by a specified amount amount, <code>n</code>, filling
+</div><h3 id='tymethod.unsigned_shr' class='method'><code id='unsigned_shr.v'>fn <a href='#tymethod.unsigned_shr' class='fnname'>unsigned_shr</a>(self, n: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; Self</code></h3><div class='docblock'><p>Shifts the bits to the right by a specified amount, <code>n</code>, filling
 zeros in the most significant bits.</p>
 <p>This is bitwise equivalent to unsigned <code>Shr</code>.</p>
 <h1 id="examples-9" class="section-header"><a href="#examples-9">Examples</a></h1>

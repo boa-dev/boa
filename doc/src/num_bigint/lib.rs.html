@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.2.6/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.3.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -231,6 +231,63 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2013-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -253,9 +310,6 @@
 <span class="doccomment">//! ## Example</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! extern crate num_bigint;</span>
-<span class="doccomment">//! extern crate num_traits;</span>
-<span class="doccomment">//!</span>
 <span class="doccomment">//! # fn main() {</span>
 <span class="doccomment">//! use num_bigint::BigUint;</span>
 <span class="doccomment">//! use num_traits::{Zero, One};</span>
@@ -280,14 +334,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! It&#39;s easy to generate large random numbers:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # #[cfg(feature = &quot;rand&quot;)]</span>
-<span class="doccomment">//! extern crate rand;</span>
-<span class="doccomment">//! extern crate num_bigint as bigint;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # #[cfg(feature = &quot;rand&quot;)]</span>
-<span class="doccomment">//! # fn main() {</span>
-<span class="doccomment">//! use bigint::{ToBigInt, RandBigInt};</span>
+<span class="doccomment">//! ```rust,ignore</span>
+<span class="doccomment">//! use num_bigint::{ToBigInt, RandBigInt};</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let mut rng = rand::thread_rng();</span>
 <span class="doccomment">//! let a = rng.gen_bigint(1000);</span>
@@ -298,25 +346,16 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // Probably an even larger number.</span>
 <span class="doccomment">//! println!(&quot;{}&quot;, a * b);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # #[cfg(not(feature = &quot;rand&quot;))]</span>
-<span class="doccomment">//! # fn main() {</span>
-<span class="doccomment">//! # }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! See the &quot;Features&quot; section for instructions for enabling random number generation.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Features</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The `std` crate feature is mandatory and enabled by default.  If you depend on</span>
-<span class="doccomment">//! `num-bigint` with `default-features = false`, you must manually enable the</span>
-<span class="doccomment">//! `std` feature yourself.  In the future, we hope to support `#![no_std]` with</span>
-<span class="doccomment">//! the `alloc` crate when `std` is not enabled.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Implementations for `i128` and `u128` are only available with Rust 1.26 and</span>
-<span class="doccomment">//! later.  The build script automatically detects this, but you can make it</span>
-<span class="doccomment">//! mandatory by enabling the `i128` crate feature.</span>
+<span class="doccomment">//! The `std` crate feature is enabled by default, and is mandatory before Rust</span>
+<span class="doccomment">//! 1.36 and the stabilized `alloc` crate.  If you depend on `num-bigint` with</span>
+<span class="doccomment">//! `default-features = false`, you must manually enable the `std` feature yourself</span>
+<span class="doccomment">//! if your compiler is not new enough.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Random Generation</span>
 <span class="doccomment">//!</span>
@@ -324,35 +363,50 @@
 <span class="doccomment">//! feature is enabled. To enable it include rand as</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```toml</span>
-<span class="doccomment">//! rand = &quot;0.5&quot;</span>
-<span class="doccomment">//! num-bigint = { version = &quot;0.2&quot;, features = [&quot;rand&quot;] }</span>
+<span class="doccomment">//! rand = &quot;0.7&quot;</span>
+<span class="doccomment">//! num-bigint = { version = &quot;0.3&quot;, features = [&quot;rand&quot;] }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Note that you must use the version of `rand` that `num-bigint` is compatible</span>
-<span class="doccomment">//! with: `0.5`.</span>
+<span class="doccomment">//! with: `0.7`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Compatibility</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The `num-bigint` crate is tested for rustc 1.15 and greater.</span>
+<span class="doccomment">//! The `num-bigint` crate is tested for rustc 1.31 and greater.</span>
 
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/num-bigint/0.2&quot;</span>)]</span>
-<span class="comment">// We don&#39;t actually support `no_std` yet, and probably won&#39;t until `alloc` is stable.  We&#39;re just</span>
-<span class="comment">// reserving this ability with the &quot;std&quot; feature now, and compilation will fail without.</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/num-bigint/0.3&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">no_std</span>]</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rand&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">rand</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span>;
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">num_integer</span> <span class="kw">as</span> <span class="ident">integer</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">num_traits</span> <span class="kw">as</span> <span class="ident">traits</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quickcheck&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">quickcheck</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">std_alloc</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quickcheck&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">boxed</span>::<span class="ident">Box</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">string</span>::<span class="ident">String</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
+}
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
+<span class="kw">mod</span> <span class="ident">std_alloc</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quickcheck&quot;</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">boxed</span>::<span class="ident">Box</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">string</span>::<span class="ident">String</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
+}
+
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">macros</span>;
@@ -386,7 +440,7 @@
 
 <span class="kw">impl</span> <span class="ident">ParseBigIntError</span> {
     <span class="kw">fn</span> <span class="ident">__description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw">use</span> <span class="ident">BigIntErrorKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">BigIntErrorKind</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;cannot parse integer from empty string&quot;</span>,
             <span class="ident">InvalidDigit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;invalid digit found in string&quot;</span>,
@@ -407,42 +461,102 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ParseBigIntError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="self">self</span>.<span class="ident">__description</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">ParseBigIntError</span> {
     <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">__description</span>()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">biguint</span>::<span class="ident">BigUint</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">biguint</span>::<span class="ident">ToBigUint</span>;
+<span class="doccomment">/// The error type returned when a checked conversion regarding big integer fails.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_try_from</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TryFromBigIntError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">original</span>: <span class="ident">T</span>,
+}
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bigint</span>::<span class="ident">BigInt</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bigint</span>::<span class="ident">Sign</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bigint</span>::<span class="ident">ToBigInt</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_try_from</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TryFromBigIntError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">original</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">TryFromBigIntError</span> { <span class="ident">original</span> }
+    }
+
+    <span class="kw">fn</span> <span class="ident">__description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="string">&quot;out of range conversion regarding big integer attempted&quot;</span>
+    }
+
+    <span class="doccomment">/// Extract the original value, if available. The value will be available</span>
+    <span class="doccomment">/// if the type before conversion was either [`BigInt`] or [`BigUint`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`BigInt`]: struct.BigInt.html</span>
+    <span class="doccomment">/// [`BigUint`]: struct.BigUint.html</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_original</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+        <span class="self">self</span>.<span class="ident">original</span>
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">has_try_from</span>))]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">TryFromBigIntError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>,
+{
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="self">self</span>.<span class="ident">__description</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_try_from</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TryFromBigIntError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="self">self</span>.<span class="ident">__description</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">biguint</span>::<span class="ident">BigUint</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">biguint</span>::<span class="ident">ToBigUint</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bigint</span>::<span class="ident">BigInt</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bigint</span>::<span class="ident">Sign</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bigint</span>::<span class="ident">ToBigInt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rand&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bigrand</span>::{<span class="ident">RandBigInt</span>, <span class="ident">RandomBits</span>, <span class="ident">UniformBigInt</span>, <span class="ident">UniformBigUint</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bigrand</span>::{<span class="ident">RandBigInt</span>, <span class="ident">RandomBits</span>, <span class="ident">UniformBigInt</span>, <span class="ident">UniformBigUint</span>};
 
 <span class="kw">mod</span> <span class="ident">big_digit</span> {
     <span class="doccomment">/// A `BigDigit` is a `BigUint`&#39;s composing element.</span>
-    <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BigDigit</span> <span class="op">=</span> <span class="ident">u32</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">u64_digit</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">BigDigit</span> <span class="op">=</span> <span class="ident">u32</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">u64_digit</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">BigDigit</span> <span class="op">=</span> <span class="ident">u64</span>;
 
     <span class="doccomment">/// A `DoubleBigDigit` is the internal type used to do the computations.  Its</span>
     <span class="doccomment">/// size is the double of the size of `BigDigit`.</span>
-    <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DoubleBigDigit</span> <span class="op">=</span> <span class="ident">u64</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">u64_digit</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">DoubleBigDigit</span> <span class="op">=</span> <span class="ident">u64</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">u64_digit</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">DoubleBigDigit</span> <span class="op">=</span> <span class="ident">u128</span>;
 
     <span class="doccomment">/// A `SignedDoubleBigDigit` is the signed version of `DoubleBigDigit`.</span>
-    <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SignedDoubleBigDigit</span> <span class="op">=</span> <span class="ident">i64</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">u64_digit</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">SignedDoubleBigDigit</span> <span class="op">=</span> <span class="ident">i64</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">u64_digit</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">SignedDoubleBigDigit</span> <span class="op">=</span> <span class="ident">i128</span>;
 
     <span class="comment">// `DoubleBigDigit` size dependent</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BITS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">u64_digit</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">BITS</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">32</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">u64_digit</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">BITS</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">64</span>;
 
-    <span class="kw">const</span> <span class="ident">LO_MASK</span>: <span class="ident">DoubleBigDigit</span> <span class="op">=</span> (<span class="op">-</span><span class="number">1i32</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">BITS</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">HALF_BITS</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">BITS</span> <span class="op">/</span> <span class="number">2</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">HALF</span>: <span class="ident">BigDigit</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">HALF_BITS</span>) <span class="op">-</span> <span class="number">1</span>;
+
+    <span class="kw">const</span> <span class="ident">LO_MASK</span>: <span class="ident">DoubleBigDigit</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">BITS</span>) <span class="op">-</span> <span class="number">1</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">get_hi</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigDigit</span> {
@@ -455,13 +569,13 @@
 
     <span class="doccomment">/// Split one `DoubleBigDigit` into two `BigDigit`s.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_doublebigdigit</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">BigDigit</span>, <span class="ident">BigDigit</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_doublebigdigit</span>(<span class="ident">n</span>: <span class="ident">DoubleBigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">BigDigit</span>, <span class="ident">BigDigit</span>) {
         (<span class="ident">get_hi</span>(<span class="ident">n</span>), <span class="ident">get_lo</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Join two `BigDigit`s into one `DoubleBigDigit`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_doublebigdigit</span>(<span class="ident">hi</span>: <span class="ident">BigDigit</span>, <span class="ident">lo</span>: <span class="ident">BigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DoubleBigDigit</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_doublebigdigit</span>(<span class="ident">hi</span>: <span class="ident">BigDigit</span>, <span class="ident">lo</span>: <span class="ident">BigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DoubleBigDigit</span> {
         <span class="ident">DoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">lo</span>) <span class="op">|</span> (<span class="ident">DoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">hi</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">BITS</span>)
     }
 }

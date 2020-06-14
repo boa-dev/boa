@@ -448,8 +448,8 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">float</span>::<span class="ident">FloatCore</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
-<span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>, <span class="ident">min</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">max</span>(<span class="ident">y</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">min</span>);
+<span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>, <span class="ident">max</span>: <span class="ident">T</span>) {
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">max</span>(<span class="ident">y</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">max</span>);
 }
 
 <span class="ident">check</span>(<span class="number">1.0f32</span>, <span class="number">2.0</span>, <span class="number">2.0</span>);

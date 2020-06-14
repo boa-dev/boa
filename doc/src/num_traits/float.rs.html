@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.11/src/float.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.12/src/float.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2357,10 +2357,41 @@
 <span id="2357">2357</span>
 <span id="2358">2358</span>
 <span id="2359">2359</span>
+<span id="2360">2360</span>
+<span id="2361">2361</span>
+<span id="2362">2362</span>
+<span id="2363">2363</span>
+<span id="2364">2364</span>
+<span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
+<span id="2370">2370</span>
+<span id="2371">2371</span>
+<span id="2372">2372</span>
+<span id="2373">2373</span>
+<span id="2374">2374</span>
+<span id="2375">2375</span>
+<span id="2376">2376</span>
+<span id="2377">2377</span>
+<span id="2378">2378</span>
+<span id="2379">2379</span>
+<span id="2380">2380</span>
+<span id="2381">2381</span>
+<span id="2382">2382</span>
+<span id="2383">2383</span>
+<span id="2384">2384</span>
+<span id="2385">2385</span>
+<span id="2386">2386</span>
+<span id="2387">2387</span>
+<span id="2388">2388</span>
+<span id="2389">2389</span>
+<span id="2390">2390</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">FpCategory</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Neg</span>};
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Div</span>, <span class="ident">Neg</span>};
 
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">f32</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">f64</span>;
@@ -2966,8 +2997,8 @@
     <span class="doccomment">/// use num_traits::float::FloatCore;</span>
     <span class="doccomment">/// use std::{f32, f64};</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// fn check&lt;T: FloatCore&gt;(x: T, y: T, min: T) {</span>
-    <span class="doccomment">///     assert!(x.max(y) == min);</span>
+    <span class="doccomment">/// fn check&lt;T: FloatCore&gt;(x: T, y: T, max: T) {</span>
+    <span class="doccomment">///     assert!(x.max(y) == max);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// check(1.0f32, 2.0, 2.0);</span>
@@ -4612,6 +4643,16 @@
             <span class="kw">fn</span> <span class="ident">TAU</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
                 <span class="self">Self</span>::<span class="ident">PI</span>() <span class="op">+</span> <span class="self">Self</span>::<span class="ident">PI</span>()
             }
+            <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;Return `log10(2.0)`.&quot;</span>]</span>
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">LOG10_2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
+                <span class="self">Self</span>::<span class="ident">LN_2</span>() <span class="op">/</span> <span class="self">Self</span>::<span class="ident">LN_10</span>()
+            }
+            <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;Return `log2(10.0)`.&quot;</span>]</span>
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">LOG2_10</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
+                <span class="self">Self</span>::<span class="ident">LN_10</span>() <span class="op">/</span> <span class="self">Self</span>::<span class="ident">LN_2</span>()
+            }
         }
         <span class="macro">float_const_impl</span><span class="macro">!</span> { @<span class="ident">float</span> <span class="ident">f32</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>,)<span class="op">+</span> }
         <span class="macro">float_const_impl</span><span class="macro">!</span> { @<span class="ident">float</span> <span class="ident">f64</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>,)<span class="op">+</span> }
@@ -4621,6 +4662,8 @@
             <span class="macro">constant</span><span class="macro">!</span> {
                 $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">consts</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>; )<span class="op">+</span>
                 <span class="ident">TAU</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="number">6.28318530717958647692528676655900577</span>;
+                <span class="ident">LOG10_2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="number">0.301029995663981195213738894724493027</span>;
+                <span class="ident">LOG2_10</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="number">3.32192809488736234787031942948939018</span>;
             }
         }
     );
@@ -4715,6 +4758,25 @@
             <span class="ident">FloatCore</span>::<span class="ident">to_degrees</span>(<span class="number">1_f32</span>),
             <span class="number">57.2957795130823208767981548141051703</span>
         );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">extra_logs</span>() {
+        <span class="kw">use</span> <span class="ident">float</span>::{<span class="ident">Float</span>, <span class="ident">FloatConst</span>};
+
+        <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Float</span> <span class="op">+</span> <span class="ident">FloatConst</span><span class="op">&gt;</span>(<span class="ident">diff</span>: <span class="ident">F</span>) {
+            <span class="kw">let</span> <span class="ident">_2</span> <span class="op">=</span> <span class="ident">F</span>::<span class="ident">from</span>(<span class="number">2.0</span>).<span class="ident">unwrap</span>();
+            <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">F</span>::<span class="ident">LOG10_2</span>() <span class="op">-</span> <span class="ident">F</span>::<span class="ident">log10</span>(<span class="ident">_2</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">diff</span>);
+            <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">F</span>::<span class="ident">LOG10_2</span>() <span class="op">-</span> <span class="ident">F</span>::<span class="ident">LN_2</span>() <span class="op">/</span> <span class="ident">F</span>::<span class="ident">LN_10</span>()).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">diff</span>);
+
+            <span class="kw">let</span> <span class="ident">_10</span> <span class="op">=</span> <span class="ident">F</span>::<span class="ident">from</span>(<span class="number">10.0</span>).<span class="ident">unwrap</span>();
+            <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">F</span>::<span class="ident">LOG2_10</span>() <span class="op">-</span> <span class="ident">F</span>::<span class="ident">log2</span>(<span class="ident">_10</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">diff</span>);
+            <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">F</span>::<span class="ident">LOG2_10</span>() <span class="op">-</span> <span class="ident">F</span>::<span class="ident">LN_10</span>() <span class="op">/</span> <span class="ident">F</span>::<span class="ident">LN_2</span>()).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">diff</span>);
+        }
+
+        <span class="ident">check</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="number">1e-6</span>);
+        <span class="ident">check</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>(<span class="number">1e-12</span>);
     }
 }
 </pre></div>

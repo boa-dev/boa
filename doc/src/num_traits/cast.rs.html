@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.11/src/cast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.12/src/cast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -776,6 +776,22 @@
 <span id="776">776</span>
 <span id="777">777</span>
 <span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span>;
@@ -1063,6 +1079,22 @@
     )<span class="kw-2">*</span>}
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_to_int_unchecked</span>)]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_to_int_unchecked</span> {
+    <span class="comment">// SAFETY: Must not be NaN or infinite; must be representable as the integer after truncating.</span>
+    <span class="comment">// We already checked that the float is in the exclusive range `(MIN-1, MAX+1)`.</span>
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">float</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">int</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">float</span>.<span class="ident">to_int_unchecked</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">int</span><span class="op">&gt;</span>() }
+    };
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">has_to_int_unchecked</span>))]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_to_int_unchecked</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">float</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">int</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">float</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">int</span>
+    };
+}
+
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_float_to_signed_int</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">ident</span> : $( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1075,7 +1107,7 @@
                 <span class="kw">const</span> <span class="ident">MIN_M1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>::<span class="ident">MIN</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">-</span> <span class="number">1.0</span>;
                 <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">+</span> <span class="number">1.0</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span> <span class="ident">MIN_M1</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>));
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// We can&#39;t represent `MIN-1` exactly, but there&#39;s no fractional part</span>
@@ -1085,7 +1117,7 @@
                 <span class="comment">// `MAX+1` (a power of two) when we cast it.</span>
                 <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>));
                 }
             }
             <span class="prelude-val">None</span>
@@ -1104,7 +1136,7 @@
                 <span class="comment">// With a larger size, we can represent the range exactly.</span>
                 <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">+</span> <span class="number">1.0</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span> <span class="op">-</span><span class="number">1.0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>));
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// We can&#39;t represent `MAX` exactly, but it will round up to exactly</span>
@@ -1112,7 +1144,7 @@
                 <span class="comment">// (`u128::MAX as f32` is infinity, but this is still ok.)</span>
                 <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span> <span class="op">-</span><span class="number">1.0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>));
                 }
             }
             <span class="prelude-val">None</span>

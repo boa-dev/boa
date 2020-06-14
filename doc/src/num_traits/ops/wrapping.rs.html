@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.11/src/ops/wrapping.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapping.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../num_traits/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.12/src/ops/wrapping.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapping.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../num_traits/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -270,9 +270,74 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Mul</span>, <span class="ident">Shl</span>, <span class="ident">Shr</span>, <span class="ident">Sub</span>};
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Mul</span>, <span class="ident">Neg</span>, <span class="ident">Shl</span>, <span class="ident">Shr</span>, <span class="ident">Sub</span>};
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wrapping_impl</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -361,6 +426,54 @@
 <span class="macro">wrapping_impl</span><span class="macro">!</span>(<span class="ident">WrappingMul</span>, <span class="ident">wrapping_mul</span>, <span class="ident">isize</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
 <span class="macro">wrapping_impl</span><span class="macro">!</span>(<span class="ident">WrappingMul</span>, <span class="ident">wrapping_mul</span>, <span class="ident">i128</span>);
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wrapping_unary_impl</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">*</span><span class="self">self</span>)
+            }
+        }
+    };
+}
+
+<span class="doccomment">/// Performs a negation that does not panic.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WrappingNeg</span>: <span class="ident">Sized</span> {
+    <span class="doccomment">/// Wrapping (modular) negation. Computes `-self`,</span>
+    <span class="doccomment">/// wrapping around at the boundary of the type.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Since unsigned types do not have negative equivalents</span>
+    <span class="doccomment">/// all applications of this function will wrap (except for `-0`).</span>
+    <span class="doccomment">/// For values smaller than the corresponding signed type&#39;s maximum</span>
+    <span class="doccomment">/// the result is the same as casting the corresponding signed value.</span>
+    <span class="doccomment">/// Any larger values are equivalent to `MAX + 1 - (val - MAX - 1)` where</span>
+    <span class="doccomment">/// `MAX` is the corresponding signed type&#39;s maximum.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use num_traits::WrappingNeg;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(100i8.wrapping_neg(), -100);</span>
+    <span class="doccomment">/// assert_eq!((-100i8).wrapping_neg(), 100);</span>
+    <span class="doccomment">/// assert_eq!((-128i8).wrapping_neg(), -128); // wrapped!</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">wrapping_neg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+}
+
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">u8</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">u16</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">u32</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">u64</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">usize</span>);
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">u128</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">i8</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">i16</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">i32</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">i64</span>);
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">isize</span>);
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
+<span class="macro">wrapping_unary_impl</span><span class="macro">!</span>(<span class="ident">WrappingNeg</span>, <span class="ident">wrapping_neg</span>, <span class="ident">i128</span>);
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wrapping_shift_impl</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -468,6 +581,14 @@
         <span class="ident">Wrapping</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">wrapping_mul</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>))
     }
 }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WrappingNeg</span><span class="op">&gt;</span> <span class="ident">WrappingNeg</span> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Neg</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">wrapping_neg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">Wrapping</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">wrapping_neg</span>())
+    }
+}
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WrappingShl</span><span class="op">&gt;</span> <span class="ident">WrappingShl</span> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Shl</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -496,6 +617,9 @@
     <span class="kw">fn</span> <span class="ident">wrapping_mul</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WrappingMul</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">T</span>, <span class="ident">b</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="ident">a</span>.<span class="ident">wrapping_mul</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>)
     }
+    <span class="kw">fn</span> <span class="ident">wrapping_neg</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WrappingNeg</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+        <span class="ident">a</span>.<span class="ident">wrapping_neg</span>()
+    }
     <span class="kw">fn</span> <span class="ident">wrapping_shl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WrappingShl</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">T</span>, <span class="ident">b</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="ident">a</span>.<span class="ident">wrapping_shl</span>(<span class="ident">b</span>)
     }
@@ -505,11 +629,14 @@
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_add</span>(<span class="number">255</span>, <span class="number">1</span>), <span class="number">0u8</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_sub</span>(<span class="number">0</span>, <span class="number">1</span>), <span class="number">255u8</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_mul</span>(<span class="number">255</span>, <span class="number">2</span>), <span class="number">254u8</span>);
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_neg</span>(<span class="number">255</span>), <span class="number">1u8</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_shl</span>(<span class="number">255</span>, <span class="number">8</span>), <span class="number">255u8</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_shr</span>(<span class="number">255</span>, <span class="number">8</span>), <span class="number">255u8</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_add</span>(<span class="number">255</span>, <span class="number">1</span>), (<span class="ident">Wrapping</span>(<span class="number">255u8</span>) <span class="op">+</span> <span class="ident">Wrapping</span>(<span class="number">1u8</span>)).<span class="number">0</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_sub</span>(<span class="number">0</span>, <span class="number">1</span>), (<span class="ident">Wrapping</span>(<span class="number">0u8</span>) <span class="op">-</span> <span class="ident">Wrapping</span>(<span class="number">1u8</span>)).<span class="number">0</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_mul</span>(<span class="number">255</span>, <span class="number">2</span>), (<span class="ident">Wrapping</span>(<span class="number">255u8</span>) <span class="op">*</span> <span class="ident">Wrapping</span>(<span class="number">2u8</span>)).<span class="number">0</span>);
+    <span class="comment">// TODO: Test for Wrapping::Neg. Not possible yet since core::ops::Neg was</span>
+    <span class="comment">// only added to core::num::Wrapping&lt;_&gt; in Rust 1.10.</span>
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_shl</span>(<span class="number">255</span>, <span class="number">8</span>), (<span class="ident">Wrapping</span>(<span class="number">255u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>).<span class="number">0</span>);
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">wrapping_shr</span>(<span class="number">255</span>, <span class="number">8</span>), (<span class="ident">Wrapping</span>(<span class="number">255u8</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>).<span class="number">0</span>);
 }
@@ -531,6 +658,9 @@
     <span class="kw">fn</span> <span class="ident">require_wrappingmul</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WrappingMul</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) {}
     <span class="ident">require_wrappingmul</span>(<span class="kw-2">&amp;</span><span class="ident">Wrapping</span>(<span class="number">42</span>));
 }
+
+<span class="comment">// TODO: Test for Wrapping::Neg. Not possible yet since core::ops::Neg was</span>
+<span class="comment">// only added to core::num::Wrapping&lt;_&gt; in Rust 1.10.</span>
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">wrapping_is_wrappingshl</span>() {
