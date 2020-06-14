@@ -27,8 +27,8 @@ mod regex;
 mod identifier;
 
 // Temporary disabled while lexer in progress.
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 pub use self::error::Error;
 
