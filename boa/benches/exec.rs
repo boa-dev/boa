@@ -381,6 +381,76 @@ fn array_pop(c: &mut Criterion) {
     });
 }
 
+static STRING_CONCAT: &str = r#"
+(function(){
+    var a = "hello";
+    var b = "world";
+
+    var c = a + b;
+})();
+"#;
+
+fn string_concat(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(STRING_CONCAT));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("String concatenation (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static STRING_COMPARE: &str = r#"
+(function(){
+    var a = "hello";
+    var b = "world";
+
+    var c = a == b;
+
+    var d = b;
+    var e = d == b;
+})();
+"#;
+
+fn string_compare(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(STRING_COMPARE));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("String comparison (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static STRING_COPY: &str = r#"
+(function(){
+    var a = "hello";
+    var b = a;
+})();
+"#;
+
+fn string_copy(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(STRING_COPY));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("String copy (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
 criterion_group!(
     execution,
     create_realm,
@@ -397,5 +467,8 @@ criterion_group!(
     regexp_creation,
     regexp_literal,
     regexp,
+    string_concat,
+    string_compare,
+    string_copy,
 );
 criterion_main!(execution);
