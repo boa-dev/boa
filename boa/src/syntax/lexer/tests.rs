@@ -276,8 +276,7 @@ fn check_line_numbers() {
 #[test]
 fn check_decrement_advances_lexer_2_places() {
     // Here we want an example of decrementing an integer
-    let s = "let a = b--;";
-    let lexer = Lexer::new(s.as_bytes());
+    let lexer = Lexer::new(&b"let a = b--;"[0..]);
 
     let mut iter = lexer.skip(4);
 
@@ -296,7 +295,7 @@ fn check_decrement_advances_lexer_2_places() {
 
 #[test]
 fn check_nan() {
-    let mut lexer = Lexer::new("let a = NaN;".as_bytes());
+    let mut lexer = Lexer::new(&b"let a = NaN;"[0..]);
     match lexer.nth(3) {
         None | Some(Err(_)) => panic!("No token found when expecting NaN"),
         Some(Ok(token)) => match token.kind() {
@@ -341,7 +340,7 @@ fn numbers() {
 
 #[test]
 fn implicit_octal_edge_case() {
-    let mut lexer = Lexer::new("044.5 094.5".as_bytes());
+    let mut lexer = Lexer::new(&b"044.5 094.5"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(36),
@@ -355,7 +354,7 @@ fn implicit_octal_edge_case() {
 
 #[test]
 fn hexadecimal_edge_case() {
-    let mut lexer = Lexer::new("0xffff.ff 0xffffff".as_bytes());
+    let mut lexer = Lexer::new(&b"0xffff.ff 0xffffff"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(0xffff),
@@ -369,7 +368,7 @@ fn hexadecimal_edge_case() {
 
 #[test]
 fn single_number_without_semicolon() {
-    let mut lexer = Lexer::new("1".as_bytes());
+    let mut lexer = Lexer::new(&b"1"[0..]);
     if let Some(Ok(x)) = lexer.next() {
         assert_eq!(x.kind(), &TokenKind::numeric_literal(Numeric::Integer(1)));
     } else {
@@ -379,7 +378,7 @@ fn single_number_without_semicolon() {
 
 #[test]
 fn number_followed_by_dot() {
-    let mut lexer = Lexer::new("1..".as_bytes());
+    let mut lexer = Lexer::new(&b"1.."[0..]);
 
     let expected = [
         TokenKind::numeric_literal(1.0),
@@ -391,7 +390,7 @@ fn number_followed_by_dot() {
 
 #[test]
 fn regex_literal() {
-    let mut lexer = Lexer::new("/(?:)/".as_bytes());
+    let mut lexer = Lexer::new(&b"/(?:)/"[0..]);
 
     let expected = [TokenKind::regular_expression_literal(
         "(?:)",
@@ -403,7 +402,7 @@ fn regex_literal() {
 
 #[test]
 fn regex_literal_flags() {
-    let mut lexer = Lexer::new(r"/\/[^\/]*\/*/gmi".as_bytes());
+    let mut lexer = Lexer::new(&br"/\/[^\/]*\/*/gmi"[0..]);
 
     let expected = [TokenKind::regular_expression_literal(
         "\\/[^\\/]*\\/*",
@@ -415,7 +414,7 @@ fn regex_literal_flags() {
 
 #[test]
 fn addition_no_spaces() {
-    let mut lexer = Lexer::new("1+1".as_bytes());
+    let mut lexer = Lexer::new(&b"1+1"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -428,7 +427,7 @@ fn addition_no_spaces() {
 
 #[test]
 fn addition_no_spaces_left_side() {
-    let mut lexer = Lexer::new("1+ 1".as_bytes());
+    let mut lexer = Lexer::new(&b"1+ 1"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -441,7 +440,7 @@ fn addition_no_spaces_left_side() {
 
 #[test]
 fn addition_no_spaces_right_side() {
-    let mut lexer = Lexer::new("1 +1".as_bytes());
+    let mut lexer = Lexer::new(&b"1 +1"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -454,7 +453,7 @@ fn addition_no_spaces_right_side() {
 
 #[test]
 fn addition_no_spaces_e_number_left_side() {
-    let mut lexer = Lexer::new("1e2+ 1".as_bytes());
+    let mut lexer = Lexer::new(&b"1e2+ 1"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(100.0),
@@ -467,7 +466,7 @@ fn addition_no_spaces_e_number_left_side() {
 
 #[test]
 fn addition_no_spaces_e_number_right_side() {
-    let mut lexer = Lexer::new("1 +1e3".as_bytes());
+    let mut lexer = Lexer::new(&b"1 +1e3"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -480,7 +479,7 @@ fn addition_no_spaces_e_number_right_side() {
 
 #[test]
 fn addition_no_spaces_e_number() {
-    let mut lexer = Lexer::new("1e3+1e11".as_bytes());
+    let mut lexer = Lexer::new(&b"1e3+1e11"[0..]);
 
     let expected = [
         TokenKind::numeric_literal(1000.0),
