@@ -204,7 +204,16 @@ where
             }
         };
 
-        Some(token)
+        if let Ok(t) = token {
+            if t.kind() == &TokenKind::Comment {
+                // Skip comment
+                self.next()
+            } else {
+                Some(Ok(t))
+            }
+        } else {
+            Some(token)
+        }
     }
 }
 
