@@ -342,21 +342,21 @@ fn array_creation(c: &mut Criterion) {
 
 static ARRAY_POP: &str = r#"
 (function(){
-    let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 
-                     45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 
-                     234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 
-                     99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 
-                     77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 
-                     2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 
-                     83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 
-                     56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 
-                     27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 
-                     17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 
-                     56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 
-                     28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 
-                     45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 
-                     23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 
-                     36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 
+    let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
+                     45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828,
+                     234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62,
+                     99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67,
+                     77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29,
+                     2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28,
+                     83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23, 56, 32,
+                     56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36, 28, 93,
+                     27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32, 45, 93,
+                     17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234, 23,
+                     56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99, 36,
+                     28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
+                     45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828, 234,
+                     23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99,
+                     36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
                      45, 93, 17, 28, 83, 62, 99, 36, 28];
 
     while (testArray.length > 0) {
@@ -451,6 +451,78 @@ fn string_copy(c: &mut Criterion) {
     });
 }
 
+static NUMBER_OBJECT_ACCESS: &str = r#"
+new Number(
+    new Number(
+        new Number(
+            new Number(100).valueOf() - 10.5
+        ).valueOf() + 100
+    ).valueOf() * 1.6
+)
+"#;
+
+fn number_object_access(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(NUMBER_OBJECT_ACCESS));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("Number Object Access (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static BOOLEAN_OBJECT_ACCESS: &str = r#"
+new Boolean(
+    !new Boolean(
+        new Boolean(
+            !(new Boolean(false).valueOf()) && (new Boolean(true).valueOf())
+        ).valueOf()
+    ).valueOf()
+).valueOf()
+"#;
+
+fn boolean_object_access(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(BOOLEAN_OBJECT_ACCESS));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("Boolean Object Access (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static STRING_OBJECT_ACCESS: &str = r#"
+new String(
+    new String(
+        new String(
+            new String('Hello').valueOf() + new String(", world").valueOf()
+        ).valueOf() + '!'
+    ).valueOf()
+).valueOf()
+"#;
+
+fn string_object_access(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(STRING_OBJECT_ACCESS));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("String Object Access (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
 criterion_group!(
     execution,
     create_realm,
@@ -470,5 +542,8 @@ criterion_group!(
     string_concat,
     string_compare,
     string_copy,
+    number_object_access,
+    boolean_object_access,
+    string_object_access,
 );
 criterion_main!(execution);
