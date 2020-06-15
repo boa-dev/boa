@@ -68,10 +68,12 @@ impl<R> Tokenizer<R> for NumberLiteral {
         // Default assume the number is a base 10 integer.
         let mut kind = NumericKind::Integer(10);
 
-        let c = cursor.next();
-
         if self.init == '0' {
-            match c {
+            if cursor.next_is('x') | cursor.next_is('X') {
+                
+            }
+
+            match peek_ch {
                 None => {
                     // DecimalLiteral lexing.
                     // Indicates that the number is just a single 0.
@@ -81,18 +83,31 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     ));
                 }
                 Some(Err(e)) => {
-                    return Err(Error::from(e));
+                    todo!();
+                    // TODO
                 }
                 Some(Ok('x')) | Some(Ok('X')) => {
                     // HexIntegerLiteral
+
+                    cursor.next(); // Consume the 0x.
+                    buf.pop();
+
                     kind = NumericKind::Integer(16);
                 }
                 Some(Ok('o')) | Some(Ok('O')) => {
                     // OctalIntegerLiteral
+
+                    cursor.next(); // Consume the 0o.
+                    buf.pop();
+
                     kind = NumericKind::Integer(8);
                 }
                 Some(Ok('b')) | Some(Ok('B')) => {
                     // BinaryIntegerLiteral
+
+                    cursor.next(); // Consume the 0b.
+                    buf.pop();
+
                     kind = NumericKind::Integer(2);
                 }
                 Some(Ok('n')) => {
@@ -111,10 +126,12 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 "Implicit octal literals are not allowed in strict mode.",
                             ));
                         } else {
-                            buf.push(ch);
+                            cursor.next();
+                            buf.push(*ch);
+
                             kind = NumericKind::Integer(8);
                         }
-                    } else if ch.is_digit(36) {
+                    } else if ch.is_digit(10) {
                         // Indicates a numerical digit comes after then 0 but it isn't an octal digit
                         // so therefore this must be a number with an unneeded leading 0. This is
                         // forbidden in strict mode.
@@ -124,31 +141,55 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 "Leading 0's are not allowed in strict mode.",
                             ));
                         } else {
-                            buf.push(ch);
+                            cursor.next();
+                            buf.push(*ch);
                         }
                     } else {
                         // Indicates that the symbol is a non-number, this is valid if it is a dot or similar.
-                        buf.push(ch);
                     }
                 }
             }
         }
 
-        while let Some(ch) = cursor.peek() {
-            match ch {
-                Err(_e) => {
-                    // TODO, handle.
-                }
-                Ok(c) if c.is_digit(kind.base()) => {
-                    let s = cursor.next().unwrap().unwrap();
-                    buf.push(s);
-                }
-                _ => {
-                    // A non-number symbol detected, this might be a dot or similar.
-                    break;
+        println!("{:?}", cursor.peek());
+
+        // if let Some(ch) = c {
+        //     buf.push(ch?);
+        // }
+        
+        loop {
+            if let Some(ch) = cursor.peek() {
+                match ch {
+                    Err(_e) => {
+                        // TODO, handle.
+                    }
+                    Ok(c) if c.is_digit(kind.base()) => {
+                        let s = cursor.next().unwrap().unwrap();
+                        buf.push(s);
+                    }
+                    _ => {
+                        // A non-number symbol detected, this might be a dot or similar.
+                        break;
+                    }
                 }
             }
         }
+
+        // while let Some(ch) = cursor.peek() {
+        //     match ch {
+        //         Err(_e) => {
+        //             // TODO, handle.
+        //         }
+        //         Ok(c) if c.is_digit(kind.base()) => {
+        //             let s = cursor.next().unwrap().unwrap();
+        //             buf.push(s);
+        //         }
+        //         _ => {
+        //             // A non-number symbol detected, this might be a dot or similar.
+        //             break;
+        //         }
+        //     }
+        // }
 
         if cursor.next_is('n')? {
             // DecimalBigIntegerLiteral

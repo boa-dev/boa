@@ -310,6 +310,17 @@ fn check_nan() {
 }
 
 #[test]
+fn single_int() {
+    let mut lexer = Lexer::new(&b"52"[0..]);
+
+    let expected = [
+        TokenKind::numeric_literal(52),
+    ];
+
+    expect_tokens(&mut lexer, &expected);
+}
+
+#[test]
 fn numbers() {
     let mut lexer = Lexer::new(
         "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1 0.0 0.12"
