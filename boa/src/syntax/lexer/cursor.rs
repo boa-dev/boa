@@ -73,11 +73,25 @@ where
         })
     }
 
+    /// Applies the predicate to the next character and returns the result.
+    /// Returns false if there is no next character.
+    ///
+    /// The buffer is not incremented.
+    #[inline]
+    pub(super) fn next_is_pred<F>(&mut self, pred: &F) -> io::Result<bool>
+    where
+        F: Fn(char) -> bool,
+    {
+        Ok(match self.peek() {
+            None => false,
+            Some(Ok(peek)) => pred(*peek),
+            Some(Err(e)) => todo!(),
+        })
+    }
+
     /// Fills the buffer with all characters until the stop character is found.
     ///
     /// Note: It will not add the stop character to the buffer.
-    ///
-    /// Returns syntax
     pub(super) fn take_until(&mut self, stop: char, buf: &mut String) -> io::Result<()> {
         loop {
             if self.next_is(stop)? {
@@ -89,6 +103,33 @@ where
                             ErrorKind::UnexpectedEof,
                             format!("Unexpected end of file when looking for character {}", stop),
                         ));
+                    }
+                    Some(Err(e)) => {
+                        return Err(e);
+                    }
+                    Some(Ok(ch)) => {
+                        buf.push(ch);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Fills the buffer with characters until the first character (x) for which the predicate (pred) is false
+    /// (or the next character is none).
+    ///
+    /// Note that all characters up until x are added to the buffer including the character right before.
+    pub(super) fn take_until_pred<F>(&mut self, buf: &mut String, pred: &F) -> io::Result<()>
+    where
+        F: Fn(char) -> bool,
+    {
+        loop {
+            if !self.next_is_pred(pred)? {
+                return Ok(());
+            } else {
+                match self.next() {
+                    None => {
+                        unreachable!();
                     }
                     Some(Err(e)) => {
                         return Err(e);

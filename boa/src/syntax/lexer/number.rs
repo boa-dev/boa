@@ -168,109 +168,111 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
-        if cursor.next_is('n')? {
-            // DecimalBigIntegerLiteral
-            kind = kind.to_bigint();
-        }
+        todo!("Rest of number literal lexing");
 
-        if let NumericKind::Integer(10) = kind {
-            'digitloop: while let Some(ch) = cursor.peek() {
-                match ch {
-                    Err(_e) => {
-                        // TODO
-                    }
-                    Ok('.') => loop {
-                        kind = NumericKind::Rational;
-                        match cursor.next() {
-                            None => {
-                                // Finished
-                                break;
-                            }
+        // match cursor.peek() {
+        //     Some(Ok('n')) => {
+        //         // DecimalBigIntegerLiteral
+        //         kind = kind.to_bigint();
+        //     }
+        // }
 
-                            Some(Err(e)) => {
-                                return Err(Error::from(e));
-                            }
+        // if let NumericKind::Integer(10) = kind {
+        //     'digitloop: while let Some(ch) = cursor.peek() {
+        //         match ch {
+        //             Err(_e) => {
+        //                 // TODO
+        //             }
+        //             Ok('.') => loop {
+        //                 kind = NumericKind::Rational;
+        //                 match cursor.next() {
+        //                     None => {
+        //                         // Finished
+        //                         break;
+        //                     }
 
-                            Some(Ok(c)) => {
-                                buf.push(c);
-                            }
-                        }
+        //                     Some(Err(e)) => {
+        //                         return Err(Error::from(e));
+        //                     }
 
-                        match cursor.peek() {
-                            None => {
-                                break;
-                            }
-                            Some(Err(_e)) => {
-                                // TODO
-                            }
-                            Some(Ok('e')) | Some(Ok('E')) => {
-                                // TODO scientific notation.
+        //                     Some(Ok(c)) => {
+        //                         buf.push(c);
+        //                     }
+        //                 }
 
-                                unimplemented!();
+        //                 match cursor.peek() {
+        //                     None => {
+        //                         break;
+        //                     }
+        //                     Some(Err(_e)) => {
+        //                         // TODO
+        //                     }
+        //                     Some(Ok('e')) | Some(Ok('E')) => {
+        //                         cursor.next(); // Consume the ExponentIndicator.
 
-                                // match self
-                                //     .preview_multiple_next(2)
-                                //     .unwrap_or_default()
-                                //     .to_digit(10)
-                                // {
-                                //     Some(0..=9) | None => {
-                                //         buf.push(self.next());
-                                //     }
-                                //     _ => {
-                                //         break 'digitloop;
-                                //     }
-                                // }
-                            }
-                            Some(Ok(cx)) if !cx.is_digit(10) => {
-                                break 'digitloop;
-                            }
-                            _ => {}
-                        }
-                    },
-                    Ok('e') | Ok('E') => {
-                        // TODO scientific notation.
-                        unimplemented!();
+        //                         match self
+        //                             .preview_multiple_next(2)
+        //                             .unwrap_or_default()
+        //                             .to_digit(10)
+        //                         {
+        //                             Some(0..=9) | None => {
+        //                                 buf.push(self.next());
+        //                             }
+        //                             _ => {
+        //                                 break 'digitloop;
+        //                             }
+        //                         }
+        //                     }
+        //                     Some(Ok(cx)) if !cx.is_digit(10) => {
+        //                         break 'digitloop;
+        //                     }
+        //                     _ => {}
+        //                 }
+        //             },
+        //             Ok('e') | Ok('E') => {
+        //                 // TODO scientific notation.
+        //                 unimplemented!();
 
-                        // kind = NumericKind::Rational;
-                        // match self
-                        //     .preview_multiple_next(2)
-                        //     .unwrap_or_default()
-                        //     .to_digit(10)
-                        // {
-                        //     Some(0..=9) | None => {
-                        //         buf.push(self.next());
-                        //     }
-                        //     _ => {
-                        //         break;
-                        //     }
-                        // }
-                        // buf.push(self.next());
-                    }
-                    Ok('+') | Ok('-') => {
-                        break;
-                    }
-                    Ok(cx) if cx.is_digit(10) => {
-                        // cursor.next();
-                        match cursor.next() {
-                            None => {
-                                // Finished
-                                break;
-                            }
+        //                 // kind = NumericKind::Rational;
+        //                 // match self
+        //                 //     .preview_multiple_next(2)
+        //                 //     .unwrap_or_default()
+        //                 //     .to_digit(10)
+        //                 // {
+        //                 //     Some(0..=9) | None => {
+        //                 //         buf.push(self.next());
+        //                 //     }
+        //                 //     _ => {
+        //                 //         break;
+        //                 //     }
+        //                 // }
+        //                 // buf.push(self.next());
+        //             }
+        //             Ok('+') | Ok('-') => {
+        //                 break;
+        //             }
+        //             Ok(cx) if cx.is_digit(10) => {
+        //                 // cursor.next();
+        //                 match cursor.next() {
+        //                     None => {
+        //                         // Finished
+        //                         break;
+        //                     }
 
-                            Some(Err(e)) => {
-                                return Err(Error::from(e));
-                            }
+        //                     Some(Err(e)) => {
+        //                         return Err(Error::from(e));
+        //                     }
 
-                            Some(Ok(c)) => {
-                                buf.push(c);
-                            }
-                        }
-                        // buf.push(*cx);
-                    }
-                    Ok(_) => break,
-                }
-            }
-        }
+        //                     Some(Ok(c)) => {
+        //                         buf.push(c);
+        //                     }
+        //                 }
+        //                 // buf.push(*cx);
+        //             }
+        //             Ok(_) => break,
+        //         }
+        //     }
+        // }
 
         // TODO
         //self.check_after_numeric_literal()?;

@@ -313,9 +313,7 @@ fn check_nan() {
 fn single_int() {
     let mut lexer = Lexer::new(&b"52"[0..]);
 
-    let expected = [
-        TokenKind::numeric_literal(52),
-    ];
+    let expected = [TokenKind::numeric_literal(52)];
 
     expect_tokens(&mut lexer, &expected);
 }
@@ -501,4 +499,39 @@ fn addition_no_spaces_e_number() {
     ];
 
     expect_tokens(&mut lexer, &expected);
+}
+
+#[test]
+fn take_until_pred_simple() {
+    let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
+
+    let mut buf: String = String::new();
+
+    cur.take_until_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
+        .unwrap();
+
+    assert_eq!(buf, "abc");
+}
+
+#[test]
+fn take_until_pred_immediate_stop() {
+    let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
+
+    let mut buf: String = String::new();
+
+    cur.take_until_pred(&mut buf, &|c| c == 'd').unwrap();
+
+    assert_eq!(buf, "");
+}
+
+#[test]
+fn take_until_pred_entire_str() {
+    let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
+
+    let mut buf: String = String::new();
+
+    cur.take_until_pred(&mut buf, &|c| c.is_alphabetic())
+        .unwrap();
+
+    assert_eq!(buf, "abcdefghijk");
 }
