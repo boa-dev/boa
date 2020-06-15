@@ -104,6 +104,26 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
@@ -127,89 +147,109 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{
-            <span class="ident">internal_methods_trait</span>::<span class="ident">ObjectInternalMethods</span>, <span class="ident">Object</span>, <span class="ident">ObjectKind</span>, <span class="ident">INSTANCE_PROTOTYPE</span>,
-            <span class="ident">PROTOTYPE</span>,
-        },
-        <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
-    },
+    <span class="ident">builtins</span>::<span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
     <span class="ident">BoaProfiler</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>};
-<span class="kw">use</span> <span class="ident">rand</span>::<span class="ident">random</span>;
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
-<span class="doccomment">/// Creates Symbol instances.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Symbol instances are ordinary objects that inherit properties from the Symbol prototype object.</span>
-<span class="doccomment">/// Symbol instances have a `[[SymbolData]]` internal slot.</span>
-<span class="doccomment">/// The `[[SymbolData]]` internal slot is the Symbol value represented by this Symbol object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">/// - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol-description</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_symbol</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="comment">// From an implementation and specificaition perspective Symbols are similar to Objects.</span>
-    <span class="comment">// They have internal slots to hold the SymbolData and Description, they also have methods and a prototype.</span>
-    <span class="comment">// So we start by creating an Object</span>
-    <span class="comment">// TODO: Set prototype to Symbol.prototype (by changing to Object::create(), use interpreter to get Symbol.prototype)</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sym_instance</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
-    <span class="ident">sym_instance</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">ObjectKind</span>::<span class="ident">Symbol</span>;
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Symbol</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">u32</span>);
 
-    <span class="comment">// Set description which should either be undefined or a string</span>
-    <span class="kw">let</span> <span class="ident">desc_string</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
-    };
+<span class="kw">impl</span> <span class="ident">Symbol</span> {
+    <span class="doccomment">/// The name of the object.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Symbol&quot;</span>;
 
-    <span class="ident">sym_instance</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;Description&quot;</span>, <span class="ident">desc_string</span>);
-    <span class="ident">sym_instance</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;SymbolData&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>()));
+    <span class="doccomment">/// The amount of arguments this function object takes.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
 
-    <span class="comment">// Set __proto__ internal slot</span>
-    <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
-        .<span class="ident">realm</span>
-        .<span class="ident">global_obj</span>
-        .<span class="ident">get_field</span>(<span class="string">&quot;Symbol&quot;</span>)
-        .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
-    <span class="ident">sym_instance</span>.<span class="ident">set_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">proto</span>);
+    <span class="doccomment">/// Returns the `Symbol`s description.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_deref</span>()
+    }
 
-    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(
-        <span class="ident">sym_instance</span>,
-    ))))))
-}
+    <span class="doccomment">/// Returns the `Symbol`s hash.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="self">self</span>.<span class="number">1</span>
+    }
 
-<span class="doccomment">/// `Symbol.prototype.toString()`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This method returns a string representing the specified `Symbol` object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// /// More information:</span>
-<span class="doccomment">/// - [MDN documentation][mdn]</span>
-<span class="doccomment">/// - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">s</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_internal_slot</span>(<span class="string">&quot;Description&quot;</span>);
-    <span class="kw">let</span> <span class="ident">full_string</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">r#&quot;Symbol({})&quot;#</span>, <span class="ident">s</span>.<span class="ident">to_string</span>());
-    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">full_string</span>))
-}
+    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">data</span>() {
+            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
+            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_symbol</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>());
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        }
 
-<span class="doccomment">/// Create a new `Symbol` object.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="comment">// Create prototype object</span>
-    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+        <span class="prelude-val">Err</span>(<span class="ident">ctx</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Symbol&quot;</span>))
+    }
 
-    <span class="ident">make_builtin_fn</span>(<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-    <span class="ident">make_constructor_fn</span>(<span class="string">&quot;Symbol&quot;</span>, <span class="number">1</span>, <span class="ident">call_symbol</span>, <span class="ident">global</span>, <span class="ident">prototype</span>, <span class="bool-val">false</span>)
-}
+    <span class="doccomment">/// The `Symbol()` constructor returns a value of type symbol.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// It is incomplete as a constructor because it does not support</span>
+    <span class="doccomment">/// the syntax `new Symbol()` and it is not intended to be subclassed.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
+    <span class="doccomment">/// - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol-description</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">value</span>)<span class="question-mark">?</span>.<span class="ident">into_boxed_str</span>())
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        };
 
-<span class="doccomment">/// Initialise the `Symbol` object on the global object.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;symbol&quot;</span>, <span class="string">&quot;init&quot;</span>);
-    <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;Symbol&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">symbol</span>(<span class="ident">Symbol</span>(<span class="ident">description</span>, <span class="ident">ctx</span>.<span class="ident">generate_hash</span>())))
+    }
+
+    <span class="doccomment">/// `Symbol.prototype.toString()`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method returns a string representing the specified `Symbol` object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// /// More information:</span>
+    <span class="doccomment">/// - [MDN documentation][mdn]</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">description</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>)))
+    }
+
+    <span class="doccomment">/// Create a new `Symbol` object.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="comment">// Create prototype object</span>
+        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_constructor_fn</span>(
+            <span class="self">Self</span>::<span class="ident">NAME</span>,
+            <span class="self">Self</span>::<span class="ident">LENGTH</span>,
+            <span class="self">Self</span>::<span class="ident">call</span>,
+            <span class="ident">global</span>,
+            <span class="ident">prototype</span>,
+            <span class="bool-val">false</span>,
+        )
+    }
+
+    <span class="doccomment">/// Initialise the `Symbol` object on the global object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Value</span>) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
+
+        (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="self">Self</span>::<span class="ident">create</span>(<span class="ident">global</span>))
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

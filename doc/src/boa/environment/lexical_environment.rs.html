@@ -379,7 +379,7 @@
 
 <span class="doccomment">/// Give each environment an easy way to declare its own type</span>
 <span class="doccomment">/// This helps with comparisons</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EnvironmentType</span> {
     <span class="ident">Declarative</span>,
     <span class="ident">Function</span>,
@@ -388,7 +388,7 @@
 }
 
 <span class="doccomment">/// The scope of a given variable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableScope</span> {
     <span class="doccomment">/// The variable declaration is scoped to the current block (`let` and `const`)</span>
     <span class="ident">Block</span>,
@@ -396,13 +396,13 @@
     <span class="ident">Function</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LexicalEnvironment</span> {
     <span class="ident">environment_stack</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// An error that occurred during lexing or compiling of the source input.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EnvironmentError</span> {
     <span class="ident">details</span>: <span class="ident">String</span>,
 }

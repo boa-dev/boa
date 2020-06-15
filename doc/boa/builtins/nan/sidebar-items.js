@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["init","Initialize the `NaN` property on the global object."]]});
+initSidebarItems({"struct":[["NaN","JavaScript global `NaN` property."]]});

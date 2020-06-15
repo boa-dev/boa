@@ -177,6 +177,15 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -195,7 +204,6 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
     <span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
-    <span class="ident">object</span>::<span class="ident">ObjectKind</span>,
     <span class="ident">property</span>::<span class="ident">Property</span>,
     <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
 };
@@ -205,157 +213,167 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="doccomment">/// `JSON.parse( text[, reviver] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An optional `reviver` function can be provided to perform a transformation on the resulting object before it is returned.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.parse</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">match</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;cannot get argument for JSON.parse&quot;</span>))<span class="question-mark">?</span>,
-    ) {
-        <span class="prelude-val">Ok</span>(<span class="ident">json</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from_json</span>(<span class="ident">json</span>, <span class="ident">ctx</span>);
-            <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">reviver</span>) <span class="kw">if</span> <span class="ident">reviver</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holder</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
-                    <span class="ident">holder</span>.<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>), <span class="ident">j</span>);
-                    <span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">holder</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>))
-                }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">j</span>),
-            }
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">err</span>.<span class="ident">to_string</span>())),
-    }
-}
+<span class="doccomment">/// JavaScript `JSON` global object.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Json</span>;
 
-<span class="doccomment">/// This is a translation of the [Polyfill implementation][polyfill]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function recursively walks the structure, passing each key-value pair to the reviver function</span>
-<span class="doccomment">/// for possible transformation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-<span class="kw">fn</span> <span class="ident">walk</span>(<span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>, <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">key</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">clone</span>());
+<span class="kw">impl</span> <span class="ident">Json</span> {
+    <span class="doccomment">/// The name of the object.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;JSON&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">as_deref</span>().<span class="ident">cloned</span>();
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">obj</span> {
-        <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">properties</span>.<span class="ident">keys</span>() {
-            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">key</span>.<span class="ident">as_str</span>()));
-            <span class="kw">match</span> <span class="ident">v</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">v</span>.<span class="ident">is_undefined</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">value</span>.<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">key</span>.<span class="ident">as_str</span>()), <span class="ident">v</span>);
+    <span class="doccomment">/// `JSON.parse( text[, reviver] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// An optional `reviver` function can be provided to perform a transformation on the resulting object before it is returned.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.parse</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">match</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span>(
+            <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;cannot get argument for JSON.parse&quot;</span>))<span class="question-mark">?</span>,
+        ) {
+            <span class="prelude-val">Ok</span>(<span class="ident">json</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from_json</span>(<span class="ident">json</span>, <span class="ident">ctx</span>);
+                <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+                    <span class="prelude-val">Some</span>(<span class="ident">reviver</span>) <span class="kw">if</span> <span class="ident">reviver</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holder</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
+                        <span class="ident">holder</span>.<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>), <span class="ident">j</span>);
+                        <span class="self">Self</span>::<span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">holder</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>))
+                    }
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">j</span>),
                 }
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">value</span>.<span class="ident">remove_property</span>(<span class="ident">key</span>.<span class="ident">as_str</span>());
-                }
-                <span class="prelude-val">Err</span>(<span class="ident">_v</span>) <span class="op">=</span><span class="op">&gt;</span> {}
             }
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">err</span>.<span class="ident">to_string</span>())),
         }
     }
-    <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="ident">reviver</span>, <span class="ident">holder</span>, <span class="kw-2">&amp;</span>[<span class="ident">key</span>, <span class="ident">value</span>])
-}
 
-<span class="doccomment">/// `JSON.stringify( value[, replacer[, space]] )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This `JSON` method converts a JavaScript object or value to a JSON string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This medhod optionally replaces values if a `replacer` function is specified or</span>
-<span class="doccomment">/// optionally including only the specified properties if a replacer array is specified.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An optional `space` argument can be supplied of type `String` or `Number` that&#39;s used to insert</span>
-<span class="doccomment">/// white space into the output JSON string for readability purposes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.stringify</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_symbol</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
-        <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-    };
-    <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">replacer</span>) <span class="kw">if</span> <span class="ident">replacer</span>.<span class="ident">is_object</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">replacer</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>())),
-    };
+    <span class="doccomment">/// This is a translation of the [Polyfill implementation][polyfill]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function recursively walks the structure, passing each key-value pair to the reviver function</span>
+    <span class="doccomment">/// for possible transformation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
+    <span class="kw">fn</span> <span class="ident">walk</span>(<span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>, <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">key</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">clone</span>());
 
-    <span class="kw">let</span> <span class="ident">replacer_as_object</span> <span class="op">=</span> <span class="ident">replacer</span>
-        .<span class="ident">as_object</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;JSON.stringify replacer was an object&quot;</span>);
-    <span class="kw">if</span> <span class="ident">replacer_as_object</span>.<span class="ident">is_callable</span>() {
-        <span class="ident">object</span>
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">as_deref</span>().<span class="ident">cloned</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">obj</span> {
+            <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">properties</span>().<span class="ident">keys</span>() {
+                <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">walk</span>(<span class="ident">reviver</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">key</span>.<span class="ident">as_str</span>()));
+                <span class="kw">match</span> <span class="ident">v</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">v</span>.<span class="ident">is_undefined</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">value</span>.<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">key</span>.<span class="ident">as_str</span>()), <span class="ident">v</span>);
+                    }
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">value</span>.<span class="ident">remove_property</span>(<span class="ident">key</span>.<span class="ident">as_str</span>());
+                    }
+                    <span class="prelude-val">Err</span>(<span class="ident">_v</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                }
+            }
+        }
+        <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="ident">reviver</span>, <span class="ident">holder</span>, <span class="kw-2">&amp;</span>[<span class="ident">key</span>, <span class="ident">value</span>])
+    }
+
+    <span class="doccomment">/// `JSON.stringify( value[, replacer[, space]] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This `JSON` method converts a JavaScript object or value to a JSON string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This medhod optionally replaces values if a `replacer` function is specified or</span>
+    <span class="doccomment">/// optionally including only the specified properties if a replacer array is specified.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// An optional `space` argument can be supplied of type `String` or `Number` that&#39;s used to insert</span>
+    <span class="doccomment">/// white space into the output JSON string for readability purposes.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.stringify</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_symbol</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
+        };
+        <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">replacer</span>) <span class="kw">if</span> <span class="ident">replacer</span>.<span class="ident">is_object</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">replacer</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>())),
+        };
+
+        <span class="kw">let</span> <span class="ident">replacer_as_object</span> <span class="op">=</span> <span class="ident">replacer</span>
             .<span class="ident">as_object</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">object_to_return</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
-                <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">obj</span>
-                    .<span class="ident">properties</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> (<span class="ident">k</span>, <span class="ident">value</span>)))
-                {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">clone</span>();
-                    <span class="ident">object_to_return</span>.<span class="ident">set_property</span>(
-                        <span class="ident">key</span>.<span class="ident">to_owned</span>(),
-                        <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">ctx</span>.<span class="ident">call</span>(
-                            <span class="ident">replacer</span>,
-                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this_arg</span>,
-                            <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">key</span>), <span class="ident">val</span>.<span class="ident">clone</span>()],
-                        )<span class="question-mark">?</span>),
-                    );
+            .<span class="ident">expect</span>(<span class="string">&quot;JSON.stringify replacer was an object&quot;</span>);
+        <span class="kw">if</span> <span class="ident">replacer_as_object</span>.<span class="ident">is_callable</span>() {
+            <span class="ident">object</span>
+                .<span class="ident">as_object</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="ident">object_to_return</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
+                    <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">obj</span>
+                        .<span class="ident">properties</span>()
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> (<span class="ident">k</span>, <span class="ident">value</span>)))
+                    {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">clone</span>();
+                        <span class="ident">object_to_return</span>.<span class="ident">set_property</span>(
+                            <span class="ident">key</span>.<span class="ident">to_owned</span>(),
+                            <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">ctx</span>.<span class="ident">call</span>(
+                                <span class="ident">replacer</span>,
+                                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this_arg</span>,
+                                <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">key</span>), <span class="ident">val</span>.<span class="ident">clone</span>()],
+                            )<span class="question-mark">?</span>),
+                        );
+                    }
+                    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object_to_return</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>()))
+                })
+                .<span class="ident">ok_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)<span class="question-mark">?</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">replacer_as_object</span>.<span class="ident">is_array</span>() {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj_to_return</span> <span class="op">=</span>
+                <span class="ident">serde_json</span>::<span class="ident">Map</span>::<span class="ident">with_capacity</span>(<span class="ident">replacer_as_object</span>.<span class="ident">properties</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">replacer_as_object</span>.<span class="ident">properties</span>().<span class="ident">keys</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
+                <span class="kw">if</span> <span class="ident">key</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;length&quot;</span> {
+                    <span class="prelude-val">None</span>
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">replacer</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">to_owned</span>()))
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object_to_return</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>()))
-            })
-            .<span class="ident">ok_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)<span class="question-mark">?</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">replacer_as_object</span>.<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ObjectKind</span>::<span class="ident">Array</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj_to_return</span> <span class="op">=</span>
-            <span class="ident">serde_json</span>::<span class="ident">Map</span>::<span class="ident">with_capacity</span>(<span class="ident">replacer_as_object</span>.<span class="ident">properties</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">replacer_as_object</span>.<span class="ident">properties</span>.<span class="ident">keys</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">key</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;length&quot;</span> {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">replacer</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">to_owned</span>()))
+            });
+            <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">object</span>
+                    .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>)<span class="question-mark">?</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">prop</span><span class="op">|</span> <span class="ident">prop</span>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)))
+                    .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+                {
+                    <span class="ident">obj_to_return</span>.<span class="ident">insert</span>(<span class="ident">field</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>);
+                }
             }
-        });
-        <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">object</span>
-                .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>)<span class="question-mark">?</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">prop</span><span class="op">|</span> <span class="ident">prop</span>.<span class="ident">value</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)))
-                .<span class="ident">transpose</span>()<span class="question-mark">?</span>
-            {
-                <span class="ident">obj_to_return</span>.<span class="ident">insert</span>(<span class="ident">field</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>);
-            }
+            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">JSONValue</span>::<span class="ident">Object</span>(<span class="ident">obj_to_return</span>).<span class="ident">to_string</span>()))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>()))
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">JSONValue</span>::<span class="ident">Object</span>(<span class="ident">obj_to_return</span>).<span class="ident">to_string</span>()))
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object</span>.<span class="ident">to_json</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>()))
     }
-}
 
-<span class="doccomment">/// Create a new `JSON` object.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
+    <span class="doccomment">/// Create a new `JSON` object.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
 
-    <span class="ident">make_builtin_fn</span>(<span class="ident">parse</span>, <span class="string">&quot;parse&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="number">2</span>);
-    <span class="ident">make_builtin_fn</span>(<span class="ident">stringify</span>, <span class="string">&quot;stringify&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="number">3</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">parse</span>, <span class="string">&quot;parse&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="number">2</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">stringify</span>, <span class="string">&quot;stringify&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="number">3</span>);
 
-    <span class="ident">json</span>
-}
+        <span class="ident">json</span>
+    }
 
-<span class="doccomment">/// Initialise the `JSON` object on the global object.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;json&quot;</span>, <span class="string">&quot;init&quot;</span>);
-    <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;JSON&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
+    <span class="doccomment">/// Initialise the `JSON` object on the global object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Value</span>) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
+
+        (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="self">Self</span>::<span class="ident">create</span>(<span class="ident">global</span>))
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["init","Initialize the `globalThis` property on the global object."]]});
+initSidebarItems({"struct":[["GlobalThis","The JavaScript `globalThis`."]]});

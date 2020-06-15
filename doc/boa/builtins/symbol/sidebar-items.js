@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["call_symbol","Creates Symbol instances."],["create","Create a new `Symbol` object."],["init","Initialise the `Symbol` object on the global object."],["to_string","`Symbol.prototype.toString()`"]]});
+initSidebarItems({"struct":[["Symbol",""]]});

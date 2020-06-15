@@ -475,6 +475,30 @@
 <span id="475">475</span>
 <span id="476">476</span>
 <span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -492,7 +516,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">array</span>::<span class="ident">Array</span>,
-        <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectInternalMethods</span>, <span class="ident">ObjectKind</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
@@ -518,7 +542,8 @@
 <span class="doccomment">/// Defines how this references are interpreted within the formal parameters and code body of the function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Arrow functions don&#39;t define a `this` and thus are lexical, `function`s do define a this and thus are NonLexical</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ThisMode</span> {
     <span class="ident">Lexical</span>,
     <span class="ident">NonLexical</span>,
@@ -538,11 +563,23 @@
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">FunctionBody</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">BuiltIn</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;native code&quot;</span>),
+            <span class="self">Self</span>::<span class="ident">BuiltIn</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;[native]&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Ordinary</span>(<span class="ident">statements</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">statements</span>),
         }
     }
 }
+
+<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">FunctionBody</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
+            (<span class="self">Self</span>::<span class="ident">BuiltIn</span>(<span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">BuiltIn</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">eq</span>(<span class="ident">a</span>, <span class="ident">b</span>),
+            (<span class="self">Self</span>::<span class="ident">Ordinary</span>(<span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">Ordinary</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
+            (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">FunctionBody</span> {}
 
 <span class="doccomment">/// `Trace` implementation for `FunctionBody`.</span>
 <span class="doccomment">///</span>
@@ -642,20 +679,20 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="comment">// represents a pointer to this function object wrapped in a GC (not a `this` JS object)</span>
+        <span class="ident">function</span>: <span class="ident">Value</span>, <span class="comment">// represents a pointer to this function object wrapped in a GC (not a `this` JS object)</span>
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
         <span class="ident">args_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-        <span class="ident">this_obj</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;function::call&quot;</span>, <span class="string">&quot;function&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">callable</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">body</span> {
-                <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>(<span class="ident">this_obj</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>),
+                <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>),
                 <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
                     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                     <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
-                        <span class="ident">this</span>.<span class="ident">clone</span>(),
+                        <span class="ident">function</span>,
                         <span class="prelude-val">None</span>,
                         <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
                         <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>,
@@ -701,23 +738,23 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="comment">// represents a pointer to this function object wrapped in a GC (not a `this` JS object)</span>
+        <span class="ident">function</span>: <span class="ident">Value</span>, <span class="comment">// represents a pointer to this function object wrapped in a GC (not a `this` JS object)</span>
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
         <span class="ident">args_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-        <span class="ident">this_obj</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">constructable</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">body</span> {
                 <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">func</span>(<span class="ident">this_obj</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(<span class="ident">this_obj</span>.<span class="ident">clone</span>())
+                    <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args_list</span>, <span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
                 }
                 <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
                     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                     <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
-                        <span class="ident">this</span>.<span class="ident">clone</span>(),
-                        <span class="prelude-val">Some</span>(<span class="ident">this_obj</span>.<span class="ident">clone</span>()),
+                        <span class="ident">function</span>,
+                        <span class="prelude-val">Some</span>(<span class="ident">this</span>.<span class="ident">clone</span>()),
                         <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()),
                         <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span>,
                     );
@@ -842,7 +879,7 @@
             .<span class="ident">writable</span>(<span class="bool-val">true</span>)
             .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
 
-        <span class="ident">obj</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="ident">index</span>.<span class="ident">to_string</span>(), <span class="ident">prop</span>);
+        <span class="ident">obj</span>.<span class="ident">properties_mut</span>().<span class="ident">insert</span>(<span class="ident">index</span>.<span class="ident">to_string</span>(), <span class="ident">prop</span>);
         <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
 
@@ -853,7 +890,10 @@
 <span class="doccomment">///</span>
 <span class="comment">// This gets called when a new Function() is created.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_function</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-    <span class="ident">this</span>.<span class="ident">set_kind</span>(<span class="ident">ObjectKind</span>::<span class="ident">Function</span>);
+    <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Function</span>(<span class="ident">Function</span>::<span class="ident">builtin</span>(
+        <span class="ident">Vec</span>::<span class="ident">new</span>(),
+        <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+    )));
     <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
 }
 
@@ -869,46 +909,55 @@
 <span class="doccomment">/// So far this is only used by internal functions</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_constructor_fn</span>(
     <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">length</span>: <span class="ident">i32</span>,
+    <span class="ident">length</span>: <span class="ident">usize</span>,
     <span class="ident">body</span>: <span class="ident">NativeFunctionData</span>,
     <span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-    <span class="ident">proto</span>: <span class="ident">Value</span>,
+    <span class="ident">prototype</span>: <span class="ident">Value</span>,
     <span class="ident">constructable</span>: <span class="ident">bool</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="comment">// Create the native function</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor_fn</span> <span class="op">=</span> <span class="ident">Function</span>::<span class="ident">builtin</span>(<span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">body</span>);
+    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span>
+        <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;make_constructor_fn: {}&quot;</span>, <span class="ident">name</span>), <span class="string">&quot;init&quot;</span>);
 
-    <span class="ident">constructor_fn</span>.<span class="ident">constructable</span> <span class="op">=</span> <span class="ident">constructable</span>;
+    <span class="comment">// Create the native function</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Function</span>::<span class="ident">builtin</span>(<span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">body</span>);
+    <span class="ident">function</span>.<span class="ident">constructable</span> <span class="op">=</span> <span class="ident">constructable</span>;
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(<span class="ident">function</span>);
 
     <span class="comment">// Get reference to Function.prototype</span>
-    <span class="kw">let</span> <span class="ident">func_prototype</span> <span class="op">=</span> <span class="ident">global</span>.<span class="ident">get_field</span>(<span class="string">&quot;Function&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
-
     <span class="comment">// Create the function object and point its instance prototype to Function.prototype</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor_obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
-    <span class="ident">constructor_obj</span>.<span class="ident">set_func</span>(<span class="ident">constructor_fn</span>);
-
-    <span class="ident">constructor_obj</span>.<span class="ident">set_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">func_prototype</span>);
-    <span class="kw">let</span> <span class="ident">constructor_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">constructor_obj</span>);
-
-    <span class="comment">// Set proto.constructor -&gt; constructor_obj</span>
-    <span class="ident">proto</span>.<span class="ident">set_field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">constructor_val</span>.<span class="ident">clone</span>());
-    <span class="ident">constructor_val</span>.<span class="ident">set_field</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">proto</span>);
+    <span class="ident">constructor</span>.<span class="ident">set_internal_slot</span>(
+        <span class="ident">INSTANCE_PROTOTYPE</span>,
+        <span class="ident">global</span>.<span class="ident">get_field</span>(<span class="string">&quot;Function&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>),
+    );
 
     <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">new</span>()
         .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>))
         .<span class="ident">writable</span>(<span class="bool-val">false</span>)
         .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
         .<span class="ident">enumerable</span>(<span class="bool-val">false</span>);
-    <span class="ident">constructor_val</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
+    <span class="ident">constructor</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
 
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">new</span>()
         .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name</span>))
         .<span class="ident">writable</span>(<span class="bool-val">false</span>)
         .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
         .<span class="ident">enumerable</span>(<span class="bool-val">false</span>);
-    <span class="ident">constructor_val</span>.<span class="ident">set_property_slice</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>);
+    <span class="ident">constructor</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>);
 
-    <span class="ident">constructor_val</span>
+    <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">constructor</span>);
+
+    <span class="ident">prototype</span>
+        .<span class="ident">as_object_mut</span>()
+        .<span class="ident">unwrap</span>()
+        .<span class="ident">insert_field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">constructor</span>.<span class="ident">clone</span>());
+
+    <span class="ident">constructor</span>
+        .<span class="ident">as_object_mut</span>()
+        .<span class="ident">expect</span>(<span class="string">&quot;constructor object&quot;</span>)
+        .<span class="ident">insert_field</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">prototype</span>);
+
+    <span class="ident">constructor</span>
 }
 
 <span class="doccomment">/// Creates a new member function of a `Object` or `prototype`.</span>
@@ -929,29 +978,28 @@
 <span class="doccomment">///     some other number of arguments.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// If no length is provided, the length will be set to 0.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_builtin_fn</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">function</span>: <span class="ident">NativeFunctionData</span>, <span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">length</span>: <span class="ident">i32</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_builtin_fn</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">function</span>: <span class="ident">NativeFunctionData</span>, <span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">length</span>: <span class="ident">usize</span>)
 <span class="kw">where</span>
     <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 {
-    <span class="kw">let</span> <span class="ident">name_copy</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
-    <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;make_builtin_fn: &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">name_copy</span>);
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="ident">label</span>, <span class="string">&quot;init&quot;</span>);
-    <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">Function</span>::<span class="ident">builtin</span>(<span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">function</span>);
+    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
+    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;make_builtin_fn: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>), <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>();
-    <span class="ident">new_func</span>.<span class="ident">set_func</span>(<span class="ident">func</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(<span class="ident">Function</span>::<span class="ident">builtin</span>(<span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">function</span>));
+    <span class="ident">function</span>.<span class="ident">insert_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>));
 
-    <span class="kw">let</span> <span class="ident">new_func_obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
-    <span class="ident">new_func_obj</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
-
-    <span class="ident">parent</span>.<span class="ident">set_field</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name_copy</span>), <span class="ident">new_func_obj</span>);
+    <span class="ident">parent</span>
+        .<span class="ident">as_object_mut</span>()
+        .<span class="ident">unwrap</span>()
+        .<span class="ident">insert_field</span>(<span class="ident">name</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">function</span>));
 }
 
 <span class="doccomment">/// Initialise the `Function` object on the global object.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">global</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Value</span>) {
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
-    <span class="ident">global</span>.<span class="ident">set_field</span>(<span class="string">&quot;Function&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>));
+
+    (<span class="string">&quot;Function&quot;</span>, <span class="ident">create</span>(<span class="ident">global</span>))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>
