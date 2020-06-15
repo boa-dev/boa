@@ -203,6 +203,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
         cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
+        let mut exp_str = String::new();
+
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
         // '.' To indicate a decimal seperator.
@@ -242,7 +244,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         // Consume the ExponentIndicator.
                         cursor.next();
 
-                        take_signed_integer(&mut buf, cursor, &kind)?;
+                        take_signed_integer(&mut exp_str, cursor, &kind)?;
                     }
                     Some(Err(_e)) => {
                         // todo!();
@@ -258,17 +260,17 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 // Consume the ExponentIndicator.
                 cursor.next();
 
-                take_signed_integer(&mut buf, cursor, &kind)?;
+                // buf.push('e');
+
+                take_signed_integer(&mut exp_str, cursor, &kind)?;
             }
-            Some(Err(e)) => {
+            Some(Err(_e)) => {
                 // todo!();
             }
 
             Some(Ok(_)) | None => {
                 // Indicates lexing finished.
             }
-
-            _ => {}
         }
 
         // unimplemented!();
@@ -282,16 +284,30 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     )
             }
             NumericKind::Rational /* base: 10 */ => {
-                Numeric::Rational(
-                    f64::from_str(&buf)
-                        .map_err(|_| Error::syntax("Could not convert value to f64"))?,
-                )
+                let r = f64::from_str(&buf).map_err(|_| Error::syntax("Could not convert value to f64"))?;
+                if exp_str == "" {
+                    Numeric::Rational(
+                        r
+                    )
+                } else {
+                    let n = f64::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
+                
+                    Numeric::Rational(
+                        r * f64::powf(10.0, n)
+                    )
+                }
             }
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
-                    // unimplemented!();
-                    // Numeric::Integer(0)
-                    Numeric::Integer(num)
+                    if exp_str == "" {
+                        Numeric::Integer(num)
+                    } else {
+                        let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
+                    
+                        Numeric::Integer(
+                            num * i32::pow(10, n as u32)
+                        )
+                    }
                 } else {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
@@ -300,7 +316,17 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         result = result * b + digit;
                     }
 
-                    Numeric::Rational(result)
+                    if exp_str == "" {
+                        Numeric::Rational(
+                            result
+                        )
+                    } else {
+                        let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
+                    
+                        Numeric::Rational(
+                            result * f64::powi(10.0, n)
+                        )
+                    }
                 }
             }
         };
