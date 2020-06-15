@@ -58,6 +58,54 @@ impl NumericKind {
     }
 }
 
+fn take_signed_integer<R>(
+    buf: &mut String,
+    cursor: &mut Cursor<R>,
+    kind: &NumericKind,
+) -> Result<(), Error>
+where
+    R: Read,
+{
+    // The next part must be SignedInteger.
+    // This is optionally a '+' or '-' followed by 1 or more DecimalDigits.
+    match cursor.next() {
+        Some(Ok('+')) => {
+            buf.push('+');
+            if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
+                // A digit must follow the + or - symbol.
+                return Err(Error::syntax("No digit found after + symbol"));
+            }
+        }
+        Some(Ok('-')) => {
+            buf.push('-');
+            if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
+                // A digit must follow the + or - symbol.
+                return Err(Error::syntax("No digit found after - symbol"));
+            }
+        }
+        Some(Ok(c)) if c.is_digit(kind.base()) => {
+            buf.push(c);
+        }
+        Some(Ok(c)) => {
+            return Err(Error::syntax(format!(
+                "When lexing exponential value found unexpected char: '{}'",
+                c
+            )));
+        }
+        Some(Err(e)) => {
+            return Err(e.into());
+        }
+        None => {
+            return Err(Error::syntax("No exponential value found"));
+        }
+    }
+
+    // Consume the decimal digits.
+    cursor.take_until_pred(buf, &|c: char| c.is_digit(kind.base()))?;
+
+    Ok(())
+}
+
 impl<R> Tokenizer<R> for NumberLiteral {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
@@ -81,7 +129,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     ));
                 }
                 Some(Err(e)) => {
-                    todo!();
+                    // todo!();
                 }
                 Some(Ok('x')) | Some(Ok('X')) => {
                     // Remove the initial '0' from buffer.
@@ -153,7 +201,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         }
 
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
-        cursor.take_until_pred(buf, |c| c.is_digit(kind.base()));
+        cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
@@ -166,144 +214,56 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 kind = kind.to_bigint();
             }
             Some(Ok('.')) => {
+                kind = NumericKind::Rational;
                 if kind.base() != 10 {
                     todo!("Non base 10 numbers with decimal seperators");
                 }
 
                 // Consume digits until a non-digit character is encountered or all the characters are consumed.
-                cursor.take_until_pred(buf, |c| c.is_digit(kind.base()));
+                cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
-                // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part. 
+                // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                 // Another '.' or 'n' is not allowed.
                 match cursor.peek() {
                     Some(Ok('n')) => {
-                        Err(Error::syntax("Found 'n' after non-integer number"));
+                        return Err(Error::syntax(
+                            "Found BigIntLiteralSuffix after non-integer number",
+                        ));
                     }
                     Some(Ok('.')) => {
-                        Err(Error::syntax("Found second '.' within decimal number"));
+                        return Err(Error::syntax("Found second '.' within decimal number"));
                     }
-                    Some (Err(e)) => {
-                        todo!();
+                    Some(Ok('e')) | Some(Ok('E')) => {
+                        // Consume the ExponentIndicator.
+                        cursor.next();
+
+                        take_signed_integer(&mut buf, cursor, &kind)?;
                     }
-                    None => {
+                    Some(Err(e)) => {
+                        // todo!();
+                    }
+                    Some(Ok(_)) | None => {
                         // Finished lexing.
                         kind = NumericKind::Rational;
                     }
                 }
-
             }
             Some(Ok('e')) | Some(Ok('E')) => {
+                // Consume the ExponentIndicator.
+                cursor.next();
 
+                take_signed_integer(&mut buf, cursor, &kind)?;
             }
-
             Some(Err(e)) => {
-                todo!();
+                // todo!();
             }
 
-            None => {
+            Some(Ok(_)) | None => {
                 // Indicates lexing finished.
             }
         }
 
-        // if let NumericKind::Integer(10) = kind {
-        //     'digitloop: while let Some(ch) = cursor.peek() {
-        //         match ch {
-        //             Err(_e) => {
-        //                 // TODO
-        //             }
-        //             Ok('.') => loop {
-        //                 kind = NumericKind::Rational;
-        //                 match cursor.next() {
-        //                     None => {
-        //                         // Finished
-        //                         break;
-        //                     }
-
-        //                     Some(Err(e)) => {
-        //                         return Err(Error::from(e));
-        //                     }
-
-        //                     Some(Ok(c)) => {
-        //                         buf.push(c);
-        //                     }
-        //                 }
-
-        //                 match cursor.peek() {
-        //                     None => {
-        //                         break;
-        //                     }
-        //                     Some(Err(_e)) => {
-        //                         // TODO
-        //                     }
-        //                     Some(Ok('e')) | Some(Ok('E')) => {
-        //                         cursor.next(); // Consume the ExponentIndicator.
-
-        //                         match self
-        //                             .preview_multiple_next(2)
-        //                             .unwrap_or_default()
-        //                             .to_digit(10)
-        //                         {
-        //                             Some(0..=9) | None => {
-        //                                 buf.push(self.next());
-        //                             }
-        //                             _ => {
-        //                                 break 'digitloop;
-        //                             }
-        //                         }
-        //                     }
-        //                     Some(Ok(cx)) if !cx.is_digit(10) => {
-        //                         break 'digitloop;
-        //                     }
-        //                     _ => {}
-        //                 }
-        //             },
-        //             Ok('e') | Ok('E') => {
-        //                 // TODO scientific notation.
-        //                 unimplemented!();
-
-        //                 // kind = NumericKind::Rational;
-        //                 // match self
-        //                 //     .preview_multiple_next(2)
-        //                 //     .unwrap_or_default()
-        //                 //     .to_digit(10)
-        //                 // {
-        //                 //     Some(0..=9) | None => {
-        //                 //         buf.push(self.next());
-        //                 //     }
-        //                 //     _ => {
-        //                 //         break;
-        //                 //     }
-        //                 // }
-        //                 // buf.push(self.next());
-        //             }
-        //             Ok('+') | Ok('-') => {
-        //                 break;
-        //             }
-        //             Ok(cx) if cx.is_digit(10) => {
-        //                 // cursor.next();
-        //                 match cursor.next() {
-        //                     None => {
-        //                         // Finished
-        //                         break;
-        //                     }
-
-        //                     Some(Err(e)) => {
-        //                         return Err(Error::from(e));
-        //                     }
-
-        //                     Some(Ok(c)) => {
-        //                         buf.push(c);
-        //                     }
-        //                 }
-        //                 // buf.push(*cx);
-        //             }
-        //             Ok(_) => break,
-        //         }
-        //     }
-        // }
-
-        // TODO
-        //self.check_after_numeric_literal()?;
+        // self.check_after_numeric_literal()?;
 
         let num = match kind {
                 NumericKind::BigInt(base) => {
