@@ -321,7 +321,7 @@ fn single_int() {
 #[test]
 fn numbers() {
     let mut lexer = Lexer::new(
-        "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1 0.0 0.12"
+        "1 2 0x34 056 7.89 42. 5e3 5e+3 5e-3 0b10 0O123 0999 1.0e1 1.0e-1 1.0E1 1E1 0.0 0.12 -32"
             .as_bytes(),
     );
 
@@ -344,6 +344,7 @@ fn numbers() {
         TokenKind::numeric_literal(10.0),
         TokenKind::numeric_literal(0.0),
         TokenKind::numeric_literal(0.12),
+        TokenKind::numeric_literal(-32),
     ];
 
     expect_tokens(&mut lexer, &expected);
