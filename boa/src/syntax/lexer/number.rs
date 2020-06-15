@@ -214,9 +214,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 kind = kind.to_bigint();
             }
             Some(Ok('.')) => {
+                // Consume the .
+                cursor.next();
+
                 kind = NumericKind::Rational;
                 if kind.base() != 10 {
-                    todo!("Non base 10 numbers with decimal seperators");
+                    return Err(Error::syntax(
+                        "Attempted to lex non-base 10 number with decimal seperator",
+                    ));
                 }
 
                 // Consume digits until a non-digit character is encountered or all the characters are consumed.
@@ -231,7 +236,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         ));
                     }
                     Some(Ok('.')) => {
-                        return Err(Error::syntax("Found second '.' within decimal number"));
+                        return Err(Error::syntax("Found second . within decimal number"));
                     }
                     Some(Ok('e')) | Some(Ok('E')) => {
                         // Consume the ExponentIndicator.
@@ -239,13 +244,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                         take_signed_integer(&mut buf, cursor, &kind)?;
                     }
-                    Some(Err(e)) => {
+                    Some(Err(_e)) => {
                         // todo!();
                     }
                     Some(Ok(_)) | None => {
                         // Finished lexing.
                         kind = NumericKind::Rational;
                     }
+                    _ => {}
                 }
             }
             Some(Ok('e')) | Some(Ok('E')) => {
@@ -261,40 +267,43 @@ impl<R> Tokenizer<R> for NumberLiteral {
             Some(Ok(_)) | None => {
                 // Indicates lexing finished.
             }
+
+            _ => {}
         }
+
+        // unimplemented!();
 
         // self.check_after_numeric_literal()?;
 
         let num = match kind {
-                NumericKind::BigInt(base) => {
-                    Numeric::BigInt(
-                        BigInt::from_string_radix(&buf, base as u32).expect("Could not convert to BigInt")
-                        )
-                }
-                NumericKind::Rational /* base: 10 */ => {
-                    Numeric::Rational(
-                        f64::from_str(&buf)
-                            .map_err(|_| Error::syntax("Could not convert value to f64"))?,
+            NumericKind::BigInt(base) => {
+                Numeric::BigInt(
+                    BigInt::from_string_radix(&buf, base as u32).expect("Could not convert to BigInt")
                     )
-                }
-                NumericKind::Integer(base) => {
-                    if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
-                        Numeric::Integer(
-                            num
-                        )
-                    } else {
-                        let b = f64::from(base);
-                        let mut result = 0.0_f64;
-                        for c in buf.chars() {
-                            let digit = f64::from(c.to_digit(base as u32).unwrap());
-                            result = result * b + digit;
-                        }
-
-                        Numeric::Rational(result)
+            }
+            NumericKind::Rational /* base: 10 */ => {
+                Numeric::Rational(
+                    f64::from_str(&buf)
+                        .map_err(|_| Error::syntax("Could not convert value to f64"))?,
+                )
+            }
+            NumericKind::Integer(base) => {
+                if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
+                    // unimplemented!();
+                    // Numeric::Integer(0)
+                    Numeric::Integer(num)
+                } else {
+                    let b = f64::from(base);
+                    let mut result = 0.0_f64;
+                    for c in buf.chars() {
+                        let digit = f64::from(c.to_digit(base as u32).unwrap());
+                        result = result * b + digit;
                     }
 
+                    Numeric::Rational(result)
                 }
-            };
+            }
+        };
 
         Ok(Token::new(
             TokenKind::NumericLiteral(num),

@@ -129,7 +129,8 @@ where
             } else {
                 match self.next() {
                     None => {
-                        unreachable!();
+                        unimplemented!();
+                        // unreachable!();
                     }
                     Some(Err(e)) => {
                         return Err(e);
