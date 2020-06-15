@@ -152,30 +152,58 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
-        while let Some(ch) = cursor.peek() {
-            match ch {
-                Err(_e) => {
-                    // TODO, handle.
+        // Consume digits until a non-digit character is encountered or all the characters are consumed.
+        cursor.take_until_pred(buf, |c| c.is_digit(kind.base()));
+
+        // The non-digit character could be:
+        // 'n' To indicate a BigIntLiteralSuffix.
+        // '.' To indicate a decimal seperator.
+        // 'e' | 'E' To indicate an ExponentPart.
+        match cursor.peek() {
+            Some(Ok('n')) => {
+                // DecimalBigIntegerLiteral
+                // Lexing finished.
+                kind = kind.to_bigint();
+            }
+            Some(Ok('.')) => {
+                if kind.base() != 10 {
+                    todo!("Non base 10 numbers with decimal seperators");
                 }
-                Ok(c) if c.is_digit(kind.base()) => {
-                    let s = cursor.next().unwrap().unwrap();
-                    buf.push(s);
+
+                // Consume digits until a non-digit character is encountered or all the characters are consumed.
+                cursor.take_until_pred(buf, |c| c.is_digit(kind.base()));
+
+                // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part. 
+                // Another '.' or 'n' is not allowed.
+                match cursor.peek() {
+                    Some(Ok('n')) => {
+                        Err(Error::syntax("Found 'n' after non-integer number"));
+                    }
+                    Some(Ok('.')) => {
+                        Err(Error::syntax("Found second '.' within decimal number"));
+                    }
+                    Some (Err(e)) => {
+                        todo!();
+                    }
+                    None => {
+                        // Finished lexing.
+                        kind = NumericKind::Rational;
+                    }
                 }
-                _ => {
-                    // A non-number symbol detected, this might be a dot or similar.
-                    break;
-                }
+
+            }
+            Some(Ok('e')) | Some(Ok('E')) => {
+
+            }
+
+            Some(Err(e)) => {
+                todo!();
+            }
+
+            None => {
+                // Indicates lexing finished.
             }
         }
-
-        todo!("Rest of number literal lexing");
-
-        // match cursor.peek() {
-        //     Some(Ok('n')) => {
-        //         // DecimalBigIntegerLiteral
-        //         kind = kind.to_bigint();
-        //     }
-        // }
 
         // if let NumericKind::Integer(10) = kind {
         //     'digitloop: while let Some(ch) = cursor.peek() {
