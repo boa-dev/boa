@@ -68,12 +68,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
         // Default assume the number is a base 10 integer.
         let mut kind = NumericKind::Integer(10);
 
-        if self.init == '0' {
-            if cursor.next_is('x') | cursor.next_is('X') {
-                
-            }
+        let c = cursor.peek();
 
-            match peek_ch {
+        if self.init == '0' {
+            match c {
                 None => {
                     // DecimalLiteral lexing.
                     // Indicates that the number is just a single 0.
@@ -84,33 +82,34 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 }
                 Some(Err(e)) => {
                     todo!();
-                    // TODO
                 }
                 Some(Ok('x')) | Some(Ok('X')) => {
-                    // HexIntegerLiteral
-
-                    cursor.next(); // Consume the 0x.
+                    // Remove the initial '0' from buffer.
+                    cursor.next();
                     buf.pop();
 
+                    // HexIntegerLiteral
                     kind = NumericKind::Integer(16);
                 }
                 Some(Ok('o')) | Some(Ok('O')) => {
-                    // OctalIntegerLiteral
-
-                    cursor.next(); // Consume the 0o.
+                    // Remove the initial '0' from buffer.
+                    cursor.next();
                     buf.pop();
 
+                    // OctalIntegerLiteral
                     kind = NumericKind::Integer(8);
                 }
                 Some(Ok('b')) | Some(Ok('B')) => {
-                    // BinaryIntegerLiteral
-
-                    cursor.next(); // Consume the 0b.
+                    // Remove the initial '0' from buffer.
+                    cursor.next();
                     buf.pop();
 
+                    // BinaryIntegerLiteral
                     kind = NumericKind::Integer(2);
                 }
                 Some(Ok('n')) => {
+                    cursor.next();
+
                     // DecimalBigIntegerLiteral '0n'
                     return Ok(Token::new(
                         TokenKind::NumericLiteral(Numeric::BigInt(0.into())),
@@ -126,8 +125,11 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 "Implicit octal literals are not allowed in strict mode.",
                             ));
                         } else {
-                            cursor.next();
-                            buf.push(*ch);
+                            // Remove the initial '0' from buffer.
+                            buf.pop();
+
+                            let char = cursor.next().unwrap().unwrap();
+                            buf.push(char);
 
                             kind = NumericKind::Integer(8);
                         }
@@ -136,60 +138,35 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         // so therefore this must be a number with an unneeded leading 0. This is
                         // forbidden in strict mode.
                         if self.strict_mode {
-                            // LegacyOctalIntegerLiteral is forbidden with strict mode true.
                             return Err(Error::strict(
                                 "Leading 0's are not allowed in strict mode.",
                             ));
                         } else {
-                            cursor.next();
-                            buf.push(*ch);
+                            let char = cursor.next().unwrap().unwrap();
+                            buf.push(char);
                         }
                     } else {
-                        // Indicates that the symbol is a non-number, this is valid if it is a dot or similar.
+                        // Indicates that the symbol is a non-number.
                     }
                 }
             }
         }
 
-        println!("{:?}", cursor.peek());
-
-        // if let Some(ch) = c {
-        //     buf.push(ch?);
-        // }
-        
-        loop {
-            if let Some(ch) = cursor.peek() {
-                match ch {
-                    Err(_e) => {
-                        // TODO, handle.
-                    }
-                    Ok(c) if c.is_digit(kind.base()) => {
-                        let s = cursor.next().unwrap().unwrap();
-                        buf.push(s);
-                    }
-                    _ => {
-                        // A non-number symbol detected, this might be a dot or similar.
-                        break;
-                    }
+        while let Some(ch) = cursor.peek() {
+            match ch {
+                Err(_e) => {
+                    // TODO, handle.
+                }
+                Ok(c) if c.is_digit(kind.base()) => {
+                    let s = cursor.next().unwrap().unwrap();
+                    buf.push(s);
+                }
+                _ => {
+                    // A non-number symbol detected, this might be a dot or similar.
+                    break;
                 }
             }
         }
-
-        // while let Some(ch) = cursor.peek() {
-        //     match ch {
-        //         Err(_e) => {
-        //             // TODO, handle.
-        //         }
-        //         Ok(c) if c.is_digit(kind.base()) => {
-        //             let s = cursor.next().unwrap().unwrap();
-        //             buf.push(s);
-        //         }
-        //         _ => {
-        //             // A non-number symbol detected, this might be a dot or similar.
-        //             break;
-        //         }
-        //     }
-        // }
 
         if cursor.next_is('n')? {
             // DecimalBigIntegerLiteral

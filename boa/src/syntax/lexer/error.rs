@@ -5,7 +5,7 @@ pub enum Error {
     IO(io::Error),
     Syntax(Box<str>),
     StrictMode(Box<str>), // Not 100% decided on this name.
-    // Reverted(),
+    // Reverted(String),
 }
 
 impl From<io::Error> for Error {
