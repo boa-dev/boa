@@ -7,5 +7,5 @@ use crate::{builtins::value::Value, BoaProfiler};
 #[inline]
 pub fn init(global: &Value) {
     let _timer = BoaProfiler::global().start_event("globalThis", "init");
-    global.set_field("globalThis", Value::from(global.clone()));
+    global.set_field("globalThis", global.clone());
 }

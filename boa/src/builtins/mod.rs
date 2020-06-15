@@ -6,7 +6,7 @@ pub mod boolean;
 pub mod console;
 pub mod error;
 pub mod function;
-pub mod globalThis;
+pub mod global_this;
 pub mod json;
 pub mod math;
 pub mod nan;
@@ -36,7 +36,7 @@ pub fn init(global: &Value) {
     Array::init(global);
     BigInt::init(global);
     Boolean::init(global);
-    globalThis::init(global);
+    global_this::init(global);
     json::init(global);
     math::init(global);
     nan::init(global);
