@@ -119,7 +119,7 @@ where
     fn from(value: &[T]) -> Self {
         let mut array = Object::default();
         for (i, item) in value.iter().enumerate() {
-            array.properties.insert(
+            array.properties_mut().insert(
                 i.to_string(),
                 Property::default().value(item.clone().into()),
             );
@@ -136,7 +136,7 @@ where
         let mut array = Object::default();
         for (i, item) in value.into_iter().enumerate() {
             array
-                .properties
+                .properties_mut()
                 .insert(i.to_string(), Property::default().value(item.into()));
         }
         Value::from(array)

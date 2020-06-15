@@ -15,7 +15,7 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{ObjectKind, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{same_value_zero, ResultValue, Value, ValueData},
     },
@@ -25,7 +25,6 @@ use crate::{
 use std::{
     borrow::Borrow,
     cmp::{max, min},
-    ops::Deref,
 };
 
 /// JavaScript `Array` built-in implementation.
@@ -33,6 +32,12 @@ use std::{
 pub(crate) struct Array;
 
 impl Array {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "Array";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: usize = 1;
+
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
         let array = Value::new_object(Some(
@@ -42,7 +47,7 @@ impl Array {
                 .get_global_object()
                 .expect("Could not get global object"),
         ));
-        array.set_kind(ObjectKind::Array);
+        array.set_data(ObjectData::Array);
         array.borrow().set_internal_slot(
             INSTANCE_PROTOTYPE,
             interpreter
@@ -117,7 +122,7 @@ impl Array {
         this.set_internal_slot(INSTANCE_PROTOTYPE, prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_kind(ObjectKind::Array);
+        this.set_data(ObjectData::Array);
 
         // add our arguments in
         let mut length = args.len() as i32;
@@ -167,25 +172,9 @@ impl Array {
         args: &[Value],
         _interpreter: &mut Interpreter,
     ) -> ResultValue {
-        let value_true = Value::boolean(true);
-        let value_false = Value::boolean(false);
-
-        match args.get(0) {
-            Some(arg) => {
-                match arg.data() {
-                    // 1.
-                    ValueData::Object(ref obj) => {
-                        // 2.
-                        if (*obj).deref().borrow().kind == ObjectKind::Array {
-                            return Ok(value_true);
-                        }
-                        Ok(value_false)
-                    }
-                    // 3.
-                    _ => Ok(value_false),
-                }
-            }
-            None => Ok(value_false),
+        match args.get(0).and_then(|x| x.as_object()) {
+            Some(object) => Ok(Value::from(object.is_array())),
+            None => Ok(Value::from(false)),
         }
     }
 
@@ -1008,7 +997,7 @@ impl Array {
         let prototype = Value::new_object(None);
         let length = Property::default().value(Value::from(0));
 
-        prototype.set_property_slice("length", length);
+        prototype.set_property("length", length);
 
         make_builtin_fn(Self::concat, "concat", &prototype, 1);
         make_builtin_fn(Self::push, "push", &prototype, 1);
@@ -1031,7 +1020,14 @@ impl Array {
         make_builtin_fn(Self::slice, "slice", &prototype, 2);
         make_builtin_fn(Self::some, "some", &prototype, 2);
 
-        let array = make_constructor_fn("Array", 1, Self::make_array, global, prototype, true);
+        let array = make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_array,
+            global,
+            prototype,
+            true,
+        );
 
         // Static Methods
         make_builtin_fn(Self::is_array, "isArray", &array, 1);
@@ -1041,8 +1037,9 @@ impl Array {
 
     /// Initialise the `Array` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) {
-        let _timer = BoaProfiler::global().start_event("array", "init");
-        global.set_field("Array", Self::create(global));
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        (Self::NAME, Self::create(global))
     }
 }
