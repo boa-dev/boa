@@ -49,6 +49,8 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -58,6 +60,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">console</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">global_this</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">json</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">math</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nan</span>;
@@ -87,6 +90,7 @@
     <span class="ident">Array</span>::<span class="ident">init</span>(<span class="ident">global</span>);
     <span class="ident">BigInt</span>::<span class="ident">init</span>(<span class="ident">global</span>);
     <span class="ident">Boolean</span>::<span class="ident">init</span>(<span class="ident">global</span>);
+    <span class="ident">global_this</span>::<span class="ident">init</span>(<span class="ident">global</span>);
     <span class="ident">json</span>::<span class="ident">init</span>(<span class="ident">global</span>);
     <span class="ident">math</span>::<span class="ident">init</span>(<span class="ident">global</span>);
     <span class="ident">nan</span>::<span class="ident">init</span>(<span class="ident">global</span>);

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["init","Initialize the `globalThis` property on the global object."]]});
