@@ -221,51 +221,50 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
             Some(Ok('.')) => {
                 // Consume the .
-                cursor.next();
-                buf.push('.');
+                
+                if kind.base() == 10 {
+                    // Only base 10 numbers can have a decimal seperator. 
+                    // Number literal lexing finished if a . is found for a number in a different base.
 
-                kind = NumericKind::Rational;
-                if kind.base() != 10 {
-                    return Err(Error::syntax(
-                        "Attempted to lex non-base 10 number with decimal seperator",
-                    ));
-                }
+                    cursor.next();
+                    buf.push('.');
+                    kind = NumericKind::Rational;
 
-                // Consume digits until a non-digit character is encountered or all the characters are consumed.
-                cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+                    // Consume digits until a non-digit character is encountered or all the characters are consumed.
+                    cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
-                // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
-                // Another '.' or 'n' is not allowed.
-                match cursor.peek() {
-                    Some(Ok('n')) => {
-                        // Found BigIntLiteralSuffix after non-integer number
-                        
-                        // Finish lexing number.
+                    // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
+                    // Another '.' or 'n' is not allowed.
+                    match cursor.peek() {
+                        Some(Ok('n')) => {
+                            // Found BigIntLiteralSuffix after non-integer number
+                            
+                            // Finish lexing number.
 
-                        // return Err(Error::syntax(
-                        //     "Found BigIntLiteralSuffix after non-integer number",
-                        // ));
+                            // return Err(Error::syntax(
+                            //     "Found BigIntLiteralSuffix after non-integer number",
+                            // ));
+                        }
+                        Some(Ok('.')) => {
+                            // Found second . within decimal number
+                            // Finish lexing number.
+
+                            // return Err(Error::syntax("Found second . within decimal number"));
+                        }
+                        Some(Ok('e')) | Some(Ok('E')) => {
+                            // Consume the ExponentIndicator.
+                            cursor.next();
+
+                            take_signed_integer(&mut exp_str, cursor, &kind)?;
+                        }
+                        Some(Err(_e)) => {
+                            // todo!();
+                        }
+                        Some(Ok(_)) | None => {
+                            // Finished lexing.
+                            kind = NumericKind::Rational;
+                        }
                     }
-                    Some(Ok('.')) => {
-                        // Found second . within decimal number
-                        // Finish lexing number.
-
-                        // return Err(Error::syntax("Found second . within decimal number"));
-                    }
-                    Some(Ok('e')) | Some(Ok('E')) => {
-                        // Consume the ExponentIndicator.
-                        cursor.next();
-
-                        take_signed_integer(&mut exp_str, cursor, &kind)?;
-                    }
-                    Some(Err(_e)) => {
-                        // todo!();
-                    }
-                    Some(Ok(_)) | None => {
-                        // Finished lexing.
-                        kind = NumericKind::Rational;
-                    }
-                    _ => {}
                 }
             }
             Some(Ok('e')) | Some(Ok('E')) => {

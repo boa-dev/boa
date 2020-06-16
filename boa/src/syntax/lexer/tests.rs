@@ -332,8 +332,8 @@ fn numbers() {
         TokenKind::numeric_literal(46),
         TokenKind::numeric_literal(7.89),
         TokenKind::numeric_literal(42.0),
-        TokenKind::numeric_literal(5000),
-        TokenKind::numeric_literal(5000),
+        TokenKind::numeric_literal(5000.0),
+        TokenKind::numeric_literal(5000.0),
         TokenKind::numeric_literal(0.005),
         TokenKind::numeric_literal(2),
         TokenKind::numeric_literal(83),
@@ -344,7 +344,8 @@ fn numbers() {
         TokenKind::numeric_literal(10.0),
         TokenKind::numeric_literal(0.0),
         TokenKind::numeric_literal(0.12),
-        TokenKind::numeric_literal(-32),
+        TokenKind::Punctuator(Punctuator::Sub),
+        TokenKind::numeric_literal(32),
     ];
 
     expect_tokens(&mut lexer, &expected);
