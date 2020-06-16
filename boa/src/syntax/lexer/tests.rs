@@ -212,6 +212,46 @@ fn check_variable_definition_tokens() {
 
 #[test]
 fn check_positions() {
+    let s = r#"console.log("hello world"); // Test"#;
+    // --------123456789
+    let mut lexer = Lexer::new(s.as_bytes());
+
+    // The first column is 1 (not zero indexed)
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 8)));
+
+    // Dot Token starts on column 8
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 8), (1, 9)));
+
+    // Log Token starts on column 9
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 9), (1, 12)));
+
+    // Open parenthesis token starts on column 12
+    assert_eq!(
+        lexer.next().unwrap().unwrap().span(),
+        span((1, 12), (1, 13))
+    );
+
+    // String token starts on column 13
+    assert_eq!(
+        lexer.next().unwrap().unwrap().span(),
+        span((1, 13), (1, 26))
+    );
+
+    // Close parenthesis token starts on column 26.
+    assert_eq!(
+        lexer.next().unwrap().unwrap().span(),
+        span((1, 26), (1, 27))
+    );
+
+    // Semi Colon token starts on column 35
+    assert_eq!(
+        lexer.next().unwrap().unwrap().span(),
+        span((1, 27), (1, 28))
+    );
+}
+
+#[test]
+fn check_positions_codepoint() {
     let s = r#"console.log("hello world\u{2764}"); // Test"#;
     // --------123456789
     let mut lexer = Lexer::new(s.as_bytes());

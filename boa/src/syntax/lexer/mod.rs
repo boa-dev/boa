@@ -272,7 +272,7 @@ where
             '/' => self.lex_slash_token(start),
             '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
                 let result = Operator::new(next_chr).lex(&mut self.cursor, start);
-                
+
                 self.set_goal(InputElement::RegExpOrTemplateTail);
 
                 result
