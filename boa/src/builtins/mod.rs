@@ -7,6 +7,7 @@ pub mod console;
 pub mod error;
 pub mod function;
 pub mod global_this;
+pub mod infinity;
 pub mod json;
 pub mod math;
 pub mod nan;
@@ -24,6 +25,7 @@ pub(crate) use self::{
     boolean::Boolean,
     error::{Error, RangeError, TypeError},
     global_this::GlobalThis,
+    infinity::Infinity,
     json::Json,
     math::Math,
     nan::NaN,
@@ -57,6 +59,7 @@ pub fn init(global: &Value) {
         TypeError::init(global),
         // Global properties.
         NaN::init(global),
+        Infinity::init(global),
         GlobalThis::init(global),
     ];
 
