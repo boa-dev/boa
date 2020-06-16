@@ -123,14 +123,25 @@ where
                     self.cursor.next();
                     BlockComment.lex(&mut self.cursor, start)
                 }
-                Ok(_) => {
+                Ok(c) => {
+                    let ch = *c;
                     match self.get_goal() {
                         InputElement::Div | InputElement::TemplateTail => {
                             // Only div punctuator allowed, regex not.
-                            Ok(Token::new(
-                                Punctuator::Div.into(),
-                                Span::new(start, self.cursor.pos()),
-                            ))
+
+                            if ch == '=' {
+                                // Indicates this is an AssignDiv.
+                                self.cursor.next(); // Consume the '='
+                                Ok(Token::new(
+                                    Punctuator::AssignDiv.into(),
+                                    Span::new(start, self.cursor.pos()),
+                                ))
+                            } else {
+                                Ok(Token::new(
+                                    Punctuator::Div.into(),
+                                    Span::new(start, self.cursor.pos()),
+                                ))
+                            }
                         }
                         InputElement::RegExp | InputElement::RegExpOrTemplateTail => {
                             // Can be a regular expression.

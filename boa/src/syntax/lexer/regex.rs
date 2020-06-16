@@ -1,7 +1,8 @@
-use super::{Cursor, Error, Tokenizer};
+use super::{Cursor, Error, Tokenizer, Span};
 use crate::syntax::ast::Position;
 use crate::syntax::lexer::Token;
 use std::io::{self, ErrorKind, Read};
+use crate::syntax::lexer::TokenKind;
 
 /// Regex literal lexing.
 ///
@@ -19,7 +20,7 @@ use std::io::{self, ErrorKind, Read};
 pub(super) struct RegexLiteral;
 
 impl<R> Tokenizer<R> for RegexLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, _start_pos: Position) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -75,28 +76,13 @@ impl<R> Tokenizer<R> for RegexLiteral {
             }
         }
 
-        unimplemented!(
-            "Regex handling, requires ability to peek more than a single character ahead"
-        );
-        // if regex {
-        //     // body was parsed, now look for flags
-        //     let flags = self.take_char_while(char::is_alphabetic)?;
-        //     self.move_columns(body.len() as u32 + 1 + flags.len() as u32);
-        //     self.push_token(TokenKind::regular_expression_literal(
-        //         body, flags.parse()?,
-        //     ), start_pos);
-        // } else {
-        //     // failed to parse regex, restore original buffer position and
-        //     // parse either div or assigndiv
-        //     self.buffer = original_buffer;
-        //     self.position = original_pos;
-        //     if self.next_is('=') {
-        //         self.push_token(TokenKind::Punctuator(
-        //             Punctuator::AssignDiv,
-        //         ), start_pos);
-        //     } else {
-        //         self.push_token(TokenKind::Punctuator(Punctuator::Div), start_pos);
-        //     }
-        // }
+        // body was parsed, now look for flags
+        let mut flags = String::new();
+        cursor.take_until_pred(&mut flags, &char::is_alphabetic);
+
+        Ok(Token::new(
+            TokenKind::regular_expression_literal(body, flags.parse()?),
+            Span::new(start_pos, cursor.pos()),
+        ))
     }
 }
