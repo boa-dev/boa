@@ -33,8 +33,14 @@ mod tests;
 pub use self::error::Error;
 
 use self::{
-    comment::{SingleLineComment, BlockComment}, cursor::Cursor, identifier::Identifier, number::NumberLiteral,
-    operator::Operator, regex::RegexLiteral, spread::SpreadLiteral, string::StringLiteral,
+    comment::{BlockComment, SingleLineComment},
+    cursor::Cursor,
+    identifier::Identifier,
+    number::NumberLiteral,
+    operator::Operator,
+    regex::RegexLiteral,
+    spread::SpreadLiteral,
+    string::StringLiteral,
     template::TemplateLiteral,
 };
 use crate::syntax::ast::{Position, Punctuator, Span};
@@ -101,7 +107,7 @@ where
     //
     // A '/' symbol can always be a comment but if as tested above it is not then
     // that means it could be multiple different tokens depending on the input token.
-    // 
+    //
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
     fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error> {
         if let Some(c) = self.cursor.peek() {
@@ -109,7 +115,7 @@ where
                 Err(e) => {
                     todo!();
                 }
-                Ok('/')  => {
+                Ok('/') => {
                     self.cursor.next(); // Consume the
                     SingleLineComment.lex(&mut self.cursor, start)
                 }

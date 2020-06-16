@@ -144,19 +144,19 @@ where
     }
 
     /// Retrieves the given number of characters and adds them to the buffer.
-    pub(super) fn _take(&mut self, _count: usize, _buf: &mut String) -> io::Result<()> {
+    pub(super) fn take(&mut self, count: usize, buf: &mut String) -> io::Result<()> {
         unimplemented!()
     }
 
     /// It will fill the buffer with checked ASCII bytes.
-    pub(super) fn fill_bytes(&mut self, _buf: &mut [u8]) -> io::Result<()> {
+    pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
         unimplemented!()
     }
 
     /// Retrieves the next character as an ASCII character.
     ///
     /// It will make sure that the next character is an ASCII byte, or return an error otherwise.
-    pub(super) fn _next_as_byte(&mut self) -> Option<io::Result<u8>> {
+    pub(super) fn next_as_byte(&mut self) -> Option<io::Result<u8>> {
         unimplemented!()
     }
 }
