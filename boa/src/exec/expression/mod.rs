@@ -1,9 +1,9 @@
 //! Expression execution.
 
-use super::{Executable, Interpreter};
+use super::{Executable, Interpreter, InterpreterState};
 use crate::{
     builtins::{
-        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         value::{ResultValue, Type, Value, ValueData},
     },
     syntax::ast::node::{Call, New, Node},
@@ -48,7 +48,7 @@ impl Executable for Call {
         let fnct_result = interpreter.call(&func, &mut this, &v_args);
 
         // unset the early return flag
-        interpreter.is_return = false;
+        interpreter.set_current_state(InterpreterState::Executing);
 
         fnct_result
     }
@@ -71,12 +71,13 @@ impl Executable for New {
         this.set_internal_slot(INSTANCE_PROTOTYPE, func_object.get_field(PROTOTYPE));
 
         match func_object.data() {
-            ValueData::Object(ref o) => o.clone().borrow_mut().func.as_ref().unwrap().construct(
-                &mut func_object.clone(),
-                &v_args,
-                interpreter,
-                &mut this,
-            ),
+            ValueData::Object(ref obj) => {
+                let obj = (**obj).borrow();
+                if let ObjectData::Function(ref func) = obj.data {
+                    return func.construct(func_object.clone(), &mut this, &v_args, interpreter);
+                }
+                interpreter.throw_type_error("not a constructor")
+            }
             _ => Ok(Value::undefined()),
         }
     }

@@ -15,6 +15,7 @@
 use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
+        object::ObjectData,
         value::{ResultValue, Value, ValueData},
     },
     exec::Interpreter,
@@ -43,6 +44,12 @@ mod tests;
 pub struct BigInt(num_bigint::BigInt);
 
 impl BigInt {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "BigInt";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: usize = 1;
+
     /// The abstract operation thisBigIntValue takes argument value.
     ///
     /// The phrase “this BigInt value” within the specification of a method refers to the
@@ -62,9 +69,8 @@ impl BigInt {
             // 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then
             //    a. Assert: Type(value.[[BigIntData]]) is BigInt.
             //    b. Return value.[[BigIntData]].
-            ValueData::Object(_) => {
-                let bigint = value.get_internal_slot("BigIntData");
-                if let ValueData::BigInt(bigint) = bigint.data() {
+            ValueData::Object(ref object) => {
+                if let ObjectData::BigInt(ref bigint) = object.borrow().data {
                     return Ok(bigint.clone());
                 }
             }
@@ -72,8 +78,7 @@ impl BigInt {
         }
 
         // 3. Throw a TypeError exception.
-        ctx.throw_type_error("'this' is not a BigInt")?;
-        unreachable!();
+        Err(ctx.construct_type_error("'this' is not a BigInt"))
     }
 
     /// `BigInt()`
@@ -86,16 +91,12 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    pub(crate) fn make_bigint(
-        _this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn make_bigint(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => Value::from(ctx.to_bigint(value)?),
-            None => Value::from(Self::from(0)),
+            Some(ref value) => ctx.to_bigint(value)?,
+            None => Self::from(0),
         };
-        Ok(data)
+        Ok(Value::from(data))
     }
 
     /// `BigInt.prototype.toString( [radix] )`
@@ -213,12 +214,18 @@ impl BigInt {
     /// Create a new `Number` object
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
-        prototype.set_internal_slot("BigIntData", Value::from(Self::from(0)));
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        let big_int = make_constructor_fn("BigInt", 1, Self::make_bigint, global, prototype, false);
+        let big_int = make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_bigint,
+            global,
+            prototype,
+            false,
+        );
 
         make_builtin_fn(Self::as_int_n, "asIntN", &big_int, 2);
         make_builtin_fn(Self::as_uint_n, "asUintN", &big_int, 2);
@@ -228,9 +235,10 @@ impl BigInt {
 
     /// Initialise the `BigInt` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) {
-        let _timer = BoaProfiler::global().start_event("bigint", "init");
-        global.set_field("BigInt", Self::create(global));
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        (Self::NAME, Self::create(global))
     }
 }
 

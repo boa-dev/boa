@@ -25,7 +25,7 @@ pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
 
 /// Give each environment an easy way to declare its own type
 /// This helps with comparisons
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum EnvironmentType {
     Declarative,
     Function,
@@ -34,7 +34,7 @@ pub enum EnvironmentType {
 }
 
 /// The scope of a given variable
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VariableScope {
     /// The variable declaration is scoped to the current block (`let` and `const`)
     Block,
@@ -42,13 +42,13 @@ pub enum VariableScope {
     Function,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LexicalEnvironment {
     environment_stack: VecDeque<Environment>,
 }
 
 /// An error that occurred during lexing or compiling of the source input.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EnvironmentError {
     details: String,
 }

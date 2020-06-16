@@ -31,7 +31,7 @@ pub struct Token {
     /// The token kind, which contains the actual data of the token.
     pub(crate) kind: TokenKind,
     /// The token position in the original source code.
-    span: Span,
+    pub(crate) span: Span,
 }
 
 impl Token {

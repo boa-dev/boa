@@ -36,16 +36,15 @@
       "symbolSearchPath": "https://msdl.microsoft.com/download/symbols"
     },
     {
-      "name": "(Windows) Run Test Debugger",
+      "name": "(Windows) Launch Debug",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/target/debug/boa-ea5ed1ef3ee0cbe1.exe",
+      "program": "${workspaceRoot}/target/debug/foo.exe",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceRoot}",
       "environment": [],
-      "externalConsole": true,
-      "preLaunchTask": "Cargo Test Build",
-    }
+      "externalConsole": true
+    },
   ]
 }

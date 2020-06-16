@@ -13,7 +13,7 @@ use crate::{
     builtins::{
         function::make_builtin_fn,
         function::make_constructor_fn,
-        object::ObjectKind,
+        object::ObjectData,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
@@ -25,6 +25,12 @@ use crate::{
 pub(crate) struct RangeError;
 
 impl RangeError {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "RangeError";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: usize = 1;
+
     /// Create a new error object.
     pub(crate) fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         if !args.is_empty() {
@@ -39,7 +45,7 @@ impl RangeError {
         }
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_kind(ObjectKind::Error);
+        this.set_data(ObjectData::Error);
         Err(this.clone())
     }
 
@@ -67,12 +73,21 @@ impl RangeError {
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
-        make_constructor_fn("RangeError", 1, Self::make_error, global, prototype, true)
+        make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_error,
+            global,
+            prototype,
+            true,
+        )
     }
 
     /// Initialise the global object with the `RangeError` object.
-    pub(crate) fn init(global: &Value) {
-        let _timer = BoaProfiler::global().start_event("rangeerror", "init");
-        global.set_field("RangeError", Self::create(global));
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        (Self::NAME, Self::create(global))
     }
 }

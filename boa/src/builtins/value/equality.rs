@@ -197,14 +197,13 @@ pub fn same_value_zero(x: &Value, y: &Value) -> bool {
     }
 }
 
-pub fn same_value_non_numeric(x: &Value, y: &Value) -> bool {
+fn same_value_non_numeric(x: &Value, y: &Value) -> bool {
     debug_assert!(x.get_type() == y.get_type());
     match x.get_type() {
-        Type::Undefined => true,
-        Type::Null => true,
+        Type::Null | Type::Undefined => true,
         Type::String => x.to_string() == y.to_string(),
         Type::Boolean => bool::from(x) == bool::from(y),
-        Type::Object => std::ptr::eq(x, y),
+        Type::Object => std::ptr::eq(x.data(), y.data()),
         _ => false,
     }
 }
