@@ -68,6 +68,11 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -124,11 +129,16 @@
     }
 
     <span class="doccomment">/// Constructs a `ReferenceError` with the specified message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_reference_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_reference_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span>
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
-        <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;ReferenceError: is not implemented&quot;</span>);
+        <span class="ident">New</span>::<span class="ident">from</span>(<span class="ident">Call</span>::<span class="ident">new</span>(
+            <span class="ident">Identifier</span>::<span class="ident">from</span>(<span class="string">&quot;ReferenceError&quot;</span>),
+            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">message</span>.<span class="ident">into</span>() <span class="op">+</span> <span class="string">&quot; is not defined&quot;</span>).<span class="ident">into</span>()],
+        ))
+        .<span class="ident">run</span>(<span class="self">self</span>)
+        .<span class="ident">expect_err</span>(<span class="string">&quot;ReferenceError should always throw&quot;</span>)
     }
 
     <span class="doccomment">/// Throws a `ReferenceError` with the specified message.</span>
