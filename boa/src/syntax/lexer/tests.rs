@@ -252,7 +252,7 @@ fn check_positions() {
 
 #[test]
 fn check_positions_codepoint() {
-    let s = r#"console.log("hello world\u{2764}"); // Test"#;
+    let s = r#"console.log("hello world\u{{2764}}"); // Test"#;
     // --------123456789
     let mut lexer = Lexer::new(s.as_bytes());
 
