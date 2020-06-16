@@ -204,9 +204,21 @@ where
                 Span::new(start, self.cursor.pos()),
             )),
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
-            template_match!() => TemplateLiteral::new().lex(&mut self.cursor, start),
+            template_match!() => {
+                // If a template has started then only expecting a template tail.
+                self.set_goal(InputElement::TemplateTail);   
+                let result = TemplateLiteral::new().lex(&mut self.cursor, start);
+
+                // A regex may follow a template literal but a DivPunctuator may not.
+                self.set_goal(InputElement::default());
+                result
+            }
             _ if next_chr.is_digit(10) => {
-                NumberLiteral::new(next_chr, strict_mode).lex(&mut self.cursor, start)
+                let result = NumberLiteral::new(next_chr, strict_mode).lex(&mut self.cursor, start);
+                // A regex may not directly follow a NumericLiteral but a DivPunctuator may.
+                // Note that the goal cannot be set to InputElementTemplateTail at this point as a TemplateSubstitutionTail would be invalid.
+                self.set_goal(InputElement::Div);
+                result
             }
             _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
                 Identifier::new(next_chr).lex(&mut self.cursor, start)

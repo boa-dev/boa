@@ -1,8 +1,8 @@
-use super::{Cursor, Error, Tokenizer, Span};
+use super::{Cursor, Error, Span, Tokenizer};
 use crate::syntax::ast::Position;
 use crate::syntax::lexer::Token;
-use std::io::{self, ErrorKind, Read};
 use crate::syntax::lexer::TokenKind;
+use std::io::{self, ErrorKind, Read};
 
 /// Regex literal lexing.
 ///
