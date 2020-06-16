@@ -290,7 +290,7 @@ mod tests {
     use crate::exec;
 
     #[test]
-    //#[ignore]
+    #[ignore]
     fn let_is_blockscoped() {
         let scenario = r#"
           {
@@ -298,12 +298,12 @@ mod tests {
           }
           bar;
         "#;
-
+        // awaiting agreement on error throw testing
         assert_eq!(&exec(scenario), "true");
     }
 
     #[test]
-    //#[ignore]
+    #[ignore]
     fn const_is_blockscoped() {
         let scenario = r#"
           {
@@ -311,7 +311,7 @@ mod tests {
           }
           bar;
         "#;
-
+        // awaiting agreement on error throw testing
         assert_eq!(&exec(scenario), "true");
     }
 
