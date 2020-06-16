@@ -290,29 +290,37 @@ mod tests {
     use crate::exec;
 
     #[test]
-    #[ignore]
     fn let_is_blockscoped() {
         let scenario = r#"
           {
             let bar = "bar";
           }
-          bar;
+
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
-        // awaiting agreement on error throw testing
-        assert_eq!(&exec(scenario), "true");
+
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]
-    #[ignore]
     fn const_is_blockscoped() {
         let scenario = r#"
           {
             const bar = "bar";
           }
-          bar;
+          
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
         // awaiting agreement on error throw testing
-        assert_eq!(&exec(scenario), "true");
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]

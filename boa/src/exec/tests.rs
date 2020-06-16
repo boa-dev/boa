@@ -81,17 +81,16 @@ fn empty_var_decl_undefined() {
 }
 
 #[test]
-#[ignore]
 fn identifier_on_global_object_undefined() {
     let scenario = r#"
         try {
-            b;
+            bar;
         } catch (err) {
-            err instanceof ReferenceError;
+            err.message
         }
         "#;
 
-    assert_eq!(&exec(scenario), "true");
+    assert_eq!(&exec(scenario), "bar is not defined");
 }
 
 #[test]
@@ -393,15 +392,18 @@ fn for_loop() {
 }
 
 #[test]
-#[ignore]
 fn for_loop_iteration_variable_does_not_leak() {
     let inner_scope = r#"
         for (let i = 0;false;) {}
 
-        i
+        try {
+            i
+        } catch (err) {
+            err.message
+        }
         "#;
     // awaiting agreement on unhandled error handling
-    assert_eq!(&exec(inner_scope), "undefined");
+    assert_eq!(&exec(inner_scope), "i is not defined");
 }
 
 #[test]
