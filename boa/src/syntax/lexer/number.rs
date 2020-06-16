@@ -106,6 +106,25 @@ where
     Ok(())
 }
 
+/// Utility function for checking the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character.
+///
+/// More information:
+///  - [ECMAScript Specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
+fn check_after_numeric_literal<R>(cursor: &mut Cursor<R>) -> Result<(), Error>
+where
+    R: Read,
+{
+    if cursor.next_is_pred(&|ch: char| {
+        ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit()
+    })? {
+        Err(Error::syntax("NumericLiteral token must not be followed by IdentifierStart nor DecimalDigit characters"))
+    } else {
+        Ok(())
+    }
+}
+
 impl<R> Tokenizer<R> for NumberLiteral {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
@@ -221,9 +240,9 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
             Some(Ok('.')) => {
                 // Consume the .
-                
+
                 if kind.base() == 10 {
-                    // Only base 10 numbers can have a decimal seperator. 
+                    // Only base 10 numbers can have a decimal seperator.
                     // Number literal lexing finished if a . is found for a number in a different base.
 
                     cursor.next();
@@ -238,7 +257,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     match cursor.peek() {
                         Some(Ok('n')) => {
                             // Found BigIntLiteralSuffix after non-integer number
-                            
+
                             // Finish lexing number.
 
                             // return Err(Error::syntax(
@@ -284,9 +303,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
-        // unimplemented!();
-
-        // self.check_after_numeric_literal()?;
+        check_after_numeric_literal(cursor)?;
 
         let num = match kind {
             NumericKind::BigInt(base) => {
