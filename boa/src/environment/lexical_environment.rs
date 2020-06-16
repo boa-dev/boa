@@ -318,7 +318,7 @@ mod tests {
             err.message
           }
         "#;
-        // awaiting agreement on error throw testing
+
         assert_eq!(&exec(scenario), "bar is not defined");
     }
 
