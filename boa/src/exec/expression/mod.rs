@@ -4,7 +4,7 @@ use super::{Executable, Interpreter, InterpreterState};
 use crate::{
     builtins::{
         object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
-        value::{ResultValue, Type, Value, ValueData},
+        value::{ResultValue, Type, Value},
     },
     syntax::ast::node::{Call, New, Node},
     BoaProfiler,
@@ -13,7 +13,7 @@ use crate::{
 impl Executable for Call {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
-        let (mut this, func) = match self.expr() {
+        let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(interpreter)?;
                 if obj.get_type() != Type::Object || obj.get_type() != Type::Symbol {
@@ -45,7 +45,7 @@ impl Executable for Call {
         }
 
         // execute the function call itself
-        let fnct_result = interpreter.call(&func, &mut this, &v_args);
+        let fnct_result = interpreter.call(&func, &this, &v_args);
 
         // unset the early return flag
         interpreter.set_current_state(InterpreterState::Executing);
@@ -66,15 +66,15 @@ impl Executable for New {
         for arg in self.args() {
             v_args.push(arg.run(interpreter)?);
         }
-        let mut this = Value::new_object(None);
+        let this = Value::new_object(None);
         // Create a blank object, then set its __proto__ property to the [Constructor].prototype
         this.set_internal_slot(INSTANCE_PROTOTYPE, func_object.get_field(PROTOTYPE));
 
-        match func_object.data() {
-            ValueData::Object(ref obj) => {
-                let obj = (**obj).borrow();
+        match func_object {
+            Value::Object(ref obj) => {
+                let obj = obj.borrow();
                 if let ObjectData::Function(ref func) = obj.data {
-                    return func.construct(func_object.clone(), &mut this, &v_args, interpreter);
+                    return func.construct(func_object.clone(), &this, &v_args, interpreter);
                 }
                 interpreter.throw_type_error("not a constructor")
             }

@@ -16,7 +16,7 @@ impl From<String> for Value {
 
 impl From<Box<str>> for Value {
     fn from(value: Box<str>) -> Self {
-        Self::string(value)
+        Self::string(String::from(value))
     }
 }
 
@@ -35,6 +35,12 @@ impl From<&Box<str>> for Value {
 impl From<char> for Value {
     fn from(value: char) -> Self {
         Value::string(value.to_string())
+    }
+}
+
+impl From<RcString> for Value {
+    fn from(value: RcString) -> Self {
+        Value::String(value)
     }
 }
 
@@ -89,6 +95,12 @@ impl From<BigInt> for Value {
     }
 }
 
+impl From<RcBigInt> for Value {
+    fn from(value: RcBigInt) -> Self {
+        Value::BigInt(value)
+    }
+}
+
 impl From<usize> for Value {
     fn from(value: usize) -> Value {
         Value::integer(value as i32)
@@ -120,7 +132,7 @@ where
         let mut array = Object::default();
         for (i, item) in value.iter().enumerate() {
             array.properties_mut().insert(
-                i.to_string(),
+                RcString::from(i.to_string()),
                 Property::default().value(item.clone().into()),
             );
         }
@@ -135,9 +147,10 @@ where
     fn from(value: Vec<T>) -> Self {
         let mut array = Object::default();
         for (i, item) in value.into_iter().enumerate() {
-            array
-                .properties_mut()
-                .insert(i.to_string(), Property::default().value(item.into()));
+            array.properties_mut().insert(
+                RcString::from(i.to_string()),
+                Property::default().value(item.into()),
+            );
         }
         Value::from(array)
     }
@@ -156,17 +169,6 @@ pub struct TryFromObjectError;
 impl Display for TryFromObjectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Could not convert value to an Object type")
-    }
-}
-
-impl TryFrom<&Value> for Object {
-    type Error = TryFromObjectError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        match value.data() {
-            ValueData::Object(ref object) => Ok(object.clone().into_inner()),
-            _ => Err(TryFromObjectError),
-        }
     }
 }
 
