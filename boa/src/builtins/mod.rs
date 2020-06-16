@@ -17,8 +17,8 @@ pub mod property;
 pub mod regexp;
 pub mod string;
 pub mod symbol;
-pub mod value;
 pub mod undefined;
+pub mod value;
 
 pub(crate) use self::{
     array::Array,
@@ -34,8 +34,8 @@ pub(crate) use self::{
     regexp::RegExp,
     string::String,
     symbol::Symbol,
-    value::{ResultValue, Value},
     undefined::Undefined,
+    value::{ResultValue, Value},
 };
 
 /// Initializes builtin objects and functions
