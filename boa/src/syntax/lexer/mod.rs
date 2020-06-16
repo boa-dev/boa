@@ -206,11 +206,11 @@ where
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
             template_match!() => {
                 // If a template has started then only expecting a template tail.
-                self.set_goal(InputElement::TemplateTail);   
+                self.set_goal(InputElement::TemplateTail);
                 let result = TemplateLiteral::new().lex(&mut self.cursor, start);
 
-                // A regex may follow a template literal but a DivPunctuator may not.
-                self.set_goal(InputElement::default());
+                // A regex may follow a template literal but a DivPunctuator or TemplateSubstitutionTail may not.
+                self.set_goal(InputElement::RegExp);
                 result
             }
             _ if next_chr.is_digit(10) => {
@@ -221,7 +221,12 @@ where
                 result
             }
             _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
-                Identifier::new(next_chr).lex(&mut self.cursor, start)
+                let result = Identifier::new(next_chr).lex(&mut self.cursor, start);
+
+                // A regex may not directly follow an Identifier but a DivPunctuator may.
+                // Note that the goal cannot be set to InputElementTemplateTail at this point as a TemplateSubstitutionTail would be invalid.
+                self.set_goal(InputElement::Div);
+                result
             }
             ';' => Ok(Token::new(
                 Punctuator::Semicolon.into(),
@@ -265,8 +270,12 @@ where
                 Span::new(start, self.cursor.pos()),
             )),
             '/' => self.lex_slash_token(start),
-            '*' | '+' | '-' | '%' | '|' | '&' | '^' | '=' | '<' | '>' | '!' | '~' => {
-                Operator::new(next_chr).lex(&mut self.cursor, start)
+            '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
+                let result = Operator::new(next_chr).lex(&mut self.cursor, start);
+                
+                self.set_goal(InputElement::RegExpOrTemplateTail);
+
+                result
             }
             _ => {
                 let details = format!(

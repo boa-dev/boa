@@ -268,7 +268,7 @@ fn two_divisions_in_expression() {
         TokenKind::NumericLiteral(Numeric::Integer(1)),
         TokenKind::Punctuator(Punctuator::Div),
         TokenKind::Identifier("b".into()),
-        TokenKind::Punctuator(Punctuator::Semicolon)
+        TokenKind::Punctuator(Punctuator::Semicolon),
     ];
 
     expect_tokens(&mut lexer, &expected);
