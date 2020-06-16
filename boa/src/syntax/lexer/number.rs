@@ -218,6 +218,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
             Some(Ok('.')) => {
                 // Consume the .
                 cursor.next();
+                buf.push('.');
 
                 kind = NumericKind::Rational;
                 if kind.base() != 10 {
