@@ -178,7 +178,7 @@ where
             Some(Ok('\r')) => {
                 self.carriage_return()
             }
-            Some(Ok('\u{2028}')) | Some(Ok('\u{2029}')) => self.next_line(),
+            Some(Ok('\n')) | Some(Ok('\u{2028}')) | Some(Ok('\u{2029}')) => self.next_line(),
             Some(Ok(_)) => self.next_column(),
             _ => {}
         }

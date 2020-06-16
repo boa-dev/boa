@@ -280,9 +280,9 @@ fn check_line_numbers() {
 
     let mut lexer = Lexer::new(s.as_bytes());
 
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 1)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 2)));
     assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 2), (2, 1)));
-    assert_eq!(lexer.next().unwrap().unwrap().span(), span((2, 1), (2, 1)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((2, 1), (2, 2)));
     assert_eq!(lexer.next().unwrap().unwrap().span(), span((2, 2), (3, 1)));
 }
 
