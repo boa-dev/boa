@@ -54,7 +54,7 @@ impl Array {
                 .realm()
                 .environment
                 .get_binding_value("Array")
-                .unwrap()
+                .expect("Array was not initialized")
                 .borrow()
                 .get_field(PROTOTYPE),
         );

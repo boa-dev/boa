@@ -119,7 +119,7 @@ impl Executable for BinOp {
                         .realm()
                         .environment
                         .get_binding_value(name.as_ref())
-                        .unwrap();
+                        .expect("Identifier was not initialized");
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b);
                     interpreter.realm.environment.set_mutable_binding(

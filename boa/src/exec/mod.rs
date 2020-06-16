@@ -420,7 +420,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Boolean")
-                    .unwrap()
+                    .expect("Boolean was not initialized")
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -433,7 +433,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Number")
-                    .unwrap()
+                    .expect("Number was not initialized")
                     .get_field(PROTOTYPE);
                 Ok(Value::new_object_from_prototype(
                     proto,
@@ -445,7 +445,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Number")
-                    .unwrap()
+                    .expect("Number was not initialized")
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -458,7 +458,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("String")
-                    .unwrap()
+                    .expect("String was not initialized")
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -471,7 +471,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Symbol")
-                    .unwrap()
+                    .expect("Symbol was not initialized")
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -484,7 +484,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("BigInt")
-                    .unwrap()
+                    .expect("BigInt was not initialized")
                     .get_field(PROTOTYPE);
                 let bigint_obj =
                     Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
