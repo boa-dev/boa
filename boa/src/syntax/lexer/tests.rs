@@ -255,10 +255,23 @@ fn two_divisions_in_expression() {
     let s = "    return a !== 0 || 1 / a === 1 / b;";
     let mut lexer = Lexer::new(s.as_bytes());
 
-    assert_eq!(
-        lexer.nth(11).unwrap().unwrap().span(),
-        span((1, 37), (1, 37))
-    );
+    let expected = [
+        TokenKind::Keyword(Keyword::Return),
+        TokenKind::Identifier("a".into()),
+        TokenKind::Punctuator(Punctuator::StrictNotEq),
+        TokenKind::NumericLiteral(Numeric::Integer(0)),
+        TokenKind::Punctuator(Punctuator::BoolOr),
+        TokenKind::NumericLiteral(Numeric::Integer(1)),
+        TokenKind::Punctuator(Punctuator::Div),
+        TokenKind::Identifier("a".into()),
+        TokenKind::Punctuator(Punctuator::StrictEq),
+        TokenKind::NumericLiteral(Numeric::Integer(1)),
+        TokenKind::Punctuator(Punctuator::Div),
+        TokenKind::Identifier("b".into()),
+        TokenKind::Punctuator(Punctuator::Semicolon)
+    ];
+
+    expect_tokens(&mut lexer, &expected);
 }
 
 #[test]
