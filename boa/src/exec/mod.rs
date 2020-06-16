@@ -420,6 +420,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Boolean")
+                    .unwrap()
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -432,6 +433,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Number")
+                    .unwrap()
                     .get_field(PROTOTYPE);
                 Ok(Value::new_object_from_prototype(
                     proto,
@@ -443,6 +445,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Number")
+                    .unwrap()
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -455,6 +458,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("String")
+                    .unwrap()
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -467,6 +471,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("Symbol")
+                    .unwrap()
                     .get_field(PROTOTYPE);
 
                 Ok(Value::new_object_from_prototype(
@@ -479,6 +484,7 @@ impl Interpreter {
                     .realm
                     .environment
                     .get_binding_value("BigInt")
+                    .unwrap()
                     .get_field(PROTOTYPE);
                 let bigint_obj =
                     Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
@@ -573,7 +579,7 @@ impl Executable for Node {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::Const(Const::Null) => Ok(Value::null()),
-            Node::Const(Const::Undefined) => Ok(Value::undefined()),
+            //Node::Const(Const::Undefined) =>  (Identifier::from((&Box::new("asd")).as_ref()).into()).run(interpreter),
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
             Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),

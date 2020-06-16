@@ -18,6 +18,7 @@ pub mod regexp;
 pub mod string;
 pub mod symbol;
 pub mod value;
+pub mod undefined;
 
 pub(crate) use self::{
     array::Array,
@@ -34,6 +35,7 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     value::{ResultValue, Value},
+    undefined::Undefined,
 };
 
 /// Initializes builtin objects and functions
@@ -62,6 +64,7 @@ pub fn init(global: &Value) {
         NaN::init(global),
         Infinity::init(global),
         GlobalThis::init(global),
+        Undefined::init(global),
     ];
 
     let mut global_object = global.as_object_mut().expect("global object");

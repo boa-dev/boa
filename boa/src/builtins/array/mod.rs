@@ -54,6 +54,7 @@ impl Array {
                 .realm()
                 .environment
                 .get_binding_value("Array")
+                .unwrap()
                 .borrow()
                 .get_field(PROTOTYPE),
         );
