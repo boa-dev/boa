@@ -85,10 +85,6 @@ impl TokenParser for PrimaryExpression {
                     .into())
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
-            // TODO: ADD TokenKind::UndefinedLiteral
-            /* TokenKind::Identifier(ref i) if i.as_ref() == "undefined" => {
-                Ok(Const::Undefined.into())
-            } */
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
             TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
