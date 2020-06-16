@@ -18,13 +18,6 @@ use std::io::{self, ErrorKind, Read};
 #[derive(Debug, Clone, Copy)]
 pub(super) struct RegexLiteral;
 
-impl RegexLiteral {
-    /// Creates a new regex literal lexer.
-    pub(super) fn new() -> Self {
-        Self {}
-    }
-}
-
 impl<R> Tokenizer<R> for RegexLiteral {
     fn lex(&mut self, cursor: &mut Cursor<R>, _start_pos: Position) -> Result<Token, Error>
     where

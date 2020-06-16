@@ -251,7 +251,6 @@ fn check_positions() {
 }
 
 #[test]
-#[ignore]
 fn two_divisions_in_expression() {
     let s = "    return a !== 0 || 1 / a === 1 / b;";
     let mut lexer = Lexer::new(s.as_bytes());
@@ -557,7 +556,10 @@ fn illegal_following_numeric_literal() {
 
 #[test]
 fn illegal_code_point_following_numeric_literal() {
-    let mut lexer = Lexer::new(&b"17.4\\u{0009}"[0..]);
+    // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot 
+    // be immediately followed by an IdentifierStart where the IdentifierStart
+
+    let mut lexer = Lexer::new(&b"17.4\\u{1000}"[0..]);
     assert!(lexer.next().unwrap().err().is_some(), "IdentifierStart '\\u{0009}' following NumericLiteral not rejected as expected");
 
 }

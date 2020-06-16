@@ -33,7 +33,7 @@ mod tests;
 pub use self::error::Error;
 
 use self::{
-    comment::Comment, cursor::Cursor, identifier::Identifier, number::NumberLiteral,
+    comment::{SingleLineComment, BlockComment}, cursor::Cursor, identifier::Identifier, number::NumberLiteral,
     operator::Operator, regex::RegexLiteral, spread::SpreadLiteral, string::StringLiteral,
     template::TemplateLiteral,
 };
@@ -74,8 +74,12 @@ impl<R> Lexer<R> {
     }
 
     /// Sets the goal symbol for the lexer.
-    pub(crate) fn _set_goal(&mut self, elm: InputElement) {
+    pub(crate) fn set_goal(&mut self, elm: InputElement) {
         self.goal_symbol = elm;
+    }
+
+    pub(crate) fn get_goal(&self) -> InputElement {
+        self.goal_symbol
     }
 }
 
@@ -91,6 +95,48 @@ where
             goal_symbol: Default::default(),
         }
     }
+
+    // Handles lexing of a token starting '/' with the '/' already being consumed.
+    // This could be a divide symbol or the start of a regex.
+    //
+    // A '/' symbol can always be a comment but if as tested above it is not then
+    // that means it could be multiple different tokens depending on the input token.
+    // 
+    // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
+    fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error> {
+        if let Some(c) = self.cursor.peek() {
+            match c {
+                Err(e) => {
+                    todo!();
+                }
+                Ok('/')  => {
+                    self.cursor.next(); // Consume the
+                    SingleLineComment.lex(&mut self.cursor, start)
+                }
+                Ok('*') => {
+                    self.cursor.next();
+                    BlockComment.lex(&mut self.cursor, start)
+                }
+                Ok(_) => {
+                    match self.get_goal() {
+                        InputElement::Div | InputElement::TemplateTail => {
+                            // Only div punctuator allowed, regex not.
+                            Ok(Token::new(
+                                Punctuator::Div.into(),
+                                Span::new(start, self.cursor.pos()),
+                            ))
+                        }
+                        InputElement::RegExp | InputElement::RegExpOrTemplateTail => {
+                            // Can be a regular expression.
+                            RegexLiteral.lex(&mut self.cursor, start)
+                        }
+                    }
+                }
+            }
+        } else {
+            Err(Error::syntax("Expecting Token /,*,= or regex"))
+        }
+    }
 }
 
 /// ECMAScript goal symbols.
@@ -99,14 +145,14 @@ where
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InputElement {
     Div,
-    _RegExp,
-    _RegExpOrTemplateTail,
-    _TemplateTail,
+    RegExp,
+    RegExpOrTemplateTail,
+    TemplateTail,
 }
 
 impl Default for InputElement {
     fn default() -> Self {
-        InputElement::Div
+        InputElement::RegExpOrTemplateTail
         // Decided on InputElementDiv as default for now based on documentation from
         // <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
     }
@@ -189,7 +235,7 @@ where
                 Punctuator::Question.into(),
                 Span::new(start, self.cursor.pos()),
             )),
-            comment_match!() => Comment::new().lex(&mut self.cursor, start),
+            '/' => self.lex_slash_token(start),
             '*' | '+' | '-' | '%' | '|' | '&' | '^' | '=' | '<' | '>' | '!' | '~' => {
                 Operator::new(next_chr).lex(&mut self.cursor, start)
             }
