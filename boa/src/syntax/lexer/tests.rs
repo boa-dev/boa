@@ -537,3 +537,27 @@ fn take_until_pred_entire_str() {
 
     assert_eq!(buf, "abcdefghijk");
 }
+
+#[test]
+fn illegal_following_numeric_literal() {
+    // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot 
+    // be immediately followed by an IdentifierStart or DecimalDigit.
+
+    // Decimal Digit
+    let mut lexer = Lexer::new(&b"11.6n3"[0..]);
+    assert!(lexer.next().unwrap().err().is_some(), "DecimalDigit following NumericLiteral not rejected as expected");
+
+    // Identifier Start
+    let mut lexer = Lexer::new(&b"17.4$"[0..]);
+    assert!(lexer.next().unwrap().err().is_some(), "IdentifierStart '$' following NumericLiteral not rejected as expected");
+
+    let mut lexer = Lexer::new(&b"17.4_"[0..]);
+    assert!(lexer.next().unwrap().err().is_some(), "IdentifierStart '_' following NumericLiteral not rejected as expected");
+}
+
+#[test]
+fn illegal_code_point_following_numeric_literal() {
+    let mut lexer = Lexer::new(&b"17.4\\u{0009}"[0..]);
+    assert!(lexer.next().unwrap().err().is_some(), "IdentifierStart '\\u{0009}' following NumericLiteral not rejected as expected");
+
+}
