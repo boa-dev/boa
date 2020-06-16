@@ -16,4 +16,3 @@ impl Executable for Identifier {
         }
     }
 }
-
