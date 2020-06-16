@@ -213,6 +213,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
             Some(Ok('n')) => {
                 // DecimalBigIntegerLiteral
                 // Lexing finished.
+
+                // Consume the n
+                cursor.next();
+
                 kind = kind.to_bigint();
             }
             Some(Ok('.')) => {
@@ -234,12 +238,19 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 // Another '.' or 'n' is not allowed.
                 match cursor.peek() {
                     Some(Ok('n')) => {
-                        return Err(Error::syntax(
-                            "Found BigIntLiteralSuffix after non-integer number",
-                        ));
+                        // Found BigIntLiteralSuffix after non-integer number
+                        
+                        // Finish lexing number.
+
+                        // return Err(Error::syntax(
+                        //     "Found BigIntLiteralSuffix after non-integer number",
+                        // ));
                     }
                     Some(Ok('.')) => {
-                        return Err(Error::syntax("Found second . within decimal number"));
+                        // Found second . within decimal number
+                        // Finish lexing number.
+
+                        // return Err(Error::syntax("Found second . within decimal number"));
                     }
                     Some(Ok('e')) | Some(Ok('E')) => {
                         // Consume the ExponentIndicator.
