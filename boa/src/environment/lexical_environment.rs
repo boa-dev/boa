@@ -295,10 +295,15 @@ mod tests {
           {
             let bar = "bar";
           }
-          bar == undefined;
+
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
 
-        assert_eq!(&exec(scenario), "true");
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]
@@ -307,10 +312,15 @@ mod tests {
           {
             const bar = "bar";
           }
-          bar == undefined;
+          
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
-
-        assert_eq!(&exec(scenario), "true");
+        // awaiting agreement on error throw testing
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]

@@ -8,6 +8,7 @@ mod declaration;
 mod exception;
 mod expression;
 mod field;
+mod identifier;
 mod iteration;
 mod object;
 mod operator;
@@ -582,13 +583,7 @@ impl Executable for Node {
             Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
             Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
             Node::Block(ref block) => block.run(interpreter),
-            Node::Identifier(ref name) => {
-                let val = interpreter
-                    .realm()
-                    .environment
-                    .get_binding_value(name.as_ref());
-                Ok(val)
-            }
+            Node::Identifier(ref identifier) => identifier.run(interpreter),
             Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
             Node::GetField(ref get_field) => get_field.run(interpreter),
             Node::Call(ref expr) => expr.run(interpreter),

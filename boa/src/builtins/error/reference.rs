@@ -1,18 +1,18 @@
-//! This module implements the global `Error` object.
+//! This module implements the global `ReferenceError` object.
 //!
-//! Error objects are thrown when runtime errors occur.
-//! The Error object can also be used as a base object for user-defined exceptions.
+//! Indicates an error that occurs when de-referencing an invalid reference
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-error-objects
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError
 
 use crate::{
     builtins::{
-        function::{make_builtin_fn, make_constructor_fn},
+        function::make_builtin_fn,
+        function::make_constructor_fn,
         object::ObjectData,
         value::{ResultValue, Value},
     },
@@ -20,24 +20,12 @@ use crate::{
     profiler::BoaProfiler,
 };
 
-// mod eval;
-pub(crate) mod range;
-pub(crate) mod reference;
-// mod syntax;
-pub(crate) mod r#type;
-// mod uri;
-
-pub(crate) use self::r#type::TypeError;
-pub(crate) use self::range::RangeError;
-pub(crate) use self::reference::ReferenceError;
-
-/// Built-in `Error` object.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Error;
+pub(crate) struct ReferenceError;
 
-impl Error {
+impl ReferenceError {
     /// The name of the object.
-    pub(crate) const NAME: &'static str = "Error";
+    pub(crate) const NAME: &'static str = "ReferenceError";
 
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
@@ -77,7 +65,7 @@ impl Error {
         Ok(Value::from(format!("{}: {}", name, message)))
     }
 
-    /// Create a new `Error` object.
+    /// Create a new `ReferenceError` object.
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
         prototype.set_field("message", Value::from(""));
@@ -94,8 +82,7 @@ impl Error {
         )
     }
 
-    /// Initialise the global object with the `Error` object.
-    #[inline]
+    /// Initialise the global object with the `ReferenceError` object.
     pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 

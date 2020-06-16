@@ -23,7 +23,7 @@ pub(crate) use self::{
     array::Array,
     bigint::BigInt,
     boolean::Boolean,
-    error::{Error, RangeError, TypeError},
+    error::{Error, RangeError, ReferenceError, TypeError},
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
@@ -56,6 +56,7 @@ pub fn init(global: &Value) {
         // Global error types.
         Error::init(global),
         RangeError::init(global),
+        ReferenceError::init(global),
         TypeError::init(global),
         // Global properties.
         NaN::init(global),

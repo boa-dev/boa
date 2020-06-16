@@ -53,11 +53,16 @@ impl Interpreter {
     }
 
     /// Constructs a `ReferenceError` with the specified message.
-    pub fn construct_reference_error<M>(&mut self, _message: M) -> Value
+    pub fn construct_reference_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
     {
-        unimplemented!("ReferenceError: is not implemented");
+        New::from(Call::new(
+            Identifier::from("ReferenceError"),
+            vec![Const::from(message.into() + " is not defined").into()],
+        ))
+        .run(self)
+        .expect_err("ReferenceError should always throw")
     }
 
     /// Throws a `ReferenceError` with the specified message.
