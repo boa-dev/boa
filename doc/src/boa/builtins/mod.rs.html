@@ -65,6 +65,9 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -75,6 +78,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">global_this</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">infinity</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">json</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">math</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nan</span>;
@@ -92,6 +96,7 @@
     <span class="ident">boolean</span>::<span class="ident">Boolean</span>,
     <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">RangeError</span>, <span class="ident">TypeError</span>},
     <span class="ident">global_this</span>::<span class="ident">GlobalThis</span>,
+    <span class="ident">infinity</span>::<span class="ident">Infinity</span>,
     <span class="ident">json</span>::<span class="ident">Json</span>,
     <span class="ident">math</span>::<span class="ident">Math</span>,
     <span class="ident">nan</span>::<span class="ident">NaN</span>,
@@ -125,6 +130,7 @@
         <span class="ident">TypeError</span>::<span class="ident">init</span>(<span class="ident">global</span>),
         <span class="comment">// Global properties.</span>
         <span class="ident">NaN</span>::<span class="ident">init</span>(<span class="ident">global</span>),
+        <span class="ident">Infinity</span>::<span class="ident">init</span>(<span class="ident">global</span>),
         <span class="ident">GlobalThis</span>::<span class="ident">init</span>(<span class="ident">global</span>),
     ];
 
