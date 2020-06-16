@@ -316,8 +316,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     } else {
                         let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
                     
-                        Numeric::Integer(
-                            num * i32::pow(10, n as u32)
+                        Numeric::Rational(
+                            (num as f64) * f64::powi(10.0, n)
                         )
                     }
                 } else {
