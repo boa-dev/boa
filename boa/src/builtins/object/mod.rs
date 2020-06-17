@@ -490,7 +490,6 @@ pub fn property_is_enumerable(
             .expect("got an error here")
             .get_own_property(&property_key)
     });
-    println!("calling here");
     let unwrapped_own_prop = own_property.expect("bummer");
     if unwrapped_own_prop.is_none() {
         Ok(Value::from(false))
