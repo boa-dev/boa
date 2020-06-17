@@ -185,9 +185,8 @@ pub fn main() -> Result<(), std::io::Error> {
         let buffer = read_to_string(file)?;
 
         if args.has_dump_flag() {
-            match dump(&buffer, &args) {
-                Ok(_) => {}
-                Err(e) => eprintln!("{}", e),
+            if let Err(e) = dump(&buffer, &args) {
+                eprintln!("{}", e);
             }
         } else {
             match forward_val(&mut engine, &buffer) {
@@ -219,9 +218,8 @@ pub fn main() -> Result<(), std::io::Error> {
                     editor.add_history_entry(&line);
 
                     if args.has_dump_flag() {
-                        match dump(&line, &args) {
-                            Ok(_) => {}
-                            Err(e) => eprintln!("{}", e),
+                        if let Err(e) = dump(&line, &args) {
+                            eprintln!("{}", e);
                         }
                     } else {
                         match forward_val(&mut engine, line.trim_end()) {
