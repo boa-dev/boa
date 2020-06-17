@@ -404,6 +404,20 @@ fn numbers() {
 }
 
 #[test]
+fn big_numbers() {
+    let mut lexer = Lexer::new(&b"1.0e25 1.0e36 9.0e50 10000000000000000000000000"[0..]);
+
+    let expected = [
+        TokenKind::numeric_literal(10000000000000000000000000.0),
+        TokenKind::numeric_literal(1000000000000000000000000000000000000.0),
+        TokenKind::numeric_literal(900000000000000000000000000000000000000000000000000.0),
+        TokenKind::numeric_literal(10000000000000000000000000.0),
+    ];
+
+    expect_tokens(&mut lexer, &expected);
+}
+
+#[test]
 fn implicit_octal_edge_case() {
     let mut lexer = Lexer::new(&b"044.5 094.5"[0..]);
 
