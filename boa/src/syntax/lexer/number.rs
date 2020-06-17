@@ -2,6 +2,7 @@ use super::{Cursor, Error, TokenKind, Tokenizer};
 use crate::builtins::BigInt;
 use crate::syntax::ast::{Position, Span};
 use crate::syntax::lexer::{token::Numeric, Token};
+use std::convert::TryFrom;
 use std::io::Read;
 use std::str::FromStr;
 
@@ -331,10 +332,26 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         Numeric::Integer(num)
                     } else {
                         let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
-                    
-                        Numeric::Rational(
-                            (num as f64) * f64::powi(10.0, n)
-                        )
+
+                        if n < 0 { // A negative exponent is expected to produce a decimal value.
+                            Numeric::Rational(
+                                (num as f64) * f64::powi(10.0, n)
+                            )
+                        } else {
+                           if let Some(exp) = i32::checked_pow(10, n as u32) {
+                               if let Some(val) = i32::checked_mul(num, exp) {
+                                   Numeric::Integer(val)
+                               } else {
+                                    Numeric::Rational(
+                                        (num as f64) * (exp as f64)
+                                    )
+                               }
+                           } else {
+                                Numeric::Rational(
+                                    (num as f64) * f64::powi(10.0, n)
+                                )
+                           }
+                        }
                     }
                 } else {
                     let b = f64::from(base);

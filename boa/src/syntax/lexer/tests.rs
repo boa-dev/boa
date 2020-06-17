@@ -384,8 +384,8 @@ fn numbers() {
         TokenKind::numeric_literal(46),
         TokenKind::numeric_literal(7.89),
         TokenKind::numeric_literal(42.0),
-        TokenKind::numeric_literal(5000.0),
-        TokenKind::numeric_literal(5000.0),
+        TokenKind::numeric_literal(5000),
+        TokenKind::numeric_literal(5000),
         TokenKind::numeric_literal(0.005),
         TokenKind::numeric_literal(2),
         TokenKind::numeric_literal(83),
@@ -393,7 +393,7 @@ fn numbers() {
         TokenKind::numeric_literal(10.0),
         TokenKind::numeric_literal(0.1),
         TokenKind::numeric_literal(10.0),
-        TokenKind::numeric_literal(10.0),
+        TokenKind::numeric_literal(10),
         TokenKind::numeric_literal(0.0),
         TokenKind::numeric_literal(0.12),
         TokenKind::Punctuator(Punctuator::Sub),
@@ -620,8 +620,7 @@ fn illegal_following_numeric_literal() {
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
-
-    let mut lexer = Lexer::new(&b"17.4\\u{1000}"[0..]);
+    let mut lexer = Lexer::new(r#"17.4\u{{2764}}"#.as_bytes());
     assert!(
         lexer.next().unwrap().err().is_some(),
         "IdentifierStart '\\u{0009}' following NumericLiteral not rejected as expected"
