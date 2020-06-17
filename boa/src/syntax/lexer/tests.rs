@@ -655,15 +655,10 @@ fn non_english_str() {
 
     let mut lexer = Lexer::new(str.as_bytes());
 
-    println!("{:?}", lexer.next());
+    let expected = [
+        TokenKind::StringLiteral("中文".into()),
+        TokenKind::Punctuator(Punctuator::Semicolon),
+    ];
 
-    // for l in lexer {
-    //     println!("{:?}", l);
-    // }
-
-    // let expected = [
-
-    // ];
-
-    // expect_tokens(&mut lexer, &expected);
+    expect_tokens(&mut lexer, &expected);
 }
