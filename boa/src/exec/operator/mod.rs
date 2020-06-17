@@ -1,4 +1,6 @@
 //! Operator execution.
+#[cfg(test)]
+mod tests;
 
 use super::{Executable, Interpreter};
 use crate::{
@@ -119,7 +121,11 @@ impl Executable for BinOp {
                         .realm()
                         .environment
                         .get_binding_value(name.as_ref())
-                        .expect("Identifier was not initialized");
+                        .ok_or_else(|| {
+                            interpreter
+                                .throw_reference_error(name.as_ref())
+                                .expect_err("throw_reference_error() must return an error")
+                        })?;
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b);
                     interpreter.realm.environment.set_mutable_binding(
