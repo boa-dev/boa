@@ -37,4 +37,12 @@ fn object_property_is_enumerable() {
         forward(&mut engine, r#"x.propertyIsEnumerable('hasOwnProperty')"#),
         "false"
     );
+    assert_eq!(
+        forward(&mut engine, r#"x.propertyIsEnumerable('not_here')"#),
+        "false",
+    );
+    assert_eq!(
+        forward(&mut engine, r#"x.propertyIsEnumerable()"#),
+        "false",
+    )
 }
