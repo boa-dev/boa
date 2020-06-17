@@ -214,7 +214,7 @@ impl Value {
                             .value(value)
                             .writable(true)
                             .configurable(true)
-                            .enumerable(true)
+                            .enumerable(true),
                     );
                 }
                 new_obj

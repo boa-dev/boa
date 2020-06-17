@@ -299,7 +299,7 @@ fn json_fields_should_be_enumerable() {
         r#"
         var b = JSON.parse('[0, 1]');
         b.propertyIsEnumerable('0');
-        "#
+        "#,
     );
     let expected = forward(&mut engine, r#"true"#);
 
