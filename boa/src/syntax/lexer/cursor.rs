@@ -243,16 +243,22 @@ where
                 *b = next;
             }
 
-            let int = u32::from_le_bytes(buf);
-
-            match char::try_from(int).map_err(|_| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "stream did not contain valid UTF-8",
-                )
-            }) {
-                Ok(chr) => chr,
-                Err(e) => return Some(Err(e)),
+            match std::str::from_utf8(&buf) {
+                Ok(s) => match s.chars().next() {
+                    Some(chr) => chr,
+                    None => {
+                        return Some(Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "stream did not contain valid UTF-8",
+                        )));
+                    }
+                },
+                Err(_) => {
+                    return Some(Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "stream did not contain valid UTF-8",
+                    )));
+                }
             }
         };
 

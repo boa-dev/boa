@@ -648,3 +648,22 @@ fn illegal_code_point_following_numeric_literal() {
         "IdentifierStart \\u{{2764}} following NumericLiteral not rejected as expected"
     );
 }
+
+#[test]
+fn non_english_str() {
+    let str = r#"'中文';"#;
+
+    let mut lexer = Lexer::new(str.as_bytes());
+
+    println!("{:?}", lexer.next());
+
+    // for l in lexer {
+    //     println!("{:?}", l);
+    // }
+
+    // let expected = [
+
+    // ];
+
+    // expect_tokens(&mut lexer, &expected);
+}
