@@ -543,7 +543,7 @@ fn addition_no_spaces_e_number_left_side() {
     let mut lexer = Lexer::new(&b"1e2+ 1"[0..]);
 
     let expected = [
-        TokenKind::numeric_literal(100.0),
+        TokenKind::numeric_literal(100),
         TokenKind::Punctuator(Punctuator::Add),
         TokenKind::numeric_literal(1),
     ];
@@ -558,7 +558,7 @@ fn addition_no_spaces_e_number_right_side() {
     let expected = [
         TokenKind::numeric_literal(1),
         TokenKind::Punctuator(Punctuator::Add),
-        TokenKind::numeric_literal(1000.0),
+        TokenKind::numeric_literal(1000),
     ];
 
     expect_tokens(&mut lexer, &expected);
@@ -569,7 +569,7 @@ fn addition_no_spaces_e_number() {
     let mut lexer = Lexer::new(&b"1e3+1e11"[0..]);
 
     let expected = [
-        TokenKind::numeric_literal(1000.0),
+        TokenKind::numeric_literal(1000),
         TokenKind::Punctuator(Punctuator::Add),
         TokenKind::numeric_literal(100_000_000_000.0),
     ];
@@ -645,6 +645,6 @@ fn illegal_code_point_following_numeric_literal() {
     let mut lexer = Lexer::new(r#"17.4\u{{2764}}"#.as_bytes());
     assert!(
         lexer.next().unwrap().err().is_some(),
-        "IdentifierStart '\\u{0009}' following NumericLiteral not rejected as expected"
+        "IdentifierStart \\u{{2764}} following NumericLiteral not rejected as expected"
     );
 }
