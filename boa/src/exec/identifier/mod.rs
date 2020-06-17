@@ -3,15 +3,14 @@ use crate::{builtins::value::ResultValue, syntax::ast::node::identifier::Identif
 
 impl Executable for Identifier {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
-        let reference = interpreter
+        interpreter
             .realm()
             .environment
-            .get_binding_value(self.as_ref());
-        match reference {
-            Some(value) => Ok(value),
-            None => Err(interpreter
-                .throw_reference_error(self.as_ref())
-                .expect_err("throw_reference_error() must return an error")),
-        }
+            .get_binding_value(self.as_ref())
+            .ok_or_else(|| {
+                interpreter
+                    .throw_reference_error(self.as_ref())
+                    .expect_err("throw_reference_error() must return an error")
+            })
     }
 }
