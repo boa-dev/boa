@@ -995,7 +995,7 @@ impl Array {
     /// Create a new `Array` object.
     pub(crate) fn create(global: &Value) -> Value {
         // Create prototype
-        let prototype = Value::new_object(None);
+        let prototype = Value::new_object(Some(global));
         let length = Property::default().value(Value::from(0));
 
         prototype.set_property("length", length);

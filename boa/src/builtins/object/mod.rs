@@ -472,11 +472,40 @@ pub fn has_own_property(this: &mut Value, args: &[Value], ctx: &mut Interpreter)
     }
 }
 
+pub fn property_is_enumerable(
+    this: &mut Value,
+    args: &[Value],
+    ctx: &mut Interpreter,
+) -> ResultValue {
+    let key = if args.is_empty() {
+        return Ok(Value::from(false));
+    } else {
+        args.get(0).expect("Cannot get key")
+    };
+
+    let property_key = ctx.to_property_key(&mut key.clone())?;
+    let own_property = ctx.to_object(this).map(|obj| {
+        obj.as_object()
+            .as_deref()
+            .expect("Unable to deref object")
+            .get_own_property(&property_key)
+    });
+    own_property.map_or(Ok(Value::from(false)), |own_prop| {
+        Ok(Value::from(own_prop.enumerable.unwrap_or(false)))
+    })
+}
+
 /// Create a new `Object` object.
 pub fn create(global: &Value) -> Value {
     let prototype = Value::new_object(None);
 
     make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
+    make_builtin_fn(
+        property_is_enumerable,
+        "propertyIsEnumerable",
+        &prototype,
+        0,
+    );
     make_builtin_fn(to_string, "toString", &prototype, 0);
 
     let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);

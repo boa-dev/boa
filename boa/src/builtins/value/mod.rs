@@ -194,7 +194,8 @@ impl Value {
                         Property::default()
                             .value(Self::from_json(json, interpreter))
                             .writable(true)
-                            .configurable(true),
+                            .configurable(true)
+                            .enumerable(true),
                     );
                 }
                 new_obj.set_property(
@@ -212,7 +213,8 @@ impl Value {
                         Property::default()
                             .value(value)
                             .writable(true)
-                            .configurable(true),
+                            .configurable(true)
+                            .enumerable(true),
                     );
                 }
                 new_obj
