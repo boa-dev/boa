@@ -7,10 +7,6 @@ impl Executable for Identifier {
             .realm()
             .environment
             .get_binding_value(self.as_ref())
-            .ok_or_else(|| {
-                interpreter
-                    .throw_reference_error(self.as_ref())
-                    .expect_err("throw_reference_error() must return an error")
-            })
+            .ok_or_else(|| interpreter.construct_reference_error(self.as_ref()))
     }
 }
