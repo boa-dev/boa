@@ -192,21 +192,20 @@ impl Function {
                     let local_env = new_function_environment(
                         function,
                         None,
-                        Some(self.environment.as_ref().unwrap().clone()),
+                        self.environment.as_ref().cloned(),
                         BindingStatus::Uninitialized,
                     );
 
                     // Add argument bindings to the function environment
-                    for i in 0..self.params.len() {
-                        let param = self.params.get(i).expect("Could not get param");
+                    for (i, param) in self.params.iter().enumerate() {
                         // Rest Parameters
                         if param.is_rest_param() {
                             self.add_rest_param(param, i, args_list, interpreter, &local_env);
                             break;
                         }
 
-                        let value = args_list.get(i).expect("Could not get value");
-                        self.add_arguments_to_environment(param, value.clone(), &local_env);
+                        let value = args_list.get(i).cloned().unwrap_or_else(Value::undefined);
+                        self.add_arguments_to_environment(param, value, &local_env);
                     }
 
                     // Add arguments object
@@ -253,7 +252,7 @@ impl Function {
                     let local_env = new_function_environment(
                         function,
                         Some(this.clone()),
-                        Some(self.environment.as_ref().unwrap().clone()),
+                        self.environment.as_ref().cloned(),
                         BindingStatus::Initialized,
                     );
 
@@ -265,8 +264,8 @@ impl Function {
                             break;
                         }
 
-                        let value = args_list.get(i).expect("Could not get value");
-                        self.add_arguments_to_environment(param, value.clone(), &local_env);
+                        let value = args_list.get(i).cloned().unwrap_or_else(Value::undefined);
+                        self.add_arguments_to_environment(param, value, &local_env);
                     }
 
                     // Add arguments object

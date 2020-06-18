@@ -912,3 +912,18 @@ fn to_string() {
     assert_eq!(engine.to_string(&Value::rational(55.0)).unwrap(), "55");
     assert_eq!(engine.to_string(&Value::string("hello")).unwrap(), "hello");
 }
+
+#[test]
+fn calling_function_with_unspecified_arguments() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let scenario = r#"
+        function test(a, b) {
+            return b;
+        }
+
+        test(10)
+    "#;
+
+    assert_eq!(forward(&mut engine, scenario), "undefined");
+}
