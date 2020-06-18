@@ -48,7 +48,6 @@ fn property_accessor_member_expression_bracket_notation_on_function() {
 }
 
 #[test]
-#[ignore] // will be solved with undefined added to global property
 fn empty_let_decl_undefined() {
     let scenario = r#"
         let a;
@@ -70,7 +69,6 @@ fn semicolon_expression_stop() {
 }
 
 #[test]
-#[ignore] // will be fixed with undefined added as global property
 fn empty_var_decl_undefined() {
     let scenario = r#"
         let b;
@@ -402,7 +400,7 @@ fn for_loop_iteration_variable_does_not_leak() {
             err.message
         }
         "#;
-    // awaiting agreement on unhandled error handling
+
     assert_eq!(&exec(inner_scope), "i is not defined");
 }
 
@@ -477,11 +475,18 @@ fn typeof_rational() {
 }
 
 #[test]
-#[ignore] // Will be fixed when global property undefined is added
 fn typeof_undefined() {
     let typeof_undefined = r#"
         let a = undefined;
         typeof a;
+    "#;
+    assert_eq!(&exec(typeof_undefined), "undefined");
+}
+
+#[test]
+fn typeof_undefined_directly() {
+    let typeof_undefined = r#"
+        typeof undefined;
     "#;
     assert_eq!(&exec(typeof_undefined), "undefined");
 }
@@ -756,8 +761,7 @@ mod in_operator {
 }
 
 #[test]
-#[ignore] // maybe will be solved when undefined added to global property
-fn var_decl_hoisting() {
+fn var_decl_hoisting_simple() {
     let scenario = r#"
         x = 5;
 
@@ -765,7 +769,10 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "5");
+}
 
+#[test]
+fn var_decl_hoisting_with_initialization() {
     let scenario = r#"
         x = 5;
 
@@ -773,7 +780,11 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "10");
+}
 
+#[test]
+#[ignore]
+fn var_decl_hoisting_2_variables_hoisting() {
     let scenario = r#"
         x = y;
 
@@ -783,7 +794,11 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "10");
+}
 
+#[test]
+#[ignore]
+fn var_decl_hoisting_2_variables_hoisting_2() {
     let scenario = r#"
         var x = y;
 
@@ -791,7 +806,11 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "undefined");
+}
 
+#[test]
+#[ignore]
+fn var_decl_hoisting_2_variables_hoisting_3() {
     let scenario = r#"
         let y = x;
         x = 5;

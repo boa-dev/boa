@@ -17,6 +17,7 @@ pub mod property;
 pub mod regexp;
 pub mod string;
 pub mod symbol;
+pub mod undefined;
 pub mod value;
 
 pub(crate) use self::{
@@ -33,6 +34,7 @@ pub(crate) use self::{
     regexp::RegExp,
     string::String,
     symbol::Symbol,
+    undefined::Undefined,
     value::{ResultValue, Value, ValueData},
 };
 
@@ -62,6 +64,7 @@ pub fn init(global: &Value) {
         NaN::init,
         Infinity::init,
         GlobalThis::init,
+        Undefined::init,
     ];
 
     match global.data() {

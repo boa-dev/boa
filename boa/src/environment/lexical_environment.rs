@@ -212,11 +212,10 @@ impl LexicalEnvironment {
             .any(|env| env.borrow().has_binding(name))
     }
 
-    pub fn get_binding_value(&self, name: &str) -> Value {
+    pub fn get_binding_value(&self, name: &str) -> Option<Value> {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or_else(Value::undefined)
     }
 }
 
@@ -319,7 +318,7 @@ mod tests {
             err.message
           }
         "#;
-        // awaiting agreement on error throw testing
+
         assert_eq!(&exec(scenario), "bar is not defined");
     }
 
