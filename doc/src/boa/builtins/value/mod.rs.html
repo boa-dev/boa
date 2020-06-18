@@ -761,6 +761,8 @@
 <span id="761">761</span>
 <span id="762">762</span>
 <span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -958,7 +960,8 @@
                         <span class="ident">Property</span>::<span class="ident">default</span>()
                             .<span class="ident">value</span>(<span class="self">Self</span>::<span class="ident">from_json</span>(<span class="ident">json</span>, <span class="ident">interpreter</span>))
                             .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>),
                     );
                 }
                 <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
@@ -976,7 +979,8 @@
                         <span class="ident">Property</span>::<span class="ident">default</span>()
                             .<span class="ident">value</span>(<span class="ident">value</span>)
                             .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>),
                     );
                 }
                 <span class="ident">new_obj</span>
