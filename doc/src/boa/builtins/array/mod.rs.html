@@ -1043,6 +1043,7 @@
 <span id="1043">1043</span>
 <span id="1044">1044</span>
 <span id="1045">1045</span>
+<span id="1046">1046</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1100,6 +1101,7 @@
                 .<span class="ident">realm</span>()
                 .<span class="ident">environment</span>
                 .<span class="ident">get_binding_value</span>(<span class="string">&quot;Array&quot;</span>)
+                .<span class="ident">expect</span>(<span class="string">&quot;Array was not initialized&quot;</span>)
                 .<span class="ident">borrow</span>()
                 .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>),
         );

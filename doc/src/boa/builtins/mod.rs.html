@@ -74,6 +74,9 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -94,6 +97,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regexp</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">string</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">undefined</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">value</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span>::{
@@ -110,6 +114,7 @@
     <span class="ident">regexp</span>::<span class="ident">RegExp</span>,
     <span class="ident">string</span>::<span class="ident">String</span>,
     <span class="ident">symbol</span>::<span class="ident">Symbol</span>,
+    <span class="ident">undefined</span>::<span class="ident">Undefined</span>,
     <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
 };
 
@@ -139,6 +144,7 @@
         <span class="ident">NaN</span>::<span class="ident">init</span>,
         <span class="ident">Infinity</span>::<span class="ident">init</span>,
         <span class="ident">GlobalThis</span>::<span class="ident">init</span>,
+        <span class="ident">Undefined</span>::<span class="ident">init</span>,
     ];
 
     <span class="kw">match</span> <span class="ident">global</span>.<span class="ident">data</span>() {

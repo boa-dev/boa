@@ -619,6 +619,11 @@
 <span id="619">619</span>
 <span id="620">620</span>
 <span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -1042,6 +1047,7 @@
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;Boolean&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;Boolean was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
                 <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
@@ -1054,6 +1060,7 @@
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;Number&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;Number was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
                 <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
                     <span class="ident">proto</span>,
@@ -1065,6 +1072,7 @@
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;Number&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;Number was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
                 <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
@@ -1077,6 +1085,7 @@
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;String&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;String was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
                 <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
@@ -1089,6 +1098,7 @@
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;Symbol&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;Symbol was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
                 <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
@@ -1101,6 +1111,7 @@
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;BigInt&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;BigInt was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
                 <span class="kw">let</span> <span class="ident">bigint_obj</span> <span class="op">=</span>
                     <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectData</span>::<span class="ident">BigInt</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()));
@@ -1195,7 +1206,6 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Executable&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>()),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">rational</span>(<span class="ident">num</span>)),
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">num</span>)),
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())),

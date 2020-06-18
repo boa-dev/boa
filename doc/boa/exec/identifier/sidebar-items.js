@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["resolve_binding",""]]});
+initSidebarItems({});
