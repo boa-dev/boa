@@ -191,11 +191,13 @@ fn json_stringify_return_undefined() {
     let actual_no_args = forward(&mut engine, r#"JSON.stringify()"#);
     let actual_function = forward(&mut engine, r#"JSON.stringify(() => {})"#);
     let actual_symbol = forward(&mut engine, r#"JSON.stringify(Symbol())"#);
+    let actual_undefined = forward(&mut engine, r#"JSON.stringify(undefined)"#);
     let expected = forward(&mut engine, r#"undefined"#);
 
     assert_eq!(actual_no_args, expected);
     assert_eq!(actual_function, expected);
     assert_eq!(actual_symbol, expected);
+    assert_eq!(actual_undefined, expected);
 }
 
 #[test]
