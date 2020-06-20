@@ -21,6 +21,8 @@ fn object_is() {
     assert_eq!(forward(&mut engine, "Object.is(0, -0)"), "false");
     assert_eq!(forward(&mut engine, "Object.is(-0, -0)"), "true");
     assert_eq!(forward(&mut engine, "Object.is(NaN, 0/0)"), "true");
+    assert_eq!(forward(&mut engine, "Object.is()"), "true");
+    assert_eq!(forward(&mut engine, "Object.is(undefined)"), "true");
 }
 #[test]
 fn object_has_own_property() {

@@ -32,7 +32,6 @@ use std::{
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::builtins::value::same_value;
-use crate::builtins::Number;
 pub use internal_state::{InternalState, InternalStateCell};
 
 pub mod internal_methods;
@@ -410,22 +409,14 @@ pub fn make_object(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 
 /// Uses the SameValue algorithm to check equality of objects
 pub fn is(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let x = args.get(0).expect("Cannot get object").clone();
-    let y = args.get(1).expect("Cannot get object").clone();
+    let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
+    let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
     if x.get_type() != y.get_type() {
         return Ok(Value::boolean(false));
     }
 
-    let result = match (x.data(), y.data()) {
-        (ValueData::BigInt(x), ValueData::BigInt(y)) => BigInt::same_value(x, y),
-        (ValueData::Rational(x), ValueData::Rational(y)) => Number::same_value(*x, *y),
-        (ValueData::Rational(x), ValueData::Integer(y)) => Number::same_value(*x, f64::from(*y)),
-        (ValueData::Integer(x), ValueData::Rational(y)) => Number::same_value(f64::from(*x), *y),
-        (ValueData::Integer(x), ValueData::Integer(y)) => x == y,
-
-        (_, _) => same_value(&x, &y, false),
-    };
+    let result = same_value(&x, &y, false);
 
     Ok(Value::boolean(result))
 }
