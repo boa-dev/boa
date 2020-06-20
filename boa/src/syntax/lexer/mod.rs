@@ -205,8 +205,6 @@ where
             )),
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
             template_match!() => {
-                // If a template has started then only expecting a template tail.
-                self.set_goal(InputElement::TemplateTail);
                 let result = TemplateLiteral::new().lex(&mut self.cursor, start);
 
                 // A regex may follow a template literal but a DivPunctuator or TemplateSubstitutionTail may not.
