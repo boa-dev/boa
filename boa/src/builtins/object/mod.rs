@@ -412,10 +412,6 @@ pub fn is(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-    if x.get_type() != y.get_type() {
-        return Ok(Value::boolean(false));
-    }
-
     let result = same_value(&x, &y, false);
 
     Ok(Value::boolean(result))
