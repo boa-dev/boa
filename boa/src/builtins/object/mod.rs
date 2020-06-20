@@ -417,23 +417,17 @@ pub fn is(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         return Ok(Value::boolean(false));
     }
 
-    match (x.data(), y.data()) {
-        (ValueData::BigInt(x), ValueData::BigInt(y)) => {
-            Ok(Value::boolean(BigInt::same_value(x, y)))
-        }
-        (ValueData::Rational(x), ValueData::Rational(y)) => {
-            Ok(Value::boolean(Number::same_value(*x, *y)))
-        }
-        (ValueData::Rational(x), ValueData::Integer(y)) => {
-            Ok(Value::boolean(Number::same_value(*x, f64::from(*y))))
-        }
-        (ValueData::Integer(x), ValueData::Rational(y)) => {
-            Ok(Value::boolean(Number::same_value(f64::from(*x), *y)))
-        }
-        (ValueData::Integer(x), ValueData::Integer(y)) => Ok(Value::boolean(x == y)),
+    let result = match (x.data(), y.data()) {
+        (ValueData::BigInt(x), ValueData::BigInt(y)) => BigInt::same_value(x, y),
+        (ValueData::Rational(x), ValueData::Rational(y)) => Number::same_value(*x, *y),
+        (ValueData::Rational(x), ValueData::Integer(y)) => Number::same_value(*x, f64::from(*y)),
+        (ValueData::Integer(x), ValueData::Rational(y)) => Number::same_value(f64::from(*x), *y),
+        (ValueData::Integer(x), ValueData::Integer(y)) => x == y,
 
-        (_, _) => Ok(Value::boolean(same_value(&x, &y, false))),
-    }
+        (_, _) => same_value(&x, &y, false),
+    };
+
+    Ok(Value::boolean(result))
 }
 
 /// Get the `prototype` of an object.
