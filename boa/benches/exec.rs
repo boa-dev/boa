@@ -536,7 +536,7 @@ fn arithmetic_operations(c: &mut Criterion) {
 
     let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
 
-    c.bench_function("Arithmatic operations (Execution)", move |b| {
+    c.bench_function("Arithmetic operations (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
