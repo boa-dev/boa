@@ -61,27 +61,27 @@ impl<R> TokenParser<R> for ArrayLiteral {
 
         loop {
             // TODO: Support all features.
-            while cursor.next_if(Punctuator::Comma).is_some() {
+            while parser.next_if(Punctuator::Comma).is_some() {
                 elements.push(Node::Const(Const::Undefined));
             }
 
-            if cursor.next_if(Punctuator::CloseBracket).is_some() {
+            if parser.next_if(Punctuator::CloseBracket).is_some() {
                 break;
             }
 
-            let _ = cursor.peek(0).ok_or(ParseError::AbruptEnd)?; // Check that there are more tokens to read.
+            let _ = parser.peek(0).ok_or(ParseError::AbruptEnd)?; // Check that there are more tokens to read.
 
-            if cursor.next_if(Punctuator::Spread).is_some() {
+            if parser.next_if(Punctuator::Spread).is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                    .parse(parser)?;
                 elements.push(Spread::new(node).into());
             } else {
                 elements.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(parser)?,
                 );
             }
-            cursor.next_if(Punctuator::Comma);
+            parser.next_if(Punctuator::Comma);
         }
 
         Ok(elements.into())

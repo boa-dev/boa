@@ -54,20 +54,20 @@ impl<R> TokenParser<R> for BreakStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
-        cursor.expect(Keyword::Break, "break statement")?;
+        parser.expect(Keyword::Break, "break statement")?;
 
-        let label = if let (true, tok) = cursor.peek_semicolon(false) {
+        let label = if let (true, tok) = parser.peek_semicolon(false) {
             match tok {
                 Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next();
+                    let _ = parser.next();
                 }
                 _ => {}
             }
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect_semicolon(false, "continue statement")?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
+            parser.expect_semicolon(false, "continue statement")?;
 
             Some(label)
         };

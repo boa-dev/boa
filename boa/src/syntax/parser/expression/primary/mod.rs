@@ -60,28 +60,28 @@ impl<R> TokenParser<R> for PrimaryExpression {
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let tok = parser.next().ok_or(ParseError::AbruptEnd)?;
 
         match &tok.kind {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
             // TokenKind::Keyword(Keyword::Arguments) => Ok(Node::new(NodeBase::Arguments, tok.pos)),
             TokenKind::Keyword(Keyword::Function) => {
-                FunctionExpression.parse(cursor).map(Node::from)
+                FunctionExpression.parse(parser).map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let expr =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "primary expression")?;
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+                parser.expect(Punctuator::CloseParen, "primary expression")?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
+                    .parse(parser)
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)?
+                    .parse(parser)?
                     .into())
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),

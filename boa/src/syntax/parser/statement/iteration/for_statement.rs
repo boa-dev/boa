@@ -64,37 +64,37 @@ impl<R> TokenParser<R> for ForStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
-        cursor.expect(Keyword::For, "for statement")?;
-        cursor.expect(Punctuator::OpenParen, "for statement")?;
+        parser.expect(Keyword::For, "for statement")?;
+        parser.expect(Punctuator::OpenParen, "for statement")?;
 
-        let init = match cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind {
+        let init = match parser.peek(0).ok_or(ParseError::AbruptEnd)?.kind {
             TokenKind::Keyword(Keyword::Var) => Some(
                 VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
-                    .parse(cursor)
+                    .parse(parser)
                     .map(Node::from)?,
             ),
             TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await).parse(cursor)?)
+                Some(Declaration::new(self.allow_yield, self.allow_await).parse(parser)?)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
-            _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
+            _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?),
         };
 
-        cursor.expect(Punctuator::Semicolon, "for statement")?;
+        parser.expect(Punctuator::Semicolon, "for statement")?;
 
-        let cond = if cursor.next_if(Punctuator::Semicolon).is_some() {
+        let cond = if parser.next_if(Punctuator::Semicolon).is_some() {
             Const::from(true).into()
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::Semicolon, "for statement")?;
+            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+            parser.expect(Punctuator::Semicolon, "for statement")?;
             step
         };
 
-        let step = if cursor.next_if(Punctuator::CloseParen).is_some() {
+        let step = if parser.next_if(Punctuator::CloseParen).is_some() {
             None
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(
+            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+            parser.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "for statement",
             )?;
@@ -102,7 +102,7 @@ impl<R> TokenParser<R> for ForStatement {
         };
 
         let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
         Ok(ForLoop::new(init, cond, step, body))

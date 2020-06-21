@@ -6,7 +6,7 @@ use crate::{
         },
         parser::{
             statement::{block::Block, BindingIdentifier},
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+            AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -48,11 +48,11 @@ impl<R> TokenParser<R> for Catch {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Catch", "Parsing");
-        cursor.expect(Keyword::Catch, "try statement")?;
-        let catch_param = if cursor.next_if(Punctuator::OpenParen).is_some() {
+        parser.expect(Keyword::Catch, "try statement")?;
+        let catch_param = if parser.next_if(Punctuator::OpenParen).is_some() {
             let catch_param =
-                CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
+                CatchParameter::new(self.allow_yield, self.allow_await).parse(parser)?;
+            parser.expect(Punctuator::CloseParen, "catch in try statement")?;
             Some(catch_param)
         } else {
             None
@@ -61,7 +61,7 @@ impl<R> TokenParser<R> for Catch {
         // Catch block
         Ok(node::Catch::new::<_, Identifier, _>(
             catch_param,
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?,
+            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?,
         ))
     }
 }
@@ -94,13 +94,13 @@ impl CatchParameter {
     }
 }
 
-impl TokenParser for CatchParameter {
+impl<R> TokenParser<R> for CatchParameter {
     type Output = Identifier;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Identifier, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Identifier, ParseError> {
         // TODO: should accept BindingPattern
         BindingIdentifier::new(self.allow_yield, self.allow_await)
-            .parse(cursor)
+            .parse(parser)
             .map(Identifier::from)
     }
 }

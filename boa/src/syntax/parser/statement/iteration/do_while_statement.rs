@@ -59,12 +59,12 @@ impl<R> TokenParser<R> for DoWhileStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
-        cursor.expect(Keyword::Do, "do while statement")?;
+        parser.expect(Keyword::Do, "do while statement")?;
 
         let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
 
-        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let next_token = parser.peek(0).ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind != TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
@@ -74,13 +74,13 @@ impl<R> TokenParser<R> for DoWhileStatement {
             ));
         }
 
-        cursor.expect(Keyword::While, "do while statement")?;
-        cursor.expect(Punctuator::OpenParen, "do while statement")?;
+        parser.expect(Keyword::While, "do while statement")?;
+        parser.expect(Punctuator::OpenParen, "do while statement")?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
 
-        cursor.expect(Punctuator::CloseParen, "do while statement")?;
-        cursor.expect_semicolon(true, "do while statement")?;
+        parser.expect(Punctuator::CloseParen, "do while statement")?;
+        parser.expect_semicolon(true, "do while statement")?;
 
         Ok(DoWhileLoop::new(body, cond))
     }

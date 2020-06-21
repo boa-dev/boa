@@ -61,19 +61,19 @@ impl<R> TokenParser<R> for ObjectLiteral {
         let mut elements = Vec::new();
 
         loop {
-            if cursor.next_if(Punctuator::CloseBlock).is_some() {
+            if parser.next_if(Punctuator::CloseBlock).is_some() {
                 break;
             }
 
             elements
-                .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
+                .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(parser)?);
 
-            if cursor.next_if(Punctuator::CloseBlock).is_some() {
+            if parser.next_if(Punctuator::CloseBlock).is_some() {
                 break;
             }
 
-            if cursor.next_if(Punctuator::Comma).is_none() {
-                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+            if parser.next_if(Punctuator::Comma).is_none() {
+                let next_token = parser.next().ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![
                         TokenKind::Punctuator(Punctuator::Comma),
@@ -115,36 +115,36 @@ impl PropertyDefinition {
     }
 }
 
-impl TokenParser for PropertyDefinition {
+impl<R> TokenParser<R> for PropertyDefinition {
     type Output = node::PropertyDefinition;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        if cursor.next_if(Punctuator::Spread).is_some() {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+        if parser.next_if(Punctuator::Spread).is_some() {
             let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
+                .parse(parser)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = cursor
+        let prop_name = parser
             .next()
             .map(Token::to_string)
             .ok_or(ParseError::AbruptEnd)?;
-        if cursor.next_if(Punctuator::Colon).is_some() {
+        if parser.next_if(Punctuator::Colon).is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
+                .parse(parser)?;
             return Ok(node::PropertyDefinition::property(prop_name, val));
         }
 
-        if cursor
+        if parser
             .next_if(TokenKind::Punctuator(Punctuator::OpenParen))
             .is_some()
             || ["get", "set"].contains(&prop_name.as_str())
         {
             return MethodDefinition::new(self.allow_yield, self.allow_await, prop_name)
-                .parse(cursor);
+                .parse(parser);
         }
 
-        let pos = cursor
+        let pos = parser
             .peek(0)
             .map(|tok| tok.span().start())
             .ok_or(ParseError::AbruptEnd)?;
@@ -181,23 +181,23 @@ impl MethodDefinition {
     }
 }
 
-impl TokenParser for MethodDefinition {
+impl<R> TokenParser<R> for MethodDefinition {
     type Output = node::PropertyDefinition;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
             idn @ "get" | idn @ "set" => {
-                let prop_name = cursor
+                let prop_name = parser
                     .next()
                     .map(Token::to_string)
                     .ok_or(ParseError::AbruptEnd)?;
-                cursor.expect(
+                parser.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     "property method definition",
                 )?;
-                let first_param = cursor.peek(0).expect("current token disappeared").clone();
-                let params = FormalParameters::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "method definition")?;
+                let first_param = parser.peek(0).expect("current token disappeared").clone();
+                let params = FormalParameters::new(false, false).parse(parser)?;
+                parser.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {
                     if !params.is_empty() {
                         return Err(ParseError::unexpected(
@@ -217,8 +217,8 @@ impl TokenParser for MethodDefinition {
                 }
             }
             prop_name => {
-                let params = FormalParameters::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "method definition")?;
+                let params = FormalParameters::new(false, false).parse(parser)?;
+                parser.expect(Punctuator::CloseParen, "method definition")?;
                 (
                     MethodDefinitionKind::Ordinary,
                     prop_name.to_string(),
@@ -227,12 +227,12 @@ impl TokenParser for MethodDefinition {
             }
         };
 
-        cursor.expect(
+        parser.expect(
             TokenKind::Punctuator(Punctuator::OpenBlock),
             "property method definition",
         )?;
-        let body = FunctionBody::new(false, false).parse(cursor)?;
-        cursor.expect(
+        let body = FunctionBody::new(false, false).parse(parser)?;
+        parser.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "property method definition",
         )?;
@@ -278,11 +278,11 @@ impl Initializer {
     }
 }
 
-impl TokenParser for Initializer {
+impl<R> TokenParser<R> for Initializer {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        cursor.expect(TokenKind::Punctuator(Punctuator::Assign), "initializer")?;
-        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(cursor)
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+        parser.expect(TokenKind::Punctuator(Punctuator::Assign), "initializer")?;
+        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(parser)
     }
 }

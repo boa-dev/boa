@@ -23,6 +23,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Parses an exponentiation expression.
 ///
 /// More information:
@@ -32,12 +34,15 @@ use crate::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
 /// [spec]: https://tc39.es/ecma262/#prod-ExponentiationExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::expression) struct ExponentiationExpression {
+pub(in crate::syntax::parser::expression) struct ExponentiationExpression<R> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
-impl ExponentiationExpression {
+impl<R> ExponentiationExpression<R>
+where
+    R: Read
+{
     /// Creates a new `ExponentiationExpression` parser.
     pub(in crate::syntax::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -49,12 +54,13 @@ impl ExponentiationExpression {
             allow_await: allow_await.into(),
         }
     }
-}
 
-impl ExponentiationExpression {
     /// Checks by looking at the next token to see whether it's a unary operator or not.
-    fn is_unary_expression(cursor: &mut Cursor<'_>) -> bool {
-        if let Some(tok) = cursor.peek(0) {
+    fn is_unary_expression(parser: &mut Parser<R>) -> bool
+    where
+        R: Read
+    {
+        if let Some(tok) = parser.peek(0) {
             match tok.kind {
                 TokenKind::Keyword(Keyword::Delete)
                 | TokenKind::Keyword(Keyword::Void)
@@ -71,21 +77,24 @@ impl ExponentiationExpression {
     }
 }
 
-impl<R> TokenParser<R> for ExponentiationExpression {
+impl<R> TokenParser<R> for ExponentiationExpression<R>
+where 
+    R: Read
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExponentiationExpression", "Parsing");
-        if Self::is_unary_expression(cursor) {
-            return UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor);
+        if Self::is_unary_expression(parser) {
+            return UnaryExpression::new(self.allow_yield, self.allow_await).parse(parser);
         }
 
-        let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.next() {
+        let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(parser)?;
+        if let Some(tok) = parser.next() {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind {
-                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?).into());
+                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(parser)?).into());
             } else {
-                cursor.back();
+                parser.back();
             }
         }
         Ok(lhs)

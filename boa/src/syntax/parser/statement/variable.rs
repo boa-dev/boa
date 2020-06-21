@@ -49,12 +49,12 @@ impl<R> TokenParser<R> for VariableStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
-        cursor.expect(Keyword::Var, "variable statement")?;
+        parser.expect(Keyword::Var, "variable statement")?;
 
         let decl_list =
-            VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(parser)?;
 
-        cursor.expect_semicolon(false, "variable statement")?;
+        parser.expect_semicolon(false, "variable statement")?;
 
         Ok(decl_list)
     }
@@ -104,13 +104,13 @@ impl<R> TokenParser<R> for VariableDeclarationList {
         loop {
             list.push(
                 VariableDeclaration::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?,
+                    .parse(parser)?,
             );
 
-            match cursor.peek_semicolon(false) {
+            match parser.peek_semicolon(false) {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = cursor.next();
+                    let _ = parser.next();
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -118,7 +118,7 @@ impl<R> TokenParser<R> for VariableDeclarationList {
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        parser.next().ok_or(ParseError::AbruptEnd)?.clone(),
                         "lexical declaration",
                     ))
                 }
@@ -164,10 +164,10 @@ impl<R> TokenParser<R> for VariableDeclaration {
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
 
         let ident =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
+            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(parser);
 
         Ok(VarDecl::new(name, ident))
     }

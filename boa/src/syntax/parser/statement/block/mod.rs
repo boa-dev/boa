@@ -65,19 +65,19 @@ impl<R> TokenParser<R> for Block {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
-        cursor.expect(Punctuator::OpenBlock, "block")?;
-        if let Some(tk) = cursor.peek(0) {
+        parser.expect(Punctuator::OpenBlock, "block")?;
+        if let Some(tk) = parser.peek(0) {
             if tk.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.next();
+                parser.next();
                 return Ok(node::Block::from(vec![]));
             }
         }
 
         let statement_list =
             StatementList::new(self.allow_yield, self.allow_await, self.allow_return, true)
-                .parse(cursor)
+                .parse(parser)
                 .map(node::Block::from)?;
-        cursor.expect(Punctuator::CloseBlock, "block")?;
+        parser.expect(Punctuator::CloseBlock, "block")?;
 
         Ok(statement_list)
     }

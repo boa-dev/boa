@@ -53,22 +53,22 @@ impl<R> TokenParser<R> for IfStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
-        cursor.expect(Keyword::If, "if statement")?;
-        cursor.expect(Punctuator::OpenParen, "if statement")?;
+        parser.expect(Keyword::If, "if statement")?;
+        parser.expect(Punctuator::OpenParen, "if statement")?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
 
-        cursor.expect(Punctuator::CloseParen, "if statement")?;
+        parser.expect(Punctuator::CloseParen, "if statement")?;
 
         let then_stm =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
 
-        let else_stm = match cursor.peek(0) {
+        let else_stm = match parser.peek(0) {
             Some(else_tok) if else_tok.kind == TokenKind::Keyword(Keyword::Else) => {
-                cursor.next();
+                parser.next();
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor)?,
+                        .parse(parser)?,
                 )
             }
             _ => None,

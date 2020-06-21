@@ -12,6 +12,7 @@ use crate::syntax::ast::node::StatementList;
 use crate::syntax::lexer::Token;
 use crate::syntax::lexer::Lexer;
 use crate::syntax::ast::Node;
+use crate::syntax::lexer::InputElement;
 
 use ParseError as Error;
 
@@ -106,16 +107,18 @@ impl<R> Parser<R> {
             lexer: Lexer::new(reader)
         }
     }
-}
 
-impl<R> Iterator for Parser<R>
-where
-    R: Read,
-{
-    type Item = Result<Node, Error>;
+    pub fn parse_all(&mut self) -> Result<Node, ParseError> {
+        Script.parse(&mut self)
+    }
 
-    fn next(&mut self) -> Option<Self::Item> {
 
+    pub fn next(&mut self) -> Result<Node, ParseError> {
+        unimplemented!();
+    }
+
+    pub fn peek(&mut self, amount: i32) -> Result<Node, ParseError> {
+        unimplemented!();
     }
 }
 
@@ -132,7 +135,7 @@ impl<R> TokenParser<R> for Script {
     type Output = StatementList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        if cursor.peek(0).is_some() {
+        if parser.peek().is_some() {
             ScriptBody.parse(parser)
         } else {
             Ok(StatementList::from(Vec::new()))

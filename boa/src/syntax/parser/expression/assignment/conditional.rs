@@ -13,7 +13,7 @@ use crate::{
         ast::{node::ConditionalOp, Node, Punctuator},
         parser::{
             expression::{AssignmentExpression, LogicalORExpression},
-            AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Parser, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -61,21 +61,21 @@ impl<R> TokenParser<R> for ConditionalExpression {
         let _timer = BoaProfiler::global().start_event("Conditional", "Parsing");
         // TODO: coalesce expression
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor)?;
+            .parse(parser)?;
 
-        if let Some(tok) = cursor.next() {
+        if let Some(tok) = parser.next() {
             if tok.kind == TokenKind::Punctuator(Punctuator::Question) {
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
-                cursor.expect(Punctuator::Colon, "conditional expression")?;
+                        .parse(parser)?;
+                parser.expect(Punctuator::Colon, "conditional expression")?;
 
                 let else_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                        .parse(parser)?;
                 return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
             } else {
-                cursor.back();
+                parser.back();
             }
         }
 

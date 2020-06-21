@@ -59,13 +59,13 @@ impl<R> TokenParser<R> for CallExpression {
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
-        let mut lhs = match cursor.peek(0) {
+        let mut lhs = match parser.peek(0) {
             Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
-                let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                let args = Arguments::new(self.allow_yield, self.allow_await).parse(parser)?;
                 Node::from(Call::new(self.first_member_expr, args))
             }
             _ => {
-                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+                let next_token = parser.next().ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![TokenKind::Punctuator(Punctuator::OpenParen)],
                     next_token.clone(),
@@ -74,15 +74,15 @@ impl<R> TokenParser<R> for CallExpression {
             }
         };
 
-        while let Some(tok) = cursor.peek(0) {
+        while let Some(tok) = parser.peek(0) {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let args = Arguments::new(self.allow_yield, self.allow_await).parse(parser)?;
                     lhs = Node::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor.
-                    match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
+                    let _ = parser.next().ok_or(ParseError::AbruptEnd)?; // We move the parser.
+                    match &parser.next().ok_or(ParseError::AbruptEnd)?.kind {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into();
                         }
@@ -99,10 +99,10 @@ impl<R> TokenParser<R> for CallExpression {
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor.
+                    let _ = parser.next().ok_or(ParseError::AbruptEnd)?; // We move the parser.
                     let idx =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                    cursor.expect(Punctuator::CloseBracket, "call expression")?;
+                        Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+                    parser.expect(Punctuator::CloseBracket, "call expression")?;
                     lhs = GetField::new(lhs, idx).into();
                 }
                 _ => break,

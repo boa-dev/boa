@@ -43,14 +43,14 @@ impl<R> TokenParser<R> for ThrowStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ThrowStatement", "Parsing");
-        cursor.expect(Keyword::Throw, "throw statement")?;
+        parser.expect(Keyword::Throw, "throw statement")?;
 
-        cursor.peek_expect_no_lineterminator(0)?;
+        parser.peek_expect_no_lineterminator(0)?;
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(0) {
+        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+        if let Some(tok) = parser.peek(0) {
             if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) {
-                let _ = cursor.next();
+                let _ = parser.next();
             }
         }
 

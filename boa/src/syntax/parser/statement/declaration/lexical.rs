@@ -56,16 +56,16 @@ impl<R> TokenParser<R> for LexicalDeclaration {
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let tok = parser.next().ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {
             TokenKind::Keyword(Keyword::Const) => {
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, true)
-                    .parse(cursor)
+                    .parse(parser)
             }
             TokenKind::Keyword(Keyword::Let) => {
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, false)
-                    .parse(cursor)
+                    .parse(parser)
             }
             _ => unreachable!("unknown token found"),
         }
@@ -118,7 +118,7 @@ impl<R> TokenParser<R> for BindingList {
         loop {
             let (ident, init) =
                 LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                    .parse(parser)?;
 
             if self.is_const {
                 if let Some(init) = init {
@@ -126,7 +126,7 @@ impl<R> TokenParser<R> for BindingList {
                 } else {
                     return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        parser.next().ok_or(ParseError::AbruptEnd)?.clone(),
                         "const declaration",
                     ));
                 }
@@ -134,10 +134,10 @@ impl<R> TokenParser<R> for BindingList {
                 let_decls.push(LetDecl::new(ident, init));
             }
 
-            match cursor.peek_semicolon(false) {
+            match parser.peek_semicolon(false) {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = cursor.next();
+                    let _ = parser.next();
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -145,7 +145,7 @@ impl<R> TokenParser<R> for BindingList {
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        parser.next().ok_or(ParseError::AbruptEnd)?.clone(),
                         "lexical declaration",
                     ))
                 }
@@ -192,9 +192,9 @@ impl<R> TokenParser<R> for LexicalBinding {
     type Output = (Box<str>, Option<Node>);
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
         let initializer =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
+            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(parser);
 
         Ok((ident, initializer))
     }

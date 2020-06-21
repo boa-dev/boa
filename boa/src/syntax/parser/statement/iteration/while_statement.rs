@@ -3,7 +3,7 @@ use crate::{
         ast::{node::WhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, TokenParser,
+            Parser, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -44,20 +44,20 @@ impl WhileStatement {
     }
 }
 
-impl TokenParser for WhileStatement {
+impl<R> TokenParser<R> for WhileStatement {
     type Output = WhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
-        cursor.expect(Keyword::While, "while statement")?;
-        cursor.expect(Punctuator::OpenParen, "while statement")?;
+        parser.expect(Keyword::While, "while statement")?;
+        parser.expect(Punctuator::OpenParen, "while statement")?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
 
-        cursor.expect(Punctuator::CloseParen, "while statement")?;
+        parser.expect(Punctuator::CloseParen, "while statement")?;
 
         let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
 
         Ok(WhileLoop::new(cond, body))
     }

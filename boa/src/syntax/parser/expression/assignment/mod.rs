@@ -76,22 +76,22 @@ impl<R> TokenParser<R> for AssignmentExpression {
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // Arrow function
-        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let next_token = parser.peek(0).ok_or(ParseError::AbruptEnd)?;
         match next_token.kind {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await)
-                if cursor.peek_expect_no_lineterminator(1).is_ok() =>
+                if parser.peek_expect_no_lineterminator(1).is_ok() =>
             {
-                if let Some(tok) = cursor.peek(1) {
+                if let Some(tok) = parser.peek(1) {
                     if tok.kind == TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
                             self.allow_in,
                             self.allow_yield,
                             self.allow_await,
                         )
-                        .parse(cursor)
+                        .parse(parser)
                         .map(Node::ArrowFunctionDecl);
                     }
                 }
@@ -100,7 +100,7 @@ impl<R> TokenParser<R> for AssignmentExpression {
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 if let Some(node) =
                     ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .try_parse(cursor)
+                        .try_parse(parser)
                         .map(Node::ArrowFunctionDecl)
                 {
                     return Ok(node);
@@ -110,20 +110,20 @@ impl<R> TokenParser<R> for AssignmentExpression {
         }
 
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor)?;
+            .parse(parser)?;
 
-        if let Some(tok) = cursor.next() {
+        if let Some(tok) = parser.next() {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    lhs = Assign::new(lhs, self.parse(cursor)?).into();
+                    lhs = Assign::new(lhs, self.parse(parser)?).into();
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() => {
-                    let expr = self.parse(cursor)?;
+                    let expr = self.parse(parser)?;
                     let binop = p.as_binop().expect("binop disappeared");
                     lhs = BinOp::new(binop, lhs, expr).into();
                 }
                 _ => {
-                    cursor.back();
+                    parser.back();
                 }
             }
         }

@@ -52,10 +52,10 @@ impl<R> TokenParser<R> for Arguments {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
-        cursor.expect(Punctuator::OpenParen, "arguments")?;
+        parser.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
-            let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+            let next_token = parser.next().ok_or(ParseError::AbruptEnd)?;
             match next_token.kind {
                 TokenKind::Punctuator(Punctuator::CloseParen) => break,
                 TokenKind::Punctuator(Punctuator::Comma) => {
@@ -63,7 +63,7 @@ impl<R> TokenParser<R> for Arguments {
                         return Err(ParseError::unexpected(next_token.clone(), None));
                     }
 
-                    if cursor.next_if(Punctuator::CloseParen).is_some() {
+                    if parser.next_if(Punctuator::CloseParen).is_some() {
                         break;
                     }
                 }
@@ -78,23 +78,23 @@ impl<R> TokenParser<R> for Arguments {
                             "argument list",
                         ));
                     } else {
-                        cursor.back();
+                        parser.back();
                     }
                 }
             }
 
-            if cursor.next_if(Punctuator::Spread).is_some() {
+            if parser.next_if(Punctuator::Spread).is_some() {
                 args.push(
                     Spread::new(
                         AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor)?,
+                            .parse(parser)?,
                     )
                     .into(),
                 );
             } else {
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(parser)?,
                 );
             }
         }

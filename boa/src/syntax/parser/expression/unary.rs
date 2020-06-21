@@ -52,32 +52,32 @@ impl<R> TokenParser<R> for UnaryExpression {
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let tok = parser.next().ok_or(ParseError::AbruptEnd)?;
         match tok.kind {
             TokenKind::Keyword(Keyword::Delete) => {
-                Ok(node::UnaryOp::new(UnaryOp::Delete, self.parse(cursor)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Delete, self.parse(parser)?).into())
             }
             TokenKind::Keyword(Keyword::Void) => {
-                Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(parser)?).into())
             }
             TokenKind::Keyword(Keyword::TypeOf) => {
-                Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(parser)?).into())
             }
             TokenKind::Punctuator(Punctuator::Add) => {
-                Ok(node::UnaryOp::new(UnaryOp::Plus, self.parse(cursor)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Plus, self.parse(parser)?).into())
             }
             TokenKind::Punctuator(Punctuator::Sub) => {
-                Ok(node::UnaryOp::new(UnaryOp::Minus, self.parse(cursor)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Minus, self.parse(parser)?).into())
             }
             TokenKind::Punctuator(Punctuator::Neg) => {
-                Ok(node::UnaryOp::new(UnaryOp::Tilde, self.parse(cursor)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Tilde, self.parse(parser)?).into())
             }
             TokenKind::Punctuator(Punctuator::Not) => {
-                Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(parser)?).into())
             }
             _ => {
-                cursor.back();
-                UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor)
+                parser.back();
+                UpdateExpression::new(self.allow_yield, self.allow_await).parse(parser)
             }
         }
     }

@@ -51,28 +51,28 @@ impl PartialEq<Punctuator> for Keyword {
 ///
 /// Those exressions are divided by the punctuators passed as the third parameter.
 macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*] ) => {
-    impl TokenParser for $name {
+    impl<R> TokenParser<R> for $name {
         type Output = Node;
 
         fn parse(self, parser: &mut Parser<R>) -> ParseResult {
             let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
-            let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
-            while let Some(tok) = cursor.peek(0) {
+            let mut lhs = $lower::new($( self.$low_param ),*).parse(parser)?;
+            while let Some(tok) = parser.peek(0) {
                 match tok.kind {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
-                        let _ = cursor.next().expect("token disappeared");
+                        let _ = parser.next().expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
+                            $lower::new($( self.$low_param ),*).parse(parser)?
                         ).into();
                     }
                     TokenKind::Keyword(op) if $( op == $op )||* => {
-                        let _ = cursor.next().expect("token disappeared");
+                        let _ = parser.next().expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
+                            $lower::new($( self.$low_param ),*).parse(parser)?
                         ).into();
                     }
                     _ => break

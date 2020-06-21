@@ -53,12 +53,12 @@ impl<R> TokenParser<R> for TryStatement {
     fn parse(self, parser: &mut Parser<R>) -> Result<Try, ParseError> {
         let _timer = BoaProfiler::global().start_event("TryStatement", "Parsing");
         // TRY
-        cursor.expect(Keyword::Try, "try statement")?;
+        parser.expect(Keyword::Try, "try statement")?;
 
         let try_clause =
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
 
-        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let next_token = parser.peek(0).ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind != TokenKind::Keyword(Keyword::Catch)
             && next_token.kind != TokenKind::Keyword(Keyword::Finally)
@@ -74,17 +74,17 @@ impl<R> TokenParser<R> for TryStatement {
         }
 
         let catch = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
-            Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
+            Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?)
         } else {
             None
         };
 
-        let next_token = cursor.peek(0);
+        let next_token = parser.peek(0);
         let finally_block = match next_token {
             Some(token) => match token.kind {
                 TokenKind::Keyword(Keyword::Finally) => Some(
                     Finally::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor)?,
+                        .parse(parser)?,
                 ),
                 _ => None,
             },

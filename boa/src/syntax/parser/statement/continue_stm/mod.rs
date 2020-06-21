@@ -54,20 +54,20 @@ impl<R> TokenParser<R> for ContinueStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
-        cursor.expect(Keyword::Continue, "continue statement")?;
+        parser.expect(Keyword::Continue, "continue statement")?;
 
-        let label = if let (true, tok) = cursor.peek_semicolon(false) {
+        let label = if let (true, tok) = parser.peek_semicolon(false) {
             match tok {
                 Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next();
+                    let _ = parser.next();
                 }
                 _ => {}
             }
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect_semicolon(false, "continue statement")?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
+            parser.expect_semicolon(false, "continue statement")?;
 
             Some(label)
         };

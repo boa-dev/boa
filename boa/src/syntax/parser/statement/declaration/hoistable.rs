@@ -52,7 +52,7 @@ impl<R> TokenParser<R> for HoistableDeclaration {
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
         // TODO: check for generators and async functions + generators
         FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
-            .parse(cursor)
+            .parse(parser)
             .map(Node::from)
     }
 }
@@ -92,21 +92,21 @@ impl<R> TokenParser<R> for FunctionDeclaration {
     type Output = FunctionDecl;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Function, "function declaration")?;
+        parser.expect(Keyword::Function, "function declaration")?;
 
         // TODO: If self.is_default, then this can be empty.
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
 
-        cursor.expect(Punctuator::OpenParen, "function declaration")?;
+        parser.expect(Punctuator::OpenParen, "function declaration")?;
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(false, false).parse(parser)?;
 
-        cursor.expect(Punctuator::CloseParen, "function declaration")?;
-        cursor.expect(Punctuator::OpenBlock, "function declaration")?;
+        parser.expect(Punctuator::CloseParen, "function declaration")?;
+        parser.expect(Punctuator::OpenBlock, "function declaration")?;
 
-        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(parser)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function declaration")?;
+        parser.expect(Punctuator::CloseBlock, "function declaration")?;
 
         Ok(FunctionDecl::new(name, params, body))
     }

@@ -35,18 +35,18 @@ impl<R> TokenParser<R> for FunctionExpression {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
-        let name = BindingIdentifier::new(false, false).try_parse(cursor);
+        let name = BindingIdentifier::new(false, false).try_parse(parser);
 
-        cursor.expect(Punctuator::OpenParen, "function expression")?;
+        parser.expect(Punctuator::OpenParen, "function expression")?;
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(false, false).parse(parser)?;
 
-        cursor.expect(Punctuator::CloseParen, "function expression")?;
-        cursor.expect(Punctuator::OpenBlock, "function expression")?;
+        parser.expect(Punctuator::CloseParen, "function expression")?;
+        parser.expect(Punctuator::OpenBlock, "function expression")?;
 
-        let body = FunctionBody::new(false, false).parse(cursor)?;
+        let body = FunctionBody::new(false, false).parse(parser)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function expression")?;
+        parser.expect(Punctuator::CloseBlock, "function expression")?;
 
         Ok(FunctionExpr::new(name, params, body))
     }

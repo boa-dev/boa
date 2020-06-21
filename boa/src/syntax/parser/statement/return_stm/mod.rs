@@ -43,15 +43,15 @@ impl<R> TokenParser<R> for ReturnStatement {
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
-        cursor.expect(Keyword::Return, "return statement")?;
+        parser.expect(Keyword::Return, "return statement")?;
 
-        if let (true, tok) = cursor.peek_semicolon(false) {
+        if let (true, tok) = parser.peek_semicolon(false) {
             match tok {
                 Some(tok)
                     if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon)
                         || tok.kind == TokenKind::LineTerminator =>
                 {
-                    let _ = cursor.next();
+                    let _ = parser.next();
                 }
                 _ => {}
             }
@@ -59,9 +59,9 @@ impl<R> TokenParser<R> for ReturnStatement {
             return Ok(Return::new::<Node, Option<_>>(None));
         }
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
 
-        cursor.expect_semicolon(false, "return statement")?;
+        parser.expect_semicolon(false, "return statement")?;
 
         Ok(Return::new(expr))
     }
