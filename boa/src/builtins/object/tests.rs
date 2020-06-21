@@ -1,6 +1,30 @@
 use crate::{exec::Interpreter, forward, realm::Realm};
 
 #[test]
+fn object_is() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+        var foo = { a: 1};
+        var bar = { a: 1};
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "Object.is('foo', 'foo')"), "true");
+    assert_eq!(forward(&mut engine, "Object.is('foo', 'bar')"), "false");
+    assert_eq!(forward(&mut engine, "Object.is([], [])"), "false");
+    assert_eq!(forward(&mut engine, "Object.is(foo, foo)"), "true");
+    assert_eq!(forward(&mut engine, "Object.is(foo, bar)"), "false");
+    assert_eq!(forward(&mut engine, "Object.is(null, null)"), "true");
+    assert_eq!(forward(&mut engine, "Object.is(0, -0)"), "false");
+    assert_eq!(forward(&mut engine, "Object.is(-0, -0)"), "true");
+    assert_eq!(forward(&mut engine, "Object.is(NaN, 0/0)"), "true");
+    assert_eq!(forward(&mut engine, "Object.is()"), "true");
+    assert_eq!(forward(&mut engine, "Object.is(undefined)"), "true");
+}
+#[test]
 fn object_has_own_property() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

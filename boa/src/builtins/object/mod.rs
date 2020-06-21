@@ -31,6 +31,7 @@ use std::{
 };
 
 use super::function::{make_builtin_fn, make_constructor_fn};
+use crate::builtins::value::same_value;
 pub use internal_state::{InternalState, InternalStateCell};
 
 pub mod internal_methods;
@@ -406,6 +407,16 @@ pub fn make_object(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
     Ok(object)
 }
 
+/// Uses the SameValue algorithm to check equality of objects
+pub fn is(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
+    let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
+
+    let result = same_value(&x, &y, false);
+
+    Ok(Value::boolean(result))
+}
+
 /// Get the `prototype` of an object.
 pub fn get_prototype_of(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
@@ -511,6 +522,7 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
     make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
     make_builtin_fn(define_property, "defineProperty", &object, 3);
+    make_builtin_fn(is, "is", &object, 2);
 
     object
 }
