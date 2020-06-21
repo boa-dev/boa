@@ -8,12 +8,14 @@ use crate::{
     syntax::{
         ast::{node::If, Keyword, Node, Punctuator},
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, Parser, ParseError,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, Parser,
             TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// If statement parsing.
 ///
@@ -48,7 +50,10 @@ impl IfStatement {
     }
 }
 
-impl<R> TokenParser<R> for IfStatement {
+impl<R> TokenParser<R> for IfStatement
+where
+    R: Read,
+{
     type Output = If;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

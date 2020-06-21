@@ -19,12 +19,14 @@ use crate::{
             Punctuator,
         },
         parser::{
-            expression::Expression, AllowAwait, AllowYield, Parser, ParseError, ParseResult,
+            expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult, Parser,
             TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a call expression.
 ///
@@ -54,7 +56,10 @@ impl CallExpression {
     }
 }
 
-impl<R> TokenParser<R> for CallExpression {
+impl<R> TokenParser<R> for CallExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

@@ -25,6 +25,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Arrow function parsing.
 ///
 /// More information:
@@ -60,7 +62,10 @@ impl ArrowFunction {
     }
 }
 
-impl<R> TokenParser<R> for ArrowFunction {
+impl<R> TokenParser<R> for ArrowFunction
+where
+    R: Read,
+{
     type Output = ArrowFunctionDecl;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -107,7 +112,10 @@ impl ConciseBody {
     }
 }
 
-impl<R> TokenParser<R> for ConciseBody {
+impl<R> TokenParser<R> for ConciseBody
+where
+    R: Read,
+{
     type Output = StatementList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -147,7 +155,10 @@ impl ExpressionBody {
     }
 }
 
-impl<R> TokenParser<R> for ExpressionBody {
+impl<R> TokenParser<R> for ExpressionBody
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

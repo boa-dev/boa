@@ -8,11 +8,12 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            Parser, ParseError, TokenParser,
+            ParseError, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Variable statement parsing.
 ///
@@ -44,7 +45,10 @@ impl VariableStatement {
     }
 }
 
-impl<R> TokenParser<R> for VariableStatement {
+impl<R> TokenParser<R> for VariableStatement
+where
+    R: Read,
+{
     type Output = VarDeclList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -95,7 +99,10 @@ impl VariableDeclarationList {
     }
 }
 
-impl<R> TokenParser<R> for VariableDeclarationList {
+impl<R> TokenParser<R> for VariableDeclarationList
+where
+    R: Read,
+{
     type Output = VarDeclList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -158,7 +165,10 @@ impl VariableDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for VariableDeclaration {
+impl<R> TokenParser<R> for VariableDeclaration
+where
+    R: Read,
+{
     type Output = VarDecl;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

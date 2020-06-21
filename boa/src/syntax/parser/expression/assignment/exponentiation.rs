@@ -17,7 +17,7 @@ use crate::{
         },
         parser::{
             expression::{unary::UnaryExpression, update::UpdateExpression},
-            AllowAwait, AllowYield, Parser, ParseResult, TokenParser,
+            AllowAwait, AllowYield, ParseResult, Parser, TokenParser,
         },
     },
     BoaProfiler,
@@ -34,15 +34,12 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
 /// [spec]: https://tc39.es/ecma262/#prod-ExponentiationExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::expression) struct ExponentiationExpression<R> {
+pub(in crate::syntax::parser::expression) struct ExponentiationExpression {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
-impl<R> ExponentiationExpression<R>
-where
-    R: Read
-{
+impl ExponentiationExpression {
     /// Creates a new `ExponentiationExpression` parser.
     pub(in crate::syntax::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -54,32 +51,32 @@ where
             allow_await: allow_await.into(),
         }
     }
+}
 
-    /// Checks by looking at the next token to see whether it's a unary operator or not.
-    fn is_unary_expression(parser: &mut Parser<R>) -> bool
-    where
-        R: Read
-    {
-        if let Some(tok) = parser.peek(0) {
-            match tok.kind {
-                TokenKind::Keyword(Keyword::Delete)
-                | TokenKind::Keyword(Keyword::Void)
-                | TokenKind::Keyword(Keyword::TypeOf)
-                | TokenKind::Punctuator(Punctuator::Add)
-                | TokenKind::Punctuator(Punctuator::Sub)
-                | TokenKind::Punctuator(Punctuator::Not)
-                | TokenKind::Punctuator(Punctuator::Neg) => true,
-                _ => false,
-            }
-        } else {
-            false
+/// Checks by looking at the next token to see whether it's a unary operator or not.
+fn is_unary_expression<R>(parser: &mut Parser<R>) -> bool
+where
+    R: Read,
+{
+    if let Some(tok) = parser.peek(0) {
+        match tok.kind {
+            TokenKind::Keyword(Keyword::Delete)
+            | TokenKind::Keyword(Keyword::Void)
+            | TokenKind::Keyword(Keyword::TypeOf)
+            | TokenKind::Punctuator(Punctuator::Add)
+            | TokenKind::Punctuator(Punctuator::Sub)
+            | TokenKind::Punctuator(Punctuator::Not)
+            | TokenKind::Punctuator(Punctuator::Neg) => true,
+            _ => false,
         }
+    } else {
+        false
     }
 }
 
-impl<R> TokenParser<R> for ExponentiationExpression<R>
-where 
-    R: Read
+impl<R> TokenParser<R> for ExponentiationExpression
+where
+    R: Read,
 {
     type Output = Node;
 

@@ -13,11 +13,13 @@ use crate::{
         ast::{node::ConditionalOp, Node, Punctuator},
         parser::{
             expression::{AssignmentExpression, LogicalORExpression},
-            AllowAwait, AllowIn, AllowYield, Parser, ParseResult, TokenParser,
+            AllowAwait, AllowIn, AllowYield, ParseResult, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Conditional expression parsing.
 ///
@@ -54,7 +56,10 @@ impl ConditionalExpression {
     }
 }
 
-impl<R> TokenParser<R> for ConditionalExpression {
+impl<R> TokenParser<R> for ConditionalExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

@@ -3,11 +3,13 @@ use crate::{
         ast::{node::WhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Parser, ParseError, TokenParser,
+            ParseError, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// While statement parsing
 ///
@@ -44,7 +46,10 @@ impl WhileStatement {
     }
 }
 
-impl<R> TokenParser<R> for WhileStatement {
+impl<R> TokenParser<R> for WhileStatement
+where
+    R: Read,
+{
     type Output = WhileLoop;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

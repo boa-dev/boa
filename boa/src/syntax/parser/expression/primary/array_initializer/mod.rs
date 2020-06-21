@@ -17,12 +17,14 @@ use crate::{
             Const, Punctuator,
         },
         parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Parser, ParseError,
+            expression::AssignmentExpression, AllowAwait, AllowYield, ParseError, Parser,
             TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses an array literal.
 ///
@@ -52,7 +54,10 @@ impl ArrayLiteral {
     }
 }
 
-impl<R> TokenParser<R> for ArrayLiteral {
+impl<R> TokenParser<R> for ArrayLiteral
+where
+    R: Read,
+{
     type Output = ArrayDecl;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

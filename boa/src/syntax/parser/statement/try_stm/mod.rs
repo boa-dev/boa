@@ -11,10 +11,12 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Try, Keyword},
-        parser::{AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Parser, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Try...catch statement parsing
 ///
@@ -47,7 +49,10 @@ impl TryStatement {
     }
 }
 
-impl<R> TokenParser<R> for TryStatement {
+impl<R> TokenParser<R> for TryStatement
+where
+    R: Read,
+{
     type Output = Try;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Try, ParseError> {

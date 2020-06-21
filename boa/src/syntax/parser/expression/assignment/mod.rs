@@ -19,11 +19,13 @@ use crate::{
             node::{Assign, BinOp, Node},
             Keyword, Punctuator,
         },
-        parser::{AllowAwait, AllowIn, AllowYield, Parser, ParseError, ParseResult, TokenParser},
+        parser::{AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, Parser, TokenParser},
     },
     BoaProfiler,
 };
 pub(super) use exponentiation::ExponentiationExpression;
+
+use std::io::Read;
 
 /// Assignment expression parsing.
 ///
@@ -70,7 +72,10 @@ impl AssignmentExpression {
     }
 }
 
-impl<R> TokenParser<R> for AssignmentExpression {
+impl<R> TokenParser<R> for AssignmentExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

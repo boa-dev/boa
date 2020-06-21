@@ -2,12 +2,14 @@ use crate::{
     syntax::{
         ast::{node, Keyword},
         parser::{
-            statement::block::Block, AllowAwait, AllowReturn, AllowYield, Parser, ParseError,
+            statement::block::Block, AllowAwait, AllowReturn, AllowYield, ParseError, Parser,
             TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Finally parsing
 ///
@@ -40,7 +42,10 @@ impl Finally {
     }
 }
 
-impl<R> TokenParser<R> for Finally {
+impl<R> TokenParser<R> for Finally
+where
+    R: Read,
+{
     type Output = node::Finally;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

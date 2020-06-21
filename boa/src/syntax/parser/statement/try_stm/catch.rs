@@ -6,11 +6,13 @@ use crate::{
         },
         parser::{
             statement::{block::Block, BindingIdentifier},
-            AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser,
+            AllowAwait, AllowReturn, AllowYield, ParseError, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Catch parsing
 ///
@@ -43,7 +45,10 @@ impl Catch {
     }
 }
 
-impl<R> TokenParser<R> for Catch {
+impl<R> TokenParser<R> for Catch
+where
+    R: Read,
+{
     type Output = node::Catch;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -94,7 +99,10 @@ impl CatchParameter {
     }
 }
 
-impl<R> TokenParser<R> for CatchParameter {
+impl<R> TokenParser<R> for CatchParameter
+where
+    R: Read,
+{
     type Output = Identifier;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Identifier, ParseError> {

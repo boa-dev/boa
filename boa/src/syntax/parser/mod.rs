@@ -9,10 +9,10 @@ mod tests;
 
 use self::error::{ParseError, ParseResult};
 use crate::syntax::ast::node::StatementList;
-use crate::syntax::lexer::Token;
-use crate::syntax::lexer::Lexer;
 use crate::syntax::ast::Node;
 use crate::syntax::lexer::InputElement;
+use crate::syntax::lexer::Lexer;
+use crate::syntax::lexer::Token;
 
 use ParseError as Error;
 
@@ -21,9 +21,9 @@ use std::io::Read;
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
-trait TokenParser<R>: Sized 
-where 
-    R: Read
+trait TokenParser<R>: Sized
+where
+    R: Read,
 {
     /// Output type for the parser.
     type Output; // = Node; waiting for https://github.com/rust-lang/rust/issues/29661
@@ -96,7 +96,7 @@ impl From<bool> for AllowDefault {
 }
 
 #[derive(Debug)]
-pub struct Parser <R> {
+pub struct Parser<R> {
     /// Lexer used to get tokens for the parser.
     lexer: Lexer<R>,
 }
@@ -104,14 +104,13 @@ pub struct Parser <R> {
 impl<R> Parser<R> {
     pub fn new(reader: R) -> Self {
         Self {
-            lexer: Lexer::new(reader)
+            lexer: Lexer::new(reader),
         }
     }
 
     pub fn parse_all(&mut self) -> Result<Node, ParseError> {
         Script.parse(&mut self)
     }
-
 
     pub fn next(&mut self) -> Result<Node, ParseError> {
         unimplemented!();
@@ -131,7 +130,10 @@ impl<R> Parser<R> {
 #[derive(Debug, Clone, Copy)]
 pub struct Script;
 
-impl<R> TokenParser<R> for Script {
+impl<R> TokenParser<R> for Script
+where
+    R: Read,
+{
     type Output = StatementList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -152,7 +154,10 @@ impl<R> TokenParser<R> for Script {
 #[derive(Debug, Clone, Copy)]
 pub struct ScriptBody;
 
-impl<R> TokenParser<R> for ScriptBody {
+impl<R> TokenParser<R> for ScriptBody
+where
+    R: Read,
+{
     type Output = StatementList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

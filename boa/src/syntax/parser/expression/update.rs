@@ -9,8 +9,10 @@ use super::left_hand_side::LeftHandSideExpression;
 use crate::syntax::lexer::TokenKind;
 use crate::syntax::{
     ast::{node, op::UnaryOp, Node, Punctuator},
-    parser::{AllowAwait, AllowYield, Parser, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, ParseError, ParseResult, Parser, TokenParser},
 };
+
+use std::io::Read;
 
 /// Parses an update expression.
 ///
@@ -38,7 +40,10 @@ impl UpdateExpression {
     }
 }
 
-impl<R> TokenParser<R> for UpdateExpression {
+impl<R> TokenParser<R> for UpdateExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

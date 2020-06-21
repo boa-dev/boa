@@ -17,9 +17,11 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, Punctuator},
-        parser::{AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Parser, TokenParser},
     },
 };
+
+use std::io::Read;
 
 /// A `BlockStatement` is equivalent to a `Block`.
 ///
@@ -60,7 +62,10 @@ impl Block {
     }
 }
 
-impl<R> TokenParser<R> for Block {
+impl<R> TokenParser<R> for Block
+where
+    R: Read,
+{
     type Output = node::Block;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

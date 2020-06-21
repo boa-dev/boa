@@ -18,10 +18,12 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{Keyword, Node},
-        parser::{AllowAwait, AllowYield, Parser, ParseError, TokenParser},
+        parser::{AllowAwait, AllowYield, ParseError, Parser, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a declaration.
 ///
@@ -48,7 +50,10 @@ impl Declaration {
     }
 }
 
-impl<R> TokenParser<R> for Declaration {
+impl<R> TokenParser<R> for Declaration
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

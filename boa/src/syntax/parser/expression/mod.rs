@@ -17,7 +17,7 @@ mod update;
 
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
-use super::{AllowAwait, AllowIn, AllowYield, Parser, ParseResult, TokenParser};
+use super::{AllowAwait, AllowIn, AllowYield, ParseResult, Parser, TokenParser};
 use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
@@ -26,6 +26,8 @@ use crate::{
         Keyword, Punctuator,
     },
 };
+
+use std::io::Read;
 
 // For use in the expression! macro to allow for both Punctuator and Keyword parameters.
 // Always returns false.
@@ -51,7 +53,10 @@ impl PartialEq<Punctuator> for Keyword {
 ///
 /// Those exressions are divided by the punctuators passed as the third parameter.
 macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*] ) => {
-    impl<R> TokenParser<R> for $name {
+    impl<R> TokenParser<R> for $name
+    where
+        R: Read
+    {
         type Output = Node;
 
         fn parse(self, parser: &mut Parser<R>) -> ParseResult {

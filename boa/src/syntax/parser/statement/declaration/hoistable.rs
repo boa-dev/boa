@@ -10,11 +10,13 @@ use crate::{
         ast::{node::FunctionDecl, Keyword, Node, Punctuator},
         parser::{
             function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
-            AllowAwait, AllowDefault, AllowYield, Parser, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowDefault, AllowYield, ParseError, ParseResult, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Hoistable declaration parsing.
 ///
@@ -45,7 +47,10 @@ impl HoistableDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for HoistableDeclaration {
+impl<R> TokenParser<R> for HoistableDeclaration
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
@@ -88,7 +93,10 @@ impl FunctionDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for FunctionDeclaration {
+impl<R> TokenParser<R> for FunctionDeclaration
+where
+    R: Read,
+{
     type Output = FunctionDecl;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

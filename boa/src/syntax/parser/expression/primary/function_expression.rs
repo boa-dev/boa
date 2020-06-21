@@ -13,11 +13,13 @@ use crate::{
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            Parser, ParseError, TokenParser,
+            ParseError, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Function expression parsing.
 ///
@@ -30,7 +32,10 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(super) struct FunctionExpression;
 
-impl<R> TokenParser<R> for FunctionExpression {
+impl<R> TokenParser<R> for FunctionExpression
+where
+    R: Read,
+{
     type Output = FunctionExpr;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

@@ -16,10 +16,12 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Break, Keyword, Punctuator},
-        parser::{AllowAwait, AllowYield, Parser, ParseError, TokenParser},
+        parser::{AllowAwait, AllowYield, ParseError, Parser, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Break statement parsing
 ///
@@ -49,7 +51,10 @@ impl BreakStatement {
     }
 }
 
-impl<R> TokenParser<R> for BreakStatement {
+impl<R> TokenParser<R> for BreakStatement
+where
+    R: Read,
+{
     type Output = Break;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

@@ -19,9 +19,11 @@ use crate::syntax::{
     parser::{
         expression::Initializer,
         statement::{BindingIdentifier, StatementList},
-        AllowAwait, AllowYield, Parser, ParseError, TokenParser,
+        AllowAwait, AllowYield, ParseError, Parser, TokenParser,
     },
 };
+
+use std::io::Read;
 
 /// Formal parameters parsing.
 ///
@@ -51,7 +53,10 @@ impl FormalParameters {
     }
 }
 
-impl<R> TokenParser<R> for FormalParameters {
+impl<R> TokenParser<R> for FormalParameters
+where
+    R: Read,
+{
     type Output = Box<[node::FormalParameter]>;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -134,7 +139,10 @@ impl BindingRestElement {
     }
 }
 
-impl<R> TokenParser<R> for BindingRestElement {
+impl<R> TokenParser<R> for BindingRestElement
+where
+    R: Read,
+{
     type Output = node::FormalParameter;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -176,7 +184,10 @@ impl FormalParameter {
     }
 }
 
-impl<R> TokenParser<R> for FormalParameter {
+impl<R> TokenParser<R> for FormalParameter
+where
+    R: Read,
+{
     type Output = node::FormalParameter;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -224,7 +235,10 @@ impl FunctionStatementList {
     }
 }
 
-impl<R> TokenParser<R> for FunctionStatementList {
+impl<R> TokenParser<R> for FunctionStatementList
+where
+    R: Read,
+{
     type Output = node::StatementList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

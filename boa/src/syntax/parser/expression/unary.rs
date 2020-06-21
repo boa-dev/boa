@@ -15,10 +15,12 @@ use crate::syntax::{
         Keyword, Punctuator,
     },
     parser::{
-        expression::update::UpdateExpression, AllowAwait, AllowYield, Parser, ParseError,
-        ParseResult, TokenParser,
+        expression::update::UpdateExpression, AllowAwait, AllowYield, ParseError, ParseResult,
+        Parser, TokenParser,
     },
 };
+
+use std::io::Read;
 
 /// Parses a unary expression.
 ///
@@ -48,7 +50,10 @@ impl UnaryExpression {
     }
 }
 
-impl<R> TokenParser<R> for UnaryExpression {
+impl<R> TokenParser<R> for UnaryExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

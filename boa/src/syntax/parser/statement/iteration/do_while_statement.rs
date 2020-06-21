@@ -13,11 +13,12 @@ use crate::{
         ast::{node::DoWhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Parser, ParseError, TokenParser,
+            ParseError, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Do...while statement parsing
 ///
@@ -54,7 +55,10 @@ impl DoWhileStatement {
     }
 }
 
-impl<R> TokenParser<R> for DoWhileStatement {
+impl<R> TokenParser<R> for DoWhileStatement
+where
+    R: Read,
+{
     type Output = DoWhileLoop;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

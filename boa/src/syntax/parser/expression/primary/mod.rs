@@ -24,9 +24,11 @@ use crate::syntax::{
         node::{Call, Identifier, New, Node},
         Const, Keyword, Punctuator,
     },
-    parser::{AllowAwait, AllowYield, Parser, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, ParseError, ParseResult, Parser, TokenParser},
 };
 pub(in crate::syntax::parser) use object_initializer::Initializer;
+
+use std::io::Read;
 
 /// Parses a primary expression.
 ///
@@ -56,7 +58,10 @@ impl PrimaryExpression {
     }
 }
 
-impl<R> TokenParser<R> for PrimaryExpression {
+impl<R> TokenParser<R> for PrimaryExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

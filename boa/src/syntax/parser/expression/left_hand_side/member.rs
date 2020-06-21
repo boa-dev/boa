@@ -18,11 +18,13 @@ use crate::{
         },
         parser::{
             expression::{primary::PrimaryExpression, Expression},
-            AllowAwait, AllowYield, Parser, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowYield, ParseError, ParseResult, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a member expression.
 ///
@@ -50,7 +52,10 @@ impl MemberExpression {
     }
 }
 
-impl<R> TokenParser<R> for MemberExpression {
+impl<R> TokenParser<R> for MemberExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

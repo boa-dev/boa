@@ -16,11 +16,13 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            Parser, ParseError, ParseResult, TokenParser,
+            ParseError, ParseResult, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a lexical declaration.
 ///
@@ -51,7 +53,10 @@ impl LexicalDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for LexicalDeclaration {
+impl<R> TokenParser<R> for LexicalDeclaration
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
@@ -106,7 +111,10 @@ impl BindingList {
     }
 }
 
-impl<R> TokenParser<R> for BindingList {
+impl<R> TokenParser<R> for BindingList
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
@@ -188,7 +196,10 @@ impl LexicalBinding {
     }
 }
 
-impl<R> TokenParser<R> for LexicalBinding {
+impl<R> TokenParser<R> for LexicalBinding
+where
+    R: Read,
+{
     type Output = (Box<str>, Option<Node>);
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

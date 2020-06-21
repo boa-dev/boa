@@ -16,10 +16,12 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{Node, Punctuator},
-        parser::{AllowAwait, AllowYield, Parser, ParseResult, TokenParser},
+        parser::{AllowAwait, AllowYield, ParseResult, Parser, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a left hand side expression.
 ///
@@ -49,7 +51,10 @@ impl LeftHandSideExpression {
     }
 }
 
-impl<R> TokenParser<R> for LeftHandSideExpression {
+impl<R> TokenParser<R> for LeftHandSideExpression
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {

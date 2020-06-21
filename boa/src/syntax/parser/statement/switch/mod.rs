@@ -8,12 +8,14 @@ use crate::{
             Keyword, Node, Punctuator,
         },
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, Parser, ParseError,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, Parser,
             TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Switch statement parsing.
 ///
@@ -46,7 +48,10 @@ impl SwitchStatement {
     }
 }
 
-impl<R> TokenParser<R> for SwitchStatement {
+impl<R> TokenParser<R> for SwitchStatement
+where
+    R: Read,
+{
     type Output = Switch;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -94,7 +99,10 @@ impl CaseBlock {
     }
 }
 
-impl<R> TokenParser<R> for CaseBlock {
+impl<R> TokenParser<R> for CaseBlock
+where
+    R: Read,
+{
     type Output = (Box<[Case]>, Option<Node>);
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

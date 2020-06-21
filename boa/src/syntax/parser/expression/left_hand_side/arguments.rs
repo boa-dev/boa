@@ -12,12 +12,14 @@ use crate::{
     syntax::{
         ast::{node::Spread, Node, Punctuator},
         parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Parser, ParseError,
+            expression::AssignmentExpression, AllowAwait, AllowYield, ParseError, Parser,
             TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a list of arguments.
 ///
@@ -47,7 +49,10 @@ impl Arguments {
     }
 }
 
-impl<R> TokenParser<R> for Arguments {
+impl<R> TokenParser<R> for Arguments
+where
+    R: Read,
+{
     type Output = Box<[Node]>;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

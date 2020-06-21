@@ -18,11 +18,13 @@ use crate::{
             expression::Expression,
             statement::declaration::Declaration,
             statement::{variable::VariableDeclarationList, Statement},
-            AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser,
+            AllowAwait, AllowReturn, AllowYield, ParseError, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// For statement parsing
 ///
@@ -59,7 +61,10 @@ impl ForStatement {
     }
 }
 
-impl<R> TokenParser<R> for ForStatement {
+impl<R> TokenParser<R> for ForStatement
+where
+    R: Read,
+{
     type Output = ForLoop;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

@@ -15,11 +15,13 @@ use crate::{
     syntax::{
         ast::{node::Continue, Keyword, Punctuator},
         parser::{
-            statement::LabelIdentifier, AllowAwait, AllowYield, Parser, ParseError, TokenParser,
+            statement::LabelIdentifier, AllowAwait, AllowYield, ParseError, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// For statement parsing
 ///
@@ -49,7 +51,10 @@ impl ContinueStatement {
     }
 }
 
-impl<R> TokenParser<R> for ContinueStatement {
+impl<R> TokenParser<R> for ContinueStatement
+where
+    R: Read,
+{
     type Output = Continue;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

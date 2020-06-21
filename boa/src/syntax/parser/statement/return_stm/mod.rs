@@ -5,10 +5,12 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Return, Keyword, Node, Punctuator},
-        parser::{expression::Expression, AllowAwait, AllowYield, Parser, ParseError, TokenParser},
+        parser::{expression::Expression, AllowAwait, AllowYield, ParseError, Parser, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Return statement parsing
 ///
@@ -38,7 +40,10 @@ impl ReturnStatement {
     }
 }
 
-impl<R> TokenParser<R> for ReturnStatement {
+impl<R> TokenParser<R> for ReturnStatement
+where
+    R: Read,
+{
     type Output = Return;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

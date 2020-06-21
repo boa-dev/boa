@@ -33,7 +33,7 @@ use self::{
     variable::VariableStatement,
 };
 use super::{
-    expression::Expression, AllowAwait, AllowReturn, AllowYield, Parser, ParseError, ParseResult,
+    expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, ParseResult, Parser,
     TokenParser,
 };
 
@@ -42,6 +42,8 @@ use crate::{
     syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Statement parsing.
 ///
@@ -91,7 +93,10 @@ impl Statement {
     }
 }
 
-impl<R> TokenParser<R> for Statement {
+impl<R> TokenParser<R> for Statement
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -211,7 +216,10 @@ impl StatementList {
     }
 }
 
-impl<R> TokenParser<R> for StatementList {
+impl<R> TokenParser<R> for StatementList
+where
+    R: Read,
+{
     type Output = node::StatementList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -285,7 +293,10 @@ impl StatementListItem {
     }
 }
 
-impl<R> TokenParser<R> for StatementListItem {
+impl<R> TokenParser<R> for StatementListItem
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -331,7 +342,10 @@ impl ExpressionStatement {
     }
 }
 
-impl<R> TokenParser<R> for ExpressionStatement {
+impl<R> TokenParser<R> for ExpressionStatement
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
@@ -381,7 +395,10 @@ impl BindingIdentifier {
     }
 }
 
-impl<R> TokenParser<R> for BindingIdentifier {
+impl<R> TokenParser<R> for BindingIdentifier
+where
+    R: Read,
+{
     type Output = Box<str>;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {

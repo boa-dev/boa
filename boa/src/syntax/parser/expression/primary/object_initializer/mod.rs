@@ -19,11 +19,12 @@ use crate::{
         parser::{
             expression::AssignmentExpression,
             function::{FormalParameters, FunctionBody},
-            AllowAwait, AllowIn, AllowYield, Parser, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, Parser, TokenParser,
         },
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Parses an object literal.
 ///
@@ -53,7 +54,10 @@ impl ObjectLiteral {
     }
 }
 
-impl<R> TokenParser<R> for ObjectLiteral {
+impl<R> TokenParser<R> for ObjectLiteral
+where
+    R: Read,
+{
     type Output = Object;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -115,7 +119,10 @@ impl PropertyDefinition {
     }
 }
 
-impl<R> TokenParser<R> for PropertyDefinition {
+impl<R> TokenParser<R> for PropertyDefinition
+where
+    R: Read,
+{
     type Output = node::PropertyDefinition;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -181,7 +188,10 @@ impl MethodDefinition {
     }
 }
 
-impl<R> TokenParser<R> for MethodDefinition {
+impl<R> TokenParser<R> for MethodDefinition
+where
+    R: Read,
+{
     type Output = node::PropertyDefinition;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
@@ -278,7 +288,10 @@ impl Initializer {
     }
 }
 
-impl<R> TokenParser<R> for Initializer {
+impl<R> TokenParser<R> for Initializer
+where
+    R: Read,
+{
     type Output = Node;
 
     fn parse(self, parser: &mut Parser<R>) -> ParseResult {
