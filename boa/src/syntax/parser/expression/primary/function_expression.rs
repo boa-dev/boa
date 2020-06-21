@@ -13,7 +13,7 @@ use crate::{
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            Cursor, ParseError, TokenParser,
+            Parser, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -30,10 +30,10 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(super) struct FunctionExpression;
 
-impl TokenParser for FunctionExpression {
+impl<R> TokenParser<R> for FunctionExpression {
     type Output = FunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
         let name = BindingIdentifier::new(false, false).try_parse(cursor);
 

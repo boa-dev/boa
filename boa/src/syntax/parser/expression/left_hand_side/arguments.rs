@@ -12,7 +12,7 @@ use crate::{
     syntax::{
         ast::{node::Spread, Node, Punctuator},
         parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
+            expression::AssignmentExpression, AllowAwait, AllowYield, Parser, ParseError,
             TokenParser,
         },
     },
@@ -47,10 +47,10 @@ impl Arguments {
     }
 }
 
-impl TokenParser for Arguments {
+impl<R> TokenParser<R> for Arguments {
     type Output = Box<[Node]>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
         cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();

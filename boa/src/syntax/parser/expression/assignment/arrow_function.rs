@@ -19,7 +19,7 @@ use crate::{
             error::{ErrorContext, ParseError, ParseResult},
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Parser, TokenParser,
         },
     },
     BoaProfiler,
@@ -60,10 +60,10 @@ impl ArrowFunction {
     }
 }
 
-impl TokenParser for ArrowFunction {
+impl<R> TokenParser<R> for ArrowFunction {
     type Output = ArrowFunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind {
@@ -107,10 +107,10 @@ impl ConciseBody {
     }
 }
 
-impl TokenParser for ConciseBody {
+impl<R> TokenParser<R> for ConciseBody {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         match cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let _ = cursor.next();
@@ -147,10 +147,10 @@ impl ExpressionBody {
     }
 }
 
-impl TokenParser for ExpressionBody {
+impl<R> TokenParser<R> for ExpressionBody {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor)
     }
 }

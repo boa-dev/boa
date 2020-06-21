@@ -5,7 +5,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Throw, Keyword, Punctuator},
-        parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{expression::Expression, AllowAwait, AllowYield, Parser, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -38,10 +38,10 @@ impl ThrowStatement {
     }
 }
 
-impl TokenParser for ThrowStatement {
+impl<R> TokenParser<R> for ThrowStatement {
     type Output = Throw;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ThrowStatement", "Parsing");
         cursor.expect(Keyword::Throw, "throw statement")?;
 

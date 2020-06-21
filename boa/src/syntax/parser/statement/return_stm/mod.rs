@@ -5,7 +5,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Return, Keyword, Node, Punctuator},
-        parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{expression::Expression, AllowAwait, AllowYield, Parser, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -38,10 +38,10 @@ impl ReturnStatement {
     }
 }
 
-impl TokenParser for ReturnStatement {
+impl<R> TokenParser<R> for ReturnStatement {
     type Output = Return;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect(Keyword::Return, "return statement")?;
 

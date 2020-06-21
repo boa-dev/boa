@@ -18,7 +18,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{Keyword, Node},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{AllowAwait, AllowYield, Parser, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -48,10 +48,10 @@ impl Declaration {
     }
 }
 
-impl TokenParser for Declaration {
+impl<R> TokenParser<R> for Declaration {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 

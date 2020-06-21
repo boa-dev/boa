@@ -16,7 +16,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Break, Keyword, Punctuator},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{AllowAwait, AllowYield, Parser, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -49,10 +49,10 @@ impl BreakStatement {
     }
 }
 
-impl TokenParser for BreakStatement {
+impl<R> TokenParser<R> for BreakStatement {
     type Output = Break;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect(Keyword::Break, "break statement")?;
 

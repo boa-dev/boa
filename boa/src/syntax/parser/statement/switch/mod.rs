@@ -8,7 +8,7 @@ use crate::{
             Keyword, Node, Punctuator,
         },
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Parser, ParseError,
             TokenParser,
         },
     },
@@ -46,10 +46,10 @@ impl SwitchStatement {
     }
 }
 
-impl TokenParser for SwitchStatement {
+impl<R> TokenParser<R> for SwitchStatement {
     type Output = Switch;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
@@ -94,10 +94,10 @@ impl CaseBlock {
     }
 }
 
-impl TokenParser for CaseBlock {
+impl<R> TokenParser<R> for CaseBlock {
     type Output = (Box<[Case]>, Option<Node>);
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::OpenBlock, "switch case block")?;
 
         // CaseClauses[?Yield, ?Await, ?Return]opt

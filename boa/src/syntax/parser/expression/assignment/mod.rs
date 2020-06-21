@@ -19,7 +19,7 @@ use crate::{
             node::{Assign, BinOp, Node},
             Keyword, Punctuator,
         },
-        parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+        parser::{AllowAwait, AllowIn, AllowYield, Parser, ParseError, ParseResult, TokenParser},
     },
     BoaProfiler,
 };
@@ -70,10 +70,10 @@ impl AssignmentExpression {
     }
 }
 
-impl TokenParser for AssignmentExpression {
+impl<R> TokenParser<R> for AssignmentExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // Arrow function
         let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;

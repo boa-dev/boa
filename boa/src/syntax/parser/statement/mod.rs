@@ -33,7 +33,7 @@ use self::{
     variable::VariableStatement,
 };
 use super::{
-    expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
+    expression::Expression, AllowAwait, AllowReturn, AllowYield, Parser, ParseError, ParseResult,
     TokenParser,
 };
 
@@ -91,10 +91,10 @@ impl Statement {
     }
 }
 
-impl TokenParser for Statement {
+impl<R> TokenParser<R> for Statement {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
@@ -211,10 +211,10 @@ impl StatementList {
     }
 }
 
-impl TokenParser for StatementList {
+impl<R> TokenParser<R> for StatementList {
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
@@ -285,10 +285,10 @@ impl StatementListItem {
     }
 }
 
-impl TokenParser for StatementListItem {
+impl<R> TokenParser<R> for StatementListItem {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 
@@ -331,10 +331,10 @@ impl ExpressionStatement {
     }
 }
 
-impl TokenParser for ExpressionStatement {
+impl<R> TokenParser<R> for ExpressionStatement {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
         // TODO: lookahead
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
@@ -381,10 +381,10 @@ impl BindingIdentifier {
     }
 }
 
-impl TokenParser for BindingIdentifier {
+impl<R> TokenParser<R> for BindingIdentifier {
     type Output = Box<str>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
         // TODO: strict mode.
 

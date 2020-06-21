@@ -54,10 +54,10 @@ impl ConditionalExpression {
     }
 }
 
-impl TokenParser for ConditionalExpression {
+impl<R> TokenParser<R> for ConditionalExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("Conditional", "Parsing");
         // TODO: coalesce expression
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)

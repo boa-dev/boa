@@ -18,7 +18,7 @@ use crate::{
             expression::Expression,
             statement::declaration::Declaration,
             statement::{variable::VariableDeclarationList, Statement},
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+            AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -59,10 +59,10 @@ impl ForStatement {
     }
 }
 
-impl TokenParser for ForStatement {
+impl<R> TokenParser<R> for ForStatement {
     type Output = ForLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;

@@ -87,12 +87,7 @@ impl<R> Lexer<R> {
     pub(crate) fn get_goal(&self) -> InputElement {
         self.goal_symbol
     }
-}
 
-impl<R> Lexer<R>
-where
-    R: Read,
-{
     /// Creates a new lexer.
     #[inline]
     pub fn new(reader: R) -> Self {

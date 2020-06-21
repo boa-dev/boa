@@ -24,7 +24,7 @@ use crate::syntax::{
         node::{Call, Identifier, New, Node},
         Const, Keyword, Punctuator,
     },
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, Parser, ParseError, ParseResult, TokenParser},
 };
 pub(in crate::syntax::parser) use object_initializer::Initializer;
 
@@ -56,10 +56,10 @@ impl PrimaryExpression {
     }
 }
 
-impl TokenParser for PrimaryExpression {
+impl<R> TokenParser<R> for PrimaryExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
 
         match &tok.kind {

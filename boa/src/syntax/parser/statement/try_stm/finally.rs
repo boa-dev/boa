@@ -40,10 +40,10 @@ impl Finally {
     }
 }
 
-impl TokenParser for Finally {
+impl<R> TokenParser<R> for Finally {
     type Output = node::Finally;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Finally", "Parsing");
         cursor.expect(Keyword::Finally, "try statement")?;
         Ok(

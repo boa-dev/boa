@@ -17,7 +17,7 @@ use crate::{
             Const, Punctuator,
         },
         parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
+            expression::AssignmentExpression, AllowAwait, AllowYield, Parser, ParseError,
             TokenParser,
         },
     },
@@ -52,10 +52,10 @@ impl ArrayLiteral {
     }
 }
 
-impl TokenParser for ArrayLiteral {
+impl<R> TokenParser<R> for ArrayLiteral {
     type Output = ArrayDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
 

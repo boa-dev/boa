@@ -19,7 +19,7 @@ use crate::syntax::{
     parser::{
         expression::Initializer,
         statement::{BindingIdentifier, StatementList},
-        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowYield, Parser, ParseError, TokenParser,
     },
 };
 
@@ -51,10 +51,10 @@ impl FormalParameters {
     }
 }
 
-impl TokenParser for FormalParameters {
+impl<R> TokenParser<R> for FormalParameters {
     type Output = Box<[node::FormalParameter]>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let mut params = Vec::new();
 
         if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
@@ -134,10 +134,10 @@ impl BindingRestElement {
     }
 }
 
-impl TokenParser for BindingRestElement {
+impl<R> TokenParser<R> for BindingRestElement {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         // FIXME: we are reading the spread operator before the rest element.
         // cursor.expect(Punctuator::Spread, "rest parameter")?;
 
@@ -176,10 +176,10 @@ impl FormalParameter {
     }
 }
 
-impl TokenParser for FormalParameter {
+impl<R> TokenParser<R> for FormalParameter {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
@@ -224,10 +224,10 @@ impl FunctionStatementList {
     }
 }
 
-impl TokenParser for FunctionStatementList {
+impl<R> TokenParser<R> for FunctionStatementList {
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         if let Some(tk) = cursor.peek(0) {
             if tk.kind == Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());

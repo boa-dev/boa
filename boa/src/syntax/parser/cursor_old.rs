@@ -8,14 +8,15 @@ use crate::syntax::lexer::{Token, TokenKind};
 ///
 /// This internal structure gives basic testable operations to the parser.
 #[derive(Debug, Clone, Default)]
-pub(super) struct Cursor<'a> {
+pub(super) struct Cursor<R> {
     /// The tokens being input.
-    tokens: &'a [Token],
+    // tokens: &'a [Token],
+    lexer: crate::syntax::lexer::Lexer<R>,
     /// The current position within the tokens.
     pos: usize,
 }
 
-impl<'a> Cursor<'a> {
+impl<'a> Cursor<R> {
     /// Creates a new cursor.
     pub(super) fn new(tokens: &'a [Token]) -> Self {
         Self {

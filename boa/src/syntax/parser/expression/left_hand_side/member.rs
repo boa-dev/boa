@@ -18,7 +18,7 @@ use crate::{
         },
         parser::{
             expression::{primary::PrimaryExpression, Expression},
-            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowYield, Parser, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -50,10 +50,10 @@ impl MemberExpression {
     }
 }
 
-impl TokenParser for MemberExpression {
+impl<R> TokenParser<R> for MemberExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
         let mut lhs = if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
             == TokenKind::Keyword(Keyword::New)

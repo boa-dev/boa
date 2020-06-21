@@ -13,7 +13,7 @@ use crate::{
         ast::{node::DoWhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, TokenParser,
+            Parser, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -54,10 +54,10 @@ impl DoWhileStatement {
     }
 }
 
-impl TokenParser for DoWhileStatement {
+impl<R> TokenParser<R> for DoWhileStatement {
     type Output = DoWhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
         cursor.expect(Keyword::Do, "do while statement")?;
 

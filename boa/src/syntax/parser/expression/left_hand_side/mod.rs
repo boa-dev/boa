@@ -16,7 +16,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{Node, Punctuator},
-        parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+        parser::{AllowAwait, AllowYield, Parser, ParseResult, TokenParser},
     },
     BoaProfiler,
 };
@@ -49,10 +49,10 @@ impl LeftHandSideExpression {
     }
 }
 
-impl TokenParser for LeftHandSideExpression {
+impl<R> TokenParser<R> for LeftHandSideExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;

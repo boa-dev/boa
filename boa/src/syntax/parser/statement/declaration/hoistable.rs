@@ -10,7 +10,7 @@ use crate::{
         ast::{node::FunctionDecl, Keyword, Node, Punctuator},
         parser::{
             function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
-            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowDefault, AllowYield, Parser, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -45,10 +45,10 @@ impl HoistableDeclaration {
     }
 }
 
-impl TokenParser for HoistableDeclaration {
+impl<R> TokenParser<R> for HoistableDeclaration {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
         // TODO: check for generators and async functions + generators
         FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
@@ -88,10 +88,10 @@ impl FunctionDeclaration {
     }
 }
 
-impl TokenParser for FunctionDeclaration {
+impl<R> TokenParser<R> for FunctionDeclaration {
     type Output = FunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Function, "function declaration")?;
 
         // TODO: If self.is_default, then this can be empty.

@@ -43,10 +43,10 @@ impl Catch {
     }
 }
 
-impl TokenParser for Catch {
+impl<R> TokenParser<R> for Catch {
     type Output = node::Catch;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Catch", "Parsing");
         cursor.expect(Keyword::Catch, "try statement")?;
         let catch_param = if cursor.next_if(Punctuator::OpenParen).is_some() {

@@ -9,7 +9,7 @@ use super::left_hand_side::LeftHandSideExpression;
 use crate::syntax::lexer::TokenKind;
 use crate::syntax::{
     ast::{node, op::UnaryOp, Node, Punctuator},
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, Parser, ParseError, ParseResult, TokenParser},
 };
 
 /// Parses an update expression.
@@ -38,10 +38,10 @@ impl UpdateExpression {
     }
 }
 
-impl TokenParser for UpdateExpression {
+impl<R> TokenParser<R> for UpdateExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
         match tok.kind {
             TokenKind::Punctuator(Punctuator::Inc) => {

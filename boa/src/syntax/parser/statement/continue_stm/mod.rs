@@ -15,7 +15,7 @@ use crate::{
     syntax::{
         ast::{node::Continue, Keyword, Punctuator},
         parser::{
-            statement::LabelIdentifier, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+            statement::LabelIdentifier, AllowAwait, AllowYield, Parser, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -49,10 +49,10 @@ impl ContinueStatement {
     }
 }
 
-impl TokenParser for ContinueStatement {
+impl<R> TokenParser<R> for ContinueStatement {
     type Output = Continue;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
         cursor.expect(Keyword::Continue, "continue statement")?;
 

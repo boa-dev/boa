@@ -8,7 +8,7 @@ use crate::{
     syntax::{
         ast::{node::If, Keyword, Node, Punctuator},
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Parser, ParseError,
             TokenParser,
         },
     },
@@ -48,10 +48,10 @@ impl IfStatement {
     }
 }
 
-impl TokenParser for IfStatement {
+impl<R> TokenParser<R> for IfStatement {
     type Output = If;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
         cursor.expect(Keyword::If, "if statement")?;
         cursor.expect(Punctuator::OpenParen, "if statement")?;

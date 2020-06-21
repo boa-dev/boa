@@ -15,7 +15,7 @@ use crate::syntax::{
         Keyword, Punctuator,
     },
     parser::{
-        expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
+        expression::update::UpdateExpression, AllowAwait, AllowYield, Parser, ParseError,
         ParseResult, TokenParser,
     },
 };
@@ -48,10 +48,10 @@ impl UnaryExpression {
     }
 }
 
-impl TokenParser for UnaryExpression {
+impl<R> TokenParser<R> for UnaryExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
         match tok.kind {
             TokenKind::Keyword(Keyword::Delete) => {

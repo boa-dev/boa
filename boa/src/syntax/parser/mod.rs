@@ -1,6 +1,5 @@
 //! Boa parser implementation.
 
-mod cursor;
 pub mod error;
 mod expression;
 mod function;
@@ -11,32 +10,38 @@ mod tests;
 use self::error::{ParseError, ParseResult};
 use crate::syntax::ast::node::StatementList;
 use crate::syntax::lexer::Token;
-use cursor::Cursor;
+use crate::syntax::lexer::Lexer;
+use crate::syntax::ast::Node;
+
+use ParseError as Error;
+
+use std::io::Read;
 
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
-trait TokenParser: Sized {
+trait TokenParser<R>: Sized 
+where 
+    R: Read
+{
     /// Output type for the parser.
     type Output; // = Node; waiting for https://github.com/rust-lang/rust/issues/29661
 
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError>;
+    fn parse(self, parser: &mut Parser<R>) -> Result<Node, ParseError>;
 
-    /// Tries to parse the following tokens with this parser.
-    ///
-    /// It will return the cursor to the initial position if an error occurs during parsing.
-    fn try_parse(self, cursor: &mut Cursor<'_>) -> Option<Self::Output> {
-        let initial_pos = cursor.pos();
-        if let Ok(node) = self.parse(cursor) {
-            Some(node)
-        } else {
-            cursor.seek(initial_pos);
-            None
-        }
-    }
+    // /// Tries to parse the following tokens with this parser.
+    // fn try_parse(self, parser: Parser<R>) -> Option<Self::Output> {
+    //     let initial_pos = cursor.pos();
+    //     if let Ok(node) = self.parse(cursor) {
+    //         Some(node)
+    //     } else {
+    //         cursor.seek(initial_pos);
+    //         None
+    //     }
+    // }
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -90,22 +95,27 @@ impl From<bool> for AllowDefault {
 }
 
 #[derive(Debug)]
-pub struct Parser<'a> {
-    /// Cursor in the parser, the internal structure used to read tokens.
-    cursor: Cursor<'a>,
+pub struct Parser <R> {
+    /// Lexer used to get tokens for the parser.
+    lexer: Lexer<R>,
 }
 
-impl<'a> Parser<'a> {
-    /// Create a new parser, using `tokens` as input
-    pub fn new(tokens: &'a [Token]) -> Self {
+impl<R> Parser<R> {
+    pub fn new(reader: R) -> Self {
         Self {
-            cursor: Cursor::new(tokens),
+            lexer: Lexer::new(reader)
         }
     }
+}
 
-    /// Parse all expressions in the token array
-    pub fn parse_all(&mut self) -> Result<StatementList, ParseError> {
-        Script.parse(&mut self.cursor)
+impl<R> Iterator for Parser<R>
+where
+    R: Read,
+{
+    type Item = Result<Node, Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+
     }
 }
 
@@ -118,12 +128,12 @@ impl<'a> Parser<'a> {
 #[derive(Debug, Clone, Copy)]
 pub struct Script;
 
-impl TokenParser for Script {
+impl<R> TokenParser<R> for Script {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         if cursor.peek(0).is_some() {
-            ScriptBody.parse(cursor)
+            ScriptBody.parse(parser)
         } else {
             Ok(StatementList::from(Vec::new()))
         }
@@ -139,10 +149,10 @@ impl TokenParser for Script {
 #[derive(Debug, Clone, Copy)]
 pub struct ScriptBody;
 
-impl TokenParser for ScriptBody {
+impl<R> TokenParser<R> for ScriptBody {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false).parse(cursor)
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+        self::statement::StatementList::new(false, false, false, false).parse(parser)
     }
 }

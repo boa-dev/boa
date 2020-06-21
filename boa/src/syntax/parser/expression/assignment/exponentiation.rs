@@ -17,7 +17,7 @@ use crate::{
         },
         parser::{
             expression::{unary::UnaryExpression, update::UpdateExpression},
-            AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
+            AllowAwait, AllowYield, Parser, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -71,10 +71,10 @@ impl ExponentiationExpression {
     }
 }
 
-impl TokenParser for ExponentiationExpression {
+impl<R> TokenParser<R> for ExponentiationExpression {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExponentiationExpression", "Parsing");
         if Self::is_unary_expression(cursor) {
             return UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor);

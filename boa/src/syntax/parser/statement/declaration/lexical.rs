@@ -16,7 +16,7 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            Cursor, ParseError, ParseResult, TokenParser,
+            Parser, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -51,10 +51,10 @@ impl LexicalDeclaration {
     }
 }
 
-impl TokenParser for LexicalDeclaration {
+impl<R> TokenParser<R> for LexicalDeclaration {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
         let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
 
@@ -106,10 +106,10 @@ impl BindingList {
     }
 }
 
-impl TokenParser for BindingList {
+impl<R> TokenParser<R> for BindingList {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
         // Create vectors to store the variable declarations
         // Const and Let signatures are slightly different, Const needs definitions, Lets don't
         let mut let_decls = Vec::new();
@@ -188,10 +188,10 @@ impl LexicalBinding {
     }
 }
 
-impl TokenParser for LexicalBinding {
+impl<R> TokenParser<R> for LexicalBinding {
     type Output = (Box<str>, Option<Node>);
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         let initializer =
             Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);

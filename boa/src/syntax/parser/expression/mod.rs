@@ -17,7 +17,7 @@ mod update;
 
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
-use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
+use super::{AllowAwait, AllowIn, AllowYield, Parser, ParseResult, TokenParser};
 use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
@@ -54,7 +54,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
     impl TokenParser for $name {
         type Output = Node;
 
-        fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        fn parse(self, parser: &mut Parser<R>) -> ParseResult {
             let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
             while let Some(tok) = cursor.peek(0) {

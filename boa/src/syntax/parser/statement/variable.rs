@@ -8,7 +8,7 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            Cursor, ParseError, TokenParser,
+            Parser, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -44,10 +44,10 @@ impl VariableStatement {
     }
 }
 
-impl TokenParser for VariableStatement {
+impl<R> TokenParser<R> for VariableStatement {
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect(Keyword::Var, "variable statement")?;
 
@@ -95,10 +95,10 @@ impl VariableDeclarationList {
     }
 }
 
-impl TokenParser for VariableDeclarationList {
+impl<R> TokenParser<R> for VariableDeclarationList {
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
 
         loop {
@@ -158,10 +158,10 @@ impl VariableDeclaration {
     }
 }
 
-impl TokenParser for VariableDeclaration {
+impl<R> TokenParser<R> for VariableDeclaration {
     type Output = VarDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;

@@ -17,7 +17,7 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, Punctuator},
-        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser},
     },
 };
 
@@ -60,10 +60,10 @@ impl Block {
     }
 }
 
-impl TokenParser for Block {
+impl<R> TokenParser<R> for Block {
     type Output = node::Block;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block")?;
         if let Some(tk) = cursor.peek(0) {

@@ -11,7 +11,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Try, Keyword},
-        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, Parser, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -47,10 +47,10 @@ impl TryStatement {
     }
 }
 
-impl TokenParser for TryStatement {
+impl<R> TokenParser<R> for TryStatement {
     type Output = Try;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Try, ParseError> {
+    fn parse(self, parser: &mut Parser<R>) -> Result<Try, ParseError> {
         let _timer = BoaProfiler::global().start_event("TryStatement", "Parsing");
         // TRY
         cursor.expect(Keyword::Try, "try statement")?;
