@@ -522,6 +522,18 @@
 <span id="522">522</span>
 <span id="523">523</span>
 <span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -556,6 +568,7 @@
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">same_value</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">internal_state</span>::{<span class="ident">InternalState</span>, <span class="ident">InternalStateCell</span>};
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">internal_methods</span>;
@@ -931,6 +944,16 @@
     <span class="prelude-val">Ok</span>(<span class="ident">object</span>)
 }
 
+<span class="doccomment">/// Uses the SameValue algorithm to check equality of objects</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">same_value</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="bool-val">false</span>);
+
+    <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">result</span>))
+}
+
 <span class="doccomment">/// Get the `prototype` of an object.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_prototype_of</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Cannot get object&quot;</span>);
@@ -1036,6 +1059,7 @@
     <span class="ident">make_builtin_fn</span>(<span class="ident">set_prototype_of</span>, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">object</span>, <span class="number">2</span>);
     <span class="ident">make_builtin_fn</span>(<span class="ident">get_prototype_of</span>, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">object</span>, <span class="number">1</span>);
     <span class="ident">make_builtin_fn</span>(<span class="ident">define_property</span>, <span class="string">&quot;defineProperty&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">object</span>, <span class="number">3</span>);
+    <span class="ident">make_builtin_fn</span>(<span class="ident">is</span>, <span class="string">&quot;is&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">object</span>, <span class="number">2</span>);
 
     <span class="ident">object</span>
 }
