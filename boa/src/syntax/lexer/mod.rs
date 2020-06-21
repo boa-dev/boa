@@ -90,7 +90,10 @@ impl<R> Lexer<R> {
 
     /// Creates a new lexer.
     #[inline]
-    pub fn new(reader: R) -> Self {
+    pub fn new(reader: R) -> Self 
+    where
+        R: Read
+    {
         Self {
             cursor: Cursor::new(reader),
             goal_symbol: Default::default(),

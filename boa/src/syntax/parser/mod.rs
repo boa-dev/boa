@@ -31,7 +31,7 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(self, parser: &mut Parser<R>) -> Result<Node, ParseError>;
+    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError>;
 
     // /// Tries to parse the following tokens with this parser.
     // fn try_parse(self, parser: Parser<R>) -> Option<Self::Output> {
@@ -102,21 +102,33 @@ pub struct Parser<R> {
 }
 
 impl<R> Parser<R> {
-    pub fn new(reader: R) -> Self {
+    pub fn new(reader: R) -> Self 
+    where
+        R: Read
+    {
         Self {
             lexer: Lexer::new(reader),
         }
     }
 
-    pub fn parse_all(&mut self) -> Result<Node, ParseError> {
+    pub fn parse_all(&mut self) -> Result<StatementList, ParseError> 
+    where
+        R: Read
+    {
         Script.parse(&mut self)
     }
+
+    // Note these unimplemented methods may be removed before this parser refractor is finished.
 
     pub fn next(&mut self) -> Result<Node, ParseError> {
         unimplemented!();
     }
 
     pub fn peek(&mut self, amount: i32) -> Result<Node, ParseError> {
+        unimplemented!();
+    }
+
+    pub fn expect(&mut self, token: Token, context_msg: &str) {
         unimplemented!();
     }
 }
@@ -137,7 +149,7 @@ where
     type Output = StatementList;
 
     fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        if parser.peek().is_some() {
+        if parser.peek(0).is_some() {
             ScriptBody.parse(parser)
         } else {
             Ok(StatementList::from(Vec::new()))
