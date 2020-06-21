@@ -523,6 +523,24 @@ fn string_object_access(c: &mut Criterion) {
     });
 }
 
+static ARITHMETIC_OPERATIONS: &str = r#"
+((2 + 2) ** 3 / 100 - 5 ** 3 * -1000) ** 2 + 100 - 8
+"#;
+
+fn arithmetic_operations(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let mut lexer = Lexer::new(black_box(ARITHMETIC_OPERATIONS));
+    lexer.lex().expect("failed to lex");
+
+    let nodes = Parser::new(&black_box(lexer.tokens)).parse_all().unwrap();
+
+    c.bench_function("Arithmatic operations (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
 criterion_group!(
     execution,
     create_realm,
@@ -545,5 +563,6 @@ criterion_group!(
     number_object_access,
     boolean_object_access,
     string_object_access,
+    arithmetic_operations,
 );
 criterion_main!(execution);
