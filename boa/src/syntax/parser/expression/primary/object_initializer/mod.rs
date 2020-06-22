@@ -9,7 +9,7 @@
 
 #[cfg(test)]
 mod tests;
-use crate::syntax::lexer::{Token, TokenKind};
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{

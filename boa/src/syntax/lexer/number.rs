@@ -2,7 +2,6 @@ use super::{Cursor, Error, TokenKind, Tokenizer};
 use crate::builtins::BigInt;
 use crate::syntax::ast::{Position, Span};
 use crate::syntax::lexer::{token::Numeric, Token};
-use std::convert::TryFrom;
 use std::io::Read;
 use std::str::FromStr;
 

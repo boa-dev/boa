@@ -1,16 +1,13 @@
 //! Tests for the parser.
 
 use super::Parser;
-use crate::syntax::{
-    ast::{
-        node::{
-            field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
-            StatementList, UnaryOp, VarDecl, VarDeclList,
-        },
-        op::{self, NumOp},
-        Const,
+use crate::syntax::ast::{
+    node::{
+        field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
+        StatementList, UnaryOp, VarDecl, VarDeclList,
     },
-    lexer::Lexer,
+    op::{self, NumOp},
+    Const,
 };
 
 /// Checks that the given JavaScript string gives the expected expression.

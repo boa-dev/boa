@@ -1,7 +1,6 @@
 //! Cursor implementation for the parser.
 
 use super::ParseError;
-use crate::syntax::ast::Punctuator;
 use crate::syntax::lexer::Lexer;
 use crate::syntax::lexer::{Token, TokenKind};
 
@@ -28,20 +27,6 @@ where
         Self {
             lexer: Lexer::new(reader),
         }
-    }
-
-    /// Retrieves the current position of the cursor in the token stream.
-    pub(super) fn pos(&self) -> usize {
-        unimplemented!();
-        // self.pos
-    }
-
-    /// Moves the cursor to the given position.
-    ///
-    /// This is intended to be used *always* with `Cursor::pos()`.
-    pub(super) fn seek(&mut self, pos: usize) {
-        unimplemented!();
-        // self.pos = pos
     }
 
     /// Moves the cursor to the next token and returns the token.

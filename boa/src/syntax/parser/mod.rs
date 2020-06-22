@@ -11,11 +11,7 @@ mod tests;
 use self::error::{ParseError, ParseResult};
 use crate::syntax::ast::node::StatementList;
 use crate::syntax::ast::Node;
-use crate::syntax::lexer::InputElement;
-use crate::syntax::lexer::Lexer;
 use crate::syntax::lexer::Token;
-
-use ParseError as Error;
 
 use cursor::Cursor;
 

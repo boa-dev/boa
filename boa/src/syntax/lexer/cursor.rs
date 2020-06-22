@@ -143,20 +143,8 @@ where
         }
     }
 
-    /// Retrieves the given number of characters and adds them to the buffer.
-    pub(super) fn take(&mut self, count: usize, buf: &mut String) -> io::Result<()> {
-        unimplemented!()
-    }
-
     /// It will fill the buffer with checked ASCII bytes.
     pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        unimplemented!()
-    }
-
-    /// Retrieves the next character as an ASCII character.
-    ///
-    /// It will make sure that the next character is an ASCII byte, or return an error otherwise.
-    pub(super) fn next_as_byte(&mut self) -> Option<io::Result<u8>> {
         unimplemented!()
     }
 }
@@ -205,8 +193,6 @@ where
     type Item = io::Result<char>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        use std::convert::TryFrom;
-
         let first_byte = match self.iter.next()? {
             Ok(b) => b,
             Err(e) => return Some(Err(e)),

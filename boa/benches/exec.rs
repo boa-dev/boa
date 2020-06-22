@@ -1,6 +1,6 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa::{exec::Interpreter, realm::Realm, Executable, Lexer, Parser};
+use boa::{exec::Interpreter, realm::Realm, Executable, Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]

@@ -1,6 +1,6 @@
 //! Benchmarks of the parsing process in Boa.
 
-use boa::syntax::{lexer::Lexer, parser::Parser};
+use boa::syntax::parser::Parser;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]

@@ -1,4 +1,4 @@
-use boa::{Executable, Interpreter, Lexer, Parser, Realm};
+use boa::{Executable, Interpreter, Parser, Realm};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]

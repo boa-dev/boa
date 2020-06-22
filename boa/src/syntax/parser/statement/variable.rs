@@ -9,7 +9,7 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            ParseError, Parser, TokenParser,
+            ParseError, TokenParser,
         },
     },
     BoaProfiler,
