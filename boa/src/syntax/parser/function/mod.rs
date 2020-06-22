@@ -242,7 +242,7 @@ where
     type Output = node::StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if let Some(tk) = parser.peek(0) {
+        if let Some(tk) = cursor.peek(0) {
             if tk.kind == Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }

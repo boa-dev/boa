@@ -96,7 +96,7 @@ where
                             self.allow_yield,
                             self.allow_await,
                         )
-                        .parse(parser)
+                        .parse(cursor)
                         .map(Node::ArrowFunctionDecl);
                     }
                 }
@@ -105,7 +105,7 @@ where
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 if let Some(node) =
                     ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .try_parse(parser)
+                        .try_parse(cursor)
                         .map(Node::ArrowFunctionDecl)
                 {
                     return Ok(node);

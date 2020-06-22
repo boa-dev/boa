@@ -64,13 +64,13 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
-        let mut lhs = match parser.peek(0) {
+        let mut lhs = match cursor.peek(0) {
             Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
-                let args = Arguments::new(self.allow_yield, self.allow_await).parse(parser)?;
+                let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
                 Node::from(Call::new(self.first_member_expr, args))
             }
             _ => {
-                let next_token = parser.next().ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![TokenKind::Punctuator(Punctuator::OpenParen)],
                     next_token.clone(),
@@ -79,7 +79,7 @@ where
             }
         };
 
-        while let Some(tok) = parser.peek(0) {
+        while let Some(tok) = cursor.peek(0) {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;

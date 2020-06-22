@@ -60,11 +60,11 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
-        let mut lhs = if parser.peek(0).ok_or(ParseError::AbruptEnd)?.kind
+        let mut lhs = if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
             == TokenKind::Keyword(Keyword::New)
         {
             let _ = cursor.next().expect("keyword disappeared");
-            let lhs = self.parse(parser)?;
+            let lhs = self.parse(cursor)?;
             let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
             let call_node = Call::new(lhs, args);
 

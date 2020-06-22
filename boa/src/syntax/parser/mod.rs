@@ -36,6 +36,10 @@ where
     /// This method needs to be provided by the implementor type.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
 
+    fn try_parse(self, cursor: &mut Cursor<R>) -> Option<Self::Output> {
+        unimplemented!();
+    }
+
     // /// Tries to parse the following tokens with this parser.
     // fn try_parse(self, parser: Parser<R>) -> Option<Self::Output> {
     //     let initial_pos = cursor.pos();

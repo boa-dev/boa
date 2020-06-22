@@ -197,7 +197,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
             idn @ "get" | idn @ "set" => {
-                let prop_name = parser
+                let prop_name = cursor
                     .next()
                     .map(Token::to_string)
                     .ok_or(ParseError::AbruptEnd)?;
@@ -228,7 +228,7 @@ where
             }
             prop_name => {
                 let params = FormalParameters::new(false, false).parse(cursor)?;
-                parser.expect(Punctuator::CloseParen, "method definition")?;
+                cursor.expect(Punctuator::CloseParen, "method definition")?;
                 (
                     MethodDefinitionKind::Ordinary,
                     prop_name.to_string(),
@@ -237,12 +237,12 @@ where
             }
         };
 
-        parser.expect(
+        cursor.expect(
             TokenKind::Punctuator(Punctuator::OpenBlock),
             "property method definition",
         )?;
-        let body = FunctionBody::new(false, false).parse(parser)?;
-        parser.expect(
+        let body = FunctionBody::new(false, false).parse(cursor)?;
+        cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "property method definition",
         )?;

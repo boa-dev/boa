@@ -54,11 +54,11 @@ impl ExponentiationExpression {
 }
 
 /// Checks by looking at the next token to see whether it's a unary operator or not.
-fn is_unary_expression<R>(parser: &mut Parser<R>) -> bool
+fn is_unary_expression<R>(cursor: &mut Cursor<R>) -> bool
 where
     R: Read,
 {
-    if let Some(tok) = parser.peek(0) {
+    if let Some(tok) = cursor.peek(0) {
         match tok.kind {
             TokenKind::Keyword(Keyword::Delete)
             | TokenKind::Keyword(Keyword::Void)

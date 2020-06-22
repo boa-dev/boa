@@ -62,10 +62,10 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
         fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
             let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
-            while let Some(tok) = parser.peek(0) {
+            while let Some(tok) = cursor.peek(0) {
                 match tok.kind {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
-                        let _ = parser.next().expect("token disappeared");
+                        let _ = cursor.next().expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
@@ -73,7 +73,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         ).into();
                     }
                     TokenKind::Keyword(op) if $( op == $op )||* => {
-                        let _ = parser.next().expect("token disappeared");
+                        let _ = cursor.next().expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
