@@ -82,7 +82,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExponentiationExpression", "Parsing");
-        if Self::is_unary_expression(cursor) {
+        if is_unary_expression(cursor) {
             return UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor);
         }
 

@@ -132,10 +132,12 @@ where
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = cursor
-            .next()
-            .map(Token::to_string)
-            .ok_or(ParseError::AbruptEnd)?;
+        let prop_name = cursor.next().ok_or(ParseError::AbruptEnd)?.map(Token::to_string).ok_or(ParseError::AbruptEnd)?;
+
+        // let prop_name = cursor
+        //     .next()
+        //     .map(Token::to_string)
+        //     .ok_or(ParseError::AbruptEnd)?;
         if cursor.next_if(Punctuator::Colon).is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;

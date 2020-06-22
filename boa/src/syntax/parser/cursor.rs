@@ -10,7 +10,7 @@ use std::io::Read;
 /// Token cursor.
 ///
 /// This internal structure gives basic testable operations to the parser.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug)]
 pub(super) struct Cursor<R> {
     /// The tokens being input.
     // tokens: &'a [Token],
@@ -46,7 +46,7 @@ where
     }
 
     /// Moves the cursor to the next token and returns the token.
-    pub(super) fn next(&mut self) -> Option<Token> {
+    pub(super) fn next(&mut self) -> Option<Result<Token, ParseError>> {
         unimplemented!();
         // loop {
         //     let token = self.tokens.get(self.pos);
@@ -63,7 +63,7 @@ where
     }
 
     /// Peeks the next token without moving the cursor.
-    pub(super) fn peek(&self, skip: usize) -> Option<&Token> {
+    pub(super) fn peek(&self, skip: usize) -> Option<&Result<Token, ParseError>> {
         unimplemented!();
         // let mut count = 0;
         // let mut skipped = 0;
@@ -86,7 +86,7 @@ where
     }
 
     /// Moves the cursor to the previous token and returns the token.
-    pub(super) fn back(&mut self) {
+    pub(super) fn back(&mut self) -> Option<Result<Token, ParseError>> {
         unimplemented!();
 
         // debug_assert!(
@@ -108,7 +108,7 @@ where
     }
 
     /// Peeks the previous token without moving the cursor.
-    pub(super) fn peek_prev(&self) -> Option<&Token> {
+    pub(super) fn peek_prev(&self) -> Option<&Result<Token, ParseError>> {
         unimplemented!();
         // if self.pos == 0 {
         //     None
@@ -131,7 +131,7 @@ where
     /// Returns an error if the next token is not of kind `kind`.
     ///
     /// Note: it will consume the next token.
-    pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<(), ParseError>
+    pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>
     where
         K: Into<TokenKind>,
     {
@@ -195,7 +195,7 @@ where
         &mut self,
         do_while: bool,
         context: &'static str,
-    ) -> Result<(), ParseError> {
+    ) -> Result<Token, ParseError> {
         unimplemented!();
 
         // match self.peek_semicolon(do_while) {
@@ -244,7 +244,7 @@ where
     ///
     /// When the next token is a `kind` token, get the token, otherwise return `None`. This
     /// function skips line terminators.
-    pub(super) fn next_if<K>(&mut self, kind: K) -> Option<Token>
+    pub(super) fn next_if<K>(&mut self, kind: K) -> Option<Result<Token, ParseError>>
     where
         K: Into<TokenKind>,
     {

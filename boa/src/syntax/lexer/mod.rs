@@ -107,7 +107,10 @@ impl<R> Lexer<R> {
     // that means it could be multiple different tokens depending on the input token.
     //
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
-    fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error> {
+    fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error>
+    where
+        R: Read
+    {
         if let Some(c) = self.cursor.peek() {
             match c {
                 Err(e) => {
