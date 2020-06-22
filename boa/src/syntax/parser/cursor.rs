@@ -63,7 +63,7 @@ where
     }
 
     /// Peeks the next token without moving the cursor.
-    pub(super) fn peek(&self, skip: usize) -> Option<&Result<Token, ParseError>> {
+    pub(super) fn peek(&self, skip: usize) -> Option<Result<&Token, ParseError>> {
         unimplemented!();
         // let mut count = 0;
         // let mut skipped = 0;
@@ -108,7 +108,7 @@ where
     }
 
     /// Peeks the previous token without moving the cursor.
-    pub(super) fn peek_prev(&self) -> Option<&Result<Token, ParseError>> {
+    pub(super) fn peek_prev(&self) -> Option<Result<&Token, ParseError>> {
         unimplemented!();
         // if self.pos == 0 {
         //     None

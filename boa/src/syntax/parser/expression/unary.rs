@@ -58,7 +58,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
-        match tok.kind {
+        match tok?.kind() {
             TokenKind::Keyword(Keyword::Delete) => {
                 Ok(node::UnaryOp::new(UnaryOp::Delete, self.parse(cursor)?).into())
             }

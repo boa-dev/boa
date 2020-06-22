@@ -126,7 +126,7 @@ where
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        cursor.next().ok_or(ParseError::AbruptEnd)??.clone(),
                         "lexical declaration",
                     ))
                 }

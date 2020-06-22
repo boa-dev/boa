@@ -60,8 +60,8 @@ where
         cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
-            let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-            match next_token.kind {
+            let next_token = cursor.next().ok_or(ParseError::AbruptEnd)??;
+            match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => break,
                 TokenKind::Punctuator(Punctuator::Comma) => {
                     if args.is_empty() {

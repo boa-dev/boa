@@ -54,7 +54,7 @@ where
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
         if let Some(tok) = cursor.peek(0) {
-            if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) {
+            if tok?.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
                 let _ = cursor.next();
             }
         }

@@ -82,7 +82,7 @@ where
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // Arrow function
         let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
-        match next_token.kind {
+        match next_token?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
@@ -90,7 +90,7 @@ where
                 if cursor.peek_expect_no_lineterminator(1).is_ok() =>
             {
                 if let Some(tok) = cursor.peek(1) {
-                    if tok.kind == TokenKind::Punctuator(Punctuator::Arrow) {
+                    if tok?.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
                             self.allow_in,
                             self.allow_yield,
@@ -118,7 +118,7 @@ where
             .parse(cursor)?;
 
         if let Some(tok) = cursor.next() {
-            match tok.kind {
+            match tok?.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }

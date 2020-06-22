@@ -77,7 +77,7 @@ where
             }
 
             if cursor.next_if(Punctuator::Comma).is_none() {
-                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)??;
                 return Err(ParseError::expected(
                     vec![
                         TokenKind::Punctuator(Punctuator::Comma),
@@ -132,12 +132,7 @@ where
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = cursor.next().ok_or(ParseError::AbruptEnd)?.map(Token::to_string).ok_or(ParseError::AbruptEnd)?;
-
-        // let prop_name = cursor
-        //     .next()
-        //     .map(Token::to_string)
-        //     .ok_or(ParseError::AbruptEnd)?;
+        let prop_name = cursor.next().ok_or(ParseError::AbruptEnd)??.to_string();
         if cursor.next_if(Punctuator::Colon).is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
@@ -155,8 +150,8 @@ where
 
         let pos = cursor
             .peek(0)
-            .map(|tok| tok.span().start())
-            .ok_or(ParseError::AbruptEnd)?;
+            .ok_or(ParseError::AbruptEnd)??
+            .span().start();
         Err(ParseError::general("expected property definition", pos))
     }
 }
@@ -199,15 +194,12 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
             idn @ "get" | idn @ "set" => {
-                let prop_name = cursor
-                    .next()
-                    .map(Token::to_string)
-                    .ok_or(ParseError::AbruptEnd)?;
+                let prop_name = cursor.next().ok_or(ParseError::AbruptEnd)??.to_string();
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     "property method definition",
                 )?;
-                let first_param = cursor.peek(0).expect("current token disappeared").clone();
+                let first_param = cursor.peek(0).expect("current token disappeared")?.clone();
                 let params = FormalParameters::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {

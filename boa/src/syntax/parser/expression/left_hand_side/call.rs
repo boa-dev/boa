@@ -65,7 +65,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
         let mut lhs = match cursor.peek(0) {
-            Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
+            Some(tk) if tk?.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
                 Node::from(Call::new(self.first_member_expr, args))
             }
@@ -73,21 +73,22 @@ where
                 let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![TokenKind::Punctuator(Punctuator::OpenParen)],
-                    next_token.clone(),
+                    next_token?.clone(),
                     "call expression",
                 ));
             }
         };
 
         while let Some(tok) = cursor.peek(0) {
-            match tok.kind {
+            let token = tok?;
+            match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
                     lhs = Node::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the parser.
-                    match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
+                    match &cursor.next().ok_or(ParseError::AbruptEnd)??.kind() {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into();
                         }
@@ -97,7 +98,7 @@ where
                         _ => {
                             return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
-                                tok.clone(),
+                                token.clone(),
                                 "call expression",
                             ));
                         }

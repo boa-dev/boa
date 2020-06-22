@@ -69,7 +69,7 @@ where
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
         let else_stm = match cursor.peek(0) {
-            Some(else_tok) if else_tok.kind == TokenKind::Keyword(Keyword::Else) => {
+            Some(else_tok) if else_tok?.kind() == &TokenKind::Keyword(Keyword::Else) => {
                 cursor.next();
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)

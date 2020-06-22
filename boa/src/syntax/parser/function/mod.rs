@@ -62,8 +62,8 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut params = Vec::new();
 
-        if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
-            == TokenKind::Punctuator(Punctuator::CloseParen)
+        if cursor.peek(0).ok_or(ParseError::AbruptEnd)??.kind()
+            == &TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
         }
@@ -78,8 +78,8 @@ where
                 FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             });
 
-            if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
-                == TokenKind::Punctuator(Punctuator::CloseParen)
+            if cursor.peek(0).ok_or(ParseError::AbruptEnd)??.kind()
+                == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
             }
@@ -88,7 +88,7 @@ where
                 return Err(ParseError::unexpected(
                     cursor
                         .peek_prev()
-                        .expect("current token disappeared")
+                        .expect("current token disappeared")?
                         .clone(),
                     "rest parameter must be the last formal parameter",
                 ));
@@ -243,7 +243,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         if let Some(tk) = cursor.peek(0) {
-            if tk.kind == Punctuator::CloseBlock.into() {
+            if tk?.kind() == &Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }
         }

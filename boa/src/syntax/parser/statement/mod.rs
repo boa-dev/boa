@@ -102,9 +102,9 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)??;
 
-        match tok.kind {
+        match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
@@ -228,11 +228,11 @@ where
 
         loop {
             match cursor.peek(0) {
-                Some(token) if token.kind == TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                Some(token) if token?.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     if self.break_when_closingbrase {
                         break;
                     } else {
-                        return Err(ParseError::unexpected(token.clone(), None));
+                        return Err(ParseError::unexpected(token?.clone(), None));
                     }
                 }
                 None => {
@@ -301,7 +301,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)??;
 
         match tok.kind {
             TokenKind::Keyword(Keyword::Function)
@@ -405,9 +405,9 @@ where
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
         // TODO: strict mode.
 
-        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)??;
 
-        match next_token.kind {
+        match next_token.kind() {
             TokenKind::Identifier(ref s) => Ok(s.clone()),
             TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.as_str().into()),
             TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.as_str().into()),

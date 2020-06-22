@@ -48,7 +48,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
-        match tok.kind {
+        match tok?.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
                 cursor.next().expect("token disappeared");
                 return Ok(node::UnaryOp::new(
@@ -72,7 +72,7 @@ where
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
         if let Some(tok) = cursor.peek(0) {
-            match tok.kind {
+            match tok?.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
                     cursor.next().expect("token disappeared");
                     return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());

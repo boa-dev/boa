@@ -69,7 +69,7 @@ where
             .parse(cursor)?;
 
         if let Some(tok) = cursor.next() {
-            if tok.kind == TokenKind::Punctuator(Punctuator::Question) {
+            if tok?.kind() == &TokenKind::Punctuator(Punctuator::Question) {
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
