@@ -59,7 +59,7 @@ fn is_unary_expression<R>(cursor: &mut Cursor<R>) -> Result<bool, ParseError>
 where
     R: Read,
 {
-    Ok(if let Some(tok) = cursor.peek(0) {
+    Ok(if let Some(tok) = cursor.peek() {
         match tok?.kind() {
             TokenKind::Keyword(Keyword::Delete)
             | TokenKind::Keyword(Keyword::Void)

@@ -148,7 +148,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     ));
                 }
                 Some(Err(e)) => {
-                    // todo!();
+                    todo!();
                 }
                 Some(Ok('x')) | Some(Ok('X')) => {
                     // Remove the initial '0' from buffer.

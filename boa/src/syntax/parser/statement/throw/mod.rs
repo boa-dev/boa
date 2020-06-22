@@ -53,7 +53,7 @@ where
         cursor.peek_expect_no_lineterminator(0)?;
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(0) {
+        if let Some(tok) = cursor.peek() {
             if tok?.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
                 let _ = cursor.next();
             }

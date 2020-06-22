@@ -102,7 +102,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)??;
+        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
@@ -227,7 +227,7 @@ where
         let mut items = Vec::new();
 
         loop {
-            match cursor.peek(0) {
+            match cursor.peek() {
                 Some(Ok(token))
                     if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) =>
                 {
@@ -306,7 +306,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)??;
+        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
         match tok.kind {
             TokenKind::Keyword(Keyword::Function)

@@ -62,7 +62,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut params = Vec::new();
 
-        if cursor.peek(0).ok_or(ParseError::AbruptEnd)??.kind()
+        if cursor.peek().ok_or(ParseError::AbruptEnd)??.kind()
             == &TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
@@ -78,7 +78,7 @@ where
                 FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             });
 
-            if cursor.peek(0).ok_or(ParseError::AbruptEnd)??.kind()
+            if cursor.peek().ok_or(ParseError::AbruptEnd)??.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
@@ -242,7 +242,7 @@ where
     type Output = node::StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if let Some(tk) = cursor.peek(0) {
+        if let Some(tk) = cursor.peek() {
             if tk?.kind() == &Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }

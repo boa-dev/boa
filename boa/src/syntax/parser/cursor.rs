@@ -5,6 +5,7 @@ use crate::syntax::lexer::Lexer;
 use crate::syntax::lexer::{Token, TokenKind};
 
 use std::io::Read;
+use std::collections::VecDeque;
 
 /// Token cursor.
 ///
@@ -16,6 +17,10 @@ pub(super) struct Cursor<R> {
     lexer: Lexer<R>,
     // The current position within the tokens.
     // pos: usize,
+
+    peeked: Option<Option<Token>>,
+
+    // peeked: Option<Option<Token>>,
 }
 
 impl<R> Cursor<R>
@@ -26,47 +31,101 @@ where
     pub(super) fn new(reader: R) -> Self {
         Self {
             lexer: Lexer::new(reader),
+            peeked: None,
         }
     }
 
     /// Moves the cursor to the next token and returns the token.
     pub(super) fn next(&mut self) -> Option<Result<Token, ParseError>> {
-        unimplemented!();
-        // loop {
-        //     let token = self.tokens.get(self.pos);
-        //     if let Some(tk) = token {
-        //         self.pos += 1;
+        let peeked = self.peeked.as_ref();
+        
+        match peeked {
+            Some(val) => {
+                match val {
+                    Some(token) => return Some(Ok(token.clone())),
+                    None => return None
+                }
+            }
+            None => {} // No value has been peeked ahead already so need to go get the next value.
+        }
 
-        //         if tk.kind != TokenKind::LineTerminator {
-        //             break Some(tk);
-        //         }
-        //     } else {
-        //         break None;
-        //     }
-        // }
+        self.peeked = None; // Consuming peeked value.
+
+        loop {
+            match self.lexer.next() {
+                Some(Ok(tk)) => {
+                    if tk.kind != TokenKind::LineTerminator {
+                        return Some(Ok(tk));
+                    }
+                }
+                Some (Err(e)) => {
+                    return Some(Err(ParseError::lex(e)));
+                }
+                None => {
+                    return None;
+                }
+            }
+        }
     }
 
     /// Peeks the next token without moving the cursor.
-    pub(super) fn peek(&self, skip: usize) -> Option<Result<&Token, ParseError>> {
-        unimplemented!();
-        // let mut count = 0;
-        // let mut skipped = 0;
-        // loop {
-        //     let token = self.tokens.get(self.pos + count);
-        //     count += 1;
+    pub(super) fn peek(&mut self) -> Option<Result<Token, ParseError>> {
 
-        //     if let Some(tk) = token {
-        //         if tk.kind != TokenKind::LineTerminator {
-        //             if skipped == skip {
-        //                 break Some(tk);
-        //             }
-
-        //             skipped += 1;
-        //         }
-        //     } else {
-        //         break None;
-        //     }
+        // if skip > 0 {
+        //     unimplemented!();
         // }
+
+        match self.peeked.as_ref() {
+            Some(Some(token)) => {
+                return Some(Ok(token.clone()));
+            }
+            Some(None) => {
+                return None;
+            }
+            None => {
+                // self.next();
+
+            }
+        }
+
+        self.peeked = Some(match self.next() {
+            Some(Ok(token)) => {
+                Some(token)
+            }
+            Some(Err(e)) => {
+                return Some(Err(e));
+            }
+            None => {
+                None
+            }
+        });
+
+        match self.peeked.as_ref() {
+            Some(Some(token)) => {
+                return Some(Ok(token.clone()));
+            }
+            Some(None) => {
+                return None;
+            }
+            None => {
+                // self.next();
+                unimplemented!();
+            }
+        }
+
+        // match self.peeked.as_ref() {
+        //     Some(Some(x)) => {
+        //         Some(Ok(x.clone()))
+        //     },
+        //     Some(None) => {
+        //         None
+        //     }
+        //     None => unreachable!("Value self.peeked assigned above but now gone")
+        // }
+    }
+
+    pub(super) fn peek_more(&mut self, skip: i32) -> Option<Result<Token, ParseError>> {
+        unimplemented!();
     }
 
     /// Moves the cursor to the previous token and returns the token.

@@ -81,13 +81,13 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // Arrow function
-        match cursor.peek(0).ok_or(ParseError::AbruptEnd)??.kind() {
+        match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
                 if cursor.peek_expect_no_lineterminator(1).is_ok() {
-                    if let Some(tok) = cursor.peek(1) {
+                    if let Some(tok) = cursor.peek_more(1) {
                         if tok?.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                             return ArrowFunction::new(
                                 self.allow_in,

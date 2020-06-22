@@ -71,7 +71,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block")?;
-        if let Some(tk) = cursor.peek(0) {
+        if let Some(tk) = cursor.peek() {
             if tk?.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
                 cursor.next();
                 return Ok(node::Block::from(vec![]));

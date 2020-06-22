@@ -62,7 +62,7 @@ where
         let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        match cursor.peek(0) {
+        match cursor.peek() {
             Some(tok) => {
                 if tok?.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
                     CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor)

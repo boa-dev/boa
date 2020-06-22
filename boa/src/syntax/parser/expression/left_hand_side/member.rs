@@ -60,7 +60,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
-        let mut lhs = if cursor.peek(0).ok_or(ParseError::AbruptEnd)??.kind()
+        let mut lhs = if cursor.peek().ok_or(ParseError::AbruptEnd)??.kind()
             == &TokenKind::Keyword(Keyword::New)
         {
             let _ = cursor.next().expect("keyword disappeared");
@@ -72,7 +72,7 @@ where
         } else {
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
-        while let Some(tok) = cursor.peek(0) {
+        while let Some(tok) = cursor.peek() {
             let token = tok?.clone();
             match token.kind() {
                 &TokenKind::Punctuator(Punctuator::Dot) => {
