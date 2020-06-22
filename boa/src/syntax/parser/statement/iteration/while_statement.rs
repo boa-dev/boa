@@ -3,7 +3,7 @@ use crate::{
         ast::{node::WhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            ParseError, Cursor, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,

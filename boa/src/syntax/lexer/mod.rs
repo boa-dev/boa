@@ -90,9 +90,9 @@ impl<R> Lexer<R> {
 
     /// Creates a new lexer.
     #[inline]
-    pub fn new(reader: R) -> Self 
+    pub fn new(reader: R) -> Self
     where
-        R: Read
+        R: Read,
     {
         Self {
             cursor: Cursor::new(reader),
@@ -109,7 +109,7 @@ impl<R> Lexer<R> {
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
     fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error>
     where
-        R: Read
+        R: Read,
     {
         if let Some(c) = self.cursor.peek() {
             match c {

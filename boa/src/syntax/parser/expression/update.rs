@@ -9,7 +9,7 @@ use super::left_hand_side::LeftHandSideExpression;
 use crate::syntax::lexer::TokenKind;
 use crate::syntax::{
     ast::{node, op::UnaryOp, Node, Punctuator},
-    parser::{AllowAwait, AllowYield, ParseError, ParseResult, Cursor, TokenParser},
+    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 
 use std::io::Read;

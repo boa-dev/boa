@@ -8,7 +8,7 @@ use crate::{
     syntax::{
         ast::{node::If, Keyword, Node, Punctuator},
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, Cursor,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
             TokenParser,
         },
     },
@@ -68,8 +68,10 @@ where
         let then_stm =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let else_stm = match cursor.peek(0) {
-            Some(else_tok) if else_tok?.kind() == &TokenKind::Keyword(Keyword::Else) => {
+        let else_tok = cursor.peek(0);
+
+        let else_stm = match else_tok {
+            Some(_) if else_tok.unwrap()?.kind() == &TokenKind::Keyword(Keyword::Else) => {
                 cursor.next();
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)

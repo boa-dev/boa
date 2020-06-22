@@ -15,8 +15,8 @@ use crate::syntax::{
         Keyword, Punctuator,
     },
     parser::{
-        expression::update::UpdateExpression, AllowAwait, AllowYield, ParseError, ParseResult,
-        Cursor, TokenParser,
+        expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
+        ParseResult, TokenParser,
     },
 };
 

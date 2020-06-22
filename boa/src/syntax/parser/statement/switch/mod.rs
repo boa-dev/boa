@@ -8,7 +8,7 @@ use crate::{
             Keyword, Node, Punctuator,
         },
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, Cursor,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
             TokenParser,
         },
     },

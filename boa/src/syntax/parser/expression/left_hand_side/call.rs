@@ -19,7 +19,7 @@ use crate::{
             Punctuator,
         },
         parser::{
-            expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult, Cursor,
+            expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
             TokenParser,
         },
     },
@@ -64,8 +64,11 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
-        let mut lhs = match cursor.peek(0) {
-            Some(tk) if tk?.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
+
+        let tk = cursor.peek(0);
+
+        let mut lhs = match tk {
+            Some(_) if tk.unwrap()?.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
                 Node::from(Call::new(self.first_member_expr, args))
             }

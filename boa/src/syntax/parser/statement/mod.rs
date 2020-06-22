@@ -33,7 +33,7 @@ use self::{
     variable::VariableStatement,
 };
 use super::{
-    expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, ParseResult, Cursor,
+    expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
     TokenParser,
 };
 
@@ -228,12 +228,17 @@ where
 
         loop {
             match cursor.peek(0) {
-                Some(token) if token?.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                Some(Ok(token))
+                    if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) =>
+                {
                     if self.break_when_closingbrase {
                         break;
                     } else {
-                        return Err(ParseError::unexpected(token?.clone(), None));
+                        return Err(ParseError::unexpected(token.clone(), None));
                     }
+                }
+                Some(Err(e)) => {
+                    return Err(e);
                 }
                 None => {
                     if self.break_when_closingbrase {

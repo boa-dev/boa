@@ -2,8 +2,8 @@
 
 use super::ParseError;
 use crate::syntax::ast::Punctuator;
-use crate::syntax::lexer::{Token, TokenKind};
 use crate::syntax::lexer::Lexer;
+use crate::syntax::lexer::{Token, TokenKind};
 
 use std::io::Read;
 
@@ -15,19 +15,18 @@ pub(super) struct Cursor<R> {
     /// The tokens being input.
     // tokens: &'a [Token],
     lexer: Lexer<R>,
-
     // The current position within the tokens.
     // pos: usize,
 }
 
-impl<R> Cursor<R> 
-where 
-    R: Read
+impl<R> Cursor<R>
+where
+    R: Read,
 {
     /// Creates a new cursor.
     pub(super) fn new(reader: R) -> Self {
         Self {
-            lexer: Lexer::new(reader)
+            lexer: Lexer::new(reader),
         }
     }
 

@@ -19,7 +19,7 @@ use crate::syntax::{
     parser::{
         expression::Initializer,
         statement::{BindingIdentifier, StatementList},
-        AllowAwait, AllowYield, ParseError, Cursor, TokenParser,
+        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 

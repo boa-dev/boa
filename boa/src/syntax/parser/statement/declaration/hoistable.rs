@@ -10,7 +10,7 @@ use crate::{
         ast::{node::FunctionDecl, Keyword, Node, Punctuator},
         parser::{
             function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
-            AllowAwait, AllowDefault, AllowYield, ParseError, ParseResult, Cursor, TokenParser,
+            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,

@@ -24,7 +24,7 @@ use crate::syntax::{
         node::{Call, Identifier, New, Node},
         Const, Keyword, Punctuator,
     },
-    parser::{AllowAwait, AllowYield, ParseError, ParseResult, Cursor, TokenParser},
+    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 pub(in crate::syntax::parser) use object_initializer::Initializer;
 

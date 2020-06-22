@@ -12,7 +12,7 @@ use crate::{
     syntax::{
         ast::{node::Spread, Node, Punctuator},
         parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, ParseError, Cursor,
+            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
             TokenParser,
         },
     },

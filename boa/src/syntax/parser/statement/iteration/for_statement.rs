@@ -18,7 +18,7 @@ use crate::{
             expression::Expression,
             statement::declaration::Declaration,
             statement::{variable::VariableDeclarationList, Statement},
-            AllowAwait, AllowReturn, AllowYield, ParseError, Cursor, TokenParser,
+            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,

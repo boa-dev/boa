@@ -13,7 +13,7 @@ use crate::{
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            ParseError, Cursor, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,

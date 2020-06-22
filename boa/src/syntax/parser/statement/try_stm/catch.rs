@@ -6,7 +6,7 @@ use crate::{
         },
         parser::{
             statement::{block::Block, BindingIdentifier},
-            AllowAwait, AllowReturn, AllowYield, ParseError, Cursor, TokenParser,
+            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,

@@ -16,7 +16,7 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            ParseError, ParseResult, Cursor, TokenParser,
+            Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,

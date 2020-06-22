@@ -2,7 +2,7 @@ use crate::{
     syntax::{
         ast::{node, Keyword},
         parser::{
-            statement::block::Block, AllowAwait, AllowReturn, AllowYield, ParseError, Cursor,
+            statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
             TokenParser,
         },
     },

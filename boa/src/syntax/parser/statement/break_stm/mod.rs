@@ -16,7 +16,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Break, Keyword, Punctuator},
-        parser::{AllowAwait, AllowYield, ParseError, Cursor, TokenParser},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };

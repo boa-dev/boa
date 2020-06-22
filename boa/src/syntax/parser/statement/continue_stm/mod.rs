@@ -15,7 +15,7 @@ use crate::{
     syntax::{
         ast::{node::Continue, Keyword, Punctuator},
         parser::{
-            statement::LabelIdentifier, AllowAwait, AllowYield, ParseError, Cursor, TokenParser,
+            statement::LabelIdentifier, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,

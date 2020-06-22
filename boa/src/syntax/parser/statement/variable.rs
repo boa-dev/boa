@@ -1,5 +1,6 @@
 // use super::lexical_declaration_continuation;
 use crate::syntax::lexer::TokenKind;
+use crate::syntax::parser::Cursor;
 use crate::{
     syntax::{
         ast::{
@@ -14,7 +15,6 @@ use crate::{
     BoaProfiler,
 };
 use std::io::Read;
-use crate::syntax::parser::Cursor;
 
 /// Variable statement parsing.
 ///

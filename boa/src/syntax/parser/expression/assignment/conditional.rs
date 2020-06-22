@@ -13,7 +13,7 @@ use crate::{
         ast::{node::ConditionalOp, Node, Punctuator},
         parser::{
             expression::{AssignmentExpression, LogicalORExpression},
-            AllowAwait, AllowIn, AllowYield, ParseResult, Cursor, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
         },
     },
     BoaProfiler,

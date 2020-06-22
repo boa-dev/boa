@@ -17,7 +17,7 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, Punctuator},
-        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Cursor, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
 };
 

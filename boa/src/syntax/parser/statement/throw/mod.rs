@@ -5,7 +5,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Throw, Keyword, Punctuator},
-        parser::{expression::Expression, AllowAwait, AllowYield, ParseError, Cursor, TokenParser},
+        parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };

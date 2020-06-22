@@ -19,7 +19,7 @@ use crate::{
             node::{Assign, BinOp, Node},
             Keyword, Punctuator,
         },
-        parser::{AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, Cursor, TokenParser},
+        parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
     BoaProfiler,
 };
@@ -81,8 +81,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // Arrow function
-        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
-        match next_token?.kind() {
+        match cursor.peek(0).ok_or(ParseError::AbruptEnd)??.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)

@@ -11,7 +11,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Try, Keyword},
-        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Cursor, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };

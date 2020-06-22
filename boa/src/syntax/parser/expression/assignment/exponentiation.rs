@@ -7,8 +7,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
 //! [spec]: https://tc39.es/ecma262/#sec-exp-operator
 
-use crate::syntax::lexer::TokenKind;
 use super::ParseError;
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
@@ -18,7 +18,7 @@ use crate::{
         },
         parser::{
             expression::{unary::UnaryExpression, update::UpdateExpression},
-            AllowAwait, AllowYield, ParseResult, Cursor, TokenParser,
+            AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -59,22 +59,20 @@ fn is_unary_expression<R>(cursor: &mut Cursor<R>) -> Result<bool, ParseError>
 where
     R: Read,
 {
-    Ok(
-        if let Some(tok) = cursor.peek(0) {
-            match tok?.kind() {
-                TokenKind::Keyword(Keyword::Delete)
-                | TokenKind::Keyword(Keyword::Void)
-                | TokenKind::Keyword(Keyword::TypeOf)
-                | TokenKind::Punctuator(Punctuator::Add)
-                | TokenKind::Punctuator(Punctuator::Sub)
-                | TokenKind::Punctuator(Punctuator::Not)
-                | TokenKind::Punctuator(Punctuator::Neg) => true,
-                _ => false,
-            }
-        } else {
-            false
+    Ok(if let Some(tok) = cursor.peek(0) {
+        match tok?.kind() {
+            TokenKind::Keyword(Keyword::Delete)
+            | TokenKind::Keyword(Keyword::Void)
+            | TokenKind::Keyword(Keyword::TypeOf)
+            | TokenKind::Punctuator(Punctuator::Add)
+            | TokenKind::Punctuator(Punctuator::Sub)
+            | TokenKind::Punctuator(Punctuator::Not)
+            | TokenKind::Punctuator(Punctuator::Neg) => true,
+            _ => false,
         }
-    )
+    } else {
+        false
+    })
 }
 
 impl<R> TokenParser<R> for ExponentiationExpression

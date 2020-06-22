@@ -19,7 +19,7 @@ use crate::{
         parser::{
             expression::AssignmentExpression,
             function::{FormalParameters, FunctionBody},
-            AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, Cursor, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -148,10 +148,7 @@ where
                 .parse(cursor);
         }
 
-        let pos = cursor
-            .peek(0)
-            .ok_or(ParseError::AbruptEnd)??
-            .span().start();
+        let pos = cursor.peek(0).ok_or(ParseError::AbruptEnd)??.span().start();
         Err(ParseError::general("expected property definition", pos))
     }
 }

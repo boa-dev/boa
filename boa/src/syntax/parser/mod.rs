@@ -1,7 +1,7 @@
 //! Boa parser implementation.
 
-pub mod error;
 mod cursor;
+pub mod error;
 mod expression;
 mod function;
 mod statement;
@@ -109,18 +109,18 @@ pub struct Parser<R> {
 }
 
 impl<R> Parser<R> {
-    pub fn new(reader: R) -> Self 
+    pub fn new(reader: R) -> Self
     where
-        R: Read
+        R: Read,
     {
         Self {
-            cursor: Cursor::new(reader)
+            cursor: Cursor::new(reader),
         }
     }
 
-    pub fn parse_all(&mut self) -> Result<StatementList, ParseError> 
+    pub fn parse_all(&mut self) -> Result<StatementList, ParseError>
     where
-        R: Read
+        R: Read,
     {
         Script.parse(&mut self.cursor)
     }

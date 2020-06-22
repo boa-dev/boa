@@ -21,7 +21,9 @@ where
     L: Into<Box<[Node]>>,
 {
     assert_eq!(
-        Parser::new(js.as_bytes()).parse_all().expect("failed to parse"),
+        Parser::new(js.as_bytes())
+            .parse_all()
+            .expect("failed to parse"),
         StatementList::from(expr)
     );
 }
