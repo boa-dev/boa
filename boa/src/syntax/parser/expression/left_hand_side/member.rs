@@ -73,11 +73,12 @@ where
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
         while let Some(tok) = cursor.peek(0) {
-            let token = tok?;
+            let token = tok?.clone();
             match token.kind() {
                 &TokenKind::Punctuator(Punctuator::Dot) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
-                    match &cursor.next().ok_or(ParseError::AbruptEnd)??.kind() {
+                    cursor.next().ok_or(ParseError::AbruptEnd)??; // We move the parser forward.
+
+                    match cursor.next().ok_or(ParseError::AbruptEnd)??.kind() {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into()
                         }
@@ -87,7 +88,7 @@ where
                         _ => {
                             return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
-                                token.clone(),
+                                token,
                                 "member expression",
                             ));
                         }
