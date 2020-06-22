@@ -5,7 +5,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Throw, Keyword, Punctuator},
-        parser::{expression::Expression, AllowAwait, AllowYield, ParseError, Parser, TokenParser},
+        parser::{expression::Expression, AllowAwait, AllowYield, ParseError, Cursor, TokenParser},
     },
     BoaProfiler,
 };
@@ -46,16 +46,16 @@ where
 {
     type Output = Throw;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ThrowStatement", "Parsing");
-        parser.expect(Keyword::Throw, "throw statement")?;
+        cursor.expect(Keyword::Throw, "throw statement")?;
 
-        parser.peek_expect_no_lineterminator(0)?;
+        cursor.peek_expect_no_lineterminator(0)?;
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
-        if let Some(tok) = parser.peek(0) {
+        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        if let Some(tok) = cursor.peek(0) {
             if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) {
-                let _ = parser.next();
+                let _ = cursor.next();
             }
         }
 

@@ -2,7 +2,7 @@ use crate::{
     syntax::{
         ast::{node, Keyword},
         parser::{
-            statement::block::Block, AllowAwait, AllowReturn, AllowYield, ParseError, Parser,
+            statement::block::Block, AllowAwait, AllowReturn, AllowYield, ParseError, Cursor,
             TokenParser,
         },
     },
@@ -48,12 +48,12 @@ where
 {
     type Output = node::Finally;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Finally", "Parsing");
-        parser.expect(Keyword::Finally, "try statement")?;
+        cursor.expect(Keyword::Finally, "try statement")?;
         Ok(
             Block::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(parser)?
+                .parse(cursor)?
                 .into(),
         )
     }

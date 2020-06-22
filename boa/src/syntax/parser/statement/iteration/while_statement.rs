@@ -3,7 +3,7 @@ use crate::{
         ast::{node::WhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            ParseError, Parser, TokenParser,
+            ParseError, Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -52,17 +52,17 @@ where
 {
     type Output = WhileLoop;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
-        parser.expect(Keyword::While, "while statement")?;
-        parser.expect(Punctuator::OpenParen, "while statement")?;
+        cursor.expect(Keyword::While, "while statement")?;
+        cursor.expect(Punctuator::OpenParen, "while statement")?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        parser.expect(Punctuator::CloseParen, "while statement")?;
+        cursor.expect(Punctuator::CloseParen, "while statement")?;
 
         let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
         Ok(WhileLoop::new(cond, body))
     }

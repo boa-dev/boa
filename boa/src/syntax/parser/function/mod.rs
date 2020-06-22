@@ -19,7 +19,7 @@ use crate::syntax::{
     parser::{
         expression::Initializer,
         statement::{BindingIdentifier, StatementList},
-        AllowAwait, AllowYield, ParseError, Parser, TokenParser,
+        AllowAwait, AllowYield, ParseError, Cursor, TokenParser,
     },
 };
 
@@ -59,10 +59,10 @@ where
 {
     type Output = Box<[node::FormalParameter]>;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut params = Vec::new();
 
-        if parser.peek(0).ok_or(ParseError::AbruptEnd)?.kind
+        if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
             == TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
@@ -71,14 +71,14 @@ where
         loop {
             let mut rest_param = false;
 
-            params.push(if parser.next_if(Punctuator::Spread).is_some() {
+            params.push(if cursor.next_if(Punctuator::Spread).is_some() {
                 rest_param = true;
-                FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(parser)?
+                FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             } else {
-                FormalParameter::new(self.allow_yield, self.allow_await).parse(parser)?
+                FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             });
 
-            if parser.peek(0).ok_or(ParseError::AbruptEnd)?.kind
+            if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
                 == TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
@@ -86,7 +86,7 @@ where
 
             if rest_param {
                 return Err(ParseError::unexpected(
-                    parser
+                    cursor
                         .peek_prev()
                         .expect("current token disappeared")
                         .clone(),
@@ -94,7 +94,7 @@ where
                 ));
             }
 
-            parser.expect(Punctuator::Comma, "parameter list")?;
+            cursor.expect(Punctuator::Comma, "parameter list")?;
         }
 
         Ok(params.into_boxed_slice())

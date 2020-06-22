@@ -16,7 +16,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Break, Keyword, Punctuator},
-        parser::{AllowAwait, AllowYield, ParseError, Parser, TokenParser},
+        parser::{AllowAwait, AllowYield, ParseError, Cursor, TokenParser},
     },
     BoaProfiler,
 };
@@ -57,22 +57,22 @@ where
 {
     type Output = Break;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
-        parser.expect(Keyword::Break, "break statement")?;
+        cursor.expect(Keyword::Break, "break statement")?;
 
-        let label = if let (true, tok) = parser.peek_semicolon(false) {
+        let label = if let (true, tok) = cursor.peek_semicolon(false) {
             match tok {
                 Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = parser.next();
+                    let _ = cursor.next();
                 }
                 _ => {}
             }
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
-            parser.expect_semicolon(false, "continue statement")?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            cursor.expect_semicolon(false, "continue statement")?;
 
             Some(label)
         };

@@ -13,7 +13,7 @@ use crate::{
         ast::{node::DoWhileLoop, Keyword, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            ParseError, Parser, TokenParser,
+            ParseError, Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -61,14 +61,14 @@ where
 {
     type Output = DoWhileLoop;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
-        parser.expect(Keyword::Do, "do while statement")?;
+        cursor.expect(Keyword::Do, "do while statement")?;
 
         let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let next_token = parser.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind != TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
@@ -78,13 +78,13 @@ where
             ));
         }
 
-        parser.expect(Keyword::While, "do while statement")?;
-        parser.expect(Punctuator::OpenParen, "do while statement")?;
+        cursor.expect(Keyword::While, "do while statement")?;
+        cursor.expect(Punctuator::OpenParen, "do while statement")?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        parser.expect(Punctuator::CloseParen, "do while statement")?;
-        parser.expect_semicolon(true, "do while statement")?;
+        cursor.expect(Punctuator::CloseParen, "do while statement")?;
+        cursor.expect_semicolon(true, "do while statement")?;
 
         Ok(DoWhileLoop::new(body, cond))
     }

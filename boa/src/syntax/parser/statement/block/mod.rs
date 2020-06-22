@@ -17,7 +17,7 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, Punctuator},
-        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Parser, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Cursor, TokenParser},
     },
 };
 
@@ -68,21 +68,21 @@ where
 {
     type Output = node::Block;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
-        parser.expect(Punctuator::OpenBlock, "block")?;
-        if let Some(tk) = parser.peek(0) {
+        cursor.expect(Punctuator::OpenBlock, "block")?;
+        if let Some(tk) = cursor.peek(0) {
             if tk.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
-                parser.next();
+                cursor.next();
                 return Ok(node::Block::from(vec![]));
             }
         }
 
         let statement_list =
             StatementList::new(self.allow_yield, self.allow_await, self.allow_return, true)
-                .parse(parser)
+                .parse(cursor)
                 .map(node::Block::from)?;
-        parser.expect(Punctuator::CloseBlock, "block")?;
+        cursor.expect(Punctuator::CloseBlock, "block")?;
 
         Ok(statement_list)
     }

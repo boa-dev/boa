@@ -16,7 +16,7 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            ParseError, ParseResult, Parser, TokenParser,
+            ParseError, ParseResult, Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -59,18 +59,18 @@ where
 {
     type Output = Node;
 
-    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = parser.next().ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {
             TokenKind::Keyword(Keyword::Const) => {
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, true)
-                    .parse(parser)
+                    .parse(cursor)
             }
             TokenKind::Keyword(Keyword::Let) => {
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, false)
-                    .parse(parser)
+                    .parse(cursor)
             }
             _ => unreachable!("unknown token found"),
         }
@@ -117,7 +117,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         // Create vectors to store the variable declarations
         // Const and Let signatures are slightly different, Const needs definitions, Lets don't
         let mut let_decls = Vec::new();
@@ -126,7 +126,7 @@ where
         loop {
             let (ident, init) =
                 LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(parser)?;
+                    .parse(cursor)?;
 
             if self.is_const {
                 if let Some(init) = init {
@@ -134,7 +134,7 @@ where
                 } else {
                     return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        parser.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
                         "const declaration",
                     ));
                 }
@@ -142,10 +142,10 @@ where
                 let_decls.push(LetDecl::new(ident, init));
             }
 
-            match parser.peek_semicolon(false) {
+            match cursor.peek_semicolon(false) {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = parser.next();
+                    let _ = cursor.next();
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -153,7 +153,7 @@ where
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        parser.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
                         "lexical declaration",
                     ))
                 }
@@ -202,10 +202,10 @@ where
 {
     type Output = (Box<str>, Option<Node>);
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         let initializer =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(parser);
+            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
 
         Ok((ident, initializer))
     }

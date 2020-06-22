@@ -10,7 +10,7 @@ use crate::{
         ast::{node::FunctionDecl, Keyword, Node, Punctuator},
         parser::{
             function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
-            AllowAwait, AllowDefault, AllowYield, ParseError, ParseResult, Parser, TokenParser,
+            AllowAwait, AllowDefault, AllowYield, ParseError, ParseResult, Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -53,11 +53,11 @@ where
 {
     type Output = Node;
 
-    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
         // TODO: check for generators and async functions + generators
         FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
-            .parse(parser)
+            .parse(cursor)
             .map(Node::from)
     }
 }
@@ -99,22 +99,22 @@ where
 {
     type Output = FunctionDecl;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        parser.expect(Keyword::Function, "function declaration")?;
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        cursor.expect(Keyword::Function, "function declaration")?;
 
         // TODO: If self.is_default, then this can be empty.
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        parser.expect(Punctuator::OpenParen, "function declaration")?;
+        cursor.expect(Punctuator::OpenParen, "function declaration")?;
 
-        let params = FormalParameters::new(false, false).parse(parser)?;
+        let params = FormalParameters::new(false, false).parse(cursor)?;
 
-        parser.expect(Punctuator::CloseParen, "function declaration")?;
-        parser.expect(Punctuator::OpenBlock, "function declaration")?;
+        cursor.expect(Punctuator::CloseParen, "function declaration")?;
+        cursor.expect(Punctuator::OpenBlock, "function declaration")?;
 
-        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(parser)?;
+        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        parser.expect(Punctuator::CloseBlock, "function declaration")?;
+        cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 
         Ok(FunctionDecl::new(name, params, body))
     }

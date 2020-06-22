@@ -11,7 +11,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Try, Keyword},
-        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Parser, TokenParser},
+        parser::{AllowAwait, AllowReturn, AllowYield, ParseError, Cursor, TokenParser},
     },
     BoaProfiler,
 };
@@ -55,15 +55,15 @@ where
 {
     type Output = Try;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Try, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Try, ParseError> {
         let _timer = BoaProfiler::global().start_event("TryStatement", "Parsing");
         // TRY
-        parser.expect(Keyword::Try, "try statement")?;
+        cursor.expect(Keyword::Try, "try statement")?;
 
         let try_clause =
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
+            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let next_token = parser.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind != TokenKind::Keyword(Keyword::Catch)
             && next_token.kind != TokenKind::Keyword(Keyword::Finally)
@@ -79,17 +79,17 @@ where
         }
 
         let catch = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
-            Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?)
+            Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
         } else {
             None
         };
 
-        let next_token = parser.peek(0);
+        let next_token = cursor.peek(0);
         let finally_block = match next_token {
             Some(token) => match token.kind {
                 TokenKind::Keyword(Keyword::Finally) => Some(
                     Finally::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(parser)?,
+                        .parse(cursor)?,
                 ),
                 _ => None,
             },

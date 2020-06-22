@@ -14,6 +14,7 @@ use crate::{
     BoaProfiler,
 };
 use std::io::Read;
+use crate::syntax::parser::Cursor;
 
 /// Variable statement parsing.
 ///
@@ -51,14 +52,14 @@ where
 {
     type Output = VarDeclList;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
-        parser.expect(Keyword::Var, "variable statement")?;
+        cursor.expect(Keyword::Var, "variable statement")?;
 
         let decl_list =
-            VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+            VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        parser.expect_semicolon(false, "variable statement")?;
+        cursor.expect_semicolon(false, "variable statement")?;
 
         Ok(decl_list)
     }
@@ -105,19 +106,19 @@ where
 {
     type Output = VarDeclList;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
 
         loop {
             list.push(
                 VariableDeclaration::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(parser)?,
+                    .parse(cursor)?,
             );
 
-            match parser.peek_semicolon(false) {
+            match cursor.peek_semicolon(false) {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = parser.next();
+                    let _ = cursor.next();
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -125,7 +126,7 @@ where
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        parser.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
                         "lexical declaration",
                     ))
                 }
@@ -171,13 +172,13 @@ where
 {
     type Output = VarDecl;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
         let ident =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(parser);
+            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
 
         Ok(VarDecl::new(name, ident))
     }

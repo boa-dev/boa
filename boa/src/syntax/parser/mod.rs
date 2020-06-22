@@ -1,6 +1,7 @@
 //! Boa parser implementation.
 
 pub mod error;
+mod cursor;
 mod expression;
 mod function;
 mod statement;
@@ -15,6 +16,8 @@ use crate::syntax::lexer::Lexer;
 use crate::syntax::lexer::Token;
 
 use ParseError as Error;
+
+use cursor::Cursor;
 
 use std::io::Read;
 
@@ -31,7 +34,7 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError>;
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
 
     // /// Tries to parse the following tokens with this parser.
     // fn try_parse(self, parser: Parser<R>) -> Option<Self::Output> {
@@ -98,7 +101,7 @@ impl From<bool> for AllowDefault {
 #[derive(Debug)]
 pub struct Parser<R> {
     /// Lexer used to get tokens for the parser.
-    lexer: Lexer<R>,
+    cursor: Cursor<R>,
 }
 
 impl<R> Parser<R> {
@@ -107,7 +110,7 @@ impl<R> Parser<R> {
         R: Read
     {
         Self {
-            lexer: Lexer::new(reader),
+            cursor: Cursor::new(reader)
         }
     }
 
@@ -115,7 +118,7 @@ impl<R> Parser<R> {
     where
         R: Read
     {
-        Script.parse(&mut self)
+        Script.parse(&mut self.cursor)
     }
 
     // Note these unimplemented methods may be removed before this parser refractor is finished.
@@ -148,9 +151,9 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        if parser.peek(0).is_some() {
-            ScriptBody.parse(parser)
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        if cursor.peek(0).is_some() {
+            ScriptBody.parse(cursor)
         } else {
             Ok(StatementList::from(Vec::new()))
         }
@@ -172,7 +175,7 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false).parse(parser)
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        self::statement::StatementList::new(false, false, false, false).parse(cursor)
     }
 }

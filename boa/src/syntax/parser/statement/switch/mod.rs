@@ -8,7 +8,7 @@ use crate::{
             Keyword, Node, Punctuator,
         },
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, Parser,
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, ParseError, Cursor,
             TokenParser,
         },
     },
@@ -54,17 +54,17 @@ where
 {
     type Output = Switch;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
-        parser.expect(Keyword::Switch, "switch statement")?;
-        parser.expect(Punctuator::OpenParen, "switch statement")?;
+        cursor.expect(Keyword::Switch, "switch statement")?;
+        cursor.expect(Punctuator::OpenParen, "switch statement")?;
 
-        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
+        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        parser.expect(Punctuator::CloseParen, "switch statement")?;
+        cursor.expect(Punctuator::CloseParen, "switch statement")?;
 
         let (cases, default) =
-            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(parser)?;
+            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
         Ok(Switch::new(condition, cases, default))
     }
@@ -105,8 +105,8 @@ where
 {
     type Output = (Box<[Case]>, Option<Node>);
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
-        parser.expect(Punctuator::OpenBlock, "switch case block")?;
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        cursor.expect(Punctuator::OpenBlock, "switch case block")?;
 
         // CaseClauses[?Yield, ?Await, ?Return]opt
         // CaseClauses[?Yield, ?Await, ?Return]optDefaultClause[?Yield, ?Await, ?Return]CaseClauses[?Yield, ?Await, ?Return]opt
