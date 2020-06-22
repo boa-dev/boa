@@ -414,7 +414,7 @@ impl Interpreter {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
         match value.data() {
-            ValueData::Undefined | ValueData::Null => Err(Value::undefined()),
+            ValueData::Undefined | ValueData::Null => self.throw_type_error("cannot convert 'null' or 'undefined' to object"),
             ValueData::Boolean(boolean) => {
                 let proto = self
                     .realm
