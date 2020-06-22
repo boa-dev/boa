@@ -17,7 +17,7 @@ mod update;
 
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
-use super::{AllowAwait, AllowIn, AllowYield, ParseResult, Parser, TokenParser};
+use super::{AllowAwait, AllowIn, AllowYield, ParseResult, Cursor, TokenParser};
 use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
@@ -59,9 +59,9 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
     {
         type Output = Node;
 
-        fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+        fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
             let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
-            let mut lhs = $lower::new($( self.$low_param ),*).parse(parser)?;
+            let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
             while let Some(tok) = parser.peek(0) {
                 match tok.kind {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
@@ -69,7 +69,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(parser)?
+                            $lower::new($( self.$low_param ),*).parse(cursor)?
                         ).into();
                     }
                     TokenKind::Keyword(op) if $( op == $op )||* => {
@@ -77,7 +77,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(parser)?
+                            $lower::new($( self.$low_param ),*).parse(cursor)?
                         ).into();
                     }
                     _ => break

@@ -17,7 +17,7 @@ use crate::{
             Const, Punctuator,
         },
         parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, ParseError, Parser,
+            expression::AssignmentExpression, AllowAwait, AllowYield, ParseError, Cursor,
             TokenParser,
         },
     },
@@ -60,33 +60,33 @@ where
 {
     type Output = ArrayDecl;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
 
         loop {
             // TODO: Support all features.
-            while parser.next_if(Punctuator::Comma).is_some() {
+            while cursor.next_if(Punctuator::Comma).is_some() {
                 elements.push(Node::Const(Const::Undefined));
             }
 
-            if parser.next_if(Punctuator::CloseBracket).is_some() {
+            if cursor.next_if(Punctuator::CloseBracket).is_some() {
                 break;
             }
 
-            let _ = parser.peek(0).ok_or(ParseError::AbruptEnd)?; // Check that there are more tokens to read.
+            let _ = cursor.peek(0).ok_or(ParseError::AbruptEnd)?; // Check that there are more tokens to read.
 
-            if parser.next_if(Punctuator::Spread).is_some() {
+            if cursor.next_if(Punctuator::Spread).is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                    .parse(parser)?;
+                    .parse(cursor)?;
                 elements.push(Spread::new(node).into());
             } else {
                 elements.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(parser)?,
+                        .parse(cursor)?,
                 );
             }
-            parser.next_if(Punctuator::Comma);
+            cursor.next_if(Punctuator::Comma);
         }
 
         Ok(elements.into())

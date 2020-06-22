@@ -16,7 +16,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{Node, Punctuator},
-        parser::{AllowAwait, AllowYield, ParseResult, Parser, TokenParser},
+        parser::{AllowAwait, AllowYield, ParseResult, Cursor, TokenParser},
     },
     BoaProfiler,
 };
@@ -57,13 +57,13 @@ where
 {
     type Output = Node;
 
-    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
         // TODO: Implement NewExpression: new MemberExpression
-        let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(parser)?;
-        match parser.peek(0) {
+        let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        match cursor.peek(0) {
             Some(ref tok) if tok.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
-                CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(parser)
+                CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor)
             }
             _ => Ok(lhs), // TODO: is this correct?
         }

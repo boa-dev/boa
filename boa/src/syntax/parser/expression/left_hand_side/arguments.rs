@@ -55,12 +55,12 @@ where
 {
     type Output = Box<[Node]>;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
-        parser.expect(Punctuator::OpenParen, "arguments")?;
+        cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
-            let next_token = parser.next().ok_or(ParseError::AbruptEnd)?;
+            let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
             match next_token.kind {
                 TokenKind::Punctuator(Punctuator::CloseParen) => break,
                 TokenKind::Punctuator(Punctuator::Comma) => {
@@ -68,7 +68,7 @@ where
                         return Err(ParseError::unexpected(next_token.clone(), None));
                     }
 
-                    if parser.next_if(Punctuator::CloseParen).is_some() {
+                    if cursor.next_if(Punctuator::CloseParen).is_some() {
                         break;
                     }
                 }
@@ -83,23 +83,23 @@ where
                             "argument list",
                         ));
                     } else {
-                        parser.back();
+                        cursor.back();
                     }
                 }
             }
 
-            if parser.next_if(Punctuator::Spread).is_some() {
+            if cursor.next_if(Punctuator::Spread).is_some() {
                 args.push(
                     Spread::new(
                         AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                            .parse(parser)?,
+                            .parse(cursor)?,
                     )
                     .into(),
                 );
             } else {
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(parser)?,
+                        .parse(cursor)?,
                 );
             }
         }

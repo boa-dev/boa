@@ -13,7 +13,7 @@ use crate::{
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            ParseError, Parser, TokenParser,
+            ParseError, Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -38,20 +38,20 @@ where
 {
     type Output = FunctionExpr;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
-        let name = BindingIdentifier::new(false, false).try_parse(parser);
+        let name = BindingIdentifier::new(false, false).try_parse(cursor);
 
-        parser.expect(Punctuator::OpenParen, "function expression")?;
+        cursor.expect(Punctuator::OpenParen, "function expression")?;
 
-        let params = FormalParameters::new(false, false).parse(parser)?;
+        let params = FormalParameters::new(false, false).parse(cursor)?;
 
-        parser.expect(Punctuator::CloseParen, "function expression")?;
-        parser.expect(Punctuator::OpenBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseParen, "function expression")?;
+        cursor.expect(Punctuator::OpenBlock, "function expression")?;
 
-        let body = FunctionBody::new(false, false).parse(parser)?;
+        let body = FunctionBody::new(false, false).parse(cursor)?;
 
-        parser.expect(Punctuator::CloseBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseBlock, "function expression")?;
 
         Ok(FunctionExpr::new(name, params, body))
     }

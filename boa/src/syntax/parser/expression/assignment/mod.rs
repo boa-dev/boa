@@ -19,7 +19,7 @@ use crate::{
             node::{Assign, BinOp, Node},
             Keyword, Punctuator,
         },
-        parser::{AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, Parser, TokenParser},
+        parser::{AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, Cursor, TokenParser},
     },
     BoaProfiler,
 };
@@ -78,18 +78,18 @@ where
 {
     type Output = Node;
 
-    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // Arrow function
-        let next_token = parser.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
         match next_token.kind {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await)
-                if parser.peek_expect_no_lineterminator(1).is_ok() =>
+                if cursor.peek_expect_no_lineterminator(1).is_ok() =>
             {
-                if let Some(tok) = parser.peek(1) {
+                if let Some(tok) = cursor.peek(1) {
                     if tok.kind == TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
                             self.allow_in,
@@ -115,20 +115,20 @@ where
         }
 
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(parser)?;
+            .parse(cursor)?;
 
-        if let Some(tok) = parser.next() {
+        if let Some(tok) = cursor.next() {
             match tok.kind {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    lhs = Assign::new(lhs, self.parse(parser)?).into();
+                    lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() => {
-                    let expr = self.parse(parser)?;
+                    let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");
                     lhs = BinOp::new(binop, lhs, expr).into();
                 }
                 _ => {
-                    parser.back();
+                    cursor.back();
                 }
             }
         }

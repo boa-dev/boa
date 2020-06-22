@@ -18,7 +18,7 @@ use crate::{
         },
         parser::{
             expression::{primary::PrimaryExpression, Expression},
-            AllowAwait, AllowYield, ParseError, ParseResult, Parser, TokenParser,
+            AllowAwait, AllowYield, ParseError, ParseResult, Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -58,25 +58,25 @@ where
 {
     type Output = Node;
 
-    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
         let mut lhs = if parser.peek(0).ok_or(ParseError::AbruptEnd)?.kind
             == TokenKind::Keyword(Keyword::New)
         {
-            let _ = parser.next().expect("keyword disappeared");
+            let _ = cursor.next().expect("keyword disappeared");
             let lhs = self.parse(parser)?;
-            let args = Arguments::new(self.allow_yield, self.allow_await).parse(parser)?;
+            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
             let call_node = Call::new(lhs, args);
 
             Node::from(New::from(call_node))
         } else {
-            PrimaryExpression::new(self.allow_yield, self.allow_await).parse(parser)?
+            PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
-        while let Some(tok) = parser.peek(0) {
+        while let Some(tok) = cursor.peek(0) {
             match &tok.kind {
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    let _ = parser.next().ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
-                    match &parser.next().ok_or(ParseError::AbruptEnd)?.kind {
+                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into()
                         }
@@ -93,10 +93,10 @@ where
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _ = parser.next().ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
                     let idx =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(parser)?;
-                    parser.expect(Punctuator::CloseBracket, "member expression")?;
+                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    cursor.expect(Punctuator::CloseBracket, "member expression")?;
                     lhs = GetField::new(lhs, idx).into();
                 }
                 _ => break,

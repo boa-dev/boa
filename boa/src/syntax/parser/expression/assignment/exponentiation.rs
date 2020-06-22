@@ -17,7 +17,7 @@ use crate::{
         },
         parser::{
             expression::{unary::UnaryExpression, update::UpdateExpression},
-            AllowAwait, AllowYield, ParseResult, Parser, TokenParser,
+            AllowAwait, AllowYield, ParseResult, Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -80,18 +80,18 @@ where
 {
     type Output = Node;
 
-    fn parse(self, parser: &mut Parser<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExponentiationExpression", "Parsing");
-        if Self::is_unary_expression(parser) {
-            return UnaryExpression::new(self.allow_yield, self.allow_await).parse(parser);
+        if Self::is_unary_expression(cursor) {
+            return UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor);
         }
 
-        let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(parser)?;
-        if let Some(tok) = parser.next() {
+        let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        if let Some(tok) = cursor.next() {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind {
-                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(parser)?).into());
+                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?).into());
             } else {
-                parser.back();
+                cursor.back();
             }
         }
         Ok(lhs)

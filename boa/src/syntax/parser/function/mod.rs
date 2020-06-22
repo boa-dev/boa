@@ -145,11 +145,11 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         // FIXME: we are reading the spread operator before the rest element.
         // parser.expect(Punctuator::Spread, "rest parameter")?;
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
+        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         // TODO: BindingPattern
 
         Ok(Self::Output::new(param, None, true))
@@ -190,12 +190,12 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(parser)?;
+        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let init = Initializer::new(true, self.allow_yield, self.allow_await).try_parse(parser);
+        let init = Initializer::new(true, self.allow_yield, self.allow_await).try_parse(cursor);
 
         Ok(Self::Output::new(param, init, false))
     }
@@ -241,13 +241,13 @@ where
 {
     type Output = node::StatementList;
 
-    fn parse(self, parser: &mut Parser<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         if let Some(tk) = parser.peek(0) {
             if tk.kind == Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }
         }
 
-        StatementList::new(self.allow_yield, self.allow_await, true, true).parse(parser)
+        StatementList::new(self.allow_yield, self.allow_await, true, true).parse(cursor)
     }
 }
