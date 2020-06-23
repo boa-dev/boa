@@ -8,11 +8,9 @@
 use crate::builtins::{
     object::{Object, INSTANCE_PROTOTYPE, PROTOTYPE},
     property::Property,
-    value::{same_value, Value, ValueData},
+    value::{same_value, RcString, Value},
 };
 use crate::BoaProfiler;
-use std::borrow::Borrow;
-use std::ops::Deref;
 
 impl Object {
     /// Check if object has property.
@@ -29,8 +27,8 @@ impl Object {
             if !parent.is_null() {
                 // the parent value variant should be an object
                 // In the unlikely event it isn't return false
-                return match *parent {
-                    ValueData::Object(ref obj) => (*obj).deref().borrow().has_property(val),
+                return match parent {
+                    Value::Object(ref obj) => obj.borrow().has_property(val),
                     _ => false,
                 };
             }
@@ -48,11 +46,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
     #[inline]
     pub fn is_extensible(&self) -> bool {
-        let val = self.get_internal_slot("extensible");
-        match *val.deref().borrow() {
-            ValueData::Boolean(b) => b,
-            _ => false,
-        }
+        self.extensible
     }
 
     /// Disable extensibility.
@@ -63,7 +57,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     #[inline]
     pub fn prevent_extensions(&mut self) -> bool {
-        self.set_internal_slot("extensible", Value::from(false));
+        self.extensible = false;
         true
     }
 
@@ -241,7 +235,6 @@ impl Object {
                     && !same_value(
                         &desc.value.clone().unwrap(),
                         &current.value.clone().unwrap(),
-                        false,
                     )
                 {
                     return false;
@@ -253,21 +246,13 @@ impl Object {
         } else {
             if !current.configurable.unwrap() {
                 if desc.set.is_some()
-                    && !same_value(
-                        &desc.set.clone().unwrap(),
-                        &current.set.clone().unwrap(),
-                        false,
-                    )
+                    && !same_value(&desc.set.clone().unwrap(), &current.set.clone().unwrap())
                 {
                     return false;
                 }
 
                 if desc.get.is_some()
-                    && !same_value(
-                        &desc.get.clone().unwrap(),
-                        &current.get.clone().unwrap(),
-                        false,
-                    )
+                    && !same_value(&desc.get.clone().unwrap(), &current.get.clone().unwrap())
                 {
                     return false;
                 }
@@ -293,8 +278,8 @@ impl Object {
 
         debug_assert!(Property::is_property_key(prop));
         // Prop could either be a String or Symbol
-        match *(*prop) {
-            ValueData::String(ref st) => {
+        match *prop {
+            Value::String(ref st) => {
                 self.properties()
                     .get(st)
                     .map_or_else(Property::default, |v| {
@@ -312,23 +297,24 @@ impl Object {
                         d
                     })
             }
-            ValueData::Symbol(ref symbol) => self
-                .symbol_properties()
-                .get(&symbol.hash())
-                .map_or_else(Property::default, |v| {
-                    let mut d = Property::default();
-                    if v.is_data_descriptor() {
-                        d.value = v.value.clone();
-                        d.writable = v.writable;
-                    } else {
-                        debug_assert!(v.is_accessor_descriptor());
-                        d.get = v.get.clone();
-                        d.set = v.set.clone();
-                    }
-                    d.enumerable = v.enumerable;
-                    d.configurable = v.configurable;
-                    d
-                }),
+            Value::Symbol(ref symbol) => {
+                self.symbol_properties()
+                    .get(&symbol.hash())
+                    .map_or_else(Property::default, |v| {
+                        let mut d = Property::default();
+                        if v.is_data_descriptor() {
+                            d.value = v.value.clone();
+                            d.writable = v.writable;
+                        } else {
+                            debug_assert!(v.is_accessor_descriptor());
+                            d.get = v.get.clone();
+                            d.set = v.set.clone();
+                        }
+                        d.enumerable = v.enumerable;
+                        d.configurable = v.configurable;
+                        d
+                    })
+            }
             _ => Property::default(),
         }
     }
@@ -347,11 +333,10 @@ impl Object {
     pub fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.get_internal_slot(PROTOTYPE);
-        if same_value(&current, &val, false) {
+        if same_value(&current, &val) {
             return true;
         }
-        let extensible = self.get_internal_slot("extensible");
-        if extensible.is_null() {
+        if !self.is_extensible() {
             return false;
         }
         let mut p = val.clone();
@@ -359,7 +344,7 @@ impl Object {
         while !done {
             if p.is_null() {
                 done = true
-            } else if same_value(&Value::from(self.clone()), &p, false) {
+            } else if same_value(&Value::from(self.clone()), &p) {
                 return false;
             } else {
                 p = p.get_internal_slot(PROTOTYPE);
@@ -402,7 +387,7 @@ impl Object {
     #[inline]
     pub(crate) fn insert_property<N>(&mut self, name: N, p: Property)
     where
-        N: Into<String>,
+        N: Into<RcString>,
     {
         self.properties.insert(name.into(), p);
     }
@@ -420,7 +405,7 @@ impl Object {
     #[inline]
     pub(crate) fn insert_field<N>(&mut self, name: N, value: Value) -> Option<Property>
     where
-        N: Into<String>,
+        N: Into<RcString>,
     {
         self.properties.insert(
             name.into(),

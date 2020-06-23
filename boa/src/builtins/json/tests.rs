@@ -302,13 +302,10 @@ fn json_parse_sets_prototypes() {
         .get_field("Array")
         .get_field(PROTOTYPE);
     assert_eq!(
-        same_value(&object_prototype, &global_object_prototype, true),
+        same_value(&object_prototype, &global_object_prototype),
         true
     );
-    assert_eq!(
-        same_value(&array_prototype, &global_array_prototype, true),
-        true
-    );
+    assert_eq!(same_value(&array_prototype, &global_array_prototype), true);
 }
 
 #[test]

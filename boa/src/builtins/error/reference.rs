@@ -31,7 +31,7 @@ impl ReferenceError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         if !args.is_empty() {
             this.set_field(
                 "message",
@@ -59,7 +59,7 @@ impl ReferenceError {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let name = this.get_field("name");
         let message = this.get_field("message");
         Ok(Value::from(format!("{}: {}", name, message)))

@@ -71,7 +71,6 @@ fn instances_have_correct_proto_set() {
 
     assert!(same_value(
         &bool_instance.get_internal_slot("__proto__"),
-        &bool_prototype,
-        true
+        &bool_prototype
     ));
 }

@@ -1,4 +1,4 @@
-use crate::builtins::value::ValueData;
+use crate::builtins::value::Value;
 use std::ops::Deref;
 
 /// Possible types of val as defined at https://tc39.es/ecma262/#sec-typeof-operator.
@@ -32,7 +32,7 @@ impl Type {
     }
 }
 
-impl ValueData {
+impl Value {
     /// Get the type of the value.
     ///
     /// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of
