@@ -256,6 +256,49 @@ impl Interpreter {
         Ok(number as i64)
     }
 
+    /// Converts a value to an integral 32 bit signed integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toint32
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_int32(&mut self, value: &Value) -> Result<i32, Value> {
+        let number = self.to_number(value)?;
+
+        if number.is_nan() || number.is_infinite() || Number::equal(number, -0.0) {
+            return Ok(0);
+        }
+
+        Ok(number as i32)
+    }
+
+    /// Converts a value to an integral 32 bit unsigned integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toint32
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_uint32(&mut self, value: &Value) -> Result<u32, Value> {
+        let number = self.to_number(value)?;
+
+        if number.is_nan() || number.is_infinite() || Number::equal(number, -0.0) {
+            return Ok(0);
+        }
+
+        Ok(number as u32)
+    }
+
+    /// Converts argument to an integer suitable for use as the length of an array-like object.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tolength
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_length(&mut self, value: &Value) -> Result<usize, Value> {
+        let len = self.to_integer(value)?;
+        if len < 0 {
+            return Ok(0);
+        }
+        let len = len as usize;
+
+        let max = 2usize.pow(53) - 1;
+        Ok(len.min(max))
+    }
+
     /// Converts a value to a double precision floating point.
     ///
     /// See: https://tc39.es/ecma262/#sec-tonumber
