@@ -118,7 +118,7 @@ impl Shr for Value {
 impl Not for Value {
     type Output = Self;
     fn not(self) -> Self {
-        Self::boolean(!self.is_true())
+        Self::boolean(!self.to_boolean())
     }
 }
 

@@ -36,19 +36,19 @@ fn check_get_set_field() {
 
 #[test]
 fn check_integer_is_true() {
-    assert_eq!(Value::from(1).is_true(), true);
-    assert_eq!(Value::from(0).is_true(), false);
-    assert_eq!(Value::from(-1).is_true(), true);
+    assert_eq!(Value::from(1).to_boolean(), true);
+    assert_eq!(Value::from(0).to_boolean(), false);
+    assert_eq!(Value::from(-1).to_boolean(), true);
 }
 
 #[test]
 fn check_number_is_true() {
-    assert_eq!(Value::from(1.0).is_true(), true);
-    assert_eq!(Value::from(0.1).is_true(), true);
-    assert_eq!(Value::from(0.0).is_true(), false);
-    assert_eq!(Value::from(-0.0).is_true(), false);
-    assert_eq!(Value::from(-1.0).is_true(), true);
-    assert_eq!(Value::from(NAN).is_true(), false);
+    assert_eq!(Value::from(1.0).to_boolean(), true);
+    assert_eq!(Value::from(0.1).to_boolean(), true);
+    assert_eq!(Value::from(0.0).to_boolean(), false);
+    assert_eq!(Value::from(-0.0).to_boolean(), false);
+    assert_eq!(Value::from(-1.0).to_boolean(), true);
+    assert_eq!(Value::from(NAN).to_boolean(), false);
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness

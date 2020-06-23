@@ -50,10 +50,10 @@ fn constructor_gives_true_instance() {
     assert_eq!(true_bool.is_object(), true);
 
     // Values should all be truthy
-    assert_eq!(true_val.is_true(), true);
-    assert_eq!(true_num.is_true(), true);
-    assert_eq!(true_string.is_true(), true);
-    assert_eq!(true_bool.is_true(), true);
+    assert_eq!(true_val.to_boolean(), true);
+    assert_eq!(true_num.to_boolean(), true);
+    assert_eq!(true_string.to_boolean(), true);
+    assert_eq!(true_bool.to_boolean(), true);
 }
 
 #[test]

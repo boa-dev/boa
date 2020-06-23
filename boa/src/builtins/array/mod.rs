@@ -514,8 +514,8 @@ impl Array {
         while i < len {
             let element = this.get_field(i.to_string());
             let arguments = [element, Value::from(i), this.clone()];
-            let result = interpreter.call(callback, &this_arg, &arguments)?.is_true();
-            if !result {
+            let result = interpreter.call(callback, &this_arg, &arguments)?;
+            if !result.to_boolean() {
                 return Ok(Value::from(false));
             }
             len = min(max_len, i32::from(&this.get_field("length")));
@@ -695,7 +695,7 @@ impl Array {
             let element = this.get_field(i.to_string());
             let arguments = [element.clone(), Value::from(i), this.clone()];
             let result = interpreter.call(callback, &this_arg, &arguments)?;
-            if result.is_true() {
+            if result.to_boolean() {
                 return Ok(element);
             }
         }
@@ -737,7 +737,7 @@ impl Array {
 
             let result = interpreter.call(predicate_arg, &this_arg, &arguments)?;
 
-            if result.is_true() {
+            if result.to_boolean() {
                 return Ok(Value::rational(f64::from(i)));
             }
         }
@@ -902,7 +902,7 @@ impl Array {
                     .call(&callback, &this_val, &args)
                     .unwrap_or_else(|_| Value::undefined());
 
-                if callback_result.is_true() {
+                if callback_result.to_boolean() {
                     Some(element)
                 } else {
                     None
@@ -946,8 +946,8 @@ impl Array {
         while i < len {
             let element = this.get_field(i.to_string());
             let arguments = [element, Value::from(i), this.clone()];
-            let result = interpreter.call(callback, &this_arg, &arguments)?.is_true();
-            if result {
+            let result = interpreter.call(callback, &this_arg, &arguments)?;
+            if result.to_boolean() {
                 return Ok(Value::from(true));
             }
             // the length of the array must be updated because the callback can mutate it.
