@@ -11,7 +11,7 @@
 
 use std::ops::Deref;
 
-use regex::Regex;
+use regress::Regex;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
@@ -307,9 +307,9 @@ impl RegExp {
         let arg_str = ctx.to_string(args.get(0).expect("could not get argument"))?;
         let mut last_index = usize::from(&this.get_field("lastIndex"));
         let result = this.with_internal_state_ref(|regex: &RegExp| {
-            let result = if let Some(m) = regex.matcher.find_at(arg_str.as_str(), last_index) {
+            let result = if let Some(m) = regex.matcher.find(arg_str.as_str()) {
                 if regex.use_last_index {
-                    last_index = m.end();
+                    last_index = m.total_range.end;
                 }
                 true
             } else {
@@ -340,7 +340,7 @@ impl RegExp {
         let arg_str = ctx.to_string(args.get(0).expect("could not get argument"))?;
         let mut last_index = usize::from(&this.get_field("lastIndex"));
         let result = this.with_internal_state_ref(|regex: &RegExp| {
-            let mut locations = regex.matcher.capture_locations();
+            let mut locations = regex.matcher;
             let result = if let Some(m) =
                 regex
                     .matcher
@@ -447,8 +447,10 @@ impl RegExp {
 
                     let match_val = Value::from(match_vec);
 
-                    match_val
-                        .set_property("index", Property::default().value(Value::from(m.start())));
+                    match_val.set_property(
+                        "index",
+                        Property::default().value(Value::from(m.total_range.start)),
+                    );
                     match_val.set_property(
                         "input",
                         Property::default().value(Value::from(arg_str.clone())),
