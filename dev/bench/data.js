@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1592888699364,
+  "lastUpdate": 1592894201042,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -14865,6 +14865,198 @@ window.BENCHMARK_DATA = {
             "name": "Long file (Parser)",
             "value": 5.9119,
             "range": "+/- 0.041",
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "HalidOdat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8f8498eac17164c8de2f599bd0b7ba2e8053ec30",
+          "message": "`Value` refactor (#498)\n\n- Refactor `String` => `Rc<str>`\r\n - Refactor `Symbol` => `Rc<Symbol>`\r\n - Refactor `BigInt` => `RcBigInt`\r\n - Changed function signature, from `&mut Value` to `&Value`\r\n - Removed `Interpreter::value_to_rust_number()\r\n - Abstracted `Gc<GcCell<Object>>` to `GcObject`\r\n - Removed unnecessary `Box`s in global environment\r\n - Extracted `extensible` from internal slots\r\n - Made `to_primitive` throw errors\r\n - Removed `strict` parameter in `SameValue` function.\r\n - The `SameValue` function is not dependent on strict mode.",
+          "timestamp": "2020-06-23T08:22:15+02:00",
+          "tree_id": "7b4b0685ae06e32f4a0f027349f16d901bc420d6",
+          "url": "https://github.com/boa-dev/boa/commit/8f8498eac17164c8de2f599bd0b7ba2e8053ec30"
+        },
+        "date": 1592894195146,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 129.85,
+            "range": "+/- 2.610",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4.0202,
+            "range": "+/- 0.098",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 22.803,
+            "range": "+/- 0.655",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 987.71,
+            "range": "+/- 16.280",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 13.462,
+            "range": "+/- 0.313",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 3.7705,
+            "range": "+/- 0.049",
+            "unit": "ms"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1.4108,
+            "range": "+/- 0.032",
+            "unit": "ms"
+          },
+          {
+            "name": "",
+            "value": 6.0952,
+            "range": "+/- 0.148",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 6.1291,
+            "range": "+/- 0.162",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 6.809,
+            "range": "+/- 0.138",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 71.031,
+            "range": "+/- 1.707",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 71.51,
+            "range": "+/- 1.631",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 75.473,
+            "range": "+/- 2.118",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Execution) #2",
+            "value": 76.419,
+            "range": "+/- 2.754",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 5.5962,
+            "range": "+/- 0.132",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 6.6522,
+            "range": "+/- 0.123",
+            "unit": "us"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 4.3323,
+            "range": "+/- 0.082",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 3.98,
+            "range": "+/- 0.080",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 5.3113,
+            "range": "+/- 0.168",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 9.04,
+            "range": "+/- 0.251",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 552.25,
+            "range": "+/- 13.110",
+            "unit": "ns"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.0655,
+            "range": "+/- 0.058",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 958.32,
+            "range": "+/- 23.470",
+            "unit": "ns"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.2927,
+            "range": "+/- 0.175",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 4.8901,
+            "range": "+/- 0.138",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.0822,
+            "range": "+/- 0.071",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13.253,
+            "range": "+/- 0.403",
+            "unit": "us"
+          },
+          {
+            "name": "Long file (Parser)",
+            "value": 5.9762,
+            "range": "+/- 0.100",
             "unit": "ms"
           }
         ]
