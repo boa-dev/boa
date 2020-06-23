@@ -424,7 +424,7 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-toobject
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
-    match value {
+        match value {
             Value::Undefined | Value::Null => {
                 self.throw_type_error("cannot convert 'null' or 'undefined' to object")
             }
