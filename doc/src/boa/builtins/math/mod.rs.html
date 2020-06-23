@@ -507,68 +507,6 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
@@ -612,11 +550,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.abs</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">abs</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">abs</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">abs</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the arccos of a number.</span>
@@ -628,11 +562,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.acos</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acos</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">acos</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">acos</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the hyperbolic arccos of a number.</span>
@@ -644,11 +574,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.acosh</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">acosh</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">acosh</span>())
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the arcsine of a number.</span>
@@ -660,11 +589,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.asin</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">asin</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">asin</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">asin</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the hyperbolic arcsine of a number.</span>
@@ -676,11 +601,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.asinh</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">asinh</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">asinh</span>())
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the arctangent of a number.</span>
@@ -692,11 +616,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.atan</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">atan</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">atan</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">atan</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the hyperbolic arctangent of a number.</span>
@@ -708,11 +628,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.atanh</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">atanh</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">atanh</span>())
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the arctangent of a numbers.</span>
@@ -741,11 +660,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.cbrt</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">cbrt</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">cbrt</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get lowest integer above a number.</span>
@@ -757,11 +672,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.ceil</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">ceil</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">ceil</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the cosine of a number.</span>
@@ -773,11 +684,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.cos</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cos</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">cos</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">cos</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the hyperbolic cosine of a number.</span>
@@ -789,11 +696,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.cosh</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">cosh</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">cosh</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the power to raise the natural logarithm to get the number.</span>
@@ -805,11 +708,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.exp</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">exp</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">exp</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">exp</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the highest integer below a number.</span>
@@ -821,11 +720,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.floor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">floor</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">floor</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">floor</span>())
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the natural logarithm of a number.</span>
@@ -967,11 +865,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.round</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">round</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">round</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">round</span>())
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the sign of a number.</span>
@@ -1005,11 +902,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sin</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sin</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">sin</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">sin</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the hyperbolic sine of a number.</span>
@@ -1021,11 +914,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sinh</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">sinh</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">sinh</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the square root of a number.</span>
@@ -1037,19 +926,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sqrt</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">sqrt</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">sqrt</span>()).<span class="ident">into</span>())
     }
     <span class="doccomment">/// Get the tangent of a number</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">tan</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">tan</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">tan</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the hyperbolic tangent of a number.</span>
@@ -1061,11 +942,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.tanh</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">tanh</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">tanh</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the integer part of a number.</span>
@@ -1077,11 +954,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.trunc</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)).<span class="ident">trunc</span>()
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>).<span class="ident">trunc</span>())
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Create a new `Math` object</span>
