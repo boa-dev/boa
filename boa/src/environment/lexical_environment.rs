@@ -212,11 +212,10 @@ impl LexicalEnvironment {
             .any(|env| env.borrow().has_binding(name))
     }
 
-    pub fn get_binding_value(&self, name: &str) -> Value {
+    pub fn get_binding_value(&self, name: &str) -> Option<Value> {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or_else(Value::undefined)
     }
 }
 
@@ -261,7 +260,7 @@ pub fn new_object_environment(object: Value, environment: Option<Environment>) -
 }
 
 pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
-    let obj_rec = Box::new(ObjectEnvironmentRecord {
+    let obj_rec = ObjectEnvironmentRecord {
         bindings: global,
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
@@ -270,12 +269,12 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         /// with each object Environment Record. By default, the value of withEnvironment is false
         /// for any object Environment Record.
         with_environment: false,
-    });
+    };
 
-    let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
+    let dcl_rec = DeclarativeEnvironmentRecord {
         env_rec: FxHashMap::default(),
         outer_env: None,
-    });
+    };
 
     Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
         object_record: obj_rec,
@@ -295,10 +294,15 @@ mod tests {
           {
             let bar = "bar";
           }
-          bar == undefined;
+
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
 
-        assert_eq!(&exec(scenario), "true");
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]
@@ -307,10 +311,15 @@ mod tests {
           {
             const bar = "bar";
           }
-          bar == undefined;
+
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
 
-        assert_eq!(&exec(scenario), "true");
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]

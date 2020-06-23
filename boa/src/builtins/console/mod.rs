@@ -20,7 +20,7 @@ use crate::{
     builtins::{
         function::make_builtin_fn,
         object::InternalState,
-        value::{display_obj, ResultValue, Value},
+        value::{display_obj, RcString, ResultValue, Value},
     },
     exec::Interpreter,
     BoaProfiler,
@@ -31,8 +31,8 @@ use std::time::SystemTime;
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub struct ConsoleState {
-    count_map: FxHashMap<String, u32>,
-    timer_map: FxHashMap<String, u128>,
+    count_map: FxHashMap<RcString, u32>,
+    timer_map: FxHashMap<RcString, u128>,
     groups: Vec<String>,
 }
 
@@ -74,7 +74,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
     let target = ctx.to_string(&data.get(0).cloned().unwrap_or_default())?;
     match data.len() {
         0 => Ok(String::new()),
-        1 => Ok(target),
+        1 => Ok(target.to_string()),
         _ => {
             let mut formatted = String::new();
             let mut arg_index = 1;
@@ -141,7 +141,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
 ///
 /// [spec]: https://console.spec.whatwg.org/#assert
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
-pub fn assert(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn assert(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
     if !assertion {
@@ -175,7 +175,7 @@ pub fn assert(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Result
 ///
 /// [spec]: https://console.spec.whatwg.org/#clear
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
-pub fn clear(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.groups.clear();
     });
@@ -193,7 +193,7 @@ pub fn clear(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://console.spec.whatwg.org/#debug
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
-pub fn debug(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn debug(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref::<_, Result<(), Value>, _>(|state| {
         logger(LogMessage::Log(formatter(args, ctx)?), state);
         Ok(())
@@ -211,7 +211,7 @@ pub fn debug(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://console.spec.whatwg.org/#error
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
-pub fn error(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref::<_, Result<(), Value>, _>(|state| {
         logger(LogMessage::Error(formatter(args, ctx)?), state);
         Ok(())
@@ -229,7 +229,7 @@ pub fn error(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://console.spec.whatwg.org/#info
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
-pub fn info(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn info(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref::<_, Result<(), Value>, _>(|state| {
         logger(LogMessage::Info(formatter(args, ctx)?), state);
         Ok(())
@@ -247,7 +247,7 @@ pub fn info(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://console.spec.whatwg.org/#log
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
-pub fn log(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn log(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref::<_, Result<(), Value>, _>(|state| {
         logger(LogMessage::Log(formatter(args, ctx)?), state);
         Ok(())
@@ -265,7 +265,7 @@ pub fn log(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultVal
 ///
 /// [spec]: https://console.spec.whatwg.org/#trace
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
-pub fn trace(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn trace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     if !args.is_empty() {
         this.with_internal_state_ref::<_, Result<(), Value>, _>(|state| {
             logger(LogMessage::Log(formatter(args, ctx)?), state);
@@ -294,7 +294,7 @@ pub fn trace(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://console.spec.whatwg.org/#warn
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
-pub fn warn(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn warn(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     this.with_internal_state_ref::<_, Result<(), Value>, _>(|state| {
         logger(LogMessage::Warn(formatter(args, ctx)?), state);
         Ok(())
@@ -312,10 +312,10 @@ pub fn warn(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://console.spec.whatwg.org/#count
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
-pub fn count(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn count(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let label = match args.get(0) {
         Some(value) => ctx.to_string(value)?,
-        None => "default".to_owned(),
+        None => "default".into(),
     };
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -339,10 +339,10 @@ pub fn count(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://console.spec.whatwg.org/#countreset
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
-pub fn count_reset(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn count_reset(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let label = match args.get(0) {
         Some(value) => ctx.to_string(value)?,
-        None => "default".to_owned(),
+        None => "default".into(),
     };
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -372,10 +372,10 @@ fn system_time_in_ms() -> u128 {
 ///
 /// [spec]: https://console.spec.whatwg.org/#time
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
-pub fn time(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn time(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let label = match args.get(0) {
         Some(value) => ctx.to_string(value)?,
-        None => "default".to_owned(),
+        None => "default".into(),
     };
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -403,10 +403,10 @@ pub fn time(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://console.spec.whatwg.org/#timelog
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
-pub fn time_log(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn time_log(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let label = match args.get(0) {
         Some(value) => ctx.to_string(value)?,
-        None => "default".to_owned(),
+        None => "default".into(),
     };
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -438,14 +438,14 @@ pub fn time_log(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 ///
 /// [spec]: https://console.spec.whatwg.org/#timeend
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
-pub fn time_end(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn time_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let label = match args.get(0) {
         Some(value) => ctx.to_string(value)?,
-        None => "default".to_owned(),
+        None => "default".into(),
     };
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
-        if let Some(t) = state.timer_map.remove(&label) {
+        if let Some(t) = state.timer_map.remove(label.as_str()) {
             let time = system_time_in_ms();
             logger(
                 LogMessage::Info(format!("{}: {} ms - timer removed", label, time - t)),
@@ -472,7 +472,7 @@ pub fn time_end(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 ///
 /// [spec]: https://console.spec.whatwg.org/#group
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
-pub fn group(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn group(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let group_label = formatter(args, ctx)?;
 
     this.with_internal_state_mut(|state: &mut ConsoleState| {
@@ -493,7 +493,7 @@ pub fn group(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultV
 ///
 /// [spec]: https://console.spec.whatwg.org/#groupend
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
-pub fn group_end(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn group_end(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         state.groups.pop();
     });
@@ -511,7 +511,7 @@ pub fn group_end(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://console.spec.whatwg.org/#dir
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
-pub fn dir(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn dir(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     this.with_internal_state_mut(|state: &mut ConsoleState| {
         let undefined = Value::undefined();
         logger(

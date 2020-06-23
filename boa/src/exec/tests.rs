@@ -10,16 +10,6 @@ fn function_declaration_returns_undefined() {
 }
 
 #[test]
-fn empty_var_decl_undefined() {
-    let scenario = r#"
-        let b;
-        b === undefined;
-        "#;
-
-    assert_eq!(&exec(scenario), "true");
-}
-
-#[test]
 fn property_accessor_member_expression_dot_notation_on_string_literal() {
     let scenario = r#"
         typeof 'asd'.matchAll;
@@ -61,7 +51,7 @@ fn property_accessor_member_expression_bracket_notation_on_function() {
 fn empty_let_decl_undefined() {
     let scenario = r#"
         let a;
-        a == undefined;
+        a === undefined;
         "#;
 
     assert_eq!(&exec(scenario), "true");
@@ -76,6 +66,29 @@ fn semicolon_expression_stop() {
         "#;
 
     assert_eq!(&exec(scenario), "1");
+}
+
+#[test]
+fn empty_var_decl_undefined() {
+    let scenario = r#"
+        let b;
+        b === undefined;
+        "#;
+
+    assert_eq!(&exec(scenario), "true");
+}
+
+#[test]
+fn identifier_on_global_object_undefined() {
+    let scenario = r#"
+        try {
+            bar;
+        } catch (err) {
+            err.message
+        }
+        "#;
+
+    assert_eq!(&exec(scenario), "bar is not defined");
 }
 
 #[test]
@@ -342,7 +355,7 @@ fn do_while_post_inc() {
 }
 
 #[test]
-fn test_for_loop() {
+fn for_loop() {
     let simple = r#"
         const a = ['h', 'e', 'l', 'l', 'o'];
         let b = '';
@@ -374,13 +387,21 @@ fn test_for_loop() {
         a
         "#;
     assert_eq!(&exec(body_should_not_execute_on_false_condition), "0");
+}
 
+#[test]
+fn for_loop_iteration_variable_does_not_leak() {
     let inner_scope = r#"
         for (let i = 0;false;) {}
 
-        i
+        try {
+            i
+        } catch (err) {
+            err.message
+        }
         "#;
-    assert_eq!(&exec(inner_scope), "undefined");
+
+    assert_eq!(&exec(inner_scope), "i is not defined");
 }
 
 #[test]
@@ -427,55 +448,87 @@ fn unary_pre() {
 }
 
 #[test]
-fn unary_typeof() {
+fn typeof_string() {
     let typeof_string = r#"
         const a = String();
         typeof a;
     "#;
     assert_eq!(&exec(typeof_string), "string");
+}
 
+#[test]
+fn typeof_int() {
     let typeof_int = r#"
         let a = 5;
         typeof a;
     "#;
     assert_eq!(&exec(typeof_int), "number");
+}
 
+#[test]
+fn typeof_rational() {
     let typeof_rational = r#"
         let a = 0.5;
         typeof a;
     "#;
     assert_eq!(&exec(typeof_rational), "number");
+}
 
+#[test]
+fn typeof_undefined() {
     let typeof_undefined = r#"
         let a = undefined;
         typeof a;
     "#;
     assert_eq!(&exec(typeof_undefined), "undefined");
+}
 
+#[test]
+fn typeof_undefined_directly() {
+    let typeof_undefined = r#"
+        typeof undefined;
+    "#;
+    assert_eq!(&exec(typeof_undefined), "undefined");
+}
+
+#[test]
+fn typeof_boolean() {
     let typeof_boolean = r#"
         let a = true;
         typeof a;
     "#;
     assert_eq!(&exec(typeof_boolean), "boolean");
+}
 
+#[test]
+fn typeof_null() {
     let typeof_null = r#"
         let a = null;
         typeof a;
     "#;
     assert_eq!(&exec(typeof_null), "object");
+}
 
+#[test]
+fn typeof_object() {
     let typeof_object = r#"
         let a = {};
         typeof a;
     "#;
     assert_eq!(&exec(typeof_object), "object");
+}
 
+#[test]
+fn typeof_symbol() {
     let typeof_symbol = r#"
         let a = Symbol();
         typeof a;
     "#;
     assert_eq!(&exec(typeof_symbol), "symbol");
+}
 
+#[test]
+fn typeof_function() {
     let typeof_function = r#"
         let a = function(){};
         typeof a;
@@ -708,7 +761,7 @@ mod in_operator {
 }
 
 #[test]
-fn var_decl_hoisting() {
+fn var_decl_hoisting_simple() {
     let scenario = r#"
         x = 5;
 
@@ -716,7 +769,10 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "5");
+}
 
+#[test]
+fn var_decl_hoisting_with_initialization() {
     let scenario = r#"
         x = 5;
 
@@ -724,7 +780,11 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "10");
+}
 
+#[test]
+#[ignore]
+fn var_decl_hoisting_2_variables_hoisting() {
     let scenario = r#"
         x = y;
 
@@ -734,7 +794,11 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "10");
+}
 
+#[test]
+#[ignore]
+fn var_decl_hoisting_2_variables_hoisting_2() {
     let scenario = r#"
         var x = y;
 
@@ -742,7 +806,11 @@ fn var_decl_hoisting() {
         x;
     "#;
     assert_eq!(&exec(scenario), "undefined");
+}
 
+#[test]
+#[ignore]
+fn var_decl_hoisting_2_variables_hoisting_3() {
     let scenario = r#"
         let y = x;
         x = 5;
@@ -843,4 +911,31 @@ fn to_string() {
     assert_eq!(engine.to_string(&Value::integer(55)).unwrap(), "55");
     assert_eq!(engine.to_string(&Value::rational(55.0)).unwrap(), "55");
     assert_eq!(engine.to_string(&Value::string("hello")).unwrap(), "hello");
+}
+
+#[test]
+fn calling_function_with_unspecified_arguments() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let scenario = r#"
+        function test(a, b) {
+            return b;
+        }
+
+        test(10)
+    "#;
+
+    assert_eq!(forward(&mut engine, scenario), "undefined");
+}
+
+#[test]
+fn to_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert!(engine
+        .to_object(&Value::undefined())
+        .unwrap_err()
+        .is_object());
+    assert!(engine.to_object(&Value::null()).unwrap_err().is_object());
 }

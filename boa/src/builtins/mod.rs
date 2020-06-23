@@ -17,13 +17,14 @@ pub mod property;
 pub mod regexp;
 pub mod string;
 pub mod symbol;
+pub mod undefined;
 pub mod value;
 
 pub(crate) use self::{
     array::Array,
     bigint::BigInt,
     boolean::Boolean,
-    error::{Error, RangeError, TypeError},
+    error::{Error, RangeError, ReferenceError, TypeError},
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
@@ -33,38 +34,46 @@ pub(crate) use self::{
     regexp::RegExp,
     string::String,
     symbol::Symbol,
+    undefined::Undefined,
     value::{ResultValue, Value},
 };
 
 /// Initializes builtin objects and functions
 #[inline]
 pub fn init(global: &Value) {
-    let globals = vec![
+    let globals = [
         // The `Function` global must be initialized before other types.
-        function::init(global),
-        Array::init(global),
-        BigInt::init(global),
-        Boolean::init(global),
-        Json::init(global),
-        Math::init(global),
-        Number::init(global),
-        object::init(global),
-        RegExp::init(global),
-        String::init(global),
-        Symbol::init(global),
-        console::init(global),
+        function::init,
+        object::init,
+        Array::init,
+        BigInt::init,
+        Boolean::init,
+        Json::init,
+        Math::init,
+        Number::init,
+        RegExp::init,
+        String::init,
+        Symbol::init,
+        console::init,
         // Global error types.
-        Error::init(global),
-        RangeError::init(global),
-        TypeError::init(global),
+        Error::init,
+        RangeError::init,
+        ReferenceError::init,
+        TypeError::init,
         // Global properties.
-        NaN::init(global),
-        Infinity::init(global),
-        GlobalThis::init(global),
+        NaN::init,
+        Infinity::init,
+        GlobalThis::init,
+        Undefined::init,
     ];
 
-    let mut global_object = global.as_object_mut().expect("global object");
-    for (name, value) in globals {
-        global_object.insert_field(name, value);
+    match global {
+        Value::Object(ref global_object) => {
+            for init in &globals {
+                let (name, value) = init(global);
+                global_object.borrow_mut().insert_field(name, value);
+            }
+        }
+        _ => unreachable!("expect global object"),
     }
 }

@@ -1,19 +1,13 @@
-//! This module implements the global `TypeError` object.
+//! This module implements the global `ReferenceError` object.
 //!
-//! The `TypeError` object represents an error when an operation could not be performed,
-//! typically (but not exclusively) when a value is not of the expected type.
-//!
-//! A `TypeError` may be thrown when:
-//!  - an operand or argument passed to a function is incompatible with the type expected by that operator or function.
-//!  - when attempting to modify a value that cannot be changed.
-//!  - when attempting to use a value in an inappropriate way.
+//! Indicates an error that occurs when de-referencing an invalid reference
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
+//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-referenceerror
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError
 
 use crate::{
     builtins::{
@@ -23,16 +17,15 @@ use crate::{
         value::{ResultValue, Value},
     },
     exec::Interpreter,
-    BoaProfiler,
+    profiler::BoaProfiler,
 };
 
-/// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct TypeError;
+pub(crate) struct ReferenceError;
 
-impl TypeError {
+impl ReferenceError {
     /// The name of the object.
-    pub(crate) const NAME: &'static str = "TypeError";
+    pub(crate) const NAME: &'static str = "ReferenceError";
 
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
@@ -49,7 +42,6 @@ impl TypeError {
                 ),
             );
         }
-
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Error);
@@ -73,7 +65,7 @@ impl TypeError {
         Ok(Value::from(format!("{}: {}", name, message)))
     }
 
-    /// Create a new `RangeError` object.
+    /// Create a new `ReferenceError` object.
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
         prototype.set_field("message", Value::from(""));
@@ -90,8 +82,7 @@ impl TypeError {
         )
     }
 
-    /// Initialise the global object with the `RangeError` object.
-    #[inline]
+    /// Initialise the global object with the `ReferenceError` object.
     pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
