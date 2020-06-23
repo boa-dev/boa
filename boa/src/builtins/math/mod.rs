@@ -64,7 +64,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
     pub(crate) fn acosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).acosh()).into())
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).acosh())
+            .into())
     }
 
     /// Get the arcsine of a number.
@@ -88,7 +91,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
     pub(crate) fn asinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).asinh()).into())
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).asinh())
+            .into())
     }
 
     /// Get the arctangent of a number.
@@ -112,7 +118,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
     pub(crate) fn atanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).atanh()).into())
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).atanh())
+            .into())
     }
 
     /// Get the arctangent of a numbers.
@@ -201,7 +210,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.floor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
     pub(crate) fn floor(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).floor()).into())
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).floor())
+            .into())
     }
 
     /// Get the natural logarithm of a number.
@@ -343,7 +355,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
     pub(crate) fn round(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).round()).into())
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).round())
+            .into())
     }
 
     /// Get the sign of a number.
@@ -429,7 +444,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.trunc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
     pub(crate) fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).trunc()).into())
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).trunc())
+            .into())
     }
 
     /// Create a new `Math` object
