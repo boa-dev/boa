@@ -927,3 +927,15 @@ fn calling_function_with_unspecified_arguments() {
 
     assert_eq!(forward(&mut engine, scenario), "undefined");
 }
+
+#[test]
+fn to_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert!(engine
+        .to_object(&Value::undefined())
+        .unwrap_err()
+        .is_object());
+    assert!(engine.to_object(&Value::null()).unwrap_err().is_object());
+}
