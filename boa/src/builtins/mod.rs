@@ -35,7 +35,7 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     undefined::Undefined,
-    value::{ResultValue, Value, ValueData},
+    value::{ResultValue, Value},
 };
 
 /// Initializes builtin objects and functions
@@ -67,8 +67,8 @@ pub fn init(global: &Value) {
         Undefined::init,
     ];
 
-    match global.data() {
-        ValueData::Object(ref global_object) => {
+    match global {
+        Value::Object(ref global_object) => {
             for init in &globals {
                 let (name, value) = init(global);
                 global_object.borrow_mut().insert_field(name, value);

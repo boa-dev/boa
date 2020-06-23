@@ -260,7 +260,7 @@ pub fn new_object_environment(object: Value, environment: Option<Environment>) -
 }
 
 pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
-    let obj_rec = Box::new(ObjectEnvironmentRecord {
+    let obj_rec = ObjectEnvironmentRecord {
         bindings: global,
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
@@ -269,12 +269,12 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         /// with each object Environment Record. By default, the value of withEnvironment is false
         /// for any object Environment Record.
         with_environment: false,
-    });
+    };
 
-    let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
+    let dcl_rec = DeclarativeEnvironmentRecord {
         env_rec: FxHashMap::default(),
         outer_env: None,
-    });
+    };
 
     Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
         object_record: obj_rec,
@@ -311,7 +311,7 @@ mod tests {
           {
             const bar = "bar";
           }
-          
+
           try{
             bar;
           } catch (err) {

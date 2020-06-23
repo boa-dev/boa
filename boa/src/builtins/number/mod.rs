@@ -21,7 +21,7 @@ use super::{
     object::ObjectData,
 };
 use crate::{
-    builtins::value::{ResultValue, Value, ValueData},
+    builtins::value::{ResultValue, Value},
     exec::Interpreter,
     BoaProfiler,
 };
@@ -57,10 +57,10 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
     fn this_number_value(value: &Value, ctx: &mut Interpreter) -> Result<f64, Value> {
-        match *value.data() {
-            ValueData::Integer(integer) => return Ok(f64::from(integer)),
-            ValueData::Rational(rational) => return Ok(rational),
-            ValueData::Object(ref object) => {
+        match *value {
+            Value::Integer(integer) => return Ok(f64::from(integer)),
+            Value::Rational(rational) => return Ok(rational),
+            Value::Object(ref object) => {
                 if let Some(number) = object.borrow().as_number() {
                     return Ok(number);
                 }
@@ -83,11 +83,7 @@ impl Number {
     /// `[[Construct]]` - Creates a Number instance
     ///
     /// `[[Call]]` - Creates a number primitive
-    pub(crate) fn make_number(
-        this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn make_number(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
             Some(ref value) => ctx.to_numeric_number(value)?,
             None => 0.0,
@@ -109,7 +105,7 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_exponential(
-        this: &mut Value,
+        this: &Value,
         _args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
@@ -129,7 +125,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_fixed(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let this_num = Self::this_number_value(this, ctx)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer() {
@@ -157,7 +153,7 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_locale_string(
-        this: &mut Value,
+        this: &Value,
         _args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
@@ -177,11 +173,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_precision(
-        this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn to_precision(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let this_num = Self::this_number_value(this, ctx)?;
         let _num_str_len = format!("{}", this_num).len();
         let _precision = match args.get(0) {
@@ -345,11 +337,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, ctx)?;
 
@@ -402,11 +390,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(
-        this: &mut Value,
-        _args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(Value::from(Self::this_number_value(this, ctx)?))
     }
 
@@ -424,14 +408,10 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(
-        _this: &mut Value,
-        args: &[Value],
-        _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn parse_int(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
         if let (Some(val), r) = (args.get(0), args.get(1)) {
             let mut radix = if let Some(rx) = r {
-                if let ValueData::Integer(i) = rx.data() {
+                if let Value::Integer(i) = rx {
                     *i as u32
                 } else {
                     // Handling a second argument that isn't an integer but was provided so cannot be defaulted.
@@ -442,8 +422,8 @@ impl Number {
                 0
             };
 
-            match val.data() {
-                ValueData::String(s) => {
+            match val {
+                Value::String(s) => {
                     // Attempt to infer radix from given string.
 
                     if radix == 0 {
@@ -466,8 +446,8 @@ impl Number {
                         Ok(Value::from(f64::NAN))
                     }
                 }
-                ValueData::Integer(i) => Ok(Value::integer(*i)),
-                ValueData::Rational(f) => Ok(Value::integer(*f as i32)),
+                Value::Integer(i) => Ok(Value::integer(*i)),
+                Value::Rational(f) => Ok(Value::integer(*f as i32)),
                 _ => {
                     // Wrong argument type to parseInt.
                     Ok(Value::from(f64::NAN))
@@ -495,13 +475,13 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
     pub(crate) fn parse_float(
-        _this: &mut Value,
+        _this: &Value,
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
         if let Some(val) = args.get(0) {
-            match val.data() {
-                ValueData::String(s) => {
+            match val {
+                Value::String(s) => {
                     if let Ok(i) = s.parse::<i32>() {
                         // Attempt to parse an integer first so that it can be stored as an integer
                         // to improve performance
@@ -513,8 +493,8 @@ impl Number {
                         Ok(Value::from(f64::NAN))
                     }
                 }
-                ValueData::Integer(i) => Ok(Value::integer(*i)),
-                ValueData::Rational(f) => Ok(Value::rational(*f)),
+                Value::Integer(i) => Ok(Value::integer(*i)),
+                Value::Rational(f) => Ok(Value::rational(*f)),
                 _ => {
                     // Wrong argument type to parseFloat.
                     Ok(Value::from(f64::NAN))

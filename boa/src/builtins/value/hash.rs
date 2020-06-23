@@ -38,17 +38,16 @@ impl Hash for RationalHashable {
 
 impl Hash for Value {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let data = self.data();
-        match data {
-            ValueData::Undefined => UndefinedHashable.hash(state),
-            ValueData::Null => NullHashable.hash(state),
-            ValueData::String(ref string) => string.hash(state),
-            ValueData::Boolean(boolean) => boolean.hash(state),
-            ValueData::Integer(integer) => integer.hash(state),
-            ValueData::BigInt(ref bigint) => bigint.hash(state),
-            ValueData::Rational(rational) => RationalHashable(*rational).hash(state),
-            ValueData::Symbol(ref symbol) => Hash::hash(symbol, state),
-            ValueData::Object(_) => std::ptr::hash(data, state),
+        match self {
+            Self::Undefined => UndefinedHashable.hash(state),
+            Self::Null => NullHashable.hash(state),
+            Self::String(ref string) => string.hash(state),
+            Self::Boolean(boolean) => boolean.hash(state),
+            Self::Integer(integer) => integer.hash(state),
+            Self::BigInt(ref bigint) => bigint.hash(state),
+            Self::Rational(rational) => RationalHashable(*rational).hash(state),
+            Self::Symbol(ref symbol) => Hash::hash(symbol, state),
+            Self::Object(ref object) => std::ptr::hash(object.as_ref(), state),
         }
     }
 }

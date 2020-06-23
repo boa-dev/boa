@@ -12,7 +12,6 @@ use crate::{
     },
     BoaProfiler,
 };
-use std::borrow::BorrowMut;
 
 impl Executable for Assign {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
@@ -78,11 +77,11 @@ impl Executable for BinOp {
                 })
             }
             op::BinOp::Comp(op) => {
-                let mut v_a = self.lhs().run(interpreter)?;
-                let mut v_b = self.rhs().run(interpreter)?;
+                let v_a = self.lhs().run(interpreter)?;
+                let v_b = self.rhs().run(interpreter)?;
                 Ok(Value::from(match op {
-                    CompOp::Equal => v_a.equals(v_b.borrow_mut(), interpreter),
-                    CompOp::NotEqual => !v_a.equals(v_b.borrow_mut(), interpreter),
+                    CompOp::Equal => v_a.equals(&v_b, interpreter)?,
+                    CompOp::NotEqual => !v_a.equals(&v_b, interpreter)?,
                     CompOp::StrictEqual => v_a.strict_equals(&v_b),
                     CompOp::StrictNotEqual => !v_a.strict_equals(&v_b),
                     CompOp::GreaterThan => v_a.to_number() > v_b.to_number(),
@@ -96,8 +95,8 @@ impl Executable for BinOp {
                                 v_b.get_type().as_str()
                             ));
                         }
-                        let key = interpreter.to_property_key(&mut v_a)?;
-                        interpreter.has_property(&mut v_b, &key)
+                        let key = interpreter.to_property_key(&v_a)?;
+                        interpreter.has_property(&v_b, &key)
                     }
                 }))
             }
