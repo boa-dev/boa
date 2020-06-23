@@ -193,23 +193,8 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Value</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>(), <span class="ident">f</span>)
-    }
-}
 
 <span class="doccomment">/// A helper macro for printing objects</span>
 <span class="doccomment">/// Can be used to print both properties and internal slots</span>
@@ -269,10 +254,10 @@
     };
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">ValueData</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">x</span> {
         <span class="comment">// We don&#39;t want to print private (compiler) or prototype properties</span>
-        <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on</span>
             <span class="comment">// which type of Object it represents for special printing</span>
             <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">data</span> {
@@ -300,7 +285,7 @@
                             <span class="ident">log_string_from</span>(
                                 <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">borrow</span>()
                                     .<span class="ident">properties</span>()
-                                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">to_string</span>())
+                                    .<span class="ident">get</span>(<span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>())
                                     .<span class="ident">unwrap</span>()
                                     .<span class="ident">value</span>
                                     .<span class="ident">clone</span>()
@@ -316,16 +301,13 @@
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_obj</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="ident">print_internals</span>),
             }
         }
-        <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">desc</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Symbol()&quot;</span>),
-        },
+        <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">symbol</span>.<span class="ident">to_string</span>(),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>),
     }
 }
 
 <span class="doccomment">/// A helper function for specifically printing object values</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_obj</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">ValueData</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">display_obj</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="comment">// A simple helper for getting the address of a value</span>
     <span class="comment">// TODO: Find a more general place for this, as it can be used in other situations as well</span>
     <span class="kw">fn</span> <span class="ident">address_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
@@ -338,12 +320,12 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encounters</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
 
     <span class="kw">fn</span> <span class="ident">display_obj_internal</span>(
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">ValueData</span>,
+        <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">encounters</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">indent</span>: <span class="ident">usize</span>,
         <span class="ident">print_internals</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span> {
             <span class="comment">// The in-memory address of the current object</span>
             <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">address_of</span>(<span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">deref</span>());
 
@@ -380,7 +362,7 @@
     <span class="ident">display_obj_internal</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">encounters</span>, <span class="number">4</span>, <span class="ident">print_internals</span>)
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ValueData</span> {
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),

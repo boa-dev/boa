@@ -623,7 +623,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>: <span class="ident">Value</span>, <span class="ident">this_value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
-    <span class="kw">let</span> <span class="ident">obj_rec</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ObjectEnvironmentRecord</span> {
+    <span class="kw">let</span> <span class="ident">obj_rec</span> <span class="op">=</span> <span class="ident">ObjectEnvironmentRecord</span> {
         <span class="ident">bindings</span>: <span class="ident">global</span>,
         <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
         <span class="doccomment">/// Object Environment Records created for with statements (13.11)</span>
@@ -632,12 +632,12 @@
         <span class="doccomment">/// with each object Environment Record. By default, the value of withEnvironment is false</span>
         <span class="doccomment">/// for any object Environment Record.</span>
         <span class="ident">with_environment</span>: <span class="bool-val">false</span>,
-    });
+    };
 
-    <span class="kw">let</span> <span class="ident">dcl_rec</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">DeclarativeEnvironmentRecord</span> {
+    <span class="kw">let</span> <span class="ident">dcl_rec</span> <span class="op">=</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
         <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
-    });
+    };
 
     <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GlobalEnvironmentRecord</span> {
         <span class="ident">object_record</span>: <span class="ident">obj_rec</span>,
@@ -674,7 +674,7 @@
           {
             const bar = &quot;bar&quot;;
           }
-          
+
           try{
             bar;
           } catch (err) {

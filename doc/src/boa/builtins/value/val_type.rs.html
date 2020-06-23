@@ -58,7 +58,7 @@
 <span id="58">58</span>
 <span id="59">59</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">ValueData</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
 
 <span class="doccomment">/// Possible types of val as defined at https://tc39.es/ecma262/#sec-typeof-operator.</span>
@@ -92,7 +92,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ValueData</span> {
+<span class="kw">impl</span> <span class="ident">Value</span> {
     <span class="doccomment">/// Get the type of the value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of</span>

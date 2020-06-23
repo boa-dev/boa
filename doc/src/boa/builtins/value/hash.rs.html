@@ -51,7 +51,6 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
-<span id="54">54</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -93,17 +92,16 @@
 
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>();
-        <span class="kw">match</span> <span class="ident">data</span> {
-            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UndefinedHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NullHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">boolean</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">integer</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bigint</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RationalHashable</span>(<span class="kw-2">*</span><span class="ident">rational</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hash</span>::<span class="ident">hash</span>(<span class="ident">symbol</span>, <span class="ident">state</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">hash</span>(<span class="ident">data</span>, <span class="ident">state</span>),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UndefinedHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NullHashable</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">boolean</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">integer</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bigint</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RationalHashable</span>(<span class="kw-2">*</span><span class="ident">rational</span>).<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hash</span>::<span class="ident">hash</span>(<span class="ident">symbol</span>, <span class="ident">state</span>),
+            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">hash</span>(<span class="ident">object</span>.<span class="ident">as_ref</span>(), <span class="ident">state</span>),
         }
     }
 }

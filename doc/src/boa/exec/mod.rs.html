@@ -606,24 +606,6 @@
 <span id="606">606</span>
 <span id="607">607</span>
 <span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -653,7 +635,7 @@
         <span class="ident">function</span>::{<span class="ident">Function</span> <span class="kw">as</span> <span class="ident">FunctionObject</span>, <span class="ident">FunctionBody</span>, <span class="ident">ThisMode</span>},
         <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
-        <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Type</span>, <span class="ident">Value</span>, <span class="ident">ValueData</span>},
+        <span class="ident">value</span>::{<span class="ident">RcBigInt</span>, <span class="ident">RcString</span>, <span class="ident">ResultValue</span>, <span class="ident">Type</span>, <span class="ident">Value</span>},
         <span class="ident">BigInt</span>, <span class="ident">Number</span>,
     },
     <span class="ident">realm</span>::<span class="ident">Realm</span>,
@@ -664,7 +646,7 @@
     <span class="ident">BoaProfiler</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Borrow</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Executable</span> {
     <span class="doccomment">/// Runs this executable in the given executor.</span>
@@ -783,12 +765,12 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">f</span>.<span class="ident">data</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">obj</span>).<span class="ident">borrow</span>();
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">f</span> {
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ObjectData</span>::<span class="ident">Function</span>(<span class="kw-2">ref</span> <span class="ident">func</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">data</span> {
                     <span class="kw">return</span> <span class="ident">func</span>.<span class="ident">call</span>(<span class="ident">f</span>.<span class="ident">clone</span>(), <span class="ident">this</span>, <span class="ident">arguments_list</span>, <span class="self">self</span>);
                 }
@@ -800,20 +782,18 @@
 
     <span class="doccomment">/// Converts a value into a rust heap allocated string.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">data</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;null&quot;</span>.<span class="ident">to_owned</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;undefined&quot;</span>.<span class="ident">to_owned</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">boolean</span>.<span class="ident">to_string</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Number</span>::<span class="ident">to_native_string</span>(<span class="kw-2">*</span><span class="ident">rational</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">integer</span>.<span class="ident">to_string</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>))
-            }
-            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">to_string</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">PreferredType</span>::<span class="ident">String</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RcString</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="ident">Value</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcString</span>::<span class="ident">from</span>(<span class="string">&quot;null&quot;</span>)),
+            <span class="ident">Value</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcString</span>::<span class="ident">from</span>(<span class="string">&quot;undefined&quot;</span>.<span class="ident">to_owned</span>())),
+            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcString</span>::<span class="ident">from</span>(<span class="ident">boolean</span>.<span class="ident">to_string</span>())),
+            <span class="ident">Value</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcString</span>::<span class="ident">from</span>(<span class="ident">Number</span>::<span class="ident">to_native_string</span>(<span class="kw-2">*</span><span class="ident">rational</span>))),
+            <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcString</span>::<span class="ident">from</span>(<span class="ident">integer</span>.<span class="ident">to_string</span>())),
+            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
+            <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>)),
+            <span class="ident">Value</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcString</span>::<span class="ident">from</span>(<span class="ident">bigint</span>.<span class="ident">to_string</span>())),
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">String</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">primitive</span>)
             }
         }
@@ -821,33 +801,31 @@
 
     <span class="doccomment">/// Helper function.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bigint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BigInt</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">data</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bigint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RcBigInt</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="ident">Value</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>)),
+            <span class="ident">Value</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>))
             }
-            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">BigInt</span>::<span class="ident">from_string</span>(<span class="ident">string</span>, <span class="self">self</span>)<span class="question-mark">?</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">0</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">num</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcBigInt</span>::<span class="ident">from</span>(<span class="ident">BigInt</span>::<span class="ident">from_string</span>(<span class="ident">string</span>, <span class="self">self</span>)<span class="question-mark">?</span>)),
+            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcBigInt</span>::<span class="ident">from</span>(<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>))),
+            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcBigInt</span>::<span class="ident">from</span>(<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">0</span>))),
+            <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">RcBigInt</span>::<span class="ident">from</span>(<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">num</span>))),
+            <span class="ident">Value</span>::<span class="ident">Rational</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">BigInt</span>::<span class="ident">try_from</span>(<span class="kw-2">*</span><span class="ident">num</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">RcBigInt</span>::<span class="ident">from</span>(<span class="ident">bigint</span>));
                 }
                 <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;The number {} cannot be converted to a BigInt because it is not an integer&quot;</span>,
                     <span class="ident">num</span>
                 )))
             }
-            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">b</span>.<span class="ident">clone</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
+            <span class="ident">Value</span>::<span class="ident">BigInt</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">b</span>.<span class="ident">clone</span>()),
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">Number</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">to_bigint</span>(<span class="kw-2">&amp;</span><span class="ident">primitive</span>)
             }
-            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert Symbol to a BigInt&quot;</span>))
-            }
+            <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert Symbol to a BigInt&quot;</span>)),
         }
     }
 
@@ -892,19 +870,19 @@
     <span class="doccomment">/// See: https://tc39.es/ecma262/#sec-tonumber</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">data</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">b</span> { <span class="number">1.0</span> } <span class="kw">else</span> { <span class="number">0.0</span> }),
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span> {
+            <span class="ident">Value</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),
+            <span class="ident">Value</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>),
+            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">b</span> { <span class="number">1.0</span> } <span class="kw">else</span> { <span class="number">0.0</span> }),
             <span class="comment">// TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type</span>
-            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">parse</span>().<span class="ident">unwrap_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">integer</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;argument must not be a symbol&quot;</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;argument must not be a bigint&quot;</span>)),
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
-                <span class="self">self</span>.<span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">prim_value</span>)
+            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">parse</span>().<span class="ident">unwrap_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>)),
+            <span class="ident">Value</span>::<span class="ident">Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span>),
+            <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">integer</span>)),
+            <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;argument must not be a symbol&quot;</span>)),
+            <span class="ident">Value</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;argument must not be a bigint&quot;</span>)),
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">Number</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="ident">primitive</span>)
             }
         }
     }
@@ -914,7 +892,7 @@
     <span class="doccomment">/// See: https://tc39.es/ecma262/#sec-tonumeric</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_numeric</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
+        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">Number</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">primitive</span>.<span class="ident">is_bigint</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">primitive</span>);
         }
@@ -928,7 +906,7 @@
     <span class="doccomment">/// See: https://tc39.es/ecma262/#sec-tonumeric</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_numeric_number</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
+        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">Number</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">primitive</span>.<span class="ident">as_bigint</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">to_f64</span>());
         }
@@ -939,11 +917,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is useful for the spread operator, for any other object an `Err` is returned</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">extract_array_properties</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span> <span class="ident">value</span> {
             <span class="comment">// Check if object is array</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ObjectData</span>::<span class="ident">Array</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>().<span class="ident">data</span> {
-                <span class="kw">let</span> <span class="ident">length</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_to_rust_number</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>)) <span class="kw">as</span> <span class="ident">i32</span>;
-                <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
+                <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>));
+                <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>.<span class="ident">to_string</span>()))
                     .<span class="ident">collect</span>();
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">values</span>);
@@ -955,58 +933,73 @@
         <span class="prelude-val">Err</span>(())
     }
 
-    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinarytoprimitive&gt;</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">hint</span>: <span class="ident">PreferredType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="doccomment">/// Converts an object to a primitive.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">hint</span>: <span class="ident">PreferredType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="comment">// 1. Assert: Type(O) is Object.</span>
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">o</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Type</span>::<span class="ident">Object</span>);
+        <span class="comment">// 2. Assert: Type(hint) is String and its value is either &quot;string&quot; or &quot;number&quot;.</span>
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
-        <span class="kw">let</span> <span class="ident">method_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> {
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;toString&quot;</span>, <span class="string">&quot;valueOf&quot;</span>]
+
+        <span class="comment">// 3. If hint is &quot;string&quot;, then</span>
+        <span class="comment">//    a. Let methodNames be « &quot;toString&quot;, &quot;valueOf&quot; ».</span>
+        <span class="comment">// 4. Else,</span>
+        <span class="comment">//    a. Let methodNames be « &quot;valueOf&quot;, &quot;toString&quot; ».</span>
+        <span class="kw">let</span> <span class="ident">method_names</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> {
+            [<span class="string">&quot;toString&quot;</span>, <span class="string">&quot;valueOf&quot;</span>]
         } <span class="kw">else</span> {
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;valueOf&quot;</span>, <span class="string">&quot;toString&quot;</span>]
+            [<span class="string">&quot;valueOf&quot;</span>, <span class="string">&quot;toString&quot;</span>]
         };
-        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">method_names</span>.<span class="ident">iter</span>() {
+
+        <span class="comment">// 5. For each name in methodNames in List order, do</span>
+        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">method_names</span> {
+            <span class="comment">// a. Let method be ? Get(O, name).</span>
             <span class="kw">let</span> <span class="ident">method</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get_field</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+            <span class="comment">// b. If IsCallable(method) is true, then</span>
             <span class="kw">if</span> <span class="ident">method</span>.<span class="ident">is_function</span>() {
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">method</span>, <span class="ident">o</span>, <span class="kw-2">&amp;</span>[]);
-                <span class="kw">match</span> <span class="ident">result</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">val</span>.<span class="ident">is_object</span>() {
-                            <span class="comment">// TODO: throw exception</span>
-                            <span class="kw">continue</span>;
-                        } <span class="kw">else</span> {
-                            <span class="kw">return</span> <span class="ident">val</span>;
-                        }
-                    }
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="comment">// i. Let result be ? Call(method, O).</span>
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">method</span>, <span class="kw-2">&amp;</span><span class="ident">o</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+                <span class="comment">// ii. If Type(result) is not Object, return result.</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_object</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
                 }
             }
         }
 
-        <span class="ident">Value</span>::<span class="ident">undefined</span>()
+        <span class="comment">// 6. Throw a TypeError exception.</span>
+        <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert object to primitive value&quot;</span>)
     }
 
     <span class="doccomment">/// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-toprimitive&gt;</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_primitive</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">preferred_type</span>: <span class="ident">PreferredType</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hint</span>: <span class="ident">PreferredType</span>;
-        <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">input</span>).<span class="ident">deref</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hint</span> <span class="op">=</span> <span class="ident">preferred_type</span>;
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="comment">// 1. Assert: input is an ECMAScript language value. (always a value not need to check)</span>
+        <span class="comment">// 2. If Type(input) is Object, then</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">input</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hint</span> <span class="op">=</span> <span class="ident">preferred_type</span>;
 
-                <span class="comment">// Skip d, e we don&#39;t support Symbols yet</span>
-                <span class="comment">// TODO: add when symbols are supported</span>
-                <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Default</span> {
-                    <span class="ident">hint</span> <span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Number</span>;
-                };
+            <span class="comment">// Skip d, e we don&#39;t support Symbols yet</span>
+            <span class="comment">// TODO: add when symbols are supported</span>
+            <span class="comment">// TODO: Add other steps.</span>
+            <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Default</span> {
+                <span class="ident">hint</span> <span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Number</span>;
+            };
 
-                <span class="self">self</span>.<span class="ident">ordinary_to_primitive</span>(<span class="ident">input</span>, <span class="ident">hint</span>)
-            }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">input</span>.<span class="ident">clone</span>(),
+            <span class="comment">// g. Return ? OrdinaryToPrimitive(input, hint).</span>
+            <span class="self">self</span>.<span class="ident">ordinary_to_primitive</span>(<span class="ident">input</span>, <span class="ident">hint</span>)
+        } <span class="kw">else</span> {
+            <span class="comment">// 3. Return input.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">input</span>.<span class="ident">clone</span>())
         }
     }
 
@@ -1014,8 +1007,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-topropertykey</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_property_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">String</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_property_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">value</span>, <span class="ident">PreferredType</span>::<span class="ident">String</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">key</span>.<span class="ident">is_symbol</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">key</span>)
         } <span class="kw">else</span> {
@@ -1024,7 +1017,7 @@
     }
 
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-hasproperty</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_object</span>() {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">Property</span>::<span class="ident">is_property_key</span>(<span class="ident">key</span>) {
                 <span class="bool-val">false</span>
@@ -1040,9 +1033,9 @@
     <span class="doccomment">/// https://tc39.es/ecma262/#sec-toobject</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">data</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">|</span> <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="ident">Value</span>::<span class="ident">Undefined</span> <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
@@ -1055,7 +1048,7 @@
                     <span class="ident">ObjectData</span>::<span class="ident">Boolean</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
                 ))
             }
-            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
@@ -1067,7 +1060,7 @@
                     <span class="ident">ObjectData</span>::<span class="ident">Number</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)),
                 ))
             }
-            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
@@ -1080,7 +1073,7 @@
                     <span class="ident">ObjectData</span>::<span class="ident">Number</span>(<span class="kw-2">*</span><span class="ident">rational</span>),
                 ))
             }
-            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
@@ -1093,7 +1086,7 @@
                     <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
                 ))
             }
-            <span class="ident">ValueData</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
@@ -1106,7 +1099,7 @@
                     <span class="ident">ObjectData</span>::<span class="ident">Symbol</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
                 ))
             }
-            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">realm</span>
                     .<span class="ident">environment</span>
@@ -1117,36 +1110,7 @@
                     <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectData</span>::<span class="ident">BigInt</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()));
                 <span class="prelude-val">Ok</span>(<span class="ident">bigint_obj</span>)
             }
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">clone</span>()),
-        }
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_to_rust_number</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span>.<span class="ident">deref</span>().<span class="ident">borrow</span>() {
-            <span class="ident">ValueData</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="number">0</span>),
-            <span class="ident">ValueData</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">boolean</span> {
-                    <span class="ident">f64</span>::<span class="ident">from</span>(<span class="number">1</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident">f64</span>::<span class="ident">from</span>(<span class="number">0</span>)
-                }
-            }
-            <span class="ident">ValueData</span>::<span class="ident">Rational</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span>,
-            <span class="ident">ValueData</span>::<span class="ident">Integer</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">num</span>),
-            <span class="ident">ValueData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">ValueData</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bigint</span>.<span class="ident">to_f64</span>(),
-            <span class="ident">ValueData</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">prim_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">value</span>.<span class="ident">clone</span>()), <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
-                <span class="self">self</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">prim_value</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;cannot convert value to string&quot;</span>)
-                    .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;cannot parse value to f64&quot;</span>)
-            }
-            <span class="ident">ValueData</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">NAN</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// TODO: Make undefined?</span>
-                <span class="ident">f64</span>::<span class="ident">from</span>(<span class="number">0</span>)
-            }
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">clone</span>()),
         }
     }
 
