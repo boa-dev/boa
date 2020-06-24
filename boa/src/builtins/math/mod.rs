@@ -134,12 +134,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
     pub(crate) fn atan2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(Value::from(if args.is_empty() {
-            f64::NAN
-        } else {
-            f64::from(args.get(0).expect("Could not get argument"))
-                .atan2(args.get(1).expect("Could not get argument").to_number())
-        }))
+        match (args.get(0), args.get(1)) {
+            (Some(y), Some(x)) => Ok(Value::from(f64::from(y).atan2(f64::from(x)))),
+            _ => Ok(Value::from(f64::NAN)),
+        }
     }
 
     /// Get the cubic root of a number.
@@ -226,17 +224,17 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
     pub(crate) fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(Value::from(if args.is_empty() {
-            f64::NAN
-        } else {
-            let value = f64::from(args.get(0).expect("Could not get argument"));
-
-            if value <= 0.0 {
-                f64::NAN
-            } else {
-                value.log(f64::consts::E)
-            }
-        }))
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
+                if x <= 0.0 {
+                    f64::NAN
+                } else {
+                    x.log(f64::consts::E)
+                }
+            })
+            .into())
     }
 
     /// Get the base 10 logarithm of the number.
@@ -248,17 +246,18 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.log10
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
     pub(crate) fn log10(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(Value::from(if args.is_empty() {
-            f64::NAN
-        } else {
-            let value = f64::from(args.get(0).expect("Could not get argument"));
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
 
-            if value <= 0.0 {
-                f64::NAN
-            } else {
-                value.log10()
-            }
-        }))
+                if x <= 0.0 {
+                    f64::NAN
+                } else {
+                    x.log10()
+                }
+            })
+            .into())
     }
 
     /// Get the base 2 logarithm of the number.
@@ -270,17 +269,18 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.log2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
     pub(crate) fn log2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(Value::from(if args.is_empty() {
-            f64::NAN
-        } else {
-            let value = f64::from(args.get(0).expect("Could not get argument"));
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
 
-            if value <= 0.0 {
-                f64::NAN
-            } else {
-                value.log2()
-            }
-        }))
+                if x <= 0.0 {
+                    f64::NAN
+                } else {
+                    x.log2()
+                }
+            })
+            .into())
     }
 
     /// Get the maximum of several numbers.
@@ -309,12 +309,12 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.min
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
     pub(crate) fn min(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        let mut max = f64::INFINITY;
+        let mut min = f64::INFINITY;
         for arg in args {
             let num = f64::from(arg);
-            max = max.min(num);
+            min = min.min(num);
         }
-        Ok(Value::from(max))
+        Ok(Value::from(min))
     }
 
     /// Raise a number to a power.
@@ -326,13 +326,12 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.pow
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
     pub(crate) fn pow(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(Value::from(if args.len() >= 2 {
-            let num = f64::from(args.get(0).expect("Could not get argument"));
-            let power = f64::from(args.get(1).expect("Could not get argument"));
-            num.powf(power)
-        } else {
-            f64::NAN
-        }))
+        match (args.get(0), args.get(1)) {
+            (Some(base), Some(exponent)) => {
+                Ok(Value::from(f64::from(base).powf(f64::from(exponent))))
+            }
+            _ => Ok(Value::from(f64::NAN)),
+        }
     }
 
     /// Generate a random floating-point number between `0` and `1`.
@@ -371,17 +370,18 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.sign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
     pub(crate) fn sign(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        Ok(Value::from(if args.is_empty() {
-            f64::NAN
-        } else {
-            let value = f64::from(args.get(0).expect("Could not get argument"));
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
 
-            if value == 0.0 || value == -0.0 {
-                value
-            } else {
-                value.signum()
-            }
-        }))
+                if x == 0.0 || x == -0.0 {
+                    x
+                } else {
+                    x.signum()
+                }
+            })
+            .into())
     }
 
     /// Get the sine of a number.
