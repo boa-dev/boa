@@ -134,10 +134,10 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
     pub(crate) fn atan2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        match (args.get(0), args.get(1)) {
-            (Some(y), Some(x)) => Ok(Value::from(f64::from(y).atan2(f64::from(x)))),
-            _ => Ok(Value::from(f64::NAN)),
-        }
+        Ok(match (args.get(0), args.get(1)) {
+            (Some(y), Some(x)) => f64::from(y).atan2(f64::from(x)),
+            _ => f64::NAN,
+        }.into())
     }
 
     /// Get the cubic root of a number.
@@ -326,12 +326,12 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.pow
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
     pub(crate) fn pow(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        match (args.get(0), args.get(1)) {
+        Ok(match (args.get(0), args.get(1)) {
             (Some(base), Some(exponent)) => {
-                Ok(Value::from(f64::from(base).powf(f64::from(exponent))))
-            }
-            _ => Ok(Value::from(f64::NAN)),
-        }
+                f64::from(base).powf(f64::from(exponent))
+            },
+            _ => f64::NAN,
+        }.into())
     }
 
     /// Generate a random floating-point number between `0` and `1`.
