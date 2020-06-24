@@ -46,6 +46,12 @@ impl Number {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
+    /// The `Number.MAX_SAFE_INTEGER` constant represents the maximum safe integer in JavaScript (`2^53 - 1`).
+    pub(crate) const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991_f64;
+
+    /// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(253 - 1)`).
+    pub(crate) const MIN_SAFE_INTEGER: f64 = -9_007_199_254_740_991_f64;
+
     /// This function returns a `Result` of the number `Value`.
     ///
     /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
@@ -539,8 +545,8 @@ impl Number {
         {
             let mut properties = number.as_object_mut().expect("'Number' object");
             properties.insert_field("EPSILON", Value::from(f64::EPSILON));
-            properties.insert_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
-            properties.insert_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
+            properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
+            properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
             properties.insert_field("MAX_VALUE", Value::from(f64::MAX));
             properties.insert_field("MIN_VALUE", Value::from(f64::MIN));
             properties.insert_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));

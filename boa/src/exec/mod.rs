@@ -231,29 +231,38 @@ impl Interpreter {
 
         let integer_index = self.to_integer(value)?;
 
-        if integer_index < 0 {
+        if integer_index < 0.0 {
             return Err(self.construct_range_error("Integer index must be >= 0"));
         }
 
-        if integer_index > 2i64.pow(53) - 1 {
+        if integer_index > Number::MAX_SAFE_INTEGER {
             return Err(self.construct_range_error("Integer index must be less than 2**(53) - 1"));
         }
 
         Ok(integer_index as usize)
     }
 
-    /// Converts a value to an integral 64 bit signed integer.
+    /// Converts a value to an integral Number value.
     ///
     /// See: https://tc39.es/ecma262/#sec-tointeger
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_integer(&mut self, value: &Value) -> Result<i64, Value> {
+    pub fn to_integer(&mut self, value: &Value) -> Result<f64, Value> {
+        // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(value)?;
 
-        if number.is_nan() {
-            return Ok(0);
+        // 2. If number is +∞ or -∞, return number.
+        if !number.is_finite() {
+            // 3. If number is NaN, +0, or -0, return +0.
+            if number.is_nan() {
+                return Ok(0.0);
+            }
+            return Ok(number);
         }
 
-        Ok(number as i64)
+        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
+        // 5. If integer is -0, return +0.
+        // 6. Return integer.
+        Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
     }
 
     /// Converts a value to an integral 32 bit signed integer.
@@ -261,12 +270,17 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-toint32
     #[allow(clippy::wrong_self_convention)]
     pub fn to_int32(&mut self, value: &Value) -> Result<i32, Value> {
+        // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(value)?;
 
-        if number.is_nan() || number.is_infinite() || Number::equal(number, -0.0) {
+        // 2. If number is NaN, +0, -0, +∞, or -∞, return +0.
+        if !number.is_finite() {
             return Ok(0);
         }
 
+        // 1. Let int be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
+        // 2. Let int32bit be int modulo 2^32.
+        // 3. Return int32bit.
         Ok(number as i32)
     }
 
@@ -277,7 +291,7 @@ impl Interpreter {
     pub fn to_uint32(&mut self, value: &Value) -> Result<u32, Value> {
         let number = self.to_number(value)?;
 
-        if number.is_nan() || number.is_infinite() || Number::equal(number, -0.0) {
+        if !number.is_finite() {
             return Ok(0);
         }
 
@@ -289,14 +303,16 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-tolength
     #[allow(clippy::wrong_self_convention)]
     pub fn to_length(&mut self, value: &Value) -> Result<usize, Value> {
+        // 1. Let len be ? ToInteger(argument).
         let len = self.to_integer(value)?;
-        if len < 0 {
+
+        // 2. If len ≤ +0, return +0.
+        if len < 0.0 {
             return Ok(0);
         }
-        let len = len as usize;
 
-        let max = 2usize.pow(53) - 1;
-        Ok(len.min(max))
+        // 3. Return min(len, 2^53 - 1).
+        Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
     }
 
     /// Converts a value to a double precision floating point.

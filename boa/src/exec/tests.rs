@@ -1,4 +1,10 @@
-use crate::{builtins::Value, exec, exec::Interpreter, forward, realm::Realm};
+use crate::{
+    builtins::{Number, Value},
+    exec,
+    exec::Interpreter,
+    forward,
+    realm::Realm,
+};
 
 #[test]
 fn function_declaration_returns_undefined() {
@@ -895,10 +901,63 @@ fn to_integer() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_integer(&Value::number(f64::NAN)).unwrap(), 0);
-    assert_eq!(engine.to_integer(&Value::number(0.0f64)).unwrap(), 0);
-    assert_eq!(engine.to_integer(&Value::number(20.9)).unwrap(), 20);
-    assert_eq!(engine.to_integer(&Value::number(-20.9)).unwrap(), -20);
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(f64::NAN)).unwrap(),
+        0.0
+    ));
+    assert!(Number::equal(
+        engine
+            .to_integer(&Value::number(f64::NEG_INFINITY))
+            .unwrap(),
+        f64::NEG_INFINITY
+    ));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(f64::INFINITY)).unwrap(),
+        f64::INFINITY
+    ));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(0.0)).unwrap(),
+        0.0
+    ));
+    let number = engine.to_integer(&Value::number(-0.0)).unwrap();
+    assert!(!number.is_sign_negative());
+    assert!(Number::equal(number, 0.0));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(20.9)).unwrap(),
+        20.0
+    ));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(-20.9)).unwrap(),
+        -20.0
+    ));
+}
+
+#[test]
+fn to_length() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(engine.to_length(&Value::number(f64::NAN)).unwrap(), 0);
+    assert_eq!(
+        engine.to_length(&Value::number(f64::NEG_INFINITY)).unwrap(),
+        0
+    );
+    assert_eq!(
+        engine.to_length(&Value::number(f64::INFINITY)).unwrap(),
+        Number::MAX_SAFE_INTEGER as usize
+    );
+    assert_eq!(engine.to_length(&Value::number(0.0)).unwrap(), 0);
+    assert_eq!(engine.to_length(&Value::number(-0.0)).unwrap(), 0);
+    assert_eq!(engine.to_length(&Value::number(20.9)).unwrap(), 20);
+    assert_eq!(engine.to_length(&Value::number(-20.9)).unwrap(), 0);
+    assert_eq!(
+        engine.to_length(&Value::number(100000000000.0)).unwrap(),
+        100000000000
+    );
+    assert_eq!(
+        engine.to_length(&Value::number(4010101101.0)).unwrap(),
+        4010101101
+    );
 }
 
 #[test]
