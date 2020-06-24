@@ -25,6 +25,7 @@ impl Number {
         }
     }
 
+    #[inline]
     pub(crate) fn significand(self) -> u64 {
         let d64 = self.0.to_bits();
         let significand = d64 & Self::SIGNIFICAND_MASK;
@@ -78,5 +79,13 @@ impl Number {
         };
 
         (self.sign() * (bits as i64)) as i32
+    }
+
+    /// Converts a 64-bit floating point number to an `u32` according to the [`ToUint32`][ToUint32] algorithm.
+    ///
+    /// [ToInt32]: https://tc39.es/ecma262/#sec-touint32
+    #[inline]
+    pub(crate) fn to_uint32(self) -> u32 {
+        self.to_int32() as u32
     }
 }

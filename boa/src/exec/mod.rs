@@ -270,13 +270,12 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-toint32
     #[allow(clippy::wrong_self_convention)]
     pub fn to_int32(&mut self, value: &Value) -> Result<i32, Value> {
-        // 1. Let number be ? ToNumber(argument).
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *value {
+            return Ok(number);
+        }
         let number = self.to_number(value)?;
 
-        // 2. If number is NaN, +0, -0, +∞, or -∞, return +0.
-        // 3. Let int be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
-        // 4. Let int32bit be int modulo 2^32.
-        // 5. Return int32bit.
         Ok(Number::new(number).to_int32())
     }
 
@@ -285,13 +284,13 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-toint32
     #[allow(clippy::wrong_self_convention)]
     pub fn to_uint32(&mut self, value: &Value) -> Result<u32, Value> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *value {
+            return Ok(number as u32);
+        }
         let number = self.to_number(value)?;
 
-        if !number.is_finite() {
-            return Ok(0);
-        }
-
-        Ok(number as u32)
+        Ok(Number::new(number).to_uint32())
     }
 
     /// Converts argument to an integer suitable for use as the length of an array-like object.
