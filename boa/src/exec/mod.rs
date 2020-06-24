@@ -274,14 +274,10 @@ impl Interpreter {
         let number = self.to_number(value)?;
 
         // 2. If number is NaN, +0, -0, +∞, or -∞, return +0.
-        if !number.is_finite() {
-            return Ok(0);
-        }
-
-        // 1. Let int be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
-        // 2. Let int32bit be int modulo 2^32.
-        // 3. Return int32bit.
-        Ok(number as i32)
+        // 3. Let int be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
+        // 4. Let int32bit be int modulo 2^32.
+        // 5. Return int32bit.
+        Ok(Number::new(number).to_int32())
     }
 
     /// Converts a value to an integral 32 bit unsigned integer.
