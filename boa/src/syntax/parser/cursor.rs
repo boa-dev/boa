@@ -18,7 +18,9 @@ pub(super) struct Cursor<R> {
     // The current position within the tokens.
     // pos: usize,
 
-    peeked: Option<Option<Token>>,
+    // peeked: Option<Option<Token>>,
+
+    peeked: VecDeque<Option<Token>>,
 
     // peeked: Option<Option<Token>>,
 }
@@ -31,25 +33,21 @@ where
     pub(super) fn new(reader: R) -> Self {
         Self {
             lexer: Lexer::new(reader),
-            peeked: None,
+            peeked: VecDeque::new(),
         }
     }
 
     /// Moves the cursor to the next token and returns the token.
     pub(super) fn next(&mut self) -> Option<Result<Token, ParseError>> {
-        let peeked = self.peeked.as_ref();
-        
-        match peeked {
-            Some(val) => {
-                match val {
-                    Some(token) => return Some(Ok(token.clone())),
-                    None => return None
-                }
+        match self.peeked.pop_front() {
+            Some(None) => {
+                return None;
+            }
+            Some(Some(token)) => {
+                return Some(Ok(token));
             }
             None => {} // No value has been peeked ahead already so need to go get the next value.
         }
-
-        self.peeked = None; // Consuming peeked value.
 
         loop {
             match self.lexer.next() {
@@ -70,62 +68,55 @@ where
 
     /// Peeks the next token without moving the cursor.
     pub(super) fn peek(&mut self) -> Option<Result<Token, ParseError>> {
-
-        // if skip > 0 {
-        //     unimplemented!();
-        // }
-
-        match self.peeked.as_ref() {
-            Some(Some(token)) => {
-                return Some(Ok(token.clone()));
-            }
+        match self.peeked.pop_front() {
             Some(None) => {
+                self.peeked.push_front(None); // Push the value back onto the peeked stack.
                 return None;
             }
-            None => {
-                // self.next();
-
+            Some(Some(token)) => {
+                self.peeked.push_front(Some(token.clone())); // Push the value back onto the peeked stack.
+                return Some(Ok(token));
             }
+            None => {} // No value has been peeked ahead already so need to go get the next value.
         }
 
-        self.peeked = Some(match self.next() {
+        match self.next() {
             Some(Ok(token)) => {
-                Some(token)
+                self.peeked.push_back(Some(token.clone()));
+                Some(Ok(token))
             }
             Some(Err(e)) => {
-                return Some(Err(e));
+                Some(Err(e))
             }
             None => {
+                self.peeked.push_back(None);
                 None
             }
-        });
-
-        match self.peeked.as_ref() {
-            Some(Some(token)) => {
-                return Some(Ok(token.clone()));
-            }
-            Some(None) => {
-                return None;
-            }
-            None => {
-                // self.next();
-                unimplemented!();
-            }
         }
-
-        // match self.peeked.as_ref() {
-        //     Some(Some(x)) => {
-        //         Some(Ok(x.clone()))
-        //     },
-        //     Some(None) => {
-        //         None
-        //     }
-        //     None => unreachable!("Value self.peeked assigned above but now gone")
-        // }
     }
 
-    pub(super) fn peek_more(&mut self, skip: i32) -> Option<Result<Token, ParseError>> {
-        unimplemented!();
+    pub(super) fn peek_more(&mut self, skip: usize) -> Option<Result<Token, ParseError>> {
+        if skip != 1 {
+            // I don't believe we ever need to skip more than a single token?
+            unimplemented!("Attempting to peek ahead more than a single token");
+        }
+
+        // Add elements to the peeked buffer upto the amount required to skip the given amount ahead.
+        while self.peeked.len() < skip + 1 {
+            match self.next() {
+                Some(Ok(token)) => self.peeked.push_back(Some(token.clone())),
+                Some(Err(e)) => return Some(Err(e)),
+                None => self.peeked.push_back(None),
+            }
+        }
+        
+        let temp = self.peeked.pop_front().unwrap();
+        let ret = self.peeked.pop_front().unwrap();
+
+        self.peeked.push_front(ret.clone());
+        self.peeked.push_front(temp);
+
+        ret.map(|token| Ok(token))
     }
 
     /// Moves the cursor to the previous token and returns the token.
@@ -178,19 +169,18 @@ where
     where
         K: Into<TokenKind>,
     {
-        unimplemented!();
-        // let next_token = self.next().ok_or(ParseError::AbruptEnd)?;
-        // let kind = kind.into();
+        let next_token = self.next().ok_or(ParseError::AbruptEnd)?;
+        let kind = kind.into();
 
-        // if next_token.kind == kind {
-        //     Ok(())
-        // } else {
-        //     Err(ParseError::expected(
-        //         vec![kind],
-        //         next_token.clone(),
-        //         context,
-        //     ))
-        // }
+        if next_token.kind == kind {
+            Ok(())
+        } else {
+            Err(ParseError::expected(
+                vec![kind],
+                next_token.clone(),
+                context,
+            ))
+        }
     }
 
     /// It will peek for the next token, to see if it's a semicolon.
