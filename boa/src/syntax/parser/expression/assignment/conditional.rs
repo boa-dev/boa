@@ -68,8 +68,9 @@ where
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.next() {
+        if let Some(tok) = cursor.peek() {
             if tok?.kind() == &TokenKind::Punctuator(Punctuator::Question) {
+                cursor.next(); // Consume the token.
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
@@ -79,8 +80,6 @@ where
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
                 return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
-            } else {
-                cursor.back();
             }
         }
 

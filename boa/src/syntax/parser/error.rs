@@ -1,6 +1,6 @@
 //! Error and result implementation for the parser.
 use crate::syntax::ast::{position::Position, Node};
-use crate::syntax::lexer::{Token, TokenKind, Error};
+use crate::syntax::lexer::{Error, Token, TokenKind};
 use std::fmt;
 
 /// Result of a parsing operation.
@@ -33,7 +33,7 @@ pub enum ParseError {
     /// When there is an abrupt end to the parsing
     AbruptEnd,
     Lex {
-        err: Error
+        err: Error,
     },
     /// Catch all General Error
     General {
@@ -81,9 +81,7 @@ impl ParseError {
     }
 
     pub(super) fn lex(e: Error) -> Self {
-        Self::Lex {
-            err: e
-        }
+        Self::Lex { err: e }
     }
 }
 
@@ -149,7 +147,7 @@ impl fmt::Display for ParseError {
                 position.line_number(),
                 position.column_number()
             ),
-            Self::Lex {err} => write!(f, "Syntax Error: {}", err),
+            Self::Lex { err } => write!(f, "Syntax Error: {}", err),
         }
     }
 }

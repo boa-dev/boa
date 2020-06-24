@@ -88,11 +88,10 @@ where
         }
 
         let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.next() {
+        if let Some(tok) = cursor.peek() {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok?.kind() {
+                cursor.next(); // Consume the token.
                 return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?).into());
-            } else {
-                cursor.back();
             }
         }
         Ok(lhs)

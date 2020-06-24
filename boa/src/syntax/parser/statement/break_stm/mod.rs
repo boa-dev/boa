@@ -61,7 +61,7 @@ where
         let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect(Keyword::Break, "break statement")?;
 
-        let label = if let (true, tok) = cursor.peek_semicolon(false) {
+        let label = if let (true, tok) = cursor.peek_semicolon(false)? {
             match tok {
                 Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
                     let _ = cursor.next();

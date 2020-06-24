@@ -116,19 +116,20 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.next() {
+        if let Some(tok) = cursor.peek() {
             match tok?.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
+                    cursor.next(); // Consume the token.
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() => {
+                    cursor.next(); // Consume the token.
+
                     let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");
                     lhs = BinOp::new(binop, lhs, expr).into();
                 }
-                _ => {
-                    cursor.back();
-                }
+                _ => {}
             }
         }
 

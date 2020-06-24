@@ -50,7 +50,7 @@ where
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect(Keyword::Return, "return statement")?;
 
-        if let (true, tok) = cursor.peek_semicolon(false) {
+        if let (true, tok) = cursor.peek_semicolon(false)? {
             match tok {
                 Some(tok)
                     if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon)

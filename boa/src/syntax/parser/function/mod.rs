@@ -86,10 +86,7 @@ where
 
             if rest_param {
                 return Err(ParseError::unexpected(
-                    cursor
-                        .peek_prev()
-                        .expect("current token disappeared")?
-                        .clone(),
+                    cursor.peek().expect("Peek token disappeared")?,
                     "rest parameter must be the last formal parameter",
                 ));
             }
