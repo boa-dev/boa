@@ -19,6 +19,7 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
+use num_traits::cast::ToPrimitive;
 use std::f64;
 
 #[cfg(test)]
@@ -163,6 +164,25 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
     pub(crate) fn ceil(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).ceil()).into())
+    }
+
+    /// Get the number of leading zeros in the 32 bit representation of a number
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.exp
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
+    pub(crate) fn clz32(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .and_then(|x| f64::from(x).to_u32())
+            .map_or(32usize, |u| {
+                let s = format!("{:032b}", u);
+                s.chars().take_while(|x| *x == '0').count()
+            })
+            .into())
     }
 
     /// Get the cosine of a number.
@@ -485,6 +505,7 @@ impl Math {
         make_builtin_fn(Self::atan2, "atan2", &math, 2);
         make_builtin_fn(Self::cbrt, "cbrt", &math, 1);
         make_builtin_fn(Self::ceil, "ceil", &math, 1);
+        make_builtin_fn(Self::clz32, "clz32", &math, 1);
         make_builtin_fn(Self::cos, "cos", &math, 1);
         make_builtin_fn(Self::cosh, "cosh", &math, 1);
         make_builtin_fn(Self::exp, "exp", &math, 1);

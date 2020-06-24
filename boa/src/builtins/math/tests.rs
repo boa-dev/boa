@@ -184,6 +184,36 @@ fn ceil() {
 }
 
 #[test]
+fn clz32() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = Math.clz32();
+        var b = Math.clz32({});
+        var c = Math.clz32(1);
+        var d = Math.clz32("1");
+        var e = Math.clz32(4);
+        var f = Math.clz32(Infinity);
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let a = forward_val(&mut engine, "a").unwrap();
+    let b = forward_val(&mut engine, "b").unwrap();
+    let c = forward_val(&mut engine, "c").unwrap();
+    let d = forward_val(&mut engine, "d").unwrap();
+    let e = forward_val(&mut engine, "e").unwrap();
+    let f = forward_val(&mut engine, "f").unwrap();
+
+    assert_eq!(a.to_number(), 32_f64);
+    assert_eq!(b.to_number(), 32_f64);
+    assert_eq!(c.to_number(), 31_f64);
+    assert_eq!(d.to_number(), 31_f64);
+    assert_eq!(e.to_number(), 29_f64);
+    assert_eq!(f.to_number(), 32_f64);
+}
+
+#[test]
 fn cos() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
