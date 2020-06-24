@@ -653,12 +653,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.atan2</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))
-                .<span class="ident">atan2</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">to_number</span>())
-        }))
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>), <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)) {
+            (<span class="prelude-val">Some</span>(<span class="ident">y</span>), <span class="prelude-val">Some</span>(<span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">y</span>).<span class="ident">atan2</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">x</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">NAN</span>,
+        }
+        .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the cubic root of a number.</span>
@@ -745,17 +744,17 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.log</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>));
-
-            <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> {
-                <span class="ident">f64</span>::<span class="ident">NAN</span>
-            } <span class="kw">else</span> {
-                <span class="ident">value</span>.<span class="ident">log</span>(<span class="ident">f64</span>::<span class="ident">consts</span>::<span class="ident">E</span>)
-            }
-        }))
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">value</span>);
+                <span class="kw">if</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> {
+                    <span class="ident">f64</span>::<span class="ident">NAN</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">x</span>.<span class="ident">log</span>(<span class="ident">f64</span>::<span class="ident">consts</span>::<span class="ident">E</span>)
+                }
+            })
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the base 10 logarithm of the number.</span>
@@ -767,17 +766,18 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.log10</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log10</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>));
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">value</span>);
 
-            <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> {
-                <span class="ident">f64</span>::<span class="ident">NAN</span>
-            } <span class="kw">else</span> {
-                <span class="ident">value</span>.<span class="ident">log10</span>()
-            }
-        }))
+                <span class="kw">if</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> {
+                    <span class="ident">f64</span>::<span class="ident">NAN</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">x</span>.<span class="ident">log10</span>()
+                }
+            })
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the base 2 logarithm of the number.</span>
@@ -789,17 +789,18 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.log2</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log2</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>));
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">value</span>);
 
-            <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> {
-                <span class="ident">f64</span>::<span class="ident">NAN</span>
-            } <span class="kw">else</span> {
-                <span class="ident">value</span>.<span class="ident">log2</span>()
-            }
-        }))
+                <span class="kw">if</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> {
+                    <span class="ident">f64</span>::<span class="ident">NAN</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">x</span>.<span class="ident">log2</span>()
+                }
+            })
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the maximum of several numbers.</span>
@@ -828,12 +829,12 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.min</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">min</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">INFINITY</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">INFINITY</span>;
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
             <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">arg</span>);
-            <span class="ident">max</span> <span class="op">=</span> <span class="ident">max</span>.<span class="ident">min</span>(<span class="ident">num</span>);
+            <span class="ident">min</span> <span class="op">=</span> <span class="ident">min</span>.<span class="ident">min</span>(<span class="ident">num</span>);
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">max</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">min</span>))
     }
 
     <span class="doccomment">/// Raise a number to a power.</span>
@@ -845,13 +846,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.pow</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pow</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
-            <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>));
-            <span class="kw">let</span> <span class="ident">power</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>));
-            <span class="ident">num</span>.<span class="ident">powf</span>(<span class="ident">power</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        }))
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> (<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>), <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)) {
+            (<span class="prelude-val">Some</span>(<span class="ident">base</span>), <span class="prelude-val">Some</span>(<span class="ident">exponent</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">base</span>).<span class="ident">powf</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">exponent</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">NAN</span>,
+        }
+        .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Generate a random floating-point number between `0` and `1`.</span>
@@ -890,17 +889,18 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.sign</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">f64</span>::<span class="ident">NAN</span>
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>));
+        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">value</span>);
 
-            <span class="kw">if</span> <span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">0.0</span> {
-                <span class="ident">value</span>
-            } <span class="kw">else</span> {
-                <span class="ident">value</span>.<span class="ident">signum</span>()
-            }
-        }))
+                <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">0.0</span> {
+                    <span class="ident">x</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">x</span>.<span class="ident">signum</span>()
+                }
+            })
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Get the sine of a number.</span>
