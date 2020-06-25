@@ -331,6 +331,36 @@ fn floor() {
 }
 
 #[test]
+fn fround() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = Math.fround(NaN);
+        var b = Math.fround(Infinity);
+        var c = Math.fround(5);
+        var d = Math.fround(5.5);
+        var e = Math.fround(5.05);
+        var f = Math.fround(-5.05);
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let a = forward(&mut engine, "a");
+    let b = forward(&mut engine, "b");
+    let c = forward_val(&mut engine, "c").unwrap();
+    let d = forward_val(&mut engine, "d").unwrap();
+    let e = forward_val(&mut engine, "e").unwrap();
+    let f = forward_val(&mut engine, "f").unwrap();
+
+    assert_eq!(a, String::from("NaN"));
+    assert_eq!(b, String::from("Infinity"));
+    assert_eq!(c.to_number(), 5f64);
+    assert_eq!(d.to_number(), 5.5f64);
+    assert_eq!(e.to_number(), 5.050_000_190_734_863);
+    assert_eq!(f.to_number(), -5.050_000_190_734_863);
+}
+
+#[test]
 fn log() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

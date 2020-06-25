@@ -255,6 +255,21 @@ impl Math {
             .into())
     }
 
+    /// Get the nearest 32-bit single precision float representation of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.fround
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/fround
+    pub(crate) fn fround(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| (f64::from(x) as f32) as f64)
+            .into())
+    }
+
     /// Get the natural logarithm of a number.
     ///
     /// More information:
@@ -530,6 +545,7 @@ impl Math {
         make_builtin_fn(Self::exp, "exp", &math, 1);
         make_builtin_fn(Self::expm1, "expm1", &math, 1);
         make_builtin_fn(Self::floor, "floor", &math, 1);
+        make_builtin_fn(Self::fround, "fround", &math, 1);
         make_builtin_fn(Self::log, "log", &math, 1);
         make_builtin_fn(Self::log10, "log10", &math, 1);
         make_builtin_fn(Self::log2, "log2", &math, 1);
