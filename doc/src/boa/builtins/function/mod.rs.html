@@ -499,6 +499,20 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -693,9 +707,18 @@
                     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                     <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
                         <span class="ident">function</span>,
-                        <span class="prelude-val">None</span>,
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ThisMode</span>::<span class="ident">Lexical</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">this_mode</span> {
+                            <span class="prelude-val">None</span>
+                        } <span class="kw">else</span> {
+                            <span class="prelude-val">Some</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
+                        },
                         <span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">cloned</span>(),
-                        <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>,
+                        <span class="comment">// Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records</span>
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ThisMode</span>::<span class="ident">Lexical</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">this_mode</span> {
+                            <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span>
+                        } <span class="kw">else</span> {
+                            <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>
+                        },
                     );
 
                     <span class="comment">// Add argument bindings to the function environment</span>
@@ -755,7 +778,12 @@
                         <span class="ident">function</span>,
                         <span class="prelude-val">Some</span>(<span class="ident">this</span>.<span class="ident">clone</span>()),
                         <span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">as_ref</span>().<span class="ident">cloned</span>(),
-                        <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span>,
+                        <span class="comment">// Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records</span>
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ThisMode</span>::<span class="ident">Lexical</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">this_mode</span> {
+                            <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span>
+                        } <span class="kw">else</span> {
+                            <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>
+                        },
                     );
 
                     <span class="comment">// Add argument bindings to the function environment</span>
