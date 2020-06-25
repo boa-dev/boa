@@ -1,10 +1,19 @@
 # CHANGELOG
 
-# [# 0.9.0 (2020-06-25) - Move to Organisation](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
+# [# 0.9.0 (2020-06-25) - Move to Organisation, 50% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
 
 - First Rust project (outside of the compiler itself) to use measureme
 - optimised type comparisons
 - More benchmarks to help us understand where performance gains can be made
+- 50% faster start up time to v0.8
+
+## Before
+
+![Before](./docs/img/object_specialization_before.png)
+
+## After
+
+![Before](./docs/img/object_specialization_after.png)
 
 Feature Enhancements:
 
