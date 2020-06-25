@@ -1,11 +1,16 @@
 # CHANGELOG
 
-# [# 0.9.0 (2020-06-25) - Move to Organisation, 50% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
+# [# 0.9.0 (2020-06-25) - Move to Organisation, 65% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
 
 - First Rust project (outside of the compiler itself) to use measureme
 - optimised type comparisons
 - More benchmarks to help us understand where performance gains can be made
 - 50% faster start up time to v0.8
+
+Boa became the first Rust project to make use of measureme, this was only used by Rust itself to profile the compiler. Luckily the framework is in a good enough state to be used by other projects too, and we gave it a try.
+
+The headline feature this release is the Object Specialization @HalidOdat worked on, this makes it easier to use Rust primitives instead of going back and forth between JS values and Rust values.
+You can see below the biggest slow down was setting properties on `JSValues`. By specializing some of our built-in objects we can bypass that entirely, the after image shows the result!
 
 ## Before
 
