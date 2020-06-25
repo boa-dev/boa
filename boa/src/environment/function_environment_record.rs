@@ -112,7 +112,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             }
             BindingStatus::Uninitialized => {
                 // TODO: change this when error handling comes into play
-                panic!("Reference Error: Unitialised binding for this function");
+                panic!("Reference Error: Uninitialised binding for this function");
             }
 
             BindingStatus::Initialized => self.this_value.clone(),
