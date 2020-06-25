@@ -280,6 +280,36 @@ fn exp() {
 }
 
 #[test]
+fn expm1() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = Math.expm1();
+        var b = Math.expm1({});
+        var c = Math.expm1(1);
+        var d = Math.expm1(-1);
+        var e = Math.expm1(0);
+        var f = Math.expm1(2);
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let a = forward(&mut engine, "a");
+    let b = forward(&mut engine, "b");
+    let c = forward_val(&mut engine, "c").unwrap();
+    let d = forward_val(&mut engine, "d").unwrap();
+    let e = forward_val(&mut engine, "e").unwrap();
+    let f = forward_val(&mut engine, "f").unwrap();
+
+    assert_eq!(a, String::from("NaN"));
+    assert_eq!(b, String::from("NaN"));
+    assert_eq!(c.to_number(), 1.718_281_828_459_045);
+    assert_eq!(d.to_number(), -0.632_120_558_828_557_7);
+    assert_eq!(e.to_number(), 0_f64);
+    assert_eq!(f.to_number(), 6.389_056_098_930_65);
+}
+
+#[test]
 fn floor() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

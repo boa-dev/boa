@@ -223,6 +223,23 @@ impl Math {
         Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).exp()).into())
     }
 
+    /// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of
+    /// the natural logarithms. The result is computed in a way that is accurate even when the
+    /// value of x is close 0
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.expm1
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1
+    pub(crate) fn expm1(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).exp_m1())
+            .into())
+    }
+
     /// Get the highest integer below a number.
     ///
     /// More information:
@@ -511,6 +528,7 @@ impl Math {
         make_builtin_fn(Self::cos, "cos", &math, 1);
         make_builtin_fn(Self::cosh, "cosh", &math, 1);
         make_builtin_fn(Self::exp, "exp", &math, 1);
+        make_builtin_fn(Self::expm1, "expm1", &math, 1);
         make_builtin_fn(Self::floor, "floor", &math, 1);
         make_builtin_fn(Self::log, "log", &math, 1);
         make_builtin_fn(Self::log10, "log10", &math, 1);
