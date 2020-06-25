@@ -282,6 +282,20 @@ impl Math {
         Ok(args.iter().fold(0f64, |x, v| f64::from(v).hypot(x)).into())
     }
 
+    /// Get the result of the C-like 32-bit multiplication of the two parameters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.imul
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
+    pub(crate) fn imul(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        let a = args.get(0).map_or(0f64, f64::from);
+        let b = args.get(1).map_or(0f64, f64::from);
+        Ok(((a as u32).wrapping_mul(b as u32) as i32).into())
+    }
+
     /// Get the natural logarithm of a number.
     ///
     /// More information:
@@ -574,6 +588,7 @@ impl Math {
         make_builtin_fn(Self::floor, "floor", &math, 1);
         make_builtin_fn(Self::fround, "fround", &math, 1);
         make_builtin_fn(Self::hypot, "hypot", &math, 1);
+        make_builtin_fn(Self::imul, "imul", &math, 1);
         make_builtin_fn(Self::log, "log", &math, 1);
         make_builtin_fn(Self::log1p, "log1p", &math, 1);
         make_builtin_fn(Self::log10, "log10", &math, 1);

@@ -391,6 +391,30 @@ fn hypot() {
 }
 
 #[test]
+fn imul() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = Math.imul(3, 4);
+        var b = Math.imul(-5, 12);
+        var c = Math.imul(0xffffffff, 5);
+        var d = Math.imul(0xfffffffe, 5);
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let a = forward_val(&mut engine, "a").unwrap();
+    let b = forward_val(&mut engine, "b").unwrap();
+    let c = forward_val(&mut engine, "c").unwrap();
+    let d = forward_val(&mut engine, "d").unwrap();
+
+    assert_eq!(a.to_number(), 12f64);
+    assert_eq!(b.to_number(), -60f64);
+    assert_eq!(c.to_number(), -5f64);
+    assert_eq!(d.to_number(), -10f64);
+}
+
+#[test]
 fn log() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
