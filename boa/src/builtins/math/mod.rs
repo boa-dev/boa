@@ -176,14 +176,7 @@ impl Math {
     pub(crate) fn clz32(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .and_then(|x| {
-                if f64::from(x).is_normal() {
-                    Some(i32::from(x).leading_zeros() as usize)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(32usize)
+            .map_or(32i32, |x| (f64::from(x) as u32).leading_zeros() as i32)
             .into())
     }
 
