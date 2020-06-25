@@ -370,7 +370,7 @@ fn hypot() {
         var c = Math.hypot(5, 12);
         var d = Math.hypot(3, 4, -5);
         var e = Math.hypot(4, [5], 6);
-        var f = Math.hypot(3, Infinity);
+        var f = Math.hypot(3, -Infinity);
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -409,6 +409,36 @@ fn log() {
     assert_eq!(a.to_number(), 0_f64);
     assert_eq!(b.to_number(), f64::consts::LN_10);
     assert_eq!(c, String::from("NaN"));
+}
+
+#[test]
+fn log1p() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = Math.log1p(1);
+        var b = Math.log1p(0);
+        var c = Math.log1p(-0.9999999999999999);
+        var d = Math.log1p(-1);
+        var e = Math.log1p(-1.000000000000001);
+        var f = Math.log1p(-2);
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let a = forward_val(&mut engine, "a").unwrap();
+    let b = forward_val(&mut engine, "b").unwrap();
+    let c = forward_val(&mut engine, "c").unwrap();
+    let d = forward(&mut engine, "d");
+    let e = forward(&mut engine, "e");
+    let f = forward(&mut engine, "f");
+
+    assert_eq!(a.to_number(), f64::consts::LN_2);
+    assert_eq!(b.to_number(), 0f64);
+    assert_eq!(c.to_number(), -36.736_800_569_677_1);
+    assert_eq!(d, "-Infinity");
+    assert_eq!(e, String::from("NaN"));
+    assert_eq!(f, String::from("NaN"));
 }
 
 #[test]

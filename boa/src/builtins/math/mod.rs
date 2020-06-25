@@ -304,6 +304,21 @@ impl Math {
             .into())
     }
 
+    /// Get approximation to the natural logarithm of 1 + x.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log1p
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p
+    pub(crate) fn log1p(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).ln_1p())
+            .into())
+    }
+
     /// Get the base 10 logarithm of the number.
     ///
     /// More information:
@@ -560,6 +575,7 @@ impl Math {
         make_builtin_fn(Self::fround, "fround", &math, 1);
         make_builtin_fn(Self::hypot, "hypot", &math, 1);
         make_builtin_fn(Self::log, "log", &math, 1);
+        make_builtin_fn(Self::log1p, "log1p", &math, 1);
         make_builtin_fn(Self::log10, "log10", &math, 1);
         make_builtin_fn(Self::log2, "log2", &math, 1);
         make_builtin_fn(Self::max, "max", &math, 2);
