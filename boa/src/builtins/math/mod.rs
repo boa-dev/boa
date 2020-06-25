@@ -270,6 +270,18 @@ impl Math {
             .into())
     }
 
+    /// Get an approximation of the square root of the sum of squares of all arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.hypot
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
+    pub(crate) fn hypot(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.iter().fold(0f64, |x, v| f64::from(v).hypot(x)).into())
+    }
+
     /// Get the natural logarithm of a number.
     ///
     /// More information:
@@ -546,6 +558,7 @@ impl Math {
         make_builtin_fn(Self::expm1, "expm1", &math, 1);
         make_builtin_fn(Self::floor, "floor", &math, 1);
         make_builtin_fn(Self::fround, "fround", &math, 1);
+        make_builtin_fn(Self::hypot, "hypot", &math, 1);
         make_builtin_fn(Self::log, "log", &math, 1);
         make_builtin_fn(Self::log10, "log10", &math, 1);
         make_builtin_fn(Self::log2, "log2", &math, 1);

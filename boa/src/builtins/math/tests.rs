@@ -361,6 +361,36 @@ fn fround() {
 }
 
 #[test]
+fn hypot() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = Math.hypot();
+        var b = Math.hypot(3, 4);
+        var c = Math.hypot(5, 12);
+        var d = Math.hypot(3, 4, -5);
+        var e = Math.hypot(4, [5], 6);
+        var f = Math.hypot(3, Infinity);
+        "#;
+
+    eprintln!("{}", forward(&mut engine, init));
+
+    let a = forward_val(&mut engine, "a").unwrap();
+    let b = forward_val(&mut engine, "b").unwrap();
+    let c = forward_val(&mut engine, "c").unwrap();
+    let d = forward_val(&mut engine, "d").unwrap();
+    let e = forward(&mut engine, "e");
+    let f = forward(&mut engine, "f");
+
+    assert_eq!(a.to_number(), 0f64);
+    assert_eq!(b.to_number(), 5f64);
+    assert_eq!(c.to_number(), 13f64);
+    assert_eq!(d.to_number(), 7.071_067_811_865_475_5);
+    assert_eq!(e, String::from("NaN"));
+    assert_eq!(f, String::from("Infinity"));
+}
+
+#[test]
 fn log() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
