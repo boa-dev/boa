@@ -191,9 +191,18 @@ impl Function {
                     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                     let local_env = new_function_environment(
                         function,
-                        None,
+                        if let ThisMode::Lexical = self.this_mode {
+                            None
+                        } else {
+                            Some(this.clone())
+                        },
                         self.environment.as_ref().cloned(),
-                        BindingStatus::Uninitialized,
+                        // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                        if let ThisMode::Lexical = self.this_mode {
+                            BindingStatus::Lexical
+                        } else {
+                            BindingStatus::Uninitialized
+                        },
                     );
 
                     // Add argument bindings to the function environment
@@ -253,7 +262,12 @@ impl Function {
                         function,
                         Some(this.clone()),
                         self.environment.as_ref().cloned(),
-                        BindingStatus::Initialized,
+                        // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                        if let ThisMode::Lexical = self.this_mode {
+                            BindingStatus::Lexical
+                        } else {
+                            BindingStatus::Uninitialized
+                        },
                     );
 
                     // Add argument bindings to the function environment
