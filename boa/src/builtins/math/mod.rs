@@ -19,7 +19,6 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
-use num_traits::cast::ToPrimitive;
 use std::f64;
 
 #[cfg(test)]
@@ -177,11 +176,14 @@ impl Math {
     pub(crate) fn clz32(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .and_then(|x| f64::from(x).to_u32())
-            .map_or(32usize, |u| {
-                let s = format!("{:032b}", u);
-                s.chars().take_while(|x| *x == '0').count()
+            .and_then(|x| {
+                if f64::from(x).is_normal() {
+                    Some(i32::from(x).leading_zeros() as usize)
+                } else {
+                    None
+                }
             })
+            .unwrap_or(32usize)
             .into())
     }
 

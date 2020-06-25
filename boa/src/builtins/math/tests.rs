@@ -190,10 +190,12 @@ fn clz32() {
     let init = r#"
         var a = Math.clz32();
         var b = Math.clz32({});
-        var c = Math.clz32(1);
+        var c = Math.clz32(-173);
         var d = Math.clz32("1");
-        var e = Math.clz32(4);
+        var e = Math.clz32(2147483647);
         var f = Math.clz32(Infinity);
+        var g = Math.clz32(true);
+        var h = Math.clz32(0);
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -204,13 +206,17 @@ fn clz32() {
     let d = forward_val(&mut engine, "d").unwrap();
     let e = forward_val(&mut engine, "e").unwrap();
     let f = forward_val(&mut engine, "f").unwrap();
+    let g = forward_val(&mut engine, "g").unwrap();
+    let h = forward_val(&mut engine, "h").unwrap();
 
     assert_eq!(a.to_number(), 32_f64);
     assert_eq!(b.to_number(), 32_f64);
-    assert_eq!(c.to_number(), 31_f64);
+    assert_eq!(c.to_number(), 0_f64);
     assert_eq!(d.to_number(), 31_f64);
-    assert_eq!(e.to_number(), 29_f64);
+    assert_eq!(e.to_number(), 1_f64);
     assert_eq!(f.to_number(), 32_f64);
+    assert_eq!(g.to_number(), 31_f64);
+    assert_eq!(h.to_number(), 32_f64);
 }
 
 #[test]
