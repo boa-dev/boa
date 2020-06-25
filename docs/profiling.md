@@ -13,6 +13,7 @@ when the feature flag is not enabled, you have an empty dummy implementation tha
 ## Prerequesites
 
 - [Crox](https://github.com/rust-lang/measureme/blob/master/crox/Readme.md)
+- [summarize (Optional)](https://github.com/rust-lang/measureme/blob/master/summarize/Readme.md)
 
 ## How To Use
 
