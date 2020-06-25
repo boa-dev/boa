@@ -939,3 +939,19 @@ fn to_object() {
         .is_object());
     assert!(engine.to_object(&Value::null()).unwrap_err().is_object());
 }
+
+#[test]
+fn check_this_binding_in_object_literal() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var foo = {
+            a: 3,
+            bar: function () { return this.a + 5 }
+        };
+    
+        foo.bar()
+        "#;
+
+    assert_eq!(forward(&mut engine, init), "8");
+}
