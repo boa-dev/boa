@@ -154,9 +154,22 @@ impl Value {
     }
 
     #[inline]
-    pub fn ushr(&self, other: &Self, interpreter: &mut Interpreter) -> ResultValue {
-        // FIXME: Unsigned shift right
-        self.shr(other, interpreter)
+    pub fn ushr(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (Self::Rational(a), Self::Rational(b)) => Self::number(
+                Number::new(a)
+                    .to_uint32()
+                    .wrapping_shr(Number::new(b).to_uint32()),
+            ),
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::bigint(a.as_inner().clone() >> b.as_inner().clone())
+            }
+            (_, _) => {
+                return ctx.throw_type_error(
+                    "cannot mix BigInt and other types, use explicit conversions",
+                );
+            }
+        })
     }
 
     #[inline]
