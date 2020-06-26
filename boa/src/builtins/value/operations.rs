@@ -161,8 +161,9 @@ impl Value {
                     .to_uint32()
                     .wrapping_shr(Number::new(b).to_uint32()),
             ),
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() >> b.as_inner().clone())
+            (Self::BigInt(_), Self::BigInt(_)) => {
+                return ctx
+                    .throw_type_error("BigInts have no unsigned right shift, use >> instead");
             }
             (_, _) => {
                 return ctx.throw_type_error(
