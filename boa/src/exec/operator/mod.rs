@@ -1,4 +1,6 @@
 //! Operator execution.
+#[cfg(test)]
+mod tests;
 
 use super::{Executable, Interpreter};
 use crate::{
@@ -8,11 +10,12 @@ use crate::{
         node::{Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
+    BoaProfiler,
 };
-use std::borrow::BorrowMut;
 
 impl Executable for Assign {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(interpreter)?;
         match self.lhs() {
             Node::Identifier(ref name) => {
@@ -30,13 +33,13 @@ impl Executable for Assign {
                     environment.initialize_binding(name.as_ref(), val.clone());
                 }
             }
-            Node::GetConstField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                val_obj.set_field(field, val.clone());
+            Node::GetConstField(ref get_const_field) => {
+                let val_obj = get_const_field.obj().run(interpreter)?;
+                val_obj.set_field(get_const_field.field(), val.clone());
             }
-            Node::GetField(ref obj, ref field) => {
-                let val_obj = obj.run(interpreter)?;
-                let val_field = field.run(interpreter)?;
+            Node::GetField(ref get_field) => {
+                let val_obj = get_field.obj().run(interpreter)?;
+                let val_field = get_field.field().run(interpreter)?;
                 val_obj.set_field(val_field, val.clone());
             }
             _ => (),
@@ -74,11 +77,11 @@ impl Executable for BinOp {
                 })
             }
             op::BinOp::Comp(op) => {
-                let mut v_a = self.lhs().run(interpreter)?;
-                let mut v_b = self.rhs().run(interpreter)?;
+                let v_a = self.lhs().run(interpreter)?;
+                let v_b = self.rhs().run(interpreter)?;
                 Ok(Value::from(match op {
-                    CompOp::Equal => v_a.equals(v_b.borrow_mut(), interpreter),
-                    CompOp::NotEqual => !v_a.equals(v_b.borrow_mut(), interpreter),
+                    CompOp::Equal => v_a.equals(&v_b, interpreter)?,
+                    CompOp::NotEqual => !v_a.equals(&v_b, interpreter)?,
                     CompOp::StrictEqual => v_a.strict_equals(&v_b),
                     CompOp::StrictNotEqual => !v_a.strict_equals(&v_b),
                     CompOp::GreaterThan => v_a.to_number() > v_b.to_number(),
@@ -87,10 +90,13 @@ impl Executable for BinOp {
                     CompOp::LessThanOrEqual => v_a.to_number() <= v_b.to_number(),
                     CompOp::In => {
                         if !v_b.is_object() {
-                            panic!("TypeError: {} is not an Object.", v_b);
+                            return interpreter.throw_type_error(format!(
+                                "right-hand side of 'in' should be an object, got {}",
+                                v_b.get_type().as_str()
+                            ));
                         }
-                        let key = interpreter.to_property_key(&mut v_a)?;
-                        interpreter.has_property(&mut v_b, &key)
+                        let key = interpreter.to_property_key(&v_a)?;
+                        interpreter.has_property(&v_b, &key)
                     }
                 }))
             }
@@ -113,7 +119,8 @@ impl Executable for BinOp {
                     let v_a = interpreter
                         .realm()
                         .environment
-                        .get_binding_value(name.as_ref());
+                        .get_binding_value(name.as_ref())
+                        .ok_or_else(|| interpreter.construct_reference_error(name.as_ref()))?;
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b);
                     interpreter.realm.environment.set_mutable_binding(
@@ -123,12 +130,12 @@ impl Executable for BinOp {
                     );
                     Ok(value)
                 }
-                Node::GetConstField(ref obj, ref field) => {
-                    let v_r_a = obj.run(interpreter)?;
-                    let v_a = v_r_a.get_field(field);
+                Node::GetConstField(ref get_const_field) => {
+                    let v_r_a = get_const_field.obj().run(interpreter)?;
+                    let v_a = v_r_a.get_field(get_const_field.field());
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b);
-                    v_r_a.set_field(&field.clone(), value.clone());
+                    v_r_a.set_field(get_const_field.field(), value.clone());
                     Ok(value)
                 }
                 _ => Ok(Value::undefined()),
@@ -191,12 +198,17 @@ impl Executable for UnaryOp {
             }
             op::UnaryOp::Void => Value::undefined(),
             op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref obj, ref field) => {
-                    Value::boolean(obj.run(interpreter)?.remove_property(field))
-                }
-                Node::GetField(ref obj, ref field) => Value::boolean(
-                    obj.run(interpreter)?
-                        .remove_property(&field.run(interpreter)?.to_string()),
+                Node::GetConstField(ref get_const_field) => Value::boolean(
+                    get_const_field
+                        .obj()
+                        .run(interpreter)?
+                        .remove_property(get_const_field.field()),
+                ),
+                Node::GetField(ref get_field) => Value::boolean(
+                    get_field
+                        .obj()
+                        .run(interpreter)?
+                        .remove_property(&get_field.field().run(interpreter)?.to_string()),
                 ),
                 Node::Identifier(_) => Value::boolean(false),
                 Node::ArrayDecl(_)
@@ -209,7 +221,7 @@ impl Executable for UnaryOp {
                 | Node::UnaryOp(_) => Value::boolean(true),
                 _ => panic!("SyntaxError: wrong delete argument {}", self),
             },
-            op::UnaryOp::TypeOf => Value::from(v_a.get_type()),
+            op::UnaryOp::TypeOf => Value::from(v_a.get_type().as_str()),
         })
     }
 }

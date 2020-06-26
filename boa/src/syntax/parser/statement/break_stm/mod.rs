@@ -11,9 +11,13 @@
 mod tests;
 
 use super::LabelIdentifier;
-use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+
+use crate::{
+    syntax::{
+        ast::{node::Break, Keyword, Punctuator, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+    },
+    BoaProfiler,
 };
 
 /// Break statement parsing
@@ -45,9 +49,10 @@ impl BreakStatement {
 }
 
 impl TokenParser for BreakStatement {
-    type Output = Node;
+    type Output = Break;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect(Keyword::Break, "break statement")?;
 
         let label = if let (true, tok) = cursor.peek_semicolon(false) {
@@ -66,6 +71,6 @@ impl TokenParser for BreakStatement {
             Some(label)
         };
 
-        Ok(Node::Break(label))
+        Ok(Break::new::<_, Box<str>>(label))
     }
 }

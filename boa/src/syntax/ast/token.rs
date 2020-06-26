@@ -5,8 +5,9 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
+use crate::builtins::BigInt;
 use crate::syntax::{
-    ast::{bigint::BigInt, Keyword, Punctuator, Span},
+    ast::{Keyword, Punctuator, Span},
     lexer::LexerError,
 };
 use bitflags::bitflags;
@@ -30,7 +31,7 @@ pub struct Token {
     /// The token kind, which contains the actual data of the token.
     pub(crate) kind: TokenKind,
     /// The token position in the original source code.
-    span: Span,
+    pub(crate) span: Span,
 }
 
 impl Token {
@@ -239,6 +240,8 @@ pub enum TokenKind {
     /// A string literal.
     StringLiteral(Box<str>),
 
+    TemplateLiteral(Box<str>),
+
     /// A regular expression, consisting of body and flags.
     RegularExpressionLiteral(Box<str>, RegExpFlags),
 
@@ -309,6 +312,14 @@ impl TokenKind {
         Self::StringLiteral(lit.into())
     }
 
+    /// Creates a `TemplateLiteral` token type.
+    pub fn template_literal<S>(lit: S) -> Self
+    where
+        S: Into<Box<str>>,
+    {
+        Self::TemplateLiteral(lit.into())
+    }
+
     /// Creates a `RegularExpressionLiteral` token kind.
     pub fn regular_expression_literal<B>(body: B, flags: RegExpFlags) -> Self
     where
@@ -336,6 +347,7 @@ impl Display for TokenKind {
             Self::NumericLiteral(NumericLiteral::BigInt(ref num)) => write!(f, "{}n", num),
             Self::Punctuator(ref punc) => write!(f, "{}", punc),
             Self::StringLiteral(ref lit) => write!(f, "{}", lit),
+            Self::TemplateLiteral(ref lit) => write!(f, "{}", lit),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
             Self::LineTerminator => write!(f, "line terminator"),
         }

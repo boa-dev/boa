@@ -1,4 +1,12 @@
-use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{
+    builtins::{
+        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
+        value::same_value,
+    },
+    exec::Interpreter,
+    forward, forward_val,
+    realm::Realm,
+};
 
 #[test]
 fn json_sanity() {
@@ -170,24 +178,52 @@ fn json_stringify_function_replacer_propogate_error() {
         thrown
         "#,
     );
-    let expected = forward(&mut engine, r#"1"#);
+    let expected = forward(&mut engine, "1");
 
     assert_eq!(actual, expected);
 }
 
 #[test]
-fn json_stringify_return_undefined() {
+fn json_stringify_function() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual_function = forward(&mut engine, r#"JSON.stringify(() => {})"#);
+    let expected = forward(&mut engine, r#"undefined"#);
+
+    assert_eq!(actual_function, expected);
+}
+
+#[test]
+fn json_stringify_undefined() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let actual_undefined = forward(&mut engine, r#"JSON.stringify(undefined)"#);
+    let expected = forward(&mut engine, r#"undefined"#);
+
+    assert_eq!(actual_undefined, expected);
+}
+
+#[test]
+fn json_stringify_symbol() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual_symbol = forward(&mut engine, r#"JSON.stringify(Symbol())"#);
+    let expected = forward(&mut engine, r#"undefined"#);
+
+    assert_eq!(actual_symbol, expected);
+}
+
+#[test]
+fn json_stringify_no_args() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
     let actual_no_args = forward(&mut engine, r#"JSON.stringify()"#);
-    let actual_function = forward(&mut engine, r#"JSON.stringify(() => {})"#);
-    let actual_symbol = forward(&mut engine, r#"JSON.stringify(Symbol())"#);
     let expected = forward(&mut engine, r#"undefined"#);
 
     assert_eq!(actual_no_args, expected);
-    assert_eq!(actual_function, expected);
-    assert_eq!(actual_symbol, expected);
 }
 
 #[test]
@@ -235,4 +271,63 @@ fn json_parse_object_with_reviver() {
         JSON.stringify(jsonObj);"#,
     );
     assert_eq!(result, r#"{"firstname":"boa","lastname":"interpreter"}"#);
+}
+
+#[test]
+fn json_parse_sets_prototypes() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        const jsonString = "{
+            \"ob\":{\"ject\":1},
+            \"arr\": [0,1]
+        }";
+        const jsonObj = JSON.parse(jsonString);
+    "#;
+    eprintln!("{}", forward(&mut engine, init));
+    let object_prototype = forward_val(&mut engine, r#"jsonObj.ob"#)
+        .unwrap()
+        .get_internal_slot(INSTANCE_PROTOTYPE);
+    let array_prototype = forward_val(&mut engine, r#"jsonObj.arr"#)
+        .unwrap()
+        .get_internal_slot(INSTANCE_PROTOTYPE);
+    let global_object_prototype = engine
+        .realm
+        .global_obj
+        .get_field("Object")
+        .get_field(PROTOTYPE);
+    let global_array_prototype = engine
+        .realm
+        .global_obj
+        .get_field("Array")
+        .get_field(PROTOTYPE);
+    assert_eq!(
+        same_value(&object_prototype, &global_object_prototype),
+        true
+    );
+    assert_eq!(same_value(&array_prototype, &global_array_prototype), true);
+}
+
+#[test]
+fn json_fields_should_be_enumerable() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let actual_object = forward(
+        &mut engine,
+        r#"
+        var a = JSON.parse('{"x":0}');
+        a.propertyIsEnumerable('x');
+    "#,
+    );
+    let actual_array_index = forward(
+        &mut engine,
+        r#"
+        var b = JSON.parse('[0, 1]');
+        b.propertyIsEnumerable('0');
+        "#,
+    );
+    let expected = forward(&mut engine, r#"true"#);
+
+    assert_eq!(actual_object, expected);
+    assert_eq!(actual_array_index, expected);
 }

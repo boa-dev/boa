@@ -1,30 +1,32 @@
 //! Expression execution.
 
-use super::{Executable, Interpreter};
+use super::{Executable, Interpreter, InterpreterState};
 use crate::{
     builtins::{
-        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
-        value::{ResultValue, Value, ValueData},
+        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+        value::{ResultValue, Type, Value},
     },
     syntax::ast::node::{Call, New, Node},
+    BoaProfiler,
 };
 
 impl Executable for Call {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
-        let (mut this, func) = match self.expr() {
-            Node::GetConstField(ref obj, ref field) => {
-                let mut obj = obj.run(interpreter)?;
-                if obj.get_type() != "object" || obj.get_type() != "symbol" {
+        let _timer = BoaProfiler::global().start_event("Call", "exec");
+        let (this, func) = match self.expr() {
+            Node::GetConstField(ref get_const_field) => {
+                let mut obj = get_const_field.obj().run(interpreter)?;
+                if obj.get_type() != Type::Object || obj.get_type() != Type::Symbol {
                     obj = interpreter
                         .to_object(&obj)
                         .expect("failed to convert to object");
                 }
-                (obj.clone(), obj.get_field(field))
+                (obj.clone(), obj.get_field(get_const_field.field()))
             }
-            Node::GetField(ref obj, ref field) => {
-                let obj = obj.run(interpreter)?;
-                let field = field.run(interpreter)?;
-                (obj.clone(), obj.get_field(field))
+            Node::GetField(ref get_field) => {
+                let obj = get_field.obj().run(interpreter)?;
+                let field = get_field.field().run(interpreter)?;
+                (obj.clone(), obj.get_field(field.to_string()))
             }
             _ => (
                 interpreter.realm().global_obj.clone(),
@@ -43,10 +45,10 @@ impl Executable for Call {
         }
 
         // execute the function call itself
-        let fnct_result = interpreter.call(&func, &mut this, &v_args);
+        let fnct_result = interpreter.call(&func, &this, &v_args);
 
         // unset the early return flag
-        interpreter.is_return = false;
+        interpreter.set_current_state(InterpreterState::Executing);
 
         fnct_result
     }
@@ -64,17 +66,18 @@ impl Executable for New {
         for arg in self.args() {
             v_args.push(arg.run(interpreter)?);
         }
-        let mut this = Value::new_object(None);
+        let this = Value::new_object(None);
         // Create a blank object, then set its __proto__ property to the [Constructor].prototype
         this.set_internal_slot(INSTANCE_PROTOTYPE, func_object.get_field(PROTOTYPE));
 
-        match func_object.data() {
-            ValueData::Object(ref o) => o.clone().borrow_mut().func.as_ref().unwrap().construct(
-                &mut func_object.clone(),
-                &v_args,
-                interpreter,
-                &mut this,
-            ),
+        match func_object {
+            Value::Object(ref obj) => {
+                let obj = obj.borrow();
+                if let ObjectData::Function(ref func) = obj.data {
+                    return func.construct(func_object.clone(), &this, &v_args, interpreter);
+                }
+                interpreter.throw_type_error("not a constructor")
+            }
             _ => Ok(Value::undefined()),
         }
     }

@@ -6,15 +6,22 @@
 //! [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 
 use super::arguments::Arguments;
-use crate::syntax::{
-    ast::{
-        node::{Call, New, Node},
-        Keyword, Punctuator, TokenKind,
+
+use crate::{
+    syntax::{
+        ast::{
+            node::{
+                field::{GetConstField, GetField},
+                Call, New, Node,
+            },
+            Keyword, Punctuator, TokenKind,
+        },
+        parser::{
+            expression::{primary::PrimaryExpression, Expression},
+            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        },
     },
-    parser::{
-        expression::{primary::PrimaryExpression, Expression},
-        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Parses a member expression.
@@ -47,6 +54,7 @@ impl TokenParser for MemberExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
         let mut lhs = if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
             == TokenKind::Keyword(Keyword::New)
         {
@@ -65,9 +73,11 @@ impl TokenParser for MemberExpression {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor forward.
                     match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
                         TokenKind::Identifier(name) => {
-                            lhs = Node::get_const_field(lhs, name.clone())
+                            lhs = GetConstField::new(lhs, name.clone()).into()
                         }
-                        TokenKind::Keyword(kw) => lhs = Node::get_const_field(lhs, kw.to_string()),
+                        TokenKind::Keyword(kw) => {
+                            lhs = GetConstField::new(lhs, kw.to_string()).into()
+                        }
                         _ => {
                             return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
@@ -82,7 +92,7 @@ impl TokenParser for MemberExpression {
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;
-                    lhs = Node::get_field(lhs, idx);
+                    lhs = GetField::new(lhs, idx).into();
                 }
                 _ => break,
             }

@@ -7,11 +7,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Argument
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
-use crate::syntax::{
-    ast::{Node, Punctuator, TokenKind},
-    parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+use crate::{
+    syntax::{
+        ast::{node::Spread, Node, Punctuator, TokenKind},
+        parser::{
+            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
+            TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// Parses a list of arguments.
@@ -46,6 +50,7 @@ impl TokenParser for Arguments {
     type Output = Box<[Node]>;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
         cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
@@ -78,10 +83,13 @@ impl TokenParser for Arguments {
             }
 
             if cursor.next_if(Punctuator::Spread).is_some() {
-                args.push(Node::spread(
-                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
-                ));
+                args.push(
+                    Spread::new(
+                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor)?,
+                    )
+                    .into(),
+                );
             } else {
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)

@@ -10,10 +10,12 @@ use crate::{
     syntax::ast::node::{
         ArrowFunctionDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDeclList, VarDeclList,
     },
+    BoaProfiler,
 };
 
 impl Executable for FunctionDecl {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+        let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = interpreter.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
@@ -33,9 +35,9 @@ impl Executable for FunctionDecl {
         interpreter
             .realm_mut()
             .environment
-            .initialize_binding(self.name(), val.clone());
+            .initialize_binding(self.name(), val);
 
-        Ok(val)
+        Ok(Value::undefined())
     }
 }
 

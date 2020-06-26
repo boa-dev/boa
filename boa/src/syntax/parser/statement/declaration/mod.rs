@@ -13,9 +13,13 @@ mod lexical;
 mod tests;
 
 use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
-use crate::syntax::{
-    ast::{Keyword, Node, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+
+use crate::{
+    syntax::{
+        ast::{Keyword, Node, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+    },
+    BoaProfiler,
 };
 
 /// Parses a declaration.
@@ -46,7 +50,8 @@ impl Declaration {
 impl TokenParser for Declaration {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
         let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {

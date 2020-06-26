@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Node},
+        node::{Block, If, Node},
         Const,
     },
     parser::tests::check_parser,
@@ -10,11 +10,7 @@ use crate::syntax::{
 fn if_without_else_block() {
     check_parser(
         "if (true) {}",
-        vec![Node::if_node::<_, _, Node, _>(
-            Const::from(true),
-            Block::from(Vec::new()),
-            None,
-        )],
+        vec![If::new::<_, _, Node, _>(Const::from(true), Block::from(Vec::new()), None).into()],
     );
 }
 
@@ -22,10 +18,6 @@ fn if_without_else_block() {
 fn if_without_else_block_with_trailing_newline() {
     check_parser(
         "if (true) {}\n",
-        vec![Node::if_node::<_, _, Node, _>(
-            Const::from(true),
-            Block::from(Vec::new()),
-            None,
-        )],
+        vec![If::new::<_, _, Node, _>(Const::from(true), Block::from(Vec::new()), None).into()],
     );
 }

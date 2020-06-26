@@ -6,10 +6,13 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::ast::bigint::BigInt;
-use crate::syntax::ast::{
-    token::{NumericLiteral, Token, TokenKind},
-    Position, Punctuator, Span,
+use crate::builtins::BigInt;
+use crate::{
+    syntax::ast::{
+        token::{NumericLiteral, Token, TokenKind},
+        Position, Punctuator, Span,
+    },
+    BoaProfiler,
 };
 use std::{
     char::{decode_utf16, from_u32},
@@ -439,7 +442,7 @@ impl<'a> Lexer<'a> {
         let num = match kind {
                 NumericKind::BigInt(base) => {
                     NumericLiteral::BigInt(
-                        BigInt::from_str_radix(&buf, base as u32).expect("Could not conver to BigInt")
+                        BigInt::from_string_radix(&buf, base as u32).expect("Could not conver to BigInt")
                         )
                 }
                 NumericKind::Rational /* base: 10 */ => {
@@ -486,6 +489,7 @@ impl<'a> Lexer<'a> {
     /// }
     /// ```
     pub fn lex(&mut self) -> Result<(), LexerError> {
+        let _timer = BoaProfiler::global().start_event("lex", "lexing");
         loop {
             // Check if we've reached the end
             if self.preview_next().is_none() {
@@ -495,6 +499,7 @@ impl<'a> Lexer<'a> {
             self.next_column();
             let ch = self.next();
             match ch {
+                 // StringLiteral
                 '"' | '\'' => {
                     let mut buf = String::new();
                     loop {
@@ -619,6 +624,28 @@ impl<'a> Lexer<'a> {
                     self.move_columns( str_length.wrapping_add(1));
                     self.push_token(TokenKind::string_literal(buf), start_pos);
                 }
+                // TemplateLiteral
+                '`' => {
+                    let mut buf = String::new();
+                    loop {
+                        if self.preview_next().is_none() {
+                            return Err(LexerError::new("Unterminated template literal"));
+                        }
+                        match self.next() {
+                            '`' => {
+                                break;
+                            }
+                            next_ch => buf.push(next_ch),
+                            // TODO when there is an expression inside the literal
+                        }
+                    }
+                    let str_length = buf.len() as u32;
+                    // Why +1? Quotation marks are not included,
+                    // So technically it would be +2, (for both " ") but we want to be 1 less
+                    // to compensate for the incrementing at the top
+                    self.move_columns( str_length.wrapping_add(1));
+                    self.push_token(TokenKind::template_literal(buf), start_pos);
+                }
                 _ if ch.is_digit(10) => self.reed_numerical_literal(ch)?,
                 _ if ch.is_alphabetic() || ch == '$' || ch == '_' => {
                     let mut buf = ch.to_string();
@@ -633,7 +660,6 @@ impl<'a> Lexer<'a> {
                         "true" => TokenKind::BooleanLiteral(true),
                         "false" => TokenKind::BooleanLiteral(false),
                         "null" => TokenKind::NullLiteral,
-                        "NaN" => TokenKind::NumericLiteral(NumericLiteral::Rational(f64::NAN)),
                         slice => {
                             if let Ok(keyword) = FromStr::from_str(slice) {
                                 TokenKind::Keyword(keyword)

@@ -9,13 +9,14 @@ impl From<&Value> for Value {
 
 impl From<String> for Value {
     fn from(value: String) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<String>", "value");
         Self::string(value)
     }
 }
 
 impl From<Box<str>> for Value {
     fn from(value: Box<str>) -> Self {
-        Self::string(value)
+        Self::string(String::from(value))
     }
 }
 
@@ -34,6 +35,12 @@ impl From<&Box<str>> for Value {
 impl From<char> for Value {
     fn from(value: char) -> Self {
         Value::string(value.to_string())
+    }
+}
+
+impl From<RcString> for Value {
+    fn from(value: RcString) -> Self {
+        Value::String(value)
     }
 }
 
@@ -82,29 +89,15 @@ impl From<&Value> for i32 {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct TryFromBigIntError;
-
-impl Display for TryFromBigIntError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Could not convert value to a BigInt type")
-    }
-}
-
-impl TryFrom<&Value> for BigInt {
-    type Error = TryFromBigIntError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        match value.data() {
-            ValueData::BigInt(ref bigint) => Ok(bigint.clone()),
-            _ => Err(TryFromBigIntError),
-        }
-    }
-}
-
 impl From<BigInt> for Value {
     fn from(value: BigInt) -> Self {
         Value::bigint(value)
+    }
+}
+
+impl From<RcBigInt> for Value {
+    fn from(value: RcBigInt) -> Self {
+        Value::BigInt(value)
     }
 }
 
@@ -138,8 +131,8 @@ where
     fn from(value: &[T]) -> Self {
         let mut array = Object::default();
         for (i, item) in value.iter().enumerate() {
-            array.properties.insert(
-                i.to_string(),
+            array.properties_mut().insert(
+                RcString::from(i.to_string()),
                 Property::default().value(item.clone().into()),
             );
         }
@@ -154,9 +147,10 @@ where
     fn from(value: Vec<T>) -> Self {
         let mut array = Object::default();
         for (i, item) in value.into_iter().enumerate() {
-            array
-                .properties
-                .insert(i.to_string(), Property::default().value(item.into()));
+            array.properties_mut().insert(
+                RcString::from(i.to_string()),
+                Property::default().value(item.into()),
+            );
         }
         Value::from(array)
     }
@@ -164,6 +158,7 @@ where
 
 impl From<Object> for Value {
     fn from(object: Object) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<Object>", "value");
         Value::object(object)
     }
 }
@@ -174,29 +169,6 @@ pub struct TryFromObjectError;
 impl Display for TryFromObjectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Could not convert value to an Object type")
-    }
-}
-
-impl TryFrom<&Value> for Object {
-    type Error = TryFromObjectError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        match value.data() {
-            ValueData::Object(ref object) => Ok(object.clone().into_inner()),
-            _ => Err(TryFromObjectError),
-        }
-    }
-}
-
-impl From<JSONValue> for Value {
-    fn from(value: JSONValue) -> Self {
-        Self(Gc::new(ValueData::from_json(value)))
-    }
-}
-
-impl From<&Value> for JSONValue {
-    fn from(value: &Value) -> Self {
-        value.to_json()
     }
 }
 

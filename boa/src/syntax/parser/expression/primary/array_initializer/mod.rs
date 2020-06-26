@@ -10,14 +10,18 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{ArrayDecl, Node},
-        Const, Punctuator,
+use crate::{
+    syntax::{
+        ast::{
+            node::{ArrayDecl, Node, Spread},
+            Const, Punctuator,
+        },
+        parser::{
+            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
+            TokenParser,
+        },
     },
-    parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Parses an array literal.
@@ -52,6 +56,7 @@ impl TokenParser for ArrayLiteral {
     type Output = ArrayDecl;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
 
         loop {
@@ -69,7 +74,7 @@ impl TokenParser for ArrayLiteral {
             if cursor.next_if(Punctuator::Spread).is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor)?;
-                elements.push(Node::spread(node));
+                elements.push(Spread::new(node).into());
             } else {
                 elements.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)

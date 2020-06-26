@@ -2,12 +2,16 @@
 mod tests;
 
 use super::Statement;
-use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
-    parser::{
-        expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
-        TokenParser,
+
+use crate::{
+    syntax::{
+        ast::{node::If, Keyword, Node, Punctuator, TokenKind},
+        parser::{
+            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+            TokenParser,
+        },
     },
+    BoaProfiler,
 };
 
 /// If statement parsing.
@@ -44,9 +48,10 @@ impl IfStatement {
 }
 
 impl TokenParser for IfStatement {
-    type Output = Node;
+    type Output = If;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
         cursor.expect(Keyword::If, "if statement")?;
         cursor.expect(Punctuator::OpenParen, "if statement")?;
 
@@ -68,6 +73,6 @@ impl TokenParser for IfStatement {
             _ => None,
         };
 
-        Ok(Node::if_node::<_, _, Node, _>(cond, then_stm, else_stm))
+        Ok(If::new::<_, _, Node, _>(cond, then_stm, else_stm))
     }
 }

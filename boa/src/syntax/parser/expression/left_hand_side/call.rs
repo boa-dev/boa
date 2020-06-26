@@ -8,15 +8,22 @@
 //! [spec]: https://tc39.es/ecma262/#prod-CallExpression
 
 use super::arguments::Arguments;
-use crate::syntax::{
-    ast::{
-        node::{Call, Node},
-        Punctuator, TokenKind,
+
+use crate::{
+    syntax::{
+        ast::{
+            node::{
+                field::{GetConstField, GetField},
+                Call, Node,
+            },
+            Punctuator, TokenKind,
+        },
+        parser::{
+            expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+            TokenParser,
+        },
     },
-    parser::{
-        expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-        TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Parses a call expression.
@@ -51,6 +58,7 @@ impl TokenParser for CallExpression {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
         let mut lhs = match cursor.peek(0) {
             Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
@@ -76,10 +84,10 @@ impl TokenParser for CallExpression {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor.
                     match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
                         TokenKind::Identifier(name) => {
-                            lhs = Node::get_const_field(lhs, name.clone());
+                            lhs = GetConstField::new(lhs, name.clone()).into();
                         }
                         TokenKind::Keyword(kw) => {
-                            lhs = Node::get_const_field(lhs, kw.to_string());
+                            lhs = GetConstField::new(lhs, kw.to_string()).into();
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -95,7 +103,7 @@ impl TokenParser for CallExpression {
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression")?;
-                    lhs = Node::get_field(lhs, idx);
+                    lhs = GetField::new(lhs, idx).into();
                 }
                 _ => break,
             }

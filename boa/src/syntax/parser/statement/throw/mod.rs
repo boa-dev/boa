@@ -1,9 +1,12 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{Keyword, Node, Punctuator, TokenKind},
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+use crate::{
+    syntax::{
+        ast::{node::Throw, Keyword, Punctuator, TokenKind},
+        parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+    },
+    BoaProfiler,
 };
 
 /// For statement parsing
@@ -35,9 +38,10 @@ impl ThrowStatement {
 }
 
 impl TokenParser for ThrowStatement {
-    type Output = Node;
+    type Output = Throw;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ThrowStatement", "Parsing");
         cursor.expect(Keyword::Throw, "throw statement")?;
 
         cursor.peek_expect_no_lineterminator(0)?;
@@ -49,6 +53,6 @@ impl TokenParser for ThrowStatement {
             }
         }
 
-        Ok(Node::throw(expr))
+        Ok(Throw::new(expr))
     }
 }

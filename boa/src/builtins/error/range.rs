@@ -13,10 +13,11 @@ use crate::{
     builtins::{
         function::make_builtin_fn,
         function::make_constructor_fn,
-        object::ObjectKind,
+        object::ObjectData,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
+    profiler::BoaProfiler,
 };
 
 /// JavaScript `RangeError` impleentation.
@@ -24,8 +25,14 @@ use crate::{
 pub(crate) struct RangeError;
 
 impl RangeError {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "RangeError";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: usize = 1;
+
     /// Create a new error object.
-    pub(crate) fn make_error(this: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         if !args.is_empty() {
             this.set_field(
                 "message",
@@ -38,8 +45,8 @@ impl RangeError {
         }
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_kind(ObjectKind::Error);
-        Ok(Value::undefined())
+        this.set_data(ObjectData::Error);
+        Err(this.clone())
     }
 
     /// `Error.prototype.toString()`
@@ -53,7 +60,7 @@ impl RangeError {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let name = this.get_field("name");
         let message = this.get_field("message");
         Ok(Value::from(format!("{}: {}", name, message)))
@@ -66,31 +73,21 @@ impl RangeError {
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
-        make_constructor_fn("RangeError", 1, Self::make_error, global, prototype, true)
-    }
-
-    /// Runs a `new RangeError(message)`.
-    pub(crate) fn run_new<M>(message: M, interpreter: &mut Interpreter) -> ResultValue
-    where
-        M: Into<String>,
-    {
-        use crate::{
-            exec::Executable,
-            syntax::ast::{
-                node::{Call, Identifier, New},
-                Const,
-            },
-        };
-
-        New::from(Call::new(
-            Identifier::from("RangeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(interpreter)
+        make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_error,
+            global,
+            prototype,
+            true,
+        )
     }
 
     /// Initialise the global object with the `RangeError` object.
-    pub(crate) fn init(global: &Value) {
-        global.set_field("RangeError", Self::create(global));
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        (Self::NAME, Self::create(global))
     }
 }

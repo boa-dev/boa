@@ -10,17 +10,20 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{self, FunctionExpr, MethodDefinitionKind, Node},
-        token::{Token, TokenKind},
-        Punctuator,
+use crate::{
+    syntax::{
+        ast::{
+            node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
+            token::{Token, TokenKind},
+            Punctuator,
+        },
+        parser::{
+            expression::AssignmentExpression,
+            function::{FormalParameters, FunctionBody},
+            AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        },
     },
-    parser::{
-        expression::AssignmentExpression,
-        function::{FormalParameters, FunctionBody},
-        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-    },
+    BoaProfiler,
 };
 
 /// Parses an object literal.
@@ -52,9 +55,10 @@ impl ObjectLiteral {
 }
 
 impl TokenParser for ObjectLiteral {
-    type Output = Node;
+    type Output = Object;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ObjectLiteral", "Parsing");
         let mut elements = Vec::new();
 
         loop {
@@ -82,7 +86,7 @@ impl TokenParser for ObjectLiteral {
             }
         }
 
-        Ok(Node::object(elements))
+        Ok(Object::from(elements))
     }
 }
 

@@ -18,18 +18,14 @@ mod tests;
 
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
-    object::ObjectKind,
+    object::ObjectData,
 };
 use crate::{
-    builtins::{
-        object::internal_methods_trait::ObjectInternalMethods,
-        value::{ResultValue, Value, ValueData},
-        RangeError,
-    },
+    builtins::value::{ResultValue, Value},
     exec::Interpreter,
+    BoaProfiler,
 };
 use num_traits::float::FloatCore;
-use std::{borrow::Borrow, f64, ops::Deref};
 
 const BUF_SIZE: usize = 2200;
 
@@ -37,29 +33,42 @@ const BUF_SIZE: usize = 2200;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Number;
 
+/// Maximum number of arguments expected to the builtin parseInt() function.
+const PARSE_INT_MAX_ARG_COUNT: usize = 2;
+
+/// Maximum number of arguments expected to the builtin parseFloat() function.
+const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
+
 impl Number {
-    /// Helper function that converts a Value to a Number.
-    #[allow(clippy::wrong_self_convention)]
-    fn to_number(value: &Value) -> Value {
-        match *value.deref().borrow() {
-            ValueData::Boolean(b) => {
-                if b {
-                    Value::from(1)
-                } else {
-                    Value::from(0)
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "Number";
+
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: usize = 1;
+
+    /// This function returns a `Result` of the number `Value`.
+    ///
+    /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
+    /// Otherwise an `TypeError` is thrown.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
+    fn this_number_value(value: &Value, ctx: &mut Interpreter) -> Result<f64, Value> {
+        match *value {
+            Value::Integer(integer) => return Ok(f64::from(integer)),
+            Value::Rational(rational) => return Ok(rational),
+            Value::Object(ref object) => {
+                if let Some(number) = object.borrow().as_number() {
+                    return Ok(number);
                 }
             }
-            ValueData::Symbol(_) | ValueData::Undefined => Value::from(f64::NAN),
-            ValueData::Integer(i) => Value::from(f64::from(i)),
-            ValueData::Object(ref o) => (o).deref().borrow().get_internal_slot("NumberData"),
-            ValueData::Null => Value::from(0),
-            ValueData::Rational(n) => Value::from(n),
-            ValueData::BigInt(ref bigint) => Value::from(bigint.to_f64()),
-            ValueData::String(ref s) => match s.parse::<f64>() {
-                Ok(n) => Value::from(n),
-                Err(_) => Value::from(f64::NAN),
-            },
+            _ => {}
         }
+
+        Err(ctx.construct_type_error("'this' is not a number"))
     }
 
     /// Helper function that formats a float as a ES6-style exponential number string.
@@ -74,19 +83,14 @@ impl Number {
     /// `[[Construct]]` - Creates a Number instance
     ///
     /// `[[Call]]` - Creates a number primitive
-    pub(crate) fn make_number(
-        this: &mut Value,
-        args: &[Value],
-        _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn make_number(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => Self::to_number(value),
-            None => Self::to_number(&Value::from(0)),
+            Some(ref value) => ctx.to_numeric_number(value)?,
+            None => 0.0,
         };
-        this.set_kind(ObjectKind::Number);
-        this.set_internal_slot("NumberData", data.clone());
+        this.set_data(ObjectData::Number(data));
 
-        Ok(data)
+        Ok(Value::from(data))
     }
 
     /// `Number.prototype.toExponential( [fractionDigits] )`
@@ -101,11 +105,11 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_exponential(
-        this: &mut Value,
+        this: &Value,
         _args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
-        let this_num = Self::to_number(this).to_number();
+        let this_num = Self::this_number_value(this, ctx)?;
         let this_str_num = Self::num_to_exponential(this_num);
         Ok(Value::from(this_str_num))
     }
@@ -121,12 +125,8 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(
-        this: &mut Value,
-        args: &[Value],
-        _ctx: &mut Interpreter,
-    ) -> ResultValue {
-        let this_num = Self::to_number(this).to_number();
+    pub(crate) fn to_fixed(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let this_num = Self::this_number_value(this, ctx)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer() {
                 x if x > 0 => n.to_integer() as usize,
@@ -153,11 +153,11 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_locale_string(
-        this: &mut Value,
+        this: &Value,
         _args: &[Value],
-        _ctx: &mut Interpreter,
+        ctx: &mut Interpreter,
     ) -> ResultValue {
-        let this_num = Self::to_number(this).to_number();
+        let this_num = Self::this_number_value(this, ctx)?;
         let this_str_num = format!("{}", this_num);
         Ok(Value::from(this_str_num))
     }
@@ -173,13 +173,9 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_precision(
-        this: &mut Value,
-        args: &[Value],
-        _ctx: &mut Interpreter,
-    ) -> ResultValue {
-        let this_num = Self::to_number(this);
-        let _num_str_len = format!("{}", this_num.to_number()).len();
+    pub(crate) fn to_precision(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let this_num = Self::this_number_value(this, ctx)?;
+        let _num_str_len = format!("{}", this_num).len();
         let _precision = match args.get(0) {
             Some(n) => match n.to_integer() {
                 x if x > 0 => n.to_integer() as usize,
@@ -341,23 +337,18 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         // 1. Let x be ? thisNumberValue(this value).
-        let x = Self::to_number(this).to_number();
+        let x = Self::this_number_value(this, ctx)?;
+
         // 2. If radix is undefined, let radixNumber be 10.
         // 3. Else, let radixNumber be ? ToInteger(radix).
         let radix = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
         if radix < 2 || radix > 36 {
-            return Err(RangeError::run_new(
-                "radix must be an integer at least 2 and no greater than 36",
-                ctx,
-            )?);
+            return ctx
+                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }
 
         if x == -0. {
@@ -399,18 +390,125 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(
-        this: &mut Value,
-        _args: &[Value],
+    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::from(Self::this_number_value(this, ctx)?))
+    }
+
+    /// Builtin javascript 'parseInt(str, radix)' function.
+    ///
+    /// Parses the given string as an integer using the given radix as a base.
+    ///
+    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
+    ///
+    /// The radix must be an integer in the range [2, 36] inclusive.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
+    pub(crate) fn parse_int(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+        if let (Some(val), r) = (args.get(0), args.get(1)) {
+            let mut radix = if let Some(rx) = r {
+                if let Value::Integer(i) = rx {
+                    *i as u32
+                } else {
+                    // Handling a second argument that isn't an integer but was provided so cannot be defaulted.
+                    return Ok(Value::from(f64::NAN));
+                }
+            } else {
+                // No second argument provided therefore radix is unknown
+                0
+            };
+
+            match val {
+                Value::String(s) => {
+                    // Attempt to infer radix from given string.
+
+                    if radix == 0 {
+                        if s.starts_with("0x") || s.starts_with("0X") {
+                            if let Ok(i) = i32::from_str_radix(&s[2..], 16) {
+                                return Ok(Value::integer(i));
+                            } else {
+                                // String can't be parsed.
+                                return Ok(Value::from(f64::NAN));
+                            }
+                        } else {
+                            radix = 10
+                        };
+                    }
+
+                    if let Ok(i) = i32::from_str_radix(s, radix) {
+                        Ok(Value::integer(i))
+                    } else {
+                        // String can't be parsed.
+                        Ok(Value::from(f64::NAN))
+                    }
+                }
+                Value::Integer(i) => Ok(Value::integer(*i)),
+                Value::Rational(f) => Ok(Value::integer(*f as i32)),
+                _ => {
+                    // Wrong argument type to parseInt.
+                    Ok(Value::from(f64::NAN))
+                }
+            }
+        } else {
+            // Not enough arguments to parseInt.
+            Ok(Value::from(f64::NAN))
+        }
+    }
+
+    /// Builtin javascript 'parseFloat(str)' function.
+    ///
+    /// Parses the given string as a floating point value.
+    ///
+    /// An argument of type Number (i.e. Integer or Rational) is also accepted in place of string.
+    ///
+    /// To improve performance an Integer type Number is returned in place of a Rational if the given
+    /// string can be parsed and stored as an Integer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
+    pub(crate) fn parse_float(
+        _this: &Value,
+        args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok(Self::to_number(this))
+        if let Some(val) = args.get(0) {
+            match val {
+                Value::String(s) => {
+                    if let Ok(i) = s.parse::<i32>() {
+                        // Attempt to parse an integer first so that it can be stored as an integer
+                        // to improve performance
+                        Ok(Value::integer(i))
+                    } else if let Ok(f) = s.parse::<f64>() {
+                        Ok(Value::rational(f))
+                    } else {
+                        // String can't be parsed.
+                        Ok(Value::from(f64::NAN))
+                    }
+                }
+                Value::Integer(i) => Ok(Value::integer(*i)),
+                Value::Rational(f) => Ok(Value::rational(*f)),
+                _ => {
+                    // Wrong argument type to parseFloat.
+                    Ok(Value::from(f64::NAN))
+                }
+            }
+        } else {
+            // Not enough arguments to parseFloat.
+            Ok(Value::from(f64::NAN))
+        }
     }
 
     /// Create a new `Number` object
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
-        prototype.set_internal_slot("NumberData", Value::from(0));
 
         make_builtin_fn(Self::to_exponential, "toExponential", &prototype, 1);
         make_builtin_fn(Self::to_fixed, "toFixed", &prototype, 1);
@@ -419,26 +517,46 @@ impl Number {
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        let number = make_constructor_fn("Number", 1, Self::make_number, global, prototype, true);
+        make_builtin_fn(Self::parse_int, "parseInt", global, PARSE_INT_MAX_ARG_COUNT);
+        make_builtin_fn(
+            Self::parse_float,
+            "parseFloat",
+            global,
+            PARSE_FLOAT_MAX_ARG_COUNT,
+        );
+
+        let number = make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::make_number,
+            global,
+            prototype,
+            true,
+        );
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
-        number.set_field("EPSILON", Value::from(std::f64::EPSILON));
-        number.set_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
-        number.set_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
-        number.set_field("MAX_VALUE", Value::from(std::f64::MAX));
-        number.set_field("MIN_VALUE", Value::from(std::f64::MIN));
-        number.set_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
-        number.set_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-        number.set_field("NaN", Value::from(f64::NAN));
+        {
+            let mut properties = number.as_object_mut().expect("'Number' object");
+            properties.insert_field("EPSILON", Value::from(f64::EPSILON));
+            properties.insert_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
+            properties.insert_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
+            properties.insert_field("MAX_VALUE", Value::from(f64::MAX));
+            properties.insert_field("MIN_VALUE", Value::from(f64::MIN));
+            properties.insert_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
+            properties.insert_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
+            properties.insert_field("NaN", Value::from(f64::NAN));
+        }
 
         number
     }
 
     /// Initialise the `Number` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) {
-        global.set_field("Number", Self::create(global));
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        (Self::NAME, Self::create(global))
     }
 
     /// The abstract operation Number::equal takes arguments
@@ -446,8 +564,8 @@ impl Number {
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
     #[allow(clippy::float_cmp)]
-    pub(crate) fn equals(a: f64, b: f64) -> bool {
-        a == b
+    pub(crate) fn equal(x: f64, y: f64) -> bool {
+        x == y
     }
 
     /// The abstract operation Number::sameValue takes arguments
@@ -477,11 +595,11 @@ impl Number {
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
     #[allow(clippy::float_cmp)]
-    pub(crate) fn same_value_zero(a: f64, b: f64) -> bool {
-        if a.is_nan() && b.is_nan() {
+    pub(crate) fn same_value_zero(x: f64, y: f64) -> bool {
+        if x.is_nan() && y.is_nan() {
             return true;
         }
 
-        a == b
+        x == y
     }
 }

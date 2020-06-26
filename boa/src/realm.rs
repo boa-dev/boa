@@ -8,7 +8,7 @@ use crate::{
     builtins::{
         self,
         function::{Function, NativeFunctionData},
-        value::{Value, ValueData},
+        value::Value,
     },
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -16,6 +16,7 @@ use crate::{
         lexical_environment::LexicalEnvironment,
         object_environment_record::ObjectEnvironmentRecord,
     },
+    BoaProfiler,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -26,12 +27,13 @@ use rustc_hash::{FxHashMap, FxHashSet};
 #[derive(Debug)]
 pub struct Realm {
     pub global_obj: Value,
-    pub global_env: Gc<GcCell<Box<GlobalEnvironmentRecord>>>,
+    pub global_env: Gc<GcCell<GlobalEnvironmentRecord>>,
     pub environment: LexicalEnvironment,
 }
 
 impl Realm {
     pub fn create() -> Self {
+        let _timer = BoaProfiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
         let global = Value::new_object(None);
@@ -53,6 +55,7 @@ impl Realm {
 
     // Sets up the default global objects within Global
     fn create_instrinsics(&self) {
+        let _timer = BoaProfiler::global().start_event("create_instrinsics", "realm");
         let global = &self.global_obj;
         // Create intrinsics, add global objects here
         builtins::init(global);
@@ -62,18 +65,15 @@ impl Realm {
     pub fn register_global_func(self, func_name: &str, func: NativeFunctionData) -> Self {
         let func = Function::builtin(Vec::new(), func);
         self.global_obj
-            .set_field(Value::from(func_name), ValueData::from_func(func));
+            .set_field(Value::from(func_name), Value::from_func(func));
 
         self
     }
 }
 
 // Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment
-fn new_global_environment(
-    global: Value,
-    this_value: Value,
-) -> Gc<GcCell<Box<GlobalEnvironmentRecord>>> {
-    let obj_rec = Box::new(ObjectEnvironmentRecord {
+fn new_global_environment(global: Value, this_value: Value) -> Gc<GcCell<GlobalEnvironmentRecord>> {
+    let obj_rec = ObjectEnvironmentRecord {
         bindings: global,
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
@@ -82,17 +82,17 @@ fn new_global_environment(
         /// with each object Environment Record. By default, the value of withEnvironment is false
         /// for any object Environment Record.
         with_environment: false,
-    });
+    };
 
-    let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
+    let dcl_rec = DeclarativeEnvironmentRecord {
         env_rec: FxHashMap::default(),
         outer_env: None,
-    });
+    };
 
-    Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
+    Gc::new(GcCell::new(GlobalEnvironmentRecord {
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
         var_names: FxHashSet::default(),
-    })))
+    }))
 }
