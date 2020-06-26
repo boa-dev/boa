@@ -113,7 +113,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
             }
         }
         Value::Symbol(ref symbol) => symbol.to_string(),
-        _ => format!("{}", x),
+        _ => format!("{}", x.display()),
     }
 }
 
