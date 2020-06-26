@@ -1,77 +1,113 @@
 use super::*;
 use crate::builtins::number::Number;
+use crate::exec::PreferredType;
 
 impl Value {
     #[inline]
-    pub fn add(&self, other: &Self, _: &mut Interpreter) -> ResultValue {
-        Ok(match (self, other) {
-            (Self::String(ref s), ref o) => {
-                Self::string(format!("{}{}", s.clone(), &o.to_string()))
-            }
-            (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
-                Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
-            }
-            (ref s, Self::String(ref o)) => Self::string(format!("{}{}", s.to_string(), o)),
-            (ref s, ref o) => Self::rational(s.to_number() + o.to_number()),
-        })
+    pub fn add(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+        Ok(
+            match (
+                ctx.to_primitive(self, PreferredType::Default)?,
+                ctx.to_primitive(other, PreferredType::Default)?,
+            ) {
+                (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, ctx.to_string(y)?)),
+                (ref x, Self::String(ref y)) => Self::string(format!("{}{}", ctx.to_string(x)?, y)),
+                (ref x, ref y) => match (ctx.to_numeric(x)?, ctx.to_numeric(y)?) {
+                    (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
+                        Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
+                    }
+                    (Self::Rational(x), Self::Rational(y)) => Self::rational(x + y),
+                    (_, _) => {
+                        return ctx.throw_type_error(
+                            "cannot mix BigInt and other types, use explicit conversions",
+                        )
+                    }
+                },
+            },
+        )
     }
 
     #[inline]
-    pub fn sub(&self, other: &Self, _: &mut Interpreter) -> ResultValue {
-        Ok(match (self, other) {
+    pub fn sub(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() - b.as_inner().clone())
             }
-            (a, b) => Self::rational(a.to_number() - b.to_number()),
+            (Self::Rational(a), Self::Rational(b)) => Self::rational(a - b),
+            (_, _) => {
+                return ctx.throw_type_error(
+                    "cannot mix BigInt and other types, use explicit conversions",
+                );
+            }
         })
     }
 
     #[inline]
-    pub fn mul(&self, other: &Self, _: &mut Interpreter) -> ResultValue {
-        Ok(match (self, other) {
+    pub fn mul(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (Self::Rational(a), Self::Rational(b)) => Self::rational(a * b),
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() * b.as_inner().clone())
             }
-            (a, b) => Self::rational(a.to_number() * b.to_number()),
+            (_, _) => {
+                return ctx.throw_type_error(
+                    "cannot mix BigInt and other types, use explicit conversions",
+                );
+            }
         })
     }
 
     #[inline]
-    pub fn div(&self, other: &Self, _: &mut Interpreter) -> ResultValue {
-        Ok(match (self, other) {
+    pub fn div(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (Self::Rational(a), Self::Rational(b)) => Self::rational(a / b),
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() / b.as_inner().clone())
             }
-            (a, b) => Self::rational(a.to_number() / b.to_number()),
+            (_, _) => {
+                return ctx.throw_type_error(
+                    "cannot mix BigInt and other types, use explicit conversions",
+                );
+            }
         })
     }
 
     #[inline]
-    pub fn rem(&self, other: &Self, _: &mut Interpreter) -> ResultValue {
-        Ok(match (self, other) {
+    pub fn rem(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (Self::Rational(a), Self::Rational(b)) => Self::rational(a % b),
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() % b.as_inner().clone())
             }
-            (a, b) => Self::rational(a.to_number() % b.to_number()),
+            (_, _) => {
+                return ctx.throw_type_error(
+                    "cannot mix BigInt and other types, use explicit conversions",
+                );
+            }
         })
     }
 
     #[inline]
-    pub fn pow(&self, other: &Self, _: &mut Interpreter) -> ResultValue {
-        Ok(match (self, other) {
+    pub fn pow(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (Self::Rational(a), Self::Rational(b)) => Self::rational(a.powf(b)),
             (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(a.as_inner().clone().pow(b)),
-            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
+            (_, _) => {
+                return ctx.throw_type_error(
+                    "cannot mix BigInt and other types, use explicit conversions",
+                );
+            }
         })
     }
 
     #[inline]
     pub fn bitand(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
         Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() & b.as_inner().clone())
-            }
             (Self::Rational(a), Self::Rational(b)) => {
                 Self::integer(Number::new(a).to_int32() & Number::new(b).to_int32())
+            }
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::bigint(a.as_inner().clone() & b.as_inner().clone())
             }
             (_, _) => {
                 return ctx.throw_type_error(
@@ -84,11 +120,11 @@ impl Value {
     #[inline]
     pub fn bitor(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
         Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() | b.as_inner().clone())
-            }
             (Self::Rational(a), Self::Rational(b)) => {
                 Self::integer(Number::new(a).to_int32() | Number::new(b).to_int32())
+            }
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::bigint(a.as_inner().clone() | b.as_inner().clone())
             }
             (_, _) => {
                 return ctx.throw_type_error(
@@ -101,11 +137,11 @@ impl Value {
     #[inline]
     pub fn bitxor(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
         Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
-            }
             (Self::Rational(a), Self::Rational(b)) => {
                 Self::integer(Number::new(a).to_int32() ^ Number::new(b).to_int32())
+            }
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
             }
             (_, _) => {
                 return ctx.throw_type_error(
