@@ -165,8 +165,8 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
 
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
-            // Every other type of data is printed as is
-            format!("{}", data)
+            // Every other type of data is printed with the display method
+            format!("{}", data.display())
         }
     }
 
