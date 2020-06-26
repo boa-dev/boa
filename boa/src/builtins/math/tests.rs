@@ -341,6 +341,7 @@ fn fround() {
         var d = Math.fround(5.5);
         var e = Math.fround(5.05);
         var f = Math.fround(-5.05);
+        var g = Math.fround();
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -351,6 +352,7 @@ fn fround() {
     let d = forward_val(&mut engine, "d").unwrap();
     let e = forward_val(&mut engine, "e").unwrap();
     let f = forward_val(&mut engine, "f").unwrap();
+    let g = forward(&mut engine, "g");
 
     assert_eq!(a, String::from("NaN"));
     assert_eq!(b, String::from("Infinity"));
@@ -358,6 +360,7 @@ fn fround() {
     assert_eq!(d.to_number(), 5.5f64);
     assert_eq!(e.to_number(), 5.050_000_190_734_863);
     assert_eq!(f.to_number(), -5.050_000_190_734_863);
+    assert_eq!(g, String::from("NaN"));
 }
 
 #[test]
@@ -371,6 +374,7 @@ fn hypot() {
         var d = Math.hypot(3, 4, -5);
         var e = Math.hypot(4, [5], 6);
         var f = Math.hypot(3, -Infinity);
+        var g = Math.hypot(12);
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -381,6 +385,7 @@ fn hypot() {
     let d = forward_val(&mut engine, "d").unwrap();
     let e = forward(&mut engine, "e");
     let f = forward(&mut engine, "f");
+    let g = forward_val(&mut engine, "g").unwrap();
 
     assert_eq!(a.to_number(), 0f64);
     assert_eq!(b.to_number(), 5f64);
@@ -388,6 +393,7 @@ fn hypot() {
     assert_eq!(d.to_number(), 7.071_067_811_865_475_5);
     assert_eq!(e, String::from("NaN"));
     assert_eq!(f, String::from("Infinity"));
+    assert_eq!(g.to_number(), 12f64);
 }
 
 #[test]
@@ -399,6 +405,8 @@ fn imul() {
         var b = Math.imul(-5, 12);
         var c = Math.imul(0xffffffff, 5);
         var d = Math.imul(0xfffffffe, 5);
+        var e = Math.imul(12);
+        var f = Math.imul();
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -407,11 +415,15 @@ fn imul() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
     let d = forward_val(&mut engine, "d").unwrap();
+    let e = forward_val(&mut engine, "e").unwrap();
+    let f = forward_val(&mut engine, "f").unwrap();
 
     assert_eq!(a.to_number(), 12f64);
     assert_eq!(b.to_number(), -60f64);
     assert_eq!(c.to_number(), -5f64);
     assert_eq!(d.to_number(), -10f64);
+    assert_eq!(e.to_number(), 0f64);
+    assert_eq!(f.to_number(), 0f64);
 }
 
 #[test]
@@ -446,6 +458,7 @@ fn log1p() {
         var d = Math.log1p(-1);
         var e = Math.log1p(-1.000000000000001);
         var f = Math.log1p(-2);
+        var g = Math.log1p();
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -456,6 +469,7 @@ fn log1p() {
     let d = forward(&mut engine, "d");
     let e = forward(&mut engine, "e");
     let f = forward(&mut engine, "f");
+    let g = forward(&mut engine, "g");
 
     assert_eq!(a.to_number(), f64::consts::LN_2);
     assert_eq!(b.to_number(), 0f64);
@@ -463,6 +477,7 @@ fn log1p() {
     assert_eq!(d, "-Infinity");
     assert_eq!(e, String::from("NaN"));
     assert_eq!(f, String::from("NaN"));
+    assert_eq!(g, String::from("NaN"));
 }
 
 #[test]
@@ -514,7 +529,7 @@ fn max() {
     let init = r#"
         var a = Math.max(10, 20);
         var b = Math.max(-10, -20);
-        var c = Math.max(-10, 20); 
+        var c = Math.max(-10, 20);
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -535,7 +550,7 @@ fn min() {
     let init = r#"
         var a = Math.min(10, 20);
         var b = Math.min(-10, -20);
-        var c = Math.min(-10, 20); 
+        var c = Math.min(-10, 20);
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
@@ -598,7 +613,7 @@ fn sign() {
     let init = r#"
         var a = Math.sign(3);
         var b = Math.sign(-3);
-        var c = Math.sign(0); 
+        var c = Math.sign(0);
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
