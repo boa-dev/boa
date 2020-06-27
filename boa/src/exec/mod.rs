@@ -124,14 +124,6 @@ impl Interpreter {
             .get_field("Function")
             .get_field(PROTOTYPE);
 
-        // Every new function has a prototype property pre-made
-        let global_val = &self
-            .realm
-            .environment
-            .get_global_object()
-            .expect("Could not get the global object");
-        let proto = Value::new_object(Some(global_val));
-
         let params = params.into();
         let params_len = params.len();
         let func = FunctionObject::new(
@@ -147,6 +139,14 @@ impl Interpreter {
 
         let val = Value::from(new_func);
         val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
+        // Every new function has a prototype property pre-made
+        let global_val = &self
+            .realm
+            .environment
+            .get_global_object()
+            .expect("Could not get the global object");
+        let proto = Value::new_object(Some(global_val));
+        proto.set_field("constructor", val.clone());
         val.set_field(PROTOTYPE, proto);
         val.set_field("length", Value::from(params_len));
 
