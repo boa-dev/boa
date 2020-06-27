@@ -26,6 +26,8 @@ use num_traits::float::FloatCore;
 
 mod conversions;
 
+pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
+
 #[cfg(test)]
 mod tests;
 
@@ -33,7 +35,7 @@ const BUF_SIZE: usize = 2200;
 
 /// `Number` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Number(f64);
+pub(crate) struct Number;
 
 /// Maximum number of arguments expected to the builtin parseInt() function.
 const PARSE_INT_MAX_ARG_COUNT: usize = 2;
@@ -93,12 +95,6 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.min_value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_VALUE
     pub(crate) const MIN_VALUE: f64 = f64::MIN;
-
-    /// Create a new number.
-    #[inline]
-    pub(crate) fn new(value: f64) -> Self {
-        Self(value)
-    }
 
     /// This function returns a `Result` of the number `Value`.
     ///

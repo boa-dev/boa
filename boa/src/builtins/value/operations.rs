@@ -1,5 +1,5 @@
 use super::*;
-use crate::builtins::number::Number;
+use crate::builtins::number::{f64_to_int32, f64_to_uint32};
 use crate::exec::PreferredType;
 
 impl Value {
@@ -180,110 +180,204 @@ impl Value {
 
     #[inline]
     pub fn bitand(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
-        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::Rational(a), Self::Rational(b)) => {
-                Self::integer(Number::new(a).to_int32() & Number::new(b).to_int32())
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::integer(x & y),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::integer(f64_to_int32(*x) & f64_to_int32(*y))
             }
+            (Self::Integer(x), Self::Rational(y)) => Self::integer(x & f64_to_int32(*y)),
+            (Self::Rational(x), Self::Integer(y)) => Self::integer(f64_to_int32(*x) & y),
+
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() & b.as_inner().clone())
             }
-            (_, _) => {
-                return ctx.throw_type_error(
-                    "cannot mix BigInt and other types, use explicit conversions",
-                );
-            }
+
+            // Slow path:
+            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+                (Self::Rational(a), Self::Rational(b)) => {
+                    Self::integer(f64_to_int32(a) & f64_to_int32(b))
+                }
+                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                    Self::bigint(a.as_inner().clone() & b.as_inner().clone())
+                }
+                (_, _) => {
+                    return ctx.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
         })
     }
 
     #[inline]
     pub fn bitor(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
-        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::Rational(a), Self::Rational(b)) => {
-                Self::integer(Number::new(a).to_int32() | Number::new(b).to_int32())
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::integer(x | y),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::integer(f64_to_int32(*x) | f64_to_int32(*y))
             }
+            (Self::Integer(x), Self::Rational(y)) => Self::integer(x | f64_to_int32(*y)),
+            (Self::Rational(x), Self::Integer(y)) => Self::integer(f64_to_int32(*x) | y),
+
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() | b.as_inner().clone())
             }
-            (_, _) => {
-                return ctx.throw_type_error(
-                    "cannot mix BigInt and other types, use explicit conversions",
-                );
-            }
+
+            // Slow path:
+            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+                (Self::Rational(a), Self::Rational(b)) => {
+                    Self::integer(f64_to_int32(a) | f64_to_int32(b))
+                }
+                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                    Self::bigint(a.as_inner().clone() | b.as_inner().clone())
+                }
+                (_, _) => {
+                    return ctx.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
         })
     }
 
     #[inline]
     pub fn bitxor(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
-        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::Rational(a), Self::Rational(b)) => {
-                Self::integer(Number::new(a).to_int32() ^ Number::new(b).to_int32())
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::integer(x ^ y),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::integer(f64_to_int32(*x) ^ f64_to_int32(*y))
             }
+            (Self::Integer(x), Self::Rational(y)) => Self::integer(x ^ f64_to_int32(*y)),
+            (Self::Rational(x), Self::Integer(y)) => Self::integer(f64_to_int32(*x) ^ y),
+
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
             }
-            (_, _) => {
-                return ctx.throw_type_error(
-                    "cannot mix BigInt and other types, use explicit conversions",
-                );
-            }
+
+            // Slow path:
+            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+                (Self::Rational(a), Self::Rational(b)) => {
+                    Self::integer(f64_to_int32(a) ^ f64_to_int32(b))
+                }
+                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                    Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
+                }
+                (_, _) => {
+                    return ctx.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
         })
     }
 
     #[inline]
     pub fn shl(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
-        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::Rational(a), Self::Rational(b)) => Self::integer(
-                Number::new(a)
-                    .to_int32()
-                    .wrapping_shl(Number::new(b).to_uint32()),
-            ),
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shl(*y as u32)),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::integer(f64_to_int32(*x).wrapping_shl(f64_to_uint32(*y)))
+            }
+            (Self::Integer(x), Self::Rational(y)) => {
+                Self::integer(x.wrapping_shl(f64_to_uint32(*y)))
+            }
+            (Self::Rational(x), Self::Integer(y)) => {
+                Self::integer(f64_to_int32(*x).wrapping_shl(*y as u32))
+            }
+
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() << b.as_inner().clone())
             }
-            (_, _) => {
-                return ctx.throw_type_error(
-                    "cannot mix BigInt and other types, use explicit conversions",
-                );
-            }
+
+            // Slow path:
+            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+                (Self::Rational(x), Self::Rational(y)) => {
+                    Self::integer(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
+                }
+                (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+                    Self::bigint(x.as_inner().clone() << y.as_inner().clone())
+                }
+                (_, _) => {
+                    return ctx.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
         })
     }
 
     #[inline]
     pub fn shr(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
-        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::Rational(a), Self::Rational(b)) => Self::integer(
-                Number::new(a)
-                    .to_int32()
-                    .wrapping_shr(Number::new(b).to_uint32()),
-            ),
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shr(*y as u32)),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::integer(f64_to_int32(*x).wrapping_shr(f64_to_uint32(*y)))
+            }
+            (Self::Integer(x), Self::Rational(y)) => {
+                Self::integer(x.wrapping_shr(f64_to_uint32(*y)))
+            }
+            (Self::Rational(x), Self::Integer(y)) => {
+                Self::integer(f64_to_int32(*x).wrapping_shr(*y as u32))
+            }
+
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 Self::bigint(a.as_inner().clone() >> b.as_inner().clone())
             }
-            (_, _) => {
-                return ctx.throw_type_error(
-                    "cannot mix BigInt and other types, use explicit conversions",
-                );
-            }
+
+            // Slow path:
+            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+                (Self::Rational(x), Self::Rational(y)) => {
+                    Self::integer(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
+                }
+                (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+                    Self::bigint(x.as_inner().clone() >> y.as_inner().clone())
+                }
+                (_, _) => {
+                    return ctx.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
         })
     }
 
     #[inline]
     pub fn ushr(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
-        Ok(match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
-            (Self::Rational(a), Self::Rational(b)) => Self::number(
-                Number::new(a)
-                    .to_uint32()
-                    .wrapping_shr(Number::new(b).to_uint32()),
-            ),
-            (Self::BigInt(_), Self::BigInt(_)) => {
-                return ctx
-                    .throw_type_error("BigInts have no unsigned right shift, use >> instead");
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => {
+                Self::rational((*x as u32).wrapping_shr(*y as u32))
             }
-            (_, _) => {
-                return ctx.throw_type_error(
-                    "cannot mix BigInt and other types, use explicit conversions",
-                );
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::rational(f64_to_uint32(*x).wrapping_shr(f64_to_uint32(*y)))
             }
+            (Self::Integer(x), Self::Rational(y)) => {
+                Self::rational((*x as u32).wrapping_shr(f64_to_uint32(*y)))
+            }
+            (Self::Rational(x), Self::Integer(y)) => {
+                Self::rational(f64_to_uint32(*x).wrapping_shr(*y as u32))
+            }
+
+            // Slow path:
+            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+                (Self::Rational(x), Self::Rational(y)) => {
+                    Self::rational(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
+                }
+                (Self::BigInt(_), Self::BigInt(_)) => {
+                    return ctx
+                        .throw_type_error("BigInts have no unsigned right shift, use >> instead");
+                }
+                (_, _) => {
+                    return ctx.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
         })
     }
 

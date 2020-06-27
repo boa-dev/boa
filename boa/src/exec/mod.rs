@@ -24,6 +24,7 @@ mod try_node;
 use crate::{
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
+        number::{f64_to_int32, f64_to_uint32},
         object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{RcBigInt, RcString, ResultValue, Type, Value},
@@ -276,7 +277,7 @@ impl Interpreter {
         }
         let number = self.to_number(value)?;
 
-        Ok(Number::new(number).to_int32())
+        Ok(f64_to_int32(number))
     }
 
     /// Converts a value to an integral 32 bit unsigned integer.
@@ -290,7 +291,7 @@ impl Interpreter {
         }
         let number = self.to_number(value)?;
 
-        Ok(Number::new(number).to_uint32())
+        Ok(f64_to_uint32(number))
     }
 
     /// Converts argument to an integer suitable for use as the length of an array-like object.
