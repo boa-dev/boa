@@ -131,9 +131,9 @@ where
 
         // Add elements to the peeked buffer upto the amount required to skip the given amount ahead.
         while self.peeked.len() < skip + 1 {
-            match self.next() {
+            match self.lexer.next() {
                 Some(Ok(token)) => self.peeked.push_back(Some(token.clone())),
-                Some(Err(e)) => return Some(Err(e)),
+                Some(Err(e)) => return Some(Err(ParseError::lex(e))),
                 None => self.peeked.push_back(None),
             }
         }
