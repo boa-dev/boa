@@ -8,9 +8,6 @@ use crate::syntax::lexer::{Token, TokenKind};
 use std::collections::VecDeque;
 use std::io::Read;
 
-/// The maximum number of values stored by the cursor to allow back().
-const BACK_QUEUE_MAX_LEN: usize = 3;
-
 /// Token cursor.
 ///
 /// This internal structure gives basic testable operations to the parser.
@@ -149,6 +146,10 @@ where
         ret.map(|token| Ok(token))
     }
 
+    pub(super) fn push_back(&mut self, token: Token) {
+        self.peeked.push_front(Some(token));
+    }
+
     // /// Moves the cursor to the previous token and returns the token.
     // pub(super) fn back(&mut self) -> Option<Result<Token, ParseError>> {
     //     unimplemented!();
@@ -232,34 +233,14 @@ where
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    pub(super) fn peek_semicolon(
-        &mut self,
-        do_while: bool,
-    ) -> Result<(bool, Option<Token>), ParseError> {
+    pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
         match self.peek() {
-            Some(Ok(tk)) => {
-                println!("Token: {:?}", tk);
-                match tk.kind() {
-                    TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
-                    TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                        Ok((true, Some(tk)))
-                    }
-                    _ => {
-                        if do_while {
-                            todo!();
-
-                            // let tok = self
-                            //     .tokens
-                            //     .get(self.pos - 1)
-                            //     .expect("could not find previous token");
-                            // if tok.kind == TokenKind::Punctuator(Punctuator::CloseParen) {
-                            //     return Ok((true, Some(tk)));
-                            // }
-                        }
-
-                        Ok((false, Some(tk)))
-                    }
+            Some(Ok(tk)) => match tk.kind() {
+                TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
+                TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    Ok((true, Some(tk)))
                 }
+                _ => Ok((false, Some(tk))),
             },
             Some(Err(e)) => Err(e),
             None => Ok((true, None)),
@@ -273,13 +254,9 @@ where
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn expect_semicolon(
         &mut self,
-        do_while: bool,
         context: &'static str,
     ) -> Result<Option<Token>, ParseError> {
-        println!("Context: {}", context);
-        println!("Peek: {:?}", self.peek());
-
-        match self.peek_semicolon(do_while)? {
+        match self.peek_semicolon()? {
             (true, Some(tk)) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
                     self.next(); // Consume the token.
@@ -322,8 +299,7 @@ where
 
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
     ///
-    /// When the next token is a `kind` token, get the token, otherwise return `None`. This
-    /// function skips line terminators.
+    /// When the next token is a `kind` token, get the token, otherwise return `None`.
     pub(super) fn next_if<K>(&mut self, kind: K) -> Option<Result<Token, ParseError>>
     where
         K: Into<TokenKind>,
@@ -339,5 +315,10 @@ where
             Some(Err(e)) => Some(Err(e)),
             None => None,
         }
+    }
+
+    /// Advance the cursor to skip 0, 1 or more line terminators.
+    pub(super) fn skip_line_terminators(&mut self) {
+        while self.next_if(TokenKind::LineTerminator).is_some() {}
     }
 }

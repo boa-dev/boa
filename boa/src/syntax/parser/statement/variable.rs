@@ -59,7 +59,7 @@ where
         let decl_list =
             VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "variable statement")?;
+        cursor.expect_semicolon("variable statement")?;
 
         Ok(decl_list)
     }
@@ -115,7 +115,7 @@ where
                     .parse(cursor)?,
             );
 
-            match cursor.peek_semicolon(false)? {
+            match cursor.peek_semicolon()? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
                     let _ = cursor.next();

@@ -69,11 +69,21 @@ where
                 break;
             }
 
+            if cursor.next_if(TokenKind::LineTerminator).is_some() {
+                // Skip line terminators.
+                continue;
+            }
+
             elements
                 .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
 
             if cursor.next_if(Punctuator::CloseBlock).is_some() {
                 break;
+            }
+
+            if cursor.next_if(TokenKind::LineTerminator).is_some() {
+                // Skip line terminators.
+                continue;
             }
 
             if cursor.next_if(Punctuator::Comma).is_none() {

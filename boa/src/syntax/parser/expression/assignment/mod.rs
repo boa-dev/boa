@@ -100,6 +100,7 @@ where
                     }
                 }
             }
+
             // (a,b)=>{}
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 if let Some(node) =
@@ -110,6 +111,7 @@ where
                     return Ok(node);
                 }
             }
+
             _ => {}
         }
 

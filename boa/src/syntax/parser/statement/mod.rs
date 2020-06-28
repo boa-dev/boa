@@ -228,9 +228,7 @@ where
 
         loop {
             match cursor.peek() {
-                Some(Ok(token))
-                    if token.kind() == &TokenKind::LineTerminator =>
-                {
+                Some(Ok(token)) if token.kind() == &TokenKind::LineTerminator => {
                     // Skip line terminators.
                     cursor.next();
                     continue;
@@ -363,16 +361,10 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
 
-        println!("Express statement before node peek: {:?}", cursor.peek());
-
         // TODO: lookahead
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        println!("Expression: {:?}", expr);
-
-        println!("Cursor peek value after node peek: {:?}", cursor.peek());
-
-        cursor.expect_semicolon(false, "expression statement")?;
+        cursor.expect_semicolon("expression statement")?;
 
         Ok(expr)
     }
@@ -424,12 +416,21 @@ where
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
         // TODO: strict mode.
 
-        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)??;
+        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
         match next_token.kind() {
-            TokenKind::Identifier(ref s) => Ok(s.clone()),
-            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.as_str().into()),
-            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.as_str().into()),
+            TokenKind::Identifier(ref s) => {
+                cursor.next(); // Consume the token.
+                Ok(s.clone())
+            }
+            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
+                cursor.next();
+                Ok(k.as_str().into())
+            }
+            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => {
+                cursor.next();
+                Ok(k.as_str().into())
+            }
             _ => Err(ParseError::expected(
                 vec![TokenKind::identifier("identifier")],
                 next_token.clone(),
