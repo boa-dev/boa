@@ -1,5 +1,5 @@
 use super::*;
-use crate::{forward, forward_val, Interpreter, Realm};
+use crate::{exec, forward, forward_val, Interpreter, Realm};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -211,5 +211,72 @@ fn get_types() {
     assert_eq!(
         forward_val(&mut engine, "Symbol()").unwrap().get_type(),
         Type::Symbol
+    );
+}
+
+#[test]
+fn display_string() {
+    let s = String::from("Hello");
+    let v = Value::from(s);
+    assert_eq!(v.display().to_string(), "\"Hello\"");
+}
+
+#[test]
+fn display_array_string() {
+    let d_arr = r#"
+            let a = ["Hello"];
+            a
+        "#;
+    assert_eq!(&exec(d_arr), "[ \"Hello\" ]");
+}
+
+#[test]
+fn display_object() {
+    let d_obj = r#"
+        let o = {a: 'a'};
+        o
+    "#;
+    assert_eq!(
+        &exec(d_obj),
+        r#"{
+   a: "a",
+__proto__: {
+constructor: {
+setPrototypeOf: {
+          length: 2
+            },
+   prototype: [Cycle],
+        name: "Object",
+      length: 1,
+defineProperty: {
+          length: 3
+            },
+getPrototypeOf: {
+          length: 1
+            },
+          is: {
+          length: 2
+            },
+   __proto__: {
+     constructor: {
+                name: "Function",
+           prototype: [Cycle],
+              length: 1,
+           __proto__: undefined
+                },
+       __proto__: undefined
+            }
+        },
+hasOwnProperty: {
+      length: 0
+        },
+propertyIsEnumerable: {
+      length: 0
+        },
+toString: {
+      length: 0
+        }
+    }
+}"#
     );
 }
