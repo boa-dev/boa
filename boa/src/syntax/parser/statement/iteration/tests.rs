@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::{
         node::{
-            field::GetConstField, BinOp, Block, Call, DoWhileLoop, Identifier, UnaryOp, VarDecl,
+            field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, WhileLoop, Identifier, UnaryOp, VarDecl,
             VarDeclList,
         },
         op::{self, AssignOp, CompOp},
@@ -57,5 +57,26 @@ fn check_do_while_semicolon_insertion() {
             )
             .into(),
         ],
+    );
+}
+
+/// Checks parsing of a while statement which is seperated out with line terminators.
+#[test]
+fn while_spaces() {
+    check_parser(
+        r#"
+
+        while 
+        
+        (
+        
+        true
+        
+        )
+        
+        break;
+
+        "#,
+        vec![WhileLoop::new(Const::from(true), Break::new::<_, Box<str>>(None)).into()],
     );
 }

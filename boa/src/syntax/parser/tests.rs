@@ -31,16 +31,6 @@ pub(super) fn check_invalid(js: &str) {
     assert!(Parser::new(js.as_bytes()).parse_all().is_err());
 }
 
-#[test]
-fn function_dec() {
-    let init = r#"function(k, v){return k;}"#;
-    let res = Parser::new(init.as_bytes())
-    .parse_all()
-    .expect("failed to parse");
-
-    println!("Result {:?}", res);
-}
-
 //
 // a[0].hi = 'hi';
 // a[0].hi

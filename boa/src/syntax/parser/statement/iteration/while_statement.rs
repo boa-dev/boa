@@ -5,6 +5,7 @@ use crate::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
         },
+        lexer::TokenKind::LineTerminator,
     },
     BoaProfiler,
 };
@@ -55,11 +56,21 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
         cursor.expect(Keyword::While, "while statement")?;
+
+        // Line terminators can exist between a While and the condition.
+        while cursor.next_if(LineTerminator).is_some() {}
+
         cursor.expect(Punctuator::OpenParen, "while statement")?;
+
+        while cursor.next_if(LineTerminator).is_some() {}
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
+        while cursor.next_if(LineTerminator).is_some() {}
+
         cursor.expect(Punctuator::CloseParen, "while statement")?;
+
+        while cursor.next_if(LineTerminator).is_some() {}
 
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
