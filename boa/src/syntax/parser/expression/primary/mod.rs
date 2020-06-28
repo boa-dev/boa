@@ -18,7 +18,7 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use super::Expression;
-use crate::syntax::lexer::{token::Numeric, TokenKind};
+use crate::syntax::lexer::{token::Numeric, TokenKind, InputElement};
 use crate::syntax::{
     ast::{
         node::{Call, Identifier, New, Node},
@@ -101,13 +101,16 @@ where
             TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                Ok(Node::from(New::from(Call::new(
+                cursor.set_goal(InputElement::RegExp);
+                let res = Ok(Node::from(New::from(Call::new(
                     Identifier::from("RegExp"),
                     vec![
                         Const::from(body.as_ref()).into(),
                         Const::from(flags.to_string()).into(),
                     ],
-                ))))
+                ))));
+                cursor.set_goal(InputElement::default());
+                res
             }
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
         }

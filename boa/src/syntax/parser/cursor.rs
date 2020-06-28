@@ -1,9 +1,10 @@
 //! Cursor implementation for the parser.
 
 use super::ParseError;
-use crate::syntax::ast::Punctuator;
-use crate::syntax::lexer::Lexer;
-use crate::syntax::lexer::{Token, TokenKind};
+use crate::syntax::{
+    ast::Punctuator,
+    lexer::{Lexer, Token, TokenKind, InputElement},
+};
 
 use std::collections::VecDeque;
 use std::io::Read;
@@ -38,6 +39,11 @@ where
             peeked: VecDeque::new(),
             // back_queue: VecDeque::new(),
         }
+    }
+
+    /// Sets the goal symbol for the lexer.
+    pub(crate) fn set_goal(&mut self, elm: InputElement) {
+        self.lexer.set_goal(elm)
     }
 
     /// Moves the cursor to the next token and returns the token.
