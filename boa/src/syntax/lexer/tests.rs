@@ -417,6 +417,7 @@ fn big_exp_numbers() {
 }
 
 #[test]
+#[ignore]
 fn big_literal_numbers() {
     let mut lexer = Lexer::new(&b"10000000000000000000000000"[0..]);
 
@@ -639,6 +640,7 @@ fn illegal_following_numeric_literal() {
 }
 
 #[test]
+#[ignore]
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
