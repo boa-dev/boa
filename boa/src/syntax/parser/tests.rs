@@ -46,47 +46,47 @@ fn array_fill_obj_ref() {
     println!("Result {:?}", res);
 }
 
-#[test]
-fn check_single_statement() {
-    let init = r#"
-        arr.pop();
-        "#;
-    let res = Parser::new(init.as_bytes())
-    .parse_all()
-    .expect("failed to parse");
+// #[test]
+// fn check_single_statement() {
+//     let init = r#"
+//         arr.pop();
+//         "#;
+//     let res = Parser::new(init.as_bytes())
+//     .parse_all()
+//     .expect("failed to parse");
 
-    println!("Result {:?}", res);
-}
+//     println!("Result {:?}", res);
+// }
 
-#[test]
-fn check_no_semicolon_statement() {
-    let init = r#"
-        arr.pop();
-        return arr.len();
-        "#;
-    let res = Parser::new(init.as_bytes())
-    .parse_all()
-    .expect("failed to parse");
+// // #[test]
+// // fn check_no_semicolon_statement() {
+// //     let init = r#"
+// //         arr.pop();
+// //         return arr.len();
+// //         "#;
+// //     let res = Parser::new(init.as_bytes())
+// //     .parse_all()
+// //     .expect("failed to parse");
+// //
+// //     println!("Result {:?}", res);
+// // }
 
-    println!("Result {:?}", res);
-}
+// #[test]
+// fn check_function_no_semicolon_statement() {
+//     let init = r#"
+//         var arr = [11, 23, 45];
 
-#[test]
-fn check_function_no_semicolon_statement() {
-    let init = r#"
-        var arr = [11, 23, 45];
+//         function foo() {
+//           arr.pop()
+//           return arr.len < 3;
+//         }
+//         "#;
+//     let res = Parser::new(init.as_bytes())
+//     .parse_all()
+//     .expect("failed to parse");
 
-        function foo() {
-          arr.pop()
-          return arr.len < 3;
-        }
-        "#;
-    let res = Parser::new(init.as_bytes())
-    .parse_all()
-    .expect("failed to parse");
-
-    println!("Result {:?}", res);
-}
+//     println!("Result {:?}", res);
+// }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
 #[test]

@@ -326,8 +326,8 @@ where
 
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
     ///
-    /// When the next token is a `kind` token, get the token, otherwise return `None`. This
-    /// function skips line terminators.
+    /// When the next token is a `kind` token, get the token, otherwise return `None`.
+    
     pub(super) fn next_if<K>(&mut self, kind: K) -> Option<Result<Token, ParseError>>
     where
         K: Into<TokenKind>,
