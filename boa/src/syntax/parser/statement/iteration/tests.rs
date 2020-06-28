@@ -1,8 +1,8 @@
 use crate::syntax::{
     ast::{
         node::{
-            field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, WhileLoop, Identifier, UnaryOp, VarDecl,
-            VarDeclList, Node
+            field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, Identifier, Node,
+            UnaryOp, VarDecl, VarDeclList, WhileLoop,
         },
         op::{self, AssignOp, CompOp},
         Const,
@@ -60,7 +60,7 @@ fn check_do_while_semicolon_insertion() {
     );
 }
 
-// Checks automatic semicolon insertion after do-while with no space between closing paren 
+// Checks automatic semicolon insertion after do-while with no space between closing paren
 // and next statement.
 #[test]
 fn check_do_while_semicolon_insertion_no_space() {
@@ -130,12 +130,9 @@ fn do_while_spaces() {
 
         "#,
         vec![DoWhileLoop::new(
-            Block::from(
-                vec![
-                    Break::new::<Option<Box<str>>, Box<str>>(None).into()
-                ]
-            ),
-            Const::Bool(true)
-        ).into()],
+            Block::from(vec![Break::new::<Option<Box<str>>, Box<str>>(None).into()]),
+            Const::Bool(true),
+        )
+        .into()],
     );
 }

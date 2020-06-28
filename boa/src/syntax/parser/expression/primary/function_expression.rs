@@ -41,7 +41,10 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
 
-        println!("Before binding identifier, cursor peek: {:?}", cursor.peek());
+        println!(
+            "Before binding identifier, cursor peek: {:?}",
+            cursor.peek()
+        );
 
         let name = BindingIdentifier::new(false, false).try_parse(cursor);
 

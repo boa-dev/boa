@@ -1,11 +1,11 @@
 use crate::{
     syntax::{
         ast::{node::WhileLoop, Keyword, Punctuator},
+        lexer::TokenKind::LineTerminator,
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
         },
-        lexer::TokenKind::LineTerminator,
     },
     BoaProfiler,
 };

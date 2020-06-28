@@ -19,7 +19,7 @@ use crate::{
             error::{ErrorContext, ParseError, ParseResult},
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser, Token
+            AllowAwait, AllowIn, AllowYield, Cursor, Token, TokenParser,
         },
     },
     BoaProfiler,
@@ -74,7 +74,7 @@ where
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
 
-            // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed 
+            // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed
 
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
 
@@ -88,7 +88,7 @@ where
                     return Err(e);
                 }
             }
-            // let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        // let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)

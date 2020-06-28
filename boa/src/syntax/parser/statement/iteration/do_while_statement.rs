@@ -70,7 +70,7 @@ where
 
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
-            
+
         cursor.skip_line_terminators();
 
         let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
@@ -104,7 +104,7 @@ where
         Ok(DoWhileLoop::new(body, cond))
     }
 }
-/// Checks that the next token is a semicolon with regards to the automatic semicolon insertion rules 
+/// Checks that the next token is a semicolon with regards to the automatic semicolon insertion rules
 /// as specified in spec.
 ///
 /// This is used for the check at the end of a DoWhileLoop as-opposed to the regular cursor.expect() because
@@ -113,10 +113,10 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-rules-of-automatic-semicolon-insertion
 fn expect_semicolon_dowhile<R>(cursor: &mut Cursor<R>) -> Result<(), ParseError>
 where
-    R: Read
+    R: Read,
 {
     // The previous token is already known to be a CloseParan as this is checked as part of the dowhile parsing.
-    // This means that 
+    // This means that
 
     match cursor.peek() {
         None => {
@@ -130,9 +130,6 @@ where
             }
             Ok(())
         }
-        Some(Err(e)) => {
-            Err(e)
-        }
+        Some(Err(e)) => Err(e),
     }
-
 }

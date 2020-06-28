@@ -72,7 +72,7 @@ where
             None
         } else {
             let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect_semicolon( "continue statement")?;
+            cursor.expect_semicolon("continue statement")?;
 
             Some(label)
         };

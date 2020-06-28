@@ -236,9 +236,7 @@ where
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    pub(super) fn peek_semicolon(
-        &mut self
-    ) -> Result<(bool, Option<Token>), ParseError> {
+    pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
         match self.peek() {
             Some(Ok(tk)) => {
                 println!("Token: {:?}", tk);
@@ -247,11 +245,9 @@ where
                     TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
                         Ok((true, Some(tk)))
                     }
-                    _ => {
-                        Ok((false, Some(tk)))
-                    }
+                    _ => Ok((false, Some(tk))),
                 }
-            },
+            }
             Some(Err(e)) => Err(e),
             None => Ok((true, None)),
         }
@@ -331,7 +327,7 @@ where
     }
 
     /// Advance the cursor to skip 0, 1 or more line terminators.
-    pub(super) fn skip_line_terminators(&mut self) { 
+    pub(super) fn skip_line_terminators(&mut self) {
         while self.next_if(TokenKind::LineTerminator).is_some() {}
     }
 }

@@ -40,8 +40,8 @@ pub(super) fn check_invalid(js: &str) {
 fn array_fill_obj_ref() {
     let init = r#"a = (new Array(3)).fill({});"#;
     let res = Parser::new(init.as_bytes())
-    .parse_all()
-    .expect("failed to parse");
+        .parse_all()
+        .expect("failed to parse");
 
     println!("Result {:?}", res);
 }

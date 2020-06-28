@@ -228,9 +228,7 @@ where
 
         loop {
             match cursor.peek() {
-                Some(Ok(token))
-                    if token.kind() == &TokenKind::LineTerminator =>
-                {
+                Some(Ok(token)) if token.kind() == &TokenKind::LineTerminator => {
                     // Skip line terminators.
                     cursor.next();
                     continue;
@@ -432,15 +430,15 @@ where
             TokenKind::Identifier(ref s) => {
                 cursor.next(); // Consume the token.
                 Ok(s.clone())
-            },
+            }
             TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
-                cursor.next();   
+                cursor.next();
                 Ok(k.as_str().into())
-            },
+            }
             TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => {
                 cursor.next();
                 Ok(k.as_str().into())
-            },
+            }
             _ => Err(ParseError::expected(
                 vec![TokenKind::identifier("identifier")],
                 next_token.clone(),
