@@ -205,15 +205,16 @@ where
 
     /// Returns an error if the next token is not of kind `kind`.
     ///
-    /// Note: it will consume the next token.
+    /// Note: it will consume the next token only if the next token is the expected type.
     pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>
     where
         K: Into<TokenKind>,
     {
-        let next_token = self.next().ok_or(ParseError::AbruptEnd)??;
+        let next_token = self.peek().ok_or(ParseError::AbruptEnd)??;
         let kind = kind.into();
 
         if next_token.kind() == &kind {
+            self.next();
             Ok(next_token)
         } else {
             Err(ParseError::expected(
