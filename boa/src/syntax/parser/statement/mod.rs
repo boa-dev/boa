@@ -229,6 +229,13 @@ where
         loop {
             match cursor.peek() {
                 Some(Ok(token))
+                    if token.kind() == &TokenKind::LineTerminator =>
+                {
+                    // Skip line terminators.
+                    cursor.next();
+                    continue;
+                }
+                Some(Ok(token))
                     if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) =>
                 {
                     if self.break_when_closingbrase {
@@ -355,8 +362,15 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
+
+        println!("Express statement before node peek: {:?}", cursor.peek());
+
         // TODO: lookahead
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+
+        println!("Expression: {:?}", expr);
+
+        println!("Cursor peek value after node peek: {:?}", cursor.peek());
 
         cursor.expect_semicolon(false, "expression statement")?;
 

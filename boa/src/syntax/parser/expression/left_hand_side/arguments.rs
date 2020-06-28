@@ -57,10 +57,14 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
+        println!("Parsing args");
+
         cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
             let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+            println!("Next token: {:?}", next_token);
+
             match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => {
                     cursor.next(); // Consume the token.

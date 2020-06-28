@@ -70,15 +70,17 @@ where
         loop {
             match self.lexer.next() {
                 Some(Ok(tk)) => {
-                    if tk.kind != TokenKind::LineTerminator {
-                        // if self.back_queue.len() >= BACK_QUEUE_MAX_LEN {
-                        //     self.back_queue.pop_front(); // Remove the value from the front of the queue.
-                        // }
+                    return Some(Ok(tk));
 
-                        // self.back_queue.push_back(Some(tk.clone()));
+                    // if tk.kind != TokenKind::LineTerminator {
+                    //     // if self.back_queue.len() >= BACK_QUEUE_MAX_LEN {
+                    //     //     self.back_queue.pop_front(); // Remove the value from the front of the queue.
+                    //     // }
 
-                        return Some(Ok(tk));
-                    }
+                    //     // self.back_queue.push_back(Some(tk.clone()));
+
+                    //     return Some(Ok(tk));
+                    // }
                 }
                 Some(Err(e)) => {
                     return Some(Err(ParseError::lex(e)));
@@ -235,25 +237,28 @@ where
         do_while: bool,
     ) -> Result<(bool, Option<Token>), ParseError> {
         match self.peek() {
-            Some(Ok(tk)) => match tk.kind {
-                TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
-                TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    Ok((true, Some(tk)))
-                }
-                _ => {
-                    if do_while {
-                        todo!();
-
-                        // let tok = self
-                        //     .tokens
-                        //     .get(self.pos - 1)
-                        //     .expect("could not find previous token");
-                        // if tok.kind == TokenKind::Punctuator(Punctuator::CloseParen) {
-                        //     return Ok((true, Some(tk)));
-                        // }
+            Some(Ok(tk)) => {
+                println!("Token: {:?}", tk);
+                match tk.kind() {
+                    TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
+                    TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                        Ok((true, Some(tk)))
                     }
+                    _ => {
+                        if do_while {
+                            todo!();
 
-                    Ok((false, Some(tk)))
+                            // let tok = self
+                            //     .tokens
+                            //     .get(self.pos - 1)
+                            //     .expect("could not find previous token");
+                            // if tok.kind == TokenKind::Punctuator(Punctuator::CloseParen) {
+                            //     return Ok((true, Some(tk)));
+                            // }
+                        }
+
+                        Ok((false, Some(tk)))
+                    }
                 }
             },
             Some(Err(e)) => Err(e),
@@ -271,6 +276,9 @@ where
         do_while: bool,
         context: &'static str,
     ) -> Result<Option<Token>, ParseError> {
+        println!("Context: {}", context);
+        println!("Peek: {:?}", self.peek());
+
         match self.peek_semicolon(do_while)? {
             (true, Some(tk)) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
