@@ -315,6 +315,8 @@ where
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
         let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
+        println!("StatementListItem start token: {:?}", tok);
+
         match tok.kind {
             TokenKind::Keyword(Keyword::Function)
             | TokenKind::Keyword(Keyword::Const)

@@ -149,6 +149,10 @@ where
         ret.map(|token| Ok(token))
     }
 
+    pub(super) fn push_back(&mut self, token: Token) {
+        self.peeked.push_front(Some(token));
+    }
+
     // /// Moves the cursor to the previous token and returns the token.
     // pub(super) fn back(&mut self) -> Option<Result<Token, ParseError>> {
     //     unimplemented!();

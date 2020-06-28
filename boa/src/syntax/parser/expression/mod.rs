@@ -64,6 +64,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
             println!("expression lhs: {:?}", lhs);
             while let Some(tok) = cursor.peek() {
+                println!("Token peeked = {:?}", tok);
                 match tok?.kind() {
                     &TokenKind::Punctuator(op) if $( op == $op )||* => {
                         let _ = cursor.next().expect("token disappeared");

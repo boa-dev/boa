@@ -31,6 +31,21 @@ pub(super) fn check_invalid(js: &str) {
     assert!(Parser::new(js.as_bytes()).parse_all().is_err());
 }
 
+//
+// a[0].hi = 'hi';
+// a[0].hi
+//
+
+#[test]
+fn array_fill_obj_ref() {
+    let init = r#"a = (new Array(3)).fill({});"#;
+    let res = Parser::new(init.as_bytes())
+    .parse_all()
+    .expect("failed to parse");
+
+    println!("Result {:?}", res);
+}
+
 #[test]
 fn check_single_statement() {
     let init = r#"

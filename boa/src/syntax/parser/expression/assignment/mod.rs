@@ -100,8 +100,11 @@ where
                     }
                 }
             }
+
+            
             // (a,b)=>{}
             TokenKind::Punctuator(Punctuator::OpenParen) => {
+                println!("Before arrow function attempt cursor.peek = {:?}", cursor.peek());
                 if let Some(node) =
                     ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
                         .try_parse(cursor)
@@ -109,7 +112,10 @@ where
                 {
                     return Ok(node);
                 }
+                println!("After arrow function attempt cursor.peek = {:?}", cursor.peek());
             }
+
+            
             _ => {}
         }
 

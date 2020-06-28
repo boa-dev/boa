@@ -19,7 +19,7 @@ use crate::{
             error::{ErrorContext, ParseError, ParseResult},
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser, Token
         },
     },
     BoaProfiler,
@@ -70,13 +70,25 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
-        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)?;
-        let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token?.kind() {
+        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+        let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
+
+            // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed 
+
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
-            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::CloseParen, "arrow function")?;
-            params
+
+            match FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor) {
+                Ok(params) => {
+                    cursor.expect(Punctuator::CloseParen, "arrow function")?;
+                    params
+                }
+                Err(e) => {
+                    cursor.push_back(next_token);
+                    return Err(e);
+                }
+            }
+            // let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
