@@ -313,7 +313,6 @@ where
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
     ///
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
-    
     pub(super) fn next_if<K>(&mut self, kind: K) -> Option<Result<Token, ParseError>>
     where
         K: Into<TokenKind>,
@@ -329,5 +328,10 @@ where
             Some(Err(e)) => Some(Err(e)),
             None => None,
         }
+    }
+
+    /// Advance the cursor to skip 0, 1 or more line terminators.
+    pub(super) fn skip_line_terminators(&mut self) { 
+        while self.next_if(TokenKind::LineTerminator).is_some() {}
     }
 }

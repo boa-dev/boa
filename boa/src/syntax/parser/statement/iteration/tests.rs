@@ -2,7 +2,7 @@ use crate::syntax::{
     ast::{
         node::{
             field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, WhileLoop, Identifier, UnaryOp, VarDecl,
-            VarDeclList,
+            VarDeclList, Node
         },
         op::{self, AssignOp, CompOp},
         Const,
@@ -109,5 +109,33 @@ fn while_spaces() {
 
         "#,
         vec![WhileLoop::new(Const::from(true), Break::new::<_, Box<str>>(None)).into()],
+    );
+}
+
+/// Checks parsing of a while statement which is seperated out with line terminators.
+#[test]
+fn do_while_spaces() {
+    check_parser(
+        r#"
+
+        do 
+
+        {
+            
+            break;
+
+        }
+        
+        while (true)
+
+        "#,
+        vec![DoWhileLoop::new(
+            Block::from(
+                vec![
+                    Break::new::<Option<Box<str>>, Box<str>>(None).into()
+                ]
+            ),
+            Const::Bool(true)
+        ).into()],
     );
 }

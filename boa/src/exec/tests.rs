@@ -310,7 +310,10 @@ fn do_while_loop() {
         b
         "#;
     assert_eq!(&exec(multiline_statement), "256");
+}
 
+#[test]
+fn do_while_loop_at_least_once() {
     let body_is_executed_at_least_once = r#"
         a = 0;
         do

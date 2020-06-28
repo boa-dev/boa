@@ -65,8 +65,13 @@ where
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
         cursor.expect(Keyword::Do, "do while statement")?;
 
+        // There can be space between the Do and the body.
+        cursor.skip_line_terminators();
+
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            
+        cursor.skip_line_terminators();
 
         let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
@@ -78,10 +83,19 @@ where
             ));
         }
 
+        cursor.skip_line_terminators();
+
         cursor.expect(Keyword::While, "do while statement")?;
+
+        cursor.skip_line_terminators();
+
         cursor.expect(Punctuator::OpenParen, "do while statement")?;
 
+        cursor.skip_line_terminators();
+
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+
+        cursor.skip_line_terminators();
 
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
 
