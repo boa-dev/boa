@@ -239,7 +239,6 @@ where
     pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
         match self.peek() {
             Some(Ok(tk)) => {
-                println!("Token: {:?}", tk);
                 match tk.kind() {
                     TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
                     TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
@@ -262,8 +261,6 @@ where
         &mut self,
         context: &'static str,
     ) -> Result<Option<Token>, ParseError> {
-        println!("Context: {}", context);
-        println!("Peek: {:?}", self.peek());
 
         match self.peek_semicolon()? {
             (true, Some(tk)) => match tk.kind() {

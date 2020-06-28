@@ -313,8 +313,6 @@ where
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
         let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
-        println!("StatementListItem start token: {:?}", tok);
-
         match tok.kind {
             TokenKind::Keyword(Keyword::Function)
             | TokenKind::Keyword(Keyword::Const)
@@ -363,14 +361,8 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
 
-        println!("Express statement before node peek: {:?}", cursor.peek());
-
         // TODO: lookahead
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-
-        println!("Expression: {:?}", expr);
-
-        println!("Cursor peek value after node peek: {:?}", cursor.peek());
 
         cursor.expect_semicolon("expression statement")?;
 

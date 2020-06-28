@@ -67,18 +67,14 @@ where
 
         let tk = cursor.peek();
 
-        println!("Parse Call Expression Token: {:?}", tk);
 
         let mut lhs = match tk {
             Some(_) if tk.unwrap()?.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
-                println!("Open paran");
                 let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                println!("After args: {:?}", cursor.peek());
 
                 Node::from(Call::new(self.first_member_expr, args))
             }
             _ => {
-                println!("Not open paran");
                 let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![TokenKind::Punctuator(Punctuator::OpenParen)],
@@ -88,11 +84,8 @@ where
             }
         };
 
-        println!("Parse Call Expression Finish Token: {:?}", cursor.peek());
-
         while let Some(tok) = cursor.peek() {
             let token = tok?.clone();
-            println!("Call expression parsing... token: {:?}", token);
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;

@@ -77,8 +77,6 @@ where
             elements
                 .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
 
-            println!("Object literal elements: {:?}", elements);
-
             if cursor.next_if(Punctuator::CloseBlock).is_some() {
                 break;
             }
@@ -145,7 +143,6 @@ where
         }
 
         let prop_name = cursor.next().ok_or(ParseError::AbruptEnd)??.to_string();
-        println!("Prop_name: {:?}", prop_name);
         if cursor.next_if(Punctuator::Colon).is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;

@@ -71,7 +71,6 @@ where
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
             // TokenKind::Keyword(Keyword::Arguments) => Ok(Node::new(NodeBase::Arguments, tok.pos)),
             TokenKind::Keyword(Keyword::Function) => {
-                println!("Cursor peek: {:?}", cursor.peek());
                 FunctionExpression.parse(cursor).map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {

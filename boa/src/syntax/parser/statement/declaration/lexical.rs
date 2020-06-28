@@ -127,10 +127,7 @@ where
             let (ident, init) =
                 LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
                     .parse(cursor)?;
-
-            println!("LexicalBinding: ident: {:?}", ident);
-            println!("LexicalBinding: init: {:?}", init);
-
+                    
             if self.is_const {
                 if let Some(init) = init {
                     const_decls.push(ConstDecl::new(ident, init));
