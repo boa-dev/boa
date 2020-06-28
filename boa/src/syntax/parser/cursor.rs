@@ -8,9 +8,6 @@ use crate::syntax::lexer::{Token, TokenKind};
 use std::collections::VecDeque;
 use std::io::Read;
 
-/// The maximum number of values stored by the cursor to allow back().
-const BACK_QUEUE_MAX_LEN: usize = 3;
-
 /// Token cursor.
 ///
 /// This internal structure gives basic testable operations to the parser.

@@ -129,8 +129,8 @@ where
             } else {
                 match self.next() {
                     None => {
-                        unimplemented!();
-                        // unreachable!();
+                        // next_is_pred will return false if the next value is None so the None case should already be handled.
+                        unreachable!();
                     }
                     Some(Err(e)) => {
                         return Err(e);

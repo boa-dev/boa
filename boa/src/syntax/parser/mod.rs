@@ -10,8 +10,6 @@ mod tests;
 
 use self::error::{ParseError, ParseResult};
 use crate::syntax::ast::node::StatementList;
-use crate::syntax::ast::Node;
-use crate::syntax::lexer::Token;
 
 use cursor::Cursor;
 
@@ -113,20 +111,6 @@ impl<R> Parser<R> {
         R: Read,
     {
         Script.parse(&mut self.cursor)
-    }
-
-    // Note these unimplemented methods may be removed before this parser refractor is finished.
-
-    pub fn next(&mut self) -> Result<Node, ParseError> {
-        unimplemented!();
-    }
-
-    pub fn peek(&mut self, amount: i32) -> Result<Node, ParseError> {
-        unimplemented!();
-    }
-
-    pub fn expect(&mut self, token: Token, context_msg: &str) {
-        unimplemented!();
     }
 }
 

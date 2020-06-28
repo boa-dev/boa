@@ -19,7 +19,7 @@ use crate::{
             error::{ErrorContext, ParseError, ParseResult},
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, Cursor, Token, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
         },
     },
     BoaProfiler,

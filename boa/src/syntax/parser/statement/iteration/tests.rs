@@ -1,8 +1,8 @@
 use crate::syntax::{
     ast::{
         node::{
-            field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, Identifier, Node,
-            UnaryOp, VarDecl, VarDeclList, WhileLoop,
+            field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, Identifier, UnaryOp,
+            VarDecl, VarDeclList, WhileLoop,
         },
         op::{self, AssignOp, CompOp},
         Const,
