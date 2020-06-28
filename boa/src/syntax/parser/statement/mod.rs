@@ -374,7 +374,7 @@ where
 
         println!("Cursor peek value after node peek: {:?}", cursor.peek());
 
-        cursor.expect_semicolon(false, "expression statement")?;
+        cursor.expect_semicolon("expression statement")?;
 
         Ok(expr)
     }

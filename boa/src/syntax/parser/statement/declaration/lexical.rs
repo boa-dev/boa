@@ -145,7 +145,7 @@ where
                 let_decls.push(LetDecl::new(ident, init));
             }
 
-            match cursor.peek_semicolon(false)? {
+            match cursor.peek_semicolon()? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
                     let _ = cursor.next();

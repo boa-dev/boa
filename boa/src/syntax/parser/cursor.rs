@@ -237,8 +237,7 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn peek_semicolon(
-        &mut self,
-        do_while: bool,
+        &mut self
     ) -> Result<(bool, Option<Token>), ParseError> {
         match self.peek() {
             Some(Ok(tk)) => {
@@ -249,18 +248,6 @@ where
                         Ok((true, Some(tk)))
                     }
                     _ => {
-                        if do_while {
-                            todo!();
-
-                            // let tok = self
-                            //     .tokens
-                            //     .get(self.pos - 1)
-                            //     .expect("could not find previous token");
-                            // if tok.kind == TokenKind::Punctuator(Punctuator::CloseParen) {
-                            //     return Ok((true, Some(tk)));
-                            // }
-                        }
-
                         Ok((false, Some(tk)))
                     }
                 }
@@ -277,13 +264,12 @@ where
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn expect_semicolon(
         &mut self,
-        do_while: bool,
         context: &'static str,
     ) -> Result<Option<Token>, ParseError> {
         println!("Context: {}", context);
         println!("Peek: {:?}", self.peek());
 
-        match self.peek_semicolon(do_while)? {
+        match self.peek_semicolon()? {
             (true, Some(tk)) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
                     self.next(); // Consume the token.

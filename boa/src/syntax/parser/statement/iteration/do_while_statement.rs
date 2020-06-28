@@ -84,7 +84,12 @@ where
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
-        cursor.expect_semicolon(true, "do while statement")?;
+
+        // TODO, expect_semicolon with auto insertion for do-while.
+
+        todo!("Expect semicolon with auto-insertion for do-while");
+
+        // cursor.expect_semicolon(true, "do while statement")?;
 
         Ok(DoWhileLoop::new(body, cond))
     }
