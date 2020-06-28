@@ -67,7 +67,6 @@ where
 
         let tk = cursor.peek();
 
-
         let mut lhs = match tk {
             Some(_) if tk.unwrap()?.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;

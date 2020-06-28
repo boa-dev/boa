@@ -238,15 +238,13 @@ where
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
         match self.peek() {
-            Some(Ok(tk)) => {
-                match tk.kind() {
-                    TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
-                    TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                        Ok((true, Some(tk)))
-                    }
-                    _ => Ok((false, Some(tk))),
+            Some(Ok(tk)) => match tk.kind() {
+                TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
+                TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    Ok((true, Some(tk)))
                 }
-            }
+                _ => Ok((false, Some(tk))),
+            },
             Some(Err(e)) => Err(e),
             None => Ok((true, None)),
         }
@@ -261,7 +259,6 @@ where
         &mut self,
         context: &'static str,
     ) -> Result<Option<Token>, ParseError> {
-
         match self.peek_semicolon()? {
             (true, Some(tk)) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
