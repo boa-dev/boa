@@ -85,12 +85,40 @@ where
 
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
 
-        // TODO, expect_semicolon with auto insertion for do-while.
-
-        todo!("Expect semicolon with auto-insertion for do-while");
-
-        // cursor.expect_semicolon(true, "do while statement")?;
+        expect_semicolon_dowhile(cursor)?;
 
         Ok(DoWhileLoop::new(body, cond))
     }
+}
+/// Checks that the next token is a semicolon with regards to the automatic semicolon insertion rules 
+/// as specified in spec.
+///
+/// This is used for the check at the end of a DoWhileLoop as-opposed to the regular cursor.expect() because
+/// do_while represents a special condition for automatic semicolon insertion.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-rules-of-automatic-semicolon-insertion
+fn expect_semicolon_dowhile<R>(cursor: &mut Cursor<R>) -> Result<(), ParseError>
+where
+    R: Read
+{
+    // The previous token is already known to be a CloseParan as this is checked as part of the dowhile parsing.
+    // This means that 
+
+    match cursor.peek() {
+        None => {
+            // If a do while statement ends a stream then a semicolon is automatically inserted.
+            cursor.next(); // Consume value.
+            Ok(())
+        }
+        Some(Ok(tk)) => {
+            if tk.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
+                cursor.next(); // Consume semicolon.
+            }
+            Ok(())
+        }
+        Some(Err(e)) => {
+            Err(e)
+        }
+    }
+
 }

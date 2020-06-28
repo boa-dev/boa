@@ -60,6 +60,37 @@ fn check_do_while_semicolon_insertion() {
     );
 }
 
+// Checks automatic semicolon insertion after do-while with no space between closing paren 
+// and next statement.
+#[test]
+fn check_do_while_semicolon_insertion_no_space() {
+    check_parser(
+        r#"var i = 0;
+        do {console.log("hello");} while(i++ < 10)console.log("end");"#,
+        vec![
+            VarDeclList::from(vec![VarDecl::new("i", Some(Const::from(0).into()))]).into(),
+            DoWhileLoop::new(
+                Block::from(vec![Call::new(
+                    GetConstField::new(Identifier::from("console"), "log"),
+                    vec![Const::from("hello").into()],
+                )
+                .into()]),
+                BinOp::new(
+                    CompOp::LessThan,
+                    UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("i")),
+                    Const::from(10),
+                ),
+            )
+            .into(),
+            Call::new(
+                GetConstField::new(Identifier::from("console"), "log"),
+                vec![Const::from("end").into()],
+            )
+            .into(),
+        ],
+    );
+}
+
 /// Checks parsing of a while statement which is seperated out with line terminators.
 #[test]
 fn while_spaces() {
