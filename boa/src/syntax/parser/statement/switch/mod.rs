@@ -15,6 +15,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Switch statement parsing.
 ///
 /// More information:
@@ -46,10 +48,13 @@ impl SwitchStatement {
     }
 }
 
-impl TokenParser for SwitchStatement {
+impl<R> TokenParser<R> for SwitchStatement
+where
+    R: Read,
+{
     type Output = Switch;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
@@ -94,10 +99,13 @@ impl CaseBlock {
     }
 }
 
-impl TokenParser for CaseBlock {
+impl<R> TokenParser<R> for CaseBlock
+where
+    R: Read,
+{
     type Output = (Box<[Case]>, Option<Node>);
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::OpenBlock, "switch case block")?;
 
         // CaseClauses[?Yield, ?Await, ?Return]opt

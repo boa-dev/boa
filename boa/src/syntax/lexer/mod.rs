@@ -87,15 +87,13 @@ impl<R> Lexer<R> {
     pub(crate) fn get_goal(&self) -> InputElement {
         self.goal_symbol
     }
-}
 
-impl<R> Lexer<R>
-where
-    R: Read,
-{
     /// Creates a new lexer.
     #[inline]
-    pub fn new(reader: R) -> Self {
+    pub fn new(reader: R) -> Self
+    where
+        R: Read,
+    {
         Self {
             cursor: Cursor::new(reader),
             goal_symbol: Default::default(),
@@ -109,7 +107,10 @@ where
     // that means it could be multiple different tokens depending on the input token.
     //
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
-    fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error> {
+    fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error>
+    where
+        R: Read,
+    {
         if let Some(c) = self.cursor.peek() {
             match c {
                 Err(e) => {
@@ -208,14 +209,14 @@ where
                 let result = TemplateLiteral::new().lex(&mut self.cursor, start);
 
                 // A regex may follow a template literal but a DivPunctuator or TemplateSubstitutionTail may not.
-                self.set_goal(InputElement::RegExp);
+                // self.set_goal(InputElement::RegExp);
                 result
             }
             _ if next_chr.is_digit(10) => {
                 let result = NumberLiteral::new(next_chr, strict_mode).lex(&mut self.cursor, start);
                 // A regex may not directly follow a NumericLiteral but a DivPunctuator may.
                 // Note that the goal cannot be set to InputElementTemplateTail at this point as a TemplateSubstitutionTail would be invalid.
-                self.set_goal(InputElement::Div);
+                // self.set_goal(InputElement::Div);
                 result
             }
             _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
@@ -223,7 +224,7 @@ where
 
                 // A regex may not directly follow an Identifier but a DivPunctuator may.
                 // Note that the goal cannot be set to InputElementTemplateTail at this point as a TemplateSubstitutionTail would be invalid.
-                self.set_goal(InputElement::Div);
+                // self.set_goal(InputElement::Div);
                 result
             }
             ';' => Ok(Token::new(
@@ -271,7 +272,7 @@ where
             '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
                 let result = Operator::new(next_chr).lex(&mut self.cursor, start);
 
-                self.set_goal(InputElement::RegExpOrTemplateTail);
+                // self.set_goal(InputElement::RegExpOrTemplateTail);
 
                 result
             }

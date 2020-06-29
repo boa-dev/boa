@@ -21,6 +21,8 @@ use crate::{
     },
 };
 
+use std::io::Read;
+
 /// A `BlockStatement` is equivalent to a `Block`.
 ///
 /// More information:
@@ -60,14 +62,17 @@ impl Block {
     }
 }
 
-impl TokenParser for Block {
+impl<R> TokenParser<R> for Block
+where
+    R: Read,
+{
     type Output = node::Block;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block")?;
-        if let Some(tk) = cursor.peek(0) {
-            if tk.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
+        if let Some(tk) = cursor.peek() {
+            if tk?.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
                 cursor.next();
                 return Ok(node::Block::from(vec![]));
             }

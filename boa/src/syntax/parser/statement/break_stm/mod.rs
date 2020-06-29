@@ -21,6 +21,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Break statement parsing
 ///
 /// More information:
@@ -49,14 +51,17 @@ impl BreakStatement {
     }
 }
 
-impl TokenParser for BreakStatement {
+impl<R> TokenParser<R> for BreakStatement
+where
+    R: Read,
+{
     type Output = Break;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect(Keyword::Break, "break statement")?;
 
-        let label = if let (true, tok) = cursor.peek_semicolon(false) {
+        let label = if let (true, tok) = cursor.peek_semicolon()? {
             match tok {
                 Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
                     let _ = cursor.next();
@@ -67,7 +72,7 @@ impl TokenParser for BreakStatement {
             None
         } else {
             let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect_semicolon(false, "continue statement")?;
+            cursor.expect_semicolon("continue statement")?;
 
             Some(label)
         };

@@ -12,7 +12,7 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{TokenKind, InputElement};
 use crate::{
     syntax::{
         ast::{
@@ -24,6 +24,8 @@ use crate::{
     BoaProfiler,
 };
 pub(super) use exponentiation::ExponentiationExpression;
+
+use std::io::Read;
 
 /// Assignment expression parsing.
 ///
@@ -70,32 +72,37 @@ impl AssignmentExpression {
     }
 }
 
-impl TokenParser for AssignmentExpression {
+impl<R> TokenParser<R> for AssignmentExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
+        cursor.set_goal(InputElement::RegExpOrTemplateTail);
+
         // Arrow function
-        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
-        match next_token.kind {
+        match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
-            | TokenKind::Keyword(Keyword::Await)
-                if cursor.peek_expect_no_lineterminator(1).is_ok() =>
-            {
-                if let Some(tok) = cursor.peek(1) {
-                    if tok.kind == TokenKind::Punctuator(Punctuator::Arrow) {
-                        return ArrowFunction::new(
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor)
-                        .map(Node::ArrowFunctionDecl);
+            | TokenKind::Keyword(Keyword::Await) => {
+                if cursor.peek_expect_no_lineterminator(1).is_ok() {
+                    if let Some(tok) = cursor.peek_more(1) {
+                        if tok?.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
+                            return ArrowFunction::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor)
+                            .map(Node::ArrowFunctionDecl);
+                        }
                     }
                 }
             }
+
             // (a,b)=>{}
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 if let Some(node) =
@@ -106,25 +113,27 @@ impl TokenParser for AssignmentExpression {
                     return Ok(node);
                 }
             }
+
             _ => {}
         }
 
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.next() {
-            match tok.kind {
+        if let Some(tok) = cursor.peek() {
+            match tok?.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
+                    cursor.next(); // Consume the token.
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() => {
+                    cursor.next(); // Consume the token.
+
                     let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");
                     lhs = BinOp::new(binop, lhs, expr).into();
                 }
-                _ => {
-                    cursor.back();
-                }
+                _ => {}
             }
         }
 

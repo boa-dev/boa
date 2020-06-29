@@ -19,6 +19,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Function expression parsing.
 ///
 /// More information:
@@ -30,11 +32,15 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(super) struct FunctionExpression;
 
-impl TokenParser for FunctionExpression {
+impl<R> TokenParser<R> for FunctionExpression
+where
+    R: Read,
+{
     type Output = FunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
+
         let name = BindingIdentifier::new(false, false).try_parse(cursor);
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;

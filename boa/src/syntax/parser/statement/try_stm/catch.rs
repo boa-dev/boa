@@ -12,6 +12,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Catch parsing
 ///
 /// More information:
@@ -43,10 +45,13 @@ impl Catch {
     }
 }
 
-impl TokenParser for Catch {
+impl<R> TokenParser<R> for Catch
+where
+    R: Read,
+{
     type Output = node::Catch;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Catch", "Parsing");
         cursor.expect(Keyword::Catch, "try statement")?;
         let catch_param = if cursor.next_if(Punctuator::OpenParen).is_some() {
@@ -94,10 +99,13 @@ impl CatchParameter {
     }
 }
 
-impl TokenParser for CatchParameter {
+impl<R> TokenParser<R> for CatchParameter
+where
+    R: Read,
+{
     type Output = Identifier;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Identifier, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Identifier, ParseError> {
         // TODO: should accept BindingPattern
         BindingIdentifier::new(self.allow_yield, self.allow_await)
             .parse(cursor)

@@ -1,16 +1,13 @@
 //! Tests for the parser.
 
 use super::Parser;
-use crate::syntax::{
-    ast::{
-        node::{
-            field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
-            StatementList, UnaryOp, VarDecl, VarDeclList,
-        },
-        op::{self, NumOp},
-        Const,
+use crate::syntax::ast::{
+    node::{
+        field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
+        StatementList, UnaryOp, VarDecl, VarDeclList,
     },
-    lexer::Lexer,
+    op::{self, NumOp},
+    Const,
 };
 
 /// Checks that the given JavaScript string gives the expected expression.
@@ -20,13 +17,10 @@ pub(super) fn check_parser<L>(js: &str, expr: L)
 where
     L: Into<Box<[Node]>>,
 {
-    let lexer = Lexer::new(js.as_bytes());
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     assert_eq!(
-        Parser::new(&tokens).parse_all().expect("failed to parse"),
+        Parser::new(js.as_bytes())
+            .parse_all()
+            .expect("failed to parse"),
         StatementList::from(expr)
     );
 }
@@ -34,12 +28,7 @@ where
 /// Checks that the given javascript string creates a parse error.
 // TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_invalid(js: &str) {
-    let lexer = Lexer::new(js.as_bytes());
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
-    assert!(Parser::new(&tokens).parse_all().is_err());
+    assert!(Parser::new(js.as_bytes()).parse_all().is_err());
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`

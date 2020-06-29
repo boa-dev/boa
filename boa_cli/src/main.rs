@@ -124,10 +124,10 @@ fn lex_source(src: &str) -> Result<Vec<Token>, String> {
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens(tokens: Vec<Token>) -> Result<StatementList, String> {
+fn parse_tokens(src: &str) -> Result<StatementList, String> {
     use boa::syntax::parser::Parser;
 
-    Parser::new(&tokens)
+    Parser::new(src.as_bytes())
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }
@@ -152,7 +152,7 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
             None => println!("{:#?}", tokens),
         }
     } else if let Some(ref arg) = args.dump_ast {
-        let ast = parse_tokens(tokens)?;
+        let ast = parse_tokens(src)?;
 
         match arg {
             Some(format) => match format {

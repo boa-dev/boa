@@ -18,6 +18,7 @@ use crate::{
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Do...while statement parsing
 ///
@@ -54,19 +55,27 @@ impl DoWhileStatement {
     }
 }
 
-impl TokenParser for DoWhileStatement {
+impl<R> TokenParser<R> for DoWhileStatement
+where
+    R: Read,
+{
     type Output = DoWhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
         cursor.expect(Keyword::Do, "do while statement")?;
+
+        // There can be space between the Do and the body.
+        cursor.skip_line_terminators();
 
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        cursor.skip_line_terminators();
 
-        if next_token.kind != TokenKind::Keyword(Keyword::While) {
+        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+
+        if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
                 vec![TokenKind::Keyword(Keyword::While)],
                 next_token.clone(),
@@ -74,14 +83,53 @@ impl TokenParser for DoWhileStatement {
             ));
         }
 
+        cursor.skip_line_terminators();
+
         cursor.expect(Keyword::While, "do while statement")?;
+
+        cursor.skip_line_terminators();
+
         cursor.expect(Punctuator::OpenParen, "do while statement")?;
+
+        cursor.skip_line_terminators();
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
+        cursor.skip_line_terminators();
+
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
-        cursor.expect_semicolon(true, "do while statement")?;
+
+        expect_semicolon_dowhile(cursor)?;
 
         Ok(DoWhileLoop::new(body, cond))
+    }
+}
+/// Checks that the next token is a semicolon with regards to the automatic semicolon insertion rules
+/// as specified in spec.
+///
+/// This is used for the check at the end of a DoWhileLoop as-opposed to the regular cursor.expect() because
+/// do_while represents a special condition for automatic semicolon insertion.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-rules-of-automatic-semicolon-insertion
+fn expect_semicolon_dowhile<R>(cursor: &mut Cursor<R>) -> Result<(), ParseError>
+where
+    R: Read,
+{
+    // The previous token is already known to be a CloseParan as this is checked as part of the dowhile parsing.
+    // This means that
+
+    match cursor.peek() {
+        None => {
+            // If a do while statement ends a stream then a semicolon is automatically inserted.
+            cursor.next(); // Consume value.
+            Ok(())
+        }
+        Some(Ok(tk)) => {
+            if tk.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
+                cursor.next(); // Consume semicolon.
+            }
+            Ok(())
+        }
+        Some(Err(e)) => Err(e),
     }
 }

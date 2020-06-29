@@ -1,5 +1,6 @@
 // use super::lexical_declaration_continuation;
 use crate::syntax::lexer::TokenKind;
+use crate::syntax::parser::Cursor;
 use crate::{
     syntax::{
         ast::{
@@ -8,11 +9,12 @@ use crate::{
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            Cursor, ParseError, TokenParser,
+            ParseError, TokenParser,
         },
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Variable statement parsing.
 ///
@@ -44,17 +46,20 @@ impl VariableStatement {
     }
 }
 
-impl TokenParser for VariableStatement {
+impl<R> TokenParser<R> for VariableStatement
+where
+    R: Read,
+{
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect(Keyword::Var, "variable statement")?;
 
         let decl_list =
             VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "variable statement")?;
+        cursor.expect_semicolon("variable statement")?;
 
         Ok(decl_list)
     }
@@ -95,10 +100,13 @@ impl VariableDeclarationList {
     }
 }
 
-impl TokenParser for VariableDeclarationList {
+impl<R> TokenParser<R> for VariableDeclarationList
+where
+    R: Read,
+{
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
 
         loop {
@@ -107,7 +115,7 @@ impl TokenParser for VariableDeclarationList {
                     .parse(cursor)?,
             );
 
-            match cursor.peek_semicolon(false) {
+            match cursor.peek_semicolon()? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
                     let _ = cursor.next();
@@ -118,7 +126,7 @@ impl TokenParser for VariableDeclarationList {
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        cursor.next().ok_or(ParseError::AbruptEnd)??.clone(),
                         "lexical declaration",
                     ))
                 }
@@ -158,10 +166,13 @@ impl VariableDeclaration {
     }
 }
 
-impl TokenParser for VariableDeclaration {
+impl<R> TokenParser<R> for VariableDeclaration
+where
+    R: Read,
+{
     type Output = VarDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;

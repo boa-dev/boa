@@ -410,6 +410,17 @@ fn last_index_of() {
 }
 
 #[test]
+fn fill_obj_ref() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // test object reference
+    forward(&mut engine, "a = (new Array(3)).fill({});");
+    forward(&mut engine, "a[0].hi = 'hi';");
+    assert_eq!(forward(&mut engine, "a[0].hi"), String::from("hi"));
+}
+
+#[test]
 fn fill() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -499,11 +510,6 @@ fn fill() {
         forward(&mut engine, "a.fill().join()"),
         String::from("undefined,undefined,undefined")
     );
-
-    // test object reference
-    forward(&mut engine, "a = (new Array(3)).fill({});");
-    forward(&mut engine, "a[0].hi = 'hi';");
-    assert_eq!(forward(&mut engine, "a[0].hi"), String::from("hi"));
 }
 
 #[test]

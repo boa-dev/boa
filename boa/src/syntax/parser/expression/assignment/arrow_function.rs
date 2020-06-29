@@ -25,6 +25,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Arrow function parsing.
 ///
 /// More information:
@@ -60,18 +62,33 @@ impl ArrowFunction {
     }
 }
 
-impl TokenParser for ArrowFunction {
+impl<R> TokenParser<R> for ArrowFunction
+where
+    R: Read,
+{
     type Output = ArrowFunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
-        let next_token = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
-        let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind {
+        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+        let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
+
+            // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed
+
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
-            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::CloseParen, "arrow function")?;
-            params
+
+            match FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor) {
+                Ok(params) => {
+                    cursor.expect(Punctuator::CloseParen, "arrow function")?;
+                    params
+                }
+                Err(e) => {
+                    cursor.push_back(next_token);
+                    return Err(e);
+                }
+            }
+        // let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
@@ -107,11 +124,14 @@ impl ConciseBody {
     }
 }
 
-impl TokenParser for ConciseBody {
+impl<R> TokenParser<R> for ConciseBody
+where
+    R: Read,
+{
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        match cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let _ = cursor.next();
                 let body = FunctionBody::new(false, false).parse(cursor)?;
@@ -147,10 +167,13 @@ impl ExpressionBody {
     }
 }
 
-impl TokenParser for ExpressionBody {
+impl<R> TokenParser<R> for ExpressionBody
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor)
     }
 }

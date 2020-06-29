@@ -19,6 +19,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Conditional expression parsing.
 ///
 /// More information:
@@ -54,17 +56,21 @@ impl ConditionalExpression {
     }
 }
 
-impl TokenParser for ConditionalExpression {
+impl<R> TokenParser<R> for ConditionalExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("Conditional", "Parsing");
         // TODO: coalesce expression
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.next() {
-            if tok.kind == TokenKind::Punctuator(Punctuator::Question) {
+        if let Some(tok) = cursor.peek() {
+            if tok?.kind() == &TokenKind::Punctuator(Punctuator::Question) {
+                cursor.next(); // Consume the token.
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
@@ -74,8 +80,6 @@ impl TokenParser for ConditionalExpression {
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
                 return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
-            } else {
-                cursor.back();
             }
         }
 

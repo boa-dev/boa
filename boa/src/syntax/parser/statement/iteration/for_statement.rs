@@ -24,6 +24,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// For statement parsing
 ///
 /// More information:
@@ -59,15 +61,18 @@ impl ForStatement {
     }
 }
 
-impl TokenParser for ForStatement {
+impl<R> TokenParser<R> for ForStatement
+where
+    R: Read,
+{
     type Output = ForLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 
-        let init = match cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind {
+        let init = match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
             TokenKind::Keyword(Keyword::Var) => Some(
                 VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
                     .parse(cursor)

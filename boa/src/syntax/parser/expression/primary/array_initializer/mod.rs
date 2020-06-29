@@ -24,6 +24,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Parses an array literal.
 ///
 /// More information:
@@ -52,10 +54,13 @@ impl ArrayLiteral {
     }
 }
 
-impl TokenParser for ArrayLiteral {
+impl<R> TokenParser<R> for ArrayLiteral
+where
+    R: Read,
+{
     type Output = ArrayDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
 
@@ -69,7 +74,7 @@ impl TokenParser for ArrayLiteral {
                 break;
             }
 
-            let _ = cursor.peek(0).ok_or(ParseError::AbruptEnd)?; // Check that there are more tokens to read.
+            let _ = cursor.peek().ok_or(ParseError::AbruptEnd)?; // Check that there are more tokens to read.
 
             if cursor.next_if(Punctuator::Spread).is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)

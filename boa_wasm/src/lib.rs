@@ -1,16 +1,9 @@
-use boa::{Executable, Interpreter, Lexer, Parser, Realm};
+use boa::{Executable, Interpreter, Parser, Realm};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
-    let lexer = Lexer::new(src.as_bytes());
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| format!("Lexing Error: {}", e))?;
-
-    let expr = Parser::new(&tokens)
+    let expr = Parser::new(src.as_bytes())
         .parse_all()
         .map_err(|e| JsValue::from(format!("Parsing Error: {}", e)))?;
 

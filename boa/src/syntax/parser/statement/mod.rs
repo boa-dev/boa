@@ -43,6 +43,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Statement parsing.
 ///
 /// This can be one of the following:
@@ -91,15 +93,18 @@ impl Statement {
     }
 }
 
-impl TokenParser for Statement {
+impl<R> TokenParser<R> for Statement
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
-        match tok.kind {
+        match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
@@ -211,21 +216,34 @@ impl StatementList {
     }
 }
 
-impl TokenParser for StatementList {
+impl<R> TokenParser<R> for StatementList
+where
+    R: Read,
+{
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
         loop {
-            match cursor.peek(0) {
-                Some(token) if token.kind == TokenKind::Punctuator(Punctuator::CloseBlock) => {
+            match cursor.peek() {
+                Some(Ok(token)) if token.kind() == &TokenKind::LineTerminator => {
+                    // Skip line terminators.
+                    cursor.next();
+                    continue;
+                }
+                Some(Ok(token))
+                    if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) =>
+                {
                     if self.break_when_closingbrase {
                         break;
                     } else {
                         return Err(ParseError::unexpected(token.clone(), None));
                     }
+                }
+                Some(Err(e)) => {
+                    return Err(e);
                 }
                 None => {
                     if self.break_when_closingbrase {
@@ -285,12 +303,15 @@ impl StatementListItem {
     }
 }
 
-impl TokenParser for StatementListItem {
+impl<R> TokenParser<R> for StatementListItem
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
         match tok.kind {
             TokenKind::Keyword(Keyword::Function)
@@ -331,15 +352,19 @@ impl ExpressionStatement {
     }
 }
 
-impl TokenParser for ExpressionStatement {
+impl<R> TokenParser<R> for ExpressionStatement
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
+
         // TODO: lookahead
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "expression statement")?;
+        cursor.expect_semicolon("expression statement")?;
 
         Ok(expr)
     }
@@ -381,19 +406,31 @@ impl BindingIdentifier {
     }
 }
 
-impl TokenParser for BindingIdentifier {
+impl<R> TokenParser<R> for BindingIdentifier
+where
+    R: Read,
+{
     type Output = Box<str>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
         // TODO: strict mode.
 
-        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
 
-        match next_token.kind {
-            TokenKind::Identifier(ref s) => Ok(s.clone()),
-            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.as_str().into()),
-            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.as_str().into()),
+        match next_token.kind() {
+            TokenKind::Identifier(ref s) => {
+                cursor.next(); // Consume the token.
+                Ok(s.clone())
+            }
+            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
+                cursor.next();
+                Ok(k.as_str().into())
+            }
+            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => {
+                cursor.next();
+                Ok(k.as_str().into())
+            }
             _ => Err(ParseError::expected(
                 vec![TokenKind::identifier("identifier")],
                 next_token.clone(),

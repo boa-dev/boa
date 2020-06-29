@@ -9,6 +9,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// While statement parsing
 ///
 /// More information:
@@ -44,17 +46,30 @@ impl WhileStatement {
     }
 }
 
-impl TokenParser for WhileStatement {
+impl<R> TokenParser<R> for WhileStatement
+where
+    R: Read,
+{
     type Output = WhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
         cursor.expect(Keyword::While, "while statement")?;
+
+        // Line terminators can exist between a While and the condition.
+        cursor.skip_line_terminators();
+
         cursor.expect(Punctuator::OpenParen, "while statement")?;
+
+        cursor.skip_line_terminators();
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
+        cursor.skip_line_terminators();
+
         cursor.expect(Punctuator::CloseParen, "while statement")?;
+
+        cursor.skip_line_terminators();
 
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;

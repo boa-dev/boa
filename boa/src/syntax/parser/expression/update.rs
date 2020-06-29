@@ -12,6 +12,8 @@ use crate::syntax::{
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 
+use std::io::Read;
+
 /// Parses an update expression.
 ///
 /// More information:
@@ -38,14 +40,17 @@ impl UpdateExpression {
     }
 }
 
-impl TokenParser for UpdateExpression {
+impl<R> TokenParser<R> for UpdateExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
-        match tok.kind {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)?;
+        match tok?.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
-                cursor.next().expect("token disappeared");
+                cursor.next().expect("token disappeared")?;
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
@@ -54,7 +59,7 @@ impl TokenParser for UpdateExpression {
                 .into());
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
-                cursor.next().expect("token disappeared");
+                cursor.next().expect("token disappeared")?;
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
@@ -66,14 +71,14 @@ impl TokenParser for UpdateExpression {
         }
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(0) {
-            match tok.kind {
+        if let Some(tok) = cursor.peek() {
+            match tok?.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
-                    cursor.next().expect("token disappeared");
+                    cursor.next().expect("token disappeared")?;
                     return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
-                    cursor.next().expect("token disappeared");
+                    cursor.next().expect("token disappeared")?;
                     return Ok(node::UnaryOp::new(UnaryOp::DecrementPost, lhs).into());
                 }
                 _ => {}

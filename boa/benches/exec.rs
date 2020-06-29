@@ -1,6 +1,6 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa::{exec::Interpreter, realm::Realm, Executable, Lexer, Parser};
+use boa::{exec::Interpreter, realm::Realm, Executable, Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -25,14 +25,10 @@ fn symbol_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(SYMBOL_CREATION.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(SYMBOL_CREATION.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Symbols (Execution)", move |b| {
@@ -58,14 +54,10 @@ fn for_loop_execution(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(FOR_LOOP.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(FOR_LOOP.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("For loop (Execution)", move |b| {
@@ -91,14 +83,10 @@ fn fibonacci(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(FIBONACCI.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(FIBONACCI.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Fibonacci (Execution)", move |b| {
@@ -122,14 +110,10 @@ fn object_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(OBJECT_CREATION.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(OBJECT_CREATION.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Object Creation (Execution)", move |b| {
@@ -153,14 +137,10 @@ fn object_prop_access_const(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(OBJECT_PROP_ACCESS_CONST.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(OBJECT_PROP_ACCESS_CONST.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Static Object Property Access (Execution)", move |b| {
@@ -184,14 +164,10 @@ fn object_prop_access_dyn(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(OBJECT_PROP_ACCESS_DYN.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(OBJECT_PROP_ACCESS_DYN.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Dynamic Object Property Access (Execution)", move |b| {
@@ -212,14 +188,10 @@ fn regexp_literal_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(REGEXP_LITERAL_CREATION.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(REGEXP_LITERAL_CREATION.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp Literal Creation (Execution)", move |b| {
@@ -240,14 +212,10 @@ fn regexp_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(REGEXP_CREATION.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(REGEXP_CREATION.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {
@@ -268,14 +236,10 @@ fn regexp_literal(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(REGEXP_LITERAL.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(REGEXP_LITERAL.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp Literal (Execution)", move |b| {
@@ -296,14 +260,10 @@ fn regexp(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let lexer = Lexer::new(black_box(REGEXP.as_bytes()));
-
-    // Goes through and lexes entire given string.
-    let tokens = lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&black_box(tokens)).parse_all().unwrap();
+    let nodes = Parser::new(black_box(REGEXP.as_bytes()))
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {

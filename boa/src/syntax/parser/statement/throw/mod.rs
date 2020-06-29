@@ -10,6 +10,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// For statement parsing
 ///
 /// More information:
@@ -38,18 +40,21 @@ impl ThrowStatement {
     }
 }
 
-impl TokenParser for ThrowStatement {
+impl<R> TokenParser<R> for ThrowStatement
+where
+    R: Read,
+{
     type Output = Throw;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ThrowStatement", "Parsing");
         cursor.expect(Keyword::Throw, "throw statement")?;
 
         cursor.peek_expect_no_lineterminator(0)?;
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(0) {
-            if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) {
+        if let Some(tok) = cursor.peek() {
+            if tok?.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
                 let _ = cursor.next();
             }
         }
