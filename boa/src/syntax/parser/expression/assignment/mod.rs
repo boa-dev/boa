@@ -12,7 +12,7 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{TokenKind, InputElement};
 use crate::{
     syntax::{
         ast::{

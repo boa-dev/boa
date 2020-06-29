@@ -13,7 +13,7 @@ mod member;
 
 use self::{call::CallExpression, member::MemberExpression};
 use super::super::ParseError;
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{TokenKind, InputElement};
 use crate::{
     syntax::{
         ast::{Node, Punctuator},
@@ -60,6 +60,9 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
+
+        // cursor.set_goal(InputElement::TemplateTail);
+
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
         match cursor.peek() {

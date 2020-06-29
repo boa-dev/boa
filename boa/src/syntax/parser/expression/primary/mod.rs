@@ -96,12 +96,15 @@ where
             }
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
-            TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
+            TokenKind::StringLiteral(s) => {  
+                Ok(Const::from(s.as_ref()).into())
+                
+            },
             TokenKind::NumericLiteral(Numeric::Integer(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                cursor.set_goal(InputElement::RegExp);
+                println!("Regex body: {:?}", body);
                 let res = Ok(Node::from(New::from(Call::new(
                     Identifier::from("RegExp"),
                     vec![
@@ -109,7 +112,6 @@ where
                         Const::from(flags.to_string()).into(),
                     ],
                 ))));
-                cursor.set_goal(InputElement::default());
                 res
             }
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
