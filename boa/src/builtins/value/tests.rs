@@ -231,6 +231,7 @@ fn display_array_string() {
 }
 
 #[test]
+#[ignore] // TODO: Once #507 is fixed this test can be simplified and used
 fn display_object() {
     let d_obj = r#"
         let o = {a: 'a'};
