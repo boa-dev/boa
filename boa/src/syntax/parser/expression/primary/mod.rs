@@ -74,17 +74,20 @@ where
                 FunctionExpression.parse(cursor).map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
+                cursor.set_goal(InputElement::RegExp);
                 let expr =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "primary expression")?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor)
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                cursor.set_goal(InputElement::RegExp);
                 Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor)?
                     .into())

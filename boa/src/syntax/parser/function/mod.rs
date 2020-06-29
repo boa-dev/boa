@@ -10,7 +10,7 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{TokenKind, InputElement};
 use crate::syntax::{
     ast::{
         node::{self},
@@ -60,6 +60,8 @@ where
     type Output = Box<[node::FormalParameter]>;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        cursor.set_goal(InputElement::RegExp);
+
         let mut params = Vec::new();
 
         if cursor.peek().ok_or(ParseError::AbruptEnd)??.kind()

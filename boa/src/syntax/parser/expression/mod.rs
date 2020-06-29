@@ -63,6 +63,8 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
 
         fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
             let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
+            // let old_goal = cursor.get_goal();
+
             if $goal.is_some() {
                 cursor.set_goal($goal.unwrap());
             }
@@ -89,6 +91,8 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                     _ => break
                 }
             }
+
+            // cursor.set_goal(old_goal);
             Ok(lhs)
         }
     }
@@ -130,7 +134,7 @@ expression!(
     AssignmentExpression,
     [Punctuator::Comma],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a logical `OR` expression.
@@ -169,7 +173,7 @@ expression!(
     LogicalANDExpression,
     [Punctuator::BoolOr],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a logical `AND` expression.
@@ -208,7 +212,7 @@ expression!(
     BitwiseORExpression,
     [Punctuator::BoolAnd],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a bitwise `OR` expression.
@@ -247,7 +251,7 @@ expression!(
     BitwiseXORExpression,
     [Punctuator::Or],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a bitwise `XOR` expression.
@@ -286,7 +290,7 @@ expression!(
     BitwiseANDExpression,
     [Punctuator::Xor],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a bitwise `AND` expression.
@@ -325,7 +329,7 @@ expression!(
     EqualityExpression,
     [Punctuator::And],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses an equality expression.
@@ -369,7 +373,7 @@ expression!(
         Punctuator::StrictNotEq
     ],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a relational expression.
@@ -414,7 +418,7 @@ expression!(
         Keyword::In
     ],
     [allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a bitwise shift expression.
@@ -454,7 +458,7 @@ expression!(
         Punctuator::URightSh
     ],
     [allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses an additive expression.
@@ -492,7 +496,7 @@ expression!(
     MultiplicativeExpression,
     [Punctuator::Add, Punctuator::Sub],
     [allow_yield, allow_await],
-    None::<InputElement>
+    Some(InputElement::Div)
 );
 
 /// Parses a multiplicative expression.

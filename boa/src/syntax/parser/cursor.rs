@@ -43,7 +43,13 @@ where
 
     /// Sets the goal symbol for the lexer.
     pub(crate) fn set_goal(&mut self, elm: InputElement) {
+        println!("Set goal: {:?}", elm);
         self.lexer.set_goal(elm)
+    }
+
+    /// Gets the goal symbol for the lexer.
+    pub(crate) fn get_goal(&self) -> InputElement {
+        self.lexer.get_goal()
     }
 
     /// Moves the cursor to the next token and returns the token.
