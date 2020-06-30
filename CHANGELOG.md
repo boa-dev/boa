@@ -2,32 +2,8 @@
 
 # [# 0.9.0 (2020-06-25) - Move to Organisation, 65% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
 
-- First Rust project (outside of the compiler itself) to use measureme
-- optimised type comparisons
-- More benchmarks to help us understand where performance gains can be made
-- 50% faster start up time to v0.8
-
-Boa became the first Rust project to make use of measureme, this was only used by Rust itself to profile the compiler. Luckily the framework is in a good enough state to be used by other projects too, and we gave it a try.
-
-The headline feature this release is the Object Specialization @HalidOdat worked on, this makes it easier to use Rust primitives instead of going back and forth between JS values and Rust values.
-You can see below the biggest slow down was setting properties on `JSValues`. By specializing some of our built-in objects we can bypass that entirely, the after image shows the result!
-
-## Before
-
-![Before](./docs/img/object_specialization_before.png)
-
-## After
-
-![Before](./docs/img/object_specialization_after.png)
-
 Feature Enhancements:
 
-- [FEATURE #419](https://github.com/boa-dev/boa/pull/419):
-  Object specialization (fast paths for many objects) (@HalidOdat)
-- [FEATURE #392](https://github.com/boa-dev/boa/pull/392):
-  Execution and Node modulization (@Razican)
-- [FEATURE #465](https://github.com/boa-dev/boa/issues/465):
-  Refactoring Value (decouple `Gc` from `Value`) (@HalidOdat)
 - [FEATURE #414](https://github.com/boa-dev/boa/issues/414):
   Implement `Number` object constants (@Lan2u) (@HalidOdat)
 - [FEATURE #345](https://github.com/boa-dev/boa/issues/345):
@@ -40,18 +16,12 @@ Feature Enhancements:
   Specification compliant `ToString` (`to_string`) (@HalidOdat)
 - [FEATURE #442](https://github.com/boa-dev/boa/pull/442):
   Added `TypeError` implementation (@HalidOdat)
-- [FEATURE #296](https://github.com/boa-dev/boa/issues/296):
-  using measureme for profiling the interpreter (@jasonwilliams)
 - [FEATURE #450](https://github.com/boa-dev/boa/pull/450):
   Specification compliant `ToBigInt` (`to_bigint`) (@HalidOdat)
-- [FEATURE #422](https://github.com/boa-dev/boa/pull/422):
-  Move AST Nodes into their own files, dividing the run function (@Lan2u) (@Razican)
 - [FEATURE #455](https://github.com/boa-dev/boa/pull/455):
   TemplateLiteral Basic lexer implementation (@croraf)
 - [FEATURE #447](https://github.com/boa-dev/boa/issues/447):
   parseInt, parseFloat implementation (@Lan2u)
-- [FEATURE #435](https://github.com/boa-dev/boa/issues/435):
-  Optimize type comparisons (@Lan2u)
 - [FEATURE #468](https://github.com/boa-dev/boa/pull/468):
   Add BigInt.asIntN() and BigInt.asUintN() functions (@Tropid)
 - [FEATURE #428](https://github.com/boa-dev/boa/issues/428):
@@ -98,15 +68,25 @@ Bug Fixes:
 - [BUG #511](https://github.com/boa-dev/boa/issues/511):
   [Call] Usage of "this" in methods is not supported (@jasonwilliams)
 
-Tidy Up & House Keeping:
+Internal Improvements
 
-- [TIDY #416](https://github.com/boa-dev/boa/pull/416) & [TIDY #423](https://github.com/boa-dev/boa/commit/c8218dd91ef3181e048e7a2659a4fbf8d53c7174):
+- [INTERNAL #435](https://github.com/boa-dev/boa/issues/435):
+  Optimize type comparisons (@Lan2u)
+- [INTERNAL #296](https://github.com/boa-dev/boa/issues/296):
+  using measureme for profiling the interpreter (@jasonwilliams)
+- [INTERNAL #419](https://github.com/boa-dev/boa/pull/419):
+  Object specialization (fast paths for many objects) (@HalidOdat)
+- [INTERNAL #392](https://github.com/boa-dev/boa/pull/392):
+  Execution and Node modulization (@Razican)
+- [INTERNAL #465](https://github.com/boa-dev/boa/issues/465):
+  Refactoring Value (decouple `Gc` from `Value`) (@HalidOdat)
+- [INTERNAL #416](https://github.com/boa-dev/boa/pull/416) & [INTERNAL #423](https://github.com/boa-dev/boa/commit/c8218dd91ef3181e048e7a2659a4fbf8d53c7174):
   Update links to boa-dev (@pedropaulosuzuki)
-- [TIDY #378](https://github.com/boa-dev/boa/issues/378):
+- [INTERNAL #378](https://github.com/boa-dev/boa/issues/378):
   Code Coverage! (@Lan2u)
-- [TIDY #431](https://github.com/boa-dev/boa/pull/431):
+- [INTERNAL #431](https://github.com/boa-dev/boa/pull/431):
   Updates to PR Benchmarks (@Razican)
-- [TIDY #427 #429 #430](https://github.com/boa-dev/boa/commit/64dbf13afd15f12f958daa87a3d236dc9af1a9aa):
+- [INTERNAL #427 #429 #430](https://github.com/boa-dev/boa/commit/64dbf13afd15f12f958daa87a3d236dc9af1a9aa):
   Added new benchmarks (@Razican)
 
 # [# 0.8.0 (2020-05-23) - BigInt, Modularized Parser, Faster Hashing](https://github.com/boa-dev/boa/compare/v0.7.0...v0.8.0)
