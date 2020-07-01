@@ -20,17 +20,19 @@ use crate::{
     profiler::BoaProfiler,
 };
 
-// mod eval;
 pub(crate) mod range;
 pub(crate) mod reference;
 pub(crate) mod syntax;
 pub(crate) mod r#type;
-// mod uri;
+// pub(crate) mod eval;
+// pub(crate) mod uri;
 
 pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
 pub(crate) use self::reference::ReferenceError;
 pub(crate) use self::syntax::SyntaxError;
+// pub(crate) use self::eval::EvalError;
+// pub(crate) use self::uri::UriError;
 
 /// Built-in `Error` object.
 #[derive(Debug, Clone, Copy)]
@@ -72,7 +74,7 @@ impl Error {
         Ok(Value::from(format!("{}: {}", name, message)))
     }
 
-    /// Create a new `SyntaxError` object.
+    /// Create a new `Error` object.
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
         prototype.set_field("message", Value::from(""));

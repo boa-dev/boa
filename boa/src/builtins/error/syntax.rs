@@ -21,7 +21,6 @@ use crate::{
     exec::Interpreter,
     profiler::BoaProfiler,
 };
-
 /// JavaScript `SyntaxError` impleentation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SyntaxError;
@@ -62,7 +61,7 @@ impl SyntaxError {
         Ok(format!("{}: {}", name, message).into())
     }
 
-    /// Create a new `RangeError` object.
+    /// Create a new `SyntaxError` object.
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
         prototype.set_field("name", Self::NAME);
