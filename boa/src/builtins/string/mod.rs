@@ -184,8 +184,6 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat
     pub(crate) fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = ctx.require_object_coercible(this)?;
         let mut string = ctx.to_string(object)?.to_string();
 
