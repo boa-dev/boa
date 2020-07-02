@@ -12,6 +12,8 @@ Feature Enhancements:
   Implement global `Infinity` property (@AnirudhKonduru)
 - [FEATURE #410](https://github.com/boa-dev/boa/pull/410):
   Add support for the reviver function to JSON.parse (@abhijeetbhagat)
+- [FEATURE #525](https://github.com/boa-dev/boa/pull/425):
+  Implement additional `Math` methods (@mr-rodgers)
 - [FEATURE #425](https://github.com/boa-dev/boa/pull/425):
   Specification compliant `ToString` (`to_string`) (@HalidOdat)
 - [FEATURE #442](https://github.com/boa-dev/boa/pull/442):
@@ -24,8 +26,6 @@ Feature Enhancements:
   parseInt, parseFloat implementation (@Lan2u)
 - [FEATURE #468](https://github.com/boa-dev/boa/pull/468):
   Add BigInt.asIntN() and BigInt.asUintN() functions (@Tropid)
-- [FEATURE #428](https://github.com/boa-dev/boa/issues/428):
-  [Feature Request] - Create benchmark for Array manipulation (@abhijeetbhagat)
 - [FEATURE #439](https://github.com/boa-dev/boa/issues/439):
   Implement break handling in switch statements (@Lan2u)
 - [FEATURE #301](https://github.com/boa-dev/boa/issues/301):
@@ -63,8 +63,6 @@ Bug Fixes:
   Fixed global objects initialization order (@HalidOdat)
 - [BUG #509](https://github.com/boa-dev/boa/issues/509):
   JSON.stringify(undefined) panics (@n14little)
-- [BUG #514](https://github.com/boa-dev/boa/issues/514):
-  Clean up `Math` Methods (@n14little)
 - [BUG #511](https://github.com/boa-dev/boa/issues/511):
   [Call] Usage of "this" in methods is not supported (@jasonwilliams)
 
@@ -80,12 +78,16 @@ Internal Improvements
   Execution and Node modulization (@Razican)
 - [INTERNAL #465](https://github.com/boa-dev/boa/issues/465):
   Refactoring Value (decouple `Gc` from `Value`) (@HalidOdat)
+- [INTERNAL #514](https://github.com/boa-dev/boa/issues/514):
+  Clean up `Math` Methods (@n14little)
 - [INTERNAL #416](https://github.com/boa-dev/boa/pull/416) & [INTERNAL #423](https://github.com/boa-dev/boa/commit/c8218dd91ef3181e048e7a2659a4fbf8d53c7174):
   Update links to boa-dev (@pedropaulosuzuki)
 - [INTERNAL #378](https://github.com/boa-dev/boa/issues/378):
   Code Coverage! (@Lan2u)
 - [INTERNAL #431](https://github.com/boa-dev/boa/pull/431):
   Updates to PR Benchmarks (@Razican)
+- [INTERNAL #428](https://github.com/boa-dev/boa/issues/428): 
+Create benchmark for Array manipulation (@abhijeetbhagat)
 - [INTERNAL #427 #429 #430](https://github.com/boa-dev/boa/commit/64dbf13afd15f12f958daa87a3d236dc9af1a9aa):
   Added new benchmarks (@Razican)
 
