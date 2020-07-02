@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [# 0.9.0 (2020-06-25) - Move to Organisation, 65% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
+# [# 0.9.0 (2020-06-25) - Move to Organisation, 78% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
 
 Feature Enhancements:
 
