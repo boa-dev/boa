@@ -120,7 +120,7 @@ impl From<bool> for Value {
 
 impl From<&Value> for bool {
     fn from(value: &Value) -> Self {
-        value.is_true()
+        value.to_boolean()
     }
 }
 

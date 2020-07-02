@@ -28,7 +28,6 @@ use std::{
     convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
-    ops::{Add, BitAnd, BitOr, BitXor, Deref, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
     str::FromStr,
 };
 
@@ -157,14 +156,6 @@ impl Value {
     #[inline]
     pub(crate) fn symbol(symbol: Symbol) -> Self {
         Self::Symbol(RcSymbol::from(symbol))
-    }
-
-    /// Helper function to convert the `Value` to a number and compute its power.
-    pub fn as_num_to_power(&self, other: Self) -> Self {
-        match (self, other) {
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(a.as_inner().clone().pow(b)),
-            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
-        }
     }
 
     /// Returns a new empty object
@@ -413,21 +404,6 @@ impl Value {
         }
     }
 
-    /// Returns true if the value is true.
-    ///
-    /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
-    pub fn is_true(&self) -> bool {
-        match *self {
-            Self::Object(_) => true,
-            Self::String(ref s) if !s.is_empty() => true,
-            Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
-            Self::Integer(n) if n != 0 => true,
-            Self::Boolean(v) => v,
-            Self::BigInt(ref n) if *n.as_inner() != 0 => true,
-            _ => false,
-        }
-    }
-
     /// Converts the value into a 64-bit floating point number
     pub fn to_number(&self) -> f64 {
         match *self {
@@ -473,7 +449,12 @@ impl Value {
         }
     }
 
-    /// Creates a new boolean value from the input
+    /// Converts the value to a `bool` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toboolean
     pub fn to_boolean(&self) -> bool {
         match *self {
             Self::Undefined | Self::Null => false,
@@ -713,7 +694,7 @@ impl Value {
     #[inline]
     pub fn set_data(&self, data: ObjectData) {
         if let Self::Object(ref obj) = *self {
-            (*obj.deref().borrow_mut()).data = data;
+            obj.borrow_mut().data = data;
         }
     }
 

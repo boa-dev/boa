@@ -52,29 +52,28 @@ impl Executable for BinOp {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         match self.op() {
             op::BinOp::Num(op) => {
-                let v_a = self.lhs().run(interpreter)?;
-                let v_b = self.rhs().run(interpreter)?;
-                Ok(match op {
-                    NumOp::Add => v_a + v_b,
-                    NumOp::Sub => v_a - v_b,
-                    NumOp::Mul => v_a * v_b,
-                    NumOp::Exp => v_a.as_num_to_power(v_b),
-                    NumOp::Div => v_a / v_b,
-                    NumOp::Mod => v_a % v_b,
-                })
+                let x = self.lhs().run(interpreter)?;
+                let y = self.rhs().run(interpreter)?;
+                match op {
+                    NumOp::Add => x.add(&y, interpreter),
+                    NumOp::Sub => x.sub(&y, interpreter),
+                    NumOp::Mul => x.mul(&y, interpreter),
+                    NumOp::Exp => x.pow(&y, interpreter),
+                    NumOp::Div => x.div(&y, interpreter),
+                    NumOp::Mod => x.rem(&y, interpreter),
+                }
             }
             op::BinOp::Bit(op) => {
-                let v_a = self.lhs().run(interpreter)?;
-                let v_b = self.rhs().run(interpreter)?;
-                Ok(match op {
-                    BitOp::And => v_a & v_b,
-                    BitOp::Or => v_a | v_b,
-                    BitOp::Xor => v_a ^ v_b,
-                    BitOp::Shl => v_a << v_b,
-                    BitOp::Shr => v_a >> v_b,
-                    // TODO Fix
-                    BitOp::UShr => v_a >> v_b,
-                })
+                let x = self.lhs().run(interpreter)?;
+                let y = self.rhs().run(interpreter)?;
+                match op {
+                    BitOp::And => x.bitand(&y, interpreter),
+                    BitOp::Or => x.bitor(&y, interpreter),
+                    BitOp::Xor => x.bitxor(&y, interpreter),
+                    BitOp::Shl => x.shl(&y, interpreter),
+                    BitOp::Shr => x.shr(&y, interpreter),
+                    BitOp::UShr => x.ushr(&y, interpreter),
+                }
             }
             op::BinOp::Comp(op) => {
                 let v_a = self.lhs().run(interpreter)?;
@@ -122,7 +121,7 @@ impl Executable for BinOp {
                         .get_binding_value(name.as_ref())
                         .ok_or_else(|| interpreter.construct_reference_error(name.as_ref()))?;
                     let v_b = self.rhs().run(interpreter)?;
-                    let value = Self::run_assign(op, v_a, v_b);
+                    let value = Self::run_assign(op, v_a, v_b, interpreter)?;
                     interpreter.realm.environment.set_mutable_binding(
                         name.as_ref(),
                         value.clone(),
@@ -134,7 +133,7 @@ impl Executable for BinOp {
                     let v_r_a = get_const_field.obj().run(interpreter)?;
                     let v_a = v_r_a.get_field(get_const_field.field());
                     let v_b = self.rhs().run(interpreter)?;
-                    let value = Self::run_assign(op, v_a, v_b);
+                    let value = Self::run_assign(op, v_a, v_b, interpreter)?;
                     v_r_a.set_field(get_const_field.field(), value.clone());
                     Ok(value)
                 }
@@ -146,49 +145,49 @@ impl Executable for BinOp {
 
 impl BinOp {
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, v_a: Value, v_b: Value) -> Value {
+    fn run_assign(op: AssignOp, x: Value, y: Value, interpreter: &mut Interpreter) -> ResultValue {
         match op {
-            AssignOp::Add => v_a + v_b,
-            AssignOp::Sub => v_a - v_b,
-            AssignOp::Mul => v_a * v_b,
-            AssignOp::Exp => v_a.as_num_to_power(v_b),
-            AssignOp::Div => v_a / v_b,
-            AssignOp::Mod => v_a % v_b,
-            AssignOp::And => v_a & v_b,
-            AssignOp::Or => v_a | v_b,
-            AssignOp::Xor => v_a ^ v_b,
-            AssignOp::Shl => v_a << v_b,
-            AssignOp::Shr => v_a << v_b,
+            AssignOp::Add => x.add(&y, interpreter),
+            AssignOp::Sub => x.sub(&y, interpreter),
+            AssignOp::Mul => x.mul(&y, interpreter),
+            AssignOp::Exp => x.pow(&y, interpreter),
+            AssignOp::Div => x.div(&y, interpreter),
+            AssignOp::Mod => x.rem(&y, interpreter),
+            AssignOp::And => x.bitand(&y, interpreter),
+            AssignOp::Or => x.bitor(&y, interpreter),
+            AssignOp::Xor => x.bitxor(&y, interpreter),
+            AssignOp::Shl => x.shl(&y, interpreter),
+            AssignOp::Shr => x.shr(&y, interpreter),
         }
     }
 }
 
 impl Executable for UnaryOp {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
-        let v_a = self.target().run(interpreter)?;
+        let x = self.target().run(interpreter)?;
 
         Ok(match self.op() {
-            op::UnaryOp::Minus => -v_a,
-            op::UnaryOp::Plus => Value::from(v_a.to_number()),
+            op::UnaryOp::Minus => x.neg(interpreter)?,
+            op::UnaryOp::Plus => Value::from(x.to_number()),
             op::UnaryOp::IncrementPost => {
-                let ret = v_a.clone();
-                interpreter.set_value(self.target(), Value::from(v_a.to_number() + 1.0))?;
+                let ret = x.clone();
+                interpreter.set_value(self.target(), Value::from(x.to_number() + 1.0))?;
                 ret
             }
             op::UnaryOp::IncrementPre => {
-                interpreter.set_value(self.target(), Value::from(v_a.to_number() + 1.0))?
+                interpreter.set_value(self.target(), Value::from(x.to_number() + 1.0))?
             }
             op::UnaryOp::DecrementPost => {
-                let ret = v_a.clone();
-                interpreter.set_value(self.target(), Value::from(v_a.to_number() - 1.0))?;
+                let ret = x.clone();
+                interpreter.set_value(self.target(), Value::from(x.to_number() - 1.0))?;
                 ret
             }
             op::UnaryOp::DecrementPre => {
-                interpreter.set_value(self.target(), Value::from(v_a.to_number() - 1.0))?
+                interpreter.set_value(self.target(), Value::from(x.to_number() - 1.0))?
             }
-            op::UnaryOp::Not => !v_a,
+            op::UnaryOp::Not => x.not(interpreter)?,
             op::UnaryOp::Tilde => {
-                let num_v_a = v_a.to_number();
+                let num_v_a = x.to_number();
                 // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
                 Value::from(if num_v_a.is_nan() {
                     -1
@@ -221,7 +220,7 @@ impl Executable for UnaryOp {
                 | Node::UnaryOp(_) => Value::boolean(true),
                 _ => panic!("SyntaxError: wrong delete argument {}", self),
             },
-            op::UnaryOp::TypeOf => Value::from(v_a.get_type().as_str()),
+            op::UnaryOp::TypeOf => Value::from(x.get_type().as_str()),
         })
     }
 }

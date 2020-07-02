@@ -1,4 +1,10 @@
-use crate::{builtins::Value, exec, exec::Interpreter, forward, realm::Realm};
+use crate::{
+    builtins::{Number, Value},
+    exec,
+    exec::Interpreter,
+    forward,
+    realm::Realm,
+};
 
 #[test]
 fn function_declaration_returns_undefined() {
@@ -895,10 +901,177 @@ fn to_integer() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_integer(&Value::number(f64::NAN)).unwrap(), 0);
-    assert_eq!(engine.to_integer(&Value::number(0.0f64)).unwrap(), 0);
-    assert_eq!(engine.to_integer(&Value::number(20.9)).unwrap(), 20);
-    assert_eq!(engine.to_integer(&Value::number(-20.9)).unwrap(), -20);
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(f64::NAN)).unwrap(),
+        0.0
+    ));
+    assert!(Number::equal(
+        engine
+            .to_integer(&Value::number(f64::NEG_INFINITY))
+            .unwrap(),
+        f64::NEG_INFINITY
+    ));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(f64::INFINITY)).unwrap(),
+        f64::INFINITY
+    ));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(0.0)).unwrap(),
+        0.0
+    ));
+    let number = engine.to_integer(&Value::number(-0.0)).unwrap();
+    assert!(!number.is_sign_negative());
+    assert!(Number::equal(number, 0.0));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(20.9)).unwrap(),
+        20.0
+    ));
+    assert!(Number::equal(
+        engine.to_integer(&Value::number(-20.9)).unwrap(),
+        -20.0
+    ));
+}
+
+#[test]
+fn to_length() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(engine.to_length(&Value::number(f64::NAN)).unwrap(), 0);
+    assert_eq!(
+        engine.to_length(&Value::number(f64::NEG_INFINITY)).unwrap(),
+        0
+    );
+    assert_eq!(
+        engine.to_length(&Value::number(f64::INFINITY)).unwrap(),
+        Number::MAX_SAFE_INTEGER as usize
+    );
+    assert_eq!(engine.to_length(&Value::number(0.0)).unwrap(), 0);
+    assert_eq!(engine.to_length(&Value::number(-0.0)).unwrap(), 0);
+    assert_eq!(engine.to_length(&Value::number(20.9)).unwrap(), 20);
+    assert_eq!(engine.to_length(&Value::number(-20.9)).unwrap(), 0);
+    assert_eq!(
+        engine.to_length(&Value::number(100000000000.0)).unwrap(),
+        100000000000
+    );
+    assert_eq!(
+        engine.to_length(&Value::number(4010101101.0)).unwrap(),
+        4010101101
+    );
+}
+
+#[test]
+fn to_int32() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    macro_rules! check_to_int32 {
+        ($from:expr => $to:expr) => {
+            assert_eq!(engine.to_int32(&Value::number($from)).unwrap(), $to);
+        };
+    };
+
+    check_to_int32!(f64::NAN => 0);
+    check_to_int32!(f64::NEG_INFINITY => 0);
+    check_to_int32!(f64::INFINITY => 0);
+    check_to_int32!(0 => 0);
+    check_to_int32!(-0.0 => 0);
+
+    check_to_int32!(20.9 => 20);
+    check_to_int32!(-20.9 => -20);
+
+    check_to_int32!(Number::MIN_VALUE => 0);
+    check_to_int32!(-Number::MIN_VALUE => 0);
+    check_to_int32!(0.1 => 0);
+    check_to_int32!(-0.1 => 0);
+    check_to_int32!(1 => 1);
+    check_to_int32!(1.1 => 1);
+    check_to_int32!(-1 => -1);
+    check_to_int32!(0.6 => 0);
+    check_to_int32!(1.6 => 1);
+    check_to_int32!(-0.6 => 0);
+    check_to_int32!(-1.6 => -1);
+
+    check_to_int32!(2147483647.0 => 2147483647);
+    check_to_int32!(2147483648.0 => -2147483648);
+    check_to_int32!(2147483649.0 => -2147483647);
+
+    check_to_int32!(4294967295.0 => -1);
+    check_to_int32!(4294967296.0 => 0);
+    check_to_int32!(4294967297.0 => 1);
+
+    check_to_int32!(-2147483647.0 => -2147483647);
+    check_to_int32!(-2147483648.0 => -2147483648);
+    check_to_int32!(-2147483649.0 => 2147483647);
+
+    check_to_int32!(-4294967295.0 => 1);
+    check_to_int32!(-4294967296.0 => 0);
+    check_to_int32!(-4294967297.0 => -1);
+
+    check_to_int32!(2147483648.25 => -2147483648);
+    check_to_int32!(2147483648.5 => -2147483648);
+    check_to_int32!(2147483648.75 => -2147483648);
+    check_to_int32!(4294967295.25 => -1);
+    check_to_int32!(4294967295.5 => -1);
+    check_to_int32!(4294967295.75 => -1);
+    check_to_int32!(3000000000.25 => -1294967296);
+    check_to_int32!(3000000000.5 => -1294967296);
+    check_to_int32!(3000000000.75 => -1294967296);
+
+    check_to_int32!(-2147483648.25 => -2147483648);
+    check_to_int32!(-2147483648.5 => -2147483648);
+    check_to_int32!(-2147483648.75 => -2147483648);
+    check_to_int32!(-4294967295.25 => 1);
+    check_to_int32!(-4294967295.5 => 1);
+    check_to_int32!(-4294967295.75 => 1);
+    check_to_int32!(-3000000000.25 => 1294967296);
+    check_to_int32!(-3000000000.5 => 1294967296);
+    check_to_int32!(-3000000000.75 => 1294967296);
+
+    let base = 2f64.powf(64.0);
+    check_to_int32!(base + 0.0 => 0);
+    check_to_int32!(base + 1117.0 => 0);
+    check_to_int32!(base + 2234.0 => 4096);
+    check_to_int32!(base + 3351.0 => 4096);
+    check_to_int32!(base + 4468.0 => 4096);
+    check_to_int32!(base + 5585.0 => 4096);
+    check_to_int32!(base + 6702.0 => 8192);
+    check_to_int32!(base + 7819.0 => 8192);
+    check_to_int32!(base + 8936.0 => 8192);
+    check_to_int32!(base + 10053.0 => 8192);
+    check_to_int32!(base + 11170.0 => 12288);
+    check_to_int32!(base + 12287.0 => 12288);
+    check_to_int32!(base + 13404.0 => 12288);
+    check_to_int32!(base + 14521.0 => 16384);
+    check_to_int32!(base + 15638.0 => 16384);
+    check_to_int32!(base + 16755.0 => 16384);
+    check_to_int32!(base + 17872.0 => 16384);
+    check_to_int32!(base + 18989.0 => 20480);
+    check_to_int32!(base + 20106.0 => 20480);
+    check_to_int32!(base + 21223.0 => 20480);
+    check_to_int32!(base + 22340.0 => 20480);
+    check_to_int32!(base + 23457.0 => 24576);
+    check_to_int32!(base + 24574.0 => 24576);
+    check_to_int32!(base + 25691.0 => 24576);
+    check_to_int32!(base + 26808.0 => 28672);
+    check_to_int32!(base + 27925.0 => 28672);
+    check_to_int32!(base + 29042.0 => 28672);
+    check_to_int32!(base + 30159.0 => 28672);
+    check_to_int32!(base + 31276.0 => 32768);
+
+    // bignum is (2^53 - 1) * 2^31 - highest number with bit 31 set.
+    let bignum = 2f64.powf(84.0) - 2f64.powf(31.0);
+    check_to_int32!(bignum => -2147483648);
+    check_to_int32!(-bignum => -2147483648);
+    check_to_int32!(2.0 * bignum => 0);
+    check_to_int32!(-(2.0 * bignum) => 0);
+    check_to_int32!(bignum - 2f64.powf(31.0) => 0);
+    check_to_int32!(-(bignum - 2f64.powf(31.0)) => 0);
+
+    // max_fraction is largest number below 1.
+    let max_fraction = 1.0 - 2f64.powf(-53.0);
+    check_to_int32!(max_fraction => 0);
+    check_to_int32!(-max_fraction => 0);
 }
 
 #[test]
