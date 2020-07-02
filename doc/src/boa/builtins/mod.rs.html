@@ -77,6 +77,7 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
+<span id="80">80</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -104,7 +105,7 @@
     <span class="ident">array</span>::<span class="ident">Array</span>,
     <span class="ident">bigint</span>::<span class="ident">BigInt</span>,
     <span class="ident">boolean</span>::<span class="ident">Boolean</span>,
-    <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">RangeError</span>, <span class="ident">ReferenceError</span>, <span class="ident">TypeError</span>},
+    <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">RangeError</span>, <span class="ident">ReferenceError</span>, <span class="ident">SyntaxError</span>, <span class="ident">TypeError</span>},
     <span class="ident">global_this</span>::<span class="ident">GlobalThis</span>,
     <span class="ident">infinity</span>::<span class="ident">Infinity</span>,
     <span class="ident">json</span>::<span class="ident">Json</span>,
@@ -140,6 +141,7 @@
         <span class="ident">RangeError</span>::<span class="ident">init</span>,
         <span class="ident">ReferenceError</span>::<span class="ident">init</span>,
         <span class="ident">TypeError</span>::<span class="ident">init</span>,
+        <span class="ident">SyntaxError</span>::<span class="ident">init</span>,
         <span class="comment">// Global properties.</span>
         <span class="ident">NaN</span>::<span class="ident">init</span>,
         <span class="ident">Infinity</span>::<span class="ident">init</span>,
