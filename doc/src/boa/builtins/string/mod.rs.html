@@ -1050,8 +1050,6 @@
 <span id="1050">1050</span>
 <span id="1051">1051</span>
 <span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1239,8 +1237,6 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">require_object_coercible</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">object</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
 
