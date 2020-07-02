@@ -1526,8 +1526,8 @@
         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> {
             <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>.<span class="ident">is_true</span>();
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span> {
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">to_boolean</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>));
             }
             <span class="ident">len</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max_len</span>, <span class="ident">i32</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>)));
@@ -1707,7 +1707,7 @@
             <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_true</span>() {
+            <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_boolean</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">element</span>);
             }
         }
@@ -1749,7 +1749,7 @@
 
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">predicate_arg</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_true</span>() {
+            <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_boolean</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">rational</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">i</span>)));
             }
         }
@@ -1914,7 +1914,7 @@
                     .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Value</span>::<span class="ident">undefined</span>());
 
-                <span class="kw">if</span> <span class="ident">callback_result</span>.<span class="ident">is_true</span>() {
+                <span class="kw">if</span> <span class="ident">callback_result</span>.<span class="ident">to_boolean</span>() {
                     <span class="prelude-val">Some</span>(<span class="ident">element</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
@@ -1958,8 +1958,8 @@
         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> {
             <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>.<span class="ident">is_true</span>();
-            <span class="kw">if</span> <span class="ident">result</span> {
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_boolean</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">true</span>));
             }
             <span class="comment">// the length of the array must be updated because the callback can mutate it.</span>

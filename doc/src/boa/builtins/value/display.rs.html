@@ -327,7 +327,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span> {
             <span class="comment">// The in-memory address of the current object</span>
-            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">address_of</span>(<span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">deref</span>());
+            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">address_of</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>());
 
             <span class="comment">// We need not continue if this object has already been</span>
             <span class="comment">// printed up the current chain</span>

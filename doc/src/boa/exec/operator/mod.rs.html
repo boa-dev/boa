@@ -224,7 +224,6 @@
 <span id="224">224</span>
 <span id="225">225</span>
 <span id="226">226</span>
-<span id="227">227</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Operator execution.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -280,29 +279,28 @@
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
             <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Num</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">NumOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">+</span> <span class="ident">v_b</span>,
-                    <span class="ident">NumOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">-</span> <span class="ident">v_b</span>,
-                    <span class="ident">NumOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">*</span> <span class="ident">v_b</span>,
-                    <span class="ident">NumOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span>.<span class="ident">as_num_to_power</span>(<span class="ident">v_b</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">/</span> <span class="ident">v_b</span>,
-                    <span class="ident">NumOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">%</span> <span class="ident">v_b</span>,
-                })
+                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                <span class="kw">match</span> <span class="ident">op</span> {
+                    <span class="ident">NumOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                }
             }
             <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">BitOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&amp;</span> <span class="ident">v_b</span>,
-                    <span class="ident">BitOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">|</span> <span class="ident">v_b</span>,
-                    <span class="ident">BitOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">^</span> <span class="ident">v_b</span>,
-                    <span class="ident">BitOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">v_b</span>,
-                    <span class="ident">BitOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">v_b</span>,
-                    <span class="comment">// TODO Fix</span>
-                    <span class="ident">BitOp</span>::<span class="ident">UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">v_b</span>,
-                })
+                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                <span class="kw">match</span> <span class="ident">op</span> {
+                    <span class="ident">BitOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+                }
             }
             <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
@@ -350,7 +348,7 @@
                         .<span class="ident">get_binding_value</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>())
                         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">interpreter</span>.<span class="ident">construct_reference_error</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>()))<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="ident">v_b</span>);
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="ident">v_b</span>, <span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                     <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">set_mutable_binding</span>(
                         <span class="ident">name</span>.<span class="ident">as_ref</span>(),
                         <span class="ident">value</span>.<span class="ident">clone</span>(),
@@ -362,7 +360,7 @@
                     <span class="kw">let</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="ident">get_const_field</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="ident">v_r_a</span>.<span class="ident">get_field</span>(<span class="ident">get_const_field</span>.<span class="ident">field</span>());
                     <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="ident">v_b</span>);
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="ident">v_b</span>, <span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                     <span class="ident">v_r_a</span>.<span class="ident">set_field</span>(<span class="ident">get_const_field</span>.<span class="ident">field</span>(), <span class="ident">value</span>.<span class="ident">clone</span>());
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 }
@@ -374,49 +372,49 @@
 
 <span class="kw">impl</span> <span class="ident">BinOp</span> {
     <span class="doccomment">/// Runs the assignment operators.</span>
-    <span class="kw">fn</span> <span class="ident">run_assign</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>, <span class="ident">v_a</span>: <span class="ident">Value</span>, <span class="ident">v_b</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">run_assign</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>, <span class="ident">x</span>: <span class="ident">Value</span>, <span class="ident">y</span>: <span class="ident">Value</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">match</span> <span class="ident">op</span> {
-            <span class="ident">AssignOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">+</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">-</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">*</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span>.<span class="ident">as_num_to_power</span>(<span class="ident">v_b</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">/</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">%</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&amp;</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">|</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">^</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">v_b</span>,
-            <span class="ident">AssignOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v_a</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">v_b</span>,
+            <span class="ident">AssignOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
-            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">-</span><span class="ident">v_a</span>,
-            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>()),
+            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">neg</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>,
+            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>()),
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">IncrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">clone</span>();
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
                 <span class="ident">ret</span>
             }
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">IncrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
             }
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">DecrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">clone</span>();
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
                 <span class="ident">ret</span>
             }
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">DecrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
             }
-            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">v_a</span>,
+            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">not</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>,
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Tilde</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">num_v_a</span> <span class="op">=</span> <span class="ident">v_a</span>.<span class="ident">to_number</span>();
+                <span class="kw">let</span> <span class="ident">num_v_a</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_number</span>();
                 <span class="comment">// NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184</span>
                 <span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">num_v_a</span>.<span class="ident">is_nan</span>() {
                     <span class="op">-</span><span class="number">1</span>
@@ -449,7 +447,7 @@
                 <span class="op">|</span> <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="bool-val">true</span>),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;SyntaxError: wrong delete argument {}&quot;</span>, <span class="self">self</span>),
             },
-            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">v_a</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()),
+            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()),
         })
     }
 }
