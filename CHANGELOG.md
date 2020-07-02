@@ -12,7 +12,7 @@ Feature Enhancements:
   Implement global `Infinity` property (@AnirudhKonduru)
 - [FEATURE #410](https://github.com/boa-dev/boa/pull/410):
   Add support for the reviver function to JSON.parse (@abhijeetbhagat)
-- [FEATURE #525](https://github.com/boa-dev/boa/pull/425):
+- [FEATURE #525](https://github.com/boa-dev/boa/pull/525):
   Implement additional `Math` methods (@mr-rodgers)
 - [FEATURE #425](https://github.com/boa-dev/boa/pull/425):
   Specification compliant `ToString` (`to_string`) (@HalidOdat)
