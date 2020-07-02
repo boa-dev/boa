@@ -38,16 +38,9 @@ impl TypeError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        if !args.is_empty() {
-            this.set_field(
-                "message",
-                Value::from(
-                    args.get(0)
-                        .expect("failed getting error message")
-                        .to_string(),
-                ),
-            );
+    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        if let Some(message) = args.get(0) {
+            this.set_field("message", ctx.to_string(message)?);
         }
 
         // This value is used by console.log and other routines to match Object type
@@ -76,7 +69,8 @@ impl TypeError {
     /// Create a new `RangeError` object.
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
-        prototype.set_field("message", Value::from(""));
+        prototype.set_field("name", Self::NAME);
+        prototype.set_field("message", "");
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
