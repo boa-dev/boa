@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1593721069951,
+  "lastUpdate": 1593727032027,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -16785,6 +16785,198 @@ window.BENCHMARK_DATA = {
             "name": "Long file (Parser)",
             "value": 6.0615,
             "range": "+/- 0.137",
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tjd.rodgers@gmail.com",
+            "name": "Te-jé Rodgers",
+            "username": "mr-rodgers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d9ef1fb426979e00173956d797afaa30d9168a90",
+          "message": "add remaining math methods (#524) (#525)\n\n* add `Math.clz32` method (#524)\r\n\r\n* fix doc urls for clz32\r\n\r\n* [#524] optimize impl for `Math.clz32`\r\n\r\n* [#524] add implementation for `Math.expm1()`\r\n\r\n* [#524] add implementation for `Math.fround()`\r\n\r\n* [#524] implement `Math.hypot()`\r\n\r\n* [#524] implement `Math.log1p()`\r\n\r\n* [#524] implement `Math.imul()`\r\n\r\n* improve `Math.clz32()` implementation\r\n\r\n* [#524] add tests for more states",
+          "timestamp": "2020-07-02T23:42:12+02:00",
+          "tree_id": "b51563e4e7dd54e5f094cce4f88c8d5273ae964b",
+          "url": "https://github.com/boa-dev/boa/commit/d9ef1fb426979e00173956d797afaa30d9168a90"
+        },
+        "date": 1593727023847,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 159.09,
+            "range": "+/- 4.530",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4.5615,
+            "range": "+/- 0.135",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 25.27,
+            "range": "+/- 0.736",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 1.1592,
+            "range": "+/- 0.029",
+            "unit": "ms"
+          },
+          {
+            "name": "",
+            "value": 15.945,
+            "range": "+/- 0.428",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 3.9261,
+            "range": "+/- 0.089",
+            "unit": "ms"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1.4579,
+            "range": "+/- 0.033",
+            "unit": "ms"
+          },
+          {
+            "name": "",
+            "value": 6.7604,
+            "range": "+/- 0.165",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 7.2611,
+            "range": "+/- 0.206",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 7.9849,
+            "range": "+/- 0.233",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 82.326,
+            "range": "+/- 2.306",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 83.505,
+            "range": "+/- 2.073",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 88.435,
+            "range": "+/- 2.566",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Execution) #2",
+            "value": 89.61,
+            "range": "+/- 2.923",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 6.6082,
+            "range": "+/- 0.192",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 8.4871,
+            "range": "+/- 0.268",
+            "unit": "us"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 5.4651,
+            "range": "+/- 0.096",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 4.6162,
+            "range": "+/- 0.144",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 5.7708,
+            "range": "+/- 0.166",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 9.6971,
+            "range": "+/- 0.205",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 604.79,
+            "range": "+/- 11.430",
+            "unit": "ns"
+          },
+          {
+            "name": "Expression (Lexer)",
+            "value": 2.3164,
+            "range": "+/- 0.065",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Lexer)",
+            "value": 1.0401,
+            "range": "+/- 0.027",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Lexer)",
+            "value": 5.6821,
+            "range": "+/- 0.146",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 5.356,
+            "range": "+/- 0.203",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 2.3767,
+            "range": "+/- 0.064",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14.973,
+            "range": "+/- 0.559",
+            "unit": "us"
+          },
+          {
+            "name": "Long file (Parser)",
+            "value": 6.9327,
+            "range": "+/- 0.129",
             "unit": "ms"
           }
         ]
