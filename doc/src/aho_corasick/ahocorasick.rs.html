@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.10/src/ahocorasick.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ahocorasick.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.13/src/ahocorasick.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ahocorasick.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2085,6 +2085,44 @@
 <span id="2085">2085</span>
 <span id="2086">2086</span>
 <span id="2087">2087</span>
+<span id="2088">2088</span>
+<span id="2089">2089</span>
+<span id="2090">2090</span>
+<span id="2091">2091</span>
+<span id="2092">2092</span>
+<span id="2093">2093</span>
+<span id="2094">2094</span>
+<span id="2095">2095</span>
+<span id="2096">2096</span>
+<span id="2097">2097</span>
+<span id="2098">2098</span>
+<span id="2099">2099</span>
+<span id="2100">2100</span>
+<span id="2101">2101</span>
+<span id="2102">2102</span>
+<span id="2103">2103</span>
+<span id="2104">2104</span>
+<span id="2105">2105</span>
+<span id="2106">2106</span>
+<span id="2107">2107</span>
+<span id="2108">2108</span>
+<span id="2109">2109</span>
+<span id="2110">2110</span>
+<span id="2111">2111</span>
+<span id="2112">2112</span>
+<span id="2113">2113</span>
+<span id="2114">2114</span>
+<span id="2115">2115</span>
+<span id="2116">2116</span>
+<span id="2117">2117</span>
+<span id="2118">2118</span>
+<span id="2119">2119</span>
+<span id="2120">2120</span>
+<span id="2121">2121</span>
+<span id="2122">2122</span>
+<span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 
@@ -2590,7 +2628,7 @@
     <span class="doccomment">/// The closure accepts three parameters: the match found, the text of</span>
     <span class="doccomment">/// the match and a string buffer with which to write the replaced text</span>
     <span class="doccomment">/// (if any). If the closure returns `true`, then it continues to the next</span>
-    <span class="doccomment">/// match. If the closure returns false, then searching is stopped.</span>
+    <span class="doccomment">/// match. If the closure returns `false`, then searching is stopped.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -2612,6 +2650,24 @@
     <span class="doccomment">/// });</span>
     <span class="doccomment">/// assert_eq!(&quot;0 the 2 to the 0age&quot;, result);</span>
     <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stopping the replacement by returning `false` (continued from the</span>
+    <span class="doccomment">/// example above):</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use aho_corasick::{AhoCorasickBuilder, MatchKind};</span>
+    <span class="doccomment">/// # let patterns = &amp;[&quot;append&quot;, &quot;appendage&quot;, &quot;app&quot;];</span>
+    <span class="doccomment">/// # let haystack = &quot;append the app to the appendage&quot;;</span>
+    <span class="doccomment">/// # let ac = AhoCorasickBuilder::new()</span>
+    <span class="doccomment">/// #    .match_kind(MatchKind::LeftmostFirst)</span>
+    <span class="doccomment">/// #    .build(patterns);</span>
+    <span class="doccomment">/// let mut result = String::new();</span>
+    <span class="doccomment">/// ac.replace_all_with(haystack, &amp;mut result, |mat, _, dst| {</span>
+    <span class="doccomment">///     dst.push_str(&amp;mat.pattern().to_string());</span>
+    <span class="doccomment">///     mat.pattern() != 2</span>
+    <span class="doccomment">/// });</span>
+    <span class="doccomment">/// assert_eq!(&quot;0 the 2 to the appendage&quot;, result);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_all_with</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
@@ -2624,7 +2680,9 @@
         <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">find_iter</span>(<span class="ident">haystack</span>) {
             <span class="ident">dst</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">last_match</span>..<span class="ident">mat</span>.<span class="ident">start</span>()]);
             <span class="ident">last_match</span> <span class="op">=</span> <span class="ident">mat</span>.<span class="ident">end</span>();
-            <span class="ident">replace_with</span>(<span class="kw-2">&amp;</span><span class="ident">mat</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">mat</span>.<span class="ident">start</span>()..<span class="ident">mat</span>.<span class="ident">end</span>()], <span class="ident">dst</span>);
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">replace_with</span>(<span class="kw-2">&amp;</span><span class="ident">mat</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">mat</span>.<span class="ident">start</span>()..<span class="ident">mat</span>.<span class="ident">end</span>()], <span class="ident">dst</span>) {
+                <span class="kw">break</span>;
+            };
         }
         <span class="ident">dst</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">last_match</span>..]);
     }
@@ -2636,7 +2694,7 @@
     <span class="doccomment">/// The closure accepts three parameters: the match found, the text of</span>
     <span class="doccomment">/// the match and a byte buffer with which to write the replaced text</span>
     <span class="doccomment">/// (if any). If the closure returns `true`, then it continues to the next</span>
-    <span class="doccomment">/// match. If the closure returns false, then searching is stopped.</span>
+    <span class="doccomment">/// match. If the closure returns `false`, then searching is stopped.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -2658,6 +2716,24 @@
     <span class="doccomment">/// });</span>
     <span class="doccomment">/// assert_eq!(b&quot;0 the 2 to the 0age&quot;.to_vec(), result);</span>
     <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stopping the replacement by returning `false` (continued from the</span>
+    <span class="doccomment">/// example above):</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use aho_corasick::{AhoCorasickBuilder, MatchKind};</span>
+    <span class="doccomment">/// # let patterns = &amp;[&quot;append&quot;, &quot;appendage&quot;, &quot;app&quot;];</span>
+    <span class="doccomment">/// # let haystack = b&quot;append the app to the appendage&quot;;</span>
+    <span class="doccomment">/// # let ac = AhoCorasickBuilder::new()</span>
+    <span class="doccomment">/// #    .match_kind(MatchKind::LeftmostFirst)</span>
+    <span class="doccomment">/// #    .build(patterns);</span>
+    <span class="doccomment">/// let mut result = vec![];</span>
+    <span class="doccomment">/// ac.replace_all_with_bytes(haystack, &amp;mut result, |mat, _, dst| {</span>
+    <span class="doccomment">///     dst.extend(mat.pattern().to_string().bytes());</span>
+    <span class="doccomment">///     mat.pattern() != 2</span>
+    <span class="doccomment">/// });</span>
+    <span class="doccomment">/// assert_eq!(b&quot;0 the 2 to the appendage&quot;.to_vec(), result);</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_all_with_bytes</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
@@ -2670,7 +2746,9 @@
         <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">find_iter</span>(<span class="ident">haystack</span>) {
             <span class="ident">dst</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">last_match</span>..<span class="ident">mat</span>.<span class="ident">start</span>()]);
             <span class="ident">last_match</span> <span class="op">=</span> <span class="ident">mat</span>.<span class="ident">end</span>();
-            <span class="ident">replace_with</span>(<span class="kw-2">&amp;</span><span class="ident">mat</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">mat</span>.<span class="ident">start</span>()..<span class="ident">mat</span>.<span class="ident">end</span>()], <span class="ident">dst</span>);
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">replace_with</span>(<span class="kw-2">&amp;</span><span class="ident">mat</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">mat</span>.<span class="ident">start</span>()..<span class="ident">mat</span>.<span class="ident">end</span>()], <span class="ident">dst</span>) {
+                <span class="kw">break</span>;
+            };
         }
         <span class="ident">dst</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">last_match</span>..]);
     }
@@ -2823,9 +2901,7 @@
     <span class="doccomment">/// [`find_iter`](struct.AhoCorasick.html#method.find_iter).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The closure accepts three parameters: the match found, the text of</span>
-    <span class="doccomment">/// the match and the writer with which to write the replaced text</span>
-    <span class="doccomment">/// (if any). If the closure returns `true`, then it continues to the next</span>
-    <span class="doccomment">/// match. If the closure returns false, then searching is stopped.</span>
+    <span class="doccomment">/// the match and the writer with which to write the replaced text (if any).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// After all matches are replaced, the writer is _not_ flushed.</span>
     <span class="doccomment">///</span>

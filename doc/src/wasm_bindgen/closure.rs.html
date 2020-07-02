@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.63/src/closure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>closure.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.64/src/closure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>closure.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -900,7 +900,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[wasm_bindgen]</span>
 <span class="doccomment">/// extern &quot;C&quot; {</span>
-<span class="doccomment">///     fn setInterval(closure: &amp;Closure&lt;FnMut()&gt;, time: u32) -&gt; i32;</span>
+<span class="doccomment">///     fn setInterval(closure: &amp;Closure&lt;dyn FnMut()&gt;, time: u32) -&gt; i32;</span>
 <span class="doccomment">///     fn clearInterval(id: i32);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     #[wasm_bindgen(js_namespace = console)]</span>
@@ -910,7 +910,7 @@
 <span class="doccomment">/// #[wasm_bindgen]</span>
 <span class="doccomment">/// pub struct IntervalHandle {</span>
 <span class="doccomment">///     interval_id: i32,</span>
-<span class="doccomment">///     _closure: Closure&lt;FnMut()&gt;,</span>
+<span class="doccomment">///     _closure: Closure&lt;dyn FnMut()&gt;,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// impl Drop for IntervalHandle {</span>
@@ -925,7 +925,7 @@
 <span class="doccomment">///     // a JS closure.</span>
 <span class="doccomment">///     let cb = Closure::wrap(Box::new(|| {</span>
 <span class="doccomment">///         log(&quot;interval elapsed!&quot;);</span>
-<span class="doccomment">///     }) as Box&lt;FnMut()&gt;);</span>
+<span class="doccomment">///     }) as Box&lt;dyn FnMut()&gt;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     // Next we pass this via reference to the `setInterval` function, and</span>
 <span class="doccomment">///     // `setInterval` gets a handle to the corresponding JS closure.</span>
@@ -953,7 +953,7 @@
 <span class="doccomment">/// #[wasm_bindgen]</span>
 <span class="doccomment">/// pub struct IntervalHandle {</span>
 <span class="doccomment">///     interval_id: i32,</span>
-<span class="doccomment">///     _closure: Closure&lt;FnMut()&gt;,</span>
+<span class="doccomment">///     _closure: Closure&lt;dyn FnMut()&gt;,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// impl Drop for IntervalHandle {</span>
@@ -967,7 +967,7 @@
 <span class="doccomment">/// pub fn run() -&gt; Result&lt;IntervalHandle, JsValue&gt; {</span>
 <span class="doccomment">///     let cb = Closure::wrap(Box::new(|| {</span>
 <span class="doccomment">///         web_sys::console::log_1(&amp;&quot;inverval elapsed!&quot;.into());</span>
-<span class="doccomment">///     }) as Box&lt;FnMut()&gt;);</span>
+<span class="doccomment">///     }) as Box&lt;dyn FnMut()&gt;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     let window = web_sys::window().unwrap();</span>
 <span class="doccomment">///     let interval_id = window.set_interval_with_callback_and_timeout_and_arguments_0(</span>
@@ -996,7 +996,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[wasm_bindgen]</span>
 <span class="doccomment">/// extern &quot;C&quot; {</span>
-<span class="doccomment">///     fn requestAnimationFrame(closure: &amp;Closure&lt;FnMut()&gt;) -&gt; u32;</span>
+<span class="doccomment">///     fn requestAnimationFrame(closure: &amp;Closure&lt;dyn FnMut()&gt;) -&gt; u32;</span>
 <span class="doccomment">///     fn cancelAnimationFrame(id: u32);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     #[wasm_bindgen(js_namespace = console)]</span>
@@ -1006,7 +1006,7 @@
 <span class="doccomment">/// #[wasm_bindgen]</span>
 <span class="doccomment">/// pub struct AnimationFrameHandle {</span>
 <span class="doccomment">///     animation_id: u32,</span>
-<span class="doccomment">///     _closure: Closure&lt;FnMut()&gt;,</span>
+<span class="doccomment">///     _closure: Closure&lt;dyn FnMut()&gt;,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// impl Drop for AnimationFrameHandle {</span>
@@ -1229,12 +1229,12 @@
 
 <span class="comment">// NB: we use a specific `T` for this `Closure&lt;T&gt;` impl block to avoid every</span>
 <span class="comment">// call site having to provide an explicit, turbo-fished type like</span>
-<span class="comment">// `Closure::&lt;FnOnce()&gt;::once(...)`.</span>
+<span class="comment">// `Closure::&lt;dyn FnOnce()&gt;::once(...)`.</span>
 <span class="kw">impl</span> <span class="ident">Closure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnOnce</span>()<span class="op">&gt;</span> {
     <span class="doccomment">/// Create a `Closure` from a function that can only be called once.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Since we have no way of enforcing that JS cannot attempt to call this</span>
-    <span class="doccomment">/// `FnOne(A...) -&gt; R` more than once, this produces a `Closure&lt;FnMut(A...)</span>
+    <span class="doccomment">/// `FnOne(A...) -&gt; R` more than once, this produces a `Closure&lt;dyn FnMut(A...)</span>
     <span class="doccomment">/// -&gt; R&gt;` that will dynamically throw a JavaScript error if called more</span>
     <span class="doccomment">/// than once.</span>
     <span class="doccomment">///</span>
@@ -1256,7 +1256,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// // Create a `Closure` from `f`. Note that the `Closure`&#39;s type parameter</span>
     <span class="doccomment">/// // is `FnMut`, even though `f` is `FnOnce`.</span>
-    <span class="doccomment">/// let closure: Closure&lt;FnMut() -&gt; String&gt; = Closure::once(f);</span>
+    <span class="doccomment">/// let closure: Closure&lt;dyn FnMut() -&gt; String&gt; = Closure::once(f);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">once</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">A</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">fn_once</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">F</span>::<span class="ident">FnMut</span><span class="op">&gt;</span>
     <span class="kw">where</span>

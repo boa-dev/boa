@@ -23,7 +23,7 @@ lifted in the future!</p>
 
 <span class="attribute">#[<span class="ident">wasm_bindgen</span>]</span>
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">fn</span> <span class="ident">setInterval</span>(<span class="ident">closure</span>: <span class="kw-2">&amp;</span><span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">FnMut</span>()<span class="op">&gt;</span>, <span class="ident">time</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span>;
+    <span class="kw">fn</span> <span class="ident">setInterval</span>(<span class="ident">closure</span>: <span class="kw-2">&amp;</span><span class="ident">Closure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>()<span class="op">&gt;</span>, <span class="ident">time</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span>;
     <span class="kw">fn</span> <span class="ident">clearInterval</span>(<span class="ident">id</span>: <span class="ident">i32</span>);
 
     <span class="attribute">#[<span class="ident">wasm_bindgen</span>(<span class="ident">js_namespace</span> <span class="op">=</span> <span class="ident">console</span>)]</span>
@@ -33,7 +33,7 @@ lifted in the future!</p>
 <span class="attribute">#[<span class="ident">wasm_bindgen</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntervalHandle</span> {
     <span class="ident">interval_id</span>: <span class="ident">i32</span>,
-    <span class="ident">_closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">FnMut</span>()<span class="op">&gt;</span>,
+    <span class="ident">_closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>()<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">IntervalHandle</span> {
@@ -48,7 +48,7 @@ lifted in the future!</p>
     <span class="comment">// a JS closure.</span>
     <span class="kw">let</span> <span class="ident">cb</span> <span class="op">=</span> <span class="ident">Closure</span>::<span class="ident">wrap</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="ident">log</span>(<span class="string">&quot;interval elapsed!&quot;</span>);
-    }) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">FnMut</span>()<span class="op">&gt;</span>);
+    }) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>()<span class="op">&gt;</span>);
 
     <span class="comment">// Next we pass this via reference to the `setInterval` function, and</span>
     <span class="comment">// `setInterval` gets a handle to the corresponding JS closure.</span>
@@ -73,7 +73,7 @@ writing bindings to <code>setInterval</code> and other Web APIs.</p>
 <span class="attribute">#[<span class="ident">wasm_bindgen</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntervalHandle</span> {
     <span class="ident">interval_id</span>: <span class="ident">i32</span>,
-    <span class="ident">_closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">FnMut</span>()<span class="op">&gt;</span>,
+    <span class="ident">_closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>()<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">IntervalHandle</span> {
@@ -87,7 +87,7 @@ writing bindings to <code>setInterval</code> and other Web APIs.</p>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IntervalHandle</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">cb</span> <span class="op">=</span> <span class="ident">Closure</span>::<span class="ident">wrap</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="ident">web_sys</span>::<span class="ident">console</span>::<span class="ident">log_1</span>(<span class="kw-2">&amp;</span><span class="string">&quot;inverval elapsed!&quot;</span>.<span class="ident">into</span>());
-    }) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">FnMut</span>()<span class="op">&gt;</span>);
+    }) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>()<span class="op">&gt;</span>);
 
     <span class="kw">let</span> <span class="ident">window</span> <span class="op">=</span> <span class="ident">web_sys</span>::<span class="ident">window</span>().<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">interval_id</span> <span class="op">=</span> <span class="ident">window</span>.<span class="ident">set_interval_with_callback_and_timeout_and_arguments_0</span>(
@@ -113,7 +113,7 @@ writing bindings to <code>setInterval</code> and other Web APIs.</p>
 
 <span class="attribute">#[<span class="ident">wasm_bindgen</span>]</span>
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">fn</span> <span class="ident">requestAnimationFrame</span>(<span class="ident">closure</span>: <span class="kw-2">&amp;</span><span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">FnMut</span>()<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">requestAnimationFrame</span>(<span class="ident">closure</span>: <span class="kw-2">&amp;</span><span class="ident">Closure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>()<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
     <span class="kw">fn</span> <span class="ident">cancelAnimationFrame</span>(<span class="ident">id</span>: <span class="ident">u32</span>);
 
     <span class="attribute">#[<span class="ident">wasm_bindgen</span>(<span class="ident">js_namespace</span> <span class="op">=</span> <span class="ident">console</span>)]</span>
@@ -123,7 +123,7 @@ writing bindings to <code>setInterval</code> and other Web APIs.</p>
 <span class="attribute">#[<span class="ident">wasm_bindgen</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnimationFrameHandle</span> {
     <span class="ident">animation_id</span>: <span class="ident">u32</span>,
-    <span class="ident">_closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">FnMut</span>()<span class="op">&gt;</span>,
+    <span class="ident">_closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>()<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">AnimationFrameHandle</span> {
@@ -239,7 +239,7 @@ leak this instance of <code>Closure</code> while performing as much internal
 cleanup as it can.</p>
 </div></div><h3 id='impl-1' class='impl'><code class='in-band'>impl <a class="struct" href="../../wasm_bindgen/closure/struct.Closure.html" title="struct wasm_bindgen::closure::Closure">Closure</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>()&gt;</code><a href='#impl-1' class='anchor'></a><a class='srclink' href='../../src/wasm_bindgen/closure.rs.html#381-443' title='goto source code'>[src]</a></h3><div class='impl-items'><h4 id='method.once' class="method"><code id='once.v'>pub fn <a href='#method.once' class='fnname'>once</a>&lt;F, A, R&gt;(fn_once: F) -&gt; <a class="struct" href="../../wasm_bindgen/closure/struct.Closure.html" title="struct wasm_bindgen::closure::Closure">Closure</a>&lt;F::FnMut&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;F: 'static + WasmClosureFnOnce&lt;A, R&gt;,&nbsp;</span></code><a class='srclink' href='../../src/wasm_bindgen/closure.rs.html#409-414' title='goto source code'>[src]</a></h4><div class='docblock'><p>Create a <code>Closure</code> from a function that can only be called once.</p>
 <p>Since we have no way of enforcing that JS cannot attempt to call this
-<code>FnOne(A...) -&gt; R</code> more than once, this produces a <code>Closure&lt;FnMut(A...) -&gt; R&gt;</code> that will dynamically throw a JavaScript error if called more
+<code>FnOne(A...) -&gt; R</code> more than once, this produces a <code>Closure&lt;dyn FnMut(A...) -&gt; R&gt;</code> that will dynamically throw a JavaScript error if called more
 than once.</p>
 <h1 id="example" class="section-header"><a href="#example">Example</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -258,7 +258,7 @@ than once.</p>
 
 <span class="comment">// Create a `Closure` from `f`. Note that the `Closure`&#39;s type parameter</span>
 <span class="comment">// is `FnMut`, even though `f` is `FnOnce`.</span>
-<span class="kw">let</span> <span class="ident">closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">FnMut</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Closure</span>::<span class="ident">once</span>(<span class="ident">f</span>);</pre></div>
+<span class="kw">let</span> <span class="ident">closure</span>: <span class="ident">Closure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Closure</span>::<span class="ident">once</span>(<span class="ident">f</span>);</pre></div>
 </div><h4 id='method.once_into_js' class="method"><code id='once_into_js.v'>pub fn <a href='#method.once_into_js' class='fnname'>once_into_js</a>&lt;F, A, R&gt;(fn_once: F) -&gt; <a class="struct" href="../../wasm_bindgen/struct.JsValue.html" title="struct wasm_bindgen::JsValue">JsValue</a> <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;F: 'static + WasmClosureFnOnce&lt;A, R&gt;,&nbsp;</span></code><a class='srclink' href='../../src/wasm_bindgen/closure.rs.html#437-442' title='goto source code'>[src]</a></h4><div class='docblock'><p>Convert a <code>FnOnce(A...) -&gt; R</code> into a JavaScript <code>Function</code> object.</p>
 <p>If the JavaScript function is invoked more than once, it will throw an
 exception.</p>
