@@ -54,8 +54,6 @@ fn json_stringify_remove_function_values_from_objects() {
 }
 
 #[test]
-#[ignore]
-// there is a bug for setting a symbol as a field's value
 fn json_stringify_remove_symbols_from_objects() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -152,7 +150,6 @@ fn json_stringify_array_converts_function_to_null() {
 }
 
 #[test]
-#[ignore]
 fn json_stringify_array_converts_symbol_to_null() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

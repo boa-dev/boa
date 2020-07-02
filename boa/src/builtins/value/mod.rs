@@ -260,7 +260,7 @@ impl Value {
                     for k in obj.borrow().properties().keys() {
                         if k != "length" {
                             let value = self.get_field(k.to_string());
-                            if value.is_undefined() || value.is_function() {
+                            if value.is_undefined() || value.is_function() || value.is_symbol() {
                                 arr.push(JSONValue::Null);
                             } else {
                                 arr.push(self.get_field(k.to_string()).to_json(interpreter)?);
@@ -273,7 +273,7 @@ impl Value {
                     for k in obj.borrow().properties().keys() {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
-                        if !value.is_undefined() && !value.is_function() {
+                        if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
                             new_obj.insert(key.to_string(), value.to_json(interpreter)?);
                         }
                     }
