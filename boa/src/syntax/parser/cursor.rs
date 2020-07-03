@@ -43,16 +43,10 @@ where
 
     /// Sets the goal symbol for the lexer.
     pub(crate) fn set_goal(&mut self, elm: InputElement) {
-        println!("Set goal: {:?}", elm);
         self.lexer.set_goal(elm)
     }
 
-    /// Gets the goal symbol for the lexer.
-    pub(crate) fn get_goal(&self) -> InputElement {
-        self.lexer.get_goal()
-    }
-
-    // Somewhat a hack.
+    /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         self.set_goal(InputElement::RegExp);
         self.lexer.lex_slash_token(start).map_err(|e| ParseError::lex(e))

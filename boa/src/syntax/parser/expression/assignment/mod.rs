@@ -118,15 +118,11 @@ where
             _ => {}
         }
 
-        println!("Cursor peek: {:?}", cursor.peek());
         cursor.set_goal(InputElement::Div);
 
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        println!("LHS: {:?}", lhs);
-        println!("Cursor peek: {:?}", cursor.peek());
-            // Here
         if let Some(tok) = cursor.peek() {
             match tok?.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {

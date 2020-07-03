@@ -97,25 +97,3 @@ pub fn exec(src: &str) -> String {
     let mut engine = Interpreter::new(realm);
     forward(&mut engine, src)
 }
-
-// Temporary test for debugging goal symbols.
-#[test]
-fn regex_func_arg() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
-    let init = r#"a = a.replace(/c(o)(o)(l)/, replacer);"#;
-
-    // forward(&mut engine, init);
-
-    let res = Parser::new(init.as_bytes())
-        .parse_all()
-        .map_err(|e| format!("Parsing Error: {}", e)).unwrap();
-
-    // println!("Result: {:?}", res);
-
-    // assert_eq!(forward(&mut engine, "a"), "ecmascript is awesome!");
-
-    // assert_eq!(forward(&mut engine, "p1"), "o");
-    // assert_eq!(forward(&mut engine, "p2"), "o");
-    // assert_eq!(forward(&mut engine, "p3"), "l");
-}

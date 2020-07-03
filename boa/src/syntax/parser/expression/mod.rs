@@ -70,7 +70,6 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
             }
 
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
-            println!("LHS in EXP: {:?}", lhs);
             while let Some(tok) = cursor.peek() {
                 match tok?.kind() {
                     &TokenKind::Punctuator(op) if $( op == $op )||* => {

@@ -7,14 +7,6 @@ use crate::syntax::{
     parser::tests::check_parser,
 };
 
-#[test]
-fn check_divide() {
-    check_parser(
-        "a / b",
-        vec![BinOp::new(NumOp::Div, Identifier::from("a"), Identifier::from("b")).into()],
-    );
-}
-
 /// Checks numeric operations
 #[test]
 fn check_numeric_operations() {
