@@ -22,20 +22,20 @@ impl<R> Tokenizer<R> for SpreadLiteral {
         R: Read,
     {
         // . or ...
-        match cursor.next_is('.') {
-            Err(e) => Err(e.into()),
-            Ok(true) => match cursor.next_is('.') {
-                Err(e) => Err(e.into()),
-                Ok(true) => Ok(Token::new(
+        if cursor.next_is('.')? {
+            if cursor.next_is('.')? {
+                Ok(Token::new(
                     Punctuator::Spread.into(),
                     Span::new(start_pos, cursor.pos()),
-                )),
-                Ok(false) => Err(Error::syntax("Expecting Token .")),
-            },
-            Ok(false) => Ok(Token::new(
+                ))
+            } else {
+                Err(Error::syntax("Expecting Token ."))
+            }
+        } else {
+            Ok(Token::new(
                 Punctuator::Dot.into(),
                 Span::new(start_pos, cursor.pos()),
-            )),
+            ))
         }
     }
 }

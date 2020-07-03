@@ -5,25 +5,17 @@
 
 #[macro_use]
 mod comment;
-
 mod cursor;
 pub mod error;
-
 #[macro_use]
 mod string;
 pub mod token;
-
 #[macro_use]
 mod template;
-
 mod number;
-
 mod operator;
-
 mod spread;
-
 mod regex;
-
 mod identifier;
 
 // Temporary disabled while lexer in progress.
