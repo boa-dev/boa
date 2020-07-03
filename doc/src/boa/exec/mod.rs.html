@@ -663,19 +663,21 @@
 <span id="663">663</span>
 <span id="664">664</span>
 <span id="665">665</span>
+<span id="666">666</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
 <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">mod</span> <span class="ident">block</span>;
 <span class="kw">mod</span> <span class="ident">break_node</span>;
+<span class="kw">mod</span> <span class="ident">call</span>;
 <span class="kw">mod</span> <span class="ident">conditional</span>;
 <span class="kw">mod</span> <span class="ident">declaration</span>;
 <span class="kw">mod</span> <span class="ident">exception</span>;
-<span class="kw">mod</span> <span class="ident">expression</span>;
 <span class="kw">mod</span> <span class="ident">field</span>;
 <span class="kw">mod</span> <span class="ident">identifier</span>;
 <span class="kw">mod</span> <span class="ident">iteration</span>;
+<span class="kw">mod</span> <span class="ident">new</span>;
 <span class="kw">mod</span> <span class="ident">object</span>;
 <span class="kw">mod</span> <span class="ident">operator</span>;
 <span class="kw">mod</span> <span class="ident">return_smt</span>;
@@ -1296,7 +1298,7 @@
             <span class="ident">Node</span>::<span class="ident">Identifier</span>(<span class="kw-2">ref</span> <span class="ident">identifier</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">identifier</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_const_field_node</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_field</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
-            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
@@ -1307,7 +1309,7 @@
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
             <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
-            <span class="ident">Node</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
