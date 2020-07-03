@@ -32,7 +32,6 @@ impl<R> Tokenizer<R> for SingleLineComment {
                 _ => {}
             }
         }
-        cursor.next_line();
         Ok(Token::new(
             TokenKind::Comment,
             Span::new(start_pos, cursor.pos()),
@@ -61,9 +60,6 @@ impl<R> Tokenizer<R> for BlockComment {
                 match ch {
                     Err(e) => {
                         return Err(Error::IO(e));
-                    }
-                    Ok('\n') => {
-                        cursor.next_line();
                     }
                     Ok('*') => {
                         if cursor.next_is('/')? {

@@ -25,14 +25,14 @@ impl<R> Cursor<R> {
 
     /// Advances the position to the next line.
     #[inline]
-    pub(super) fn next_line(&mut self) {
+    fn next_line(&mut self) {
         let next_line = self.pos.line_number() + 1;
         self.pos = Position::new(next_line, 1);
     }
 
     /// Performs a carriage return to modify the position in the source.
     #[inline]
-    pub(super) fn carriage_return(&mut self) {
+    fn carriage_return(&mut self) {
         let current_line = self.pos.line_number();
         self.pos = Position::new(current_line, 1);
     }

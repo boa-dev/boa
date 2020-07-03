@@ -22,13 +22,6 @@ macro_rules! template_match {
 #[derive(Debug, Clone, Copy)]
 pub(super) struct TemplateLiteral;
 
-impl TemplateLiteral {
-    /// Creates a new template literal lexer.
-    pub(super) fn new() -> Self {
-        Self {}
-    }
-}
-
 impl<R> Tokenizer<R> for TemplateLiteral {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
