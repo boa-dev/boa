@@ -6,7 +6,7 @@ use crate::syntax::ast::{
         field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
         StatementList, UnaryOp, VarDecl, VarDeclList,
     },
-    op::{self, NumOp},
+    op::{self, NumOp, CompOp, LogOp},
     Const,
 };
 
@@ -96,25 +96,36 @@ fn hoisting() {
     );
 }
 
-// #[test]
-// fn two_divisions_in_expression() {
-//     let s = "    return a !== 0 || 1 / a === 1 / b;";
+#[test]
+fn ambigous_regex_divide_expression() {
+    let s = "1 / a === 1 / b";
 
-//     let expected = vec![
-//         TokenKind::Keyword(Keyword::Return),
-//         TokenKind::Identifier("a".into()),
-//         TokenKind::Punctuator(Punctuator::StrictNotEq),
-//         TokenKind::NumericLiteral(Numeric::Integer(0)),
-//         TokenKind::Punctuator(Punctuator::BoolOr),
-//         TokenKind::NumericLiteral(Numeric::Integer(1)),
-//         TokenKind::Punctuator(Punctuator::Div),
-//         TokenKind::Identifier("a".into()),
-//         TokenKind::Punctuator(Punctuator::StrictEq),
-//         TokenKind::NumericLiteral(Numeric::Integer(1)),
-//         TokenKind::Punctuator(Punctuator::Div),
-//         TokenKind::Identifier("b".into()),
-//         TokenKind::Punctuator(Punctuator::Semicolon),
-//     ];
+    check_parser(s, vec![
+        BinOp::new(
+            CompOp::StrictEqual,
+            BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("a")),
+            BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("b")),
+        ).into()
+    ]);
+}
 
-//     check_parser(s, expected);
-// }
+#[test]
+fn two_divisions_in_expression() {
+    let s = "a !== 0 || 1 / a === 1 / b;";
+
+    check_parser(s, vec![
+        BinOp::new(
+            LogOp::Or,
+            BinOp::new(
+                CompOp::StrictNotEqual,
+                Identifier::from("a"),
+                Const::Int(0)
+            ),
+            BinOp::new(
+                CompOp::StrictEqual,
+                BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("a")),
+                BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("b")),
+            )
+        ).into()
+    ]);
+}
