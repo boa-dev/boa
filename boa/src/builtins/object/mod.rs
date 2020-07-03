@@ -416,8 +416,7 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
 pub fn create_builtin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let __proto__ = args.get(0).cloned().unwrap_or_else(Value::undefined);
-    let new_object = Value::new_object_from_prototype(__proto__, ObjectData::Ordinary);
-    Ok(new_object)
+    Ok(Value::new_object_from_prototype(__proto__, ObjectData::Ordinary))
 }
 
 /// Uses the SameValue algorithm to check equality of objects
