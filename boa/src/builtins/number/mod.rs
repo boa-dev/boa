@@ -13,9 +13,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-number-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-#[cfg(test)]
-mod tests;
-
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
@@ -26,6 +23,13 @@ use crate::{
     BoaProfiler,
 };
 use num_traits::float::FloatCore;
+
+mod conversions;
+
+pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
+
+#[cfg(test)]
+mod tests;
 
 const BUF_SIZE: usize = 2200;
 
@@ -46,6 +50,52 @@ impl Number {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
+    /// The `Number.MAX_SAFE_INTEGER` constant represents the maximum safe integer in JavaScript (`2^53 - 1`).
+    ///
+    /// /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.max_safe_integer
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
+    pub(crate) const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991_f64;
+
+    /// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(253 - 1)`).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.min_safe_integer
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER
+    pub(crate) const MIN_SAFE_INTEGER: f64 = -9_007_199_254_740_991_f64;
+
+    /// The `Number.MAX_VALUE` property represents the maximum numeric value representable in JavaScript.
+    ///
+    /// The `MAX_VALUE` property has a value of approximately `1.79E+308`, or `2^1024`.
+    /// Values larger than `MAX_VALUE` are represented as `Infinity`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.max_value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_VALUE
+    pub(crate) const MAX_VALUE: f64 = f64::MAX;
+
+    /// The `Number.MIN_VALUE` property represents the smallest positive numeric value representable in JavaScript.
+    ///
+    /// The `MIN_VALUE` property is the number closest to `0`, not the most negative number, that JavaScript can represent.
+    /// It has a value of approximately `5e-324`. Values smaller than `MIN_VALUE` ("underflow values") are converted to `0`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.min_value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_VALUE
+    pub(crate) const MIN_VALUE: f64 = f64::MIN;
+
     /// This function returns a `Result` of the number `Value`.
     ///
     /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
@@ -53,7 +103,6 @@ impl Number {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
     fn this_number_value(value: &Value, ctx: &mut Interpreter) -> Result<f64, Value> {
@@ -539,10 +588,10 @@ impl Number {
         {
             let mut properties = number.as_object_mut().expect("'Number' object");
             properties.insert_field("EPSILON", Value::from(f64::EPSILON));
-            properties.insert_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
-            properties.insert_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
-            properties.insert_field("MAX_VALUE", Value::from(f64::MAX));
-            properties.insert_field("MIN_VALUE", Value::from(f64::MIN));
+            properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
+            properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
+            properties.insert_field("MAX_VALUE", Value::from(Self::MAX_VALUE));
+            properties.insert_field("MIN_VALUE", Value::from(Self::MIN_VALUE));
             properties.insert_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
             properties.insert_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
             properties.insert_field("NaN", Value::from(f64::NAN));

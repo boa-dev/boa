@@ -165,6 +165,21 @@ impl Math {
         Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).ceil()).into())
     }
 
+    /// Get the number of leading zeros in the 32 bit representation of a number
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.clz32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32
+    pub(crate) fn clz32(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(32i32, |x| (f64::from(x) as u32).leading_zeros() as i32)
+            .into())
+    }
+
     /// Get the cosine of a number.
     ///
     /// More information:
@@ -201,6 +216,23 @@ impl Math {
         Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).exp()).into())
     }
 
+    /// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of
+    /// the natural logarithms. The result is computed in a way that is accurate even when the
+    /// value of x is close 0
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.expm1
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1
+    pub(crate) fn expm1(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).exp_m1())
+            .into())
+    }
+
     /// Get the highest integer below a number.
     ///
     /// More information:
@@ -214,6 +246,47 @@ impl Math {
             .get(0)
             .map_or(f64::NAN, |x| f64::from(x).floor())
             .into())
+    }
+
+    /// Get the nearest 32-bit single precision float representation of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.fround
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/fround
+    pub(crate) fn fround(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| (f64::from(x) as f32) as f64)
+            .into())
+    }
+
+    /// Get an approximation of the square root of the sum of squares of all arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.hypot
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
+    pub(crate) fn hypot(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.iter().fold(0f64, |x, v| f64::from(v).hypot(x)).into())
+    }
+
+    /// Get the result of the C-like 32-bit multiplication of the two parameters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.imul
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
+    pub(crate) fn imul(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        let a = args.get(0).map_or(0f64, f64::from);
+        let b = args.get(1).map_or(0f64, f64::from);
+        Ok(((a as u32).wrapping_mul(b as u32) as i32).into())
     }
 
     /// Get the natural logarithm of a number.
@@ -235,6 +308,21 @@ impl Math {
                     x.log(f64::consts::E)
                 }
             })
+            .into())
+    }
+
+    /// Get approximation to the natural logarithm of 1 + x.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log1p
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p
+    pub(crate) fn log1p(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).ln_1p())
             .into())
     }
 
@@ -485,11 +573,17 @@ impl Math {
         make_builtin_fn(Self::atan2, "atan2", &math, 2);
         make_builtin_fn(Self::cbrt, "cbrt", &math, 1);
         make_builtin_fn(Self::ceil, "ceil", &math, 1);
+        make_builtin_fn(Self::clz32, "clz32", &math, 1);
         make_builtin_fn(Self::cos, "cos", &math, 1);
         make_builtin_fn(Self::cosh, "cosh", &math, 1);
         make_builtin_fn(Self::exp, "exp", &math, 1);
+        make_builtin_fn(Self::expm1, "expm1", &math, 1);
         make_builtin_fn(Self::floor, "floor", &math, 1);
+        make_builtin_fn(Self::fround, "fround", &math, 1);
+        make_builtin_fn(Self::hypot, "hypot", &math, 1);
+        make_builtin_fn(Self::imul, "imul", &math, 1);
         make_builtin_fn(Self::log, "log", &math, 1);
+        make_builtin_fn(Self::log1p, "log1p", &math, 1);
         make_builtin_fn(Self::log10, "log10", &math, 1);
         make_builtin_fn(Self::log2, "log2", &math, 1);
         make_builtin_fn(Self::max, "max", &math, 2);

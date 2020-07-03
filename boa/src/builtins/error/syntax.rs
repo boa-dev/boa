@@ -1,13 +1,15 @@
-//! This module implements the global `RangeError` object.
+//! This module implements the global `SyntaxError` object.
 //!
-//! Indicates a value that is not in the set or range of allowable values.
+//! The SyntaxError object represents an error when trying to interpret syntactically invalid code.
+//! It is thrown when the JavaScript engine encounters tokens or token order that does not conform
+//! to the syntax of the language when parsing code.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-rangeerror
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
+//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError
 
 use crate::{
     builtins::{
@@ -19,14 +21,13 @@ use crate::{
     exec::Interpreter,
     profiler::BoaProfiler,
 };
-
-/// JavaScript `RangeError` impleentation.
+/// JavaScript `SyntaxError` impleentation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct RangeError;
+pub(crate) struct SyntaxError;
 
-impl RangeError {
+impl SyntaxError {
     /// The name of the object.
-    pub(crate) const NAME: &'static str = "RangeError";
+    pub(crate) const NAME: &'static str = "SyntaxError";
 
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
@@ -57,10 +58,10 @@ impl RangeError {
     pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let name = this.get_field("name");
         let message = this.get_field("message");
-        Ok(Value::from(format!("{}: {}", name, message)))
+        Ok(format!("{}: {}", name, message).into())
     }
 
-    /// Create a new `RangeError` object.
+    /// Create a new `SyntaxError` object.
     pub(crate) fn create(global: &Value) -> Value {
         let prototype = Value::new_object(Some(global));
         prototype.set_field("name", Self::NAME);
@@ -78,7 +79,7 @@ impl RangeError {
         )
     }
 
-    /// Initialise the global object with the `RangeError` object.
+    /// Initialise the global object with the `SyntaxError` object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");

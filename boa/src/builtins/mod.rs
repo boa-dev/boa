@@ -24,7 +24,7 @@ pub(crate) use self::{
     array::Array,
     bigint::BigInt,
     boolean::Boolean,
-    error::{Error, RangeError, ReferenceError, TypeError},
+    error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
@@ -60,6 +60,7 @@ pub fn init(global: &Value) {
         RangeError::init,
         ReferenceError::init,
         TypeError::init,
+        SyntaxError::init,
         // Global properties.
         NaN::init,
         Infinity::init,
