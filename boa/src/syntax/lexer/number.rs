@@ -138,84 +138,80 @@ impl<R> Tokenizer<R> for NumberLiteral {
         let c = cursor.peek();
 
         if self.init == '0' {
-            match c {
-                None => {
-                    // DecimalLiteral lexing.
-                    // Indicates that the number is just a single 0.
-                    return Ok(Token::new(
-                        TokenKind::NumericLiteral(Numeric::Integer(0)),
-                        Span::new(start_pos, cursor.pos()),
-                    ));
-                }
-                Some(Err(e)) => {
-                    todo!();
-                }
-                Some(Ok('x')) | Some(Ok('X')) => {
-                    // Remove the initial '0' from buffer.
-                    cursor.next();
-                    buf.pop();
+            if let Some(ch) = c {
+                match ch? {
+                    'x' | 'X' => {
+                        // Remove the initial '0' from buffer.
+                        cursor.next();
+                        buf.pop();
 
-                    // HexIntegerLiteral
-                    kind = NumericKind::Integer(16);
-                }
-                Some(Ok('o')) | Some(Ok('O')) => {
-                    // Remove the initial '0' from buffer.
-                    cursor.next();
-                    buf.pop();
+                        // HexIntegerLiteral
+                        kind = NumericKind::Integer(16);
+                    }
+                    'o' | 'O' => {
+                        // Remove the initial '0' from buffer.
+                        cursor.next();
+                        buf.pop();
 
-                    // OctalIntegerLiteral
-                    kind = NumericKind::Integer(8);
-                }
-                Some(Ok('b')) | Some(Ok('B')) => {
-                    // Remove the initial '0' from buffer.
-                    cursor.next();
-                    buf.pop();
+                        // OctalIntegerLiteral
+                        kind = NumericKind::Integer(8);
+                    }
+                    'b' | 'B' => {
+                        // Remove the initial '0' from buffer.
+                        cursor.next();
+                        buf.pop();
 
-                    // BinaryIntegerLiteral
-                    kind = NumericKind::Integer(2);
-                }
-                Some(Ok('n')) => {
-                    cursor.next();
+                        // BinaryIntegerLiteral
+                        kind = NumericKind::Integer(2);
+                    }
+                    'n' => {
+                        cursor.next();
 
-                    // DecimalBigIntegerLiteral '0n'
-                    return Ok(Token::new(
-                        TokenKind::NumericLiteral(Numeric::BigInt(0.into())),
-                        Span::new(start_pos, cursor.pos()),
-                    ));
-                }
-                Some(Ok(ch)) => {
-                    if ch.is_digit(8) {
-                        // LegacyOctalIntegerLiteral
-                        if self.strict_mode {
-                            // LegacyOctalIntegerLiteral is forbidden with strict mode true.
-                            return Err(Error::strict(
-                                "Implicit octal literals are not allowed in strict mode.",
-                            ));
-                        } else {
-                            // Remove the initial '0' from buffer.
-                            buf.pop();
+                        // DecimalBigIntegerLiteral '0n'
+                        return Ok(Token::new(
+                            TokenKind::NumericLiteral(Numeric::BigInt(0.into())),
+                            Span::new(start_pos, cursor.pos()),
+                        ));
+                    }
+                    ch => {
+                        if ch.is_digit(8) {
+                            // LegacyOctalIntegerLiteral
+                            if self.strict_mode {
+                                // LegacyOctalIntegerLiteral is forbidden with strict mode true.
+                                return Err(Error::strict(
+                                    "Implicit octal literals are not allowed in strict mode.",
+                                ));
+                            } else {
+                                // Remove the initial '0' from buffer.
+                                buf.pop();
 
-                            let char = cursor.next().unwrap().unwrap();
-                            buf.push(char);
+                                let char = cursor.next().unwrap().unwrap();
+                                buf.push(char);
 
-                            kind = NumericKind::Integer(8);
-                        }
-                    } else if ch.is_digit(10) {
-                        // Indicates a numerical digit comes after then 0 but it isn't an octal digit
-                        // so therefore this must be a number with an unneeded leading 0. This is
-                        // forbidden in strict mode.
-                        if self.strict_mode {
-                            return Err(Error::strict(
-                                "Leading 0's are not allowed in strict mode.",
-                            ));
-                        } else {
-                            let char = cursor.next().unwrap().unwrap();
-                            buf.push(char);
-                        }
-                    } else {
-                        // Indicates that the symbol is a non-number.
+                                kind = NumericKind::Integer(8);
+                            }
+                        } else if ch.is_digit(10) {
+                            // Indicates a numerical digit comes after then 0 but it isn't an octal digit
+                            // so therefore this must be a number with an unneeded leading 0. This is
+                            // forbidden in strict mode.
+                            if self.strict_mode {
+                                return Err(Error::strict(
+                                    "Leading 0's are not allowed in strict mode.",
+                                ));
+                            } else {
+                                let char = cursor.next().unwrap().unwrap();
+                                buf.push(char);
+                            }
+                        } // Else indicates that the symbol is a non-number.
                     }
                 }
+            } else {
+                // DecimalLiteral lexing.
+                // Indicates that the number is just a single 0.
+                return Ok(Token::new(
+                    TokenKind::NumericLiteral(Numeric::Integer(0)),
+                    Span::new(start_pos, cursor.pos()),
+                ));
             }
         }
 

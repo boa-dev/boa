@@ -105,19 +105,16 @@ impl<R> Lexer<R> {
         R: Read,
     {
         if let Some(c) = self.cursor.peek() {
-            match c {
-                Err(e) => {
-                    todo!();
-                }
-                Ok('/') => {
+            match c? {
+                '/' => {
                     self.cursor.next(); // Consume the
                     SingleLineComment.lex(&mut self.cursor, start)
                 }
-                Ok('*') => {
+                '*' => {
                     self.cursor.next();
                     BlockComment.lex(&mut self.cursor, start)
                 }
-                Ok(ch) => {
+                ch => {
                     match self.get_goal() {
                         InputElement::Div | InputElement::TemplateTail => {
                             // Only div punctuator allowed, regex not.
