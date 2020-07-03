@@ -15,6 +15,7 @@ use crate::{
             expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
             TokenParser,
         },
+        lexer::InputElement
     },
     BoaProfiler,
 };
@@ -103,6 +104,7 @@ where
                     .into(),
                 );
             } else {
+                cursor.set_goal(InputElement::RegExp);
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor)?,

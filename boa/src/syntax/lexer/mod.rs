@@ -43,7 +43,8 @@ use self::{
     string::StringLiteral,
     template::TemplateLiteral,
 };
-use crate::syntax::ast::{Position, Punctuator, Span};
+pub use crate::syntax::ast::Position;
+use crate::syntax::ast::{Punctuator, Span};
 use std::io::Read;
 pub use token::{Token, TokenKind};
 
@@ -107,7 +108,7 @@ impl<R> Lexer<R> {
     // that means it could be multiple different tokens depending on the input token.
     //
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
-    fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error>
+    pub(crate) fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error>
     where
         R: Read,
     {

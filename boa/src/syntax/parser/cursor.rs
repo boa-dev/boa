@@ -3,7 +3,7 @@
 use super::ParseError;
 use crate::syntax::{
     ast::Punctuator,
-    lexer::{Lexer, Token, TokenKind, InputElement},
+    lexer::{Lexer, Token, TokenKind, InputElement, Error as LexerError, Position},
 };
 
 use std::collections::VecDeque;
@@ -50,6 +50,12 @@ where
     /// Gets the goal symbol for the lexer.
     pub(crate) fn get_goal(&self) -> InputElement {
         self.lexer.get_goal()
+    }
+
+    // Somewhat a hack.
+    pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
+        self.set_goal(InputElement::RegExp);
+        self.lexer.lex_slash_token(start).map_err(|e| ParseError::lex(e))
     }
 
     /// Moves the cursor to the next token and returns the token.

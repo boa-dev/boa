@@ -80,7 +80,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
-        cursor.set_goal(InputElement::RegExpOrTemplateTail);
+        // cursor.set_goal(InputElement::RegExpOrTemplateTail);
+        // cursor.set_goal(InputElement::Div);
 
         // Arrow function
         match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
@@ -117,9 +118,15 @@ where
             _ => {}
         }
 
+        println!("Cursor peek: {:?}", cursor.peek());
+        cursor.set_goal(InputElement::Div);
+
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
+        println!("LHS: {:?}", lhs);
+        println!("Cursor peek: {:?}", cursor.peek());
+            // Here
         if let Some(tok) = cursor.peek() {
             match tok?.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {

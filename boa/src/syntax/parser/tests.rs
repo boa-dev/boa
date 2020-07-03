@@ -95,3 +95,26 @@ fn hoisting() {
         ],
     );
 }
+
+// #[test]
+// fn two_divisions_in_expression() {
+//     let s = "    return a !== 0 || 1 / a === 1 / b;";
+
+//     let expected = vec![
+//         TokenKind::Keyword(Keyword::Return),
+//         TokenKind::Identifier("a".into()),
+//         TokenKind::Punctuator(Punctuator::StrictNotEq),
+//         TokenKind::NumericLiteral(Numeric::Integer(0)),
+//         TokenKind::Punctuator(Punctuator::BoolOr),
+//         TokenKind::NumericLiteral(Numeric::Integer(1)),
+//         TokenKind::Punctuator(Punctuator::Div),
+//         TokenKind::Identifier("a".into()),
+//         TokenKind::Punctuator(Punctuator::StrictEq),
+//         TokenKind::NumericLiteral(Numeric::Integer(1)),
+//         TokenKind::Punctuator(Punctuator::Div),
+//         TokenKind::Identifier("b".into()),
+//         TokenKind::Punctuator(Punctuator::Semicolon),
+//     ];
+
+//     check_parser(s, expected);
+// }

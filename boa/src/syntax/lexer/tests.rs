@@ -291,30 +291,6 @@ fn check_positions_codepoint() {
 }
 
 #[test]
-fn two_divisions_in_expression() {
-    let s = "    return a !== 0 || 1 / a === 1 / b;";
-    let mut lexer = Lexer::new(s.as_bytes());
-
-    let expected = [
-        TokenKind::Keyword(Keyword::Return),
-        TokenKind::Identifier("a".into()),
-        TokenKind::Punctuator(Punctuator::StrictNotEq),
-        TokenKind::NumericLiteral(Numeric::Integer(0)),
-        TokenKind::Punctuator(Punctuator::BoolOr),
-        TokenKind::NumericLiteral(Numeric::Integer(1)),
-        TokenKind::Punctuator(Punctuator::Div),
-        TokenKind::Identifier("a".into()),
-        TokenKind::Punctuator(Punctuator::StrictEq),
-        TokenKind::NumericLiteral(Numeric::Integer(1)),
-        TokenKind::Punctuator(Punctuator::Div),
-        TokenKind::Identifier("b".into()),
-        TokenKind::Punctuator(Punctuator::Semicolon),
-    ];
-
-    expect_tokens(&mut lexer, &expected);
-}
-
-#[test]
 fn check_line_numbers() {
     let s = "x\ny\n";
 

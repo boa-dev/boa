@@ -117,6 +117,34 @@ where
                 ))));
                 res
             }
+            TokenKind::Punctuator(Punctuator::Div) => {
+                // This is where the start of a regexp is accidentally treated as a div
+
+                // Try parsing as a regexp.
+
+                let tok = cursor.lex_regex(tok.span().start())?;
+
+                if let TokenKind::RegularExpressionLiteral(body, flags) = tok.kind() {
+                    println!("Regex body: {:?}", body);
+                    let res = Ok(Node::from(New::from(Call::new(
+                        Identifier::from("RegExp"),
+                        vec![
+                            Const::from(body.as_ref()).into(),
+                            Const::from(flags.to_string()).into(),
+                        ],
+                    ))));
+                    res
+                } else {
+                    // A regex was expected and nothing else.
+                    unimplemented!("How to handle this case?");
+                }
+                
+
+                // println!("{:?}", res);
+
+                // unimplemented!("This is where the start of a regexp is accidentally treated as a div");
+
+            }
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
         }
     }

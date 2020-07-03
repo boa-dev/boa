@@ -70,6 +70,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
             }
 
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
+            println!("LHS in EXP: {:?}", lhs);
             while let Some(tok) = cursor.peek() {
                 match tok?.kind() {
                     &TokenKind::Punctuator(op) if $( op == $op )||* => {
@@ -134,7 +135,7 @@ expression!(
     AssignmentExpression,
     [Punctuator::Comma],
     [allow_in, allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a logical `OR` expression.
@@ -173,7 +174,7 @@ expression!(
     LogicalANDExpression,
     [Punctuator::BoolOr],
     [allow_in, allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a logical `AND` expression.
@@ -212,7 +213,7 @@ expression!(
     BitwiseORExpression,
     [Punctuator::BoolAnd],
     [allow_in, allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a bitwise `OR` expression.
@@ -251,7 +252,7 @@ expression!(
     BitwiseXORExpression,
     [Punctuator::Or],
     [allow_in, allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a bitwise `XOR` expression.
@@ -290,7 +291,7 @@ expression!(
     BitwiseANDExpression,
     [Punctuator::Xor],
     [allow_in, allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a bitwise `AND` expression.
@@ -329,7 +330,7 @@ expression!(
     EqualityExpression,
     [Punctuator::And],
     [allow_in, allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses an equality expression.
@@ -373,7 +374,7 @@ expression!(
         Punctuator::StrictNotEq
     ],
     [allow_in, allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a relational expression.
@@ -418,7 +419,7 @@ expression!(
         Keyword::In
     ],
     [allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a bitwise shift expression.
@@ -458,7 +459,7 @@ expression!(
         Punctuator::URightSh
     ],
     [allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses an additive expression.
@@ -496,7 +497,7 @@ expression!(
     MultiplicativeExpression,
     [Punctuator::Add, Punctuator::Sub],
     [allow_yield, allow_await],
-    Some(InputElement::Div)
+    None::<InputElement>
 );
 
 /// Parses a multiplicative expression.
