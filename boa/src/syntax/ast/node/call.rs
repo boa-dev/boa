@@ -63,4 +63,3 @@ impl From<Call> for Node {
         Self::Call(call)
     }
 }
-
