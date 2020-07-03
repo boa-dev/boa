@@ -1,6 +1,22 @@
 use crate::{exec::Interpreter, forward, realm::Realm};
 
 #[test]
+fn object_create() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+        const foo = { a: 5 };
+        const bar = Object.create(foo);
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "bar.a"), "5");
+    assert_eq!(forward(&mut engine, "Object.create.length"), "1");
+}
+
+#[test]
 fn object_is() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
