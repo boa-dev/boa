@@ -315,7 +315,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     )
                 } else {
                     let n = f64::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
-                
                     Numeric::Rational(
                         r * f64::powf(10.0, n)
                     )
@@ -360,7 +359,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         )
                     } else {
                         let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
-                    
                         Numeric::Rational(
                             result * f64::powi(10.0, n)
                         )

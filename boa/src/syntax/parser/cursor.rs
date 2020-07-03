@@ -179,11 +179,7 @@ where
             self.next();
             Ok(next_token)
         } else {
-            Err(ParseError::expected(
-                vec![kind],
-                next_token,
-                context,
-            ))
+            Err(ParseError::expected(vec![kind], next_token, context))
         }
     }
 

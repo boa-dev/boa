@@ -254,14 +254,16 @@ where
             }
 
             match std::str::from_utf8(&buf) {
-                Ok(s) => if let Some(chr) = s.chars().next() {
-                    chr
-                } else {
-                    return Some(Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "stream did not contain valid UTF-8",
-                    )));
-                },
+                Ok(s) => {
+                    if let Some(chr) = s.chars().next() {
+                        chr
+                    } else {
+                        return Some(Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "stream did not contain valid UTF-8",
+                        )));
+                    }
+                }
                 Err(_) => {
                     return Some(Err(io::Error::new(
                         io::ErrorKind::InvalidData,
