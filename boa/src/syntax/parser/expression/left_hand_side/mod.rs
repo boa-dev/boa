@@ -13,7 +13,7 @@ mod member;
 
 use self::{call::CallExpression, member::MemberExpression};
 use super::super::ParseError;
-use crate::syntax::lexer::{TokenKind, InputElement};
+use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
     syntax::{
         ast::{Node, Punctuator},

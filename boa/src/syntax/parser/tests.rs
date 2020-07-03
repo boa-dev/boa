@@ -6,7 +6,7 @@ use crate::syntax::ast::{
         field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
         StatementList, UnaryOp, VarDecl, VarDeclList,
     },
-    op::{self, NumOp, CompOp, LogOp},
+    op::{self, CompOp, LogOp, NumOp},
     Const,
 };
 
@@ -100,32 +100,32 @@ fn hoisting() {
 fn ambigous_regex_divide_expression() {
     let s = "1 / a === 1 / b";
 
-    check_parser(s, vec![
-        BinOp::new(
+    check_parser(
+        s,
+        vec![BinOp::new(
             CompOp::StrictEqual,
             BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("a")),
             BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("b")),
-        ).into()
-    ]);
+        )
+        .into()],
+    );
 }
 
 #[test]
 fn two_divisions_in_expression() {
     let s = "a !== 0 || 1 / a === 1 / b;";
 
-    check_parser(s, vec![
-        BinOp::new(
+    check_parser(
+        s,
+        vec![BinOp::new(
             LogOp::Or,
-            BinOp::new(
-                CompOp::StrictNotEqual,
-                Identifier::from("a"),
-                Const::Int(0)
-            ),
+            BinOp::new(CompOp::StrictNotEqual, Identifier::from("a"), Const::Int(0)),
             BinOp::new(
                 CompOp::StrictEqual,
                 BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("a")),
                 BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("b")),
-            )
-        ).into()
-    ]);
+            ),
+        )
+        .into()],
+    );
 }

@@ -11,11 +11,11 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Spread, Node, Punctuator},
+        lexer::InputElement,
         parser::{
             expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
             TokenParser,
         },
-        lexer::InputElement
     },
     BoaProfiler,
 };

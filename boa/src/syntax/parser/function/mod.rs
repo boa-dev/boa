@@ -10,7 +10,7 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::{TokenKind, InputElement};
+use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::syntax::{
     ast::{
         node::{self},

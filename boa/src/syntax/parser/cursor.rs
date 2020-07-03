@@ -3,7 +3,7 @@
 use super::ParseError;
 use crate::syntax::{
     ast::Punctuator,
-    lexer::{Lexer, Token, TokenKind, InputElement, Error as LexerError, Position},
+    lexer::{Error as LexerError, InputElement, Lexer, Position, Token, TokenKind},
 };
 
 use std::collections::VecDeque;
@@ -49,7 +49,9 @@ where
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         self.set_goal(InputElement::RegExp);
-        self.lexer.lex_slash_token(start).map_err(|e| ParseError::lex(e))
+        self.lexer
+            .lex_slash_token(start)
+            .map_err(|e| ParseError::lex(e))
     }
 
     /// Moves the cursor to the next token and returns the token.
