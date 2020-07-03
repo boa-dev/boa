@@ -332,8 +332,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             Numeric::Rational(
                                 (num as f64) * f64::powi(10.0, n)
                             )
-                        } else {
-                           if let Some(exp) = i32::checked_pow(10, n as u32) {
+                        } else if let Some(exp) = i32::checked_pow(10, n as u32) {
                                if let Some(val) = i32::checked_mul(num, exp) {
                                    Numeric::Integer(val)
                                } else {
@@ -341,11 +340,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                         (num as f64) * (exp as f64)
                                     )
                                }
-                           } else {
-                                Numeric::Rational(
-                                    (num as f64) * f64::powi(10.0, n)
-                                )
-                           }
+                        } else {
+                            Numeric::Rational(
+                                (num as f64) * f64::powi(10.0, n)
+                            )
                         }
                     }
                 } else {

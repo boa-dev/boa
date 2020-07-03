@@ -59,21 +59,17 @@ where
 
         match self.peeked {
             None => match iter.next() {
-                Some(Err(e)) => {
-                    return Some(Err(e));
-                }
+                Some(Err(e)) => Some(Err(e)),
                 Some(Ok(c)) => {
                     self.peeked = Some(Some(c));
-                    return Some(Ok(c));
+                    Some(Ok(c))
                 }
                 None => {
                     self.peeked = Some(None);
-                    return None;
+                    None
                 }
             },
-            Some(v) => {
-                return v.map(|v| Ok(v));
-            }
+            Some(v) => v.map(|v| Ok(v)),
         }
     }
 
