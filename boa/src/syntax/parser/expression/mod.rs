@@ -63,7 +63,6 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
 
         fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
             let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
-            // let old_goal = cursor.get_goal();
 
             if $goal.is_some() {
                 cursor.set_goal($goal.unwrap());
@@ -71,8 +70,8 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
 
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
             while let Some(tok) = cursor.peek() {
-                match tok?.kind() {
-                    &TokenKind::Punctuator(op) if $( op == $op )||* => {
+                match *tok?.kind() {
+                    TokenKind::Punctuator(op) if $( op == $op )||* => {
                         let _ = cursor.next().expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
@@ -80,7 +79,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                             $lower::new($( self.$low_param ),*).parse(cursor)?
                         ).into();
                     }
-                    &TokenKind::Keyword(op) if $( op == $op )||* => {
+                    TokenKind::Keyword(op) if $( op == $op )||* => {
                         let _ = cursor.next().expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
@@ -92,7 +91,6 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                 }
             }
 
-            // cursor.set_goal(old_goal);
             Ok(lhs)
         }
     }
@@ -528,40 +526,6 @@ impl MultiplicativeExpression {
         }
     }
 }
-
-// impl<R> TokenParser<R> for MultiplicativeExpression
-//     where
-//         R: Read
-//     {
-//         type Output = Node;
-
-//         fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-//             let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
-//             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
-//             while let Some(tok) = cursor.peek() {
-//                 match tok?.kind() {
-//                     &TokenKind::Punctuator(op) if $( op == $op )||* => {
-//                         let _ = cursor.next().expect("token disappeared");
-//                         lhs = BinOp::new(
-//                             op.as_binop().expect("Could not get binary operation."),
-//                             lhs,
-//                             $lower::new($( self.$low_param ),*).parse(cursor)?
-//                         ).into();
-//                     }
-//                     &TokenKind::Keyword(op) if $( op == $op )||* => {
-//                         let _ = cursor.next().expect("token disappeared");
-//                         lhs = BinOp::new(
-//                             op.as_binop().expect("Could not get binary operation."),
-//                             lhs,
-//                             $lower::new($( self.$low_param ),*).parse(cursor)?
-//                         ).into();
-//                     }
-//                     _ => break
-//                 }
-//             }
-//             Ok(lhs)
-//         }
-//     }
 
 expression!(
     MultiplicativeExpression,
