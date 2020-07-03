@@ -81,7 +81,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         // cursor.set_goal(InputElement::RegExpOrTemplateTail);
-        // cursor.set_goal(InputElement::Div);
+        cursor.set_goal(InputElement::Div);
 
         // Arrow function
         match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
