@@ -1,11 +1,11 @@
 use crate::syntax::ast::Position;
-use std::io::{self, Bytes, ErrorKind, Read};
+use std::io::{self, Bytes, Error, ErrorKind, Read};
 
 /// Cursor over the source code.
 #[derive(Debug)]
 pub(super) struct Cursor<R> {
     iter: InnerIter<R>,
-    peeked: Option<Option<io::Result<char>>>,
+    peeked: Option<Option<char>>,
     pos: Position,
 }
 
@@ -54,9 +54,27 @@ where
 
     /// Peeks the next character.
     #[inline]
-    pub(super) fn peek(&mut self) -> Option<&io::Result<char>> {
+    pub(super) fn peek(&mut self) -> Option<Result<char, Error>> {
         let iter = &mut self.iter;
-        self.peeked.get_or_insert_with(|| iter.next()).as_ref()
+
+        match self.peeked {
+            None => match iter.next() {
+                Some(Err(e)) => {
+                    return Some(Err(e));
+                }
+                Some(Ok(c)) => {
+                    self.peeked = Some(Some(c));
+                    return Some(Ok(c));
+                }
+                None => {
+                    self.peeked = Some(None);
+                    return None;
+                }
+            },
+            Some(v) => {
+                return v.map(|v| Ok(v));
+            }
+        }
     }
 
     /// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented
@@ -64,12 +82,11 @@ where
     pub(super) fn next_is(&mut self, peek: char) -> io::Result<bool> {
         Ok(match self.peek() {
             None => false,
-            Some(&Ok(next)) if next == peek => {
+            Some(Ok(next)) if next == peek => {
                 let _ = self.peeked.take();
                 true
             }
             _ => false,
-            // Some(&Err(_)) => return self.peeked.take().unwrap().unwrap().map(|_| false),
         })
     }
 
@@ -84,8 +101,8 @@ where
     {
         Ok(match self.peek() {
             None => false,
-            Some(Ok(peek)) => pred(*peek),
-            Some(Err(e)) => todo!(),
+            Some(Ok(peek)) => pred(peek),
+            Some(Err(e)) => return Err(e),
         })
     }
 
@@ -159,17 +176,28 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let chr = match self.peeked.take() {
             Some(v) => v,
-            None => self.iter.next(),
+            None => {
+                if let Some(n) = self.iter.next() {
+                    match n {
+                        Err(e) => {
+                            return Some(Err(e));
+                        }
+                        Ok(c) => Some(c),
+                    }
+                } else {
+                    None
+                }
+            }
         };
 
         match chr {
-            Some(Ok('\r')) => self.carriage_return(),
-            Some(Ok('\n')) | Some(Ok('\u{2028}')) | Some(Ok('\u{2029}')) => self.next_line(),
-            Some(Ok(_)) => self.next_column(),
+            Some('\r') => self.carriage_return(),
+            Some('\n') | Some('\u{2028}') | Some('\u{2029}') => self.next_line(),
+            Some(_) => self.next_column(),
             _ => {}
         }
 
-        chr
+        chr.map(|v| Ok(v))
     }
 }
 

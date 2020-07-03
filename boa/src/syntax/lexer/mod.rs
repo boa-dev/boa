@@ -12,11 +12,11 @@ mod string;
 pub mod token;
 #[macro_use]
 mod template;
+mod identifier;
 mod number;
 mod operator;
-mod spread;
 mod regex;
-mod identifier;
+mod spread;
 
 // Temporary disabled while lexer in progress.
 #[cfg(test)]
@@ -117,8 +117,7 @@ impl<R> Lexer<R> {
                     self.cursor.next();
                     BlockComment.lex(&mut self.cursor, start)
                 }
-                Ok(c) => {
-                    let ch = *c;
+                Ok(ch) => {
                     match self.get_goal() {
                         InputElement::Div | InputElement::TemplateTail => {
                             // Only div punctuator allowed, regex not.

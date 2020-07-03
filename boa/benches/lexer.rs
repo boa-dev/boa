@@ -62,7 +62,10 @@ fn for_loop_lexer(c: &mut Criterion) {
     });
 }
 
-criterion_group!(lexer, 
-    // expression_lexer, 
-    hello_world_lexer, for_loop_lexer);
+criterion_group!(
+    lexer,
+    // expression_lexer,
+    hello_world_lexer,
+    for_loop_lexer
+);
 criterion_main!(lexer);

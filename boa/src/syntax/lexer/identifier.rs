@@ -40,7 +40,7 @@ impl<R> Tokenizer<R> for Identifier {
                     break;
                 }
                 Some(Ok(c)) => {
-                    if c.is_alphabetic() || c.is_digit(10) || *c == '_' {
+                    if c.is_alphabetic() || c.is_digit(10) || c == '_' {
                         let ch = cursor.next().unwrap()?;
                         buf.push(ch);
                     } else {
