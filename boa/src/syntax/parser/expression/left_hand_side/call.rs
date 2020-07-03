@@ -77,7 +77,7 @@ where
                 let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![TokenKind::Punctuator(Punctuator::OpenParen)],
-                    next_token?.clone(),
+                    next_token?,
                     "call expression",
                 ));
             }

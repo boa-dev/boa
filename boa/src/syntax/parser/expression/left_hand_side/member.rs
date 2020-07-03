@@ -75,7 +75,7 @@ where
         while let Some(tok) = cursor.peek() {
             let token = tok?.clone();
             match token.kind() {
-                &TokenKind::Punctuator(Punctuator::Dot) => {
+                TokenKind::Punctuator(Punctuator::Dot) => {
                     cursor.next().ok_or(ParseError::AbruptEnd)??; // We move the parser forward.
 
                     match cursor.next().ok_or(ParseError::AbruptEnd)??.kind() {
@@ -94,7 +94,7 @@ where
                         }
                     }
                 }
-                &TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;

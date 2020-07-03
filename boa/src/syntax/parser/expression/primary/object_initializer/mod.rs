@@ -93,7 +93,7 @@ where
                         TokenKind::Punctuator(Punctuator::Comma),
                         TokenKind::Punctuator(Punctuator::CloseBlock),
                     ],
-                    next_token.clone(),
+                    next_token,
                     "object literal",
                 ));
             }
@@ -206,7 +206,7 @@ where
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     "property method definition",
                 )?;
-                let first_param = cursor.peek().expect("current token disappeared")?.clone();
+                let first_param = cursor.peek().expect("current token disappeared")?;
                 let params = FormalParameters::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {

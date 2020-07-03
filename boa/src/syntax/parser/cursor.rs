@@ -160,65 +160,10 @@ where
         ret.map(|token| Ok(token))
     }
 
+    /// Takes the given token and pushes it back onto the parser token queue (at the front so the token will be returned on next .peek()).
     pub(super) fn push_back(&mut self, token: Token) {
         self.peeked.push_front(Some(token));
     }
-
-    // /// Moves the cursor to the previous token and returns the token.
-    // pub(super) fn back(&mut self) -> Option<Result<Token, ParseError>> {
-    //     unimplemented!();
-
-    //     // debug_assert!(
-    //     //     self.back_queue.len() > 0,
-    //     //     "cannot go back in a cursor that is at the beginning of the list of tokens"
-    //     // );
-
-    //     // let token = self.back_queue.pop_back().unwrap();
-
-    //     // self.peeked.push_front(token.clone());
-
-    //     // token.map(|t| Ok(t))
-
-    //     // unimplemented!();
-
-    //     // debug_assert!(
-    //     //     self.pos > 0,
-    //     //     "cannot go back in a cursor that is at the beginning of the list of tokens"
-    //     // );
-
-    //     // self.pos -= 1;
-    //     // while self
-    //     //     .tokens
-    //     //     .get(self.pos - 1)
-    //     //     .expect("token disappeared")
-    //     //     .kind
-    //     //     == TokenKind::LineTerminator
-    //     //     && self.pos > 0
-    //     // {
-    //     //     self.pos -= 1;
-    //     // }
-    // }
-
-    // /// Peeks the previous token without moving the cursor.
-    // pub(super) fn peek_prev(&self) -> Option<Result<&Token, ParseError>> {
-    //     unimplemented!();
-    //     // if self.pos == 0 {
-    //     //     None
-    //     // } else {
-    //     //     let mut back = 1;
-    //     //     let mut tok = self.tokens.get(self.pos - back).expect("token disappeared");
-    //     //     while self.pos >= back && tok.kind == TokenKind::LineTerminator {
-    //     //         back += 1;
-    //     //         tok = self.tokens.get(self.pos - back).expect("token disappeared");
-    //     //     }
-
-    //     //     if back == self.pos {
-    //     //         None
-    //     //     } else {
-    //     //         Some(tok)
-    //     //     }
-    //     // }
-    // }
 
     /// Returns an error if the next token is not of kind `kind`.
     ///
@@ -236,7 +181,7 @@ where
         } else {
             Err(ParseError::expected(
                 vec![kind],
-                next_token.clone(),
+                next_token,
                 context,
             ))
         }
@@ -281,7 +226,7 @@ where
             (true, None) => Ok(None),
             (false, Some(tk)) => Err(ParseError::expected(
                 vec![TokenKind::Punctuator(Punctuator::Semicolon)],
-                tk.clone(),
+                tk,
                 context,
             )),
             (false, None) => unreachable!(),
