@@ -29,7 +29,7 @@ impl Executable for ForLoop {
 
         while self
             .condition()
-            .map(|cond| cond.run(interpreter).map(|v| v.is_true()))
+            .map(|cond| cond.run(interpreter).map(|v| v.to_boolean()))
             .transpose()?
             .unwrap_or(true)
         {
@@ -66,7 +66,7 @@ impl Executable for ForLoop {
 impl Executable for WhileLoop {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let mut result = Value::undefined();
-        while self.cond().run(interpreter)?.borrow().is_true() {
+        while self.cond().run(interpreter)?.borrow().to_boolean() {
             result = self.expr().run(interpreter)?;
             match interpreter.get_current_state() {
                 InterpreterState::Break(_label) => {
@@ -107,7 +107,7 @@ impl Executable for DoWhileLoop {
             }
         }
 
-        while self.cond().run(interpreter)?.borrow().is_true() {
+        while self.cond().run(interpreter)?.borrow().to_boolean() {
             result = self.body().run(interpreter)?;
             match interpreter.get_current_state() {
                 InterpreterState::Break(_label) => {

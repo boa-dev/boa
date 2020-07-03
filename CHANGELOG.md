@@ -1,8 +1,97 @@
 # CHANGELOG
 
+# [# 0.9.0 (2020-07-03) - Move to Organisation, 78% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
+
+Feature Enhancements:
+
+- [FEATURE #414](https://github.com/boa-dev/boa/issues/414):
+  Implement `Number` object constants (@Lan2u) (@HalidOdat)
+- [FEATURE #345](https://github.com/boa-dev/boa/issues/345):
+  Implement the optional `replacer` parameter in `JSON.stringify( value[, replacer [, space] ] )` (@n14little)
+- [FEATURE #480](https://github.com/boa-dev/boa/issues/480):
+  Implement global `Infinity` property (@AnirudhKonduru)
+- [FEATURE #410](https://github.com/boa-dev/boa/pull/410):
+  Add support for the reviver function to JSON.parse (@abhijeetbhagat)
+- [FEATURE #425](https://github.com/boa-dev/boa/pull/425):
+  Specification compliant `ToString` (`to_string`) (@HalidOdat)
+- [FEATURE #442](https://github.com/boa-dev/boa/pull/442):
+  Added `TypeError` implementation (@HalidOdat)
+- [FEATURE #450](https://github.com/boa-dev/boa/pull/450):
+  Specification compliant `ToBigInt` (`to_bigint`) (@HalidOdat)
+- [FEATURE #455](https://github.com/boa-dev/boa/pull/455):
+  TemplateLiteral Basic lexer implementation (@croraf)
+- [FEATURE #447](https://github.com/boa-dev/boa/issues/447):
+  parseInt, parseFloat implementation (@Lan2u)
+- [FEATURE #468](https://github.com/boa-dev/boa/pull/468):
+  Add BigInt.asIntN() and BigInt.asUintN() functions (@Tropid)
+- [FEATURE #428](https://github.com/boa-dev/boa/issues/428):
+  [Feature Request] - Create benchmark for Array manipulation (@abhijeetbhagat)
+- [FEATURE #439](https://github.com/boa-dev/boa/issues/439):
+  Implement break handling in switch statements (@Lan2u)
+- [FEATURE #301](https://github.com/boa-dev/boa/issues/301):
+  Implementing the switch statement in the new parser (@Lan2u)
+- [FEATURE #120](https://github.com/boa-dev/boa/issues/120):
+  Implement `globalThis` (@zanayr)
+- [FEATURE #513](https://github.com/boa-dev/boa/issues/513):
+  Implement `Object.is()` method (@tylermorten)
+- [FEATURE #481](https://github.com/boa-dev/boa/issues/481):
+  Implement global `undefined` property (@croraf)
+
+Bug Fixes:
+
+- [BUG #412](https://github.com/boa-dev/boa/pull/412):
+  Fixed parsing if statement without else block preceded by a newline (@HalidOdat)
+- [BUG #409](https://github.com/boa-dev/boa/pull/409):
+  Fix function object constructable/callable (@HalidOdat)
+- [BUG #403](https://github.com/boa-dev/boa/issues/403)
+  `Value::to_json()` does not handle `undefined` correctly (@n14little)
+- [BUG #443](https://github.com/boa-dev/boa/issues/443):
+  HasOwnProperty should call GetOwnProperty and not GetProperty (@n14little)
+- [BUG #210](https://github.com/boa-dev/boa/issues/210):
+  builtinfun.length undefined (@Croraf)
+- [BUG #466](https://github.com/boa-dev/boa/issues/466):
+  Change `ToPrimitive()` (`to_primitive()`) hint to be an enum, instead of string (@HalidOdat)
+- [BUG #421](https://github.com/boa-dev/boa/issues/421):
+  `NaN` is lexed as a number, not as an identifier (@croraf)
+- [BUG #454](https://github.com/boa-dev/boa/issues/454):
+  Function declaration returns the function, it should return `undefined` (@croraf)
+- [BUG #482](https://github.com/boa-dev/boa/issues/482):
+  Field access should propagate the exception (`Err(_)`) (@neeldug)
+- [BUG #463](https://github.com/boa-dev/boa/issues/463):
+  Use of undefined variable should throw an error (@croraf)
+- [BUG #502](https://github.com/boa-dev/boa/pull/502):
+  Fixed global objects initialization order (@HalidOdat)
+- [BUG #509](https://github.com/boa-dev/boa/issues/509):
+  JSON.stringify(undefined) panics (@n14little)
+- [BUG #514](https://github.com/boa-dev/boa/issues/514):
+  Clean up `Math` Methods (@n14little)
+- [BUG #511](https://github.com/boa-dev/boa/issues/511):
+  [Call] Usage of "this" in methods is not supported (@jasonwilliams)
+
+Internal Improvements
+
+- [INTERNAL #435](https://github.com/boa-dev/boa/issues/435):
+  Optimize type comparisons (@Lan2u)
+- [INTERNAL #296](https://github.com/boa-dev/boa/issues/296):
+  using measureme for profiling the interpreter (@jasonwilliams)
+- [INTERNAL #419](https://github.com/boa-dev/boa/pull/419):
+  Object specialization (fast paths for many objects) (@HalidOdat)
+- [INTERNAL #392](https://github.com/boa-dev/boa/pull/392):
+  Execution and Node modulization (@Razican)
+- [INTERNAL #465](https://github.com/boa-dev/boa/issues/465):
+  Refactoring Value (decouple `Gc` from `Value`) (@HalidOdat)
+- [INTERNAL #416](https://github.com/boa-dev/boa/pull/416) & [INTERNAL #423](https://github.com/boa-dev/boa/commit/c8218dd91ef3181e048e7a2659a4fbf8d53c7174):
+  Update links to boa-dev (@pedropaulosuzuki)
+- [INTERNAL #378](https://github.com/boa-dev/boa/issues/378):
+  Code Coverage! (@Lan2u)
+- [INTERNAL #431](https://github.com/boa-dev/boa/pull/431):
+  Updates to PR Benchmarks (@Razican)
+- [INTERNAL #427 #429 #430](https://github.com/boa-dev/boa/commit/64dbf13afd15f12f958daa87a3d236dc9af1a9aa):
+  Added new benchmarks (@Razican)
+
 # [# 0.8.0 (2020-05-23) - BigInt, Modularized Parser, Faster Hashing](https://github.com/boa-dev/boa/compare/v0.7.0...v0.8.0)
 
-`v0.8.0` brings more language implementations, such as do..while, function objects and also more recent EcmaScript additions, like BigInt.  
+`v0.8.0` brings more language implementations, such as do..while, function objects and also more recent EcmaScript additions, like BigInt.
 We have now moved the Web Assembly build into the `wasm` package, plus added a code of conduct for those contributing.
 
 The parser has been even more modularized in this release making it easier to add new parsing rules.
@@ -90,7 +179,7 @@ Security:
 # [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/boa-dev/boa/compare/v0.6.0...v0.7.0)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
-This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.  
+This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.
 Tests have also been moved to their own files, we had a lot of tests in some modules so it was time to separate.
 
 ## New Parser
@@ -161,20 +250,20 @@ Documentation Updates:
 
 # [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/boa-dev/boa/compare/v0.5.1...v0.6.0)
 
-The lexer has had several fixes in this release, including how it parses numbers, scientific notation should be improved.  
+The lexer has had several fixes in this release, including how it parses numbers, scientific notation should be improved.
 On top of that the lexer no longer panics on errors including Syntax Errors (thanks @adumbidiot), instead you get some output on where the error happened.
 
 ## Moving to a workspace architecture
 
 Boa offers both a CLI and a library, initially these were all in the same binary. The downside is
-those who want to embed boa as-is end up with all of the command-line dependencies.  
+those who want to embed boa as-is end up with all of the command-line dependencies.
 So the time has come to separate out the two, this is normal procedure, this should be analogous to ripgrep
-and the regex crate.  
+and the regex crate.
 Cargo has great support for workspaces, so this shouldn't be an issue.
 
 ## Benchmarks
 
-We now have [benchmarks which run against master](https://boa-dev.github.io/boa/dev/bench)!  
+We now have [benchmarks which run against master](https://boa-dev.github.io/boa/dev/bench)!
 Thanks to Github Actions these will run automatically a commit is merged.
 
 Feature enhancements:
@@ -283,7 +372,7 @@ Bug fixes:
 
 # 0.4.0 (2019-09-25)
 
-v0.4.0 brings quite a big release. The biggest feature to land is the support of regular expressions.  
+v0.4.0 brings quite a big release. The biggest feature to land is the support of regular expressions.
 Functions now have the arguments object supported and we have a [`debugging`](docs/debugging.md) section in the docs.
 
 Feature enhancements:
@@ -327,7 +416,7 @@ Bug fixes:
 
 # 0.2.1 (2019-06-30)
 
-Some String prototype methods are implemented.  
+Some String prototype methods are implemented.
 Thanks to @lennartbuit we have
 trim/trimStart/trimEnd added to the string prototype
 

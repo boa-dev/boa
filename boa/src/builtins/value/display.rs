@@ -131,7 +131,7 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     ) -> String {
         if let Value::Object(ref v) = *data {
             // The in-memory address of the current object
-            let addr = address_of(v.borrow().deref());
+            let addr = address_of(v.as_ref());
 
             // We need not continue if this object has already been
             // printed up the current chain

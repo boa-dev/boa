@@ -71,11 +71,25 @@ fn concat() {
         "#;
     eprintln!("{}", forward(&mut engine, init));
 
-    // Todo: fix this
-    let _a = forward(&mut engine, "hello.concat(world, nice)");
-    let _b = forward(&mut engine, "hello + world + nice");
-    // assert_eq!(a, String::from("Hello, world! Have a nice day."));
-    // assert_eq!(b, String::from("Hello, world! Have a nice day."));
+    let a = forward(&mut engine, "hello.concat(world, nice)");
+    assert_eq!(a, "Hello, world! Have a nice day.");
+
+    let b = forward(&mut engine, "hello + world + nice");
+    assert_eq!(b, "Hello, world! Have a nice day.");
+}
+
+#[test]
+fn generic_concat() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        Number.prototype.concat = String.prototype.concat;
+        let number = new Number(100);
+        "#;
+    eprintln!("{}", forward(&mut engine, init));
+
+    let a = forward(&mut engine, "number.concat(' - 50', ' = 50')");
+    assert_eq!(a, "100 - 50 = 50");
 }
 
 #[allow(clippy::result_unwrap_used)]
