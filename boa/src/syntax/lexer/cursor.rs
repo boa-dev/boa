@@ -145,7 +145,7 @@ where
 
     /// It will fill the buffer with checked ASCII bytes.
     pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        unimplemented!()
+        unimplemented!("Lexer::cursor::fill_bytes {:?}", buf)
     }
 }
 

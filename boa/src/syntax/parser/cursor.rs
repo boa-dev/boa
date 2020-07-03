@@ -3,7 +3,7 @@
 use super::ParseError;
 use crate::syntax::{
     ast::Punctuator,
-    lexer::{Error as LexerError, InputElement, Lexer, Position, Token, TokenKind},
+    lexer::{InputElement, Lexer, Position, Token, TokenKind},
 };
 
 use std::collections::VecDeque;
