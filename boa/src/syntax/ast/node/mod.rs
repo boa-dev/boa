@@ -3,12 +3,13 @@
 pub mod array;
 pub mod block;
 pub mod break_node;
+pub mod call;
 pub mod conditional;
 pub mod declaration;
-pub mod expression;
 pub mod field;
 pub mod identifier;
 pub mod iteration;
+pub mod new;
 pub mod object;
 pub mod operator;
 pub mod return_smt;
@@ -27,7 +28,8 @@ pub use self::{
         ArrowFunctionDecl, ConstDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDecl,
         LetDeclList, VarDecl, VarDeclList,
     },
-    expression::{Call, New},
+    call::Call,
+    new::New,
     field::{GetConstField, GetField},
     identifier::Identifier,
     iteration::{Continue, DoWhileLoop, ForLoop, WhileLoop},

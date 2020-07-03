@@ -11,10 +11,6 @@ use crate::{
 impl Executable for New {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
         let _timer = BoaProfiler::global().start_event("New", "exec");
-        // let (callee, args) = match call.as_ref() {
-        //     Node::Call(callee, args) => (callee, args),
-        //     _ => unreachable!("Node::New(ref call): 'call' must only be Node::Call type."),
-        // };
 
         let func_object = self.expr().run(interpreter)?;
         let mut v_args = Vec::with_capacity(self.args().len());
