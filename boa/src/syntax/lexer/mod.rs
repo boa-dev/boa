@@ -3,26 +3,23 @@
 //! The Lexer splits its input source code into a sequence of input elements called tokens, represented by the [Token](../ast/token/struct.Token.html) structure.
 //! It also removes whitespace and comments and attaches them to the next token.
 
-#[macro_use]
 mod comment;
 mod cursor;
 pub mod error;
-#[macro_use]
-mod string;
-pub mod token;
-#[macro_use]
-mod template;
 mod identifier;
 mod number;
 mod operator;
 mod regex;
 mod spread;
+mod string;
+mod template;
+pub mod token;
 
-// Temporary disabled while lexer in progress.
 #[cfg(test)]
 mod tests;
 
-pub use self::error::Error;
+pub use error::Error;
+pub use token::{Token, TokenKind};
 
 use self::{
     comment::{BlockComment, SingleLineComment},
@@ -35,10 +32,11 @@ use self::{
     string::StringLiteral,
     template::TemplateLiteral,
 };
+
 pub use crate::syntax::ast::Position;
 use crate::syntax::ast::{Punctuator, Span};
+
 use std::io::Read;
-pub use token::{Token, TokenKind};
 
 trait Tokenizer<R> {
     /// Lexes the next token.
@@ -194,7 +192,7 @@ where
                 Span::new(start, self.cursor.pos()),
             )),
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
-            template_match!() => TemplateLiteral.lex(&mut self.cursor, start),
+            '`' => TemplateLiteral.lex(&mut self.cursor, start),
             _ if next_chr.is_digit(10) => {
                 NumberLiteral::new(next_chr, strict_mode).lex(&mut self.cursor, start)
             }

@@ -3,12 +3,6 @@ use crate::syntax::ast::{Position, Span};
 use crate::syntax::lexer::{Token, TokenKind};
 use std::io::{self, ErrorKind, Read};
 
-macro_rules! template_match {
-    () => {
-        '`'
-    };
-}
-
 /// Template literal lexing.
 ///
 /// Expects: Initial ` to already be consumed by cursor.
