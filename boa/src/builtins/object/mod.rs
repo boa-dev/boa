@@ -411,7 +411,7 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 }
 
 /// Creates a new object from the provided prototype
-/// 
+///
 /// https://tc39.es/ecma262/#sec-object.create
 /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
 pub fn create_builtin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
