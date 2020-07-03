@@ -73,7 +73,7 @@ where
                     TokenKind::Keyword(Keyword::Catch),
                     TokenKind::Keyword(Keyword::Finally),
                 ],
-                next_token.clone(),
+                next_token,
                 "try statement",
             ));
         }

@@ -134,7 +134,7 @@ where
                 } else {
                     return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        cursor.next().ok_or(ParseError::AbruptEnd)??.clone(),
+                        cursor.next().ok_or(ParseError::AbruptEnd)??,
                         "const declaration",
                     ));
                 }

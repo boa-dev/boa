@@ -78,7 +78,7 @@ where
         if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
                 vec![TokenKind::Keyword(Keyword::While)],
-                next_token.clone(),
+                next_token,
                 "do while statement",
             ));
         }

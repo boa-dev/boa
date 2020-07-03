@@ -239,7 +239,7 @@ where
                     if self.break_when_closingbrase {
                         break;
                     } else {
-                        return Err(ParseError::unexpected(token.clone(), None));
+                        return Err(ParseError::unexpected(token, None));
                     }
                 }
                 Some(Err(e)) => {
