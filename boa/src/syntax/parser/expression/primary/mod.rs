@@ -104,34 +104,34 @@ where
             TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                let res = Ok(Node::from(New::from(Call::new(
+                Ok(Node::from(New::from(Call::new(
                     Identifier::from("RegExp"),
                     vec![
                         Const::from(body.as_ref()).into(),
                         Const::from(flags.to_string()).into(),
                     ],
-                ))));
-                res
+                ))))
             }
             TokenKind::Punctuator(Punctuator::Div) => {
                 // This is where the start of a regexp is accidentally treated as a div
-
                 // Try parsing as a regexp.
 
                 let tok = cursor.lex_regex(tok.span().start())?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = tok.kind() {
-                    let res = Ok(Node::from(New::from(Call::new(
+                    Ok(Node::from(New::from(Call::new(
                         Identifier::from("RegExp"),
                         vec![
                             Const::from(body.as_ref()).into(),
                             Const::from(flags.to_string()).into(),
                         ],
-                    ))));
-                    res
+                    ))))
                 } else {
                     // A regex was expected and nothing else.
-                    unimplemented!("How to handle this case?");
+                    Err(ParseError::unexpected(
+                        tok,
+                        "primary expression - expected regex",
+                    ))
                 }
             }
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
