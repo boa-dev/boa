@@ -1,6 +1,6 @@
 //! Error and result implementation for the parser.
 use crate::syntax::ast::{position::Position, Node};
-use crate::syntax::lexer::{Error, Token, TokenKind};
+use crate::syntax::lexer::{Error as LexError, Token, TokenKind};
 use std::fmt;
 
 /// Result of a parsing operation.
@@ -13,6 +13,12 @@ pub(crate) trait ErrorContext {
 impl<T> ErrorContext for Result<T, ParseError> {
     fn context(self, context: &'static str) -> Self {
         self.map_err(|e| e.context(context))
+    }
+}
+
+impl From<LexError> for ParseError {
+    fn from(e: LexError) -> ParseError {
+        ParseError::lex(e)
     }
 }
 
@@ -33,7 +39,7 @@ pub enum ParseError {
     /// When there is an abrupt end to the parsing
     AbruptEnd,
     Lex {
-        err: Error,
+        err: LexError,
     },
     /// Catch all General Error
     General {
@@ -80,7 +86,7 @@ impl ParseError {
         Self::General { message, position }
     }
 
-    pub(super) fn lex(e: Error) -> Self {
+    pub(super) fn lex(e: LexError) -> Self {
         Self::Lex { err: e }
     }
 }

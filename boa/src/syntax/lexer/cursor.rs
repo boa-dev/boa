@@ -69,7 +69,10 @@ where
                     None
                 }
             },
-            Some(v) => v.map(|v| Ok(v)),
+            Some(v) => {
+                #[allow(clippy::redundant_closure)] // This closure is miss-reported as redundant.
+                v.map(|v| Ok(v))
+            }
         }
     }
 
@@ -193,6 +196,7 @@ where
             _ => {}
         }
 
+        #[allow(clippy::redundant_closure)] // This closure is miss-reported as redundant.
         chr.map(|v| Ok(v))
     }
 }

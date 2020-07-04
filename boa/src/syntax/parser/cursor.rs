@@ -38,20 +38,19 @@ where
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         self.set_goal(InputElement::RegExp);
-        self.lexer
-            .lex_slash_token(start)
-            .map_err(|e| ParseError::lex(e))
+        self.lexer.lex_slash_token(start).map_err(|e| e.into())
     }
 
     /// Moves the cursor to the next token and returns the token.
     pub(super) fn next(&mut self) -> Option<Result<Token, ParseError>> {
         if let Some(t) = self.peeked.pop_front() {
+            #[allow(clippy::redundant_closure)] // This closure is miss-reported as redundant.
             return t.map(|v| Ok(v));
         }
 
         // No value has been peeked ahead already so need to go get the next value.
         if let Some(t) = self.lexer.next() {
-            Some(t.map_err(|e| ParseError::lex(e)))
+            Some(t.map_err(|e| e.into()))
         } else {
             None
         }
@@ -105,6 +104,7 @@ where
         self.peeked.push_front(ret.clone());
         self.peeked.push_front(temp);
 
+        #[allow(clippy::redundant_closure)] // This closure is miss-reported as redundant.
         ret.map(|token| Ok(token))
     }
 

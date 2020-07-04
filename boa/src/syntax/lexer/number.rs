@@ -116,9 +116,8 @@ fn check_after_numeric_literal<R>(cursor: &mut Cursor<R>) -> Result<(), Error>
 where
     R: Read,
 {
-    if cursor.next_is_pred(&|ch: char| {
-        ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit()
-    })? {
+    let pred = |ch: char| ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit();
+    if cursor.next_is_pred(&pred)? {
         Err(Error::syntax("NumericLiteral token must not be followed by IdentifierStart nor DecimalDigit characters"))
     } else {
         Ok(())
