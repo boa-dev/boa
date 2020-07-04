@@ -1,12 +1,4 @@
-use super::*;
 use crate::{builtins::value::same_value, exec::Interpreter, forward, forward_val, realm::Realm};
-
-#[test]
-fn check_boolean_constructor_is_function() {
-    let global = Value::new_object(None);
-    let boolean_constructor = Boolean::create(&global);
-    assert_eq!(boolean_constructor.is_function(), true);
-}
 
 /// Test the correct type is returned from call and construct
 #[allow(clippy::result_unwrap_used)]

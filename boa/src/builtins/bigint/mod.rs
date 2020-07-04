@@ -198,14 +198,17 @@ impl BigInt {
         ))
     }
 
-    /// Create a new `Number` object
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `BigInt` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 1);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        let big_int = make_constructor_fn(
+        let bigint_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_bigint,
@@ -214,18 +217,10 @@ impl BigInt {
             false,
         );
 
-        make_builtin_fn(Self::as_int_n, "asIntN", &big_int, 2);
-        make_builtin_fn(Self::as_uint_n, "asUintN", &big_int, 2);
+        make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2);
+        make_builtin_fn(Self::as_uint_n, "asUintN", &bigint_object, 2);
 
-        big_int
-    }
-
-    /// Initialise the `BigInt` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, bigint_object)
     }
 }
 
