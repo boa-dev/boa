@@ -241,6 +241,7 @@ impl StatementList {
         let mut items = Vec::new();
 
         loop {
+            cursor.skip_line_terminators();
             match cursor.peek() {
                 Some(token) => {
                     if break_nodes.contains(&token?.kind()) {
@@ -253,6 +254,8 @@ impl StatementList {
             let item =
                 StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
+            
+            println!("Item: {:?}", item);
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
