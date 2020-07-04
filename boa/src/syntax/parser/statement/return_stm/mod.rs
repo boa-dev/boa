@@ -61,13 +61,13 @@ where
                 _ => {}
             }
 
-            return Ok(Return::new::<Node, Option<_>>(None));
+            return Ok(Return::new::<Node, Option<_>, Option<_>>(None, None));
         }
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect_semicolon("return statement")?;
 
-        Ok(Return::new(expr))
+        Ok(Return::new(expr, None))
     }
 }

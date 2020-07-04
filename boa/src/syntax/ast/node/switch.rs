@@ -24,6 +24,18 @@ impl Case {
     pub fn body(&self) -> &StatementList {
         &self.body
     }
+
+    /// Creates a `Case` AST node.
+    pub fn new<C, B>(condition: C, body: B) -> Self
+    where
+        C: Into<Node>,
+        B: Into<StatementList>,
+    {
+        Self {
+            condition: condition.into(),
+            body: body.into(),
+        }
+    }
 }
 
 /// The `switch` statement evaluates an expression, matching the expression's value to a case

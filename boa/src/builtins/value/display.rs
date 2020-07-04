@@ -1,11 +1,5 @@
 use super::*;
 
-impl Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt(&self.data(), f)
-    }
-}
-
 /// A helper macro for printing objects
 /// Can be used to print both properties and internal slots
 /// All of the overloads take:
@@ -57,39 +51,26 @@ macro_rules! print_obj_value {
     (impl $field:ident, $v:expr, $f:expr) => {
         $v
             .borrow()
-            .$field
+            .$field()
             .iter()
             .map($f)
             .collect::<Vec<String>>()
     };
 }
 
-pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
+pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
     match x {
         // We don't want to print private (compiler) or prototype properties
-        ValueData::Object(ref v) => {
+        Value::Object(ref v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
-            match v.borrow().kind {
-                ObjectKind::String => match v
-                    .borrow()
-                    .internal_slots
-                    .get("StringData")
-                    .expect("Cannot get primitive value from String")
-                    .data()
-                {
-                    ValueData::String(ref string) => format!("\"{}\"", string),
-                    _ => unreachable!("[[StringData]] should always contain String"),
-                },
-                ObjectKind::Boolean => {
-                    let bool_data = v.borrow().get_internal_slot("BooleanData").to_string();
-
-                    format!("Boolean {{ {} }}", bool_data)
-                }
-                ObjectKind::Array => {
+            match v.borrow().data {
+                ObjectData::String(ref string) => format!("String {{ \"{}\" }}", string),
+                ObjectData::Boolean(boolean) => format!("Boolean {{ {} }}", boolean),
+                ObjectData::Array => {
                     let len = i32::from(
                         &v.borrow()
-                            .properties
+                            .properties()
                             .get("length")
                             .unwrap()
                             .value
@@ -107,8 +88,8 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
                             // which are part of the Array
                             log_string_from(
                                 &v.borrow()
-                                    .properties
-                                    .get(&i.to_string())
+                                    .properties()
+                                    .get(i.to_string().as_str())
                                     .unwrap()
                                     .value
                                     .clone()
@@ -124,20 +105,13 @@ pub(crate) fn log_string_from(x: &ValueData, print_internals: bool) -> String {
                 _ => display_obj(&x, print_internals),
             }
         }
-        ValueData::Symbol(ref sym) => {
-            let desc: Value = sym.borrow().get_internal_slot("Description");
-            match *desc {
-                ValueData::String(ref st) => format!("Symbol(\"{}\")", st.to_string()),
-                _ => String::from("Symbol()"),
-            }
-        }
-
+        Value::Symbol(ref symbol) => symbol.to_string(),
         _ => format!("{}", x),
     }
 }
 
 /// A helper function for specifically printing object values
-pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
+pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     // A simple helper for getting the address of a value
     // TODO: Find a more general place for this, as it can be used in other situations as well
     fn address_of<T>(t: &T) -> usize {
@@ -150,14 +124,14 @@ pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
     let mut encounters = HashSet::new();
 
     fn display_obj_internal(
-        data: &ValueData,
+        data: &Value,
         encounters: &mut HashSet<usize>,
         indent: usize,
         print_internals: bool,
     ) -> String {
-        if let ValueData::Object(ref v) = *data {
+        if let Value::Object(ref v) = *data {
             // The in-memory address of the current object
-            let addr = address_of(v.borrow().deref());
+            let addr = address_of(v.as_ref());
 
             // We need not continue if this object has already been
             // printed up the current chain
@@ -192,16 +166,15 @@ pub(crate) fn display_obj(v: &ValueData, print_internals: bool) -> String {
     display_obj_internal(v, &mut encounters, 4, print_internals)
 }
 
-impl Display for ValueData {
+impl Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Null => write!(f, "null"),
             Self::Undefined => write!(f, "undefined"),
             Self::Boolean(v) => write!(f, "{}", v),
-            Self::Symbol(ref v) => match *v.borrow().get_internal_slot("Description") {
-                // If a description exists use it
-                Self::String(ref v) => write!(f, "{}", format!("Symbol({})", v)),
-                _ => write!(f, "Symbol()"),
+            Self::Symbol(ref symbol) => match symbol.description() {
+                Some(description) => write!(f, "Symbol({})", description),
+                None => write!(f, "Symbol()"),
             },
             Self::String(ref v) => write!(f, "{}", v),
             Self::Rational(v) => write!(

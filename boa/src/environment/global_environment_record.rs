@@ -21,9 +21,9 @@ use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
-    pub object_record: Box<ObjectEnvironmentRecord>,
+    pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: Value,
-    pub declarative_record: Box<DeclarativeEnvironmentRecord>,
+    pub declarative_record: DeclarativeEnvironmentRecord,
     pub var_names: FxHashSet<String>,
 }
 

@@ -8,7 +8,6 @@
 //! [spec]: https://tc39.es/ecma262/#prod-CallExpression
 
 use super::arguments::Arguments;
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
@@ -18,6 +17,7 @@ use crate::{
             },
             Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
             TokenParser,

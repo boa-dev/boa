@@ -1,38 +1,25 @@
-//! This module defines the `ObjectInternalMethods` trait.
+//! This module defines the object internal methods.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
-use crate::{
-    builtins::{
-        object::{Object, INSTANCE_PROTOTYPE},
-        property::Property,
-        value::{same_value, Value, ValueData},
-    },
-    BoaProfiler,
+use crate::builtins::{
+    object::{Object, INSTANCE_PROTOTYPE, PROTOTYPE},
+    property::Property,
+    value::{same_value, RcString, Value},
 };
-use std::borrow::Borrow;
-use std::ops::Deref;
+use crate::BoaProfiler;
 
-/// Here lies the internal methods for ordinary objects.
-///
-/// Most objects make use of these methods, including exotic objects like functions.
-/// So thats why this is a trait
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
-pub trait ObjectInternalMethods {
-    /// Check if has property.
+impl Object {
+    /// Check if object has property.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    fn has_property(&self, val: &Value) -> bool {
+    pub fn has_property(&self, val: &Value) -> bool {
         debug_assert!(Property::is_property_key(val));
         let prop = self.get_own_property(val);
         if prop.value.is_none() {
@@ -40,8 +27,8 @@ pub trait ObjectInternalMethods {
             if !parent.is_null() {
                 // the parent value variant should be an object
                 // In the unlikely event it isn't return false
-                return match *parent {
-                    ValueData::Object(ref obj) => (*obj).deref().borrow().has_property(val),
+                return match parent {
+                    Value::Object(ref obj) => obj.borrow().has_property(val),
                     _ => false,
                 };
             }
@@ -57,12 +44,9 @@ pub trait ObjectInternalMethods {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    fn is_extensible(&self) -> bool {
-        let val = self.get_internal_slot("extensible");
-        match *val.deref().borrow() {
-            ValueData::Boolean(b) => b,
-            _ => false,
-        }
+    #[inline]
+    pub fn is_extensible(&self) -> bool {
+        self.extensible
     }
 
     /// Disable extensibility.
@@ -71,13 +55,14 @@ pub trait ObjectInternalMethods {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    fn prevent_extensions(&mut self) -> bool {
-        self.set_internal_slot("extensible", Value::from(false));
+    #[inline]
+    pub fn prevent_extensions(&mut self) -> bool {
+        self.extensible = false;
         true
     }
 
     /// Delete property.
-    fn delete(&mut self, prop_key: &Value) -> bool {
+    pub fn delete(&mut self, prop_key: &Value) -> bool {
         debug_assert!(Property::is_property_key(prop_key));
         let desc = self.get_own_property(prop_key);
         if desc
@@ -97,7 +82,7 @@ pub trait ObjectInternalMethods {
     }
 
     // [[Get]]
-    fn get(&self, val: &Value) -> Value {
+    pub fn get(&self, val: &Value) -> Value {
         debug_assert!(Property::is_property_key(val));
         let desc = self.get_own_property(val);
         if desc.value.clone().is_none()
@@ -127,13 +112,13 @@ pub trait ObjectInternalMethods {
             return Value::undefined();
         }
 
-        // TODO!!!!! Call getter from here
+        // TODO: Call getter from here!
         Value::undefined()
     }
 
     /// [[Set]]
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
-    fn set(&mut self, field: Value, val: Value) -> bool {
+    pub fn set(&mut self, field: Value, val: Value) -> bool {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
         // [1]
         debug_assert!(Property::is_property_key(&field));
@@ -171,8 +156,15 @@ pub trait ObjectInternalMethods {
         }
     }
 
-    fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
+    /// Define an own property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
+    pub fn define_own_property(&mut self, property_key: String, desc: Property) -> bool {
         let _timer = BoaProfiler::global().start_event("Object::define_own_property", "object");
+
         let mut current = self.get_own_property(&Value::from(property_key.to_string()));
         let extensible = self.is_extensible();
 
@@ -243,7 +235,6 @@ pub trait ObjectInternalMethods {
                     && !same_value(
                         &desc.value.clone().unwrap(),
                         &current.value.clone().unwrap(),
-                        false,
                     )
                 {
                     return false;
@@ -255,21 +246,13 @@ pub trait ObjectInternalMethods {
         } else {
             if !current.configurable.unwrap() {
                 if desc.set.is_some()
-                    && !same_value(
-                        &desc.set.clone().unwrap(),
-                        &current.set.clone().unwrap(),
-                        false,
-                    )
+                    && !same_value(&desc.set.clone().unwrap(), &current.set.clone().unwrap())
                 {
                     return false;
                 }
 
                 if desc.get.is_some()
-                    && !same_value(
-                        &desc.get.clone().unwrap(),
-                        &current.get.clone().unwrap(),
-                        false,
-                    )
+                    && !same_value(&desc.get.clone().unwrap(), &current.get.clone().unwrap())
                 {
                     return false;
                 }
@@ -282,25 +265,164 @@ pub trait ObjectInternalMethods {
         true
     }
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
-    /// The specification returns a Property Descriptor or Undefined. These are 2 separate types and we can't do that here.
-    fn get_own_property(&self, prop: &Value) -> Property;
+    /// The specification returns a Property Descriptor or Undefined.
+    ///
+    /// These are 2 separate types and we can't do that here.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
+    pub fn get_own_property(&self, prop: &Value) -> Property {
+        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
 
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
-    fn set_prototype_of(&mut self, val: Value) -> bool;
+        debug_assert!(Property::is_property_key(prop));
+        // Prop could either be a String or Symbol
+        match *prop {
+            Value::String(ref st) => {
+                self.properties()
+                    .get(st)
+                    .map_or_else(Property::default, |v| {
+                        let mut d = Property::default();
+                        if v.is_data_descriptor() {
+                            d.value = v.value.clone();
+                            d.writable = v.writable;
+                        } else {
+                            debug_assert!(v.is_accessor_descriptor());
+                            d.get = v.get.clone();
+                            d.set = v.set.clone();
+                        }
+                        d.enumerable = v.enumerable;
+                        d.configurable = v.configurable;
+                        d
+                    })
+            }
+            Value::Symbol(ref symbol) => {
+                self.symbol_properties()
+                    .get(&symbol.hash())
+                    .map_or_else(Property::default, |v| {
+                        let mut d = Property::default();
+                        if v.is_data_descriptor() {
+                            d.value = v.value.clone();
+                            d.writable = v.writable;
+                        } else {
+                            debug_assert!(v.is_accessor_descriptor());
+                            d.get = v.get.clone();
+                            d.set = v.set.clone();
+                        }
+                        d.enumerable = v.enumerable;
+                        d.configurable = v.configurable;
+                        d
+                    })
+            }
+            _ => Property::default(),
+        }
+    }
+
+    /// `Object.setPropertyOf(obj, prototype)`
+    ///
+    /// This method sets the prototype (i.e., the internal `[[Prototype]]` property)
+    /// of a specified object to another object or `null`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
+    pub fn set_prototype_of(&mut self, val: Value) -> bool {
+        debug_assert!(val.is_object() || val.is_null());
+        let current = self.get_internal_slot(PROTOTYPE);
+        if same_value(&current, &val) {
+            return true;
+        }
+        if !self.is_extensible() {
+            return false;
+        }
+        let mut p = val.clone();
+        let mut done = false;
+        while !done {
+            if p.is_null() {
+                done = true
+            } else if same_value(&Value::from(self.clone()), &p) {
+                return false;
+            } else {
+                p = p.get_internal_slot(PROTOTYPE);
+            }
+        }
+        self.set_internal_slot(PROTOTYPE, val);
+        true
+    }
 
     /// Returns either the prototype or null
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
-    fn get_prototype_of(&self) -> Value {
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
+    #[inline]
+    pub fn get_prototype_of(&self) -> Value {
         self.get_internal_slot(INSTANCE_PROTOTYPE)
     }
 
-    /// Utility function to get an immutable internal slot or Null
-    fn get_internal_slot(&self, name: &str) -> Value;
+    /// Helper function to get an immutable internal slot or `Null`.
+    #[inline]
+    pub fn get_internal_slot(&self, name: &str) -> Value {
+        let _timer = BoaProfiler::global().start_event("Object::get_internal_slot", "object");
 
-    fn set_internal_slot(&mut self, name: &str, val: Value);
+        self.internal_slots()
+            .get(name)
+            .cloned()
+            .unwrap_or_else(Value::null)
+    }
 
-    fn insert_property(&mut self, name: String, p: Property);
+    /// Helper function to set an internal slot.
+    #[inline]
+    pub fn set_internal_slot(&mut self, name: &str, val: Value) {
+        self.internal_slots.insert(name.to_string(), val);
+    }
 
-    fn remove_property(&mut self, name: &str);
+    /// Helper function for property insertion.
+    #[inline]
+    pub(crate) fn insert_property<N>(&mut self, name: N, p: Property)
+    where
+        N: Into<RcString>,
+    {
+        self.properties.insert(name.into(), p);
+    }
+
+    /// Helper function for property removal.
+    #[inline]
+    pub(crate) fn remove_property(&mut self, name: &str) {
+        self.properties.remove(name);
+    }
+
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name that a `Some` is returned
+    /// with that field, otherwise None is retuned.
+    #[inline]
+    pub(crate) fn insert_field<N>(&mut self, name: N, value: Value) -> Option<Property>
+    where
+        N: Into<RcString>,
+    {
+        self.properties.insert(
+            name.into(),
+            Property::default()
+                .value(value)
+                .writable(true)
+                .configurable(true)
+                .enumerable(true),
+        )
+    }
+
+    /// This function returns an Optional reference value to the objects field.
+    ///
+    /// if it exist `Some` is returned with a reference to that fields value.
+    /// Otherwise `None` is retuned.
+    #[inline]
+    pub fn get_field(&self, name: &str) -> Option<&Value> {
+        self.properties.get(name).and_then(|x| x.value.as_ref())
+    }
 }

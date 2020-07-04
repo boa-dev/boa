@@ -3,19 +3,24 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{
-            node::{Case, Switch},
-            Keyword, Node, Punctuator,
-        },
+        ast::{node, node::Switch, Keyword, Node, Punctuator},
+        lexer::{Token, TokenKind},
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-            TokenParser,
+            expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
 };
 
 use std::io::Read;
+
+/// The possible TokenKind which indicate the end of a case statement.
+const CASE_BREAK_TOKENS: [TokenKind; 3] = [
+    TokenKind::Punctuator(Punctuator::CloseBlock),
+    TokenKind::Keyword(Keyword::Case),
+    TokenKind::Keyword(Keyword::Default),
+];
 
 /// Switch statement parsing.
 ///
@@ -103,14 +108,81 @@ impl<R> TokenParser<R> for CaseBlock
 where
     R: Read,
 {
-    type Output = (Box<[Case]>, Option<Node>);
+    type Output = (Box<[node::Case]>, Option<Node>);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        cursor.expect(Punctuator::OpenBlock, "switch case block")?;
+        let mut cases = Vec::<node::Case>::new();
+        let mut default: Option<Node> = None;
 
-        // CaseClauses[?Yield, ?Await, ?Return]opt
-        // CaseClauses[?Yield, ?Await, ?Return]optDefaultClause[?Yield, ?Await, ?Return]CaseClauses[?Yield, ?Await, ?Return]opt
+        cursor.expect(Punctuator::OpenBlock, "switch start case block")?;
 
-        unimplemented!("switch case block parsing")
+        loop {
+            match cursor.expect(Keyword::Case, "switch case: block") {
+                Ok(_) => {
+                    // Case statement.
+                    let cond =
+                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+
+                    cursor.expect(Punctuator::Colon, "switch case block start")?;
+
+                    let statement_list = StatementList::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        self.allow_return,
+                        true,
+                    )
+                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
+
+                    cases.push(node::Case::new(cond, statement_list));
+                }
+                Err(ParseError::Expected {
+                    expected: _,
+                    found:
+                        Token {
+                            kind: TokenKind::Keyword(Keyword::Default),
+                            span: s,
+                        },
+                    context: _,
+                }) => {
+                    // Default statement.
+                    if default.is_some() {
+                        // If default has already been defined then it cannot be defined again and to do so is an error.
+                        return Err(ParseError::unexpected(
+                            Token::new(TokenKind::Keyword(Keyword::Default), s),
+                            Some("Second default clause found in switch statement"),
+                        ));
+                    }
+
+                    cursor.expect(Punctuator::Colon, "switch default case block start")?;
+                    let statement_list = StatementList::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        self.allow_return,
+                        true,
+                    )
+                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
+
+                    default = Some(node::Block::from(statement_list).into());
+                }
+                Err(ParseError::Expected {
+                    expected: _,
+                    found:
+                        Token {
+                            kind: TokenKind::Punctuator(Punctuator::CloseBlock),
+                            span: _,
+                        },
+                    context: _,
+                }) => {
+                    // End of switch block.
+                    break;
+                }
+                Err(e) => {
+                    // Unexpected statement.
+                    return Err(e);
+                }
+            }
+        }
+
+        Ok((cases.into_boxed_slice(), default))
     }
 }
