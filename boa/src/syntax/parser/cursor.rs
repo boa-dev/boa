@@ -14,18 +14,8 @@ use std::io::Read;
 /// This internal structure gives basic testable operations to the parser.
 #[derive(Debug)]
 pub(super) struct Cursor<R> {
-    /// The tokens being input.
-    // tokens: &'a [Token],
     lexer: Lexer<R>,
-    // The current position within the tokens.
-    // pos: usize,
-
-    // peeked: Option<Option<Token>>,
     peeked: VecDeque<Option<Token>>,
-    // Values are added to this queue when they are retrieved (next) to allow moving backwards.
-    // back_queue: VecDeque<Option<Token>>,
-
-    // peeked: Option<Option<Token>>,
 }
 
 impl<R> Cursor<R>
@@ -37,7 +27,6 @@ where
         Self {
             lexer: Lexer::new(reader),
             peeked: VecDeque::new(),
-            // back_queue: VecDeque::new(),
         }
     }
 
@@ -56,56 +45,15 @@ where
 
     /// Moves the cursor to the next token and returns the token.
     pub(super) fn next(&mut self) -> Option<Result<Token, ParseError>> {
-        match self.peeked.pop_front() {
-            Some(None) => {
-                // if self.back_queue.len() >= BACK_QUEUE_MAX_LEN {
-                //     self.back_queue.pop_front(); // Remove the value from the front of the queue.
-                // }
-
-                // self.back_queue.push_back(None);
-
-                return None;
-            }
-            Some(Some(token)) => {
-                // if self.back_queue.len() >= BACK_QUEUE_MAX_LEN {
-                //     self.back_queue.pop_front(); // Remove the value from the front of the queue.
-                // }
-
-                // self.back_queue.push_back(Some(token.clone()));
-
-                return Some(Ok(token));
-            }
-            None => {} // No value has been peeked ahead already so need to go get the next value.
+        if let Some(t) = self.peeked.pop_front() {
+            return t.map(|v| Ok(v));
         }
 
-        loop {
-            match self.lexer.next() {
-                Some(Ok(tk)) => {
-                    return Some(Ok(tk));
-
-                    // if tk.kind != TokenKind::LineTerminator {
-                    //     // if self.back_queue.len() >= BACK_QUEUE_MAX_LEN {
-                    //     //     self.back_queue.pop_front(); // Remove the value from the front of the queue.
-                    //     // }
-
-                    //     // self.back_queue.push_back(Some(tk.clone()));
-
-                    //     return Some(Ok(tk));
-                    // }
-                }
-                Some(Err(e)) => {
-                    return Some(Err(ParseError::lex(e)));
-                }
-                None => {
-                    // if self.back_queue.len() >= BACK_QUEUE_MAX_LEN {
-                    //     self.back_queue.pop_front(); // Remove the value from the front of the queue.
-                    // }
-
-                    // self.back_queue.push_back(None);
-
-                    return None;
-                }
-            }
+        // No value has been peeked ahead already so need to go get the next value.
+        if let Some(t) = self.lexer.next() {
+            Some(t.map_err(|e| ParseError::lex(e)))
+        } else {
+            None
         }
     }
 
