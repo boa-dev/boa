@@ -463,12 +463,11 @@ fn fill() {
         String::from("4,2,3")
     );
 
-    // TODO: uncomment when NaN support is added
-    // forward(&mut engine, "a = [1, 2, 3];");
-    // assert_eq!(
-    //     forward(&mut engine, "a.fill(4, NaN, NaN).join()"),
-    //     String::from("1,2,3")
-    // );
+    forward(&mut engine, "a = [1, 2, 3];");
+    assert_eq!(
+        forward(&mut engine, "a.fill(4, NaN, NaN).join()"),
+        String::from("1,2,3")
+    );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(

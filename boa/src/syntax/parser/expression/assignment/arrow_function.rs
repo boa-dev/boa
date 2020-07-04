@@ -140,6 +140,7 @@ where
             }
             _ => Ok(StatementList::from(vec![Return::new(
                 ExpressionBody::new(self.allow_in, false).parse(cursor)?,
+                None,
             )
             .into()])),
         }

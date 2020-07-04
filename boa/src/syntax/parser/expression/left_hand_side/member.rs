@@ -6,7 +6,6 @@
 //! [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 
 use super::arguments::Arguments;
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
@@ -16,6 +15,7 @@ use crate::{
             },
             Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             expression::{primary::PrimaryExpression, Expression},
             AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,

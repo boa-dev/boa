@@ -19,542 +19,594 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
-use rand::random;
 use std::f64;
 
 #[cfg(test)]
 mod tests;
 
-/// Get the absolute value of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.abs
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
-pub fn abs(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).abs()
-    }))
-}
+/// Javascript `Math` object.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(crate) struct Math;
 
-/// Get the arccos of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.acos
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
-pub fn acos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).acos()
-    }))
-}
+impl Math {
+    /// The name of the object.
+    pub(crate) const NAME: &'static str = "Math";
 
-/// Get the hyperbolic arccos of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.acosh
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
-pub fn acosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).acosh()
-    }))
-}
-
-/// Get the arcsine of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.asin
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
-pub fn asin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).asin()
-    }))
-}
-
-/// Get the hyperbolic arcsine of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.asinh
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
-pub fn asinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).asinh()
-    }))
-}
-
-/// Get the arctangent of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.atan
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
-pub fn atan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).atan()
-    }))
-}
-
-/// Get the hyperbolic arctangent of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.atanh
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
-pub fn atanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).atanh()
-    }))
-}
-
-/// Get the arctangent of a numbers.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.atan2
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
-pub fn atan2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument"))
-            .atan2(args.get(1).expect("Could not get argument").to_number())
-    }))
-}
-
-/// Get the cubic root of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.cbrt
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
-pub fn cbrt(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).cbrt()
-    }))
-}
-
-/// Get lowest integer above a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.ceil
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
-pub fn ceil(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).ceil()
-    }))
-}
-
-/// Get the cosine of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.cos
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
-pub fn cos(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).cos()
-    }))
-}
-
-/// Get the hyperbolic cosine of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.cosh
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
-pub fn cosh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).cosh()
-    }))
-}
-
-/// Get the power to raise the natural logarithm to get the number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.exp
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
-pub fn exp(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).exp()
-    }))
-}
-
-/// Get the highest integer below a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.floor
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
-pub fn floor(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).floor()
-    }))
-}
-
-/// Get the natural logarithm of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.log
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
-pub fn log(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        let value = f64::from(args.get(0).expect("Could not get argument"));
-
-        if value <= 0.0 {
-            f64::NAN
-        } else {
-            value.log(f64::consts::E)
-        }
-    }))
-}
-
-/// Get the base 10 logarithm of the number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.log10
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
-pub fn log10(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        let value = f64::from(args.get(0).expect("Could not get argument"));
-
-        if value <= 0.0 {
-            f64::NAN
-        } else {
-            value.log10()
-        }
-    }))
-}
-
-/// Get the base 2 logarithm of the number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.log2
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
-pub fn log2(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        let value = f64::from(args.get(0).expect("Could not get argument"));
-
-        if value <= 0.0 {
-            f64::NAN
-        } else {
-            value.log2()
-        }
-    }))
-}
-
-/// Get the maximum of several numbers.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.max
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
-pub fn max(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let mut max = f64::NEG_INFINITY;
-    for arg in args {
-        let num = f64::from(arg);
-        max = max.max(num);
+    /// Get the absolute value of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.abs
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
+    pub(crate) fn abs(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).abs()).into())
     }
-    Ok(Value::from(max))
-}
 
-/// Get the minimum of several numbers.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.min
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
-pub fn min(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    let mut max = f64::INFINITY;
-    for arg in args {
-        let num = f64::from(arg);
-        max = max.min(num);
+    /// Get the arccos of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.acos
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
+    pub(crate) fn acos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).acos()).into())
     }
-    Ok(Value::from(max))
-}
 
-/// Raise a number to a power.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.pow
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
-pub fn pow(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.len() >= 2 {
-        let num = f64::from(args.get(0).expect("Could not get argument"));
-        let power = f64::from(args.get(1).expect("Could not get argument"));
-        num.powf(power)
-    } else {
-        f64::NAN
-    }))
-}
+    /// Get the hyperbolic arccos of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
+    pub(crate) fn acosh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).acosh())
+            .into())
+    }
 
-/// Generate a random floating-point number between `0` and `1`.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.random
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
-pub fn _random(_: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(random::<f64>()))
-}
+    /// Get the arcsine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.asin
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
+    pub(crate) fn asin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).asin()).into())
+    }
 
-/// Round a number to the nearest integer.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.round
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
-pub fn round(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).round()
-    }))
-}
+    /// Get the hyperbolic arcsine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
+    pub(crate) fn asinh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).asinh())
+            .into())
+    }
 
-/// Get the sign of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.sign
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
-pub fn sign(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        let value = f64::from(args.get(0).expect("Could not get argument"));
+    /// Get the arctangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.atan
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
+    pub(crate) fn atan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).atan()).into())
+    }
 
-        if value == 0.0 || value == -0.0 {
-            value
-        } else {
-            value.signum()
+    /// Get the hyperbolic arctangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
+    pub(crate) fn atanh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).atanh())
+            .into())
+    }
+
+    /// Get the arctangent of a numbers.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
+    pub(crate) fn atan2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(match (args.get(0), args.get(1)) {
+            (Some(y), Some(x)) => f64::from(y).atan2(f64::from(x)),
+            _ => f64::NAN,
         }
-    }))
-}
+        .into())
+    }
 
-/// Get the sine of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.sin
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
-pub fn sin(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).sin()
-    }))
-}
+    /// Get the cubic root of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.cbrt
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
+    pub(crate) fn cbrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).cbrt()).into())
+    }
 
-/// Get the hyperbolic sine of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.sinh
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
-pub fn sinh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).sinh()
-    }))
-}
+    /// Get lowest integer above a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.ceil
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
+    pub(crate) fn ceil(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).ceil()).into())
+    }
 
-/// Get the square root of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.sqrt
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
-pub fn sqrt(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).sqrt()
-    }))
-}
-/// Get the tangent of a number
-pub fn tan(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).tan()
-    }))
-}
+    /// Get the number of leading zeros in the 32 bit representation of a number
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.clz32
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32
+    pub(crate) fn clz32(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(32i32, |x| (f64::from(x) as u32).leading_zeros() as i32)
+            .into())
+    }
 
-/// Get the hyperbolic tangent of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.tanh
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
-pub fn tanh(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).tanh()
-    }))
-}
+    /// Get the cosine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.cos
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
+    pub(crate) fn cos(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).cos()).into())
+    }
 
-/// Get the integer part of a number.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-math.trunc
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
-pub fn trunc(_: &mut Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(if args.is_empty() {
-        f64::NAN
-    } else {
-        f64::from(args.get(0).expect("Could not get argument")).trunc()
-    }))
-}
+    /// Get the hyperbolic cosine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.cosh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
+    pub(crate) fn cosh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).cosh()).into())
+    }
 
-/// Create a new `Math` object
-pub fn create(global: &Value) -> Value {
-    let _timer = BoaProfiler::global().start_event("math:create", "init");
-    let math = Value::new_object(Some(global));
+    /// Get the power to raise the natural logarithm to get the number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.exp
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
+    pub(crate) fn exp(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).exp()).into())
+    }
 
-    math.set_field("E", Value::from(f64::consts::E));
-    math.set_field("LN2", Value::from(f64::consts::LN_2));
-    math.set_field("LN10", Value::from(f64::consts::LN_10));
-    math.set_field("LOG2E", Value::from(f64::consts::LOG2_E));
-    math.set_field("LOG10E", Value::from(f64::consts::LOG10_E));
-    math.set_field("SQRT1_2", Value::from(0.5_f64.sqrt()));
-    math.set_field("SQRT2", Value::from(f64::consts::SQRT_2));
-    math.set_field("PI", Value::from(f64::consts::PI));
-    make_builtin_fn(abs, "abs", &math, 1);
-    make_builtin_fn(acos, "acos", &math, 1);
-    make_builtin_fn(acosh, "acosh", &math, 1);
-    make_builtin_fn(asin, "asin", &math, 1);
-    make_builtin_fn(asinh, "asinh", &math, 1);
-    make_builtin_fn(atan, "atan", &math, 1);
-    make_builtin_fn(atanh, "atanh", &math, 1);
-    make_builtin_fn(atan2, "atan2", &math, 2);
-    make_builtin_fn(cbrt, "cbrt", &math, 1);
-    make_builtin_fn(ceil, "ceil", &math, 1);
-    make_builtin_fn(cos, "cos", &math, 1);
-    make_builtin_fn(cosh, "cosh", &math, 1);
-    make_builtin_fn(exp, "exp", &math, 1);
-    make_builtin_fn(floor, "floor", &math, 1);
-    make_builtin_fn(log, "log", &math, 1);
-    make_builtin_fn(log10, "log10", &math, 1);
-    make_builtin_fn(log2, "log2", &math, 1);
-    make_builtin_fn(max, "max", &math, 2);
-    make_builtin_fn(min, "min", &math, 2);
-    make_builtin_fn(pow, "pow", &math, 2);
-    make_builtin_fn(_random, "random", &math, 0);
-    make_builtin_fn(round, "round", &math, 1);
-    make_builtin_fn(sign, "sign", &math, 1);
-    make_builtin_fn(sin, "sin", &math, 1);
-    make_builtin_fn(sinh, "sinh", &math, 1);
-    make_builtin_fn(sqrt, "sqrt", &math, 1);
-    make_builtin_fn(tan, "tan", &math, 1);
-    make_builtin_fn(tanh, "tanh", &math, 1);
-    make_builtin_fn(trunc, "trunc", &math, 1);
+    /// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of
+    /// the natural logarithms. The result is computed in a way that is accurate even when the
+    /// value of x is close 0
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.expm1
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1
+    pub(crate) fn expm1(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).exp_m1())
+            .into())
+    }
 
-    math
-}
+    /// Get the highest integer below a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.floor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
+    pub(crate) fn floor(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).floor())
+            .into())
+    }
 
-/// Initialise the `Math` object on the global object.
-#[inline]
-pub fn init(global: &Value) {
-    let _timer = BoaProfiler::global().start_event("math", "init");
-    global.set_field("Math", create(global));
+    /// Get the nearest 32-bit single precision float representation of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.fround
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/fround
+    pub(crate) fn fround(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| (f64::from(x) as f32) as f64)
+            .into())
+    }
+
+    /// Get an approximation of the square root of the sum of squares of all arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.hypot
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
+    pub(crate) fn hypot(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.iter().fold(0f64, |x, v| f64::from(v).hypot(x)).into())
+    }
+
+    /// Get the result of the C-like 32-bit multiplication of the two parameters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.imul
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
+    pub(crate) fn imul(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        let a = args.get(0).map_or(0f64, f64::from);
+        let b = args.get(1).map_or(0f64, f64::from);
+        Ok(((a as u32).wrapping_mul(b as u32) as i32).into())
+    }
+
+    /// Get the natural logarithm of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
+    pub(crate) fn log(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
+                if x <= 0.0 {
+                    f64::NAN
+                } else {
+                    x.log(f64::consts::E)
+                }
+            })
+            .into())
+    }
+
+    /// Get approximation to the natural logarithm of 1 + x.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log1p
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p
+    pub(crate) fn log1p(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).ln_1p())
+            .into())
+    }
+
+    /// Get the base 10 logarithm of the number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log10
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
+    pub(crate) fn log10(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
+
+                if x <= 0.0 {
+                    f64::NAN
+                } else {
+                    x.log10()
+                }
+            })
+            .into())
+    }
+
+    /// Get the base 2 logarithm of the number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.log2
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
+    pub(crate) fn log2(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
+
+                if x <= 0.0 {
+                    f64::NAN
+                } else {
+                    x.log2()
+                }
+            })
+            .into())
+    }
+
+    /// Get the maximum of several numbers.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.max
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
+    pub(crate) fn max(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        let mut max = f64::NEG_INFINITY;
+        for arg in args {
+            let num = f64::from(arg);
+            max = max.max(num);
+        }
+        Ok(Value::from(max))
+    }
+
+    /// Get the minimum of several numbers.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.min
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
+    pub(crate) fn min(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        let mut min = f64::INFINITY;
+        for arg in args {
+            let num = f64::from(arg);
+            min = min.min(num);
+        }
+        Ok(Value::from(min))
+    }
+
+    /// Raise a number to a power.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.pow
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
+    pub(crate) fn pow(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(match (args.get(0), args.get(1)) {
+            (Some(base), Some(exponent)) => f64::from(base).powf(f64::from(exponent)),
+            _ => f64::NAN,
+        }
+        .into())
+    }
+
+    /// Generate a random floating-point number between `0` and `1`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.random
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+    pub(crate) fn random(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(Value::from(rand::random::<f64>()))
+    }
+
+    /// Round a number to the nearest integer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.round
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
+    pub(crate) fn round(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).round())
+            .into())
+    }
+
+    /// Get the sign of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sign
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
+    pub(crate) fn sign(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |value| {
+                let x = f64::from(value);
+
+                if x == 0.0 || x == -0.0 {
+                    x
+                } else {
+                    x.signum()
+                }
+            })
+            .into())
+    }
+
+    /// Get the sine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sin
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
+    pub(crate) fn sin(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).sin()).into())
+    }
+
+    /// Get the hyperbolic sine of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sinh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
+    pub(crate) fn sinh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).sinh()).into())
+    }
+
+    /// Get the square root of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sqrt
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
+    pub(crate) fn sqrt(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).sqrt()).into())
+    }
+
+    /// Get the tangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.tan
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tan
+    pub(crate) fn tan(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).tan()).into())
+    }
+
+    /// Get the hyperbolic tangent of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.tanh
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
+    pub(crate) fn tanh(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args.get(0).map_or(f64::NAN, |x| f64::from(x).tanh()).into())
+    }
+
+    /// Get the integer part of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.trunc
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
+    pub(crate) fn trunc(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+        Ok(args
+            .get(0)
+            .map_or(f64::NAN, |x| f64::from(x).trunc())
+            .into())
+    }
+
+    /// Create a new `Math` object
+    pub(crate) fn create(global: &Value) -> Value {
+        let _timer = BoaProfiler::global().start_event("math:create", "init");
+        let math = Value::new_object(Some(global));
+
+        {
+            let mut properties = math.as_object_mut().unwrap();
+            properties.insert_field("E", Value::from(f64::consts::E));
+            properties.insert_field("LN2", Value::from(f64::consts::LN_2));
+            properties.insert_field("LN10", Value::from(f64::consts::LN_10));
+            properties.insert_field("LOG2E", Value::from(f64::consts::LOG2_E));
+            properties.insert_field("LOG10E", Value::from(f64::consts::LOG10_E));
+            properties.insert_field("SQRT1_2", Value::from(0.5_f64.sqrt()));
+            properties.insert_field("SQRT2", Value::from(f64::consts::SQRT_2));
+            properties.insert_field("PI", Value::from(f64::consts::PI));
+        }
+        make_builtin_fn(Self::abs, "abs", &math, 1);
+        make_builtin_fn(Self::acos, "acos", &math, 1);
+        make_builtin_fn(Self::acosh, "acosh", &math, 1);
+        make_builtin_fn(Self::asin, "asin", &math, 1);
+        make_builtin_fn(Self::asinh, "asinh", &math, 1);
+        make_builtin_fn(Self::atan, "atan", &math, 1);
+        make_builtin_fn(Self::atanh, "atanh", &math, 1);
+        make_builtin_fn(Self::atan2, "atan2", &math, 2);
+        make_builtin_fn(Self::cbrt, "cbrt", &math, 1);
+        make_builtin_fn(Self::ceil, "ceil", &math, 1);
+        make_builtin_fn(Self::clz32, "clz32", &math, 1);
+        make_builtin_fn(Self::cos, "cos", &math, 1);
+        make_builtin_fn(Self::cosh, "cosh", &math, 1);
+        make_builtin_fn(Self::exp, "exp", &math, 1);
+        make_builtin_fn(Self::expm1, "expm1", &math, 1);
+        make_builtin_fn(Self::floor, "floor", &math, 1);
+        make_builtin_fn(Self::fround, "fround", &math, 1);
+        make_builtin_fn(Self::hypot, "hypot", &math, 1);
+        make_builtin_fn(Self::imul, "imul", &math, 1);
+        make_builtin_fn(Self::log, "log", &math, 1);
+        make_builtin_fn(Self::log1p, "log1p", &math, 1);
+        make_builtin_fn(Self::log10, "log10", &math, 1);
+        make_builtin_fn(Self::log2, "log2", &math, 1);
+        make_builtin_fn(Self::max, "max", &math, 2);
+        make_builtin_fn(Self::min, "min", &math, 2);
+        make_builtin_fn(Self::pow, "pow", &math, 2);
+        make_builtin_fn(Self::random, "random", &math, 0);
+        make_builtin_fn(Self::round, "round", &math, 1);
+        make_builtin_fn(Self::sign, "sign", &math, 1);
+        make_builtin_fn(Self::sin, "sin", &math, 1);
+        make_builtin_fn(Self::sinh, "sinh", &math, 1);
+        make_builtin_fn(Self::sqrt, "sqrt", &math, 1);
+        make_builtin_fn(Self::tan, "tan", &math, 1);
+        make_builtin_fn(Self::tanh, "tanh", &math, 1);
+        make_builtin_fn(Self::trunc, "trunc", &math, 1);
+
+        math
+    }
+
+    /// Initialise the `Math` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        (Self::NAME, Self::create(global))
+    }
 }

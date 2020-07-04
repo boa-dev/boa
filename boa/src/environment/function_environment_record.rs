@@ -16,12 +16,12 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
 };
-use gc::{Finalize, Trace};
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use rustc_hash::FxHashMap;
 
 /// Different binding status for `this`.
 /// Usually set on a function environment record
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Copy, Finalize, Debug, Clone)]
 pub enum BindingStatus {
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
     Lexical,
@@ -29,6 +29,10 @@ pub enum BindingStatus {
     Initialized,
     /// If uninitialized the function environment record has not been bouned with a `this` value
     Uninitialized,
+}
+
+unsafe impl Trace for BindingStatus {
+    unsafe_empty_trace!();
 }
 
 /// <https://tc39.es/ecma262/#table-16>
@@ -108,7 +112,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             }
             BindingStatus::Uninitialized => {
                 // TODO: change this when error handling comes into play
-                panic!("Reference Error: Unitialised binding for this function");
+                panic!("Reference Error: Uninitialised binding for this function");
             }
 
             BindingStatus::Initialized => self.this_value.clone(),

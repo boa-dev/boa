@@ -1,6 +1,6 @@
 [package]
 name = "boa_wasm"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Jason Williams <jase.williams@gmail.com>"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 repository = "https://github.com/boa-dev/boa"
@@ -12,7 +12,7 @@ edition = "2018"
 
 [dependencies]
 Boa = { path = "../boa" }
-wasm-bindgen = "0.2.63"
+wasm-bindgen = "0.2.64"
 
 [lib]
 crate-type = ["cdylib", "lib"]

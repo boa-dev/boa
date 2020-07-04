@@ -35,9 +35,9 @@ impl Executable for FunctionDecl {
         interpreter
             .realm_mut()
             .environment
-            .initialize_binding(self.name(), val.clone());
+            .initialize_binding(self.name(), val);
 
-        Ok(val)
+        Ok(Value::undefined())
     }
 }
 

@@ -25,7 +25,7 @@ pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
 
 /// Give each environment an easy way to declare its own type
 /// This helps with comparisons
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum EnvironmentType {
     Declarative,
     Function,
@@ -34,7 +34,7 @@ pub enum EnvironmentType {
 }
 
 /// The scope of a given variable
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VariableScope {
     /// The variable declaration is scoped to the current block (`let` and `const`)
     Block,
@@ -42,13 +42,13 @@ pub enum VariableScope {
     Function,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LexicalEnvironment {
     environment_stack: VecDeque<Environment>,
 }
 
 /// An error that occurred during lexing or compiling of the source input.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EnvironmentError {
     details: String,
 }
@@ -212,11 +212,10 @@ impl LexicalEnvironment {
             .any(|env| env.borrow().has_binding(name))
     }
 
-    pub fn get_binding_value(&self, name: &str) -> Value {
+    pub fn get_binding_value(&self, name: &str) -> Option<Value> {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or_else(Value::undefined)
     }
 }
 
@@ -236,15 +235,20 @@ pub fn new_function_environment(
     outer: Option<Environment>,
     binding_status: BindingStatus,
 ) -> Environment {
-    Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
+    let mut func_env = FunctionEnvironmentRecord {
         env_rec: FxHashMap::default(),
         function: f,
         this_binding_status: binding_status,
         home_object: Value::undefined(),
         new_target: Value::undefined(),
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-        this_value: this.unwrap_or_else(Value::undefined),
-    })))
+        this_value: Value::undefined(),
+    };
+    // If a `this` value has been passed, bind it to the environment
+    if let Some(v) = this {
+        func_env.bind_this_value(v);
+    }
+    Gc::new(GcCell::new(Box::new(func_env)))
 }
 
 pub fn new_object_environment(object: Value, environment: Option<Environment>) -> Environment {
@@ -261,7 +265,7 @@ pub fn new_object_environment(object: Value, environment: Option<Environment>) -
 }
 
 pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
-    let obj_rec = Box::new(ObjectEnvironmentRecord {
+    let obj_rec = ObjectEnvironmentRecord {
         bindings: global,
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
@@ -270,12 +274,12 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         /// with each object Environment Record. By default, the value of withEnvironment is false
         /// for any object Environment Record.
         with_environment: false,
-    });
+    };
 
-    let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
+    let dcl_rec = DeclarativeEnvironmentRecord {
         env_rec: FxHashMap::default(),
         outer_env: None,
-    });
+    };
 
     Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
         object_record: obj_rec,
@@ -295,10 +299,15 @@ mod tests {
           {
             let bar = "bar";
           }
-          bar == undefined;
+
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
 
-        assert_eq!(&exec(scenario), "true");
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]
@@ -307,10 +316,15 @@ mod tests {
           {
             const bar = "bar";
           }
-          bar == undefined;
+
+          try{
+            bar;
+          } catch (err) {
+            err.message
+          }
         "#;
 
-        assert_eq!(&exec(scenario), "true");
+        assert_eq!(&exec(scenario), "bar is not defined");
     }
 
     #[test]
