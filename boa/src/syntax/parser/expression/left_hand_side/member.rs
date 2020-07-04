@@ -63,7 +63,7 @@ where
         let mut lhs = if cursor.peek().ok_or(ParseError::AbruptEnd)??.kind()
             == &TokenKind::Keyword(Keyword::New)
         {
-            let _ = cursor.next().expect("keyword disappeared");
+            let _ = cursor.next().expect("new keyword disappeared");
             let lhs = self.parse(cursor)?;
             let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
             let call_node = Call::new(lhs, args);

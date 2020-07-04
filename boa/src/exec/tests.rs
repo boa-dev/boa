@@ -2,7 +2,7 @@ use crate::{
     builtins::{Number, Value},
     exec,
     exec::Interpreter,
-    forward,
+    forward, forward_val,
     realm::Realm,
 };
 
@@ -1182,4 +1182,21 @@ fn array_pop_benchmark() {
     "#;
 
     assert_eq!(forward(&mut engine, init), "[]");
+}
+
+#[test]
+fn number_object_access_benchmark() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+    new Number(
+        new Number(
+            new Number(
+                new Number(100).valueOf() - 10.5
+            ).valueOf() + 100
+        ).valueOf() * 1.6
+    )
+    "#;
+
+    assert!(forward_val(&mut engine, init).is_ok());
 }
