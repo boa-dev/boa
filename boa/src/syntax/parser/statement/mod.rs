@@ -35,10 +35,7 @@ use self::{
     variable::VariableStatement,
 };
 
-use super::{
-    expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
-    TokenParser,
-};
+use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
 use crate::syntax::lexer::TokenKind;
 use crate::{
@@ -254,7 +251,7 @@ impl StatementList {
             let item =
                 StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
-            
+
             println!("Item: {:?}", item);
             items.push(item);
 

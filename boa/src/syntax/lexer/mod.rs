@@ -267,12 +267,3 @@ where
         }
     }
 }
-
-// impl<R> Tokenizer<R> for Lexer<R> {
-//     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> io::Result<Token>
-//     where
-//         R: Read,
-//     {
-
-//     }
-// }
