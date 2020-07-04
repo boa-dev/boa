@@ -58,18 +58,15 @@ where
 
     /// Peeks the next token without moving the cursor.
     pub(super) fn peek(&mut self) -> Option<Result<Token, ParseError>> {
-        match self.peeked.pop_front() {
-            Some(None) => {
-                self.peeked.push_front(None); // Push the value back onto the peeked stack.
+        if let Some(v) = self.peeked.front() {
+            if let Some(t) = v {
+                return Some(Ok(t.clone()));
+            } else {
                 return None;
             }
-            Some(Some(token)) => {
-                self.peeked.push_front(Some(token.clone())); // Push the value back onto the peeked stack.
-                return Some(Ok(token));
-            }
-            None => {} // No value has been peeked ahead already so need to go get the next value.
         }
 
+        // No value has been peeked ahead already so need to go get the next value.
         match self.next() {
             Some(Ok(token)) => {
                 self.peeked.push_back(Some(token.clone()));
@@ -83,14 +80,11 @@ where
         }
     }
 
-    pub(super) fn peek_more(&mut self, skip: usize) -> Option<Result<Token, ParseError>> {
-        if skip != 1 {
-            // I don't believe we ever need to skip more than a single token?
-            unimplemented!("Attempting to peek ahead more than a single token");
-        }
-
+    /// Peeks the token after the next token.
+    /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip(1) will return B.
+    pub(super) fn peek_skip(&mut self) -> Option<Result<Token, ParseError>> {
         // Add elements to the peeked buffer upto the amount required to skip the given amount ahead.
-        while self.peeked.len() < skip + 1 {
+        while self.peeked.len() < 2 {
             match self.lexer.next() {
                 Some(Ok(token)) => self.peeked.push_back(Some(token.clone())),
                 Some(Err(e)) => return Some(Err(ParseError::lex(e))),
@@ -180,12 +174,10 @@ where
     /// It will make sure that the next token is not a line terminator.
     ///
     /// It expects that the token stream does not end here.
-    pub(super) fn peek_expect_no_lineterminator(&mut self, skip: usize) -> Result<(), ParseError> {
-        let token = if skip == 0 {
-            self.peek()
-        } else {
-            self.peek_more(skip)
-        };
+    ///
+    /// If skip is true then the token after the peek() token is checked instead.
+    pub(super) fn peek_expect_no_lineterminator(&mut self, skip: bool) -> Result<(), ParseError> {
+        let token = if skip { self.peek_skip() } else { self.peek() };
 
         match token {
             Some(Ok(t)) => {

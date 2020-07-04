@@ -96,7 +96,7 @@ where
             Box::new([FormalParameter::new(param, None, false)])
         };
 
-        cursor.peek_expect_no_lineterminator(0)?;
+        cursor.peek_expect_no_lineterminator(false)?;
 
         cursor.expect(Punctuator::Arrow, "arrow function")?;
 

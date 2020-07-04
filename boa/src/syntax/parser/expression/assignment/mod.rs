@@ -89,8 +89,8 @@ where
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
-                if cursor.peek_expect_no_lineterminator(1).is_ok() {
-                    if let Some(tok) = cursor.peek_more(1) {
+                if cursor.peek_expect_no_lineterminator(true).is_ok() {
+                    if let Some(tok) = cursor.peek_skip() {
                         if tok?.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                             return ArrowFunction::new(
                                 self.allow_in,
