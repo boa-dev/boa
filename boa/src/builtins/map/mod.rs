@@ -241,14 +241,14 @@ impl Map {
                 Value::Object(object) => {
                     let object = object.borrow();
                     if let Some(map) = object.as_map() {
-                        map.clone()
+                        map
                     } else if object.is_array() {
                         let mut map = HashMap::new();
                         let len = i32::from(&args[0].get_field("length"));
                         for i in 0..len {
                             let val = &args[0].get_field(i.to_string());
                             let (key, value) =
-                                Self::get_key_value(val).ok_or(ctx.construct_type_error(
+                                Self::get_key_value(val).ok_or_else(|| ctx.construct_type_error(
                                     "iterable for Map should have array-like objects",
                                 ))?;
                             map.insert(key, value);
