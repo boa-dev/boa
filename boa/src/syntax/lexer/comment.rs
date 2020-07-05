@@ -13,8 +13,8 @@ pub(super) struct SingleLineComment;
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]:
-/// [mdn]:
+/// [spec]: https://tc39.es/ecma262/#sec-comments
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar
 impl<R> Tokenizer<R> for SingleLineComment {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
@@ -47,8 +47,8 @@ impl<R> Tokenizer<R> for SingleLineComment {
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]:
-/// [mdn]:
+/// [spec]: https://tc39.es/ecma262/#sec-comments
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar
 pub(super) struct BlockComment;
 impl<R> Tokenizer<R> for BlockComment {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>

@@ -324,20 +324,6 @@ fn check_decrement_advances_lexer_2_places() {
 }
 
 #[test]
-fn check_nan() {
-    let mut lexer = Lexer::new(&b"let a = NaN;"[0..]);
-    match lexer.nth(3) {
-        None | Some(Err(_)) => panic!("No token found when expecting NaN"),
-        Some(Ok(token)) => match token.kind() {
-            TokenKind::NumericLiteral(Numeric::Rational(a)) => {
-                assert!(a.is_nan());
-            }
-            ref other => panic!("Incorrect token kind found for NaN: {}", other),
-        },
-    }
-}
-
-#[test]
 fn single_int() {
     let mut lexer = Lexer::new(&b"52"[0..]);
 

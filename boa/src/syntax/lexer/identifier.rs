@@ -5,9 +5,7 @@ use crate::syntax::lexer::{Token, TokenKind};
 use std::io::Read;
 use std::str::FromStr;
 
-/// Identifier or keyword lexing.
-///
-/// This currently includes boolean/NaN lexing.
+/// Identifier lexing.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -56,7 +54,6 @@ impl<R> Tokenizer<R> for Identifier {
             "true" => TokenKind::BooleanLiteral(true),
             "false" => TokenKind::BooleanLiteral(false),
             "null" => TokenKind::NullLiteral,
-            "NaN" => TokenKind::NumericLiteral(Numeric::Rational(f64::NAN)),
             slice => {
                 if let Ok(keyword) = FromStr::from_str(slice) {
                     TokenKind::Keyword(keyword)

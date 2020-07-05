@@ -69,7 +69,7 @@ where
                     None
                 }
             },
-            Some(v) => v.map(Ok)
+            Some(v) => v.map(Ok),
         }
     }
 
