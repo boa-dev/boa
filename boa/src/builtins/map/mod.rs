@@ -295,7 +295,7 @@ impl Map {
             global,
             prototype,
             true,
-        );
+        )
     }
 
     /// Initialise the `Map` object on the global object.
