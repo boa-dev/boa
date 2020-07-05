@@ -63,7 +63,7 @@ where
         let try_clause =
             Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+        let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind() != &TokenKind::Keyword(Keyword::Catch)
             && next_token.kind() != &TokenKind::Keyword(Keyword::Finally)
@@ -84,17 +84,17 @@ where
             None
         };
 
-        let next_token = cursor.peek();
-        let finally_block = match next_token {
-            Some(token) => match token?.kind() {
+        let next_token = cursor.peek()?;
+        let finally_block = if let Some(token) = next_token {
+            match token.kind() {
                 TokenKind::Keyword(Keyword::Finally) => Some(
                     Finally::new(self.allow_yield, self.allow_await, self.allow_return)
                         .parse(cursor)?,
                 ),
                 _ => None,
-            },
-
-            None => None,
+            }
+        } else {
+            None
         };
 
         Ok(Try::new(try_clause, catch, finally_block))

@@ -103,7 +103,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+        let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
@@ -239,24 +239,22 @@ impl StatementList {
 
         loop {
             cursor.skip_line_terminators();
-            match cursor.peek() {
-                Some(token) => {
-                    if break_nodes.contains(&token?.kind()) {
-                        break;
-                    }
+            if let Some(token) = cursor.peek()? {
+                if break_nodes.contains(token.kind()) {
+                    break;
                 }
-                None => return Err(ParseError::AbruptEnd),
+            } else {
+                return Err(ParseError::AbruptEnd)
             }
 
             let item =
                 StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
 
-            println!("Item: {:?}", item);
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon).is_some() {}
+            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
 
         items.sort_by(Node::hoistable_order);
@@ -276,13 +274,13 @@ where
         let mut items = Vec::new();
 
         loop {
-            match cursor.peek() {
-                Some(Ok(token)) if token.kind() == &TokenKind::LineTerminator => {
+            match cursor.peek()? {
+                Some(token) if token.kind() == &TokenKind::LineTerminator => {
                     // Skip line terminators.
                     cursor.next();
                     continue;
                 }
-                Some(Ok(token))
+                Some(token)
                     if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) =>
                 {
                     if self.break_when_closingbraces {
@@ -290,9 +288,6 @@ where
                     } else {
                         return Err(ParseError::unexpected(token, None));
                     }
-                }
-                Some(Err(e)) => {
-                    return Err(e);
                 }
                 None => {
                     if self.break_when_closingbraces {
@@ -310,7 +305,7 @@ where
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon).is_some() {}
+            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
 
         items.sort_by(Node::hoistable_order);
@@ -360,7 +355,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
-        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+        let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {
             TokenKind::Keyword(Keyword::Function)
@@ -421,7 +416,7 @@ where
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
         // TODO: strict mode.
 
-        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+        let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
         match next_token.kind() {
             TokenKind::Identifier(ref s) => {

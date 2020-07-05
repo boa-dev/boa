@@ -17,10 +17,10 @@ static EXPRESSION: &str = r#"
 fn expression_lexer(c: &mut Criterion) {
     c.bench_function("Expression (Lexer)", move |b| {
         b.iter(|| {
-            let lexer = Lexer::new(black_box(EXPRESSION.as_bytes()));
+            let mut lexer = Lexer::new(black_box(EXPRESSION.as_bytes()));
 
             // Goes through and lexes entire given string.
-            lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
+            while lexer.next().expect("Failed to lex").is_some() {}
         })
     });
 }
@@ -30,11 +30,11 @@ static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
 fn hello_world_lexer(c: &mut Criterion) {
     c.bench_function("Hello World (Lexer)", move |b| {
         b.iter(|| {
-            let lexer = Lexer::new(black_box(HELLO_WORLD.as_bytes()));
+            let mut lexer = Lexer::new(black_box(HELLO_WORLD.as_bytes()));
             // return the value into the blackbox so its not optimized away
             // https://gist.github.com/jasonwilliams/5325da61a794d8211dcab846d466c4fd
             // Goes through and lexes entire given string.
-            lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
+            while lexer.next().expect("Failed to lex").is_some() {}
         })
     });
 }
@@ -54,10 +54,10 @@ for (let a = 10; a < 100; a++) {
 fn for_loop_lexer(c: &mut Criterion) {
     c.bench_function("For loop (Lexer)", move |b| {
         b.iter(|| {
-            let lexer = Lexer::new(black_box(FOR_LOOP.as_bytes()));
+            let mut lexer = Lexer::new(black_box(FOR_LOOP.as_bytes()));
 
             // Goes through and lexes entire given string.
-            lexer.collect::<Result<Vec<_>, _>>().expect("failed to lex");
+            while lexer.next().expect("Failed to lex").is_some() {}
         })
     });
 }

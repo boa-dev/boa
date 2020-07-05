@@ -21,15 +21,9 @@ impl<R> Tokenizer<R> for SingleLineComment {
         R: Read,
     {
         // Skip either to the end of the line or to the end of the input
-        while let Some(ch) = cursor.next() {
-            match ch {
-                Err(e) => {
-                    return Err(Error::IO(e));
-                }
-                Ok('\n') => {
-                    break;
-                }
-                _ => {}
+        while let Some(ch) = cursor.next()? {
+            if ch == '\n' {
+                break;
             }
         }
         Ok(Token::new(
@@ -56,17 +50,9 @@ impl<R> Tokenizer<R> for BlockComment {
         R: Read,
     {
         loop {
-            if let Some(ch) = cursor.next() {
-                match ch {
-                    Err(e) => {
-                        return Err(Error::IO(e));
-                    }
-                    Ok('*') => {
-                        if cursor.next_is('/')? {
-                            break;
-                        }
-                    }
-                    _ => {}
+            if let Some(ch) = cursor.next()? {
+                if ch == '*' && cursor.next_is('/')? {
+                    break;
                 }
             } else {
                 return Err(Error::syntax("unterminated multiline comment"));

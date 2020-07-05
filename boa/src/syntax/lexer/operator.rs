@@ -8,25 +8,21 @@ use std::io::Read;
 /// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
 macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr) => ({
-        match $cursor.peek() {
-            None | Some(Err(_)) => {
-                Err(Error::syntax("could not preview next value"))
-            }
-            Some(Ok('=')) => {
+        match $cursor.peek()? {
+            None => Err(Error::syntax("Abrupt end: could not preview next value as part of operator")),
+            Some('=') => {
                 $cursor.next();
                 $cursor.next_column();
                 $assign_op
             }
-            Some(Ok(_)) => $op,
+            Some(_) => $op,
         }
     });
     ($cursor:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
         // let punc = $cursor.peek().ok_or_else(|| Error::syntax("could not preview next value"))?;
-        match $cursor.peek() {
-            None | Some(Err(_)) => {
-                Err(Error::syntax("could not preview next value"))
-            }
-            Some(Ok('=')) => {
+        match $cursor.peek()? {
+            None => Err(Error::syntax("Abrupt end: could not preview next value as part of operator")),
+            Some('=') => {
                 $cursor.next();
                 $cursor.next_column();
                 $assign_op
@@ -36,7 +32,6 @@ macro_rules! vop {
                 $cursor.next_column();
                 $block
             })+,
-
             _ => $op,
         }
     });
@@ -61,9 +56,9 @@ macro_rules! op {
         ))
     });
     ($cursor:ident, $start_pos:expr, $assign_op:expr, $op:expr, {$($case:pat => $block:expr),+}) => ({
-        let punc: Result<Punctuator, Error> = vop!($cursor, $assign_op, $op, {$($case => $block),+});
+        let punc: Punctuator = vop!($cursor, $assign_op, $op, {$($case => $block),+})?;
         Ok(Token::new(
-            punc?.into(),
+            punc.into(),
             Span::new($start_pos, $cursor.pos()),
         ))
     });
@@ -98,13 +93,13 @@ impl<R> Tokenizer<R> for Operator {
     {
         match self.init {
             '*' => op!(cursor, start_pos, Ok(Punctuator::AssignMul), Ok(Punctuator::Mul), {
-                Some(Ok('*')) => vop!(cursor, Ok(Punctuator::AssignPow), Ok(Punctuator::Exp))
+                Some('*') => vop!(cursor, Ok(Punctuator::AssignPow), Ok(Punctuator::Exp))
             }),
             '+' => op!(cursor, start_pos, Ok(Punctuator::AssignAdd), Ok(Punctuator::Add), {
-                Some(Ok('+')) => Ok(Punctuator::Inc)
+                Some('+') => Ok(Punctuator::Inc)
             }),
             '-' => op!(cursor, start_pos, Ok(Punctuator::AssignSub), Ok(Punctuator::Sub), {
-                Some(Ok('-')) => {
+                Some('-') => {
                     Ok(Punctuator::Dec)
                 }
             }),
@@ -115,10 +110,10 @@ impl<R> Tokenizer<R> for Operator {
                 Ok(Punctuator::Mod)
             ),
             '|' => op!(cursor, start_pos, Ok(Punctuator::AssignOr), Ok(Punctuator::Or), {
-                Some(Ok('|')) => Ok(Punctuator::BoolOr)
+                Some('|') => Ok(Punctuator::BoolOr)
             }),
             '&' => op!(cursor, start_pos, Ok(Punctuator::AssignAnd), Ok(Punctuator::And), {
-                Some(Ok('&')) => Ok(Punctuator::BoolAnd)
+                Some('&') => Ok(Punctuator::BoolAnd)
             }),
             '^' => op!(
                 cursor,
@@ -131,17 +126,17 @@ impl<R> Tokenizer<R> for Operator {
             } else {
                 Ok(Punctuator::Eq)
             }, Ok(Punctuator::Assign), {
-                Some(Ok('>')) => {
+                Some('>') => {
                     Ok(Punctuator::Arrow)
                 }
             }),
             '<' => op!(cursor, start_pos, Ok(Punctuator::LessThanOrEq), Ok(Punctuator::LessThan), {
-                Some(Ok('<')) => vop!(cursor, Ok(Punctuator::AssignLeftSh), Ok(Punctuator::LeftSh))
+                Some('<') => vop!(cursor, Ok(Punctuator::AssignLeftSh), Ok(Punctuator::LeftSh))
             }),
             '>' => {
                 op!(cursor, start_pos, Ok(Punctuator::GreaterThanOrEq), Ok(Punctuator::GreaterThan), {
-                    Some(Ok('>')) => vop!(cursor, Ok(Punctuator::AssignRightSh), Ok(Punctuator::RightSh), {
-                        Some(Ok('>')) => vop!(cursor, Ok(Punctuator::AssignURightSh), Ok(Punctuator::URightSh))
+                    Some('>') => vop!(cursor, Ok(Punctuator::AssignRightSh), Ok(Punctuator::RightSh), {
+                        Some('>') => vop!(cursor, Ok(Punctuator::AssignURightSh), Ok(Punctuator::URightSh))
                     })
                 })
             }

@@ -63,7 +63,7 @@ where
         let mut args = Vec::new();
         loop {
             cursor.skip_line_terminators();
-            let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+            let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
             match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => {
@@ -77,7 +77,7 @@ where
                         return Err(ParseError::unexpected(next_token.clone(), None));
                     }
 
-                    if cursor.next_if(Punctuator::CloseParen).is_some() {
+                    if cursor.next_if(Punctuator::CloseParen)?.is_some() {
                         break;
                     }
                 }
@@ -96,7 +96,7 @@ where
                 }
             }
 
-            if cursor.next_if(Punctuator::Spread).is_some() {
+            if cursor.next_if(Punctuator::Spread)?.is_some() {
                 args.push(
                     Spread::new(
                         AssignmentExpression::new(true, self.allow_yield, self.allow_await)

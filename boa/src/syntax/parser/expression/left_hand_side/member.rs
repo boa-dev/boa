@@ -60,7 +60,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
-        let mut lhs = if cursor.peek().ok_or(ParseError::AbruptEnd)??.kind()
+        let mut lhs = if cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Keyword(Keyword::New)
         {
             let _ = cursor.next().expect("new keyword disappeared");
@@ -72,13 +72,13 @@ where
         } else {
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
-        while let Some(tok) = cursor.peek() {
-            let token = tok?.clone();
+        while let Some(tok) = cursor.peek()? {
+            let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    cursor.next().ok_or(ParseError::AbruptEnd)??; // We move the parser forward.
+                    cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
 
-                    match cursor.next().ok_or(ParseError::AbruptEnd)??.kind() {
+                    match cursor.next()?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into()
                         }
@@ -95,7 +95,7 @@ where
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;

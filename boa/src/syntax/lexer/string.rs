@@ -44,12 +44,12 @@ impl<R> Tokenizer<R> for StringLiteral {
         let mut buf = String::new();
         loop {
             let next_chr_start = cursor.pos();
-            let next_chr = cursor.next().ok_or_else(|| {
+            let next_chr = cursor.next()?.ok_or_else(|| {
                 Error::from(io::Error::new(
                     ErrorKind::UnexpectedEof,
                     "unterminated string literal",
                 ))
-            })??;
+            })?;
 
             match next_chr {
                 '\'' if self.terminator == StringTerminator::SingleQuote => {
@@ -59,12 +59,12 @@ impl<R> Tokenizer<R> for StringLiteral {
                     break;
                 }
                 '\\' => {
-                    let escape = cursor.next().ok_or_else(|| {
+                    let escape = cursor.next()?.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
                             "unterminated escape sequence in string literal",
                         ))
-                    })??;
+                    })?;
                     if escape != '\n' {
                         let escaped_ch = match escape {
                             'n' => '\n',
@@ -77,12 +77,12 @@ impl<R> Tokenizer<R> for StringLiteral {
                                 // TODO: optimize by getting just bytes
                                 let mut nums = String::with_capacity(2);
                                 for _ in 0_u8..2 {
-                                    let next = cursor.next().ok_or_else(|| {
+                                    let next = cursor.next()?.ok_or_else(|| {
                                         Error::from(io::Error::new(
                                             ErrorKind::UnexpectedEof,
                                             "unterminated escape sequence in string literal",
                                         ))
-                                    })??;
+                                    })?;
                                     nums.push(next);
                                 }
                                 let as_num = match u64::from_str_radix(&nums, 16) {

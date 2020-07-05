@@ -54,35 +54,26 @@ where
 
     /// Peeks the next character.
     #[inline]
-    pub(super) fn peek(&mut self) -> Option<Result<char, Error>> {
+    pub(super) fn peek(&mut self) -> Result<Option<char>, Error> {
         let iter = &mut self.iter;
-
-        match self.peeked {
-            None => match iter.next() {
-                Some(Err(e)) => Some(Err(e)),
-                Some(Ok(c)) => {
-                    self.peeked = Some(Some(c));
-                    Some(Ok(c))
-                }
-                None => {
-                    self.peeked = Some(None);
-                    None
-                }
-            },
-            Some(v) => v.map(Ok),
+        if let Some(v) = self.peeked {
+            Ok(v)
+        } else {
+            let val = iter.next().transpose()?;
+            self.peeked = Some(val);
+            Ok(val)
         }
     }
 
     /// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented
     #[inline]
     pub(super) fn next_is(&mut self, peek: char) -> io::Result<bool> {
-        Ok(match self.peek() {
-            None => false,
-            Some(Ok(next)) if next == peek => {
+        Ok(match self.peek()? {
+            Some(next) if next == peek => {
                 let _ = self.peeked.take();
                 true
             }
-            _ => false,
+            None | _ => false,
         })
     }
 
@@ -95,10 +86,10 @@ where
     where
         F: Fn(char) -> bool,
     {
-        Ok(match self.peek() {
-            None => false,
-            Some(Ok(peek)) => pred(peek),
-            Some(Err(e)) => return Err(e),
+        Ok(if let Some(peek) = self.peek()? {
+            pred(peek)
+        } else {
+            false
         })
     }
 
@@ -110,19 +101,13 @@ where
             if self.next_is(stop)? {
                 return Ok(());
             } else {
-                match self.next() {
-                    None => {
-                        return Err(io::Error::new(
-                            ErrorKind::UnexpectedEof,
-                            format!("Unexpected end of file when looking for character {}", stop),
-                        ));
-                    }
-                    Some(Err(e)) => {
-                        return Err(e);
-                    }
-                    Some(Ok(ch)) => {
-                        buf.push(ch);
-                    }
+                if let Some(ch) = self.next()? {
+                    buf.push(ch);
+                } else {
+                    return Err(io::Error::new(
+                        ErrorKind::UnexpectedEof,
+                        format!("Unexpected end of file when looking for character {}", stop),
+                    ));
                 }
             }
         }
@@ -140,17 +125,11 @@ where
             if !self.next_is_pred(pred)? {
                 return Ok(());
             } else {
-                match self.next() {
-                    None => {
-                        // next_is_pred will return false if the next value is None so the None case should already be handled.
-                        unreachable!();
-                    }
-                    Some(Err(e)) => {
-                        return Err(e);
-                    }
-                    Some(Ok(ch)) => {
-                        buf.push(ch);
-                    }
+                if let Some(ch) = self.next()? {
+                    buf.push(ch);
+                } else {
+                    // next_is_pred will return false if the next value is None so the None case should already be handled.
+                    unreachable!();
                 }
             }
         }
@@ -160,23 +139,16 @@ where
     pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
         unimplemented!("Lexer::cursor::fill_bytes {:?}", buf)
     }
-}
-
-impl<R> Iterator for Cursor<R>
-where
-    R: Read,
-{
-    type Item = io::Result<char>;
 
     #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
+    pub(crate) fn next(&mut self) -> Result<Option<char>, Error> {
         let chr = match self.peeked.take() {
             Some(v) => v,
             None => {
                 if let Some(n) = self.iter.next() {
                     match n {
                         Err(e) => {
-                            return Some(Err(e));
+                            return Err(e);
                         }
                         Ok(c) => Some(c),
                     }
@@ -193,7 +165,7 @@ where
             _ => {}
         }
 
-        chr.map(Ok)
+        Ok(chr)
     }
 }
 

@@ -65,15 +65,11 @@ where
 
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        match cursor.peek() {
-            Some(tok) => {
-                if tok?.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                    CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor)
-                } else {
-                    Ok(lhs)
-                }
+        if let Some(tok) = cursor.peek()?{
+            if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                return CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor)
             }
-            _ => Ok(lhs), // TODO: is this correct?
         }
+        Ok(lhs)
     }
 }

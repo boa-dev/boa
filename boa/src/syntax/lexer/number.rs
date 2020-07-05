@@ -68,35 +68,30 @@ where
 {
     // The next part must be SignedInteger.
     // This is optionally a '+' or '-' followed by 1 or more DecimalDigits.
-    match cursor.next() {
-        Some(Ok('+')) => {
+    match cursor.next()? {
+        Some('+') => {
             buf.push('+');
             if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after + symbol"));
             }
         }
-        Some(Ok('-')) => {
+        Some('-') => {
             buf.push('-');
             if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after - symbol"));
             }
         }
-        Some(Ok(c)) if c.is_digit(kind.base()) => {
-            buf.push(c);
-        }
-        Some(Ok(c)) => {
+        Some(c) if c.is_digit(kind.base()) => buf.push(c),
+        Some(c) => {
             return Err(Error::syntax(format!(
                 "When lexing exponential value found unexpected char: '{}'",
                 c
             )));
         }
-        Some(Err(e)) => {
-            return Err(e.into());
-        }
         None => {
-            return Err(Error::syntax("No exponential value found"));
+            return Err(Error::syntax("Abrupt end: No exponential value found"));
         }
     }
 
@@ -137,8 +132,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
         let c = cursor.peek();
 
         if self.init == '0' {
-            if let Some(ch) = c {
-                match ch? {
+            if let Some(ch) = c? {
+                match ch {
                     'x' | 'X' => {
                         // Remove the initial '0' from buffer.
                         cursor.next();
@@ -184,7 +179,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 // Remove the initial '0' from buffer.
                                 buf.pop();
 
-                                buf.push(cursor.next().expect("'0' character vanished")?);
+                                buf.push(cursor.next()?.expect("'0' character vanished"));
 
                                 kind = NumericKind::Integer(8);
                             }
@@ -197,7 +192,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                     "Leading 0's are not allowed in strict mode.",
                                 ));
                             } else {
-                                buf.push(cursor.next().expect("Number digit vanished")?);
+                                buf.push(cursor.next()?.expect("Number digit vanished"));
                             }
                         } // Else indicates that the symbol is a non-number.
                     }
@@ -221,8 +216,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
         // 'n' To indicate a BigIntLiteralSuffix.
         // '.' To indicate a decimal seperator.
         // 'e' | 'E' To indicate an ExponentPart.
-        match cursor.peek() {
-            Some(Ok('n')) => {
+        match cursor.peek()? {
+            Some('n') => {
                 // DecimalBigIntegerLiteral
                 // Lexing finished.
 
@@ -231,7 +226,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                 kind = kind.to_bigint();
             }
-            Some(Ok('.')) => {
+            Some('.') => {
                 if kind.base() == 10 {
                     // Only base 10 numbers can have a decimal seperator.
                     // Number literal lexing finished if a . is found for a number in a different base.
@@ -245,8 +240,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.
-                    match cursor.peek() {
-                        Some(Ok('e')) | Some(Ok('E')) => {
+                    match cursor.peek()? {
+                        Some('e') | Some('E') => {
                             // Consume the ExponentIndicator.
                             cursor.next();
 
@@ -254,24 +249,17 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                             take_signed_integer(&mut buf, cursor, &kind)?;
                         }
-                        Some(Err(e)) => {
-                            return Err(e.into());
-                        }
-                        Some(Ok(_)) | None => {
+                        Some(_) | None => {
                             // Finished lexing.
                         }
                     }
                 }
             }
-            Some(Ok('e')) | Some(Ok('E')) => {
+            Some('e') | Some('E') => {
                 cursor.next(); // Consume the ExponentIndicator.
                 take_signed_integer(exp_str, cursor, &kind)?;
             }
-            Some(Err(e)) => {
-                return Err(e.into());
-            }
-
-            Some(Ok(_)) | None => {
+            Some(_) | None => {
                 // Indicates lexing finished.
             }
         }

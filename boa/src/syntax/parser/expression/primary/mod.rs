@@ -65,7 +65,7 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)??;
+        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),

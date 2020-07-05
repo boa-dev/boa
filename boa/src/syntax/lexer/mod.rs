@@ -102,8 +102,8 @@ impl<R> Lexer<R> {
     where
         R: Read,
     {
-        if let Some(c) = self.cursor.peek() {
-            match c? {
+        if let Some(c) = self.cursor.peek()? {
+            match c {
                 '/' => {
                     self.cursor.next(); // Consume the
                     SingleLineComment.lex(&mut self.cursor, start)
@@ -139,47 +139,23 @@ impl<R> Lexer<R> {
                 }
             }
         } else {
-            Err(Error::syntax("Expecting Token /,*,= or regex"))
+            Err(Error::syntax("Abrupt end: Expecting Token /,*,= or regex"))
         }
     }
-}
 
-/// ECMAScript goal symbols.
-///
-/// <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum InputElement {
-    Div,
-    RegExp,
-    RegExpOrTemplateTail,
-    TemplateTail,
-}
-
-impl Default for InputElement {
-    fn default() -> Self {
-        InputElement::RegExpOrTemplateTail
-        // Decided on InputElementDiv as default for now based on documentation from
-        // <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
-    }
-}
-
-impl<R> Iterator for Lexer<R>
-where
-    R: Read,
-{
-    type Item = Result<Token, Error>;
-
-    fn next(&mut self) -> Option<Self::Item> {
+    pub fn next(&mut self) -> Result<Option<Token>, Error>
+    where
+        R: Read,
+    {
         let (start, next_chr) = loop {
             let start = self.cursor.pos();
-            let next_chr = match self.cursor.next()? {
-                Ok(c) => c,
-                Err(e) => return Some(Err(e.into())),
-            };
-
-            // Ignore whitespace
-            if !Self::is_whitespace(next_chr) {
-                break (start, next_chr);
+            if let Some(next_chr) = self.cursor.next()? {
+                // Ignore whitespace
+                if !Self::is_whitespace(next_chr) {
+                    break (start, next_chr);
+                }
+            } else {
+                return Ok(None);
             }
         };
 
@@ -253,17 +229,32 @@ where
                 );
                 Err(Error::syntax(details))
             }
-        };
+        }?;
 
-        if let Ok(t) = token {
-            if t.kind() == &TokenKind::Comment {
-                // Skip comment
-                self.next()
-            } else {
-                Some(Ok(t))
-            }
+        if token.kind() == &TokenKind::Comment {
+            // Skip comment
+            self.next()
         } else {
-            Some(token)
+            Ok(Some(token))
         }
+    }
+}
+
+/// ECMAScript goal symbols.
+///
+/// <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum InputElement {
+    Div,
+    RegExp,
+    RegExpOrTemplateTail,
+    TemplateTail,
+}
+
+impl Default for InputElement {
+    fn default() -> Self {
+        InputElement::RegExpOrTemplateTail
+        // Decided on InputElementDiv as default for now based on documentation from
+        // <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
     }
 }

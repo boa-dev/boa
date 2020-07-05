@@ -65,11 +65,11 @@ where
         let mut elements = Vec::new();
 
         loop {
-            if cursor.next_if(Punctuator::CloseBlock).is_some() {
+            if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
                 break;
             }
 
-            if cursor.next_if(TokenKind::LineTerminator).is_some() {
+            if cursor.next_if(TokenKind::LineTerminator)?.is_some() {
                 // Skip line terminators.
                 continue;
             }
@@ -77,17 +77,17 @@ where
             elements
                 .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
 
-            if cursor.next_if(Punctuator::CloseBlock).is_some() {
+            if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
                 break;
             }
 
-            if cursor.next_if(TokenKind::LineTerminator).is_some() {
+            if cursor.next_if(TokenKind::LineTerminator)?.is_some() {
                 // Skip line terminators.
                 continue;
             }
 
-            if cursor.next_if(Punctuator::Comma).is_none() {
-                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)??;
+            if cursor.next_if(Punctuator::Comma)?.is_none() {
+                let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![
                         TokenKind::Punctuator(Punctuator::Comma),
@@ -136,21 +136,21 @@ where
     type Output = node::PropertyDefinition;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if cursor.next_if(Punctuator::Spread).is_some() {
+        if cursor.next_if(Punctuator::Spread)?.is_some() {
             let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = cursor.next().ok_or(ParseError::AbruptEnd)??.to_string();
-        if cursor.next_if(Punctuator::Colon).is_some() {
+        let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
+        if cursor.next_if(Punctuator::Colon)?.is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
             return Ok(node::PropertyDefinition::property(prop_name, val));
         }
 
         if cursor
-            .next_if(TokenKind::Punctuator(Punctuator::OpenParen))
+            .next_if(TokenKind::Punctuator(Punctuator::OpenParen))?
             .is_some()
             || ["get", "set"].contains(&prop_name.as_str())
         {
@@ -158,7 +158,7 @@ where
                 .parse(cursor);
         }
 
-        let pos = cursor.peek().ok_or(ParseError::AbruptEnd)??.span().start();
+        let pos = cursor.peek()?.ok_or(ParseError::AbruptEnd)?.span().start();
         Err(ParseError::general("expected property definition", pos))
     }
 }
@@ -201,12 +201,12 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
             idn @ "get" | idn @ "set" => {
-                let prop_name = cursor.next().ok_or(ParseError::AbruptEnd)??.to_string();
+                let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     "property method definition",
                 )?;
-                let first_param = cursor.peek().expect("current token disappeared")?;
+                let first_param = cursor.peek()?.expect("current token disappeared");
                 let params = FormalParameters::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {

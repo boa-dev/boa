@@ -73,7 +73,7 @@ where
 
         cursor.skip_line_terminators();
 
-        let next_token = cursor.peek().ok_or(ParseError::AbruptEnd)??;
+        let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
@@ -116,20 +116,13 @@ where
     R: Read,
 {
     // The previous token is already known to be a CloseParan as this is checked as part of the dowhile parsing.
-    // This means that
+    // This means that a semicolon is always automatically inserted if one isn't present.
 
-    match cursor.peek() {
-        None => {
-            // If a do while statement ends a stream then a semicolon is automatically inserted.
-            cursor.next(); // Consume value.
-            Ok(())
+    if let Some(tk) = cursor.peek()? {
+        if tk.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
+            cursor.next(); // Consume semicolon.
         }
-        Some(Ok(tk)) => {
-            if tk.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                cursor.next(); // Consume semicolon.
-            }
-            Ok(())
-        }
-        Some(Err(e)) => Err(e),
     }
+
+    Ok(())
 }

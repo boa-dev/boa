@@ -28,15 +28,12 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         // Lex RegularExpressionBody.
         loop {
-            match cursor.next() {
+            match cursor.next()? {
                 None => {
                     // Abrupt end.
                     return Err(Error::syntax("Abrupt end, regex not terminated"));
                 }
-                Some(Err(e)) => {
-                    return Err(Error::from(e));
-                }
-                Some(Ok(c)) => {
+                Some(c) => {
                     match c {
                         '/' => break, // RegularExpressionBody finished.
                         '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
@@ -46,28 +43,19 @@ impl<R> Tokenizer<R> for RegexLiteral {
                         '\\' => {
                             // Escape sequence
                             body.push('\\');
-                            match cursor.next() {
-                                None => {
-                                    // Abrupt end of regex.
-                                    return Err(Error::syntax("Abrupt end, regex not terminated"));
-                                }
-                                Some(Err(_)) => {
-                                    return Err(Error::from(io::Error::new(
-                                        ErrorKind::Interrupted,
-                                        "Failed to peek next character",
-                                    )))
-                                }
-                                Some(Ok(sc)) => {
-                                    match sc {
-                                        '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
-                                            // Not allowed in Regex literal.
-                                            return Err(Error::syntax(
-                                                "Encountered new line during regex",
-                                            ));
-                                        }
-                                        ch => body.push(ch),
+                            if let Some(sc) = cursor.next()? {
+                                match sc {
+                                    '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
+                                        // Not allowed in Regex literal.
+                                        return Err(Error::syntax(
+                                            "Encountered new line during regex",
+                                        ));
                                     }
+                                    ch => body.push(ch),
                                 }
+                            } else {
+                                // Abrupt end of regex.
+                                return Err(Error::syntax("Abrupt end, regex not terminated"));
                             }
                         }
                         _ => body.push(c),

@@ -18,7 +18,7 @@ where
     }
 
     assert!(
-        lexer.next().is_none(),
+        lexer.next().unwrap().is_none(),
         "Unexpected extra token lexed at end of input"
     );
 }
@@ -76,10 +76,7 @@ fn check_template_literal_unterminated() {
     let s = "`I'm a template";
     let mut lexer = Lexer::new(s.as_bytes());
 
-    match lexer.next() {
-        Some(Err(Error::IO(_))) => {}
-        _ => panic!("Lexer did not handle unterminated literal with error"),
-    }
+    lexer.next().expect_err("Lexer did not handle unterminated literal with error");
 }
 
 #[test]
@@ -306,19 +303,21 @@ fn check_line_numbers() {
 #[test]
 fn check_decrement_advances_lexer_2_places() {
     // Here we want an example of decrementing an integer
-    let lexer = Lexer::new(&b"let a = b--;"[0..]);
+    let mut lexer = Lexer::new(&b"let a = b--;"[0..]);
 
-    let mut iter = lexer.skip(4);
+    for _ in 0..4 {
+        lexer.next().unwrap();
+    }
 
     assert_eq!(
-        iter.next().unwrap().unwrap().kind(),
+        lexer.next().unwrap().unwrap().kind(),
         &TokenKind::Punctuator(Punctuator::Dec)
     );
     // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
     // and move the curser forward by 2, meaning the next token should be a semicolon
 
     assert_eq!(
-        iter.next().unwrap().unwrap().kind(),
+        lexer.next().unwrap().unwrap().kind(),
         &TokenKind::Punctuator(Punctuator::Semicolon)
     );
 }
@@ -419,7 +418,7 @@ fn hexadecimal_edge_case() {
 #[test]
 fn single_number_without_semicolon() {
     let mut lexer = Lexer::new(&b"1"[0..]);
-    if let Some(Ok(x)) = lexer.next() {
+    if let Some(x) = lexer.next().unwrap() {
         assert_eq!(x.kind(), &TokenKind::numeric_literal(Numeric::Integer(1)));
     } else {
         panic!("Failed to lex 1 without semicolon");
@@ -583,20 +582,20 @@ fn illegal_following_numeric_literal() {
     // Decimal Digit
     let mut lexer = Lexer::new(&b"11.6n3"[0..]);
     assert!(
-        lexer.next().unwrap().err().is_some(),
+        lexer.next().err().is_some(),
         "DecimalDigit following NumericLiteral not rejected as expected"
     );
 
     // Identifier Start
     let mut lexer = Lexer::new(&b"17.4$"[0..]);
     assert!(
-        lexer.next().unwrap().err().is_some(),
+        lexer.next().err().is_some(),
         "IdentifierStart '$' following NumericLiteral not rejected as expected"
     );
 
     let mut lexer = Lexer::new(&b"17.4_"[0..]);
     assert!(
-        lexer.next().unwrap().err().is_some(),
+        lexer.next().err().is_some(),
         "IdentifierStart '_' following NumericLiteral not rejected as expected"
     );
 }
@@ -608,7 +607,7 @@ fn illegal_code_point_following_numeric_literal() {
     // be immediately followed by an IdentifierStart where the IdentifierStart
     let mut lexer = Lexer::new(r#"17.4\u{{2764}}"#.as_bytes());
     assert!(
-        lexer.next().unwrap().err().is_some(),
+        lexer.next().err().is_some(),
         "IdentifierStart \\u{{2764}} following NumericLiteral not rejected as expected"
     );
 }

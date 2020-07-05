@@ -72,7 +72,7 @@ where
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 
-        let init = match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
+        let init = match cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Keyword(Keyword::Var) => Some(
                 VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
                     .parse(cursor)
@@ -87,7 +87,7 @@ where
 
         cursor.expect(Punctuator::Semicolon, "for statement")?;
 
-        let cond = if cursor.next_if(Punctuator::Semicolon).is_some() {
+        let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
             Const::from(true).into()
         } else {
             let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
@@ -95,7 +95,7 @@ where
             step
         };
 
-        let step = if cursor.next_if(Punctuator::CloseParen).is_some() {
+        let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
             None
         } else {
             let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;

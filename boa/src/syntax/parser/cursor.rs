@@ -42,51 +42,34 @@ where
     }
 
     /// Moves the cursor to the next token and returns the token.
-    pub(super) fn next(&mut self) -> Option<Result<Token, ParseError>> {
+    pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
         if let Some(t) = self.peeked.pop_front() {
-            return t.map(Ok);
+            return Ok(t);
         }
 
         // No value has been peeked ahead already so need to go get the next value.
-        if let Some(t) = self.lexer.next() {
-            Some(t.map_err(|e| e.into()))
-        } else {
-            None
-        }
+        Ok(self.lexer.next()?)
     }
 
     /// Peeks the next token without moving the cursor.
-    pub(super) fn peek(&mut self) -> Option<Result<Token, ParseError>> {
+    pub(super) fn peek(&mut self) -> Result<Option<Token>, ParseError> {
         if let Some(v) = self.peeked.front() {
-            if let Some(t) = v {
-                return Some(Ok(t.clone()));
-            } else {
-                return None;
-            }
+            return Ok(v.clone());
         }
 
         // No value has been peeked ahead already so need to go get the next value.
-        match self.next() {
-            Some(Ok(token)) => {
-                self.peeked.push_back(Some(token.clone()));
-                Some(Ok(token))
-            }
-            Some(Err(e)) => Some(Err(e)),
-            None => {
-                self.peeked.push_back(None);
-                None
-            }
-        }
+        let val = self.next()?;
+        self.peeked.push_back(val.clone());
+        Ok(val)
     }
 
     /// Peeks the token after the next token.
     /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip(1) will return B.
-    pub(super) fn peek_skip(&mut self) -> Option<Result<Token, ParseError>> {
+    pub(super) fn peek_skip(&mut self) -> Result<Option<Token>, ParseError> {
         // Add elements to the peeked buffer upto the amount required to skip the given amount ahead.
         while self.peeked.len() < 2 {
-            match self.lexer.next() {
-                Some(Ok(token)) => self.peeked.push_back(Some(token.clone())),
-                Some(Err(e)) => return Some(Err(ParseError::lex(e))),
+            match self.lexer.next()? {
+                Some(token) => self.peeked.push_back(Some(token.clone())),
                 None => self.peeked.push_back(None),
             }
         }
@@ -103,7 +86,7 @@ where
         self.peeked.push_front(ret.clone());
         self.peeked.push_front(temp);
 
-        ret.map(Ok)
+        Ok(ret)
     }
 
     /// Takes the given token and pushes it back onto the parser token queue (at the front so the token will be returned on next .peek()).
@@ -118,7 +101,7 @@ where
     where
         K: Into<TokenKind>,
     {
-        let next_token = self.peek().ok_or(ParseError::AbruptEnd)??;
+        let next_token = self.peek()?.ok_or(ParseError::AbruptEnd)?;
         let kind = kind.into();
 
         if next_token.kind() == &kind {
@@ -135,15 +118,14 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
-        match self.peek() {
-            Some(Ok(tk)) => match tk.kind() {
+        match self.peek()? {
+            Some(tk) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
                 TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     Ok((true, Some(tk)))
                 }
                 _ => Ok((false, Some(tk))),
             },
-            Some(Err(e)) => Err(e),
             None => Ok((true, None)),
         }
     }
@@ -181,43 +163,43 @@ where
     ///
     /// If skip is true then the token after the peek() token is checked instead.
     pub(super) fn peek_expect_no_lineterminator(&mut self, skip: bool) -> Result<(), ParseError> {
-        let token = if skip { self.peek_skip() } else { self.peek() };
+        let token = if skip { self.peek_skip()? } else { self.peek()? };
 
-        match token {
-            Some(Ok(t)) => {
-                if t.kind() == &TokenKind::LineTerminator {
-                    Err(ParseError::unexpected(t, None))
-                } else {
-                    Ok(())
-                }
+        if let Some(t) = token {
+            if t.kind() == &TokenKind::LineTerminator {
+                Err(ParseError::unexpected(t, None))
+            } else {
+                Ok(())
             }
-            Some(Err(e)) => Err(e),
-            None => Err(ParseError::AbruptEnd),
+        } else {
+            Err(ParseError::AbruptEnd)
         }
     }
 
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
     ///
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
-    pub(super) fn next_if<K>(&mut self, kind: K) -> Option<Result<Token, ParseError>>
+    ///
+    /// No next token also returns None.
+    pub(super) fn next_if<K>(&mut self, kind: K) -> Result<Option<Token>, ParseError>
     where
         K: Into<TokenKind>,
     {
-        match self.peek() {
-            Some(Ok(token)) => {
-                if token.kind() == &kind.into() {
-                    self.next()
-                } else {
-                    None
-                }
+        Ok(if let Some(token) = self.peek()? {
+            if token.kind() == &kind.into() {
+                self.next()?
+            } else {
+                None
             }
-            Some(Err(e)) => Some(Err(e)),
-            None => None,
-        }
+        } else {
+            None
+        })
     }
 
     /// Advance the cursor to skip 0, 1 or more line terminators.
-    pub(super) fn skip_line_terminators(&mut self) {
-        while self.next_if(TokenKind::LineTerminator).is_some() {}
+    #[inline]
+    pub(super) fn skip_line_terminators(&mut self) -> Result<(),ParseError>{
+        while self.next_if(TokenKind::LineTerminator)?.is_some() {}
+        Ok(())
     }
 }

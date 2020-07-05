@@ -112,12 +112,16 @@ arg_enum! {
 /// Returns a error of type String with a message,
 /// if the source has a syntax error.
 fn lex_source(src: &str) -> Result<Vec<Token>, String> {
-    let lexer = Lexer::new(src.as_bytes());
+    let mut lexer = Lexer::new(src.as_bytes());
 
     // Goes through and lexes entire given string.
-    lexer
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| format!("Lexing Error: {}", e))
+    let mut res = Vec::new();
+
+    while let Some(tk) = lexer.next().expect("Failed to lex") {
+        res.push(tk);
+    }
+
+    Ok(res)
 }
 
 /// Parses the the token stream into a ast and returns it.

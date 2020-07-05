@@ -58,9 +58,9 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
-        let tok = cursor.peek().ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
-        match tok?.kind() {
+        match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false).parse(cursor)
             }

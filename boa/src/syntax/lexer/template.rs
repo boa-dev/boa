@@ -23,16 +23,15 @@ impl<R> Tokenizer<R> for TemplateLiteral {
     {
         let mut buf = String::new();
         loop {
-            match cursor.next() {
+            match cursor.next()? {
                 None => {
                     return Err(Error::from(io::Error::new(
                         ErrorKind::UnexpectedEof,
                         "Unterminated template literal",
                     )));
                 }
-                Some(Err(e)) => return Err(Error::from(e)),
-                Some(Ok('`')) => break, // Template literal finished.
-                Some(Ok(next_ch)) => buf.push(next_ch), // TODO when there is an expression inside the literal
+                Some('`') => break, // Template literal finished.
+                Some(next_ch) => buf.push(next_ch), // TODO when there is an expression inside the literal
             }
         }
 

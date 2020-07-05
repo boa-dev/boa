@@ -83,14 +83,14 @@ where
         cursor.set_goal(InputElement::Div);
 
         // Arrow function
-        match cursor.peek().ok_or(ParseError::AbruptEnd)??.kind() {
+        match cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
                 if cursor.peek_expect_no_lineterminator(true).is_ok() {
-                    if let Some(tok) = cursor.peek_skip() {
-                        if tok?.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
+                    if let Some(tok) = cursor.peek_skip()? {
+                        if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                             return ArrowFunction::new(
                                 self.allow_in,
                                 self.allow_yield,
@@ -122,7 +122,7 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek().transpose()? {
+        if let Some(tok) = cursor.peek()? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next(); // Consume the token.

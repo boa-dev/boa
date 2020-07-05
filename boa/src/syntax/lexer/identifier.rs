@@ -33,13 +33,12 @@ impl<R> Tokenizer<R> for Identifier {
     {
         let mut buf = self.init.to_string();
 
-        while let Some(c) = cursor.peek() {
-            let c = c?;
+        while let Some(c) = cursor.peek()? {
             if c.is_alphabetic() || c.is_digit(10) || c == '_' {
-                let ch = cursor
-                    .next()
-                    .expect("Character in identifier has vanished")?;
-                buf.push(ch);
+                cursor
+                    .next()?
+                    .expect("Character in identifier has vanished");
+                buf.push(c);
             } else {
                 break;
             }
