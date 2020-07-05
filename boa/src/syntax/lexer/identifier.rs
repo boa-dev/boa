@@ -1,6 +1,8 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{Position, Span};
-use crate::syntax::lexer::{Token, TokenKind};
+use crate::syntax::{
+    ast::{Position, Span},
+    lexer::{Token, TokenKind},
+};
 use std::io::Read;
 use std::str::FromStr;
 
@@ -10,8 +12,8 @@ use std::str::FromStr;
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]:
-/// [mdn]:
+/// [spec]: https://tc39.es/ecma262/#prod-Identifier
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Identifier {
     init: char,
@@ -31,24 +33,16 @@ impl<R> Tokenizer<R> for Identifier {
     {
         let mut buf = self.init.to_string();
 
-        loop {
-            match cursor.peek() {
-                None => {
-                    break;
-                }
-                Some(Ok(c)) => {
-                    if c.is_alphabetic() || c.is_digit(10) || c == '_' {
-                        let ch = cursor.next().unwrap()?;
-                        buf.push(ch);
-                    } else {
-                        break;
-                    }
-                }
-                Some(Err(_e)) => {
-                    // TODO handle error.
-                }
+        while let Some(c) = cursor.peek() {
+            let c = c?;
+            if c.is_alphabetic() || c.is_digit(10) || c == '_' {
+                let ch = cursor.next().unwrap()?;
+                buf.push(ch);
+            } else {
+                break;
             }
         }
+
         let tk = match buf.as_str() {
             "true" => TokenKind::BooleanLiteral(true),
             "false" => TokenKind::BooleanLiteral(false),

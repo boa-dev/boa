@@ -177,7 +177,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             // LegacyOctalIntegerLiteral
                             if self.strict_mode {
                                 // LegacyOctalIntegerLiteral is forbidden with strict mode true.
-                                return Err(Error::strict(
+                                return Err(Error::syntax(
                                     "Implicit octal literals are not allowed in strict mode.",
                                 ));
                             } else {
@@ -193,7 +193,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             // so therefore this must be a number with an unneeded leading 0. This is
                             // forbidden in strict mode.
                             if self.strict_mode {
-                                return Err(Error::strict(
+                                return Err(Error::syntax(
                                     "Leading 0's are not allowed in strict mode.",
                                 ));
                             } else {
