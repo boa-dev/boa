@@ -129,7 +129,7 @@ where
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::For) => {
-                ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
+                ForStatement::new(self.allow_yield, self.allow_await, self.allow_return, label)
                     .parse(cursor)
                     .map(Node::from)
             }

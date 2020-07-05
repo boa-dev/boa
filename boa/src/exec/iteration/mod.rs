@@ -34,8 +34,17 @@ impl Executable for ForLoop {
             let result = self.body().run(interpreter)?;
 
             match interpreter.executor().get_current_state() {
-                InterpreterState::Break(_label) => {
-                    // TODO break to label.
+                InterpreterState::Break(label) => {
+                    // If a label is set we want to break the current block and still keep state as Break if the label is a block above
+                    if let Some(stmt_label) = &self.label {
+                        if let Some(brk_label) = label {
+                            // We have a label, but not for the current statement
+                            // break without resetting to executing
+                            if stmt_label != brk_label {
+                                break;
+                            }
+                        }
+                    }
 
                     // Loops 'consume' breaks.
                     interpreter
