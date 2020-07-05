@@ -25,7 +25,10 @@ use crate::{
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use std::fmt::{Debug, Display, Error, Formatter};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display, Error, Formatter},
+};
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::builtins::value::same_value;
@@ -67,6 +70,7 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize, Clone)]
 pub enum ObjectData {
     Array,
+    Map(HashMap<Value, Value>),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -85,6 +89,7 @@ impl Display for ObjectData {
             match self {
                 Self::Function(_) => "Function",
                 Self::Array => "Array",
+                Self::Map(_) => "Map",
                 Self::String(_) => "String",
                 Self::Symbol(_) => "Symbol",
                 Self::Error => "Error",
@@ -247,6 +252,28 @@ impl Object {
     pub fn as_array(&self) -> Option<()> {
         match self.data {
             ObjectData::Array => Some(()),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is a `Map` object.pub
+    #[inline]
+    pub fn is_map(&self) -> bool {
+        matches!(self.data, ObjectData::Map(_))
+    }
+
+    #[inline]
+    pub fn as_map(&self) -> Option<HashMap<Value, Value>> {
+        match self.data {
+            ObjectData::Map(ref map) => Some(map.clone()),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_map_ref(&self) -> Option<&HashMap<Value, Value>> {
+        match self.data {
+            ObjectData::Map(ref map) => Some(map),
             _ => None,
         }
     }
