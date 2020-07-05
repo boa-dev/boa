@@ -122,8 +122,8 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek() {
-            match tok?.kind() {
+        if let Some(tok) = cursor.peek().transpose()? {
+            match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next(); // Consume the token.
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
