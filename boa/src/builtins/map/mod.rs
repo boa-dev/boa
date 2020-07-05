@@ -1,7 +1,7 @@
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{InternalState, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{ResultValue, Value},
     },
@@ -308,5 +308,3 @@ impl Map {
         (Self::NAME, Self::create(global))
     }
 }
-
-impl InternalState for HashMap<Value, Value> {}
