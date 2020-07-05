@@ -44,8 +44,7 @@ where
     /// Moves the cursor to the next token and returns the token.
     pub(super) fn next(&mut self) -> Option<Result<Token, ParseError>> {
         if let Some(t) = self.peeked.pop_front() {
-            #[allow(clippy::redundant_closure)] // This closure is miss-reported as redundant.
-            return t.map(|v| Ok(v));
+            return t.map(Ok);
         }
 
         // No value has been peeked ahead already so need to go get the next value.
