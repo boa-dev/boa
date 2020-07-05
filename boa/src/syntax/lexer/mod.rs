@@ -143,6 +143,7 @@ impl<R> Lexer<R> {
         }
     }
 
+    #[allow(clippy::should_implement_trait)] // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
     pub fn next(&mut self) -> Result<Option<Token>, Error>
     where
         R: Read,

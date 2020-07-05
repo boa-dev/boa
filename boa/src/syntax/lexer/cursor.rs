@@ -73,7 +73,7 @@ where
                 let _ = self.peeked.take();
                 true
             }
-            None | _ => false,
+            _ => false,
         })
     }
 
@@ -100,15 +100,13 @@ where
         loop {
             if self.next_is(stop)? {
                 return Ok(());
+            } else if let Some(ch) = self.next()? {
+                buf.push(ch);
             } else {
-                if let Some(ch) = self.next()? {
-                    buf.push(ch);
-                } else {
-                    return Err(io::Error::new(
-                        ErrorKind::UnexpectedEof,
-                        format!("Unexpected end of file when looking for character {}", stop),
-                    ));
-                }
+                return Err(io::Error::new(
+                    ErrorKind::UnexpectedEof,
+                    format!("Unexpected end of file when looking for character {}", stop),
+                ));
             }
         }
     }
@@ -124,13 +122,11 @@ where
         loop {
             if !self.next_is_pred(pred)? {
                 return Ok(());
+            } else if let Some(ch) = self.next()? {
+                buf.push(ch);
             } else {
-                if let Some(ch) = self.next()? {
-                    buf.push(ch);
-                } else {
-                    // next_is_pred will return false if the next value is None so the None case should already be handled.
-                    unreachable!();
-                }
+                // next_is_pred will return false if the next value is None so the None case should already be handled.
+                unreachable!();
             }
         }
     }

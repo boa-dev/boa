@@ -414,15 +414,15 @@ where
 
         match next_token.kind() {
             TokenKind::Identifier(ref s) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("Identifier token vanished"); // Consume the token.
                 Ok(s.clone())
             }
             TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
-                cursor.next();
+                cursor.next()?.expect("Yield keyword vanished");
                 Ok(k.as_str().into())
             }
             TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => {
-                cursor.next();
+                cursor.next()?.expect("Await keyword vanished");
                 Ok(k.as_str().into())
             }
             _ => Err(ParseError::expected(

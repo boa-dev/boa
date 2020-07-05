@@ -255,7 +255,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
             Some('e') | Some('E') => {
                 kind = NumericKind::Rational;
-                cursor.next(); // Consume the ExponentIndicator.
+                cursor.next()?.expect("e or E character vanished"); // Consume the ExponentIndicator.
                 buf.push('E');
                 take_signed_integer(&mut buf, cursor, &kind)?;
             }
@@ -275,6 +275,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
             NumericKind::Rational /* base: 10 */ => {
                 let val = f64::from_str(&buf).expect("Failed to parse float after checks");
                 let int_val = val as i32;
+
+                // The truncated float should be identically to the non-truncated float for the conversion to be loss-less, 
+                // any other different and the number must be stored as a rational.
+                #[allow(clippy::float_cmp)]
                 if (int_val as f64) == val {
                     // For performance reasons we attempt to store values as integers if possible.
                     Numeric::Integer(int_val)

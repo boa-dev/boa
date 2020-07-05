@@ -62,17 +62,17 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
-        cursor.skip_line_terminators();
+        cursor.skip_line_terminators()?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
-        cursor.skip_line_terminators();
+        cursor.skip_line_terminators()?;
 
         let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.skip_line_terminators();
+        cursor.skip_line_terminators()?;
 
         cursor.expect(Punctuator::CloseParen, "switch statement")?;
 
-        cursor.skip_line_terminators();
+        cursor.skip_line_terminators()?;
 
         let (cases, default) =
             CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
@@ -120,24 +120,24 @@ where
         let mut cases = Vec::<node::Case>::new();
         let mut default: Option<Node> = None;
 
-        cursor.skip_line_terminators();
+        cursor.skip_line_terminators()?;
         cursor.expect(Punctuator::OpenBlock, "switch start case block")?;
 
         loop {
-            cursor.skip_line_terminators();
+            cursor.skip_line_terminators()?;
             match cursor.expect(Keyword::Case, "switch case: block") {
                 Ok(_) => {
-                    cursor.skip_line_terminators();
+                    cursor.skip_line_terminators()?;
 
                     // Case statement.
                     let cond =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-                    cursor.skip_line_terminators();
+                    cursor.skip_line_terminators()?;
 
                     cursor.expect(Punctuator::Colon, "switch case block start")?;
 
-                    cursor.skip_line_terminators();
+                    cursor.skip_line_terminators()?;
 
                     let statement_list = StatementList::new(
                         self.allow_yield,
@@ -172,7 +172,7 @@ where
 
                     cursor.expect(Punctuator::Colon, "switch default case block start")?;
 
-                    cursor.skip_line_terminators();
+                    cursor.skip_line_terminators()?;
 
                     let statement_list = StatementList::new(
                         self.allow_yield,
