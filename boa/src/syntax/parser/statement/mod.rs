@@ -14,6 +14,7 @@ mod declaration;
 mod expression;
 mod if_stm;
 mod iteration;
+mod labelled_stm;
 mod return_stm;
 mod switch;
 mod throw;
@@ -170,6 +171,9 @@ where
                     .parse(cursor)
                     .map(Node::from)
             }
+            // TokenKind::Identifier(name) => LabelIdentifier::new(self.allow_yield, self.allow_await)
+            //     .parse(cursor)
+            //     .map(Node::from),
             // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
             _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
         }
@@ -367,7 +371,7 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
-type LabelIdentifier = BindingIdentifier;
+pub(super) type LabelIdentifier = BindingIdentifier;
 
 /// Binding identifier parsing.
 ///
