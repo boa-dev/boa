@@ -210,8 +210,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
         cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
-        let exp_str = &mut String::new();
-
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
         // '.' To indicate a decimal seperator.
@@ -256,8 +254,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 }
             }
             Some('e') | Some('E') => {
+                kind = NumericKind::Rational;
                 cursor.next(); // Consume the ExponentIndicator.
-                take_signed_integer(exp_str, cursor, &kind)?;
+                buf.push('E');
+                take_signed_integer(&mut buf, cursor, &kind)?;
             }
             Some(_) | None => {
                 // Indicates lexing finished.
@@ -272,32 +272,42 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     BigInt::from_string_radix(&buf, base as u32).expect("Could not convert to BigInt")
                     )
             }
-            NumericKind::Rational /* base: 10 */ => Numeric::Rational(f64::from_str(&buf).expect("Failed to parse float after checks")),
+            NumericKind::Rational /* base: 10 */ => {
+                let val = f64::from_str(&buf).expect("Failed to parse float after checks");
+                let int_val = val as i32;
+                if (int_val as f64) == val {
+                    Numeric::Integer(int_val)
+                } else {
+                    Numeric::Rational(val)
+                }
+            },
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
-                    if exp_str.is_empty() {
-                        Numeric::Integer(num)
-                    } else {
-                        let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
+                    Numeric::Integer(num)
 
-                        if n < 0 { // A negative exponent is expected to produce a decimal value.
-                            Numeric::Rational(
-                                (num as f64) * f64::powi(10.0, n)
-                            )
-                        } else if let Some(exp) = i32::checked_pow(10, n as u32) {
-                               if let Some(val) = i32::checked_mul(num, exp) {
-                                   Numeric::Integer(val)
-                               } else {
-                                    Numeric::Rational(
-                                        (num as f64) * (exp as f64)
-                                    )
-                               }
-                        } else {
-                            Numeric::Rational(
-                                (num as f64) * f64::powi(10.0, n)
-                            )
-                        }
-                    }
+                    // if exp_str.is_empty() {
+                        
+                    // } else {
+                    //     let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
+
+                    //     if n < 0 { // A negative exponent is expected to produce a decimal value.
+                    //         Numeric::Rational(
+                    //             (num as f64) * f64::powi(10.0, n)
+                    //         )
+                    //     } else if let Some(exp) = i32::checked_pow(10, n as u32) {
+                    //            if let Some(val) = i32::checked_mul(num, exp) {
+                    //                Numeric::Integer(val)
+                    //            } else {
+                    //                 Numeric::Rational(
+                    //                     (num as f64) * (exp as f64)
+                    //                 )
+                    //            }
+                    //     } else {
+                    //         Numeric::Rational(
+                    //             (num as f64) * f64::powi(10.0, n)
+                    //         )
+                    //     }
+                    // }
                 } else {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
@@ -305,14 +315,13 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         let digit = f64::from(c.to_digit(base as u32).expect("Couldn't parse digit after already checking validity"));
                         result = result * b + digit;
                     }
+                    Numeric::Rational(result)
 
-                    if exp_str.is_empty() {
-                        Numeric::Rational(
-                            result
-                        )
-                    } else {
-                        Numeric::Rational( result * f64::powi(10.0, i32::from_str(&exp_str).expect("Couldn't parse number after already checking validity")))
-                    }
+                    // if exp_str.is_empty() {
+                        
+                    // } else {
+                    //     Numeric::Rational( result * f64::powi(10.0, i32::from_str(&exp_str).expect("Couldn't parse number after already checking validity")))
+                    // }
                 }
             }
         };

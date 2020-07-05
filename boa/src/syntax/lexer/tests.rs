@@ -76,7 +76,9 @@ fn check_template_literal_unterminated() {
     let s = "`I'm a template";
     let mut lexer = Lexer::new(s.as_bytes());
 
-    lexer.next().expect_err("Lexer did not handle unterminated literal with error");
+    lexer
+        .next()
+        .expect_err("Lexer did not handle unterminated literal with error");
 }
 
 #[test]
@@ -344,18 +346,18 @@ fn numbers() {
         TokenKind::numeric_literal(52),
         TokenKind::numeric_literal(46),
         TokenKind::numeric_literal(7.89),
-        TokenKind::numeric_literal(42.0),
+        TokenKind::numeric_literal(42),
         TokenKind::numeric_literal(5000),
         TokenKind::numeric_literal(5000),
         TokenKind::numeric_literal(0.005),
         TokenKind::numeric_literal(2),
         TokenKind::numeric_literal(83),
         TokenKind::numeric_literal(999),
-        TokenKind::numeric_literal(10.0),
-        TokenKind::numeric_literal(0.1),
-        TokenKind::numeric_literal(10.0),
         TokenKind::numeric_literal(10),
-        TokenKind::numeric_literal(0.0),
+        TokenKind::numeric_literal(0.1),
+        TokenKind::numeric_literal(10),
+        TokenKind::numeric_literal(10),
+        TokenKind::numeric_literal(0),
         TokenKind::numeric_literal(0.12),
         TokenKind::Punctuator(Punctuator::Sub),
         TokenKind::numeric_literal(32),
@@ -430,7 +432,7 @@ fn number_followed_by_dot() {
     let mut lexer = Lexer::new(&b"1.."[0..]);
 
     let expected = [
-        TokenKind::numeric_literal(1.0),
+        TokenKind::numeric_literal(1),
         TokenKind::Punctuator(Punctuator::Dot),
     ];
 

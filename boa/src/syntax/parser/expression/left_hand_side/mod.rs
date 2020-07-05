@@ -65,9 +65,9 @@ where
 
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek()?{
+        if let Some(tok) = cursor.peek()? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                return CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor)
+                return CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor);
             }
         }
         Ok(lhs)

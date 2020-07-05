@@ -163,7 +163,11 @@ where
     ///
     /// If skip is true then the token after the peek() token is checked instead.
     pub(super) fn peek_expect_no_lineterminator(&mut self, skip: bool) -> Result<(), ParseError> {
-        let token = if skip { self.peek_skip()? } else { self.peek()? };
+        let token = if skip {
+            self.peek_skip()?
+        } else {
+            self.peek()?
+        };
 
         if let Some(t) = token {
             if t.kind() == &TokenKind::LineTerminator {
@@ -198,7 +202,7 @@ where
 
     /// Advance the cursor to skip 0, 1 or more line terminators.
     #[inline]
-    pub(super) fn skip_line_terminators(&mut self) -> Result<(),ParseError>{
+    pub(super) fn skip_line_terminators(&mut self) -> Result<(), ParseError> {
         while self.next_if(TokenKind::LineTerminator)?.is_some() {}
         Ok(())
     }

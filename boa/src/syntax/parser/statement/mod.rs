@@ -244,7 +244,7 @@ impl StatementList {
                     break;
                 }
             } else {
-                return Err(ParseError::AbruptEnd)
+                return Err(ParseError::AbruptEnd);
             }
 
             let item =
@@ -280,9 +280,7 @@ where
                     cursor.next();
                     continue;
                 }
-                Some(token)
-                    if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) =>
-                {
+                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     if self.break_when_closingbraces {
                         break;
                     } else {
