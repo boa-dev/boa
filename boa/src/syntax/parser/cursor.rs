@@ -91,14 +91,19 @@ where
             }
         }
 
-        let temp = self.peeked.pop_front().unwrap();
-        let ret = self.peeked.pop_front().unwrap();
+        let temp = self
+            .peeked
+            .pop_front()
+            .expect("Front peeked value has vanished");
+        let ret = self
+            .peeked
+            .pop_front()
+            .expect("Back peeked value has vanished");
 
         self.peeked.push_front(ret.clone());
         self.peeked.push_front(temp);
 
-        #[allow(clippy::redundant_closure)] // This closure is miss-reported as redundant.
-        ret.map(|token| Ok(token))
+        ret.map(Ok)
     }
 
     /// Takes the given token and pushes it back onto the parser token queue (at the front so the token will be returned on next .peek()).
