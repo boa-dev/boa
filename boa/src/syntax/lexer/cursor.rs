@@ -193,8 +193,7 @@ where
             _ => {}
         }
 
-        #[allow(clippy::redundant_closure)] // This closure is miss-reported as redundant.
-        chr.map(|v| Ok(v))
+        chr.map(Ok)
     }
 }
 
