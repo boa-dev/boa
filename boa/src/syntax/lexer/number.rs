@@ -352,7 +352,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         result = result * b + digit;
                     }
 
-                    if exp_str == "" {
+                    if exp_str.is_empty() {
                         Numeric::Rational(
                             result
                         )
