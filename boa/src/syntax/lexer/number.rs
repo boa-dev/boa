@@ -184,8 +184,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 // Remove the initial '0' from buffer.
                                 buf.pop();
 
-                                let char = cursor.next().unwrap().unwrap();
-                                buf.push(char);
+                                buf.push(cursor.next().expect("'0' character vanished")?);
 
                                 kind = NumericKind::Integer(8);
                             }
@@ -198,8 +197,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                     "Leading 0's are not allowed in strict mode.",
                                 ));
                             } else {
-                                let char = cursor.next().unwrap().unwrap();
-                                buf.push(char);
+                                buf.push(cursor.next().expect("Number digit vanished")?);
                             }
                         } // Else indicates that the symbol is a non-number.
                     }
@@ -234,14 +232,12 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 kind = kind.to_bigint();
             }
             Some(Ok('.')) => {
-                // Consume the .
-
                 if kind.base() == 10 {
                     // Only base 10 numbers can have a decimal seperator.
                     // Number literal lexing finished if a . is found for a number in a different base.
 
                     cursor.next();
-                    buf.push('.');
+                    buf.push('.'); // Consume the .
                     kind = NumericKind::Rational;
 
                     // Consume digits until a non-digit character is encountered or all the characters are consumed.
@@ -289,11 +285,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     )
             }
             NumericKind::Rational /* base: 10 */ => {
-                Numeric::Rational(f64::from_str(&buf).unwrap())
+                match f64::from_str(&buf) {
+                    Ok(val) => Numeric::Rational(val),
+                    Err(e) => return Err(Error::syntax(format!("Unable to parse rational number, reason: {}", e.to_string())))
+                }
             }
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
-                    if exp_str == "" {
+                    if exp_str.is_empty() {
                         Numeric::Integer(num)
                     } else {
                         let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
@@ -320,8 +319,12 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
                     for c in buf.chars() {
-                        let digit = f64::from(c.to_digit(base as u32).unwrap());
-                        result = result * b + digit;
+                        if let Some(val) = c.to_digit(base as u32) {
+                            let digit = f64::from(val);
+                            result = result * b + digit;
+                        } else {
+                            return Err(Error::syntax("Unrecognised numerical digit encountered"));
+                        }
                     }
 
                     if exp_str.is_empty() {

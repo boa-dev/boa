@@ -1,6 +1,5 @@
 use super::{Cursor, Error, Tokenizer};
 use crate::syntax::ast::{Position, Span};
-use crate::syntax::lexer::token::Numeric;
 use crate::syntax::lexer::{Token, TokenKind};
 use std::io::Read;
 use std::str::FromStr;
