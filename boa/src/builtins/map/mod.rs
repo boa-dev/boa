@@ -288,7 +288,7 @@ impl Map {
         make_builtin_fn(Self::has, "has", &prototype, 1);
         make_builtin_fn(Self::for_each, "forEach", &prototype, 1);
 
-        let map = make_constructor_fn(
+        make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_map,
@@ -296,8 +296,6 @@ impl Map {
             prototype,
             true,
         );
-
-        map
     }
 
     /// Initialise the `Map` object on the global object.
