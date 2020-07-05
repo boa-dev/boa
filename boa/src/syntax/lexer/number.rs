@@ -217,7 +217,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
         cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
-        let mut exp_str = String::new();
+        let exp_str = &mut String::new();
 
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
@@ -250,47 +250,29 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.
                     match cursor.peek() {
-                        Some(Ok('n')) => {
-                            // Found BigIntLiteralSuffix after non-integer number
-
-                            // Finish lexing number.
-
-                            // return Err(Error::syntax(
-                            //     "Found BigIntLiteralSuffix after non-integer number",
-                            // ));
-                        }
-                        Some(Ok('.')) => {
-                            // Found second . within decimal number
-                            // Finish lexing number.
-
-                            // return Err(Error::syntax("Found second . within decimal number"));
-                        }
                         Some(Ok('e')) | Some(Ok('E')) => {
                             // Consume the ExponentIndicator.
                             cursor.next();
 
-                            take_signed_integer(&mut exp_str, cursor, &kind)?;
+                            buf.push('E');
+
+                            take_signed_integer(&mut buf, cursor, &kind)?;
                         }
-                        Some(Err(_e)) => {
-                            // todo!();
+                        Some(Err(e)) => {
+                            return Err(e.into());
                         }
                         Some(Ok(_)) | None => {
                             // Finished lexing.
-                            kind = NumericKind::Rational;
                         }
                     }
                 }
             }
             Some(Ok('e')) | Some(Ok('E')) => {
-                // Consume the ExponentIndicator.
-                cursor.next();
-
-                // buf.push('e');
-
-                take_signed_integer(&mut exp_str, cursor, &kind)?;
+                cursor.next(); // Consume the ExponentIndicator.
+                take_signed_integer(exp_str, cursor, &kind)?;
             }
-            Some(Err(_e)) => {
-                // todo!();
+            Some(Err(e)) => {
+                return Err(e.into());
             }
 
             Some(Ok(_)) | None => {
@@ -307,17 +289,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     )
             }
             NumericKind::Rational /* base: 10 */ => {
-                let r = f64::from_str(&buf).map_err(|_| Error::syntax("Could not convert value to f64"))?;
-                if exp_str == "" {
-                    Numeric::Rational(
-                        r
-                    )
-                } else {
-                    let n = f64::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
-                    Numeric::Rational(
-                        r * f64::powf(10.0, n)
-                    )
-                }
+                Numeric::Rational(f64::from_str(&buf).unwrap())
             }
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
