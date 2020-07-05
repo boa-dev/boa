@@ -247,10 +247,11 @@ impl Map {
                         let len = i32::from(&args[0].get_field("length"));
                         for i in 0..len {
                             let val = &args[0].get_field(i.to_string());
-                            let (key, value) =
-                                Self::get_key_value(val).ok_or_else(|| ctx.construct_type_error(
+                            let (key, value) = Self::get_key_value(val).ok_or_else(|| {
+                                ctx.construct_type_error(
                                     "iterable for Map should have array-like objects",
-                                ))?;
+                                )
+                            })?;
                             map.insert(key, value);
                         }
                         map
