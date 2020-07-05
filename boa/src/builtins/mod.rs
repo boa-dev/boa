@@ -9,6 +9,7 @@ pub mod function;
 pub mod global_this;
 pub mod infinity;
 pub mod json;
+pub mod map;
 pub mod math;
 pub mod nan;
 pub mod number;
@@ -28,6 +29,7 @@ pub(crate) use self::{
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
+    map::Map,
     math::Math,
     nan::NaN,
     number::Number,
@@ -49,6 +51,7 @@ pub fn init(global: &Value) {
         BigInt::init,
         Boolean::init,
         Json::init,
+        Map::init,
         Math::init,
         Number::init,
         RegExp::init,
