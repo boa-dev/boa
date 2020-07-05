@@ -43,6 +43,7 @@ use crate::{
     syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
 };
+use labelled_stm::Label;
 
 use std::io::Read;
 
