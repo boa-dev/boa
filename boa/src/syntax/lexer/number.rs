@@ -284,12 +284,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     BigInt::from_string_radix(&buf, base as u32).expect("Could not convert to BigInt")
                     )
             }
-            NumericKind::Rational /* base: 10 */ => {
-                match f64::from_str(&buf) {
-                    Ok(val) => Numeric::Rational(val),
-                    Err(e) => return Err(Error::syntax(format!("Unable to parse rational number, reason: {}", e.to_string())))
-                }
-            }
+            NumericKind::Rational /* base: 10 */ => Numeric::Rational(f64::from_str(&buf).expect("Failed to parse float after checks")),
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
                     if exp_str.is_empty() {
@@ -319,12 +314,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
                     for c in buf.chars() {
-                        if let Some(val) = c.to_digit(base as u32) {
-                            let digit = f64::from(val);
-                            result = result * b + digit;
-                        } else {
-                            return Err(Error::syntax("Unrecognised numerical digit encountered"));
-                        }
+                        let digit = f64::from(c.to_digit(base as u32).expect("Couldn't parse digit after already checking validity"));
+                        result = result * b + digit;
                     }
 
                     if exp_str.is_empty() {
@@ -332,10 +323,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             result
                         )
                     } else {
-                        let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
-                        Numeric::Rational(
-                            result * f64::powi(10.0, n)
-                        )
+                        Numeric::Rational( result * f64::powi(10.0, i32::from_str(&exp_str).expect("Couldn't parse number after already checking validity")))
                     }
                 }
             }
