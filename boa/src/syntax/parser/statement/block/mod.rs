@@ -73,7 +73,7 @@ where
         cursor.expect(Punctuator::OpenBlock, "block")?;
         if let Some(tk) = cursor.peek()? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.next();
+                cursor.next()?.expect("} token vanished");
                 return Ok(node::Block::from(vec![]));
             }
         }

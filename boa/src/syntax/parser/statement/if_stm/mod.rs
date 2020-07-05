@@ -72,7 +72,7 @@ where
 
         let else_stm = match else_tok {
             Some(_) if else_tok.unwrap().kind() == &TokenKind::Keyword(Keyword::Else) => {
-                cursor.next();
+                cursor.next()?.expect("Else token vanished");
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                         .parse(cursor)?,

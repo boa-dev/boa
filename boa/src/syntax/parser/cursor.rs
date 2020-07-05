@@ -105,7 +105,7 @@ where
         let kind = kind.into();
 
         if next_token.kind() == &kind {
-            self.next();
+            self.next()?.expect("Token vanished");
             Ok(next_token)
         } else {
             Err(ParseError::expected(vec![kind], next_token, context))
@@ -142,7 +142,7 @@ where
         match self.peek_semicolon()? {
             (true, Some(tk)) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
-                    self.next(); // Consume the token.
+                    self.next()?.expect("Token vanished"); // Consume the token.
                     Ok(Some(tk))
                 }
                 _ => Ok(Some(tk)),

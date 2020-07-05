@@ -108,13 +108,13 @@ impl<R> Tokenizer<R> for StringLiteral {
 
                                 // Support \u{X..X} (Unicode Codepoint)
                                 if cursor.next_is('{')? {
-                                    cursor.next(); // Consume the '{'.
+                                    cursor.next()?.expect("{ character vanished"); // Consume the '{'.
 
                                     // The biggest code point is 0x10FFFF
                                     let mut code_point = String::with_capacity(6);
                                     cursor.take_until('}', &mut code_point)?;
 
-                                    cursor.next(); // Consume the '}'.
+                                    cursor.next()?.expect("} character vanished"); // Consume the '}'.
 
                                     // We know this is a single unicode codepoint, convert to u32
                                     let as_num =

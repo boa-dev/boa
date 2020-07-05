@@ -70,7 +70,7 @@ where
 
         if let Some(tok) = cursor.peek()? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("? character vanished"); // Consume the token.
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;

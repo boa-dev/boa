@@ -105,11 +105,11 @@ impl<R> Lexer<R> {
         if let Some(c) = self.cursor.peek()? {
             match c {
                 '/' => {
-                    self.cursor.next(); // Consume the
+                    self.cursor.next()?.expect("/ token vanished"); // Consume the '/'
                     SingleLineComment.lex(&mut self.cursor, start)
                 }
                 '*' => {
-                    self.cursor.next();
+                    self.cursor.next()?.expect("* token vanished"); // Consume the '*'
                     BlockComment.lex(&mut self.cursor, start)
                 }
                 ch => {
@@ -119,7 +119,7 @@ impl<R> Lexer<R> {
 
                             if ch == '=' {
                                 // Indicates this is an AssignDiv.
-                                self.cursor.next(); // Consume the '='
+                                self.cursor.next()?.expect("= token vanished"); // Consume the '='
                                 Ok(Token::new(
                                     Punctuator::AssignDiv.into(),
                                     Span::new(start, self.cursor.pos()),

@@ -62,16 +62,16 @@ where
         cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
-            cursor.skip_line_terminators();
+            cursor.skip_line_terminators()?;
             let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
             match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => {
-                    cursor.next(); // Consume the token.
+                    cursor.next()?.expect(") token vanished"); // Consume the token.
                     break;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
-                    cursor.next(); // Consume the token.
+                    cursor.next()?.expect(", token vanished"); // Consume the token.
 
                     if args.is_empty() {
                         return Err(ParseError::unexpected(next_token.clone(), None));
@@ -83,7 +83,7 @@ where
                 }
                 _ => {
                     if !args.is_empty() {
-                        cursor.next(); // Consume the token.
+                        cursor.next()?.expect("Token vanished"); // Consume the token.
                         return Err(ParseError::expected(
                             vec![
                                 TokenKind::Punctuator(Punctuator::Comma),

@@ -60,31 +60,31 @@ where
         let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("Delete keyword vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Delete, self.parse(cursor)?).into())
             }
             TokenKind::Keyword(Keyword::Void) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("Void keyword vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor)?).into())
             }
             TokenKind::Keyword(Keyword::TypeOf) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("TypeOf keyword vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Add) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("+ token vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Plus, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Sub) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("- token vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Minus, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Neg) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("~ token vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Tilde, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Not) => {
-                cursor.next(); // Consume the token.
+                cursor.next()?.expect("! token vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor)?).into())
             }
             _ => UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor),

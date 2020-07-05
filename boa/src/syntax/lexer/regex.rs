@@ -2,7 +2,7 @@ use super::{Cursor, Error, Span, Tokenizer};
 use crate::syntax::ast::Position;
 use crate::syntax::lexer::Token;
 use crate::syntax::lexer::TokenKind;
-use std::io::{self, ErrorKind, Read};
+use std::io::Read;
 
 /// Regex literal lexing.
 ///

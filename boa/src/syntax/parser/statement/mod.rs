@@ -238,7 +238,7 @@ impl StatementList {
         let mut items = Vec::new();
 
         loop {
-            cursor.skip_line_terminators();
+            cursor.skip_line_terminators()?;
             if let Some(token) = cursor.peek()? {
                 if break_nodes.contains(token.kind()) {
                     break;
@@ -274,12 +274,8 @@ where
         let mut items = Vec::new();
 
         loop {
+            cursor.skip_line_terminators()?;
             match cursor.peek()? {
-                Some(token) if token.kind() == &TokenKind::LineTerminator => {
-                    // Skip line terminators.
-                    cursor.next();
-                    continue;
-                }
                 Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     if self.break_when_closingbraces {
                         break;

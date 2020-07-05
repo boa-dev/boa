@@ -136,7 +136,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 match ch {
                     'x' | 'X' => {
                         // Remove the initial '0' from buffer.
-                        cursor.next();
+                        cursor.next()?.expect("x or X character vanished");
                         buf.pop();
 
                         // HexIntegerLiteral
@@ -144,7 +144,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     }
                     'o' | 'O' => {
                         // Remove the initial '0' from buffer.
-                        cursor.next();
+                        cursor.next()?.expect("o or O character vanished");
                         buf.pop();
 
                         // OctalIntegerLiteral
@@ -152,14 +152,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     }
                     'b' | 'B' => {
                         // Remove the initial '0' from buffer.
-                        cursor.next();
+                        cursor.next()?.expect("b or B character vanished");
                         buf.pop();
 
                         // BinaryIntegerLiteral
                         kind = NumericKind::Integer(2);
                     }
                     'n' => {
-                        cursor.next();
+                        cursor.next()?.expect("n character vanished");
 
                         // DecimalBigIntegerLiteral '0n'
                         return Ok(Token::new(
@@ -220,7 +220,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 // Lexing finished.
 
                 // Consume the n
-                cursor.next();
+                cursor.next()?.expect("n character vanished");
 
                 kind = kind.to_bigint();
             }
@@ -229,7 +229,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     // Only base 10 numbers can have a decimal seperator.
                     // Number literal lexing finished if a . is found for a number in a different base.
 
-                    cursor.next();
+                    cursor.next()?.expect(". token vanished");
                     buf.push('.'); // Consume the .
                     kind = NumericKind::Rational;
 
@@ -241,7 +241,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     match cursor.peek()? {
                         Some('e') | Some('E') => {
                             // Consume the ExponentIndicator.
-                            cursor.next();
+                            cursor.next()?.expect("e or E token vanished");
 
                             buf.push('E');
 
@@ -276,6 +276,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 let val = f64::from_str(&buf).expect("Failed to parse float after checks");
                 let int_val = val as i32;
                 if (int_val as f64) == val {
+                    // For performance reasons we attempt to store values as integers if possible.
                     Numeric::Integer(int_val)
                 } else {
                     Numeric::Rational(val)
@@ -284,30 +285,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
                     Numeric::Integer(num)
-
-                    // if exp_str.is_empty() {
-                        
-                    // } else {
-                    //     let n = i32::from_str(&exp_str).map_err(|_| Error::syntax("Could not convert value to f64"))?;
-
-                    //     if n < 0 { // A negative exponent is expected to produce a decimal value.
-                    //         Numeric::Rational(
-                    //             (num as f64) * f64::powi(10.0, n)
-                    //         )
-                    //     } else if let Some(exp) = i32::checked_pow(10, n as u32) {
-                    //            if let Some(val) = i32::checked_mul(num, exp) {
-                    //                Numeric::Integer(val)
-                    //            } else {
-                    //                 Numeric::Rational(
-                    //                     (num as f64) * (exp as f64)
-                    //                 )
-                    //            }
-                    //     } else {
-                    //         Numeric::Rational(
-                    //             (num as f64) * f64::powi(10.0, n)
-                    //         )
-                    //     }
-                    // }
                 } else {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
@@ -316,12 +293,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         result = result * b + digit;
                     }
                     Numeric::Rational(result)
-
-                    // if exp_str.is_empty() {
-                        
-                    // } else {
-                    //     Numeric::Rational( result * f64::powi(10.0, i32::from_str(&exp_str).expect("Couldn't parse number after already checking validity")))
-                    // }
                 }
             }
         };

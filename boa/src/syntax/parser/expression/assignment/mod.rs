@@ -125,11 +125,11 @@ where
         if let Some(tok) = cursor.peek()? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    cursor.next(); // Consume the token.
+                    cursor.next()?.expect("= token vanished"); // Consume the token.
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() => {
-                    cursor.next(); // Consume the token.
+                    cursor.next()?.expect("Token vanished"); // Consume the token.
 
                     let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");
