@@ -117,6 +117,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
                     }
 
                     let mappings = map
+                        .borrow()
                         .iter()
                         .map(|(key, value)| {
                             let key = log_string_from(key, print_internals);

@@ -16,6 +16,7 @@
 use crate::{
     builtins::{
         function::Function,
+        map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
         BigInt,
@@ -23,12 +24,9 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
-use gc::{Finalize, Trace};
+use gc::{Finalize, GcCell, Trace};
 use rustc_hash::FxHashMap;
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display, Error, Formatter},
-};
+use std::fmt::{Debug, Display, Error, Formatter};
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::builtins::value::same_value;
@@ -70,7 +68,7 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize, Clone)]
 pub enum ObjectData {
     Array,
-    Map(HashMap<Value, Value>),
+    Map(GcCell<OrderedMap<Value, Value>>),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -263,15 +261,15 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map(&self) -> Option<HashMap<Value, Value>> {
+    pub fn as_map_clone(&self) -> Option<OrderedMap<Value, Value>> {
         match self.data {
-            ObjectData::Map(ref map) => Some(map.clone()),
+            ObjectData::Map(ref map) => Some(map.borrow().clone()),
             _ => None,
         }
     }
 
     #[inline]
-    pub fn as_map_ref(&self) -> Option<&HashMap<Value, Value>> {
+    pub fn as_map_ref(&self) -> Option<&GcCell<OrderedMap<Value, Value>>> {
         match self.data {
             ObjectData::Map(ref map) => Some(map),
             _ => None,

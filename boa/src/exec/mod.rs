@@ -377,6 +377,7 @@ impl Interpreter {
             // Check if object is a Map
             else if let ObjectData::Map(ref map) = x.deref().borrow().data {
                 let values = map
+                    .borrow()
                     .iter()
                     .map(|(key, value)| {
                         // Construct a new array containing the key-value pair
