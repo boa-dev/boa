@@ -410,12 +410,25 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     Ok(object)
 }
 
-/// Creates a new object from the provided prototype
+
+/// `Object.create( proto, [propertiesObject] )`
 ///
-/// https://tc39.es/ecma262/#sec-object.create
-/// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
+/// Creates a new object from the provided prototype.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-object.create
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
 pub fn create_builtin(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     let __proto__ = args.get(0).cloned().unwrap_or_else(Value::undefined);
+    let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
+
+    if properties != Value::Undefined {
+        unimplemented!("propertiesObject argument of Object.create")
+    }
+
     match __proto__ {
         Value::Object(_) | Value::Null => Ok(Value::new_object_from_prototype(
             __proto__,
@@ -536,7 +549,7 @@ pub fn create(global: &Value) -> Value {
     let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
 
     // static methods of the builtin Object
-    make_builtin_fn(create_builtin, "create", &object, 1);
+    make_builtin_fn(create_builtin, "create", &object, 2);
     make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
     make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
     make_builtin_fn(define_property, "defineProperty", &object, 3);
