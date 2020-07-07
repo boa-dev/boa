@@ -77,10 +77,7 @@ pub(super) struct Operator {
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators &
-///         https://tc39.es/ecma262/#sec-additive-operators &
-///         https://tc39.es/ecma262/#sec-relational-operators &
-///         https://tc39.es/ecma262/#sec-bitwise-shift-operators
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
 impl Operator {
     /// Creates a new operator lexer.
