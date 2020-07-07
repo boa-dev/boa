@@ -63,7 +63,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         debug_assert!(value.is_object() || value.is_function());
 
         let bindings = &mut self.bindings;
-        bindings.update_property(name, Some(value), None, None, Some(strict));
+        bindings.update_property(name, Some(value), false, None, strict);
     }
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {

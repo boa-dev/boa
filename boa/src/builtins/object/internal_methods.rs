@@ -73,7 +73,7 @@ impl Object {
         {
             return true;
         }
-        if desc.configurable.expect("unable to get value") {
+        if desc.configurable {
             self.remove_property(&prop_key.to_string());
             return true;
         }
@@ -184,18 +184,12 @@ impl Object {
         }
 
         // 4
-        if !current.configurable.unwrap_or(false) {
-            if desc.configurable.is_some() && desc.configurable.expect("unable to get prop desc") {
+        if !current.configurable {
+            if desc.configurable {
                 return false;
             }
 
-            if desc.enumerable.is_some()
-                && (desc.enumerable.as_ref().expect("unable to get prop desc")
-                    != current
-                        .enumerable
-                        .as_ref()
-                        .expect("unable to get prop desc"))
-            {
+            if desc.enumerable != current.enumerable {
                 return false;
             }
         }
@@ -205,7 +199,7 @@ impl Object {
             // 6
         } else if current.is_data_descriptor() != desc.is_data_descriptor() {
             // a
-            if !current.configurable.expect("unable to get prop desc") {
+            if !current.configurable {
                 return false;
             }
             // b
@@ -224,9 +218,7 @@ impl Object {
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
             // a
-            if !current.configurable.expect("unable to get prop desc")
-                && !current.writable.expect("unable to get prop desc")
-            {
+            if !current.configurable && !current.writable.expect("unable to get prop desc") {
                 if desc.writable.is_some() && desc.writable.expect("unable to get prop desc") {
                     return false;
                 }
@@ -244,7 +236,7 @@ impl Object {
             }
         // 8
         } else {
-            if !current.configurable.unwrap() {
+            if !current.configurable {
                 if desc.set.is_some()
                     && !same_value(&desc.set.clone().unwrap(), &current.set.clone().unwrap())
                 {

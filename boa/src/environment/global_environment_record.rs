@@ -41,7 +41,7 @@ impl GlobalEnvironmentRecord {
         let existing_prop = global_object.get_property(name);
         match existing_prop {
             Some(prop) => {
-                if prop.value.is_none() || prop.configurable.unwrap_or(false) {
+                if prop.value.is_none() || prop.configurable {
                     return false;
                 }
                 true
@@ -70,23 +70,11 @@ impl GlobalEnvironmentRecord {
         let global_object = &mut self.object_record.bindings;
         let existing_prop = global_object.get_property(&name);
         if let Some(prop) = existing_prop {
-            if prop.value.is_none() || prop.configurable.unwrap_or(false) {
-                global_object.update_property(
-                    name,
-                    Some(value),
-                    Some(true),
-                    Some(true),
-                    Some(deletion),
-                );
+            if prop.value.is_none() || prop.configurable {
+                global_object.update_property(name, Some(value), true, Some(true), deletion);
             }
         } else {
-            global_object.update_property(
-                name,
-                Some(value),
-                Some(true),
-                Some(true),
-                Some(deletion),
-            );
+            global_object.update_property(name, Some(value), true, Some(true), deletion);
         }
     }
 }

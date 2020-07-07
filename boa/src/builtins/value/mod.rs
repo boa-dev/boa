@@ -500,9 +500,9 @@ impl Value {
         &self,
         field: &str,
         value: Option<Value>,
-        enumerable: Option<bool>,
+        enumerable: bool,
         writable: Option<bool>,
-        configurable: Option<bool>,
+        configurable: bool,
     ) {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
 

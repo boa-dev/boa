@@ -17,6 +17,9 @@
 use crate::builtins::value::Value;
 use gc::{Finalize, Trace};
 
+#[cfg(test)]
+mod tests;
+
 /// This represents a Javascript Property AKA The Property Descriptor.
 ///
 /// Property descriptors present in objects come in two main flavors:
@@ -38,9 +41,9 @@ use gc::{Finalize, Trace};
 #[derive(Trace, Finalize, Clone, Debug)]
 pub struct Property {
     /// If the type of this can be changed and this can be deleted
-    pub configurable: Option<bool>,
+    pub configurable: bool,
     /// If the property shows up in enumeration of the object
-    pub enumerable: Option<bool>,
+    pub enumerable: bool,
     /// If this property can be changed with an assignment
     pub writable: Option<bool>,
     /// The value associated with the property
@@ -64,8 +67,8 @@ impl Property {
     /// Default: Defaults according to the spec
     pub fn new() -> Self {
         Self {
-            configurable: None,
-            enumerable: None,
+            configurable: false,
+            enumerable: false,
             writable: None,
             value: None,
             get: None,
@@ -75,13 +78,13 @@ impl Property {
 
     /// Set configurable
     pub fn configurable(mut self, configurable: bool) -> Self {
-        self.configurable = Some(configurable);
+        self.configurable = configurable;
         self
     }
 
     /// Set enumerable
     pub fn enumerable(mut self, enumerable: bool) -> Self {
-        self.enumerable = Some(enumerable);
+        self.enumerable = enumerable;
         self
     }
 
@@ -113,11 +116,7 @@ impl Property {
     ///
     /// `true` if all fields are set to none
     pub fn is_none(&self) -> bool {
-        self.get.is_none()
-            && self.set.is_none()
-            && self.writable.is_none()
-            && self.configurable.is_none()
-            && self.enumerable.is_none()
+        self.get.is_none() && self.set.is_none() && self.writable.is_none()
     }
 
     /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].
@@ -160,8 +159,8 @@ impl Default for Property {
     /// [spec]: https://tc39.es/ecma262/#table-default-attribute-values
     fn default() -> Self {
         Self {
-            configurable: None,
-            enumerable: None,
+            configurable: false,
+            enumerable: false,
             writable: None,
             value: None,
             get: None,
@@ -188,15 +187,12 @@ impl<'a> From<&'a Value> for Property {
     /// if they're not there default to false
     fn from(value: &Value) -> Self {
         Self {
-            configurable: { Some(bool::from(&value.get_field("configurable"))) },
-            enumerable: { Some(bool::from(&value.get_field("enumerable"))) },
-            writable: { Some(bool::from(&value.get_field("writable"))) },
+            configurable: bool::from(&value.get_field("configurable")),
+            enumerable: bool::from(&value.get_field("enumerable")),
+            writable: Some(bool::from(&value.get_field("writable"))),
             value: Some(value.get_field("value")),
             get: Some(value.get_field("get")),
             set: Some(value.get_field("set")),
         }
     }
 }
-
-#[cfg(test)]
-mod tests;
