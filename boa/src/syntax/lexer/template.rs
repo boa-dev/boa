@@ -11,7 +11,7 @@ use std::io::{self, ErrorKind, Read};
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]:
+/// [spec]: https://tc39.es/ecma262/#sec-template-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 #[derive(Debug, Clone, Copy)]
 pub(super) struct TemplateLiteral;
