@@ -24,6 +24,7 @@ pub(crate) use self::{
     array::Array,
     bigint::BigInt,
     boolean::Boolean,
+    console::Console,
     error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
     global_this::GlobalThis,
     infinity::Infinity,
@@ -54,7 +55,7 @@ pub fn init(global: &Value) {
         RegExp::init,
         String::init,
         Symbol::init,
-        console::init,
+        Console::init,
         // Global error types.
         Error::init,
         RangeError::init,
