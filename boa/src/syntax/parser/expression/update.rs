@@ -47,8 +47,8 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-        let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd);
-        match tok?.kind() {
+        let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
+        match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
                 cursor.next()?.expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
