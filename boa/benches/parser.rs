@@ -81,12 +81,10 @@ fn long_file_parser(c: &mut Criterion) {
                 .unwrap_or_else(|_| panic!("could not write {}", FILE_NAME));
         }
     }
+
+    let file = std::fs::File::open(FILE_NAME).expect("Could not open file");
     c.bench_function("Long file (Parser)", move |b| {
-        b.iter(|| {
-            let file_str = fs::read_to_string(FILE_NAME)
-                .unwrap_or_else(|_| panic!("could not read {}", FILE_NAME));
-            Parser::new(black_box(file_str.as_bytes())).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(&file)).parse_all())
     });
 
     fs::remove_file(FILE_NAME).unwrap_or_else(|_| panic!("could not remove {}", FILE_NAME));
