@@ -420,7 +420,7 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.create
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-pub fn create_builtin(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
     let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -551,7 +551,7 @@ pub fn init(global: &Value) -> (&str, Value) {
     let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
 
     // static methods of the builtin Object
-    make_builtin_fn(create_builtin, "create", &object, 2);
+    make_builtin_fn(create, "create", &object, 2);
     make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
     make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
     make_builtin_fn(define_property, "defineProperty", &object, 3);
