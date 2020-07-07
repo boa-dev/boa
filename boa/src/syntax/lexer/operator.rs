@@ -77,8 +77,11 @@ pub(super) struct Operator {
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]:
-/// [mdn]:
+/// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators &
+///         https://tc39.es/ecma262/#sec-additive-operators &
+///         https://tc39.es/ecma262/#sec-relational-operators &
+///         https://tc39.es/ecma262/#sec-bitwise-shift-operators
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
 impl Operator {
     /// Creates a new operator lexer.
     pub(super) fn new(init: char) -> Self {

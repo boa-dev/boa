@@ -14,7 +14,7 @@ use std::str::FromStr;
 ///  - [MDN documentation][mdn]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
-/// [mdn]:
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
 #[derive(Debug, Clone, Copy)]
 pub(super) struct NumberLiteral {
     init: char,

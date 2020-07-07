@@ -3,9 +3,16 @@ use crate::syntax::ast::{Position, Punctuator, Span};
 use crate::syntax::lexer::Token;
 use std::io::Read;
 
-/// String literal lexing.
+/// Spread literal lexing.
 ///
 /// Note: expects for the initializer `'` or `"` to already be consumed from the cursor.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-SpreadElement
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 #[derive(Debug, Clone, Copy)]
 pub(super) struct SpreadLiteral;
 

@@ -11,6 +11,13 @@ use std::{
 /// String literal lexing.
 ///
 /// Note: expects for the initializer `'` or `"` to already be consumed from the cursor.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-literals-string-literals
+/// [mdn]: https://developer.cdn.mozilla.net/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 #[derive(Debug, Clone, Copy)]
 pub(super) struct StringLiteral {
     terminator: StringTerminator,
