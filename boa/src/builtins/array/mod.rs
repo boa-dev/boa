@@ -957,8 +957,11 @@ impl Array {
         Ok(Value::from(false))
     }
 
-    /// Create a new `Array` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `Array` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         // Create prototype
         let prototype = Value::new_object(Some(global));
         let length = Property::default().value(Value::from(0));
@@ -998,14 +1001,6 @@ impl Array {
         // Static Methods
         make_builtin_fn(Self::is_array, "isArray", &array, 1);
 
-        array
-    }
-
-    /// Initialise the `Array` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, array)
     }
 }

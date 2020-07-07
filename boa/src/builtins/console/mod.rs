@@ -487,8 +487,11 @@ impl Console {
         Ok(Value::undefined())
     }
 
-    /// Create a new `console` object
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `console` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         let console = Value::new_object(Some(global));
 
         make_builtin_fn(Self::assert, "assert", &console, 0);
@@ -511,14 +514,6 @@ impl Console {
         make_builtin_fn(Self::dir, "dir", &console, 0);
         make_builtin_fn(Self::dir, "dirxml", &console, 0);
 
-        console
-    }
-
-    /// Initialise the `console` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, console)
     }
 }

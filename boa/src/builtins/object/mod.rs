@@ -502,8 +502,11 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
     }))
 }
 
-/// Create a new `Object` object.
-pub fn create(global: &Value) -> Value {
+/// Initialise the `Object` object on the global object.
+#[inline]
+pub fn init(global: &Value) -> (&str, Value) {
+    let _timer = BoaProfiler::global().start_event("object", "init");
+
     let prototype = Value::new_object(None);
 
     make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
@@ -522,13 +525,5 @@ pub fn create(global: &Value) -> Value {
     make_builtin_fn(define_property, "defineProperty", &object, 3);
     make_builtin_fn(is, "is", &object, 2);
 
-    object
-}
-
-/// Initialise the `Object` object on the global object.
-#[inline]
-pub fn init(global: &Value) -> (&str, Value) {
-    let _timer = BoaProfiler::global().start_event("object", "init");
-
-    ("Object", create(global))
+    ("Object", object)
 }
