@@ -29,7 +29,9 @@ use boa::{
     exec::Interpreter,
     forward_val,
     realm::Realm,
-    syntax::ast::{node::StatementList, token::Token},
+    syntax::ast::node::StatementList,
+    syntax::lexer::Token,
+    Lexer
 };
 use std::{
     fs::read_to_string,
