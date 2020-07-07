@@ -29,7 +29,7 @@ use crate::{
         object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
         value::{RcBigInt, RcString, ResultValue, Type, Value},
-        BigInt, Number,
+        BigInt, Console, Number,
     },
     realm::Realm,
     syntax::ast::{
@@ -70,6 +70,9 @@ pub struct Interpreter {
 
     /// This is for generating an unique internal `Symbol` hash.
     symbol_count: u32,
+
+    /// console object state.
+    console: Console,
 }
 
 impl Interpreter {
@@ -79,6 +82,7 @@ impl Interpreter {
             state: InterpreterState::Executing,
             realm,
             symbol_count: 0,
+            console: Console::default(),
         }
     }
 
@@ -611,6 +615,16 @@ impl Interpreter {
         } else {
             Ok(value)
         }
+    }
+
+    /// A helper function for getting a immutable reference to the `console` object.
+    pub(crate) fn console(&self) -> &Console {
+        &self.console
+    }
+
+    /// A helper function for getting a mutable reference to the `console` object.
+    pub(crate) fn console_mut(&mut self) -> &mut Console {
+        &mut self.console
     }
 }
 

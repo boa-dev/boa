@@ -170,21 +170,15 @@ impl Json {
         }
     }
 
-    /// Create a new `JSON` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `JSON` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let json = Value::new_object(Some(global));
 
         make_builtin_fn(Self::parse, "parse", &json, 2);
         make_builtin_fn(Self::stringify, "stringify", &json, 3);
 
-        json
-    }
-
-    /// Initialise the `JSON` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, json)
     }
 }
