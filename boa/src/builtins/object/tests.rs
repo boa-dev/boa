@@ -13,7 +13,7 @@ fn object_create_with_regular_object() {
     forward(&mut engine, init);
 
     assert_eq!(forward(&mut engine, "bar.a"), "5");
-    assert_eq!(forward(&mut engine, "Object.create.length"), "1");
+    assert_eq!(forward(&mut engine, "Object.create.length"), "2");
 }
 
 #[test]
