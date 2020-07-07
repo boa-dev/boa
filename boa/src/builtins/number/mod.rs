@@ -555,8 +555,11 @@ impl Number {
         }
     }
 
-    /// Create a new `Number` object
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `Number` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_exponential, "toExponential", &prototype, 1);
@@ -574,7 +577,7 @@ impl Number {
             PARSE_FLOAT_MAX_ARG_COUNT,
         );
 
-        let number = make_constructor_fn(
+        let number_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_number,
@@ -586,7 +589,7 @@ impl Number {
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
         {
-            let mut properties = number.as_object_mut().expect("'Number' object");
+            let mut properties = number_object.as_object_mut().expect("'Number' object");
             properties.insert_field("EPSILON", Value::from(f64::EPSILON));
             properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
             properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
@@ -597,15 +600,7 @@ impl Number {
             properties.insert_field("NaN", Value::from(f64::NAN));
         }
 
-        number
-    }
-
-    /// Initialise the `Number` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, number_object)
     }
 
     /// The abstract operation Number::equal takes arguments

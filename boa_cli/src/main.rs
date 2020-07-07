@@ -26,8 +26,10 @@
 )]
 
 use boa::{
-    builtins::console::log, exec::Interpreter, forward_val, realm::Realm,
-    syntax::ast::node::StatementList, syntax::lexer::Lexer, syntax::lexer::Token,
+    exec::Interpreter,
+    forward_val,
+    realm::Realm,
+    syntax::ast::{node::StatementList, token::Token},
 };
 use std::{
     fs::read_to_string,
@@ -177,7 +179,7 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
-    let realm = Realm::create().register_global_func("print", log);
+    let realm = Realm::create();
 
     let mut engine = Interpreter::new(realm);
 
