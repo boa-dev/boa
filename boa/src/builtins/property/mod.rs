@@ -17,6 +17,9 @@
 use crate::builtins::value::Value;
 use gc::{Finalize, Trace};
 
+pub mod attribute;
+pub use attribute::Attribute;
+
 #[cfg(test)]
 mod tests;
 
@@ -57,7 +60,7 @@ pub struct Property {
 impl Property {
     /// Checks if the provided Value can be used as a property key.
     pub fn is_property_key(value: &Value) -> bool {
-        value.is_string() || value.is_symbol() // Uncomment this when we are handeling symbols.
+        value.is_string() || value.is_symbol()
     }
 
     /// Make a new property with the given value
