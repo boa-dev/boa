@@ -70,8 +70,8 @@ impl<R> Tokenizer<R> for MultiLineComment {
             }
         }
 
-        if ret.is_some() {
-            return Ok(ret.unwrap());
+        if let Some(ret) = ret {
+            Ok(ret)
         } else {
             Ok(Token::new(
                 TokenKind::Comment,
