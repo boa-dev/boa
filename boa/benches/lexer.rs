@@ -10,21 +10,6 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-static EXPRESSION: &str = r#"
-1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
-"#;
-
-fn expression_lexer(c: &mut Criterion) {
-    c.bench_function("Expression (Lexer)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(EXPRESSION.as_bytes()));
-
-            // Goes through and lexes entire given string.
-            while lexer.next().expect("Failed to lex").is_some() {}
-        })
-    });
-}
-
 static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
 
 fn hello_world_lexer(c: &mut Criterion) {
