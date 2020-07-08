@@ -22,7 +22,7 @@ pub use error::Error;
 pub use token::{Token, TokenKind};
 
 use self::{
-    comment::{BlockComment, SingleLineComment},
+    comment::{MultiLineComment, SingleLineComment},
     cursor::Cursor,
     identifier::Identifier,
     number::NumberLiteral,
@@ -110,7 +110,7 @@ impl<R> Lexer<R> {
                 }
                 '*' => {
                     self.cursor.next()?.expect("* token vanished"); // Consume the '*'
-                    BlockComment.lex(&mut self.cursor, start)
+                    MultiLineComment.lex(&mut self.cursor, start)
                 }
                 ch => {
                     match self.get_goal() {

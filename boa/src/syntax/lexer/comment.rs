@@ -3,8 +3,6 @@ use crate::syntax::ast::{Position, Span};
 use crate::syntax::lexer::{Token, TokenKind};
 use std::io::Read;
 
-pub(super) struct SingleLineComment;
-
 /// Lexes a single line comment.
 ///
 /// Assumes that the initial '//' is already consumed.
@@ -15,6 +13,8 @@ pub(super) struct SingleLineComment;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-comments
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar
+pub(super) struct SingleLineComment;
+
 impl<R> Tokenizer<R> for SingleLineComment {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
@@ -46,8 +46,9 @@ impl<R> Tokenizer<R> for SingleLineComment {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-comments
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar
-pub(super) struct BlockComment;
-impl<R> Tokenizer<R> for BlockComment {
+pub(super) struct MultiLineComment;
+
+impl<R> Tokenizer<R> for MultiLineComment {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
