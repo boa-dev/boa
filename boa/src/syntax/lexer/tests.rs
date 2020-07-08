@@ -31,6 +31,7 @@ fn check_single_line_comment() {
     let expected = [
         TokenKind::Keyword(Keyword::Var),
         TokenKind::LineTerminator,
+        TokenKind::LineTerminator,
         TokenKind::BooleanLiteral(true),
     ];
 
