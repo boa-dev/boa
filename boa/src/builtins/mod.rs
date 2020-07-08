@@ -6,6 +6,8 @@ pub mod boolean;
 pub mod console;
 pub mod error;
 pub mod function;
+pub mod global_this;
+pub mod infinity;
 pub mod json;
 pub mod math;
 pub mod nan;
@@ -15,37 +17,65 @@ pub mod property;
 pub mod regexp;
 pub mod string;
 pub mod symbol;
+pub mod undefined;
 pub mod value;
 
 pub(crate) use self::{
     array::Array,
     bigint::BigInt,
     boolean::Boolean,
-    error::{Error, RangeError, TypeError},
-    function::Function,
+    console::Console,
+    error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
+    global_this::GlobalThis,
+    infinity::Infinity,
+    json::Json,
+    math::Math,
+    nan::NaN,
     number::Number,
     regexp::RegExp,
     string::String,
+    symbol::Symbol,
+    undefined::Undefined,
     value::{ResultValue, Value},
 };
 
 /// Initializes builtin objects and functions
 #[inline]
 pub fn init(global: &Value) {
-    Array::init(global);
-    BigInt::init(global);
-    Boolean::init(global);
-    json::init(global);
-    math::init(global);
-    nan::init(global);
-    Number::init(global);
-    object::init(global);
-    function::init(global);
-    RegExp::init(global);
-    String::init(global);
-    symbol::init(global);
-    console::init(global);
-    Error::init(global);
-    RangeError::init(global);
-    TypeError::init(global);
+    let globals = [
+        // The `Function` global must be initialized before other types.
+        function::init,
+        object::init,
+        Array::init,
+        BigInt::init,
+        Boolean::init,
+        Json::init,
+        Math::init,
+        Number::init,
+        RegExp::init,
+        String::init,
+        Symbol::init,
+        Console::init,
+        // Global error types.
+        Error::init,
+        RangeError::init,
+        ReferenceError::init,
+        TypeError::init,
+        SyntaxError::init,
+        // Global properties.
+        NaN::init,
+        Infinity::init,
+        GlobalThis::init,
+        Undefined::init,
+    ];
+
+    match global {
+        Value::Object(ref global_object) => {
+            for init in &globals {
+                let (name, value) = init(global);
+                global_object.borrow_mut().insert_field(name, value);
+            }
+        }
+        _ => unreachable!("expect global object"),
+    }
 }

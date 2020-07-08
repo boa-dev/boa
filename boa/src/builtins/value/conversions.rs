@@ -16,7 +16,7 @@ impl From<String> for Value {
 
 impl From<Box<str>> for Value {
     fn from(value: Box<str>) -> Self {
-        Self::string(value)
+        Self::string(String::from(value))
     }
 }
 
@@ -35,6 +35,12 @@ impl From<&Box<str>> for Value {
 impl From<char> for Value {
     fn from(value: char) -> Self {
         Value::string(value.to_string())
+    }
+}
+
+impl From<RcString> for Value {
+    fn from(value: RcString) -> Self {
+        Value::String(value)
     }
 }
 
@@ -71,6 +77,17 @@ impl From<&Value> for f64 {
     }
 }
 
+impl From<u32> for Value {
+    #[inline]
+    fn from(value: u32) -> Value {
+        if let Ok(integer) = i32::try_from(value) {
+            Value::integer(integer)
+        } else {
+            Value::rational(value)
+        }
+    }
+}
+
 impl From<i32> for Value {
     fn from(value: i32) -> Value {
         Value::integer(value)
@@ -86,6 +103,12 @@ impl From<&Value> for i32 {
 impl From<BigInt> for Value {
     fn from(value: BigInt) -> Self {
         Value::bigint(value)
+    }
+}
+
+impl From<RcBigInt> for Value {
+    fn from(value: RcBigInt) -> Self {
+        Value::BigInt(value)
     }
 }
 
@@ -108,7 +131,7 @@ impl From<bool> for Value {
 
 impl From<&Value> for bool {
     fn from(value: &Value) -> Self {
-        value.is_true()
+        value.to_boolean()
     }
 }
 
@@ -119,8 +142,8 @@ where
     fn from(value: &[T]) -> Self {
         let mut array = Object::default();
         for (i, item) in value.iter().enumerate() {
-            array.properties.insert(
-                i.to_string(),
+            array.properties_mut().insert(
+                RcString::from(i.to_string()),
                 Property::default().value(item.clone().into()),
             );
         }
@@ -135,9 +158,10 @@ where
     fn from(value: Vec<T>) -> Self {
         let mut array = Object::default();
         for (i, item) in value.into_iter().enumerate() {
-            array
-                .properties
-                .insert(i.to_string(), Property::default().value(item.into()));
+            array.properties_mut().insert(
+                RcString::from(i.to_string()),
+                Property::default().value(item.into()),
+            );
         }
         Value::from(array)
     }
@@ -156,17 +180,6 @@ pub struct TryFromObjectError;
 impl Display for TryFromObjectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Could not convert value to an Object type")
-    }
-}
-
-impl TryFrom<&Value> for Object {
-    type Error = TryFromObjectError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        match value.data() {
-            ValueData::Object(ref object) => Ok(object.clone().into_inner()),
-            _ => Err(TryFromObjectError),
-        }
     }
 }
 

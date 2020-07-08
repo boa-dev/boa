@@ -1,11 +1,6 @@
 #![allow(clippy::float_cmp)]
 
-use crate::{
-    builtins::{Number, Value},
-    exec::Interpreter,
-    forward, forward_val,
-    realm::Realm,
-};
+use crate::{builtins::Number, exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[test]
 fn integer_number_primitive_to_number_object() {
@@ -17,13 +12,6 @@ fn integer_number_primitive_to_number_object() {
     "#;
 
     assert_eq!(forward(&mut engine, scenario), "true");
-}
-
-#[test]
-fn check_number_constructor_is_function() {
-    let global = Value::new_object(None);
-    let number_constructor = Number::create(&global);
-    assert_eq!(number_constructor.is_function(), true);
 }
 
 #[test]
@@ -82,12 +70,12 @@ fn to_exponential() {
     let nan_exp = forward(&mut engine, "nan_exp");
     let noop_exp = forward(&mut engine, "noop_exp");
 
-    assert_eq!(default_exp, String::from("0e+0"));
-    assert_eq!(int_exp, String::from("5e+0"));
-    assert_eq!(float_exp, String::from("1.234e+0"));
-    assert_eq!(big_exp, String::from("1.234e+3"));
-    assert_eq!(nan_exp, String::from("NaN"));
-    assert_eq!(noop_exp, String::from("1.23e+2"));
+    assert_eq!(default_exp, "0e+0");
+    assert_eq!(int_exp, "5e+0");
+    assert_eq!(float_exp, "1.234e+0");
+    assert_eq!(big_exp, "1.234e+3");
+    assert_eq!(nan_exp, "NaN");
+    assert_eq!(noop_exp, "1.23e+2");
 }
 
 #[test]

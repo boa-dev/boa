@@ -1,12 +1,4 @@
-use super::*;
 use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
-
-#[test]
-fn check_symbol_constructor_is_function() {
-    let global = Value::new_object(None);
-    let symbol_constructor = create(&global);
-    assert_eq!(symbol_constructor.is_function(), true);
-}
 
 #[test]
 fn call_symbol_and_check_return_type() {

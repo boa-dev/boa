@@ -3,12 +3,14 @@
 mod array;
 mod block;
 mod break_node;
+mod call;
 mod conditional;
 mod declaration;
 mod exception;
-mod expression;
 mod field;
+mod identifier;
 mod iteration;
+mod new;
 mod object;
 mod operator;
 mod return_smt;
@@ -23,13 +25,11 @@ mod try_node;
 use crate::{
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
-        object::{
-            internal_methods_trait::ObjectInternalMethods, Object, ObjectKind, INSTANCE_PROTOTYPE,
-            PROTOTYPE,
-        },
+        number::{f64_to_int32, f64_to_uint32},
+        object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
-        value::{ResultValue, Type, Value, ValueData},
-        BigInt, Number,
+        value::{RcBigInt, RcString, ResultValue, Type, Value},
+        BigInt, Console, Number,
     },
     realm::Realm,
     syntax::ast::{
@@ -39,7 +39,7 @@ use crate::{
     BoaProfiler,
 };
 use std::convert::TryFrom;
-use std::{borrow::Borrow, ops::Deref};
+use std::ops::Deref;
 
 pub trait Executable {
     /// Runs this executable in the given executor.
@@ -62,29 +62,50 @@ pub enum PreferredType {
 /// A Javascript intepreter
 #[derive(Debug)]
 pub struct Interpreter {
-    current_state: InterpreterState,
+    /// the current state of the interpreter.
+    state: InterpreterState,
 
     /// realm holds both the global object and the environment
     pub realm: Realm,
+
+    /// This is for generating an unique internal `Symbol` hash.
+    symbol_count: u32,
+
+    /// console object state.
+    console: Console,
 }
 
 impl Interpreter {
     /// Creates a new interpreter.
     pub fn new(realm: Realm) -> Self {
         Self {
-            current_state: InterpreterState::Executing,
+            state: InterpreterState::Executing,
             realm,
+            symbol_count: 0,
+            console: Console::default(),
         }
     }
 
     /// Retrieves the `Realm` of this executor.
+    #[inline]
     pub(crate) fn realm(&self) -> &Realm {
         &self.realm
     }
 
     /// Retrieves the `Realm` of this executor as a mutable reference.
+    #[inline]
     pub(crate) fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
+    }
+
+    /// Generates a new `Symbol` internal hash.
+    ///
+    /// This currently is an incremented value.
+    #[inline]
+    pub(crate) fn generate_hash(&mut self) -> u32 {
+        let hash = self.symbol_count;
+        self.symbol_count += 1;
+        hash
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
@@ -127,8 +148,8 @@ impl Interpreter {
             callable,
         );
 
-        let mut new_func = Object::function();
-        new_func.set_func(func);
+        let new_func = Object::function(func);
+
         let val = Value::from(new_func);
         val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
         val.set_field(PROTOTYPE, proto);
@@ -141,14 +162,16 @@ impl Interpreter {
     pub(crate) fn call(
         &mut self,
         f: &Value,
-        this: &mut Value,
+        this: &Value,
         arguments_list: &[Value],
     ) -> ResultValue {
-        match *f.data() {
-            ValueData::Object(ref obj) => {
-                let obj = (**obj).borrow();
-                let func = obj.func.as_ref().expect("Expected function");
-                func.call(&mut f.clone(), arguments_list, self, this)
+        match *f {
+            Value::Object(ref obj) => {
+                let obj = obj.borrow();
+                if let ObjectData::Function(ref func) = obj.data {
+                    return func.call(f.clone(), this, arguments_list, self);
+                }
+                self.throw_type_error("not a function")
             }
             _ => Err(Value::undefined()),
         }
@@ -156,21 +179,18 @@ impl Interpreter {
 
     /// Converts a value into a rust heap allocated string.
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(&mut self, value: &Value) -> Result<String, Value> {
-        match value.data() {
-            ValueData::Null => Ok("null".to_owned()),
-            ValueData::Undefined => Ok("undefined".to_owned()),
-            ValueData::Boolean(boolean) => Ok(boolean.to_string()),
-            ValueData::Rational(rational) => Ok(Number::to_native_string(*rational)),
-            ValueData::Integer(integer) => Ok(integer.to_string()),
-            ValueData::String(string) => Ok(string.clone()),
-            ValueData::Symbol(_) => {
-                self.throw_type_error("can't convert symbol to string")?;
-                unreachable!();
-            }
-            ValueData::BigInt(ref bigint) => Ok(bigint.to_string()),
-            ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), PreferredType::String);
+    pub fn to_string(&mut self, value: &Value) -> Result<RcString, Value> {
+        match value {
+            Value::Null => Ok(RcString::from("null")),
+            Value::Undefined => Ok(RcString::from("undefined".to_owned())),
+            Value::Boolean(boolean) => Ok(RcString::from(boolean.to_string())),
+            Value::Rational(rational) => Ok(RcString::from(Number::to_native_string(*rational))),
+            Value::Integer(integer) => Ok(RcString::from(integer.to_string())),
+            Value::String(string) => Ok(string.clone()),
+            Value::Symbol(_) => Err(self.construct_type_error("can't convert symbol to string")),
+            Value::BigInt(ref bigint) => Ok(RcString::from(bigint.to_string())),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(value, PreferredType::String)?;
                 self.to_string(&primitive)
             }
         }
@@ -178,39 +198,31 @@ impl Interpreter {
 
     /// Helper function.
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_bigint(&mut self, value: &Value) -> Result<BigInt, Value> {
-        match value.data() {
-            ValueData::Null => {
-                self.throw_type_error("cannot convert null to a BigInt")?;
-                unreachable!();
+    pub fn to_bigint(&mut self, value: &Value) -> Result<RcBigInt, Value> {
+        match value {
+            Value::Null => Err(self.construct_type_error("cannot convert null to a BigInt")),
+            Value::Undefined => {
+                Err(self.construct_type_error("cannot convert undefined to a BigInt"))
             }
-            ValueData::Undefined => {
-                self.throw_type_error("cannot convert undefined to a BigInt")?;
-                unreachable!();
-            }
-            ValueData::String(ref string) => Ok(BigInt::from_string(string, self)?),
-            ValueData::Boolean(true) => Ok(BigInt::from(1)),
-            ValueData::Boolean(false) => Ok(BigInt::from(0)),
-            ValueData::Integer(num) => Ok(BigInt::from(*num)),
-            ValueData::Rational(num) => {
+            Value::String(ref string) => Ok(RcBigInt::from(BigInt::from_string(string, self)?)),
+            Value::Boolean(true) => Ok(RcBigInt::from(BigInt::from(1))),
+            Value::Boolean(false) => Ok(RcBigInt::from(BigInt::from(0))),
+            Value::Integer(num) => Ok(RcBigInt::from(BigInt::from(*num))),
+            Value::Rational(num) => {
                 if let Ok(bigint) = BigInt::try_from(*num) {
-                    return Ok(bigint);
+                    return Ok(RcBigInt::from(bigint));
                 }
-                self.throw_type_error(format!(
+                Err(self.construct_type_error(format!(
                     "The number {} cannot be converted to a BigInt because it is not an integer",
                     num
-                ))?;
-                unreachable!();
+                )))
             }
-            ValueData::BigInt(b) => Ok(b.clone()),
-            ValueData::Object(_) => {
-                let primitive = self.to_primitive(&mut value.clone(), PreferredType::Number);
+            Value::BigInt(b) => Ok(b.clone()),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(value, PreferredType::Number)?;
                 self.to_bigint(&primitive)
             }
-            ValueData::Symbol(_) => {
-                self.throw_type_error("cannot convert Symbol to a BigInt")?;
-                unreachable!();
-            }
+            Value::Symbol(_) => Err(self.construct_type_error("cannot convert Symbol to a BigInt")),
         }
     }
 
@@ -225,31 +237,83 @@ impl Interpreter {
 
         let integer_index = self.to_integer(value)?;
 
-        if integer_index < 0 {
-            self.throw_range_error("Integer index must be >= 0")?;
-            unreachable!();
+        if integer_index < 0.0 {
+            return Err(self.construct_range_error("Integer index must be >= 0"));
         }
 
-        if integer_index > 2i64.pow(53) - 1 {
-            self.throw_range_error("Integer index must be less than 2**(53) - 1")?;
-            unreachable!()
+        if integer_index > Number::MAX_SAFE_INTEGER {
+            return Err(self.construct_range_error("Integer index must be less than 2**(53) - 1"));
         }
 
         Ok(integer_index as usize)
     }
 
-    /// Converts a value to an integral 64 bit signed integer.
+    /// Converts a value to an integral Number value.
     ///
     /// See: https://tc39.es/ecma262/#sec-tointeger
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_integer(&mut self, value: &Value) -> Result<i64, Value> {
+    pub fn to_integer(&mut self, value: &Value) -> Result<f64, Value> {
+        // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(value)?;
 
-        if number.is_nan() {
+        // 2. If number is +∞ or -∞, return number.
+        if !number.is_finite() {
+            // 3. If number is NaN, +0, or -0, return +0.
+            if number.is_nan() {
+                return Ok(0.0);
+            }
+            return Ok(number);
+        }
+
+        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
+        // 5. If integer is -0, return +0.
+        // 6. Return integer.
+        Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
+    }
+
+    /// Converts a value to an integral 32 bit signed integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toint32
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_int32(&mut self, value: &Value) -> Result<i32, Value> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *value {
+            return Ok(number);
+        }
+        let number = self.to_number(value)?;
+
+        Ok(f64_to_int32(number))
+    }
+
+    /// Converts a value to an integral 32 bit unsigned integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toint32
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_uint32(&mut self, value: &Value) -> Result<u32, Value> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *value {
+            return Ok(number as u32);
+        }
+        let number = self.to_number(value)?;
+
+        Ok(f64_to_uint32(number))
+    }
+
+    /// Converts argument to an integer suitable for use as the length of an array-like object.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tolength
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_length(&mut self, value: &Value) -> Result<usize, Value> {
+        // 1. Let len be ? ToInteger(argument).
+        let len = self.to_integer(value)?;
+
+        // 2. If len ≤ +0, return +0.
+        if len < 0.0 {
             return Ok(0);
         }
 
-        Ok(number as i64)
+        // 3. Return min(len, 2^53 - 1).
+        Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
     }
 
     /// Converts a value to a double precision floating point.
@@ -257,40 +321,58 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-tonumber
     #[allow(clippy::wrong_self_convention)]
     pub fn to_number(&mut self, value: &Value) -> Result<f64, Value> {
-        match *value.deref().borrow() {
-            ValueData::Null => Ok(0.0),
-            ValueData::Undefined => Ok(f64::NAN),
-            ValueData::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            ValueData::String(ref string) => match string.parse::<f64>() {
-                Ok(number) => Ok(number),
-                Err(_) => Ok(0.0),
-            }, // this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
-            ValueData::Rational(number) => Ok(number),
-            ValueData::Integer(integer) => Ok(f64::from(integer)),
-            ValueData::Symbol(_) => {
-                self.throw_type_error("argument must not be a symbol")?;
-                unreachable!()
-            }
-            ValueData::BigInt(_) => {
-                self.throw_type_error("argument must not be a bigint")?;
-                unreachable!()
-            }
-            ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
-                self.to_number(&prim_value)
+        match *value {
+            Value::Null => Ok(0.0),
+            Value::Undefined => Ok(f64::NAN),
+            Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            Value::String(ref string) => Ok(string.parse().unwrap_or(f64::NAN)),
+            Value::Rational(number) => Ok(number),
+            Value::Integer(integer) => Ok(f64::from(integer)),
+            Value::Symbol(_) => Err(self.construct_type_error("argument must not be a symbol")),
+            Value::BigInt(_) => Err(self.construct_type_error("argument must not be a bigint")),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(value, PreferredType::Number)?;
+                self.to_number(&primitive)
             }
         }
+    }
+
+    /// It returns value converted to a numeric value of type Number or BigInt.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_numeric(&mut self, value: &Value) -> ResultValue {
+        let primitive = self.to_primitive(value, PreferredType::Number)?;
+        if primitive.is_bigint() {
+            return Ok(primitive);
+        }
+        Ok(Value::from(self.to_number(&primitive)?))
+    }
+
+    /// This is a more specialized version of `to_numeric`.
+    ///
+    /// It returns value converted to a numeric value of type `Number`.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_numeric_number(&mut self, value: &Value) -> Result<f64, Value> {
+        let primitive = self.to_primitive(value, PreferredType::Number)?;
+        if let Some(ref bigint) = primitive.as_bigint() {
+            return Ok(bigint.to_f64());
+        }
+        Ok(self.to_number(&primitive)?)
     }
 
     /// Converts an array object into a rust vector of values.
     ///
     /// This is useful for the spread operator, for any other object an `Err` is returned
     pub(crate) fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Value>, ()> {
-        if let ValueData::Object(ref x) = *value.deref().borrow() {
+        if let Value::Object(ref x) = value {
             // Check if object is array
-            if x.deref().borrow().kind == ObjectKind::Array {
-                let length: i32 = self.value_to_rust_number(&value.get_field("length")) as i32;
-                let values: Vec<Value> = (0..length)
+            if let ObjectData::Array = x.deref().borrow().data {
+                let length = i32::from(&value.get_field("length"));
+                let values = (0..length)
                     .map(|idx| value.get_field(idx.to_string()))
                     .collect();
                 return Ok(values);
@@ -302,58 +384,73 @@ impl Interpreter {
         Err(())
     }
 
-    /// <https://tc39.es/ecma262/#sec-ordinarytoprimitive>
-    pub(crate) fn ordinary_to_primitive(&mut self, o: &mut Value, hint: PreferredType) -> Value {
+    /// Converts an object to a primitive.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
+    pub(crate) fn ordinary_to_primitive(&mut self, o: &Value, hint: PreferredType) -> ResultValue {
+        // 1. Assert: Type(O) is Object.
         debug_assert!(o.get_type() == Type::Object);
+        // 2. Assert: Type(hint) is String and its value is either "string" or "number".
         debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
-        let method_names: Vec<&str> = if hint == PreferredType::String {
-            vec!["toString", "valueOf"]
+
+        // 3. If hint is "string", then
+        //    a. Let methodNames be « "toString", "valueOf" ».
+        // 4. Else,
+        //    a. Let methodNames be « "valueOf", "toString" ».
+        let method_names = if hint == PreferredType::String {
+            ["toString", "valueOf"]
         } else {
-            vec!["valueOf", "toString"]
+            ["valueOf", "toString"]
         };
-        for name in method_names.iter() {
+
+        // 5. For each name in methodNames in List order, do
+        for name in &method_names {
+            // a. Let method be ? Get(O, name).
             let method: Value = o.get_field(*name);
+            // b. If IsCallable(method) is true, then
             if method.is_function() {
-                let result = self.call(&method, o, &[]);
-                match result {
-                    Ok(val) => {
-                        if val.is_object() {
-                            // TODO: throw exception
-                            continue;
-                        } else {
-                            return val;
-                        }
-                    }
-                    Err(_) => continue,
+                // i. Let result be ? Call(method, O).
+                let result = self.call(&method, &o, &[])?;
+                // ii. If Type(result) is not Object, return result.
+                if !result.is_object() {
+                    return Ok(result);
                 }
             }
         }
 
-        Value::undefined()
+        // 6. Throw a TypeError exception.
+        self.throw_type_error("cannot convert object to primitive value")
     }
 
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
+    ///
     /// <https://tc39.es/ecma262/#sec-toprimitive>
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_primitive(
         &mut self,
-        input: &mut Value,
+        input: &Value,
         preferred_type: PreferredType,
-    ) -> Value {
-        let mut hint: PreferredType;
-        match (*input).deref() {
-            ValueData::Object(_) => {
-                hint = preferred_type;
+    ) -> ResultValue {
+        // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
+        // 2. If Type(input) is Object, then
+        if let Value::Object(_) = input {
+            let mut hint = preferred_type;
 
-                // Skip d, e we don't support Symbols yet
-                // TODO: add when symbols are supported
-                if hint == PreferredType::Default {
-                    hint = PreferredType::Number;
-                };
+            // Skip d, e we don't support Symbols yet
+            // TODO: add when symbols are supported
+            // TODO: Add other steps.
+            if hint == PreferredType::Default {
+                hint = PreferredType::Number;
+            };
 
-                self.ordinary_to_primitive(input, hint)
-            }
-            _ => input.clone(),
+            // g. Return ? OrdinaryToPrimitive(input, hint).
+            self.ordinary_to_primitive(input, hint)
+        } else {
+            // 3. Return input.
+            Ok(input.clone())
         }
     }
 
@@ -361,8 +458,8 @@ impl Interpreter {
     ///
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_property_key(&mut self, value: &mut Value) -> ResultValue {
-        let key = self.to_primitive(value, PreferredType::String);
+    pub(crate) fn to_property_key(&mut self, value: &Value) -> ResultValue {
+        let key = self.to_primitive(value, PreferredType::String)?;
         if key.is_symbol() {
             Ok(key)
         } else {
@@ -371,7 +468,7 @@ impl Interpreter {
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty
-    pub(crate) fn has_property(&self, obj: &mut Value, key: &Value) -> bool {
+    pub(crate) fn has_property(&self, obj: &Value, key: &Value) -> bool {
         if let Some(obj) = obj.as_object() {
             if !Property::is_property_key(key) {
                 false
@@ -387,89 +484,86 @@ impl Interpreter {
     /// https://tc39.es/ecma262/#sec-toobject
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_object(&mut self, value: &Value) -> ResultValue {
-        match value.data() {
-            ValueData::Undefined | ValueData::Null => Err(Value::undefined()),
-            ValueData::Integer(_) => {
-                let proto = self
-                    .realm
-                    .environment
-                    .get_binding_value("Number")
-                    .get_field(PROTOTYPE);
-                let number_obj = Value::new_object_from_prototype(proto, ObjectKind::Number);
-                number_obj.set_internal_slot("NumberData", value.clone());
-                Ok(number_obj)
+        match value {
+            Value::Undefined | Value::Null => {
+                self.throw_type_error("cannot convert 'null' or 'undefined' to object")
             }
-            ValueData::Boolean(_) => {
+            Value::Boolean(boolean) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("Boolean")
+                    .expect("Boolean was not initialized")
                     .get_field(PROTOTYPE);
 
-                let bool_obj = Value::new_object_from_prototype(proto, ObjectKind::Boolean);
-                bool_obj.set_internal_slot("BooleanData", value.clone());
-                Ok(bool_obj)
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Boolean(*boolean),
+                ))
             }
-            ValueData::Rational(_) => {
+            Value::Integer(integer) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("Number")
+                    .expect("Number was not initialized")
                     .get_field(PROTOTYPE);
-                let number_obj = Value::new_object_from_prototype(proto, ObjectKind::Number);
-                number_obj.set_internal_slot("NumberData", value.clone());
-                Ok(number_obj)
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(f64::from(*integer)),
+                ))
             }
-            ValueData::String(_) => {
+            Value::Rational(rational) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .expect("Number was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(*rational),
+                ))
+            }
+            Value::String(ref string) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("String")
+                    .expect("String was not initialized")
                     .get_field(PROTOTYPE);
-                let string_obj = Value::new_object_from_prototype(proto, ObjectKind::String);
-                string_obj.set_internal_slot("StringData", value.clone());
-                Ok(string_obj)
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::String(string.clone()),
+                ))
             }
-            ValueData::Object(_) | ValueData::Symbol(_) => Ok(value.clone()),
-            ValueData::BigInt(_) => {
+            Value::Symbol(ref symbol) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value("Symbol")
+                    .expect("Symbol was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Symbol(symbol.clone()),
+                ))
+            }
+            Value::BigInt(ref bigint) => {
                 let proto = self
                     .realm
                     .environment
                     .get_binding_value("BigInt")
+                    .expect("BigInt was not initialized")
                     .get_field(PROTOTYPE);
-                let bigint_obj = Value::new_object_from_prototype(proto, ObjectKind::BigInt);
-                bigint_obj.set_internal_slot("BigIntData", value.clone());
+                let bigint_obj =
+                    Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
                 Ok(bigint_obj)
             }
-        }
-    }
-
-    pub(crate) fn value_to_rust_number(&mut self, value: &Value) -> f64 {
-        match *value.deref().borrow() {
-            ValueData::Null => f64::from(0),
-            ValueData::Boolean(boolean) => {
-                if boolean {
-                    f64::from(1)
-                } else {
-                    f64::from(0)
-                }
-            }
-            ValueData::Rational(num) => num,
-            ValueData::Integer(num) => f64::from(num),
-            ValueData::String(ref string) => string.parse::<f64>().unwrap(),
-            ValueData::BigInt(ref bigint) => bigint.to_f64(),
-            ValueData::Object(_) => {
-                let prim_value = self.to_primitive(&mut (value.clone()), PreferredType::Number);
-                self.to_string(&prim_value)
-                    .expect("cannot convert value to string")
-                    .parse::<f64>()
-                    .expect("cannot parse value to f64")
-            }
-            ValueData::Undefined => f64::NAN,
-            _ => {
-                // TODO: Make undefined?
-                f64::from(0)
-            }
+            Value::Object(_) => Ok(value.clone()),
         }
     }
 
@@ -493,12 +587,44 @@ impl Interpreter {
         }
     }
 
+    #[inline]
     pub(crate) fn set_current_state(&mut self, new_state: InterpreterState) {
-        self.current_state = new_state
+        self.state = new_state
     }
 
+    #[inline]
     pub(crate) fn get_current_state(&self) -> &InterpreterState {
-        &self.current_state
+        &self.state
+    }
+
+    /// Check if the `Value` can be converted to an `Object`
+    ///
+    /// The abstract operation `RequireObjectCoercible` takes argument argument.
+    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
+    /// It is defined by [Table 15][table]
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [table]: https://tc39.es/ecma262/#table-14
+    /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
+    #[inline]
+    pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value, Value> {
+        if value.is_null_or_undefined() {
+            Err(self.construct_type_error("cannot convert null or undefined to Object"))
+        } else {
+            Ok(value)
+        }
+    }
+
+    /// A helper function for getting a immutable reference to the `console` object.
+    pub(crate) fn console(&self) -> &Console {
+        &self.console
+    }
+
+    /// A helper function for getting a mutable reference to the `console` object.
+    pub(crate) fn console_mut(&mut self) -> &mut Console {
+        &mut self.console
     }
 }
 
@@ -507,7 +633,6 @@ impl Executable for Node {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::Const(Const::Null) => Ok(Value::null()),
-            Node::Const(Const::Undefined) => Ok(Value::undefined()),
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
             Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
@@ -517,16 +642,10 @@ impl Executable for Node {
             Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
             Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
             Node::Block(ref block) => block.run(interpreter),
-            Node::Identifier(ref name) => {
-                let val = interpreter
-                    .realm()
-                    .environment
-                    .get_binding_value(name.as_ref());
-                Ok(val)
-            }
+            Node::Identifier(ref identifier) => identifier.run(interpreter),
             Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
             Node::GetField(ref get_field) => get_field.run(interpreter),
-            Node::Call(ref expr) => expr.run(interpreter),
+            Node::Call(ref call) => call.run(interpreter),
             Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
             Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
@@ -537,7 +656,7 @@ impl Executable for Node {
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref decl) => decl.run(interpreter),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionExpr(ref expr) => expr.run(interpreter),
+            Node::FunctionExpr(ref function_expr) => function_expr.run(interpreter),
             Node::ArrowFunctionDecl(ref decl) => decl.run(interpreter),
             Node::BinOp(ref op) => op.run(interpreter),
             Node::UnaryOp(ref op) => op.run(interpreter),

@@ -1,14 +1,17 @@
 use super::*;
 use crate::{forward, forward_val, Interpreter, Realm};
 
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
 #[test]
-fn check_is_object() {
+fn is_object() {
     let val = Value::new_object(None);
     assert_eq!(val.is_object(), true);
 }
 
 #[test]
-fn check_string_to_value() {
+fn string_to_value() {
     let s = String::from("Hello");
     let v = Value::from(s);
     assert_eq!(v.is_string(), true);
@@ -16,14 +19,14 @@ fn check_string_to_value() {
 }
 
 #[test]
-fn check_undefined() {
-    let u = ValueData::Undefined;
+fn undefined() {
+    let u = Value::Undefined;
     assert_eq!(u.get_type(), Type::Undefined);
     assert_eq!(u.to_string(), "undefined");
 }
 
 #[test]
-fn check_get_set_field() {
+fn get_set_field() {
     let obj = Value::new_object(None);
     // Create string and convert it to a Value
     let s = Value::from("bar");
@@ -32,20 +35,20 @@ fn check_get_set_field() {
 }
 
 #[test]
-fn check_integer_is_true() {
-    assert_eq!(Value::from(1).is_true(), true);
-    assert_eq!(Value::from(0).is_true(), false);
-    assert_eq!(Value::from(-1).is_true(), true);
+fn integer_is_true() {
+    assert_eq!(Value::from(1).to_boolean(), true);
+    assert_eq!(Value::from(0).to_boolean(), false);
+    assert_eq!(Value::from(-1).to_boolean(), true);
 }
 
 #[test]
-fn check_number_is_true() {
-    assert_eq!(Value::from(1.0).is_true(), true);
-    assert_eq!(Value::from(0.1).is_true(), true);
-    assert_eq!(Value::from(0.0).is_true(), false);
-    assert_eq!(Value::from(-0.0).is_true(), false);
-    assert_eq!(Value::from(-1.0).is_true(), true);
-    assert_eq!(Value::from(NAN).is_true(), false);
+fn number_is_true() {
+    assert_eq!(Value::from(1.0).to_boolean(), true);
+    assert_eq!(Value::from(0.1).to_boolean(), true);
+    assert_eq!(Value::from(0.0).to_boolean(), false);
+    assert_eq!(Value::from(-0.0).to_boolean(), false);
+    assert_eq!(Value::from(-1.0).to_boolean(), true);
+    assert_eq!(Value::from(NAN).to_boolean(), false);
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
@@ -91,6 +94,67 @@ fn abstract_equality_comparison() {
     assert_eq!(forward(&mut engine, "0 == NaN"), "false");
     assert_eq!(forward(&mut engine, "'foo' == NaN"), "false");
     assert_eq!(forward(&mut engine, "NaN == NaN"), "false");
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY"
+        ),
+        "true"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            "Number.NEGAVIVE_INFINITY === Number.NEGAVIVE_INFINITY"
+        ),
+        "true"
+    );
+}
+
+/// Helper function to get the hash of a `Value`.
+fn hash_value(value: &Value) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    value.hash(&mut hasher);
+    hasher.finish()
+}
+
+#[test]
+fn hash_undefined() {
+    let value1 = Value::undefined();
+    let value_clone = value1.clone();
+    assert_eq!(value1, value_clone);
+
+    let value2 = Value::undefined();
+    assert_eq!(value1, value2);
+
+    assert_eq!(hash_value(&value1), hash_value(&value_clone));
+    assert_eq!(hash_value(&value2), hash_value(&value_clone));
+}
+
+#[test]
+fn hash_rational() {
+    let value1 = Value::rational(1.0);
+    let value2 = Value::rational(1.0);
+    assert_eq!(value1, value2);
+    assert_eq!(hash_value(&value1), hash_value(&value2));
+
+    let nan = Value::nan();
+    assert_eq!(nan, nan);
+    assert_eq!(hash_value(&nan), hash_value(&nan));
+    assert_ne!(hash_value(&nan), hash_value(&Value::rational(1.0)));
+}
+
+#[test]
+fn hash_object() {
+    let object1 = Value::object(Object::default());
+    assert_eq!(object1, object1);
+    assert_eq!(object1, object1.clone());
+
+    let object2 = Value::object(Object::default());
+    assert_ne!(object1, object2);
+
+    assert_eq!(hash_value(&object1), hash_value(&object1.clone()));
+    assert_ne!(hash_value(&object1), hash_value(&object2));
 }
 
 #[test]
@@ -148,4 +212,114 @@ fn get_types() {
         forward_val(&mut engine, "Symbol()").unwrap().get_type(),
         Type::Symbol
     );
+}
+
+#[test]
+fn add_number_and_number() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "1 + 2").unwrap();
+    let value = engine.to_int32(&value).unwrap();
+    assert_eq!(value, 3);
+}
+
+#[test]
+fn add_number_and_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "1 + \" + 2 = 3\"").unwrap();
+    let value = engine.to_string(&value).unwrap();
+    assert_eq!(value, "1 + 2 = 3");
+}
+
+#[test]
+fn add_string_and_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "\"Hello\" + \", world\"").unwrap();
+    let value = engine.to_string(&value).unwrap();
+    assert_eq!(value, "Hello, world");
+}
+
+#[test]
+fn add_number_object_and_number() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "new Number(10) + 6").unwrap();
+    let value = engine.to_int32(&value).unwrap();
+    assert_eq!(value, 16);
+}
+
+#[test]
+fn add_number_object_and_string_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "new Number(10) + new String(\"0\")").unwrap();
+    let value = engine.to_string(&value).unwrap();
+    assert_eq!(value, "100");
+}
+
+#[test]
+fn sub_number_and_number() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "1 - 999").unwrap();
+    let value = engine.to_int32(&value).unwrap();
+    assert_eq!(value, -998);
+}
+
+#[test]
+fn sub_number_object_and_number_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "new Number(1) - new Number(999)").unwrap();
+    let value = engine.to_int32(&value).unwrap();
+    assert_eq!(value, -998);
+}
+
+#[test]
+fn sub_string_and_number_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "'Hello' - new Number(999)").unwrap();
+    let value = engine.to_number(&value).unwrap();
+    assert!(value.is_nan());
+}
+
+#[test]
+fn bitand_integer_and_integer() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "0xFFFF & 0xFF").unwrap();
+    let value = engine.to_int32(&value).unwrap();
+    assert_eq!(value, 255);
+}
+
+#[test]
+fn bitand_integer_and_rational() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "0xFFFF & 255.5").unwrap();
+    let value = engine.to_int32(&value).unwrap();
+    assert_eq!(value, 255);
+}
+
+#[test]
+fn bitand_rational_and_rational() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
+    let value = engine.to_int32(&value).unwrap();
+    assert_eq!(value, 255);
 }
