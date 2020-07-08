@@ -31,11 +31,8 @@ use boa::{
     realm::Realm,
     syntax::ast::{node::StatementList, token::Token},
 };
-use std::{
-    fs::read_to_string,
-    io::{self, Write},
-    path::PathBuf,
-};
+use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
+use std::{fs::read_to_string, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -46,7 +43,8 @@ use structopt::{clap::arg_enum, StructOpt};
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
-//
+static CLI_HISTORY: &str = ".boa_history";
+
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
@@ -78,6 +76,10 @@ struct Opt {
         case_insensitive = true
     )]
     dump_ast: Option<Option<DumpFormat>>,
+
+    /// Use vi mode in the REPL
+    #[structopt(long = "vi")]
+    vi_mode: bool,
 }
 
 impl Opt {
@@ -182,9 +184,8 @@ pub fn main() -> Result<(), std::io::Error> {
         let buffer = read_to_string(file)?;
 
         if args.has_dump_flag() {
-            match dump(&buffer, &args) {
-                Ok(_) => {}
-                Err(e) => eprintln!("{}", e),
+            if let Err(e) = dump(&buffer, &args) {
+                eprintln!("{}", e);
             }
         } else {
             match forward_val(&mut engine, &buffer) {
@@ -195,26 +196,46 @@ pub fn main() -> Result<(), std::io::Error> {
     }
 
     if args.files.is_empty() {
-        loop {
-            let mut buffer = String::new();
-
-            io::stdin().read_line(&mut buffer)?;
-
-            if args.has_dump_flag() {
-                match dump(&buffer, &args) {
-                    Ok(_) => {}
-                    Err(e) => eprintln!("{}", e),
-                }
+        let config = Config::builder()
+            .keyseq_timeout(1)
+            .edit_mode(if args.vi_mode {
+                EditMode::Vi
             } else {
-                match forward_val(&mut engine, buffer.trim_end()) {
-                    Ok(v) => println!("{}", v.to_string()),
-                    Err(v) => eprintln!("{}", v.to_string()),
+                EditMode::Emacs
+            })
+            .build();
+
+        let mut editor = Editor::<()>::with_config(config);
+        let _ = editor.load_history(CLI_HISTORY);
+
+        loop {
+            match editor.readline("> ") {
+                Ok(line) if line == ".exit" => break,
+                Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
+
+                Ok(line) => {
+                    editor.add_history_entry(&line);
+
+                    if args.has_dump_flag() {
+                        if let Err(e) = dump(&line, &args) {
+                            eprintln!("{}", e);
+                        }
+                    } else {
+                        match forward_val(&mut engine, line.trim_end()) {
+                            Ok(v) => println!("{}", v),
+                            Err(v) => eprintln!("{}", v),
+                        }
+                    }
+                }
+
+                Err(err) => {
+                    eprintln!("Unknown error: {:?}", err);
+                    break;
                 }
             }
-
-            // The flush is needed because where in a REPL and we do not want buffering.
-            std::io::stdout().flush().unwrap();
         }
+
+        editor.save_history(CLI_HISTORY).unwrap();
     }
 
     Ok(())
