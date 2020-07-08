@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.71/src/unix/linux_like/linux/gnu/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script src="../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../../../settings.html"><img src="../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.72/src/unix/linux_like/linux/gnu/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script src="../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../../../settings.html"><img src="../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1397,6 +1397,24 @@
 <span id="1397">1397</span>
 <span id="1398">1398</span>
 <span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">pthread_t</span> <span class="op">=</span> <span class="ident">c_ulong</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__priority_which_t</span> <span class="op">=</span> ::<span class="ident">c_uint</span>;
@@ -2064,32 +2082,50 @@
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000adf5</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000adff</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x5346414f</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AUTOFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0187</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BINDERFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x6c6f6f70</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BTRFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x9123683e</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP2_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x63677270</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x27e0eb</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CODA_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x73757245</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CRAMFS_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x28cd3d45</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEVPTS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x1cd1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECRYPTFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0xf15f</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00414a53</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT2_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT3_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXT4_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000ef53</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">F2FS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0xf2f52010</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FUTEXFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0xbad1dea</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HOSTFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00c0ffee</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HPFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0xf995e849</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HUGETLBFS_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x958458f6</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ISOFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00009660</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">JFFS2_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x000072b6</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000137f</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000138f</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX2_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00002468</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX2_SUPER_MAGIC2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00002478</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX2_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00002468</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX3_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x4d5a</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000138f</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINIX_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000137f</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MSDOS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00004d44</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCP_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000564c</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00006969</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NILFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x3434</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OCFS2_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x7461636f</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OPENPROM_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00009fa1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OVERLAYFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x794c7630</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROC_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00009fa0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">QNX4_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000002f</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">QNX6_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x68191122</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RDTGROUP_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x7655821</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REISERFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x52654973</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SMB_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x0000517b</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TMPFS_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x01021994</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDF_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x15013346</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USBDEVICE_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x00009fa2</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x27e0eb</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CGROUP2_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x63677270</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XENFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0xabba1974</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XFS_SUPER_MAGIC</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0x58465342</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CPU_SETSIZE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x400</span>;
 
