@@ -53,18 +53,30 @@ impl<R> Tokenizer<R> for MultiLineComment {
     where
         R: Read,
     {
+        let mut ret: Option<Token> = None;
         loop {
+            let pos = cursor.pos();
             if let Some(ch) = cursor.next()? {
                 if ch == '*' && cursor.next_is('/')? {
                     break;
+                } else if ch == '\n' {
+                    ret = Some(Token::new(
+                        TokenKind::LineTerminator,
+                        Span::new(pos, cursor.pos()),
+                    ));
                 }
             } else {
                 return Err(Error::syntax("unterminated multiline comment"));
             }
         }
-        Ok(Token::new(
-            TokenKind::Comment,
-            Span::new(start_pos, cursor.pos()),
-        ))
+
+        if ret.is_some() {
+            return Ok(ret.unwrap());
+        } else {
+            Ok(Token::new(
+                TokenKind::Comment,
+                Span::new(start_pos, cursor.pos()),
+            ))
+        }
     }
 }

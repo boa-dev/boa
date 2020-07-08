@@ -155,3 +155,56 @@ fn comment_semi_colon_insertion() {
         ],
     );
 }
+
+#[test]
+fn multiline_comment_semi_colon_insertion() {
+    let s = r#"
+    let a = 10 /* Test
+    Multiline
+    Comment
+    */ let b = 20;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(10).into()),
+            )
+            .into()])
+            .into(),
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "b",
+                Some(Const::Int(20).into()),
+            )
+            .into()])
+            .into(),
+        ],
+    );
+}
+
+#[test]
+fn multiline_comment_no_lineterminator() {
+    let s = r#"
+    let a = 10; /* Test comment */ let b = 20;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(10).into()),
+            )
+            .into()])
+            .into(),
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "b",
+                Some(Const::Int(20).into()),
+            )
+            .into()])
+            .into(),
+        ],
+    );
+}

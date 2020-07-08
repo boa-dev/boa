@@ -43,7 +43,11 @@ fn check_multi_line_comment() {
     let s = "var /* await \n break \n*/ x";
     let mut lexer = Lexer::new(s.as_bytes());
 
-    let expected = [TokenKind::Keyword(Keyword::Var), TokenKind::identifier("x")];
+    let expected = [
+        TokenKind::Keyword(Keyword::Var),
+        TokenKind::LineTerminator,
+        TokenKind::identifier("x"),
+    ];
 
     expect_tokens(&mut lexer, &expected);
 }
