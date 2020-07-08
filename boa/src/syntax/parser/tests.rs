@@ -3,8 +3,8 @@
 use super::Parser;
 use crate::syntax::ast::{
     node::{
-        field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
-        StatementList, UnaryOp, VarDecl, VarDeclList,
+        field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, LetDecl, LetDeclList,
+        New, Node, Return, StatementList, UnaryOp, VarDecl, VarDeclList,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
@@ -127,5 +127,31 @@ fn two_divisions_in_expression() {
             ),
         )
         .into()],
+    );
+}
+
+#[test]
+fn comment_semi_colon_insertion() {
+    let s = r#"
+    let a = 10 // Comment
+    let b = 20;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(10).into()),
+            )
+            .into()])
+            .into(),
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "b",
+                Some(Const::Int(20).into()),
+            )
+            .into()])
+            .into(),
+        ],
     );
 }

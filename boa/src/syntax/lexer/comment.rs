@@ -21,9 +21,12 @@ impl<R> Tokenizer<R> for SingleLineComment {
         R: Read,
     {
         // Skip either to the end of the line or to the end of the input
-        while let Some(ch) = cursor.next()? {
+        while let Some(ch) = cursor.peek()? {
             if ch == '\n' {
                 break;
+            } else {
+                // Consume char.
+                cursor.next()?.expect("Comment character vansihed");
             }
         }
         Ok(Token::new(
