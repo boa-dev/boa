@@ -7,11 +7,12 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
-            Keyword, Punctuator, TokenKind,
+            Keyword, Punctuator,
         },
         parser::{
             expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
@@ -20,6 +21,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a lexical declaration.
 ///
@@ -50,14 +53,17 @@ impl LexicalDeclaration {
     }
 }
 
-impl TokenParser for LexicalDeclaration {
+impl<R> TokenParser<R> for LexicalDeclaration
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
-        match tok.kind {
+        match tok.kind() {
             TokenKind::Keyword(Keyword::Const) => {
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, true)
                     .parse(cursor)
@@ -105,10 +111,13 @@ impl BindingList {
     }
 }
 
-impl TokenParser for BindingList {
+impl<R> TokenParser<R> for BindingList
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         // Create vectors to store the variable declarations
         // Const and Let signatures are slightly different, Const needs definitions, Lets don't
         let mut let_decls = Vec::new();
@@ -125,7 +134,7 @@ impl TokenParser for BindingList {
                 } else {
                     return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
                         "const declaration",
                     ));
                 }
@@ -133,7 +142,7 @@ impl TokenParser for BindingList {
                 let_decls.push(LetDecl::new(ident, init));
             }
 
-            match cursor.peek_semicolon(false) {
+            match cursor.peek_semicolon()? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
                     let _ = cursor.next();
@@ -144,7 +153,7 @@ impl TokenParser for BindingList {
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
+                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
                         "lexical declaration",
                     ))
                 }
@@ -187,10 +196,13 @@ impl LexicalBinding {
     }
 }
 
-impl TokenParser for LexicalBinding {
+impl<R> TokenParser<R> for LexicalBinding
+where
+    R: Read,
+{
     type Output = (Box<str>, Option<Node>);
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         let initializer =
             Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);

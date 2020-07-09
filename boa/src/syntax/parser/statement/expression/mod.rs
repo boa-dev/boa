@@ -6,6 +6,7 @@ use crate::{
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Expression statement parsing.
 ///
@@ -33,15 +34,18 @@ impl ExpressionStatement {
     }
 }
 
-impl TokenParser for ExpressionStatement {
+impl<R> TokenParser<R> for ExpressionStatement
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
         // TODO: lookahead
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "expression statement")?;
+        cursor.expect_semicolon("expression statement")?;
 
         Ok(expr)
     }

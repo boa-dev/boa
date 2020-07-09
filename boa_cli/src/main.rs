@@ -26,10 +26,8 @@
 )]
 
 use boa::{
-    exec::Interpreter,
-    forward_val,
-    realm::Realm,
-    syntax::ast::{node::StatementList, token::Token},
+    exec::Interpreter, forward_val, realm::Realm, syntax::ast::node::StatementList,
+    syntax::lexer::Token, Lexer,
 };
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read_to_string, path::PathBuf};
@@ -116,21 +114,26 @@ arg_enum! {
 /// Returns a error of type String with a message,
 /// if the source has a syntax error.
 fn lex_source(src: &str) -> Result<Vec<Token>, String> {
-    use boa::syntax::lexer::Lexer;
+    let mut lexer = Lexer::new(src.as_bytes());
 
-    let mut lexer = Lexer::new(src);
-    lexer.lex().map_err(|e| format!("SyntaxError: {}", e))?;
-    Ok(lexer.tokens)
+    // Goes through and lexes entire given string.
+    let mut res = Vec::new();
+
+    while let Some(tk) = lexer.next().expect("Failed to lex") {
+        res.push(tk);
+    }
+
+    Ok(res)
 }
 
 /// Parses the the token stream into a ast and returns it.
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens(tokens: Vec<Token>) -> Result<StatementList, String> {
+fn parse_tokens(src: &str) -> Result<StatementList, String> {
     use boa::syntax::parser::Parser;
 
-    Parser::new(&tokens)
+    Parser::new(src.as_bytes())
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }
@@ -155,7 +158,7 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
             None => println!("{:#?}", tokens),
         }
     } else if let Some(ref arg) = args.dump_ast {
-        let ast = parse_tokens(tokens)?;
+        let ast = parse_tokens(src)?;
 
         match arg {
             Some(format) => match format {

@@ -12,13 +12,17 @@ mod call;
 mod member;
 
 use self::{call::CallExpression, member::MemberExpression};
+use super::super::ParseError;
+use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
     syntax::{
-        ast::{Node, Punctuator, TokenKind},
-        parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+        ast::{Node, Punctuator},
+        parser::{AllowAwait, AllowYield, Cursor, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a left hand side expression.
 ///
@@ -48,18 +52,24 @@ impl LeftHandSideExpression {
     }
 }
 
-impl TokenParser for LeftHandSideExpression {
+impl<R> TokenParser<R> for LeftHandSideExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
+
+        cursor.set_goal(InputElement::TemplateTail);
+
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        match cursor.peek(0) {
-            Some(ref tok) if tok.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
-                CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor)
+        if let Some(tok) = cursor.peek()? {
+            if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                return CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor);
             }
-            _ => Ok(lhs), // TODO: is this correct?
         }
+        Ok(lhs)
     }
 }

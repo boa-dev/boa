@@ -8,7 +8,7 @@
 use crate::builtins::BigInt;
 use crate::syntax::{
     ast::{Keyword, Punctuator, Span},
-    lexer::LexerError,
+    lexer::Error as LexerError,
 };
 use bitflags::bitflags;
 use std::{
@@ -60,7 +60,7 @@ impl Display for Token {
 /// Represents the type differenct types of numeric literals.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
-pub enum NumericLiteral {
+pub enum Numeric {
     /// A floating point number
     Rational(f64),
 
@@ -71,19 +71,19 @@ pub enum NumericLiteral {
     BigInt(BigInt),
 }
 
-impl From<f64> for NumericLiteral {
+impl From<f64> for Numeric {
     fn from(n: f64) -> Self {
         Self::Rational(n)
     }
 }
 
-impl From<i32> for NumericLiteral {
+impl From<i32> for Numeric {
     fn from(n: i32) -> Self {
         Self::Integer(n)
     }
 }
 
-impl From<BigInt> for NumericLiteral {
+impl From<BigInt> for Numeric {
     fn from(n: BigInt) -> Self {
         Self::BigInt(n)
     }
@@ -114,7 +114,7 @@ impl FromStr for RegExpFlags {
                 b'u' => Self::UNICODE,
                 b'y' => Self::STICKY,
                 _ => {
-                    return Err(LexerError::new(format!(
+                    return Err(LexerError::syntax(format!(
                         "invalid regular expression flag {}",
                         char::from(c)
                     )))
@@ -124,7 +124,7 @@ impl FromStr for RegExpFlags {
             if !flags.contains(new_flag) {
                 flags.insert(new_flag);
             } else {
-                return Err(LexerError::new(format!(
+                return Err(LexerError::syntax(format!(
                     "invalid regular expression flag {}",
                     char::from(c)
                 )));
@@ -230,7 +230,7 @@ pub enum TokenKind {
     NullLiteral,
 
     /// A numeric literal.
-    NumericLiteral(NumericLiteral),
+    NumericLiteral(Numeric),
 
     /// A piece of punctuation
     ///
@@ -247,6 +247,9 @@ pub enum TokenKind {
 
     /// Indicates the end of a line (`\n`).
     LineTerminator,
+
+    /// Indicates a comment, the content isn't stored.
+    Comment,
 }
 
 impl From<bool> for TokenKind {
@@ -264,6 +267,12 @@ impl From<Keyword> for TokenKind {
 impl From<Punctuator> for TokenKind {
     fn from(punc: Punctuator) -> Self {
         Self::Punctuator(punc)
+    }
+}
+
+impl From<Numeric> for TokenKind {
+    fn from(num: Numeric) -> Self {
+        Self::NumericLiteral(num)
     }
 }
 
@@ -294,7 +303,7 @@ impl TokenKind {
     /// Creates a `NumericLiteral` token kind.
     pub fn numeric_literal<L>(lit: L) -> Self
     where
-        L: Into<NumericLiteral>,
+        L: Into<Numeric>,
     {
         Self::NumericLiteral(lit.into())
     }
@@ -332,6 +341,11 @@ impl TokenKind {
     pub fn line_terminator() -> Self {
         Self::LineTerminator
     }
+
+    /// Creates a 'Comment' token kind.
+    pub fn comment() -> Self {
+        Self::Comment
+    }
 }
 
 impl Display for TokenKind {
@@ -342,14 +356,15 @@ impl Display for TokenKind {
             Self::Identifier(ref ident) => write!(f, "{}", ident),
             Self::Keyword(ref word) => write!(f, "{}", word),
             Self::NullLiteral => write!(f, "null"),
-            Self::NumericLiteral(NumericLiteral::Rational(num)) => write!(f, "{}", num),
-            Self::NumericLiteral(NumericLiteral::Integer(num)) => write!(f, "{}", num),
-            Self::NumericLiteral(NumericLiteral::BigInt(ref num)) => write!(f, "{}n", num),
+            Self::NumericLiteral(Numeric::Rational(num)) => write!(f, "{}", num),
+            Self::NumericLiteral(Numeric::Integer(num)) => write!(f, "{}", num),
+            Self::NumericLiteral(Numeric::BigInt(ref num)) => write!(f, "{}n", num),
             Self::Punctuator(ref punc) => write!(f, "{}", punc),
             Self::StringLiteral(ref lit) => write!(f, "{}", lit),
             Self::TemplateLiteral(ref lit) => write!(f, "{}", lit),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
             Self::LineTerminator => write!(f, "line terminator"),
+            Self::Comment => write!(f, "comment"),
         }
     }
 }

@@ -10,29 +10,16 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-static EXPRESSION: &str = r#"
-1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
-"#;
-
-fn expression_lexer(c: &mut Criterion) {
-    c.bench_function("Expression (Lexer)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(EXPRESSION));
-
-            lexer.lex()
-        })
-    });
-}
-
 static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
 
 fn hello_world_lexer(c: &mut Criterion) {
     c.bench_function("Hello World (Lexer)", move |b| {
         b.iter(|| {
-            let mut lexer = Lexer::new(black_box(HELLO_WORLD));
+            let mut lexer = Lexer::new(black_box(HELLO_WORLD.as_bytes()));
             // return the value into the blackbox so its not optimized away
             // https://gist.github.com/jasonwilliams/5325da61a794d8211dcab846d466c4fd
-            lexer.lex()
+            // Goes through and lexes entire given string.
+            while lexer.next().expect("Failed to lex").is_some() {}
         })
     });
 }
@@ -52,12 +39,18 @@ for (let a = 10; a < 100; a++) {
 fn for_loop_lexer(c: &mut Criterion) {
     c.bench_function("For loop (Lexer)", move |b| {
         b.iter(|| {
-            let mut lexer = Lexer::new(black_box(FOR_LOOP));
+            let mut lexer = Lexer::new(black_box(FOR_LOOP.as_bytes()));
 
-            lexer.lex()
+            // Goes through and lexes entire given string.
+            while lexer.next().expect("Failed to lex").is_some() {}
         })
     });
 }
 
-criterion_group!(lexer, expression_lexer, hello_world_lexer, for_loop_lexer);
+criterion_group!(
+    lexer,
+    // expression_lexer,
+    hello_world_lexer,
+    for_loop_lexer
+);
 criterion_main!(lexer);

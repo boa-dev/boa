@@ -3,9 +3,10 @@ mod tests;
 
 use super::Statement;
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{node::If, Keyword, Node, Punctuator, TokenKind},
+        ast::{node::If, Keyword, Node, Punctuator},
         parser::{
             expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
             TokenParser,
@@ -13,6 +14,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// If statement parsing.
 ///
@@ -47,10 +50,13 @@ impl IfStatement {
     }
 }
 
-impl TokenParser for IfStatement {
+impl<R> TokenParser<R> for IfStatement
+where
+    R: Read,
+{
     type Output = If;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
         cursor.expect(Keyword::If, "if statement")?;
         cursor.expect(Punctuator::OpenParen, "if statement")?;
@@ -62,9 +68,11 @@ impl TokenParser for IfStatement {
         let then_stm =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let else_stm = match cursor.peek(0) {
-            Some(else_tok) if else_tok.kind == TokenKind::Keyword(Keyword::Else) => {
-                cursor.next();
+        let else_tok = cursor.peek()?;
+
+        let else_stm = match else_tok {
+            Some(_) if else_tok.unwrap().kind() == &TokenKind::Keyword(Keyword::Else) => {
+                cursor.next()?.expect("Else token vanished");
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                         .parse(cursor)?,

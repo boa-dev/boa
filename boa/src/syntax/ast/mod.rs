@@ -6,7 +6,6 @@ pub mod node;
 pub mod op;
 pub mod position;
 pub mod punctuator;
-pub mod token;
 
 pub use self::{
     constant::Const,
@@ -14,5 +13,4 @@ pub use self::{
     node::Node,
     position::{Position, Span},
     punctuator::Punctuator,
-    token::{Token, TokenKind},
 };

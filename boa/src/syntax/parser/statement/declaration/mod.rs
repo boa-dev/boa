@@ -14,13 +14,16 @@ mod tests;
 
 use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{Keyword, Node, TokenKind},
+        ast::{Keyword, Node},
         parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a declaration.
 ///
@@ -47,14 +50,17 @@ impl Declaration {
     }
 }
 
-impl TokenParser for Declaration {
+impl<R> TokenParser<R> for Declaration
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
 
-        match tok.kind {
+        match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false).parse(cursor)
             }

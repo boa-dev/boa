@@ -1,13 +1,16 @@
 #[cfg(test)]
 mod tests;
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{node::Return, Keyword, Node, Punctuator, TokenKind},
+        ast::{node::Return, Keyword, Node, Punctuator},
         parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Return statement parsing
 ///
@@ -37,14 +40,17 @@ impl ReturnStatement {
     }
 }
 
-impl TokenParser for ReturnStatement {
+impl<R> TokenParser<R> for ReturnStatement
+where
+    R: Read,
+{
     type Output = Return;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect(Keyword::Return, "return statement")?;
 
-        if let (true, tok) = cursor.peek_semicolon(false) {
+        if let (true, tok) = cursor.peek_semicolon()? {
             match tok {
                 Some(tok)
                     if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon)
@@ -60,7 +66,7 @@ impl TokenParser for ReturnStatement {
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "return statement")?;
+        cursor.expect_semicolon("return statement")?;
 
         Ok(Return::new(expr, None))
     }

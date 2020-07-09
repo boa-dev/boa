@@ -50,10 +50,7 @@ pub use crate::{
 };
 
 fn parser_expr(src: &str) -> Result<StatementList, String> {
-    let mut lexer = Lexer::new(src);
-    lexer.lex().map_err(|e| format!("Syntax Error: {}", e))?;
-    let tokens = lexer.tokens;
-    Parser::new(&tokens)
+    Parser::new(src.as_bytes())
         .parse_all()
         .map_err(|e| format!("Parsing Error: {}", e))
 }

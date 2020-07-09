@@ -97,3 +97,47 @@ fn check_switch_seperated_defaults() {
         "#,
     );
 }
+
+/// Example of JS code https://jsfiddle.net/zq6jx47h/4/.
+#[test]
+fn check_seperated_switch() {
+    check_invalid(
+        r#"
+        let a = 10;
+
+        switch 
+
+        (a) 
+
+        {
+
+        case
+
+        5
+
+        :
+
+        console.log(5);
+
+        break;
+
+        case
+
+        10
+
+        :
+
+        console.log(10);
+
+        break;
+
+        default
+
+        :
+
+        console.log("Default")
+
+        }
+        "#,
+    );
+}

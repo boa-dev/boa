@@ -11,13 +11,17 @@
 mod tests;
 
 use super::StatementList;
+
+use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
     syntax::{
-        ast::{node, Punctuator, TokenKind},
+        ast::{node, Punctuator},
         parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
 };
+
+use std::io::Read;
 
 /// A `BlockStatement` is equivalent to a `Block`.
 ///
@@ -58,15 +62,18 @@ impl Block {
     }
 }
 
-impl TokenParser for Block {
+impl<R> TokenParser<R> for Block
+where
+    R: Read,
+{
     type Output = node::Block;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block")?;
-        if let Some(tk) = cursor.peek(0) {
-            if tk.kind == TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.next();
+        if let Some(tk) = cursor.peek()? {
+            if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
+                cursor.next()?.expect("} token vanished");
                 return Ok(node::Block::from(vec![]));
             }
         }

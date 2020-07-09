@@ -6,7 +6,6 @@
 //! [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 
 use super::arguments::Arguments;
-
 use crate::{
     syntax::{
         ast::{
@@ -14,8 +13,9 @@ use crate::{
                 field::{GetConstField, GetField},
                 Call, New, Node,
             },
-            Keyword, Punctuator, TokenKind,
+            Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             expression::{primary::PrimaryExpression, Expression},
             AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
@@ -23,6 +23,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a member expression.
 ///
@@ -50,15 +52,18 @@ impl MemberExpression {
     }
 }
 
-impl TokenParser for MemberExpression {
+impl<R> TokenParser<R> for MemberExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
-        let mut lhs = if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
-            == TokenKind::Keyword(Keyword::New)
+        let mut lhs = if cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind()
+            == &TokenKind::Keyword(Keyword::New)
         {
-            let _ = cursor.next().expect("keyword disappeared");
+            let _ = cursor.next().expect("new keyword disappeared");
             let lhs = self.parse(cursor)?;
             let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
             let call_node = Call::new(lhs, args);
@@ -67,11 +72,13 @@ impl TokenParser for MemberExpression {
         } else {
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
-        while let Some(tok) = cursor.peek(0) {
-            match &tok.kind {
+        while let Some(tok) = cursor.peek()? {
+            let token = tok.clone();
+            match token.kind() {
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor forward.
-                    match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
+                    cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+
+                    match cursor.next()?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into()
                         }
@@ -81,14 +88,14 @@ impl TokenParser for MemberExpression {
                         _ => {
                             return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
-                                tok.clone(),
+                                token,
                                 "member expression",
                             ));
                         }
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor forward.
+                    let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;
