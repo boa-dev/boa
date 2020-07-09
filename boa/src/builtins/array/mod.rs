@@ -973,18 +973,20 @@ impl Array {
         args: &[Value],
         interpreter: &mut Interpreter,
     ) -> ResultValue {
-        if args.is_empty() {
-            return Err(Value::from(
-                "missing callback when calling function Array.prototype.reduce",
-            ));
-        }
-        let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let this = interpreter.to_object(this)?;
+        let callback = match args.get(0) {
+            Some(value) if value.is_function() => value,
+            _ => {
+                return interpreter.throw_type_error(
+                    "missing callback when calling function Array.prototype.reduce",
+                )
+            }
+        };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
         let mut length = i32::from(&this.get_field("length"));
         if length == 0 && initial_value.is_undefined() {
-            return Err(Value::from(
-                "Array contains no elements and initial value is not provided",
-            ));
+            return interpreter
+                .throw_type_error("Array contains no elements and initial value is not provided");
         }
 
         let mut k = 0;
@@ -998,9 +1000,9 @@ impl Array {
                 k += 1;
             }
             if !k_present {
-                return Err(Value::from(
+                return interpreter.throw_type_error(
                     "Array contains no elements and initial value is not provided",
-                ));
+                );
             }
             let result = this.get_field(k.to_string());
             k += 1;
@@ -1016,10 +1018,7 @@ impl Array {
                     Value::integer(k),
                     this.clone(),
                 ];
-                match interpreter.call(&callback, &Value::undefined(), &arguments) {
-                    Ok(value) => accumulator = value,
-                    Err(e) => return Err(e),
-                }
+                accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
                 // reduce may change the length of the array
                 length = min(length, i32::from(&this.get_field("length")));
             }
