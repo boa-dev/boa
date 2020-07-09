@@ -184,6 +184,7 @@ fn ceil() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn clz32() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -280,6 +281,7 @@ fn exp() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn expm1() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -331,6 +333,7 @@ fn floor() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn fround() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -364,6 +367,7 @@ fn fround() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn hypot() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -397,6 +401,7 @@ fn hypot() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn imul() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -448,6 +453,7 @@ fn log() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn log1p() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

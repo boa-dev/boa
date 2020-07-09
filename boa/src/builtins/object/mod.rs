@@ -410,6 +410,36 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
     Ok(object)
 }
 
+/// `Object.create( proto, [propertiesObject] )`
+///
+/// Creates a new object from the provided prototype.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-object.create
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
+pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
+    let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
+
+    if properties != Value::Undefined {
+        unimplemented!("propertiesObject argument of Object.create")
+    }
+
+    match prototype {
+        Value::Object(_) | Value::Null => Ok(Value::new_object_from_prototype(
+            prototype,
+            ObjectData::Ordinary,
+        )),
+        _ => interpreter.throw_type_error(format!(
+            "Object prototype may only be an Object or null: {}",
+            prototype
+        )),
+    }
+}
+
 /// Uses the SameValue algorithm to check equality of objects
 pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
@@ -520,6 +550,8 @@ pub fn init(global: &Value) -> (&str, Value) {
 
     let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
 
+    // static methods of the builtin Object
+    make_builtin_fn(create, "create", &object, 2);
     make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
     make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
     make_builtin_fn(define_property, "defineProperty", &object, 3);

@@ -1,6 +1,6 @@
 ---
 name: Custom
-about: Open an issue in the repo that is neither a bug or a feature
+about: Open an issue in the repo that is neither a bug or a feature, such a new idea
 title: ''
 labels: ''
 assignees: ''
