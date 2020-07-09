@@ -216,7 +216,7 @@ fn get_types() {
 
 #[test]
 fn to_string() {
-    let f64_to_str = |f| ValueData::Rational(f).to_string();
+    let f64_to_str = |f| Value::Rational(f).to_string();
 
     assert_eq!(f64_to_str(f64::NAN), "NaN");
     assert_eq!(f64_to_str(0.0), "0");
