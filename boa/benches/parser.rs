@@ -104,12 +104,7 @@ fn goal_symbol_switch(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
     c.bench_function("Goal Symbols (Parser)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(GOAL_SYMBOL_SWITCH));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(GOAL_SYMBOL_SWITCH.as_bytes())).parse_all())
     });
 }
 
