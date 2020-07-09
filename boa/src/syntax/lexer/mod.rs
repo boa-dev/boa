@@ -71,10 +71,12 @@ impl<R> Lexer<R> {
     }
 
     /// Sets the goal symbol for the lexer.
+    #[inline]
     pub(crate) fn set_goal(&mut self, elm: InputElement) {
         self.goal_symbol = elm;
     }
 
+    #[inline]
     pub(crate) fn get_goal(&self) -> InputElement {
         self.goal_symbol
     }
