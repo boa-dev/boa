@@ -983,12 +983,11 @@ impl Array {
             }
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = i32::from(&this.get_field("length"));
+        let mut length = interpreter.to_length(&this.get_field("length"))?;
         if length == 0 && initial_value.is_undefined() {
             return interpreter
                 .throw_type_error("Array contains no elements and initial value is not provided");
         }
-
         let mut k = 0;
         let mut accumulator = if initial_value.is_undefined() {
             let mut k_present = false;
@@ -1015,12 +1014,14 @@ impl Array {
                 let arguments = [
                     accumulator,
                     this.get_field(k.to_string()),
-                    Value::integer(k),
+                    Value::from(k),
                     this.clone(),
                 ];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
-                // reduce may change the length of the array
-                length = min(length, i32::from(&this.get_field("length")));
+                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
+                It may also be necessary to do this since shortening the array length does not
+                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
+                length = min(length, interpreter.to_length(&this.get_field("length"))?);
             }
             k += 1;
         }
