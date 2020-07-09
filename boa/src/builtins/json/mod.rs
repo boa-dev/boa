@@ -44,7 +44,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         match serde_json::from_str::<JSONValue>(
             &ctx.to_string(args.get(0).expect("cannot get argument for JSON.parse"))?,
         ) {
@@ -106,7 +106,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn stringify(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let object = match args.get(0) {
             Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
                 return Ok(Value::undefined())
@@ -132,13 +132,13 @@ impl Json {
                         .iter()
                         .filter_map(|(k, v)| v.value.as_ref().map(|value| (k, value)))
                     {
-                        let mut this_arg = object.clone();
+                        let this_arg = object.clone();
                         object_to_return.set_property(
                             key.to_owned(),
                             Property::default().value(ctx.call(
                                 replacer,
-                                &mut this_arg,
-                                &[Value::string(key), val.clone()],
+                                &this_arg,
+                                &[Value::from(key.clone()), val.clone()],
                             )?),
                         );
                     }
@@ -170,21 +170,15 @@ impl Json {
         }
     }
 
-    /// Create a new `JSON` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `JSON` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let json = Value::new_object(Some(global));
 
         make_builtin_fn(Self::parse, "parse", &json, 2);
         make_builtin_fn(Self::stringify, "stringify", &json, 3);
 
-        json
-    }
-
-    /// Initialise the `JSON` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, json)
     }
 }

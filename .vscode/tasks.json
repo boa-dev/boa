@@ -7,14 +7,20 @@
       "type": "process",
       "label": "Cargo Run",
       "command": "cargo",
-      "args": ["run", "--bin", "boa", "./tests/js/test.js"],
-      "problemMatcher": ["$rustc"],
+      "args": [
+        "run",
+        "--bin",
+        "boa",
+        "./tests/js/test.js"
+      ],
       "group": {
         "kind": "build",
         "isDefault": true
       },
       "options": {
-        "env": { "RUST_BACKTRACE": "full" }
+        "env": {
+          "RUST_BACKTRACE": "full"
+        }
       },
       "presentation": {
         "clear": true
@@ -24,14 +30,17 @@
       "type": "process",
       "label": "Cargo Run (Profiler)",
       "command": "cargo",
-      "args": ["run", "--features", "Boa/profiler", "../tests/js/test.js"],
-      "problemMatcher": ["$rustc"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "args": [
+        "run",
+        "--features",
+        "Boa/profiler",
+        "../tests/js/test.js"
+      ],
+      "group": "build",
       "options": {
-        "env": { "RUST_BACKTRACE": "full" },
+        "env": {
+          "RUST_BACKTRACE": "full"
+        },
         "cwd": "${workspaceFolder}/boa_cli"
       },
       "presentation": {
@@ -42,8 +51,12 @@
       "type": "process",
       "label": "Get Tokens",
       "command": "cargo",
-      "args": ["run", "--", "-t=Debug", "./tests/js/test.js"],
-      "problemMatcher": ["$rustc"],
+      "args": [
+        "run",
+        "--",
+        "-t=Debug",
+        "./tests/js/test.js"
+      ],
       "group": "build",
       "presentation": {
         "clear": true
@@ -53,19 +66,24 @@
       "type": "process",
       "label": "Get AST",
       "command": "cargo",
-      "args": ["run", "--", "-a=Debug", "./tests/js/test.js"],
-      "problemMatcher": ["$rustc"],
+      "args": [
+        "run",
+        "--",
+        "-a=Debug",
+        "./tests/js/test.js"
+      ],
       "group": "build",
       "presentation": {
         "clear": true
-      }
+      },
     },
     {
       "type": "process",
       "label": "Cargo Test",
       "command": "cargo",
-      "args": ["test"],
-      "problemMatcher": ["$rustc"],
+      "args": [
+        "test"
+      ],
       "group": {
         "kind": "test",
         "isDefault": true
@@ -78,8 +96,10 @@
       "type": "process",
       "label": "Cargo Test Build",
       "command": "cargo",
-      "args": ["test", "--no-run"],
-      "problemMatcher": ["$rustc"],
+      "args": [
+        "test",
+        "--no-run"
+      ],
       "group": "build"
     }
   ]

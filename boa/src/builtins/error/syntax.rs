@@ -1,18 +1,20 @@
-//! This module implements the global `Error` object.
+//! This module implements the global `SyntaxError` object.
 //!
-//! Error objects are thrown when runtime errors occur.
-//! The Error object can also be used as a base object for user-defined exceptions.
+//! The SyntaxError object represents an error when trying to interpret syntactically invalid code.
+//! It is thrown when the JavaScript engine encounters tokens or token order that does not conform
+//! to the syntax of the language when parsing code.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-error-objects
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+//! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-syntaxerror
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError
 
 use crate::{
     builtins::{
-        function::{make_builtin_fn, make_constructor_fn},
+        function::make_builtin_fn,
+        function::make_constructor_fn,
         object::ObjectData,
         value::{ResultValue, Value},
     },
@@ -20,27 +22,13 @@ use crate::{
     profiler::BoaProfiler,
 };
 
-pub(crate) mod range;
-pub(crate) mod reference;
-pub(crate) mod syntax;
-pub(crate) mod r#type;
-// pub(crate) mod eval;
-// pub(crate) mod uri;
-
-pub(crate) use self::r#type::TypeError;
-pub(crate) use self::range::RangeError;
-pub(crate) use self::reference::ReferenceError;
-pub(crate) use self::syntax::SyntaxError;
-// pub(crate) use self::eval::EvalError;
-// pub(crate) use self::uri::UriError;
-
-/// Built-in `Error` object.
+/// JavaScript `SyntaxError` impleentation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Error;
+pub(crate) struct SyntaxError;
 
-impl Error {
+impl SyntaxError {
     /// The name of the object.
-    pub(crate) const NAME: &'static str = "Error";
+    pub(crate) const NAME: &'static str = "SyntaxError";
 
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
@@ -71,10 +59,10 @@ impl Error {
     pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let name = this.get_field("name");
         let message = this.get_field("message");
-        Ok(Value::from(format!("{}: {}", name, message)))
+        Ok(format!("{}: {}", name, message).into())
     }
 
-    /// Initialise the global object with the `Error` object.
+    /// Initialise the global object with the `SyntaxError` object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
@@ -85,7 +73,7 @@ impl Error {
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
-        let error_object = make_constructor_fn(
+        let syntax_error_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_error,
@@ -94,6 +82,6 @@ impl Error {
             true,
         );
 
-        (Self::NAME, error_object)
+        (Self::NAME, syntax_error_object)
     }
 }

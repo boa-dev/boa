@@ -11,13 +11,16 @@ pub use crate::builtins::value::val_type::Type;
 
 use crate::builtins::{
     function::Function,
-    object::{InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+    object::{
+        GcObject, InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE,
+        PROTOTYPE,
+    },
     property::Property,
     BigInt, Symbol,
 };
 use crate::exec::Interpreter;
 use crate::BoaProfiler;
-use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
+use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
     any::Any,
@@ -25,7 +28,6 @@ use std::{
     convert::TryFrom,
     f64::NAN,
     fmt::{self, Display},
-    ops::{Add, BitAnd, BitOr, BitXor, Deref, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
     str::FromStr,
 };
 
@@ -34,32 +36,57 @@ pub mod display;
 pub mod equality;
 pub mod hash;
 pub mod operations;
+pub mod rcbigint;
+pub mod rcstring;
+pub mod rcsymbol;
 
 pub use conversions::*;
 pub(crate) use display::display_obj;
 pub use equality::*;
 pub use hash::*;
 pub use operations::*;
+pub use rcbigint::RcBigInt;
+pub use rcstring::RcString;
+pub use rcsymbol::RcSymbol;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
 pub type ResultValue = Result<Value, Value>;
 
-/// A Garbage-collected Javascript value as represented in the interpreter.
-#[derive(Debug, Clone, Trace, Finalize, Default)]
-pub struct Value(Gc<ValueData>);
+/// A Javascript value
+#[derive(Trace, Finalize, Debug, Clone)]
+pub enum Value {
+    /// `null` - A null value, for when a value doesn't exist.
+    Null,
+    /// `undefined` - An undefined value, for when a field or index doesn't exist.
+    Undefined,
+    /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
+    Boolean(bool),
+    /// `String` - A UTF-8 string, such as `"Hello, world"`.
+    String(RcString),
+    /// `Number` - A 64-bit floating point number, such as `3.1415`
+    Rational(f64),
+    /// `Number` - A 32-bit integer, such as `42`.
+    Integer(i32),
+    /// `BigInt` - holds any arbitrary large signed integer.
+    BigInt(RcBigInt),
+    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
+    Object(GcObject),
+    /// `Symbol` - A Symbol Primitive type.
+    Symbol(RcSymbol),
+}
 
 impl Value {
     /// Creates a new `undefined` value.
     #[inline]
     pub fn undefined() -> Self {
-        Self(Gc::new(ValueData::Undefined))
+        Self::Undefined
     }
 
     /// Creates a new `null` value.
     #[inline]
     pub fn null() -> Self {
-        Self(Gc::new(ValueData::Null))
+        Self::Null
     }
 
     /// Creates a new number with `NaN` value.
@@ -72,9 +99,9 @@ impl Value {
     #[inline]
     pub fn string<S>(value: S) -> Self
     where
-        S: Into<String>,
+        S: Into<RcString>,
     {
-        Self(Gc::new(ValueData::String(value.into())))
+        Self::String(value.into())
     }
 
     /// Creates a new number value.
@@ -83,7 +110,7 @@ impl Value {
     where
         N: Into<f64>,
     {
-        Self(Gc::new(ValueData::Rational(value.into())))
+        Self::Rational(value.into())
     }
 
     /// Creates a new number value.
@@ -92,7 +119,7 @@ impl Value {
     where
         I: Into<i32>,
     {
-        Self(Gc::new(ValueData::Integer(value.into())))
+        Self::Integer(value.into())
     }
 
     /// Creates a new number value.
@@ -106,45 +133,35 @@ impl Value {
 
     /// Creates a new bigint value.
     #[inline]
-    pub fn bigint(value: BigInt) -> Self {
-        Self(Gc::new(ValueData::BigInt(value)))
+    pub fn bigint<B>(value: B) -> Self
+    where
+        B: Into<RcBigInt>,
+    {
+        Self::BigInt(value.into())
     }
 
     /// Creates a new boolean value.
     #[inline]
     pub fn boolean(value: bool) -> Self {
-        Self(Gc::new(ValueData::Boolean(value)))
+        Self::Boolean(value)
     }
 
     /// Creates a new object value.
     #[inline]
     pub fn object(object: Object) -> Self {
-        Self(Gc::new(ValueData::Object(Box::new(GcCell::new(object)))))
+        Self::Object(GcObject::new(object))
     }
 
     /// Creates a new symbol value.
     #[inline]
-    pub fn symbol(symbol: Symbol) -> Self {
-        Self(Gc::new(ValueData::Symbol(symbol)))
-    }
-
-    /// Gets the underlying `ValueData` structure.
-    #[inline]
-    pub fn data(&self) -> &ValueData {
-        &*self.0
-    }
-
-    /// Helper function to convert the `Value` to a number and compute its power.
-    pub fn as_num_to_power(&self, other: Self) -> Self {
-        match (self.data(), other.data()) {
-            (ValueData::BigInt(ref a), ValueData::BigInt(ref b)) => Self::bigint(a.clone().pow(b)),
-            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
-        }
+    pub(crate) fn symbol(symbol: Symbol) -> Self {
+        Self::Symbol(RcSymbol::from(symbol))
     }
 
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
         let _timer = BoaProfiler::global().start_event("new_object", "value");
+
         if let Some(global) = global {
             let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
 
@@ -225,16 +242,16 @@ impl Value {
 
     /// Conversts the `Value` to `JSON`.
     pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue, Value> {
-        match *self.data() {
-            ValueData::Null => Ok(JSONValue::Null),
-            ValueData::Boolean(b) => Ok(JSONValue::Bool(b)),
-            ValueData::Object(ref obj) => {
+        match *self {
+            Self::Null => Ok(JSONValue::Null),
+            Self::Boolean(b) => Ok(JSONValue::Bool(b)),
+            Self::Object(ref obj) => {
                 if obj.borrow().is_array() {
                     let mut arr: Vec<JSONValue> = Vec::new();
                     for k in obj.borrow().properties().keys() {
                         if k != "length" {
                             let value = self.get_field(k.to_string());
-                            if value.is_undefined() || value.is_function() {
+                            if value.is_undefined() || value.is_function() || value.is_symbol() {
                                 arr.push(JSONValue::Null);
                             } else {
                                 arr.push(self.get_field(k.to_string()).to_json(interpreter)?);
@@ -247,60 +264,27 @@ impl Value {
                     for k in obj.borrow().properties().keys() {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
-                        if !value.is_undefined() && !value.is_function() {
-                            new_obj.insert(key, value.to_json(interpreter)?);
+                        if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
+                            new_obj.insert(key.to_string(), value.to_json(interpreter)?);
                         }
                     }
                     Ok(JSONValue::Object(new_obj))
                 }
             }
-            ValueData::String(ref str) => Ok(JSONValue::String(str.clone())),
-            ValueData::Rational(num) => Ok(JSONNumber::from_f64(num)
+            Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
+            Self::Rational(num) => Ok(JSONNumber::from_f64(num)
                 .map(JSONValue::Number)
                 .unwrap_or(JSONValue::Null)),
-            ValueData::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
-            ValueData::BigInt(_) => {
+            Self::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
+            Self::BigInt(_) => {
                 Err(interpreter.construct_type_error("BigInt value can't be serialized in JSON"))
             }
-            ValueData::Symbol(_) | ValueData::Undefined => {
+            Self::Symbol(_) | Self::Undefined => {
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
         }
     }
-}
 
-impl Deref for Value {
-    type Target = ValueData;
-
-    fn deref(&self) -> &Self::Target {
-        self.data()
-    }
-}
-
-/// A Javascript value
-#[derive(Trace, Finalize, Debug, Clone)]
-pub enum ValueData {
-    /// `null` - A null value, for when a value doesn't exist.
-    Null,
-    /// `undefined` - An undefined value, for when a field or index doesn't exist.
-    Undefined,
-    /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
-    Boolean(bool),
-    /// `String` - A UTF-8 string, such as `"Hello, world"`.
-    String(String),
-    /// `Number` - A 64-bit floating point number, such as `3.1415`
-    Rational(f64),
-    /// `Number` - A 32-bit integer, such as `42`.
-    Integer(i32),
-    /// `BigInt` - holds any arbitrary large signed integer.
-    BigInt(BigInt),
-    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
-    Object(Box<GcCell<Object>>),
-    /// `Symbol` - A Symbol Primitive type.
-    Symbol(Symbol),
-}
-
-impl ValueData {
     /// This will tell us if we can exten an object or not, not properly implemented yet
     ///
     /// For now always returns true.
@@ -420,21 +404,6 @@ impl ValueData {
         }
     }
 
-    /// Returns true if the value is true.
-    ///
-    /// [toBoolean](https://tc39.es/ecma262/#sec-toboolean)
-    pub fn is_true(&self) -> bool {
-        match *self {
-            Self::Object(_) => true,
-            Self::String(ref s) if !s.is_empty() => true,
-            Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
-            Self::Integer(n) if n != 0 => true,
-            Self::Boolean(v) => v,
-            Self::BigInt(ref n) if *n != 0 => true,
-            _ => false,
-        }
-    }
-
     /// Converts the value into a 64-bit floating point number
     pub fn to_number(&self) -> f64 {
         match *self {
@@ -480,7 +449,12 @@ impl ValueData {
         }
     }
 
-    /// Creates a new boolean value from the input
+    /// Converts the value to a `bool` type.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toboolean
     pub fn to_boolean(&self) -> bool {
         match *self {
             Self::Undefined | Self::Null => false,
@@ -488,7 +462,7 @@ impl ValueData {
             Self::String(ref s) if !s.is_empty() => true,
             Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
             Self::Integer(n) if n != 0 => true,
-            Self::BigInt(ref n) if *n != 0 => true,
+            Self::BigInt(ref n) if *n.as_inner() != 0 => true,
             Self::Boolean(v) => v,
             _ => false,
         }
@@ -568,12 +542,12 @@ impl ValueData {
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field<F>(&self, field: F) -> Value
+    pub fn get_field<F>(&self, field: F) -> Self
     where
         F: Into<Value>,
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
-        match *field.into() {
+        match field.into() {
             // Our field will either be a String or a Symbol
             Self::String(ref s) => {
                 match self.get_property(s) {
@@ -720,14 +694,14 @@ impl ValueData {
     #[inline]
     pub fn set_data(&self, data: ObjectData) {
         if let Self::Object(ref obj) = *self {
-            (*obj.deref().borrow_mut()).data = data;
+            obj.borrow_mut().data = data;
         }
     }
 
     /// Set the property in the value.
     pub fn set_property<S>(&self, field: S, property: Property) -> Property
     where
-        S: Into<String>,
+        S: Into<RcString>,
     {
         if let Some(mut object) = self.as_object_mut() {
             object
@@ -758,7 +732,7 @@ impl ValueData {
     }
 }
 
-impl Default for ValueData {
+impl Default for Value {
     fn default() -> Self {
         Self::Undefined
     }

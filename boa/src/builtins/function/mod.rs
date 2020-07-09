@@ -16,7 +16,7 @@ use crate::{
         array::Array,
         object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::Property,
-        value::{ResultValue, Value},
+        value::{RcString, ResultValue, Value},
     },
     environment::function_environment_record::BindingStatus,
     environment::lexical_environment::{new_function_environment, Environment},
@@ -28,7 +28,7 @@ use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
 /// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
-pub type NativeFunctionData = fn(&mut Value, &[Value], &mut Interpreter) -> ResultValue;
+pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> ResultValue;
 
 /// Sets the ConstructorKind
 #[derive(Debug, Copy, Clone)]
@@ -178,7 +178,7 @@ impl Function {
     pub fn call(
         &self,
         function: Value, // represents a pointer to this function object wrapped in a GC (not a `this` JS object)
-        this: &mut Value,
+        this: &Value,
         args_list: &[Value],
         interpreter: &mut Interpreter,
     ) -> ResultValue {
@@ -191,9 +191,18 @@ impl Function {
                     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                     let local_env = new_function_environment(
                         function,
-                        None,
+                        if let ThisMode::Lexical = self.this_mode {
+                            None
+                        } else {
+                            Some(this.clone())
+                        },
                         self.environment.as_ref().cloned(),
-                        BindingStatus::Uninitialized,
+                        // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                        if let ThisMode::Lexical = self.this_mode {
+                            BindingStatus::Lexical
+                        } else {
+                            BindingStatus::Uninitialized
+                        },
                     );
 
                     // Add argument bindings to the function environment
@@ -236,7 +245,7 @@ impl Function {
     pub fn construct(
         &self,
         function: Value, // represents a pointer to this function object wrapped in a GC (not a `this` JS object)
-        this: &mut Value,
+        this: &Value,
         args_list: &[Value],
         interpreter: &mut Interpreter,
     ) -> ResultValue {
@@ -253,7 +262,12 @@ impl Function {
                         function,
                         Some(this.clone()),
                         self.environment.as_ref().cloned(),
-                        BindingStatus::Initialized,
+                        // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                        if let ThisMode::Lexical = self.this_mode {
+                            BindingStatus::Lexical
+                        } else {
+                            BindingStatus::Uninitialized
+                        },
                     );
 
                     // Add argument bindings to the function environment
@@ -376,7 +390,8 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
             .writable(true)
             .configurable(true);
 
-        obj.properties_mut().insert(index.to_string(), prop);
+        obj.properties_mut()
+            .insert(RcString::from(index.to_string()), prop);
         index += 1;
     }
 
@@ -386,18 +401,12 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 /// Create new function `[[Construct]]`
 ///
 // This gets called when a new Function() is created.
-pub fn make_function(this: &mut Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
     this.set_data(ObjectData::Function(Function::builtin(
         Vec::new(),
         |_, _, _| Ok(Value::undefined()),
     )));
     Ok(this.clone())
-}
-
-pub fn create(global: &Value) -> Value {
-    let prototype = Value::new_object(Some(global));
-
-    make_constructor_fn("Function", 1, make_function, global, prototype, true)
 }
 
 /// Creates a new constructor function
@@ -495,6 +504,10 @@ where
 #[inline]
 pub fn init(global: &Value) -> (&str, Value) {
     let _timer = BoaProfiler::global().start_event("function", "init");
+    let prototype = Value::new_object(Some(global));
 
-    ("Function", create(global))
+    let function_object =
+        make_constructor_fn("Function", 1, make_function, global, prototype, true);
+
+    ("Function", function_object)
 }

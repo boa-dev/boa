@@ -20,14 +20,14 @@ mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::value::{ResultValue, Value, ValueData},
+    builtins::value::{RcString, RcSymbol, ResultValue, Value},
     exec::Interpreter,
     BoaProfiler,
 };
 use gc::{Finalize, Trace};
 
 #[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Symbol(Option<Box<str>>, u32);
+pub struct Symbol(Option<RcString>, u32);
 
 impl Symbol {
     /// The name of the object.
@@ -46,13 +46,13 @@ impl Symbol {
         self.1
     }
 
-    fn this_symbol_value(value: &Value, ctx: &mut Interpreter) -> Result<Self, Value> {
-        match value.data() {
-            ValueData::Symbol(ref symbol) => return Ok(symbol.clone()),
-            ValueData::Object(ref object) => {
+    fn this_symbol_value(value: &Value, ctx: &mut Interpreter) -> Result<RcSymbol, Value> {
+        match value {
+            Value::Symbol(ref symbol) => return Ok(symbol.clone()),
+            Value::Object(ref object) => {
                 let object = object.borrow();
                 if let Some(symbol) = object.as_symbol() {
-                    return Ok(symbol.clone());
+                    return Ok(symbol);
                 }
             }
             _ => {}
@@ -72,11 +72,9 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
-    pub(crate) fn call(_: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn call(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let description = match args.get(0) {
-            Some(ref value) if !value.is_undefined() => {
-                Some(ctx.to_string(value)?.into_boxed_str())
-            }
+            Some(ref value) if !value.is_undefined() => Some(ctx.to_string(value)?),
             _ => None,
         };
 
@@ -94,26 +92,10 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &mut Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let symbol = Self::this_symbol_value(this, ctx)?;
         let description = symbol.description().unwrap_or("");
         Ok(Value::from(format!("Symbol({})", description)))
-    }
-
-    /// Create a new `Symbol` object.
-    pub(crate) fn create(global: &Value) -> Value {
-        // Create prototype object
-        let prototype = Value::new_object(Some(global));
-
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
-        make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::call,
-            global,
-            prototype,
-            false,
-        )
     }
 
     /// Initialise the `Symbol` object on the global object.
@@ -121,6 +103,20 @@ impl Symbol {
     pub fn init(global: &Value) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, Self::create(global))
+        // Create prototype object
+        let prototype = Value::new_object(Some(global));
+
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+
+        let symbol_object = make_constructor_fn(
+            Self::NAME,
+            Self::LENGTH,
+            Self::call,
+            global,
+            prototype,
+            false,
+        );
+
+        (Self::NAME, symbol_object)
     }
 }

@@ -13,19 +13,23 @@
 //! [spec]: https://tc39.es/ecma262/#sec-number-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-#[cfg(test)]
-mod tests;
-
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
 };
 use crate::{
-    builtins::value::{ResultValue, Value, ValueData},
+    builtins::value::{ResultValue, Value},
     exec::Interpreter,
     BoaProfiler,
 };
 use num_traits::float::FloatCore;
+
+mod conversions;
+
+pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
+
+#[cfg(test)]
+mod tests;
 
 const BUF_SIZE: usize = 2200;
 
@@ -46,6 +50,52 @@ impl Number {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
+    /// The `Number.MAX_SAFE_INTEGER` constant represents the maximum safe integer in JavaScript (`2^53 - 1`).
+    ///
+    /// /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.max_safe_integer
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
+    pub(crate) const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991_f64;
+
+    /// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(253 - 1)`).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.min_safe_integer
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER
+    pub(crate) const MIN_SAFE_INTEGER: f64 = -9_007_199_254_740_991_f64;
+
+    /// The `Number.MAX_VALUE` property represents the maximum numeric value representable in JavaScript.
+    ///
+    /// The `MAX_VALUE` property has a value of approximately `1.79E+308`, or `2^1024`.
+    /// Values larger than `MAX_VALUE` are represented as `Infinity`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.max_value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_VALUE
+    pub(crate) const MAX_VALUE: f64 = f64::MAX;
+
+    /// The `Number.MIN_VALUE` property represents the smallest positive numeric value representable in JavaScript.
+    ///
+    /// The `MIN_VALUE` property is the number closest to `0`, not the most negative number, that JavaScript can represent.
+    /// It has a value of approximately `5e-324`. Values smaller than `MIN_VALUE` ("underflow values") are converted to `0`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.min_value
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_VALUE
+    pub(crate) const MIN_VALUE: f64 = f64::MIN;
+
     /// This function returns a `Result` of the number `Value`.
     ///
     /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
@@ -53,14 +103,13 @@ impl Number {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
     fn this_number_value(value: &Value, ctx: &mut Interpreter) -> Result<f64, Value> {
-        match *value.data() {
-            ValueData::Integer(integer) => return Ok(f64::from(integer)),
-            ValueData::Rational(rational) => return Ok(rational),
-            ValueData::Object(ref object) => {
+        match *value {
+            Value::Integer(integer) => return Ok(f64::from(integer)),
+            Value::Rational(rational) => return Ok(rational),
+            Value::Object(ref object) => {
                 if let Some(number) = object.borrow().as_number() {
                     return Ok(number);
                 }
@@ -83,11 +132,7 @@ impl Number {
     /// `[[Construct]]` - Creates a Number instance
     ///
     /// `[[Call]]` - Creates a number primitive
-    pub(crate) fn make_number(
-        this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn make_number(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
             Some(ref value) => ctx.to_numeric_number(value)?,
             None => 0.0,
@@ -109,7 +154,7 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_exponential(
-        this: &mut Value,
+        this: &Value,
         _args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
@@ -129,7 +174,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(this: &mut Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_fixed(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let this_num = Self::this_number_value(this, ctx)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer() {
@@ -157,7 +202,7 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_locale_string(
-        this: &mut Value,
+        this: &Value,
         _args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
@@ -177,11 +222,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_precision(
-        this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn to_precision(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let this_num = Self::this_number_value(this, ctx)?;
         let _num_str_len = format!("{}", this_num).len();
         let _precision = match args.get(0) {
@@ -345,11 +386,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &mut Value,
-        args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, ctx)?;
 
@@ -402,11 +439,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(
-        this: &mut Value,
-        _args: &[Value],
-        ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(Value::from(Self::this_number_value(this, ctx)?))
     }
 
@@ -424,14 +457,10 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(
-        _this: &mut Value,
-        args: &[Value],
-        _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    pub(crate) fn parse_int(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
         if let (Some(val), r) = (args.get(0), args.get(1)) {
             let mut radix = if let Some(rx) = r {
-                if let ValueData::Integer(i) = rx.data() {
+                if let Value::Integer(i) = rx {
                     *i as u32
                 } else {
                     // Handling a second argument that isn't an integer but was provided so cannot be defaulted.
@@ -442,8 +471,8 @@ impl Number {
                 0
             };
 
-            match val.data() {
-                ValueData::String(s) => {
+            match val {
+                Value::String(s) => {
                     // Attempt to infer radix from given string.
 
                     if radix == 0 {
@@ -466,8 +495,8 @@ impl Number {
                         Ok(Value::from(f64::NAN))
                     }
                 }
-                ValueData::Integer(i) => Ok(Value::integer(*i)),
-                ValueData::Rational(f) => Ok(Value::integer(*f as i32)),
+                Value::Integer(i) => Ok(Value::integer(*i)),
+                Value::Rational(f) => Ok(Value::integer(*f as i32)),
                 _ => {
                     // Wrong argument type to parseInt.
                     Ok(Value::from(f64::NAN))
@@ -495,13 +524,13 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
     pub(crate) fn parse_float(
-        _this: &mut Value,
+        _this: &Value,
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
         if let Some(val) = args.get(0) {
-            match val.data() {
-                ValueData::String(s) => {
+            match val {
+                Value::String(s) => {
                     if let Ok(i) = s.parse::<i32>() {
                         // Attempt to parse an integer first so that it can be stored as an integer
                         // to improve performance
@@ -513,8 +542,8 @@ impl Number {
                         Ok(Value::from(f64::NAN))
                     }
                 }
-                ValueData::Integer(i) => Ok(Value::integer(*i)),
-                ValueData::Rational(f) => Ok(Value::rational(*f)),
+                Value::Integer(i) => Ok(Value::integer(*i)),
+                Value::Rational(f) => Ok(Value::rational(*f)),
                 _ => {
                     // Wrong argument type to parseFloat.
                     Ok(Value::from(f64::NAN))
@@ -526,8 +555,11 @@ impl Number {
         }
     }
 
-    /// Create a new `Number` object
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `Number` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_exponential, "toExponential", &prototype, 1);
@@ -545,7 +577,7 @@ impl Number {
             PARSE_FLOAT_MAX_ARG_COUNT,
         );
 
-        let number = make_constructor_fn(
+        let number_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_number,
@@ -557,26 +589,18 @@ impl Number {
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
         {
-            let mut properties = number.as_object_mut().expect("'Number' object");
+            let mut properties = number_object.as_object_mut().expect("'Number' object");
             properties.insert_field("EPSILON", Value::from(f64::EPSILON));
-            properties.insert_field("MAX_SAFE_INTEGER", Value::from(9_007_199_254_740_991_f64));
-            properties.insert_field("MIN_SAFE_INTEGER", Value::from(-9_007_199_254_740_991_f64));
-            properties.insert_field("MAX_VALUE", Value::from(f64::MAX));
-            properties.insert_field("MIN_VALUE", Value::from(f64::MIN));
+            properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
+            properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
+            properties.insert_field("MAX_VALUE", Value::from(Self::MAX_VALUE));
+            properties.insert_field("MIN_VALUE", Value::from(Self::MIN_VALUE));
             properties.insert_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
             properties.insert_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
             properties.insert_field("NaN", Value::from(f64::NAN));
         }
 
-        number
-    }
-
-    /// Initialise the `Number` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, number_object)
     }
 
     /// The abstract operation Number::equal takes arguments

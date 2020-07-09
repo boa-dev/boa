@@ -24,7 +24,8 @@ pub(crate) use self::{
     array::Array,
     bigint::BigInt,
     boolean::Boolean,
-    error::{Error, RangeError, ReferenceError, TypeError},
+    console::Console,
+    error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
@@ -35,7 +36,7 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     undefined::Undefined,
-    value::{ResultValue, Value, ValueData},
+    value::{ResultValue, Value},
 };
 
 /// Initializes builtin objects and functions
@@ -54,12 +55,13 @@ pub fn init(global: &Value) {
         RegExp::init,
         String::init,
         Symbol::init,
-        console::init,
+        Console::init,
         // Global error types.
         Error::init,
         RangeError::init,
         ReferenceError::init,
         TypeError::init,
+        SyntaxError::init,
         // Global properties.
         NaN::init,
         Infinity::init,
@@ -67,8 +69,8 @@ pub fn init(global: &Value) {
         Undefined::init,
     ];
 
-    match global.data() {
-        ValueData::Object(ref global_object) => {
+    match global {
+        Value::Object(ref global_object) => {
             for init in &globals {
                 let (name, value) = init(global);
                 global_object.borrow_mut().insert_field(name, value);

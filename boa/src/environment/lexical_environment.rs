@@ -235,15 +235,20 @@ pub fn new_function_environment(
     outer: Option<Environment>,
     binding_status: BindingStatus,
 ) -> Environment {
-    Gc::new(GcCell::new(Box::new(FunctionEnvironmentRecord {
+    let mut func_env = FunctionEnvironmentRecord {
         env_rec: FxHashMap::default(),
         function: f,
         this_binding_status: binding_status,
         home_object: Value::undefined(),
         new_target: Value::undefined(),
         outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-        this_value: this.unwrap_or_else(Value::undefined),
-    })))
+        this_value: Value::undefined(),
+    };
+    // If a `this` value has been passed, bind it to the environment
+    if let Some(v) = this {
+        func_env.bind_this_value(v);
+    }
+    Gc::new(GcCell::new(Box::new(func_env)))
 }
 
 pub fn new_object_environment(object: Value, environment: Option<Environment>) -> Environment {
@@ -260,7 +265,7 @@ pub fn new_object_environment(object: Value, environment: Option<Environment>) -
 }
 
 pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
-    let obj_rec = Box::new(ObjectEnvironmentRecord {
+    let obj_rec = ObjectEnvironmentRecord {
         bindings: global,
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
@@ -269,12 +274,12 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         /// with each object Environment Record. By default, the value of withEnvironment is false
         /// for any object Environment Record.
         with_environment: false,
-    });
+    };
 
-    let dcl_rec = Box::new(DeclarativeEnvironmentRecord {
+    let dcl_rec = DeclarativeEnvironmentRecord {
         env_rec: FxHashMap::default(),
         outer_env: None,
-    });
+    };
 
     Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
         object_record: obj_rec,
@@ -311,7 +316,7 @@ mod tests {
           {
             const bar = "bar";
           }
-          
+
           try{
             bar;
           } catch (err) {

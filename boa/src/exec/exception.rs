@@ -72,4 +72,25 @@ impl Interpreter {
     {
         Err(self.construct_reference_error(message))
     }
+
+    /// Constructs a `SyntaxError` with the specified message.
+    pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
+    where
+        M: Into<String>,
+    {
+        New::from(Call::new(
+            Identifier::from("SyntaxError"),
+            vec![Const::from(message.into()).into()],
+        ))
+        .run(self)
+        .expect_err("SyntaxError should always throw")
+    }
+
+    /// Throws a `SyntaxError` with the specified message.
+    pub fn throw_syntax_error<M>(&mut self, message: M) -> ResultValue
+    where
+        M: Into<String>,
+    {
+        Err(self.construct_syntax_error(message))
+    }
 }
