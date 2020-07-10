@@ -51,3 +51,7 @@ harness = false
 [[bench]]
 name = "exec"
 harness = false
+
+[[bench]]
+name = "full"
+harness = false
