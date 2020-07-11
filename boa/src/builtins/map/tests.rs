@@ -204,3 +204,19 @@ fn order() {
     let result = forward(&mut engine, "map.set(2, \"two\");map");
     assert_eq!(result, "Map { 1 → five, undefined → undefined, 2 → two }");
 }
+
+#[test]
+fn recursive_display() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        let map = new Map();
+        let array = new Array([map]);
+        map.set("y", map);
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "map");
+    assert_eq!(result, "Map { y → Map(1) }");
+    let result = forward(&mut engine, "map.set(\"z\", array)");
+    assert_eq!(result, "Map { y → Map(2), z → Array(1) }");
+}

@@ -58,7 +58,7 @@ macro_rules! print_obj_value {
     };
 }
 
-pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
+pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: bool) -> String {
     match x {
         // We don't want to print private (compiler) or prototype properties
         Value::Object(ref v) => {
@@ -78,29 +78,35 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
                             .expect("Could not borrow value"),
                     );
 
-                    if len == 0 {
-                        return String::from("[]");
+                    if print_children {
+                        if len == 0 {
+                            return String::from("[]");
+                        }
+
+                        let arr = (0..len)
+                            .map(|i| {
+                                // Introduce recursive call to stringify any objects
+                                // which are part of the Array
+                                log_string_from(
+                                    &v.borrow()
+                                        .properties()
+                                        .get(i.to_string().as_str())
+                                        .unwrap()
+                                        .value
+                                        .clone()
+                                        .expect("Could not borrow value"),
+                                    print_internals,
+                                    false
+                                )
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ");
+
+                        format!("[ {} ]", arr)
                     }
-
-                    let arr = (0..len)
-                        .map(|i| {
-                            // Introduce recursive call to stringify any objects
-                            // which are part of the Array
-                            log_string_from(
-                                &v.borrow()
-                                    .properties()
-                                    .get(i.to_string().as_str())
-                                    .unwrap()
-                                    .value
-                                    .clone()
-                                    .expect("Could not borrow value"),
-                                print_internals,
-                            )
-                        })
-                        .collect::<Vec<String>>()
-                        .join(", ");
-
-                    format!("[ {} ]", arr)
+                    else {
+                        format!("Array({})", len)
+                    }
                 }
                 ObjectData::Map(ref map) => {
                     let size = i32::from(
@@ -116,17 +122,22 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
                         return String::from("Map(0)");
                     }
 
-                    let mappings = map
-                        .borrow()
-                        .iter()
-                        .map(|(key, value)| {
-                            let key = log_string_from(key, print_internals);
-                            let value = log_string_from(value, print_internals);
-                            format!("{} → {}", key, value)
-                        })
-                        .collect::<Vec<String>>()
-                        .join(", ");
-                    format!("Map {{ {} }}", mappings)
+                    if print_children {
+                        let mappings = map
+                            .borrow()
+                            .iter()
+                            .map(|(key, value)| {
+                                let key = log_string_from(key, print_internals, false);
+                                let value = log_string_from(value, print_internals, false);
+                                format!("{} → {}", key, value)
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ");
+                        format!("Map {{ {} }}", mappings)
+                    }
+                    else {
+                        format!("Map({})", size)
+                    }
                 }
                 _ => display_obj(&x, print_internals),
             }
@@ -213,7 +224,7 @@ impl Display for Value {
                     _ => v.to_string(),
                 }
             ),
-            Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
+            Self::Object(_) => write!(f, "{}", log_string_from(self, true, true)),
             Self::Integer(v) => write!(f, "{}", v),
             Self::BigInt(ref num) => write!(f, "{}n", num),
         }
