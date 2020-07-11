@@ -296,8 +296,10 @@ impl Map {
         Ok(this.clone())
     }
 
-    /// Create a new `Map` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `Map` object on the global object.
+    pub(crate) fn init(global: &Value) -> Value {
+    	let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         // Create prototype
         let prototype = Value::new_object(Some(global));
 
@@ -308,21 +310,15 @@ impl Map {
         make_builtin_fn(Self::has, "has", &prototype, 1);
         make_builtin_fn(Self::for_each, "forEach", &prototype, 1);
 
-        make_constructor_fn(
+        let map_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_map,
             global,
             prototype,
             true,
-        )
-    }
-
-    /// Initialise the `Map` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        );
+        
+        (Self::NAME, map_object)
     }
 }
