@@ -24,9 +24,9 @@ fn symbol_creation(c: &mut Criterion) {
     // Create new Realm and interpreter.
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-
+  
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(SYMBOL_CREATION.as_bytes()))
+    let nodes = Parser::new(SYMBOL_CREATION.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -55,7 +55,7 @@ fn for_loop_execution(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(FOR_LOOP.as_bytes()))
+    let nodes = Parser::new(FOR_LOOP.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -84,7 +84,7 @@ fn fibonacci(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(FIBONACCI.as_bytes()))
+    let nodes = Parser::new(FIBONACCI.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -111,7 +111,7 @@ fn object_creation(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(OBJECT_CREATION.as_bytes()))
+    let nodes = Parser::new(OBJECT_CREATION.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -138,7 +138,7 @@ fn object_prop_access_const(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(OBJECT_PROP_ACCESS_CONST.as_bytes()))
+    let nodes = Parser::new(OBJECT_PROP_ACCESS_CONST.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -165,7 +165,7 @@ fn object_prop_access_dyn(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(OBJECT_PROP_ACCESS_DYN.as_bytes()))
+    let nodes = Parser::new(OBJECT_PROP_ACCESS_DYN.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -189,7 +189,7 @@ fn regexp_literal_creation(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(REGEXP_LITERAL_CREATION.as_bytes()))
+    let nodes = Parser::new(REGEXP_LITERAL_CREATION.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -213,7 +213,7 @@ fn regexp_creation(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(REGEXP_CREATION.as_bytes()))
+    let nodes = Parser::new(REGEXP_CREATION.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -237,7 +237,7 @@ fn regexp_literal(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(REGEXP_LITERAL.as_bytes()))
+    let nodes = Parser::new(REGEXP_LITERAL.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -261,7 +261,7 @@ fn regexp(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(black_box(REGEXP.as_bytes()))
+    let nodes = Parser::new(REGEXP.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -285,7 +285,7 @@ fn array_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(ARRAY_ACCESS.as_bytes()))
+    let nodes = Parser::new(ARRAY_ACCESS.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -309,7 +309,7 @@ fn array_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(ARRAY_CREATE.as_bytes()))
+    let nodes = Parser::new(ARRAY_CREATE.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -349,7 +349,7 @@ fn array_pop(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(ARRAY_POP.as_bytes()))
+    let nodes = Parser::new(ARRAY_POP.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -371,7 +371,7 @@ fn string_concat(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(STRING_CONCAT.as_bytes()))
+    let nodes = Parser::new(STRING_CONCAT.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -396,7 +396,7 @@ fn string_compare(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(STRING_COMPARE.as_bytes()))
+    let nodes = Parser::new(STRING_COMPARE.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -416,7 +416,7 @@ fn string_copy(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(STRING_COPY.as_bytes()))
+    let nodes = Parser::new(STRING_COPY.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -439,7 +439,7 @@ fn number_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(NUMBER_OBJECT_ACCESS.as_bytes()))
+    let nodes = Parser::new(NUMBER_OBJECT_ACCESS.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -462,7 +462,7 @@ fn boolean_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(BOOLEAN_OBJECT_ACCESS.as_bytes()))
+    let nodes = Parser::new(BOOLEAN_OBJECT_ACCESS.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -485,7 +485,7 @@ fn string_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(STRING_OBJECT_ACCESS.as_bytes()))
+    let nodes = Parser::new(STRING_OBJECT_ACCESS.as_bytes())
         .parse_all()
         .unwrap();
 
@@ -502,7 +502,7 @@ fn arithmetic_operations(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(black_box(ARITHMETIC_OPERATIONS.as_bytes()))
+    let nodes = Parser::new(ARITHMETIC_OPERATIONS.as_bytes())
         .parse_all()
         .unwrap();
 
