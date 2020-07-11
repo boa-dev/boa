@@ -133,8 +133,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                             .collect::<Vec<String>>()
                             .join(", ");
                         format!("Map {{ {} }}", mappings)
-                    }
-                    else {
+                    } else {
                         format!("Map({})", size)
                     }
                 }
