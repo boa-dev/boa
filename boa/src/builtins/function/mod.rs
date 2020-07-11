@@ -24,6 +24,7 @@ use crate::{
     syntax::ast::node::{FormalParameter, StatementList},
     BoaProfiler,
 };
+use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
@@ -90,6 +91,43 @@ unsafe impl Trace for FunctionBody {
     unsafe_empty_trace!();
 }
 
+bitflags! {
+    #[derive(Finalize, Default)]
+    pub struct FunctionFlags: u8 {
+        const CALLABLE = 0b0000_0001;
+        const CONSTRUCTABLE = 0b0000_0010;
+    }
+}
+
+impl FunctionFlags {
+    pub fn from_parameters(callable: bool, constructable: bool) -> Self {
+        let mut flags = Self::default();
+
+        if callable {
+            flags |= Self::CALLABLE;
+        }
+        if constructable {
+            flags |= Self::CONSTRUCTABLE;
+        }
+
+        flags
+    }
+
+    #[inline]
+    pub fn is_callable(&self) -> bool {
+        self.contains(Self::CALLABLE)
+    }
+
+    #[inline]
+    pub fn is_constructable(&self) -> bool {
+        self.contains(Self::CONSTRUCTABLE)
+    }
+}
+
+unsafe impl Trace for FunctionFlags {
+    unsafe_empty_trace!();
+}
+
 /// Boa representation of a Function Object.
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
@@ -103,10 +141,8 @@ pub struct Function {
     pub this_mode: ThisMode,
     // Environment, built-in functions don't need Environments
     pub environment: Option<Environment>,
-    /// Is it constructable
-    constructable: bool,
-    /// Is it callable.
-    callable: bool,
+    /// Is it constructable or
+    flags: FunctionFlags,
 }
 
 impl Function {
@@ -126,8 +162,7 @@ impl Function {
             environment: scope,
             params: parameter_list.into(),
             this_mode,
-            constructable,
-            callable,
+            flags: FunctionFlags::from_parameters(callable, constructable),
         }
     }
 
@@ -183,7 +218,7 @@ impl Function {
         interpreter: &mut Interpreter,
     ) -> ResultValue {
         let _timer = BoaProfiler::global().start_event("function::call", "function");
-        if self.callable {
+        if self.flags.is_callable() {
             match self.body {
                 FunctionBody::BuiltIn(func) => func(this, args_list, interpreter),
                 FunctionBody::Ordinary(ref body) => {
@@ -249,7 +284,7 @@ impl Function {
         args_list: &[Value],
         interpreter: &mut Interpreter,
     ) -> ResultValue {
-        if self.constructable {
+        if self.flags.is_constructable() {
             match self.body {
                 FunctionBody::BuiltIn(func) => {
                     func(this, args_list, interpreter)?;
@@ -351,12 +386,12 @@ impl Function {
 
     /// Returns true if the function object is callable.
     pub fn is_callable(&self) -> bool {
-        self.callable
+        self.flags.is_callable()
     }
 
     /// Returns true if the function object is constructable.
     pub fn is_constructable(&self) -> bool {
-        self.constructable
+        self.flags.is_constructable()
     }
 }
 
@@ -427,8 +462,7 @@ pub fn make_constructor_fn(
 
     // Create the native function
     let mut function = Function::builtin(Vec::new(), body);
-    function.constructable = constructable;
-    function.callable = callable;
+    function.flags = FunctionFlags::from_parameters(callable, constructable);
 
     let mut constructor = Object::function(function);
 
