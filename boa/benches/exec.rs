@@ -24,11 +24,9 @@ fn symbol_creation(c: &mut Criterion) {
     // Create new Realm and interpreter.
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-  
+
     // Parse the AST nodes.
-    let nodes = Parser::new(SYMBOL_CREATION.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(SYMBOL_CREATION.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Symbols (Execution)", move |b| {
@@ -55,9 +53,7 @@ fn for_loop_execution(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(FOR_LOOP.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(FOR_LOOP.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("For loop (Execution)", move |b| {
@@ -84,9 +80,7 @@ fn fibonacci(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(FIBONACCI.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(FIBONACCI.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Fibonacci (Execution)", move |b| {
@@ -111,9 +105,7 @@ fn object_creation(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(OBJECT_CREATION.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(OBJECT_CREATION.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Object Creation (Execution)", move |b| {
@@ -213,9 +205,7 @@ fn regexp_creation(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(REGEXP_CREATION.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(REGEXP_CREATION.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {
@@ -237,9 +227,7 @@ fn regexp_literal(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(REGEXP_LITERAL.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(REGEXP_LITERAL.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp Literal (Execution)", move |b| {
@@ -261,9 +249,7 @@ fn regexp(c: &mut Criterion) {
     let mut engine = Interpreter::new(realm);
 
     // Parse the AST nodes.
-    let nodes = Parser::new(REGEXP.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(REGEXP.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {
@@ -285,9 +271,7 @@ fn array_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(ARRAY_ACCESS.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(ARRAY_ACCESS.as_bytes()).parse_all().unwrap();
 
     c.bench_function("Array access (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -309,9 +293,7 @@ fn array_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(ARRAY_CREATE.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(ARRAY_CREATE.as_bytes()).parse_all().unwrap();
 
     c.bench_function("Array creation (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -349,9 +331,7 @@ fn array_pop(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(ARRAY_POP.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(ARRAY_POP.as_bytes()).parse_all().unwrap();
 
     c.bench_function("Array pop (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -371,9 +351,7 @@ fn string_concat(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(STRING_CONCAT.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(STRING_CONCAT.as_bytes()).parse_all().unwrap();
 
     c.bench_function("String concatenation (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -396,9 +374,7 @@ fn string_compare(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(STRING_COMPARE.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(STRING_COMPARE.as_bytes()).parse_all().unwrap();
 
     c.bench_function("String comparison (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -416,9 +392,7 @@ fn string_copy(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let nodes = Parser::new(STRING_COPY.as_bytes())
-        .parse_all()
-        .unwrap();
+    let nodes = Parser::new(STRING_COPY.as_bytes()).parse_all().unwrap();
 
     c.bench_function("String copy (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
