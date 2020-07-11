@@ -297,8 +297,8 @@ impl Map {
     }
 
     /// Initialise the `Map` object on the global object.
-    pub(crate) fn init(global: &Value) -> Value {
-    	let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
         let prototype = Value::new_object(Some(global));
@@ -318,7 +318,7 @@ impl Map {
             prototype,
             true,
         );
-        
+
         (Self::NAME, map_object)
     }
 }
