@@ -1,3 +1,5 @@
+#![allow(clippy::mutable_key_type)]
+
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
@@ -8,13 +10,15 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
-use std::collections::HashMap;
+use gc::GcCell;
+use ordered_map::OrderedMap;
 
+pub mod ordered_map;
 #[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Map(HashMap<Value, Value>);
+pub(crate) struct Map(OrderedMap<Value, Value>);
 
 impl Map {
     pub(crate) const NAME: &'static str = "Map";
@@ -22,7 +26,7 @@ impl Map {
     pub(crate) const LENGTH: usize = 1;
 
     /// Helper function to get the map object.
-    fn get_map(this: &Value, ctx: &mut Interpreter) -> Result<HashMap<Value, Value>, Value> {
+    /*fn get_map(this: &Value, ctx: &mut Interpreter) -> Result<OrderedMap<Value, Value>, Value> {
         if let Value::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map() {
@@ -30,7 +34,7 @@ impl Map {
             }
         }
         Err(ctx.construct_type_error("'this' is not a Map"))
-    }
+    }*/
 
     /// Helper function to set the size property.
     fn set_size(this: &Value, size: usize) {
@@ -60,12 +64,20 @@ impl Map {
             _ => (args[0].clone(), args[1].clone()),
         };
 
-        let mut map = Self::get_map(this, ctx)?;
+        let size = if let Value::Object(ref object) = this {
+            let object = object.borrow();
+            if let Some(map) = object.as_map_ref() {
+                let mut map = map.borrow_mut();
+                map.insert(key, value);
+                map.len()
+            } else {
+                return Err(ctx.construct_type_error("'this' is not a Map"));
+            }
+        } else {
+            return Err(ctx.construct_type_error("'this' is not a Map"));
+        };
 
-        map.insert(key, value);
-        Self::set_size(this, map.len());
-
-        this.set_data(ObjectData::Map(map));
+        Self::set_size(this, size);
         Ok(this.clone())
     }
 
@@ -86,12 +98,19 @@ impl Map {
             _ => &args[0],
         };
 
-        let mut map = Self::get_map(this, ctx)?;
-
-        let deleted = map.remove(key).is_some();
-        Self::set_size(this, map.len());
-
-        this.set_data(ObjectData::Map(map));
+        let (deleted, size) = if let Value::Object(ref object) = this {
+            let object = object.borrow();
+            if let Some(map) = object.as_map_ref() {
+                let mut map = map.borrow_mut();
+                let deleted = map.remove(key).is_some();
+                (deleted, map.len())
+            } else {
+                return Err(ctx.construct_type_error("'this' is not a Map"));
+            }
+        } else {
+            return Err(ctx.construct_type_error("'this' is not a Map"));
+        };
+        Self::set_size(this, size);
         Ok(Value::boolean(deleted))
     }
 
@@ -115,7 +134,7 @@ impl Map {
         if let Value::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(if let Some(result) = map.get(key) {
+                return Ok(if let Some(result) = map.borrow().get(key) {
                     result.clone()
                 } else {
                     Value::Undefined
@@ -137,7 +156,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
     pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        this.set_data(ObjectData::Map(HashMap::new()));
+        this.set_data(ObjectData::Map(GcCell::new(OrderedMap::new())));
 
         Self::set_size(this, 0);
 
@@ -164,7 +183,7 @@ impl Map {
         if let Value::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(Value::Boolean(map.contains_key(key)));
+                return Ok(Value::Boolean(map.borrow().contains_key(key)));
             }
         }
 
@@ -195,7 +214,7 @@ impl Map {
 
         if let Value::Object(ref object) = this {
             let object = object.borrow();
-            if let Some(map) = object.as_map() {
+            if let Some(map) = object.as_map_clone() {
                 for (key, value) in map {
                     let arguments = [value, key, this.clone()];
 
@@ -236,14 +255,14 @@ impl Map {
 
         // add our arguments in
         let data = match args.len() {
-            0 => HashMap::new(),
+            0 => OrderedMap::new(),
             _ => match &args[0] {
                 Value::Object(object) => {
                     let object = object.borrow();
-                    if let Some(map) = object.as_map() {
+                    if let Some(map) = object.as_map_clone() {
                         map
                     } else if object.is_array() {
-                        let mut map = HashMap::new();
+                        let mut map = OrderedMap::new();
                         let len = i32::from(&args[0].get_field("length"));
                         for i in 0..len {
                             let val = &args[0].get_field(i.to_string());
@@ -272,7 +291,7 @@ impl Map {
         // finally create length property
         Self::set_size(this, data.len());
 
-        this.set_data(ObjectData::Map(data));
+        this.set_data(ObjectData::Map(GcCell::new(data)));
 
         Ok(this.clone())
     }

@@ -92,12 +92,15 @@ fn set() {
         let map = new Map();
         "#;
     forward(&mut engine, init);
-    let result = forward(&mut engine, "map.set();map.size");
-    assert_eq!(result, "1");
-    let result = forward(&mut engine, "map.set('1', 'one');map.size");
-    assert_eq!(result, "2");
-    let result = forward(&mut engine, "map.set('2');map.size");
-    assert_eq!(result, "3");
+    let result = forward(&mut engine, "map.set()");
+    assert_eq!(result, "Map { undefined → undefined }");
+    let result = forward(&mut engine, "map.set('1', 'one')");
+    assert_eq!(result, "Map { undefined → undefined, 1 → one }");
+    let result = forward(&mut engine, "map.set('2')");
+    assert_eq!(
+        result,
+        "Map { undefined → undefined, 1 → one, 2 → undefined }"
+    );
 }
 
 #[test]
@@ -165,4 +168,39 @@ fn for_each() {
     assert_eq!(forward(&mut engine, "valueSum"), "30");
     assert_eq!(forward(&mut engine, "keySum"), "6");
     assert_eq!(forward(&mut engine, "sizeSum"), "9");
+}
+
+#[test]
+fn modify_key() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        let obj = new Object();
+        let map = new Map([[obj, "one"]]);
+        obj.field = "Value";
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "map.get(obj)");
+    assert_eq!(result, "one");
+}
+
+#[test]
+fn order() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        let map = new Map([[1, "one"]]);
+        map.set(2, "two");
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "map");
+    assert_eq!(result, "Map { 1 → one, 2 → two }");
+    let result = forward(&mut engine, "map.set(1, \"five\");map");
+    assert_eq!(result, "Map { 1 → five, 2 → two }");
+    let result = forward(&mut engine, "map.set();map");
+    assert_eq!(result, "Map { 1 → five, 2 → two, undefined → undefined }");
+    let result = forward(&mut engine, "map.delete(2);map");
+    assert_eq!(result, "Map { 1 → five, undefined → undefined }");
+    let result = forward(&mut engine, "map.set(2, \"two\");map");
+    assert_eq!(result, "Map { 1 → five, undefined → undefined, 2 → two }");
 }
