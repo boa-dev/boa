@@ -96,15 +96,14 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                         .clone()
                                         .expect("Could not borrow value"),
                                     print_internals,
-                                    false
+                                    false,
                                 )
                             })
                             .collect::<Vec<String>>()
                             .join(", ");
 
                         format!("[ {} ]", arr)
-                    }
-                    else {
+                    } else {
                         format!("Array({})", len)
                     }
                 }
@@ -134,8 +133,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                             .collect::<Vec<String>>()
                             .join(", ");
                         format!("Map {{ {} }}", mappings)
-                    }
-                    else {
+                    } else {
                         format!("Map({})", size)
                     }
                 }
