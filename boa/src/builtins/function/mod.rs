@@ -93,14 +93,14 @@ unsafe impl Trace for FunctionBody {
 
 bitflags! {
     #[derive(Finalize, Default)]
-    pub struct FunctionFlags: u8 {
+    struct FunctionFlags: u8 {
         const CALLABLE = 0b0000_0001;
         const CONSTRUCTABLE = 0b0000_0010;
     }
 }
 
 impl FunctionFlags {
-    pub fn from_parameters(callable: bool, constructable: bool) -> Self {
+    fn from_parameters(callable: bool, constructable: bool) -> Self {
         let mut flags = Self::default();
 
         if callable {
@@ -114,12 +114,12 @@ impl FunctionFlags {
     }
 
     #[inline]
-    pub fn is_callable(&self) -> bool {
+    fn is_callable(&self) -> bool {
         self.contains(Self::CALLABLE)
     }
 
     #[inline]
-    pub fn is_constructable(&self) -> bool {
+    fn is_constructable(&self) -> bool {
         self.contains(Self::CONSTRUCTABLE)
     }
 }
