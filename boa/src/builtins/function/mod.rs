@@ -420,6 +420,7 @@ pub fn make_constructor_fn(
     global: &Value,
     prototype: Value,
     constructable: bool,
+    callable: bool,
 ) -> Value {
     let _timer =
         BoaProfiler::global().start_event(&format!("make_constructor_fn: {}", name), "init");
@@ -427,6 +428,7 @@ pub fn make_constructor_fn(
     // Create the native function
     let mut function = Function::builtin(Vec::new(), body);
     function.constructable = constructable;
+    function.callable = callable;
 
     let mut constructor = Object::function(function);
 
@@ -507,7 +509,7 @@ pub fn init(global: &Value) -> (&str, Value) {
     let prototype = Value::new_object(Some(global));
 
     let function_object =
-        make_constructor_fn("Function", 1, make_function, global, prototype, true);
+        make_constructor_fn("Function", 1, make_function, global, prototype, true, true);
 
     ("Function", function_object)
 }

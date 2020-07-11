@@ -573,7 +573,7 @@ pub fn init(global: &Value) -> (&str, Value) {
     );
     make_builtin_fn(to_string, "toString", &prototype, 0);
 
-    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
+    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true, true);
 
     // static methods of the builtin Object
     make_builtin_fn(create, "create", &object, 2);

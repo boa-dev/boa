@@ -220,3 +220,12 @@ fn recursive_display() {
     let result = forward(&mut engine, "map.set(\"z\", array)");
     assert_eq!(result, "Map { y → Map(2), z → Array(1) }");
 }
+
+#[test]
+#[should_panic]
+fn not_a_function() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = "let map = Map()";
+    forward(&mut engine, init);
+}

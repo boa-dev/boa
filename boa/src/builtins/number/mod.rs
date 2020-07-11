@@ -584,6 +584,7 @@ impl Number {
             global,
             prototype,
             true,
+            true,
         );
 
         // Constants from:

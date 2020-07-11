@@ -317,6 +317,7 @@ impl Map {
             global,
             prototype,
             true,
+            false,
         );
 
         (Self::NAME, map_object)
