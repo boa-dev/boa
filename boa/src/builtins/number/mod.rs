@@ -576,9 +576,9 @@ impl Number {
     ) -> ResultValue {
         if let Some(val) = args.get(0) {
             let number = ctx.to_number(val)?;
-            Ok(Value::Boolean(number.is_finite()))
+            Ok(number.is_finite().into())
         } else {
-            Ok(Value::Boolean(false))
+            Ok(false.into())
         }
     }
 
@@ -603,9 +603,9 @@ impl Number {
     ) -> ResultValue {
         if let Some(val) = args.get(0) {
             let number = ctx.to_number(val)?;
-            Ok(Value::Boolean(number.is_nan()))
+            Ok(number.is_nan().into())
         } else {
-            Ok(Value::Boolean(true))
+            Ok(true.into())
         }
     }
 
@@ -628,7 +628,7 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok(Value::Boolean(if let Some(val) = args.get(0) {
+        Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
                 Value::Integer(_) => true,
                 Value::Rational(number) => number.is_finite(),
@@ -676,7 +676,7 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok(Value::Boolean(if let Some(val) = args.get(0) {
+        Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
                 Value::Integer(_) => false,
                 Value::Rational(number) => number.is_nan(),
@@ -706,14 +706,13 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok((match args.get(0) {
+        Ok(Value::from(match args.get(0) {
             Some(Value::Integer(_)) => true,
             Some(Value::Rational(number)) if Self::is_float_integer(*number) => {
                 number.abs() <= Number::MAX_SAFE_INTEGER
             }
             _ => false,
-        })
-        .into())
+        }))
     }
 
     /// Checks if the argument is a finite integer Number value.
