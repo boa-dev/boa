@@ -732,6 +732,14 @@ fn number_is_finite() {
     assert_eq!("false", &forward(&mut engine, "Number.isFinite()"));
     assert_eq!("false", &forward(&mut engine, "Number.isFinite({})"));
     assert_eq!("true", &forward(&mut engine, "Number.isFinite(Number(5))"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isFinite(new Number(5))")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isFinite(new Number(NaN))")
+    );
     assert_eq!("false", &forward(&mut engine, "Number.isFinite(BigInt(5))"));
 }
 
@@ -777,6 +785,10 @@ fn number_is_integer() {
         &forward(&mut engine, "Number.isInteger(Number(5.0000000000000001))")
     );
     assert_eq!("false", &forward(&mut engine, "Number.isInteger()"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(new Number(5))")
+    );
 }
 
 #[test]
@@ -803,6 +815,14 @@ fn number_is_nan() {
     assert_eq!("false", &forward(&mut engine, "Number.isNaN(Number(5))"));
     assert_eq!("true", &forward(&mut engine, "Number.isNaN(Number(NaN))"));
     assert_eq!("false", &forward(&mut engine, "Number.isNaN(BigInt(5))"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isNaN(new Number(5))")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isNaN(new Number(NaN))")
+    );
 }
 
 #[test]
@@ -827,4 +847,8 @@ fn number_is_safe_integer() {
     assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger('3')"));
     assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger(3.1)"));
     assert_eq!("true", &forward(&mut engine, "Number.isSafeInteger(3.0)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isSafeInteger(new Number(5))")
+    );
 }

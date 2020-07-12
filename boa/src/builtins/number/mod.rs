@@ -632,14 +632,6 @@ impl Number {
             match val {
                 Value::Integer(_) => true,
                 Value::Rational(number) => number.is_finite(),
-                Value::Object(ref obj) => {
-                    let obj = obj.borrow();
-                    if let Some(number) = obj.as_number() {
-                        number.is_finite()
-                    } else {
-                        false
-                    }
-                }
                 _ => false,
             }
         } else {
@@ -662,11 +654,7 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok(Value::Boolean(if let Some(val) = args.get(0) {
-            Number::is_integer(val).is_some()
-        } else {
-            false
-        }))
+        Ok(args.get(0).map_or(false, Self::is_integer).into())
     }
 
     /// `Number.isNaN( number )`
@@ -692,14 +680,6 @@ impl Number {
             match val {
                 Value::Integer(_) => false,
                 Value::Rational(number) => number.is_nan(),
-                Value::Object(ref obj) => {
-                    let obj = obj.borrow();
-                    if let Some(number) = obj.as_number() {
-                        number.is_nan()
-                    } else {
-                        false
-                    }
-                }
                 _ => false,
             }
         } else {
@@ -726,15 +706,14 @@ impl Number {
         args: &[Value],
         _ctx: &mut Interpreter,
     ) -> ResultValue {
-        Ok(Value::Boolean(if let Some(val) = args.get(0) {
-            if let Some(integer) = Number::is_integer(val) {
-                integer.abs() <= Number::MAX_SAFE_INTEGER
-            } else {
-                false
+        Ok((match args.get(0) {
+            Some(Value::Integer(_)) => true,
+            Some(Value::Rational(number)) if Self::is_float_integer(*number) => {
+                number.abs() <= Number::MAX_SAFE_INTEGER
             }
-        } else {
-            false
-        }))
+            _ => false,
+        })
+        .into())
     }
 
     /// Checks if the argument is a finite integer Number value.
@@ -743,31 +722,19 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
-    #[allow(clippy::float_cmp)]
-    pub(crate) fn is_integer(val: &Value) -> Option<f64> {
+    pub(crate) fn is_integer(val: &Value) -> bool {
         match val {
-            Value::Integer(number) => Some((*number).into()),
-            Value::Rational(number) => {
-                if number.is_finite() && number.abs().floor() == number.abs() {
-                    Some(*number)
-                } else {
-                    None
-                }
-            }
-            Value::Object(obj) => {
-                let obj = obj.borrow();
-                if let Some(number) = obj.as_number() {
-                    if number.abs().floor() == number.abs() {
-                        Some(number)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            }
-            _ => None,
+            Value::Integer(_) => true,
+            Value::Rational(number) => Number::is_float_integer(*number),
+            _ => false,
         }
+    }
+
+    /// Checks if the float argument is an integer.
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn is_float_integer(number: f64) -> bool {
+        number.is_finite() && number.abs().floor() == number.abs()
     }
 
     /// Initialise the `Number` object on the global object.
