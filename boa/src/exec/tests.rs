@@ -1200,3 +1200,38 @@ fn number_object_access_benchmark() {
 
     assert!(forward_val(&mut engine, init).is_ok());
 }
+
+#[test]
+fn not_a_function() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        let a = {};
+        let b = true;
+        "#;
+    forward(&mut engine, init);
+    let scenario = r#"
+        try {
+            a();
+        } catch(e) {
+            e.message
+        }
+    "#;
+    assert_eq!(forward(&mut engine, scenario), "not a function");
+    let scenario = r#"
+        try {
+            a.a();
+        } catch(e) {
+            e.message
+        }
+    "#;
+    assert_eq!(forward(&mut engine, scenario), "not a function");
+    let scenario = r#"
+        try {
+            b();
+        } catch(e) {
+            e.message
+        }
+    "#;
+    assert_eq!(forward(&mut engine, scenario), "not a function");
+}
