@@ -6,11 +6,11 @@ fn assignmentoperator_lhs_not_defined() {
         try {
           a += 5
         } catch (err) {
-          err.message
+          err.toString()
         }
         "#;
 
-    assert_eq!(&exec(scenario), "a is not defined");
+    assert_eq!(&exec(scenario), "ReferenceError: a is not defined");
 }
 
 #[test]
@@ -20,9 +20,9 @@ fn assignmentoperator_rhs_throws_error() {
           let a;
           a += b
         } catch (err) {
-          err.message
+          err.toString()
         }
         "#;
 
-    assert_eq!(&exec(scenario), "b is not defined");
+    assert_eq!(&exec(scenario), "ReferenceError: b is not defined");
 }

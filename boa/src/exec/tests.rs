@@ -1142,24 +1142,24 @@ fn not_a_function() {
         try {
             a();
         } catch(e) {
-            e.message
+            e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "not a function");
+    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
     let scenario = r#"
         try {
             a.a();
         } catch(e) {
-            e.message
+            e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "not a function");
+    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
     let scenario = r#"
         try {
             b();
         } catch(e) {
-            e.message
+            e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "not a function");
+    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
 }
