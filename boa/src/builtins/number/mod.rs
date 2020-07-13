@@ -721,6 +721,7 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
+    #[inline]
     pub(crate) fn is_integer(val: &Value) -> bool {
         match val {
             Value::Integer(_) => true,
