@@ -25,14 +25,14 @@ fn object_create_with_undefined() {
         try {
             const bar = Object.create();
         } catch (err) {
-            err.message
+            err.toString()
         }
         "#;
 
     let result = forward(&mut engine, init);
     assert_eq!(
         result,
-        "Object prototype may only be an Object or null: undefined"
+        "TypeError: Object prototype may only be an Object or null: undefined"
     );
 }
 
@@ -45,12 +45,15 @@ fn object_create_with_number() {
         try {
             const bar = Object.create(5);
         } catch (err) {
-            err.message
+            err.toString()
         }
         "#;
 
     let result = forward(&mut engine, init);
-    assert_eq!(result, "Object prototype may only be an Object or null: 5");
+    assert_eq!(
+        result,
+        "TypeError: Object prototype may only be an Object or null: 5"
+    );
 }
 
 #[test]
