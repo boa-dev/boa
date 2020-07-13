@@ -1,9 +1,13 @@
 use super::{Cursor, Error, TokenKind, Tokenizer};
-use crate::builtins::BigInt;
-use crate::syntax::ast::{Position, Span};
-use crate::syntax::lexer::{token::Numeric, Token};
-use std::io::Read;
-use std::str::FromStr;
+use crate::{
+    builtins::BigInt,
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{Position, Span},
+        lexer::{token::Numeric, Token},
+    },
+};
+use std::{io::Read, str::FromStr};
 
 /// Number literal lexing.
 ///
@@ -124,6 +128,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("NumberLiteral", "Lexing");
+
         let mut buf = self.init.to_string();
 
         // Default assume the number is a base 10 integer.

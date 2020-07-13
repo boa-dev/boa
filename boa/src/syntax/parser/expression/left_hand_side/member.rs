@@ -60,6 +60,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
+
         let mut lhs = if cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Keyword(Keyword::New)
         {

@@ -1,7 +1,11 @@
 use super::{Cursor, Error, Span, Tokenizer};
-use crate::syntax::ast::Position;
-use crate::syntax::lexer::Token;
-use crate::syntax::lexer::TokenKind;
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::Position,
+        lexer::{Token, TokenKind},
+    },
+};
 use std::io::Read;
 
 /// Regex literal lexing.
@@ -24,6 +28,8 @@ impl<R> Tokenizer<R> for RegexLiteral {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("RegexLiteral", "Lexing");
+
         let mut body = String::new();
 
         // Lex RegularExpressionBody.

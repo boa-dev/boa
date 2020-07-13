@@ -1,6 +1,11 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{Position, Span};
-use crate::syntax::lexer::{Token, TokenKind};
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{Position, Span},
+        lexer::{Token, TokenKind},
+    },
+};
 use std::io::Read;
 
 /// Lexes a single line comment.
@@ -20,6 +25,8 @@ impl<R> Tokenizer<R> for SingleLineComment {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("SingleLineComment", "Lexing");
+
         // Skip either to the end of the line or to the end of the input
         while let Some(ch) = cursor.peek()? {
             if ch == '\n' {
@@ -53,6 +60,8 @@ impl<R> Tokenizer<R> for MultiLineComment {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("MultiLineComment", "Lexing");
+
         let mut new_line = false;
         loop {
             if let Some(ch) = cursor.next_char()? {

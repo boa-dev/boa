@@ -12,14 +12,13 @@ mod call;
 mod member;
 
 use self::{call::CallExpression, member::MemberExpression};
-use super::super::ParseError;
-use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
+    profiler::BoaProfiler,
     syntax::{
         ast::{Node, Punctuator},
-        parser::{AllowAwait, AllowYield, Cursor, TokenParser},
+        lexer::{InputElement, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
-    BoaProfiler,
 };
 
 use std::io::Read;

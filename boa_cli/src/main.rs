@@ -65,7 +65,7 @@ struct Opt {
     )]
     dump_tokens: Option<Option<DumpFormat>>,
 
-    /// Dump the ast to stdout with the given format.
+    /// Dump the AST to stdout with the given format.
     #[structopt(
         long,
         short = "a",
@@ -126,7 +126,7 @@ fn lex_source(src: &str) -> Result<Vec<Token>, String> {
     Ok(res)
 }
 
-/// Parses the the token stream into a ast and returns it.
+/// Parses the the token stream into an AST and returns it.
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
@@ -138,7 +138,7 @@ fn parse_tokens(src: &str) -> Result<StatementList, String> {
         .map_err(|e| format!("ParsingError: {}", e))
 }
 
-/// Dumps the token stream or ast to stdout depending on the given arguments.
+/// Dumps the token stream or AST to stdout depending on the given arguments.
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.

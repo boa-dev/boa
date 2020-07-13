@@ -63,7 +63,8 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-        let _timer = BoaProfiler::global().start_event("Conditional", "Parsing");
+        let _timer = BoaProfiler::global().start_event("ConditionalExpression", "Parsing");
+
         // TODO: coalesce expression
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;

@@ -136,6 +136,8 @@ where
     type Output = node::PropertyDefinition;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("PropertyDefinition", "Parsing");
+
         if cursor.next_if(Punctuator::Spread)?.is_some() {
             let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
@@ -199,6 +201,8 @@ where
     type Output = node::PropertyDefinition;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("MethodDefinition", "Parsing");
+
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
             idn @ "get" | idn @ "set" => {
                 let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
@@ -296,6 +300,8 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("Initializer", "Parsing");
+
         cursor.expect(TokenKind::Punctuator(Punctuator::Assign), "initializer")?;
         AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(cursor)
     }

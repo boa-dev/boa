@@ -589,20 +589,20 @@ fn illegal_following_numeric_literal() {
     // Decimal Digit
     let mut lexer = Lexer::new(&b"11.6n3"[0..]);
     assert!(
-        lexer.next().err().is_some(),
+        lexer.next().is_err(),
         "DecimalDigit following NumericLiteral not rejected as expected"
     );
 
     // Identifier Start
     let mut lexer = Lexer::new(&b"17.4$"[0..]);
     assert!(
-        lexer.next().err().is_some(),
+        lexer.next().is_err(),
         "IdentifierStart '$' following NumericLiteral not rejected as expected"
     );
 
     let mut lexer = Lexer::new(&b"17.4_"[0..]);
     assert!(
-        lexer.next().err().is_some(),
+        lexer.next().is_err(),
         "IdentifierStart '_' following NumericLiteral not rejected as expected"
     );
 }

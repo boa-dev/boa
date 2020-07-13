@@ -7,19 +7,21 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 //! [spec]: https://tc39.es/ecma262/#sec-unary-operators
 
-use crate::syntax::lexer::TokenKind;
-use crate::syntax::{
-    ast::{
-        node::{self, Node},
-        op::UnaryOp,
-        Keyword, Punctuator,
-    },
-    parser::{
-        expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{
+            node::{self, Node},
+            op::UnaryOp,
+            Keyword, Punctuator,
+        },
+        lexer::TokenKind,
+        parser::{
+            expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
+            ParseResult, TokenParser,
+        },
     },
 };
-
 use std::io::Read;
 
 /// Parses a unary expression.
@@ -57,6 +59,8 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("UnaryExpression", "Parsing");
+
         let tok = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete) => {

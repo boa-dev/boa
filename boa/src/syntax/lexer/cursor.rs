@@ -1,4 +1,6 @@
-use crate::syntax::ast::Position;
+//! Module implementing the lexer cursor.
+
+use crate::{profiler::BoaProfiler, syntax::ast::Position};
 use std::io::{self, Bytes, Error, ErrorKind, Read};
 
 /// Cursor over the source code.
@@ -55,6 +57,8 @@ where
     /// Peeks the next character.
     #[inline]
     pub(super) fn peek(&mut self) -> Result<Option<char>, Error> {
+        let _timer = BoaProfiler::global().start_event("cursor::peek()", "Lexing");
+
         let iter = &mut self.iter;
         if let Some(v) = self.peeked {
             Ok(v)
@@ -68,6 +72,8 @@ where
     /// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented
     #[inline]
     pub(super) fn next_is(&mut self, peek: char) -> io::Result<bool> {
+        let _timer = BoaProfiler::global().start_event("cursor::next_is()", "Lexing");
+
         Ok(match self.peek()? {
             Some(next) if next == peek => {
                 let _ = self.peeked.take();
@@ -86,6 +92,8 @@ where
     where
         F: Fn(char) -> bool,
     {
+        let _timer = BoaProfiler::global().start_event("cursor::next_is_pred()", "Lexing");
+
         Ok(if let Some(peek) = self.peek()? {
             pred(peek)
         } else {
@@ -97,6 +105,8 @@ where
     ///
     /// Note: It will not add the stop character to the buffer.
     pub(super) fn take_until(&mut self, stop: char, buf: &mut String) -> io::Result<()> {
+        let _timer = BoaProfiler::global().start_event("cursor::take_until()", "Lexing");
+
         loop {
             if self.next_is(stop)? {
                 return Ok(());
@@ -119,6 +129,8 @@ where
     where
         F: Fn(char) -> bool,
     {
+        let _timer = BoaProfiler::global().start_event("cursor::take_until_pred()", "Lexing");
+
         loop {
             if !self.next_is_pred(pred)? {
                 return Ok(());
@@ -137,12 +149,16 @@ where
     /// `UnexpectedEof` I/O error.
     #[inline]
     pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        let _timer = BoaProfiler::global().start_event("cursor::fill_bytes()", "Lexing");
+
         self.iter.fill_bytes(buf)
     }
 
     /// Retrieves the next UTF-8 character.
     #[inline]
     pub(crate) fn next_char(&mut self) -> Result<Option<char>, Error> {
+        let _timer = BoaProfiler::global().start_event("cursor::next_char()", "Lexing");
+
         let chr = match self.peeked.take() {
             Some(v) => v,
             None => self.iter.next_char()?,

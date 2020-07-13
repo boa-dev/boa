@@ -18,9 +18,6 @@ pub mod token;
 #[cfg(test)]
 mod tests;
 
-pub use error::Error;
-pub use token::{Token, TokenKind};
-
 use self::{
     comment::{MultiLineComment, SingleLineComment},
     cursor::Cursor,
@@ -32,9 +29,10 @@ use self::{
     string::StringLiteral,
     template::TemplateLiteral,
 };
-
-pub use crate::syntax::ast::Position;
 use crate::syntax::ast::{Punctuator, Span};
+pub use crate::{profiler::BoaProfiler, syntax::ast::Position};
+pub use error::Error;
+pub use token::{Token, TokenKind};
 
 use std::io::Read;
 
@@ -150,6 +148,8 @@ impl<R> Lexer<R> {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("next()", "Lexing");
+
         let (start, next_chr) = loop {
             let start = self.cursor.pos();
             if let Some(next_chr) = self.cursor.next_char()? {

@@ -1,6 +1,11 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{Position, Span};
-use crate::syntax::lexer::{Token, TokenKind};
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{Position, Span},
+        lexer::{Token, TokenKind},
+    },
+};
 use std::{
     char::{decode_utf16, from_u32},
     convert::TryFrom,
@@ -48,6 +53,8 @@ impl<R> Tokenizer<R> for StringLiteral {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("StringLiteral", "Lexing");
+
         let mut buf = String::new();
         loop {
             let next_chr_start = cursor.pos();
@@ -66,6 +73,9 @@ impl<R> Tokenizer<R> for StringLiteral {
                     break;
                 }
                 '\\' => {
+                    let _timer = BoaProfiler::global()
+                        .start_event("StringLiteral - escape sequence", "Lexing");
+
                     let escape = cursor.next_char()?.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,

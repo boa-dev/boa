@@ -1,7 +1,10 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::{
-    ast::{Position, Span},
-    lexer::{Token, TokenKind},
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{Position, Span},
+        lexer::{Token, TokenKind},
+    },
 };
 use std::io::Read;
 use std::str::FromStr;
@@ -31,6 +34,8 @@ impl<R> Tokenizer<R> for Identifier {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("Identifier", "Lexing");
+
         let mut buf = self.init.to_string();
 
         while let Some(c) = cursor.peek()? {
@@ -49,7 +54,7 @@ impl<R> Tokenizer<R> for Identifier {
             "false" => TokenKind::BooleanLiteral(false),
             "null" => TokenKind::NullLiteral,
             slice => {
-                if let Ok(keyword) = FromStr::from_str(slice) {
+                if let Ok(keyword) = slice.parse() {
                     TokenKind::Keyword(keyword)
                 } else {
                     TokenKind::identifier(slice)

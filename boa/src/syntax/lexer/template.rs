@@ -1,6 +1,11 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{Position, Span};
-use crate::syntax::lexer::{Token, TokenKind};
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{Position, Span},
+        lexer::{Token, TokenKind},
+    },
+};
 use std::io::{self, ErrorKind, Read};
 
 /// Template literal lexing.
@@ -21,6 +26,8 @@ impl<R> Tokenizer<R> for TemplateLiteral {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("TemplateLiteral", "Lexing");
+
         let mut buf = String::new();
         loop {
             match cursor.next_char()? {

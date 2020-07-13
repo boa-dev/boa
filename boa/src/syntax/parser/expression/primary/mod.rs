@@ -18,13 +18,16 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use super::Expression;
-use crate::syntax::lexer::{token::Numeric, InputElement, TokenKind};
-use crate::syntax::{
-    ast::{
-        node::{Call, Identifier, New, Node},
-        Const, Keyword, Punctuator,
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{
+            node::{Call, Identifier, New, Node},
+            Const, Keyword, Punctuator,
+        },
+        lexer::{token::Numeric, InputElement, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 pub(in crate::syntax::parser) use object_initializer::Initializer;
 
@@ -65,6 +68,8 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
+
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {

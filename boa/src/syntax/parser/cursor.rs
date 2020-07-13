@@ -1,13 +1,14 @@
 //! Cursor implementation for the parser.
 
 use super::ParseError;
-use crate::syntax::{
-    ast::Punctuator,
-    lexer::{InputElement, Lexer, Position, Token, TokenKind},
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::Punctuator,
+        lexer::{InputElement, Lexer, Position, Token, TokenKind},
+    },
 };
-
-use std::collections::VecDeque;
-use std::io::Read;
+use std::{collections::VecDeque, io::Read};
 
 /// Token cursor.
 ///
@@ -23,6 +24,7 @@ where
     R: Read,
 {
     /// Creates a new cursor.
+    #[inline]
     pub(super) fn new(reader: R) -> Self {
         Self {
             lexer: Lexer::new(reader),
@@ -37,13 +39,17 @@ where
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
+    #[inline]
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         self.set_goal(InputElement::RegExp);
         self.lexer.lex_slash_token(start).map_err(|e| e.into())
     }
 
     /// Moves the cursor to the next token and returns the token.
+    #[inline]
     pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
+        let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
+
         if let Some(t) = self.peeked.pop_front() {
             return Ok(t);
         }
@@ -54,6 +60,8 @@ where
 
     /// Peeks the next token without moving the cursor.
     pub(super) fn peek(&mut self) -> Result<Option<Token>, ParseError> {
+        let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
+
         if let Some(v) = self.peeked.front() {
             return Ok(v.clone());
         }
@@ -90,7 +98,10 @@ where
         Ok(ret)
     }
 
-    /// Takes the given token and pushes it back onto the parser token queue (at the front so the token will be returned on next .peek()).
+    /// Takes the given token and pushes it back onto the parser token queue.
+    ///
+    /// Note: it pushes it at the the front so the token will be returned on next .peek().
+    #[inline]
     pub(super) fn push_back(&mut self, token: Token) {
         self.peeked.push_front(Some(token));
     }

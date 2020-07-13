@@ -1,6 +1,11 @@
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::ast::{Position, Punctuator, Span};
-use crate::syntax::lexer::Token;
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{Position, Punctuator, Span},
+        lexer::Token,
+    },
+};
 use std::io::Read;
 
 /// Spread literal lexing.
@@ -28,6 +33,8 @@ impl<R> Tokenizer<R> for SpreadLiteral {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("SpreadLiteral", "Lexing");
+
         // . or ...
         if cursor.next_is('.')? {
             if cursor.next_is('.')? {
