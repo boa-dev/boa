@@ -36,7 +36,7 @@ impl<R> Tokenizer<R> for Identifier {
         while let Some(c) = cursor.peek()? {
             if c.is_alphabetic() || c.is_digit(10) || c == '_' {
                 cursor
-                    .next()?
+                    .next_char()?
                     .expect("Character in identifier has vanished");
                 buf.push(c);
             } else {

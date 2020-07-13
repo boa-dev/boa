@@ -23,7 +23,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
     {
         let mut buf = String::new();
         loop {
-            match cursor.next()? {
+            match cursor.next_char()? {
                 None => {
                     return Err(Error::from(io::Error::new(
                         ErrorKind::UnexpectedEof,

@@ -11,7 +11,7 @@ macro_rules! vop {
         match $cursor.peek()? {
             None => Err(Error::syntax("Abrupt end: could not preview next value as part of operator")),
             Some('=') => {
-                $cursor.next()?.expect("= token vanished");
+                $cursor.next_char()?.expect("= token vanished");
                 $cursor.next_column();
                 $assign_op
             }
@@ -23,12 +23,12 @@ macro_rules! vop {
         match $cursor.peek()? {
             None => Err(Error::syntax("Abrupt end: could not preview next value as part of operator")),
             Some('=') => {
-                $cursor.next()?.expect("= token vanished");
+                $cursor.next_char()?.expect("= token vanished");
                 $cursor.next_column();
                 $assign_op
             },
             $($case => {
-                $cursor.next()?.expect("Token vanished");
+                $cursor.next_char()?.expect("Token vanished");
                 $cursor.next_column();
                 $block
             })+,
@@ -38,7 +38,7 @@ macro_rules! vop {
     ($cursor:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
         match $cursor.peek().ok_or_else(|| LexerError::syntax("could not preview next value"))? {
             $($case => {
-                $cursor.next()?;
+                $cursor.next_char()?;
                 $cursor.next_column();
                 $block
             })+,

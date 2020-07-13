@@ -59,7 +59,7 @@ where
         if let Some(v) = self.peeked {
             Ok(v)
         } else {
-            let val = iter.next().transpose()?;
+            let val = iter.next_char()?;
             self.peeked = Some(val);
             Ok(val)
         }
@@ -100,7 +100,7 @@ where
         loop {
             if self.next_is(stop)? {
                 return Ok(());
-            } else if let Some(ch) = self.next()? {
+            } else if let Some(ch) = self.next_char()? {
                 buf.push(ch);
             } else {
                 return Err(io::Error::new(
@@ -122,7 +122,7 @@ where
         loop {
             if !self.next_is_pred(pred)? {
                 return Ok(());
-            } else if let Some(ch) = self.next()? {
+            } else if let Some(ch) = self.next_char()? {
                 buf.push(ch);
             } else {
                 // next_is_pred will return false if the next value is None so the None case should already be handled.
@@ -132,33 +132,27 @@ where
     }
 
     /// It will fill the buffer with checked ASCII bytes.
+    ///
+    /// This expects for the buffer to be fully filled. If it's not, it will fail with an
+    /// `UnexpectedEof` I/O error.
+    #[inline]
     pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        unimplemented!("Lexer::cursor::fill_bytes {:?}", buf)
+        self.iter.fill_bytes(buf)
     }
 
+    /// Retrieves the next UTF-8 character.
     #[inline]
-    pub(crate) fn next(&mut self) -> Result<Option<char>, Error> {
+    pub(crate) fn next_char(&mut self) -> Result<Option<char>, Error> {
         let chr = match self.peeked.take() {
             Some(v) => v,
-            None => {
-                if let Some(n) = self.iter.next() {
-                    match n {
-                        Err(e) => {
-                            return Err(e);
-                        }
-                        Ok(c) => Some(c),
-                    }
-                } else {
-                    None
-                }
-            }
+            None => self.iter.next_char()?,
         };
 
         match chr {
             Some('\r') => self.carriage_return(),
             Some('\n') | Some('\u{2028}') | Some('\u{2029}') => self.next_line(),
             Some(_) => self.next_column(),
-            _ => {}
+            None => {}
         }
 
         Ok(chr)
@@ -173,21 +167,39 @@ struct InnerIter<R> {
 
 impl<R> InnerIter<R> {
     /// Creates a new inner iterator.
+    #[inline]
     fn new(iter: Bytes<R>) -> Self {
         Self { iter }
     }
 }
 
-impl<R> Iterator for InnerIter<R>
+impl<R> InnerIter<R>
 where
     R: Read,
 {
-    type Item = io::Result<char>;
+    /// It will fill the buffer with checked ASCII bytes.
+    ///
+    /// This expects for the buffer to be fully filled. If it's not, it will fail with an
+    /// `UnexpectedEof` I/O error.
+    #[inline]
+    fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        for byte in buf.iter_mut() {
+            *byte = self.next_ascii()?.ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "unexpected EOF when filling buffer",
+                )
+            })?;
+        }
+        Ok(())
+    }
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let first_byte = match self.iter.next()? {
-            Ok(b) => b,
-            Err(e) => return Some(Err(e)),
+    /// Retrieves the next UTF-8 checked character.
+    #[inline]
+    fn next_char(&mut self) -> io::Result<Option<char>> {
+        let first_byte = match self.iter.next().transpose()? {
+            Some(b) => b,
+            None => return Ok(None),
         };
 
         let chr: char = if first_byte < 0x80 {
@@ -209,12 +221,12 @@ where
             for b in buf.iter_mut().take(num_bytes).skip(1) {
                 let next = match self.iter.next() {
                     Some(Ok(b)) => b,
-                    Some(Err(e)) => return Some(Err(e)),
+                    Some(Err(e)) => return Err(e),
                     None => {
-                        return Some(Err(io::Error::new(
+                        return Err(io::Error::new(
                             io::ErrorKind::InvalidData,
                             "stream did not contain valid UTF-8",
-                        )))
+                        ))
                     }
                 };
 
@@ -225,19 +237,34 @@ where
                 if let Some(chr) = s.chars().next() {
                     chr
                 } else {
-                    return Some(Err(io::Error::new(
+                    return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
                         "stream did not contain valid UTF-8",
-                    )));
+                    ));
                 }
             } else {
-                return Some(Err(io::Error::new(
+                return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     "stream did not contain valid UTF-8",
-                )));
+                ));
             }
         };
 
-        Some(Ok(chr))
+        Ok(Some(chr))
+    }
+
+    /// Retrieves the next ASCII checked character.
+    #[inline]
+    fn next_ascii(&mut self) -> io::Result<Option<u8>> {
+        let next_byte = self.iter.next().transpose()?;
+
+        match next_byte {
+            Some(next) if next <= 0x7F => Ok(Some(next)),
+            None => Ok(None),
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "non-ASCII byte found",
+            )),
+        }
     }
 }

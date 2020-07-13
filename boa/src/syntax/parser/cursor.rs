@@ -32,7 +32,7 @@ where
 
     /// Sets the goal symbol for the lexer.
     #[inline]
-    pub(crate) fn set_goal(&mut self, elm: InputElement) {
+    pub(super) fn set_goal(&mut self, elm: InputElement) {
         self.lexer.set_goal(elm)
     }
 

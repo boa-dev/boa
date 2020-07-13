@@ -54,47 +54,85 @@ impl PartialEq<Punctuator> for Keyword {
 /// Those exressions are divided by the punctuators passed as the third parameter.
 ///
 /// The fifth parameter is an Option<InputElement> which sets the goal symbol to set before parsing (or None to leave it as is).
-macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
-    impl<R> TokenParser<R> for $name
-    where
-        R: Read
-    {
-        type Output = Node;
+// TODO: do not duplicate code
+macro_rules! expression {
+    ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*]) => {
+        impl<R> TokenParser<R> for $name
+        where
+            R: Read
+        {
+            type Output = Node;
 
-        fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-            let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
+            fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+                let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
 
-            if $goal.is_some() {
-                cursor.set_goal($goal.unwrap());
-            }
-
-            let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
-            while let Some(tok) = cursor.peek()? {
-                match *tok.kind() {
-                    TokenKind::Punctuator(op) if $( op == $op )||* => {
-                        let _ = cursor.next().expect("token disappeared");
-                        lhs = BinOp::new(
-                            op.as_binop().expect("Could not get binary operation."),
-                            lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
-                        ).into();
+                let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
+                while let Some(tok) = cursor.peek()? {
+                    match *tok.kind() {
+                        TokenKind::Punctuator(op) if $( op == $op )||* => {
+                            let _ = cursor.next().expect("token disappeared");
+                            lhs = BinOp::new(
+                                op.as_binop().expect("Could not get binary operation."),
+                                lhs,
+                                $lower::new($( self.$low_param ),*).parse(cursor)?
+                            ).into();
+                        }
+                        TokenKind::Keyword(op) if $( op == $op )||* => {
+                            let _ = cursor.next().expect("token disappeared");
+                            lhs = BinOp::new(
+                                op.as_binop().expect("Could not get binary operation."),
+                                lhs,
+                                $lower::new($( self.$low_param ),*).parse(cursor)?
+                            ).into();
+                        }
+                        _ => break
                     }
-                    TokenKind::Keyword(op) if $( op == $op )||* => {
-                        let _ = cursor.next().expect("token disappeared");
-                        lhs = BinOp::new(
-                            op.as_binop().expect("Could not get binary operation."),
-                            lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
-                        ).into();
-                    }
-                    _ => break
                 }
-            }
 
-            Ok(lhs)
+                Ok(lhs)
+            }
         }
-    }
-} }
+    };
+    ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
+        impl<R> TokenParser<R> for $name
+        where
+            R: Read
+        {
+            type Output = Node;
+
+            fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+                let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
+
+                cursor.set_goal($goal);
+
+                let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
+                while let Some(tok) = cursor.peek()? {
+                    match *tok.kind() {
+                        TokenKind::Punctuator(op) if $( op == $op )||* => {
+                            let _ = cursor.next().expect("token disappeared");
+                            lhs = BinOp::new(
+                                op.as_binop().expect("Could not get binary operation."),
+                                lhs,
+                                $lower::new($( self.$low_param ),*).parse(cursor)?
+                            ).into();
+                        }
+                        TokenKind::Keyword(op) if $( op == $op )||* => {
+                            let _ = cursor.next().expect("token disappeared");
+                            lhs = BinOp::new(
+                                op.as_binop().expect("Could not get binary operation."),
+                                lhs,
+                                $lower::new($( self.$low_param ),*).parse(cursor)?
+                            ).into();
+                        }
+                        _ => break
+                    }
+                }
+
+                Ok(lhs)
+            }
+        }
+    };
+}
 
 /// Expression parsing.
 ///
@@ -131,8 +169,7 @@ expression!(
     Expression,
     AssignmentExpression,
     [Punctuator::Comma],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    [allow_in, allow_yield, allow_await]
 );
 
 /// Parses a logical `OR` expression.
@@ -170,8 +207,7 @@ expression!(
     LogicalORExpression,
     LogicalANDExpression,
     [Punctuator::BoolOr],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    [allow_in, allow_yield, allow_await]
 );
 
 /// Parses a logical `AND` expression.
@@ -209,8 +245,7 @@ expression!(
     LogicalANDExpression,
     BitwiseORExpression,
     [Punctuator::BoolAnd],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    [allow_in, allow_yield, allow_await]
 );
 
 /// Parses a bitwise `OR` expression.
@@ -248,8 +283,7 @@ expression!(
     BitwiseORExpression,
     BitwiseXORExpression,
     [Punctuator::Or],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    [allow_in, allow_yield, allow_await]
 );
 
 /// Parses a bitwise `XOR` expression.
@@ -287,8 +321,7 @@ expression!(
     BitwiseXORExpression,
     BitwiseANDExpression,
     [Punctuator::Xor],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    [allow_in, allow_yield, allow_await]
 );
 
 /// Parses a bitwise `AND` expression.
@@ -326,8 +359,7 @@ expression!(
     BitwiseANDExpression,
     EqualityExpression,
     [Punctuator::And],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    [allow_in, allow_yield, allow_await]
 );
 
 /// Parses an equality expression.
@@ -370,8 +402,7 @@ expression!(
         Punctuator::StrictEq,
         Punctuator::StrictNotEq
     ],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
+    [allow_in, allow_yield, allow_await]
 );
 
 /// Parses a relational expression.
@@ -415,8 +446,7 @@ expression!(
         Punctuator::GreaterThanOrEq,
         Keyword::In
     ],
-    [allow_yield, allow_await],
-    None::<InputElement>
+    [allow_yield, allow_await]
 );
 
 /// Parses a bitwise shift expression.
@@ -455,8 +485,7 @@ expression!(
         Punctuator::RightSh,
         Punctuator::URightSh
     ],
-    [allow_yield, allow_await],
-    None::<InputElement>
+    [allow_yield, allow_await]
 );
 
 /// Parses an additive expression.
@@ -493,8 +522,7 @@ expression!(
     AdditiveExpression,
     MultiplicativeExpression,
     [Punctuator::Add, Punctuator::Sub],
-    [allow_yield, allow_await],
-    None::<InputElement>
+    [allow_yield, allow_await]
 );
 
 /// Parses a multiplicative expression.
@@ -532,5 +560,5 @@ expression!(
     ExponentiationExpression,
     [Punctuator::Mul, Punctuator::Div, Punctuator::Mod],
     [allow_yield, allow_await],
-    Some(InputElement::Div)
+    InputElement::Div
 );

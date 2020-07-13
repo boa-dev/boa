@@ -107,11 +107,11 @@ impl<R> Lexer<R> {
         if let Some(c) = self.cursor.peek()? {
             match c {
                 '/' => {
-                    self.cursor.next()?.expect("/ token vanished"); // Consume the '/'
+                    self.cursor.next_char()?.expect("/ token vanished"); // Consume the '/'
                     SingleLineComment.lex(&mut self.cursor, start)
                 }
                 '*' => {
-                    self.cursor.next()?.expect("* token vanished"); // Consume the '*'
+                    self.cursor.next_char()?.expect("* token vanished"); // Consume the '*'
                     MultiLineComment.lex(&mut self.cursor, start)
                 }
                 ch => {
@@ -121,7 +121,7 @@ impl<R> Lexer<R> {
 
                             if ch == '=' {
                                 // Indicates this is an AssignDiv.
-                                self.cursor.next()?.expect("= token vanished"); // Consume the '='
+                                self.cursor.next_char()?.expect("= token vanished"); // Consume the '='
                                 Ok(Token::new(
                                     Punctuator::AssignDiv.into(),
                                     Span::new(start, self.cursor.pos()),
@@ -152,7 +152,7 @@ impl<R> Lexer<R> {
     {
         let (start, next_chr) = loop {
             let start = self.cursor.pos();
-            if let Some(next_chr) = self.cursor.next()? {
+            if let Some(next_chr) = self.cursor.next_char()? {
                 // Ignore whitespace
                 if !Self::is_whitespace(next_chr) {
                     break (start, next_chr);
@@ -256,8 +256,6 @@ pub(crate) enum InputElement {
 
 impl Default for InputElement {
     fn default() -> Self {
-        InputElement::RegExpOrTemplateTail
-        // Decided on InputElementDiv as default for now based on documentation from
-        // <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
+        InputElement::RegExp
     }
 }

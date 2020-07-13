@@ -608,13 +608,19 @@ fn illegal_following_numeric_literal() {
 }
 
 #[test]
+fn codepoint_with_no_braces() {
+    let mut lexer = Lexer::new(r#""test\uD83Dtest""#.as_bytes());
+    assert!(lexer.next().is_ok());
+}
+
+#[test]
 #[ignore]
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
     let mut lexer = Lexer::new(r#"17.4\u{{2764}}"#.as_bytes());
     assert!(
-        lexer.next().err().is_some(),
+        lexer.next().is_err(),
         "IdentifierStart \\u{{2764}} following NumericLiteral not rejected as expected"
     );
 }

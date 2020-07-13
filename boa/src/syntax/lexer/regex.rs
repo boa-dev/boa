@@ -28,7 +28,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         // Lex RegularExpressionBody.
         loop {
-            match cursor.next()? {
+            match cursor.next_char()? {
                 None => {
                     // Abrupt end.
                     return Err(Error::syntax("Abrupt end, regex not terminated"));
@@ -43,7 +43,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
                         '\\' => {
                             // Escape sequence
                             body.push('\\');
-                            if let Some(sc) = cursor.next()? {
+                            if let Some(sc) = cursor.next_char()? {
                                 match sc {
                                     '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
                                         // Not allowed in Regex literal.

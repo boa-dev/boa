@@ -68,7 +68,7 @@ where
 {
     // The next part must be SignedInteger.
     // This is optionally a '+' or '-' followed by 1 or more DecimalDigits.
-    match cursor.next()? {
+    match cursor.next_char()? {
         Some('+') => {
             buf.push('+');
             if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
@@ -136,7 +136,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 match ch {
                     'x' | 'X' => {
                         // Remove the initial '0' from buffer.
-                        cursor.next()?.expect("x or X character vanished");
+                        cursor.next_char()?.expect("x or X character vanished");
                         buf.pop();
 
                         // HexIntegerLiteral
@@ -144,7 +144,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     }
                     'o' | 'O' => {
                         // Remove the initial '0' from buffer.
-                        cursor.next()?.expect("o or O character vanished");
+                        cursor.next_char()?.expect("o or O character vanished");
                         buf.pop();
 
                         // OctalIntegerLiteral
@@ -152,14 +152,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     }
                     'b' | 'B' => {
                         // Remove the initial '0' from buffer.
-                        cursor.next()?.expect("b or B character vanished");
+                        cursor.next_char()?.expect("b or B character vanished");
                         buf.pop();
 
                         // BinaryIntegerLiteral
                         kind = NumericKind::Integer(2);
                     }
                     'n' => {
-                        cursor.next()?.expect("n character vanished");
+                        cursor.next_char()?.expect("n character vanished");
 
                         // DecimalBigIntegerLiteral '0n'
                         return Ok(Token::new(
@@ -179,7 +179,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 // Remove the initial '0' from buffer.
                                 buf.pop();
 
-                                buf.push(cursor.next()?.expect("'0' character vanished"));
+                                buf.push(cursor.next_char()?.expect("'0' character vanished"));
 
                                 kind = NumericKind::Integer(8);
                             }
@@ -192,7 +192,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                     "Leading 0's are not allowed in strict mode.",
                                 ));
                             } else {
-                                buf.push(cursor.next()?.expect("Number digit vanished"));
+                                buf.push(cursor.next_char()?.expect("Number digit vanished"));
                             }
                         } // Else indicates that the symbol is a non-number.
                     }
@@ -220,7 +220,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 // Lexing finished.
 
                 // Consume the n
-                cursor.next()?.expect("n character vanished");
+                cursor.next_char()?.expect("n character vanished");
 
                 kind = kind.to_bigint();
             }
@@ -229,7 +229,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     // Only base 10 numbers can have a decimal seperator.
                     // Number literal lexing finished if a . is found for a number in a different base.
 
-                    cursor.next()?.expect(". token vanished");
+                    cursor.next_char()?.expect(". token vanished");
                     buf.push('.'); // Consume the .
                     kind = NumericKind::Rational;
 
@@ -241,7 +241,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     match cursor.peek()? {
                         Some('e') | Some('E') => {
                             // Consume the ExponentIndicator.
-                            cursor.next()?.expect("e or E token vanished");
+                            cursor.next_char()?.expect("e or E token vanished");
 
                             buf.push('E');
 
@@ -255,7 +255,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
             Some('e') | Some('E') => {
                 kind = NumericKind::Rational;
-                cursor.next()?.expect("e or E character vanished"); // Consume the ExponentIndicator.
+                cursor.next_char()?.expect("e or E character vanished"); // Consume the ExponentIndicator.
                 buf.push('E');
                 take_signed_integer(&mut buf, cursor, &kind)?;
             }

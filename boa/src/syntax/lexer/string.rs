@@ -51,7 +51,7 @@ impl<R> Tokenizer<R> for StringLiteral {
         let mut buf = String::new();
         loop {
             let next_chr_start = cursor.pos();
-            let next_chr = cursor.next()?.ok_or_else(|| {
+            let next_chr = cursor.next_char()?.ok_or_else(|| {
                 Error::from(io::Error::new(
                     ErrorKind::UnexpectedEof,
                     "unterminated string literal",
@@ -66,7 +66,7 @@ impl<R> Tokenizer<R> for StringLiteral {
                     break;
                 }
                 '\\' => {
-                    let escape = cursor.next()?.ok_or_else(|| {
+                    let escape = cursor.next_char()?.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
                             "unterminated escape sequence in string literal",
@@ -81,17 +81,10 @@ impl<R> Tokenizer<R> for StringLiteral {
                             'f' => '\x0c',
                             '0' => '\0',
                             'x' => {
-                                // TODO: optimize by getting just bytes
-                                let mut nums = String::with_capacity(2);
-                                for _ in 0_u8..2 {
-                                    let next = cursor.next()?.ok_or_else(|| {
-                                        Error::from(io::Error::new(
-                                            ErrorKind::UnexpectedEof,
-                                            "unterminated escape sequence in string literal",
-                                        ))
-                                    })?;
-                                    nums.push(next);
-                                }
+                                let mut nums = [0u8; 2];
+                                cursor.fill_bytes(&mut nums)?;
+                                let nums = str::from_utf8(&nums).expect("non-UTF-8 bytes found");
+
                                 let as_num = match u64::from_str_radix(&nums, 16) {
                                     Ok(v) => v,
                                     Err(_) => 0,
@@ -115,13 +108,14 @@ impl<R> Tokenizer<R> for StringLiteral {
 
                                 // Support \u{X..X} (Unicode Codepoint)
                                 if cursor.next_is('{')? {
-                                    cursor.next()?.expect("{ character vanished"); // Consume the '{'.
+                                    cursor.next_char()?.expect("{ character vanished"); // Consume the '{'.
 
                                     // The biggest code point is 0x10FFFF
+                                    // TODO: use bytes for a bit better performance (using stack)
                                     let mut code_point = String::with_capacity(6);
                                     cursor.take_until('}', &mut code_point)?;
 
-                                    cursor.next()?.expect("} character vanished"); // Consume the '}'.
+                                    cursor.next_char()?.expect("} character vanished"); // Consume the '}'.
 
                                     // We know this is a single unicode codepoint, convert to u32
                                     let as_num =
