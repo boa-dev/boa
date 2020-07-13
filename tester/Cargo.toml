@@ -1,0 +1,13 @@
+[package]
+name = "tester"
+version = "0.1.0"
+authors = ["Iban Eguia Moraza <razican@protonmail.ch>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+Boa = { path = "../boa" }
+structopt = "0.3.15"
+serde_yaml = "0.8.13"
+bitflags = "1.2.1"
