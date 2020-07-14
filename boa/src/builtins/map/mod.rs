@@ -24,17 +24,6 @@ impl Map {
 
     pub(crate) const LENGTH: usize = 1;
 
-    /// Helper function to get the map object.
-    /*fn get_map(this: &Value, ctx: &mut Interpreter) -> Result<OrderedMap<Value, Value>, Value> {
-        if let Value::Object(ref object) = this {
-            let object = object.borrow();
-            if let Some(map) = object.as_map() {
-                return Ok(map);
-            }
-        }
-        Err(ctx.construct_type_error("'this' is not a Map"))
-    }*/
-
     /// Helper function to set the size property.
     fn set_size(this: &Value, size: usize) {
         let size = Property::new()
