@@ -111,7 +111,7 @@ impl Map {
             return Err(ctx.construct_type_error("'this' is not a Map"));
         };
         Self::set_size(this, size);
-        Ok(Value::boolean(deleted))
+        Ok(deleted.into())
     }
 
     /// `Map.prototype.get( key )`
@@ -183,7 +183,7 @@ impl Map {
         if let Value::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(Value::Boolean(map.borrow().contains_key(key)));
+                return Ok(map.borrow().contains_key(key).into());
             }
         }
 
