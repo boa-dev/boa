@@ -24,7 +24,7 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
-use gc::{Finalize, GcCell, Trace};
+use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 use std::fmt::{Debug, Display, Error, Formatter};
 
@@ -68,7 +68,7 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize, Clone)]
 pub enum ObjectData {
     Array,
-    Map(GcCell<OrderedMap<Value, Value>>),
+    Map(OrderedMap<Value, Value>),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -261,17 +261,17 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_clone(&self) -> Option<OrderedMap<Value, Value>> {
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value, Value>> {
         match self.data {
-            ObjectData::Map(ref map) => Some(map.borrow().clone()),
+            ObjectData::Map(ref map) => Some(map),
             _ => None,
         }
     }
 
     #[inline]
-    pub fn as_map_ref(&self) -> Option<&GcCell<OrderedMap<Value, Value>>> {
-        match self.data {
-            ObjectData::Map(ref map) => Some(map),
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
+        match &mut self.data {
+            ObjectData::Map(map) => Some(map),
             _ => None,
         }
     }

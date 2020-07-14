@@ -123,7 +123,6 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
 
                     if print_children {
                         let mappings = map
-                            .borrow()
                             .iter()
                             .map(|(key, value)| {
                                 let key = log_string_from(key, print_internals, false);

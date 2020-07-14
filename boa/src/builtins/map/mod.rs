@@ -10,7 +10,6 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
-use gc::GcCell;
 use ordered_map::OrderedMap;
 
 pub mod ordered_map;
@@ -65,9 +64,8 @@ impl Map {
         };
 
         let size = if let Value::Object(ref object) = this {
-            let object = object.borrow();
-            if let Some(map) = object.as_map_ref() {
-                let mut map = map.borrow_mut();
+            let mut object = object.borrow_mut();
+            if let Some(map) = object.as_map_mut() {
                 map.insert(key, value);
                 map.len()
             } else {
@@ -99,9 +97,8 @@ impl Map {
         };
 
         let (deleted, size) = if let Value::Object(ref object) = this {
-            let object = object.borrow();
-            if let Some(map) = object.as_map_ref() {
-                let mut map = map.borrow_mut();
+            let mut object = object.borrow_mut();
+            if let Some(map) = object.as_map_mut() {
                 let deleted = map.remove(key).is_some();
                 (deleted, map.len())
             } else {
@@ -134,7 +131,7 @@ impl Map {
         if let Value::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(if let Some(result) = map.borrow().get(key) {
+                return Ok(if let Some(result) = map.get(key) {
                     result.clone()
                 } else {
                     Value::Undefined
@@ -156,7 +153,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
     pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        this.set_data(ObjectData::Map(GcCell::new(OrderedMap::new())));
+        this.set_data(ObjectData::Map(OrderedMap::new()));
 
         Self::set_size(this, 0);
 
@@ -183,7 +180,7 @@ impl Map {
         if let Value::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(map.borrow().contains_key(key).into());
+                return Ok(map.contains_key(key).into());
             }
         }
 
@@ -214,7 +211,7 @@ impl Map {
 
         if let Value::Object(ref object) = this {
             let object = object.borrow();
-            if let Some(map) = object.as_map_clone() {
+            if let Some(map) = object.as_map_ref().cloned() {
                 for (key, value) in map {
                     let arguments = [value, key, this.clone()];
 
@@ -259,7 +256,7 @@ impl Map {
             _ => match &args[0] {
                 Value::Object(object) => {
                     let object = object.borrow();
-                    if let Some(map) = object.as_map_clone() {
+                    if let Some(map) = object.as_map_ref().cloned() {
                         map
                     } else if object.is_array() {
                         let mut map = OrderedMap::new();
@@ -291,7 +288,7 @@ impl Map {
         // finally create length property
         Self::set_size(this, data.len());
 
-        this.set_data(ObjectData::Map(GcCell::new(data)));
+        this.set_data(ObjectData::Map(data));
 
         Ok(this.clone())
     }
