@@ -137,32 +137,6 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         format!("Map({})", size)
                     }
                 }
-                ObjectData::Map(ref map) => {
-                    let size = i32::from(
-                        &v.borrow()
-                            .properties()
-                            .get("size")
-                            .unwrap()
-                            .value
-                            .clone()
-                            .expect("Could not borrow value"),
-                    );
-                    if size == 0 {
-                        return String::from("Map(0)");
-                    }
-
-                    let mappings = map
-                        .borrow()
-                        .iter()
-                        .map(|(key, value)| {
-                            let key = log_string_from(key, print_internals);
-                            let value = log_string_from(value, print_internals);
-                            format!("{} → {}", key, value)
-                        })
-                        .collect::<Vec<String>>()
-                        .join(", ");
-                    format!("Map {{ {} }}", mappings)
-                }
                 _ => display_obj(&x, print_internals),
             }
         }
