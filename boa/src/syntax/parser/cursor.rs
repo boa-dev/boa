@@ -8,7 +8,10 @@ use crate::{
         lexer::{InputElement, Lexer, Position, Token, TokenKind},
     },
 };
-use std::{collections::VecDeque, io::Read};
+use std::io::Read;
+
+/// The fixed size of the buffer used for storing values that are peeked ahead.
+const PEEK_BUF_SIZE: usize = 4;
 
 /// Token cursor.
 ///
@@ -16,7 +19,9 @@ use std::{collections::VecDeque, io::Read};
 #[derive(Debug)]
 pub(super) struct Cursor<R> {
     lexer: Lexer<R>,
-    peeked: VecDeque<Option<Token>>,
+    peeked: [Option<Token>; PEEK_BUF_SIZE],
+    front_index: usize,
+    back_index: usize,
 }
 
 impl<R> Cursor<R>
@@ -28,7 +33,9 @@ where
     pub(super) fn new(reader: R) -> Self {
         Self {
             lexer: Lexer::new(reader),
-            peeked: VecDeque::new(),
+            peeked: [None::<Token>, None::<Token>, None::<Token>, None::<Token>],
+            front_index: 0,
+            back_index: 0,
         }
     }
 
@@ -52,12 +59,15 @@ where
     pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
 
-        if let Some(t) = self.peeked.pop_front() {
-            return Ok(t);
+        if self.front_index == self.back_index {
+            // No value has been peeked ahead already so need to go get the next value.
+            Ok(self.lexer.next()?)
+        } else {
+            let val = self.peeked[self.back_index].take();
+            // let val = self.peeked[self.back_index];
+            self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+            Ok(val)
         }
-
-        // No value has been peeked ahead already so need to go get the next value.
-        Ok(self.lexer.next()?)
     }
 
     /// Peeks the next token without moving the cursor.
@@ -65,42 +75,44 @@ where
     pub(super) fn peek(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
 
-        if let Some(v) = self.peeked.front() {
-            return Ok(v.clone());
+        if self.front_index == self.back_index {
+            // No value has been peeked ahead already so need to go get the next value.
+
+            let next = self.lexer.next()?;
+            self.peeked[self.front_index] = next;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
         }
 
-        // No value has been peeked ahead already so need to go get the next value.
-        let val = self.next()?;
-        self.peeked.push_back(val.clone());
-        Ok(val)
+        Ok(self.peeked[self.back_index].clone())
     }
 
     /// Peeks the token after the next token.
-    /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip(1) will return B.
+    /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
     pub(super) fn peek_skip(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
+        if self.front_index == self.back_index {
+            // No value has been peeked ahead already so need to go get the next value.
 
-        // Add elements to the peeked buffer upto the amount required to skip the given amount ahead.
-        while self.peeked.len() < 2 {
-            match self.lexer.next()? {
-                Some(token) => self.peeked.push_back(Some(token.clone())),
-                None => self.peeked.push_back(None),
-            }
+            self.peeked[self.front_index] = self.lexer.next()?;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+            let index = self.front_index;
+
+            self.peeked[self.front_index] = self.lexer.next()?;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+            Ok(self.peeked[index].clone())
+        } else if ((self.back_index + 1) % PEEK_BUF_SIZE) == self.front_index {
+            // Indicates only a single value has been peeked ahead already
+            let index = self.front_index;
+
+            self.peeked[self.front_index] = self.lexer.next()?;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+            Ok(self.peeked[index].clone())
+        } else {
+            Ok(self.peeked[(self.back_index + 1) % PEEK_BUF_SIZE].clone())
         }
-
-        let temp = self
-            .peeked
-            .pop_front()
-            .expect("Front peeked value has vanished");
-        let ret = self
-            .peeked
-            .pop_front()
-            .expect("Back peeked value has vanished");
-
-        self.peeked.push_front(ret.clone());
-        self.peeked.push_front(temp);
-
-        Ok(ret)
     }
 
     /// Takes the given token and pushes it back onto the parser token queue.
@@ -108,7 +120,25 @@ where
     /// Note: it pushes it at the the front so the token will be returned on next .peek().
     #[inline]
     pub(super) fn push_back(&mut self, token: Token) {
-        self.peeked.push_front(Some(token));
+        if ((self.front_index + 1) % PEEK_BUF_SIZE) == self.back_index {
+            // Indicates that the buffer already contains a pushed back value and there is therefore
+            // no space for another.
+            unimplemented!("Push back more than once");
+        }
+
+        if self.front_index == self.back_index {
+            // No value peeked already.
+            self.peeked[self.front_index] = Some(token);
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+        } else {
+            if self.back_index == 0 {
+                self.back_index = PEEK_BUF_SIZE - 1;
+            } else {
+                self.back_index = self.back_index - 1;
+            }
+
+            self.peeked[self.back_index] = Some(token);
+        }
     }
 
     /// Returns an error if the next token is not of kind `kind`.
