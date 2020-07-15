@@ -1,4 +1,4 @@
-//! This module implements the `Attribute` struct which contains the attibutes for `Property`.
+//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.
 
 use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
@@ -7,7 +7,7 @@ use gc::{unsafe_empty_trace, Finalize, Trace};
 mod tests;
 
 bitflags! {
-    /// This struct constains the property flags as describen in the [`ECMAScript specification`][spec].
+    /// This struct constains the property flags as describen in the ECMAScript specification.
     ///
     /// It contains the following flags:
     ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property's `[[Value]]` attribute using `[[Set]]` will not succeed.
@@ -32,7 +32,7 @@ bitflags! {
         /// If the property can be enumerated by a `for-in` loop.
         const ENUMERABLE = 0b0000_1100;
 
-        /// The property can not be enumerated in a `for-in`.
+        /// The property can not be enumerated in a `for-in` loop.
         const NON_ENUMERABLE = 0b0000_1000;
 
         /// Is the `Enumerable` flag defined.

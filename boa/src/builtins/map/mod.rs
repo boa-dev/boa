@@ -4,7 +4,7 @@ use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{ObjectData, PROTOTYPE},
-        property::Property,
+        property::{Attribute, Property},
         value::{ResultValue, Value},
     },
     exec::Interpreter,
@@ -26,11 +26,10 @@ impl Map {
 
     /// Helper function to set the size property.
     fn set_size(this: &Value, size: usize) {
-        let size = Property::new()
-            .value(Value::from(size))
-            .writable(false)
-            .configurable(false)
-            .enumerable(false);
+        let size = Property::data_descriptor(
+            size.into(),
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
 
         this.set_property("size".to_string(), size);
     }

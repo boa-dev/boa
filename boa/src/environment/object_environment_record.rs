@@ -7,7 +7,10 @@
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
 use crate::{
-    builtins::{property::Property, value::Value},
+    builtins::{
+        property::{Attribute, Property},
+        value::Value,
+    },
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
@@ -38,11 +41,11 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;
-        let prop = Property::default()
-            .value(Value::undefined())
-            .writable(true)
-            .enumerable(true)
-            .configurable(deletion);
+        let mut prop = Property::data_descriptor(
+            Value::undefined(),
+            Attribute::WRITABLE | Attribute::ENUMERABLE,
+        );
+        prop.set_configurable(deletion);
 
         bindings.set_property(name, prop);
     }
@@ -62,8 +65,9 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
         debug_assert!(value.is_object() || value.is_function());
 
-        let bindings = &mut self.bindings;
-        bindings.update_property(name, Some(value), false, None, strict);
+        let mut property = Property::data_descriptor(value, Attribute::ENUMERABLE);
+        property.set_configurable(strict);
+        self.bindings.update_property(name, property);
     }
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {

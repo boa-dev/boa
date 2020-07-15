@@ -8,7 +8,10 @@
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
 use crate::{
-    builtins::value::Value,
+    builtins::{
+        property::{Attribute, Property},
+        Value,
+    },
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
@@ -41,7 +44,7 @@ impl GlobalEnvironmentRecord {
         let existing_prop = global_object.get_property(name);
         match existing_prop {
             Some(prop) => {
-                if prop.value.is_none() || prop.configurable {
+                if prop.value.is_none() || prop.configurable() {
                     return false;
                 }
                 true
@@ -70,11 +73,19 @@ impl GlobalEnvironmentRecord {
         let global_object = &mut self.object_record.bindings;
         let existing_prop = global_object.get_property(&name);
         if let Some(prop) = existing_prop {
-            if prop.value.is_none() || prop.configurable {
-                global_object.update_property(name, Some(value), true, Some(true), deletion);
+            if prop.value.is_none() || prop.configurable_or(false) {
+                let mut property =
+                    Property::data_descriptor(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
+                property.set_configurable(deletion);
+
+                global_object.update_property(name, property);
             }
         } else {
-            global_object.update_property(name, Some(value), true, Some(true), deletion);
+            let mut property =
+                Property::data_descriptor(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
+            property.set_configurable(deletion);
+
+            global_object.update_property(name, property);
         }
     }
 }

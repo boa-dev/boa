@@ -12,7 +12,7 @@ pub use crate::builtins::value::val_type::Type;
 use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
-    property::Property,
+    property::{Attribute, Property},
     BigInt, Symbol,
 };
 use crate::exec::Interpreter;
@@ -201,11 +201,10 @@ impl Value {
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
                         idx.to_string(),
-                        Property::default()
-                            .value(Self::from_json(json, interpreter))
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            Self::from_json(json, interpreter),
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj.set_property(
@@ -220,11 +219,10 @@ impl Value {
                     let value = Self::from_json(json, interpreter);
                     new_obj.set_property(
                         key,
-                        Property::default()
-                            .value(value)
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            value,
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj
@@ -495,24 +493,15 @@ impl Value {
 
     /// update_prop will overwrite individual [Property] fields, unlike
     /// Set_prop, which will overwrite prop with a new Property
+    ///
     /// Mostly used internally for now
-    pub fn update_property(
-        &self,
-        field: &str,
-        value: Option<Value>,
-        enumerable: bool,
-        writable: Option<bool>,
-        configurable: bool,
-    ) {
+    pub(crate) fn update_property(&self, field: &str, new_property: Property) {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
 
         if let Some(ref mut object) = self.as_object_mut() {
             // Use value, or walk up the prototype chain
-            if let Some(ref mut property) = object.properties_mut().get_mut(field) {
-                property.value = value;
-                property.enumerable = enumerable;
-                property.writable = writable;
-                property.configurable = configurable;
+            if let Some(property) = object.properties_mut().get_mut(field) {
+                *property = new_property;
             }
         }
     }
