@@ -36,7 +36,13 @@ fn main() {
 
     let results = global_suite.run(&assert_js, &sta_js);
 
-    dbg!(results);
+    println!("Results:");
+    println!("Total tests: {}", results.total_tests);
+    println!("Passed tests: {}", results.passed_tests);
+    println!(
+        "Conformance: {:.2}%",
+        (results.passed_tests as f64 / results.total_tests as f64) * 100.0
+    )
 }
 
 /// Reads the Test262 defined bindings.
@@ -160,24 +166,41 @@ struct TestSuite {
 impl TestSuite {
     /// Runs the test suite.
     fn run(&self, assert_js: &str, sta_js: &str) -> SuiteOutcome {
+        // TODO: in parallel
         let suites: Vec<_> = self
             .suites
-            .into_par_iter()
+            .into_iter()
             .map(|suite| suite.run(assert_js, sta_js))
             .collect();
 
+        // TODO: in parallel
         let tests: Vec<_> = self
             .tests
-            .into_par_iter()
+            .into_iter()
             .map(|test| test.run(assert_js, sta_js))
             .collect();
 
-        let passed =
-            suites.par_iter().all(|suite| suite.passed) && tests.par_iter().all(|test| test.passed);
+        // Count passed tests
+        let mut passed_tests = 0;
+        for test in &tests {
+            if test.passed {
+                passed_tests += 1;
+            }
+        }
+
+        // Count total tests
+        let mut total_tests = tests.len();
+        for suite in &suites {
+            total_tests += suite.total_tests;
+        }
+
+        let passed = passed_tests == total_tests;
 
         SuiteOutcome {
             name: self.name.clone(),
             passed,
+            total_tests,
+            passed_tests,
             suites: suites.into_boxed_slice(),
             tests: tests.into_boxed_slice(),
         }
@@ -189,6 +212,8 @@ impl TestSuite {
 struct SuiteOutcome {
     name: Box<str>,
     passed: bool,
+    total_tests: usize,
+    passed_tests: usize,
     suites: Box<[SuiteOutcome]>,
     tests: Box<[TestOutcome]>,
 }
@@ -240,20 +265,50 @@ impl Test {
     /// Runs the test.
     fn run(&self, assert_js: &str, sta_js: &str) -> TestOutcome {
         use boa::*;
+        use std::panic;
 
-        // Create new Realm
-        // TODO: in parallel.
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let res = panic::catch_unwind(|| {
+            // Create new Realm
+            // TODO: in parallel.
+            let realm = Realm::create();
+            let mut engine = Interpreter::new(realm);
 
-        forward_val(&mut engine, assert_js).expect("could not run assert.js");
-        forward_val(&mut engine, sta_js).expect("could not run assert.js");
+            forward_val(&mut engine, assert_js).expect("could not run assert.js");
+            forward_val(&mut engine, sta_js).expect("could not run sta.js");
 
-        // TODO: set up the environment.
+            // TODO: set up the environment.
 
-        dbg!(forward_val(&mut engine, &self.content));
+            let res = forward_val(&mut engine, &self.content);
 
-        todo!()
+            match self.expected_outcome {
+                Outcome::Positive if res.is_err() => false,
+                Outcome::Negative {
+                    phase: _,
+                    error_type: _,
+                } if res.is_ok() => false,
+                Outcome::Positive => true,
+                Outcome::Negative {
+                    phase,
+                    ref error_type,
+                } => {
+                    // TODO: check the phase
+                    true
+                }
+            }
+        });
+
+        let passed = res.unwrap_or(false);
+
+        // if passed {
+        //     println!("{} passed!!", self.name);
+        // } else {
+        //     eprintln!("{} failed :(", self.name);
+        // }
+
+        TestOutcome {
+            name: self.name.clone(),
+            passed,
+        }
     }
 }
 

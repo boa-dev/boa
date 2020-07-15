@@ -70,6 +70,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
+        cursor.skip_line_terminators()?;
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {

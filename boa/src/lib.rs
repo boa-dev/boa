@@ -46,13 +46,15 @@ pub use crate::{
     exec::{Executable, Interpreter},
     profiler::BoaProfiler,
     realm::Realm,
-    syntax::{lexer::Lexer, parser::Parser},
+    syntax::{
+        lexer::Lexer,
+        parser::{error::ParseError, Parser},
+    },
 };
 
-fn parser_expr(src: &str) -> Result<StatementList, String> {
-    Parser::new(src.as_bytes())
-        .parse_all()
-        .map_err(|e| format!("Parsing Error: {}", e))
+/// Parses a given expression.
+fn parser_expr(src: &str) -> Result<StatementList, ParseError> {
+    Parser::new(src.as_bytes()).parse_all()
 }
 
 /// Execute the code using an existing Interpreter
@@ -61,10 +63,10 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
     let expr = match parser_expr(src) {
         Ok(res) => res,
-        Err(e) => return e,
+        Err(e) => return format!("Uncaught {}", e),
     };
     expr.run(engine)
-        .map_or_else(|e| format!("Error: {}", e), |v| v.to_string())
+        .map_or_else(|e| format!("Uncaught {}", e), |v| v.to_string())
 }
 
 /// Execute the code using an existing Interpreter.
@@ -75,13 +77,13 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
-    let result = match parser_expr(src) {
-        Ok(expr) => expr.run(engine),
-        Err(e) => {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        }
-    };
+    let result = parser_expr(src)
+        .map_err(|e| {
+            engine
+                .throw_syntax_error(e.to_string())
+                .expect_err("interpreter.throw_syntax_error() did not return an error")
+        })
+        .and_then(|expr| expr.run(engine));
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);
