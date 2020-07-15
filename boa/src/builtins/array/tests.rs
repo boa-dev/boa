@@ -818,6 +818,7 @@ fn reduce() {
         delete delArray[0];
         delete delArray[1];
         delete delArray[3];
+
     "#;
     forward(&mut engine, init);
 
@@ -848,6 +849,54 @@ fn reduce() {
     // resizing the array as reduce progresses
     let result = forward(&mut engine, "arr.reduce(addResize, 0)");
     assert_eq!(result, "6");
+
+    // Empty array
+    let result = forward(
+        &mut engine,
+        r#"
+        try {
+            [].reduce((acc, x) => acc + x);
+        } catch(e) {
+            e.message
+        }
+    "#,
+    );
+    assert_eq!(
+        result,
+        "Reduce was called on an empty array and with no initial value"
+    );
+
+    // Array with no defined elements
+    let result = forward(
+        &mut engine,
+        r#"
+        try {
+            var arr = [0, 1];
+            delete arr[0];
+            delete arr[1];
+            arr.reduce((acc, x) => acc + x);
+        } catch(e) {
+            e.message
+        }
+    "#,
+    );
+    assert_eq!(
+        result,
+        "Reduce was called on an empty array and with no initial value"
+    );
+
+    // No callback
+    let result = forward(
+        &mut engine,
+        r#"
+        try {
+            arr.reduce("");
+        } catch(e) {
+            e.message
+        }
+    "#,
+    );
+    assert_eq!(result, "Reduce was called without a callback");
 }
 
 #[test]

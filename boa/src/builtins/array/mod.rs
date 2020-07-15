@@ -127,9 +127,9 @@ impl Array {
             1 if args[0].is_integer() => {
                 length = i32::from(&args[0]);
                 // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
-                for n in 0..length {
-                    this.set_field(n.to_string(), Value::undefined());
-                }
+                // for n in 0..length {
+                //     this.set_field(n.to_string(), Value::undefined());
+                // }
             }
             1 if args[0].is_double() => {
                 return ctx.throw_range_error("invalid array length");
@@ -976,17 +976,13 @@ impl Array {
         let this = interpreter.to_object(this)?;
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
-            _ => {
-                return interpreter.throw_type_error(
-                    "missing callback when calling function Array.prototype.reduce",
-                )
-            }
+            _ => return interpreter.throw_type_error("Reduce was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
         let mut length = interpreter.to_length(&this.get_field("length"))?;
         if length == 0 && initial_value.is_undefined() {
             return interpreter
-                .throw_type_error("Array contains no elements and initial value is not provided");
+                .throw_type_error("Reduce was called on an empty array and with no initial value");
         }
         let mut k = 0;
         let mut accumulator = if initial_value.is_undefined() {
@@ -1000,7 +996,7 @@ impl Array {
             }
             if !k_present {
                 return interpreter.throw_type_error(
-                    "Array contains no elements and initial value is not provided",
+                    "Reduce was called on an empty array and with no initial value",
                 );
             }
             let result = this.get_field(k.to_string());
