@@ -970,6 +970,10 @@ version = "0.1.0"
 dependencies = [
  "Boa",
  "bitflags",
+ "once_cell",
+ "rayon",
+ "regex",
+ "serde",
  "serde_yaml",
  "structopt",
 ]
