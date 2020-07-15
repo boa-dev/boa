@@ -42,12 +42,14 @@ where
     /// Sets the goal symbol for the lexer.
     #[inline]
     pub(super) fn set_goal(&mut self, elm: InputElement) {
+        let _timer = BoaProfiler::global().start_event("cursor::set_goal()", "Parsing");
         self.lexer.set_goal(elm)
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     #[inline]
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
+        let _timer = BoaProfiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
         self.lexer.lex_slash_token(start).map_err(|e| e.into())
     }
@@ -69,6 +71,7 @@ where
     }
 
     /// Peeks the next token without moving the cursor.
+
     pub(super) fn peek(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
 
@@ -86,6 +89,7 @@ where
     /// Peeks the token after the next token.
     /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
     pub(super) fn peek_skip(&mut self) -> Result<Option<Token>, ParseError> {
+        let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 

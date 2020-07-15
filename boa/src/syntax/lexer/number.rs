@@ -38,8 +38,8 @@ impl NumberLiteral {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum NumericKind {
     Rational,
-    Integer(u8),
-    BigInt(u8),
+    Integer(u32),
+    BigInt(u32),
 }
 
 impl NumericKind {
@@ -47,8 +47,8 @@ impl NumericKind {
     fn base(self) -> u32 {
         match self {
             Self::Rational => 10,
-            Self::Integer(base) => base as u32,
-            Self::BigInt(base) => base as u32,
+            Self::Integer(base) => base,
+            Self::BigInt(base) => base,
         }
     }
 
@@ -275,7 +275,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         let num = match kind {
             NumericKind::BigInt(base) => {
                 Numeric::BigInt(
-                    BigInt::from_string_radix(&buf, base as u32).expect("Could not convert to BigInt")
+                    BigInt::from_string_radix(&buf, base).expect("Could not convert to BigInt")
                     )
             }
             NumericKind::Rational /* base: 10 */ => {
@@ -293,13 +293,13 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 }
             },
             NumericKind::Integer(base) => {
-                if let Ok(num) = i32::from_str_radix(&buf, base as u32) {
+                if let Ok(num) = i32::from_str_radix(&buf, base) {
                     Numeric::Integer(num)
                 } else {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
                     for c in buf.chars() {
-                        let digit = f64::from(c.to_digit(base as u32).expect("Couldn't parse digit after already checking validity"));
+                        let digit = f64::from(c.to_digit(base).expect("Couldn't parse digit after already checking validity"));
                         result = result * b + digit;
                     }
                     Numeric::Rational(result)
