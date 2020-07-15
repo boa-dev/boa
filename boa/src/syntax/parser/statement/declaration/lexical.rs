@@ -118,6 +118,8 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("BindingList", "Parsing");
+
         // Create vectors to store the variable declarations
         // Const and Let signatures are slightly different, Const needs definitions, Lets don't
         let mut let_decls = Vec::new();
@@ -203,6 +205,8 @@ where
     type Output = (Box<str>, Option<Node>);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
+
         let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         let initializer =
             Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);

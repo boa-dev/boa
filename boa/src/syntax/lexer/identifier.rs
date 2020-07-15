@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use std::io::Read;
-use std::str::FromStr;
 
 /// Identifier lexing.
 ///

@@ -102,6 +102,8 @@ impl<R> Lexer<R> {
     where
         R: Read,
     {
+        let _timer = BoaProfiler::global().start_event("lex_slash_token", "Lexing");
+
         if let Some(c) = self.cursor.peek()? {
             match c {
                 '/' => {
