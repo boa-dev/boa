@@ -127,9 +127,9 @@ impl Array {
             1 if args[0].is_integer() => {
                 length = i32::from(&args[0]);
                 // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
-                for n in 0..length {
-                    this.set_field(n.to_string(), Value::undefined());
-                }
+                // for n in 0..length {
+                //     this.set_field(n.to_string(), Value::undefined());
+                // }
             }
             1 if args[0].is_double() => {
                 return ctx.throw_range_error("invalid array length");
@@ -957,6 +957,73 @@ impl Array {
         Ok(Value::from(false))
     }
 
+    /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
+    ///
+    /// The reduce method traverses left to right starting from the first defined value in the array,
+    /// accumulating a value using a given callback function. It returns the accumulated value.
+    ///  
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
+    pub(crate) fn reduce(
+        this: &Value,
+        args: &[Value],
+        interpreter: &mut Interpreter,
+    ) -> ResultValue {
+        let this = interpreter.to_object(this)?;
+        let callback = match args.get(0) {
+            Some(value) if value.is_function() => value,
+            _ => return interpreter.throw_type_error("Reduce was called without a callback"),
+        };
+        let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
+        let mut length = interpreter.to_length(&this.get_field("length"))?;
+        if length == 0 && initial_value.is_undefined() {
+            return interpreter
+                .throw_type_error("Reduce was called on an empty array and with no initial value");
+        }
+        let mut k = 0;
+        let mut accumulator = if initial_value.is_undefined() {
+            let mut k_present = false;
+            while k < length {
+                if this.has_field(&k.to_string()) {
+                    k_present = true;
+                    break;
+                }
+                k += 1;
+            }
+            if !k_present {
+                return interpreter.throw_type_error(
+                    "Reduce was called on an empty array and with no initial value",
+                );
+            }
+            let result = this.get_field(k.to_string());
+            k += 1;
+            result
+        } else {
+            initial_value
+        };
+        while k < length {
+            if this.has_field(&k.to_string()) {
+                let arguments = [
+                    accumulator,
+                    this.get_field(k.to_string()),
+                    Value::from(k),
+                    this.clone(),
+                ];
+                accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
+                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
+                It may also be necessary to do this since shortening the array length does not
+                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
+                length = min(length, interpreter.to_length(&this.get_field("length"))?);
+            }
+            k += 1;
+        }
+        Ok(accumulator)
+    }
+
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
@@ -988,6 +1055,7 @@ impl Array {
         make_builtin_fn(Self::find_index, "findIndex", &prototype, 1);
         make_builtin_fn(Self::slice, "slice", &prototype, 2);
         make_builtin_fn(Self::some, "some", &prototype, 2);
+        make_builtin_fn(Self::reduce, "reduce", &prototype, 2);
 
         let array = make_constructor_fn(
             Self::NAME,
