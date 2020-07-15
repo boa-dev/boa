@@ -192,9 +192,18 @@ impl TestSuite {
         let mut total_tests = tests.len();
         for suite in &suites {
             total_tests += suite.total_tests;
+            passed_tests += suite.passed_tests;
         }
 
         let passed = passed_tests == total_tests;
+
+        println!(
+            "Suite: {}, total: {}, passed: {}, conformance: {:.2}%",
+            self.name,
+            total_tests,
+            passed_tests,
+            (passed_tests as f64 / total_tests as f64) * 100.0
+        );
 
         SuiteOutcome {
             name: self.name.clone(),
