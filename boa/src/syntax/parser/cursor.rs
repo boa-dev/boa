@@ -10,7 +10,8 @@ use crate::{
 };
 use std::io::Read;
 
-const PEEK_BUF_SIZE: usize = 3;
+/// The fixed size of the buffer used for storing values that are peeked ahead.
+const PEEK_BUF_SIZE: usize = 4;
 
 /// Token cursor.
 ///
@@ -18,10 +19,9 @@ const PEEK_BUF_SIZE: usize = 3;
 #[derive(Debug)]
 pub(super) struct Cursor<R> {
     lexer: Lexer<R>,
-    peeked: [Option<Token>; 3],
+    peeked: [Option<Token>; PEEK_BUF_SIZE],
     front_index: usize,
     back_index: usize,
-    pushed_back: Option<Token>, // None represents no token pushed back.
 }
 
 impl<R> Cursor<R>
@@ -33,10 +33,9 @@ where
     pub(super) fn new(reader: R) -> Self {
         Self {
             lexer: Lexer::new(reader),
-            peeked: [None::<Token>, None::<Token>, None::<Token>],
+            peeked: [None::<Token>, None::<Token>, None::<Token>, None::<Token>],
             front_index: 0,
             back_index: 0,
-            pushed_back: None::<Token>
         }
     }
 
@@ -58,10 +57,6 @@ where
     pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
 
-        if self.pushed_back.is_some() {
-            return Ok(self.pushed_back.take());
-        }
-
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
             Ok(self.lexer.next()?)
@@ -77,10 +72,6 @@ where
     pub(super) fn peek(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
 
-        if let Some(t) = self.pushed_back.as_ref() {
-            return Ok(Some(t.clone()));
-        }
-
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
@@ -95,10 +86,6 @@ where
     /// Peeks the token after the next token.
     /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
     pub(super) fn peek_skip(&mut self) -> Result<Option<Token>, ParseError> {
-        if self.pushed_back.is_some() {
-            unimplemented!("Peek skip when pushed back");
-        }
-
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
@@ -129,25 +116,25 @@ where
     /// Note: it pushes it at the the front so the token will be returned on next .peek().
     #[inline]
     pub(super) fn push_back(&mut self, token: Token) {
-        if self.pushed_back.is_some() {
-            unimplemented!("Pushing back multiple values");
-        } else {
-            self.pushed_back = Some(token);
+        if ((self.front_index + 1) % PEEK_BUF_SIZE) == self.back_index {
+            // Indicates that the buffer already contains a pushed back value and there is therefore
+            // no space for another.
+            unimplemented!("Push back more than once");
         }
 
-        // if self.front_index == self.back_index {
-        //     // No value peeked already.
-        //     self.peeked[self.front_index] = Some(token);
-        //     self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
-        // } else if ((self.back_index + 1) % PEEK_BUF_SIZE) == self.front_index {
-        //     // A single value has already been peeked ahead.
-        // } else {
-        //     // 2 values have already been peeked ahead.
-        //     self.back_index = self.
-        // }
+        if self.front_index == self.back_index {
+            // No value peeked already.
+            self.peeked[self.front_index] = Some(token);
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+        } else {
+            if self.back_index == 0 {
+                self.back_index = PEEK_BUF_SIZE - 1;
+            } else {
+                self.back_index = self.back_index - 1;
+            }
 
-        // unimplemented!();
-        // self.peeked.push_front(Some(token));
+            self.peeked[self.back_index] = Some(token);
+        }
     }
 
     /// Returns an error if the next token is not of kind `kind`.
