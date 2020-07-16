@@ -52,16 +52,21 @@ pub use crate::{
     },
 };
 
-/// Parses a given expression.
-fn parser_expr(src: &str) -> Result<StatementList, ParseError> {
+/// Parses the given source code.
+///
+/// It will return either the statement list AST node for the code, or a parsing error if something
+/// goes wrong.
+#[inline]
+pub fn parse(src: &str) -> Result<StatementList, ParseError> {
     Parser::new(src.as_bytes()).parse_all()
 }
 
 /// Execute the code using an existing Interpreter
+///
 /// The str is consumed and the state of the Interpreter is changed
 pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
-    let expr = match parser_expr(src) {
+    let expr = match parse(src) {
         Ok(res) => res,
         Err(e) => return format!("Uncaught {}", e),
     };
@@ -77,7 +82,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
-    let result = parser_expr(src)
+    let result = parse(src)
         .map_err(|e| {
             engine
                 .throw_syntax_error(e.to_string())

@@ -1,0 +1,42 @@
+// This does not break the tester but it does iterate from 0 to u32::MAX,
+// because of incorect implementation of `Array.prototype.indexOf`.
+// TODO: Fix it do iterate on the elements in the array **in insertion order**, not from
+// 0 to u32::MAX untill it reaches the element.
+15.4.4.14-5-12
+// Another one of these `Array.prototype.indexOf`, but now with `NaN`.
+15.4.4.14-5-14
+// Another one of these `Array.prototype.indexOf`, but now with `-Infinity`.
+15.4.4.14-5-13
+// More `Array.prototype.indexOf` with large second argument.
+// Others:
+15.4.4.14-9-9
+fill-string-empty
+// Stack overflow (seemingly in JSON.stringify with circular references):
+value-array-circular
+value-object-circular
+// Other stack overflows:
+S15.5.4.11_A12
+var-env-var-init-global-new
+var-env-func-init-global-update-configurable
+var-env-var-init-global-exstng
+var-env-func-init-global-new
+var-env-func-init-global-update-non-configurable
+acquire-properties-from-object
+acquire-properties-from-array
+nonconfigurable-nonenumerable-nonwritable-descriptors-basic
+nonwritable-nonenumerable-nonconfigurable-descriptors-set-by-param
+nonconfigurable-nonenumerable-nonwritable-descriptors-set-by-param
+nonwritable-nonconfigurable-descriptors-set-by-param
+nonwritable-nonconfigurable-descriptors-basic
+nonconfigurable-nonwritable-descriptors-basic
+nonconfigurable-nonenumerable-nonwritable-descriptors-set-by-arguments
+nonconfigurable-descriptors-basic
+nonconfigurable-nonwritable-descriptors-set-by-param
+Symbol.iterator
+nonconfigurable-descriptors-set-value-with-define-property
+nonconfigurable-nonwritable-descriptors-set-by-arguments
+nonwritable-nonconfigurable-descriptors-set-by-arguments
+nonconfigurable-descriptors-set-value-by-arguments
+nonwritable-nonenumerable-nonconfigurable-descriptors-set-by-arguments
+nonwritable-nonenumerable-nonconfigurable-descriptors-set-by-define-property
+nonconfigurable-descriptors-with-param-assign

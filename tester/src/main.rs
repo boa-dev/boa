@@ -1,11 +1,49 @@
+//! Test262 test runner
+//!
+//! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
+//! `boa` engine.
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"
+)]
+#![deny(
+    unused_qualifications,
+    clippy::all,
+    unused_qualifications,
+    unused_import_braces,
+    unused_lifetimes,
+    unreachable_pub,
+    trivial_numeric_casts,
+    // rustdoc,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    deprecated_in_future,
+    meta_variable_misuse,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style,
+)]
+#![warn(clippy::perf, clippy::single_match_else, clippy::dbg_macro)]
+#![allow(
+    clippy::missing_inline_in_public_items,
+    clippy::cognitive_complexity,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::as_conversions,
+    clippy::let_unit_value,
+    missing_doc_code_examples
+)]
+
+mod exec;
+mod read;
+
+use self::read::{read_global_suite, read_harness, MetaData, Negative, TestFlag};
 use bitflags::bitflags;
-use colored::Colorize;
-use rayon::prelude::*;
+use fxhash::FxHashMap;
 use serde::Deserialize;
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 /// Boa test262 tester
@@ -29,13 +67,13 @@ struct Cli {
 fn main() {
     let cli = Cli::from_args();
 
-    let (assert_js, sta_js) =
-        read_init(cli.suite.as_path()).expect("could not read initialization bindings");
+    let harness =
+        read_harness(cli.suite.as_path()).expect("could not read initialization bindings");
 
     let global_suite =
-        test_suites(cli.suite.as_path()).expect("could not get the list of tests to run");
+        read_global_suite(cli.suite.as_path()).expect("could not get the list of tests to run");
 
-    let results = global_suite.run(&assert_js, &sta_js);
+    let results = global_suite.run(&harness);
 
     println!("Results:");
     println!("Total tests: {}", results.total_tests);
@@ -46,133 +84,12 @@ fn main() {
     )
 }
 
-/// Reads the Test262 defined bindings.
-fn read_init(suite: &Path) -> io::Result<(String, String)> {
-    let assert_js = fs::read_to_string(suite.join("harness/assert.js"))?;
-    let sta_js = fs::read_to_string(suite.join("harness/sta.js"))?;
-
-    Ok((assert_js, sta_js))
-}
-
-/// Gets the list of tests to run.
-fn test_suites(suite: &Path) -> io::Result<TestSuite> {
-    let path = suite.join("test");
-
-    read_suite(path.as_path())
-}
-
-/// Reads a test suite in the given path.
-fn read_suite(path: &Path) -> io::Result<TestSuite> {
-    use std::ffi::OsStr;
-
-    let name = path
-        .file_stem()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("test suite with no name found: {}", path.display()),
-            )
-        })?
-        .to_str()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("non-UTF-8 suite name found: {}", path.display()),
-            )
-        })?;
-
-    let mut suites = Vec::new();
-    let mut tests = Vec::new();
-
-    let filter = |st: &OsStr| {
-        st.to_string_lossy().ends_with("_FIXTURE")
-            // TODO: see if we can fix this.
-            || st.to_string_lossy() == "line-terminator-normalisation-CR"
-            // This does not break the tester but it does iterate from 0 to u32::MAX,
-            // because of incorect implementation of `Array.prototype.indexOf`.
-            // TODO: Fix it do iterate on the elements in the array **in insertion order**, not from
-            // 0 to u32::MAX untill it reaches the element.
-            || st.to_string_lossy() == "15.4.4.14-5-12"
-            // Another one of these `Array.prototype.indexOf`, but now with `NaN`.
-            || st.to_string_lossy() == "15.4.4.14-5-14"
-            // Another one of these `Array.prototype.indexOf`, but now with `-Infinity`.
-            || st.to_string_lossy() == "15.4.4.14-5-13"
-            // More `Array.prototype.indexOf` with large second argument.
-            || st.to_string_lossy() == "15.4.4.14-5-13"
-            // Others:
-            || st.to_string_lossy() == "15.4.4.14-9-9"
-            || st.to_string_lossy() == "fill-string-empty"
-            // Stack overflow (seemingly in JSON.stringify with circular references):
-            || st.to_string_lossy() == "value-array-circular"
-            || st.to_string_lossy() == "value-object-circular"
-            // Other stack overflows:
-            || st.to_string_lossy() == "S15.5.4.11_A12"
-    };
-
-    // TODO: iterate in parallel
-    for entry in path.read_dir()? {
-        let entry = entry?;
-
-        if entry.file_type()?.is_dir() {
-            suites.push(read_suite(entry.path().as_path())?);
-        } else if entry.path().file_stem().map(filter).unwrap_or(false) {
-            continue;
-        } else {
-            tests.push(read_test(entry.path().as_path())?);
-        }
-    }
-
-    Ok(TestSuite {
-        name: name.into(),
-        suites: suites.into_boxed_slice(),
-        tests: tests.into_boxed_slice(),
-    })
-}
-
-/// Reads information about a given test case.
-fn read_test(path: &Path) -> io::Result<Test> {
-    let name = path
-        .file_stem()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("test with no file name found: {}", path.display()),
-            )
-        })?
-        .to_str()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("non-UTF-8 file name found: {}", path.display()),
-            )
-        })?;
-
-    let content = fs::read_to_string(path)?;
-
-    let metadata = read_metadata(&content)?;
-
-    Ok(Test::new(name, content, metadata))
-}
-
-/// Reads the metadata from the input test code.
-fn read_metadata(code: &str) -> io::Result<MetaData> {
-    use once_cell::sync::Lazy;
-    use regex::Regex;
-
-    /// Regular expression to retrieve the metadata of a test.
-    static META_REGEX: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r#"/\*\-{3}((?:.|\n)*)\-{3}\*/"#)
-            .expect("could not compile metadata regular expression")
-    });
-
-    let yaml = META_REGEX
-        .captures(code)
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "no metadata found"))?
-        .get(1)
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "no metadata found"))?
-        .as_str();
-
-    serde_yaml::from_str(yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+/// All the harness include files.
+#[derive(Debug, Clone)]
+struct Harness {
+    assert: Box<str>,
+    sta: Box<str>,
+    includes: FxHashMap<Box<str>, Box<str>>,
 }
 
 /// Represents a test suite.
@@ -183,78 +100,23 @@ struct TestSuite {
     tests: Box<[Test]>,
 }
 
-impl TestSuite {
-    /// Runs the test suite.
-    fn run(&self, assert_js: &str, sta_js: &str) -> SuiteOutcome {
-        println!("Suite {}:", self.name);
-
-        // TODO: in parallel
-        let suites: Vec<_> = self
-            .suites
-            .into_iter()
-            .map(|suite| suite.run(assert_js, sta_js))
-            .collect();
-
-        // TODO: in parallel
-        let tests: Vec<_> = self
-            .tests
-            .into_iter()
-            .map(|test| test.run(assert_js, sta_js))
-            .collect();
-
-        println!();
-
-        // Count passed tests
-        let mut passed_tests = 0;
-        for test in &tests {
-            if test.passed {
-                passed_tests += 1;
-            }
-        }
-
-        // Count total tests
-        let mut total_tests = tests.len();
-        for suite in &suites {
-            total_tests += suite.total_tests;
-            passed_tests += suite.passed_tests;
-        }
-
-        let passed = passed_tests == total_tests;
-
-        println!(
-            "Results: total: {}, passed: {}, conformance: {:.2}%",
-            total_tests,
-            passed_tests,
-            (passed_tests as f64 / total_tests as f64) * 100.0
-        );
-
-        SuiteOutcome {
-            name: self.name.clone(),
-            passed,
-            total_tests,
-            passed_tests,
-            suites: suites.into_boxed_slice(),
-            tests: tests.into_boxed_slice(),
-        }
-    }
-}
-
 /// Outcome of a test suite.
 #[derive(Debug, Clone)]
-struct SuiteOutcome {
+struct SuiteResult {
     name: Box<str>,
     passed: bool,
     total_tests: usize,
     passed_tests: usize,
-    suites: Box<[SuiteOutcome]>,
-    tests: Box<[TestOutcome]>,
+    ignored_tests: usize,
+    suites: Box<[SuiteResult]>,
+    tests: Box<[TestResult]>,
 }
 
 /// Outcome of a test.
 #[derive(Debug, Clone)]
-struct TestOutcome {
+struct TestResult {
     name: Box<str>,
-    passed: bool,
+    passed: Option<bool>,
 }
 
 /// Represents a test.
@@ -267,13 +129,13 @@ struct Test {
     information: Box<str>,
     features: Box<[Box<str>]>,
     expected_outcome: Outcome,
-    includes: Box<[Box<Path>]>,
+    includes: Box<[Box<str>]>,
     locale: Locale,
     content: Box<str>,
 }
 
 impl Test {
-    /// Creates a new test
+    /// Creates a new test.
     #[inline]
     fn new<N, C>(name: N, content: C, metadata: MetaData) -> Self
     where
@@ -293,80 +155,6 @@ impl Test {
             content: content.into(),
         }
     }
-
-    /// Runs the test.
-    fn run(&self, assert_js: &str, sta_js: &str) -> TestOutcome {
-        use boa::*;
-        use std::panic;
-
-        // println!("Starting {}", self.name);
-        let res = panic::catch_unwind(|| {
-            // Create new Realm
-            // TODO: in parallel.
-            let realm = Realm::create();
-            let mut engine = Interpreter::new(realm);
-
-            forward_val(&mut engine, assert_js).expect("could not run assert.js");
-            forward_val(&mut engine, sta_js).expect("could not run sta.js");
-
-            // TODO: set up the environment.
-
-            let res = forward_val(&mut engine, &self.content);
-
-            match self.expected_outcome {
-                Outcome::Positive if res.is_err() => false,
-                Outcome::Negative {
-                    phase: _,
-                    error_type: _,
-                } if res.is_ok() => false,
-                Outcome::Positive => true,
-                Outcome::Negative {
-                    phase,
-                    ref error_type,
-                } => {
-                    // TODO: check the phase
-                    true
-                }
-            }
-        });
-
-        let passed = res.unwrap_or(false);
-
-        print!("{}", if passed { ".".green() } else { ".".red() });
-
-        TestOutcome {
-            name: self.name.clone(),
-            passed,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct MetaData {
-    description: Box<str>,
-    esid: Option<Box<str>>,
-    es5id: Option<Box<str>>,
-    es6id: Option<Box<str>>,
-    #[serde(default)]
-    info: Box<str>,
-    #[serde(default)]
-    features: Box<[Box<str>]>,
-    #[serde(default)]
-    includes: Box<[Box<Path>]>,
-    #[serde(default)]
-    flags: Box<[TestFlag]>,
-    #[serde(default)]
-    negative: Option<Negative>,
-    #[serde(default)]
-    locale: Locale,
-}
-
-/// Negative test information structure.
-#[derive(Debug, Clone, Deserialize)]
-struct Negative {
-    phase: Phase,
-    #[serde(rename = "type")]
-    error_type: Box<str>,
 }
 
 /// An outcome for a test.
@@ -449,24 +237,6 @@ where
             result
         }
     }
-}
-
-/// Individual test flag.
-#[derive(Debug, Clone, Copy, Deserialize)]
-#[serde(rename_all = "camelCase")]
-enum TestFlag {
-    OnlyStrict,
-    NoStrict,
-    Module,
-    Raw,
-    Async,
-    Generated,
-    #[serde(rename = "CanBlockIsFalse")]
-    CanBlockIsFalse,
-    #[serde(rename = "CanBlockIsTrue")]
-    CanBlockIsTrue,
-    #[serde(rename = "non-deterministic")]
-    NonDeterministic,
 }
 
 /// Phase for an error.
