@@ -14,8 +14,7 @@ fill-string-empty
 // Stack overflow (seemingly in JSON.stringify with circular references):
 value-array-circular
 value-object-circular
-// Other stack overflows:
-S15.5.4.11_A12
+// other
 var-env-var-init-global-new
 var-env-func-init-global-update-configurable
 var-env-var-init-global-exstng
