@@ -361,18 +361,8 @@ impl Number {
 
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_native_string(x: f64) -> String {
-        if x == -0. {
-            return "0".to_owned();
-        } else if x.is_nan() {
-            return "NaN".to_owned();
-        } else if x.is_infinite() && x.is_sign_positive() {
-            return "Infinity".to_owned();
-        } else if x.is_infinite() && x.is_sign_negative() {
-            return "-Infinity".to_owned();
-        }
-
-        // FIXME: This is not spec compliant.
-        format!("{}", x)
+        let mut buffer = ryu_js::Buffer::new();
+        buffer.format(x).to_string()
     }
 
     /// `Number.prototype.toString( [radix] )`
@@ -400,6 +390,13 @@ impl Number {
                 .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }
 
+        // 5. If radixNumber = 10, return ! ToString(x).
+        // This part should use exponential notations for long integer numbers commented tests
+        if radix == 10 {
+            // return Ok(to_value(format!("{}", Self::to_number(this).to_num())));
+            return Ok(Value::from(Self::to_native_string(x)));
+        }
+
         if x == -0. {
             return Ok(Value::from("0"));
         } else if x.is_nan() {
@@ -408,13 +405,6 @@ impl Number {
             return Ok(Value::from("Infinity"));
         } else if x.is_infinite() && x.is_sign_negative() {
             return Ok(Value::from("-Infinity"));
-        }
-
-        // 5. If radixNumber = 10, return ! ToString(x).
-        // This part should use exponential notations for long integer numbers commented tests
-        if radix == 10 {
-            // return Ok(to_value(format!("{}", Self::to_number(this).to_num())));
-            return Ok(Value::from(Self::to_native_string(x)));
         }
 
         // This is a Optimization from the v8 source code to print values that can fit in a single character
