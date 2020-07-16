@@ -328,49 +328,30 @@ fn to_string() {
 }
 
 #[test]
-#[ignore]
-// This tests fail for now since the Rust's default formatting for exponential format does not match the js spec.
-// https://github.com/jasonwilliams/boa/pull/381#discussion_r422458544
 fn num_to_string_exponential() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
+    assert_eq!("0", forward(&mut engine, "(0).toString()"));
+    assert_eq!("0", forward(&mut engine, "(-0).toString()"));
     assert_eq!(
-        String::from("111111111111111110000"),
-        forward(&mut engine, "Number(111111111111111111111).toString()")
+        "111111111111111110000",
+        forward(&mut engine, "(111111111111111111111).toString()")
     );
     assert_eq!(
-        String::from("1.1111111111111111e+21"),
-        forward(&mut engine, "Number(1111111111111111111111).toString()")
+        "1.1111111111111111e+21",
+        forward(&mut engine, "(1111111111111111111111).toString()")
     );
     assert_eq!(
-        String::from("1.1111111111111111e+22"),
-        forward(&mut engine, "Number(11111111111111111111111).toString()")
+        "1.1111111111111111e+22",
+        forward(&mut engine, "(11111111111111111111111).toString()")
     );
-    assert_eq!(
-        String::from("1e-7"),
-        forward(&mut engine, "Number(0.0000001).toString()")
-    );
-    assert_eq!(
-        String::from("1.2e-7"),
-        forward(&mut engine, "Number(0.00000012).toString()")
-    );
-    assert_eq!(
-        String::from("1.23e-7"),
-        forward(&mut engine, "Number(0.000000123).toString()")
-    );
-    assert_eq!(
-        String::from("1e-8"),
-        forward(&mut engine, "Number(0.00000001).toString()")
-    );
-    assert_eq!(
-        String::from("1.2e-8"),
-        forward(&mut engine, "Number(0.000000012).toString()")
-    );
-    assert_eq!(
-        String::from("1.23e-8"),
-        forward(&mut engine, "Number(0.0000000123).toString()")
-    );
+    assert_eq!("1e-7", forward(&mut engine, "(0.0000001).toString()"));
+    assert_eq!("1.2e-7", forward(&mut engine, "(0.00000012).toString()"));
+    assert_eq!("1.23e-7", forward(&mut engine, "(0.000000123).toString()"));
+    assert_eq!("1e-8", forward(&mut engine, "(0.00000001).toString()"));
+    assert_eq!("1.2e-8", forward(&mut engine, "(0.000000012).toString()"));
+    assert_eq!("1.23e-8", forward(&mut engine, "(0.0000000123).toString()"));
 }
 
 #[test]
