@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use colored::Colorize;
 use rayon::prelude::*;
 use serde::Deserialize;
 use std::{
@@ -98,6 +99,14 @@ fn read_suite(path: &Path) -> io::Result<TestSuite> {
             || st.to_string_lossy() == "15.4.4.14-5-13"
             // More `Array.prototype.indexOf` with large second argument.
             || st.to_string_lossy() == "15.4.4.14-5-13"
+            // Others:
+            || st.to_string_lossy() == "15.4.4.14-9-9"
+            || st.to_string_lossy() == "fill-string-empty"
+            // Stack overflow (seemingly in JSON.stringify with circular references):
+            || st.to_string_lossy() == "value-array-circular"
+            || st.to_string_lossy() == "value-object-circular"
+            // Other stack overflows:
+            || st.to_string_lossy() == "S15.5.4.11_A12"
     };
 
     // TODO: iterate in parallel
@@ -177,7 +186,7 @@ struct TestSuite {
 impl TestSuite {
     /// Runs the test suite.
     fn run(&self, assert_js: &str, sta_js: &str) -> SuiteOutcome {
-        println!("Starting suite {}", self.name);
+        println!("Suite {}:", self.name);
 
         // TODO: in parallel
         let suites: Vec<_> = self
@@ -190,12 +199,10 @@ impl TestSuite {
         let tests: Vec<_> = self
             .tests
             .into_iter()
-            // .filter(|test| {
-            //     // TODO: fix this
-            //     test.name.as_ref() != "this-val-tostring-err"
-            // })
             .map(|test| test.run(assert_js, sta_js))
             .collect();
+
+        println!();
 
         // Count passed tests
         let mut passed_tests = 0;
@@ -215,8 +222,7 @@ impl TestSuite {
         let passed = passed_tests == total_tests;
 
         println!(
-            "Suite: {}, total: {}, passed: {}, conformance: {:.2}%",
-            self.name,
+            "Results: total: {}, passed: {}, conformance: {:.2}%",
             total_tests,
             passed_tests,
             (passed_tests as f64 / total_tests as f64) * 100.0
@@ -293,7 +299,7 @@ impl Test {
         use boa::*;
         use std::panic;
 
-        println!("Starting {}", self.name);
+        // println!("Starting {}", self.name);
         let res = panic::catch_unwind(|| {
             // Create new Realm
             // TODO: in parallel.
@@ -326,11 +332,7 @@ impl Test {
 
         let passed = res.unwrap_or(false);
 
-        // if passed {
-        //     println!("{} passed!!", self.name);
-        // } else {
-        //     eprintln!("{} failed :(", self.name);
-        // }
+        print!("{}", if passed { ".".green() } else { ".".red() });
 
         TestOutcome {
             name: self.name.clone(),
