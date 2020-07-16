@@ -9,6 +9,7 @@ categories = ["command-line-utilities"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2018"
+default-run = "boa"
 
 [dependencies]
 Boa = { path = "../boa", features = ["serde"] }
