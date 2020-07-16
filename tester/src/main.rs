@@ -87,31 +87,17 @@ fn read_suite(path: &Path) -> io::Result<TestSuite> {
         st.to_string_lossy().ends_with("_FIXTURE")
             // TODO: see if we can fix this.
             || st.to_string_lossy() == "line-terminator-normalisation-CR"
-            // TODO: see if we can fix the stack overflows.
-            || st.to_string_lossy() == "this-val-tostring-err"
-            || st.to_string_lossy() == "this-not-callable"
-            || st.to_string_lossy() == "S15.3.4.2_A10"
-            || st.to_string_lossy() == "S15.3.4.2_A11"
-            || st.to_string_lossy() == "S15.3.4.2_A9"
-            || st.to_string_lossy() == "proxy-non-callable-throws"
-            || st.to_string_lossy() == "S15.3.4.2_A12"
-            || st.to_string_lossy() == "S15.3.4.2_A13"
-            || st.to_string_lossy() == "S15.3.4.2_A14"
-            || st.to_string_lossy() == "15.3.4.5.1-4-1"
-            || st.to_string_lossy() == "15.3.4.5.2-4-14"
-            || st.to_string_lossy() == "15.3.4.5-2-12"
-            || st.to_string_lossy() == "15.3.4.5.1-4-13"
-            || st.to_string_lossy() == "15.3.4.5.2-4-12"
-            || st.to_string_lossy() == "15.3.4.5.2-4-9"
-            || st.to_string_lossy() == "instance-name-chained"
-            || st.to_string_lossy() == "15.3.4.5.1-4-3"
-            || st.to_string_lossy() == "15.3.4.5.1-4-5" 
-            || st.to_string_lossy() == "15.3.4.5.1-4-10"
-            || st.to_string_lossy() == "15.3.4.5-2-15"
-            || st.to_string_lossy() == "15.3.4.5.2-4-4"
-            || st.to_string_lossy() == "15.3.4.5.2-4-10"
-            || st.to_string_lossy() == "S15.3.4.5_A14"
-            || st.to_string_lossy() == "15.3.4.5.1-4-9"
+            // This does not break the tester but it does iterate from 0 to u32::MAX,
+            // because of incorect implementation of `Array.prototype.indexOf`.
+            // TODO: Fix it do iterate on the elements in the array **in insertion order**, not from
+            // 0 to u32::MAX untill it reaches the element.
+            || st.to_string_lossy() == "15.4.4.14-5-12"
+            // Another one of these `Array.prototype.indexOf`, but now with `NaN`.
+            || st.to_string_lossy() == "15.4.4.14-5-14"
+            // Another one of these `Array.prototype.indexOf`, but now with `-Infinity`.
+            || st.to_string_lossy() == "15.4.4.14-5-13"
+            // More `Array.prototype.indexOf` with large second argument.
+            || st.to_string_lossy() == "15.4.4.14-5-13"
     };
 
     // TODO: iterate in parallel
