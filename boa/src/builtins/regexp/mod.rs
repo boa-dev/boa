@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-use regex::Regex;
+use regress::Regex;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
@@ -293,9 +293,9 @@ impl RegExp {
         let arg_str = ctx.to_string(args.get(0).expect("could not get argument"))?;
         let mut last_index = usize::from(&this.get_field("lastIndex"));
         let result = this.with_internal_state_ref(|regex: &RegExp| {
-            let result = if let Some(m) = regex.matcher.find_at(arg_str.as_str(), last_index) {
+            let result = if let Some(m) = regex.matcher.find(arg_str.as_str()) { //This may not work as find_at is not implemented in regress
                 if regex.use_last_index {
-                    last_index = m.end();
+                    last_index = m.group(1).unwrap().end;
                 }
                 true
             } else {
@@ -378,7 +378,7 @@ impl RegExp {
         if flags.contains('g') {
             let mut matches = Vec::new();
             for mat in matcher.find_iter(&arg) {
-                matches.push(Value::from(mat.as_str()));
+                matches.push(Value::from(&arg[mat.total()]));
             }
             if matches.is_empty() {
                 return Ok(Value::null());
@@ -422,7 +422,7 @@ impl RegExp {
             let mut matches = Vec::new();
 
             for m in regex.matcher.find_iter(&arg_str) {
-                if let Some(caps) = regex.matcher.captures(&m.as_str()) {
+                if let Some(caps) = regex.matcher.find(&arg_str[m.group(1).unwrap()]) {
                     let match_vec = caps
                         .iter()
                         .map(|group| match group {
@@ -434,7 +434,7 @@ impl RegExp {
                     let match_val = Value::from(match_vec);
 
                     match_val
-                        .set_property("index", Property::default().value(Value::from(m.start())));
+                        .set_property("index", Property::default().value(Value::from(m.group(1).unwrap().start)));
                     match_val.set_property(
                         "input",
                         Property::default().value(Value::from(arg_str.clone())),

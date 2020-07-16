@@ -23,7 +23,7 @@ use crate::{
     exec::Interpreter,
     BoaProfiler,
 };
-use regex::Regex;
+use regress::Regex;
 use std::string::String as StdString;
 use std::{
     cmp::{max, min},
@@ -433,9 +433,9 @@ impl String {
 
         let regex_body = Self::get_regex_string(args.get(0).expect("Value needed"));
         let re = Regex::new(&regex_body).expect("unable to convert regex to regex object");
-        let mat = re.find(&primitive_val).expect("unable to find value");
+        let mat = re.find(&primitive_val).expect("unable to find value").group(1).expect("0 matches found");
         let caps = re
-            .captures(&primitive_val)
+            .find(&primitive_val)
             .expect("unable to get capture groups from text");
 
         let replace_value = if args.len() > 1 {
@@ -452,30 +452,30 @@ impl String {
                     }
 
                     if val.find("$`").is_some() {
-                        let start_of_match = mat.start();
+                        let start_of_match = mat.start;
                         let slice = &primitive_val[..start_of_match];
                         result = val.replace("$`", slice);
                     }
 
                     if val.find("$'").is_some() {
-                        let end_of_match = mat.end();
+                        let end_of_match = mat.end;
                         let slice = &primitive_val[end_of_match..];
                         result = val.replace("$'", slice);
                     }
 
                     if val.find("$&").is_some() {
                         // get matched value
-                        let matched = caps.get(0).expect("cannot get matched value");
-                        result = val.replace("$&", matched.as_str());
+                        let matched = caps.group(1).expect("cannot get matched value");
+                        result = val.replace("$&", &primitive_val[matched]);
                     }
 
                     // Capture $1, $2, $3 etc
-                    if re.is_match(&result) {
-                        let mat_caps = re.captures(&result).unwrap();
-                        let group_str = mat_caps.get(1).unwrap().as_str();
+                    if re.find(&result).is_some() {
+                        let mat_caps = re.find(&result).unwrap();
+                        let group_str = &result[mat_caps.group(1).unwrap()];
                         let group_int = group_str.parse::<usize>().unwrap();
                         result = re
-                            .replace(result.as_str(), caps.get(group_int).unwrap().as_str())
+                            .replace(result.as_str(), &primitive_val[caps.group(group_int).unwrap()])
                             .to_string()
                     }
 
@@ -490,9 +490,9 @@ impl String {
 
                     // Returns the starting byte offset of the match
                     let start = caps
-                        .get(0)
+                        .group(1)
                         .expect("Unable to get Byte offset from string for match")
-                        .start();
+                        .start;
                     results.push(Value::from(start));
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
@@ -508,7 +508,7 @@ impl String {
         };
 
         Ok(Value::from(primitive_val.replacen(
-            &mat.as_str(),
+            &primitive_val[mat],
             &replace_value,
             1,
         )))
