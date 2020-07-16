@@ -43,7 +43,7 @@ use crate::{
     syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
 };
-use labelled_stm::Label;
+use labelled_stm::LabelledStatement;
 
 use std::io::Read;
 
@@ -129,7 +129,7 @@ where
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::For) => {
-                ForStatement::new(self.allow_yield, self.allow_await, self.allow_return, label)
+                ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
                     .map(Node::from)
             }
@@ -172,9 +172,22 @@ where
                     .parse(cursor)
                     .map(Node::from)
             }
-            // TokenKind::Identifier(name) => LabelIdentifier::new(self.allow_yield, self.allow_await)
-            //     .parse(cursor)
-            //     .map(Node::from),
+            // Create guard to check if the next token is a `:` then we know we're sitting on a label
+            // if not fall back to ExpressionStatement
+            TokenKind::Identifier(_)
+                if matches!(
+                    cursor.peek(1),
+                    Some(Token {
+                        kind: TokenKind::Punctuator(Punctuator::Colon),
+                        ..
+                    })
+                ) =>
+            {
+                LabelledStatement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor)
+                    .map(Node::from)
+            }
+
             // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
             _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
         }

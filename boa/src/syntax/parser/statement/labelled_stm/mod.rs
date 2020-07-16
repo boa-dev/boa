@@ -1,7 +1,7 @@
-use super::LabelIdentifier;
+use super::{LabelIdentifier, Statement};
 use crate::{
     syntax::{
-        ast::Punctuator,
+        ast::{node::Label, Punctuator},
         parser::{
             cursor::Cursor, error::ParseError, AllowAwait, AllowReturn, AllowYield, TokenParser,
         },
@@ -17,13 +17,13 @@ use crate::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label
 /// [spec]: https://tc39.es/ecma262/#sec-labelled-statements
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Label {
+pub(super) struct LabelledStatement {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
 }
 
-impl Label {
+impl LabelledStatement {
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
         Y: Into<AllowYield>,
@@ -38,13 +38,15 @@ impl Label {
     }
 }
 
-impl TokenParser for Label {
-    type Output = String;
+impl TokenParser for LabelledStatement {
+    type Output = Label;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Label", "Parsing");
         let name = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         cursor.expect(Punctuator::Colon, "Labelled Statement")?;
-        Ok(name.to_string())
+        let stmt =
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        Ok(Label::new(stmt, name))
     }
 }

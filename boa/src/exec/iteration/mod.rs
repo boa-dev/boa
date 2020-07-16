@@ -51,6 +51,13 @@ impl Executable for ForLoop {
                         .executor()
                         .set_current_state(InterpreterState::Executing);
                     break;
+                    //         }
+                    //     }
+                    // }
+
+                    // // Loops 'consume' breaks.
+                    // interpreter.set_current_state(InterpreterState::Executing);
+                    // break;
                 }
                 InterpreterState::Continue(_label) => {
                     // TODO continue to label.

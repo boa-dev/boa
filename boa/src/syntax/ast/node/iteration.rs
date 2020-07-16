@@ -21,18 +21,11 @@ use serde::{Deserialize, Serialize};
 pub struct ForLoop {
     #[cfg_attr(feature = "serde", serde(flatten))]
     inner: Box<InnerForLoop>,
-    pub label: Option<String>,
 }
 
 impl ForLoop {
     /// Creates a new for loop AST node.
-    pub(in crate::syntax) fn new<I, C, E, B>(
-        init: I,
-        condition: C,
-        final_expr: E,
-        body: B,
-        label: Option<String>,
-    ) -> Self
+    pub(in crate::syntax) fn new<I, C, E, B>(init: I, condition: C, final_expr: E, body: B) -> Self
     where
         I: Into<Option<Node>>,
         C: Into<Option<Node>>,
@@ -41,7 +34,6 @@ impl ForLoop {
     {
         Self {
             inner: Box::new(InnerForLoop::new(init, condition, final_expr, body)),
-            label,
         }
     }
 
