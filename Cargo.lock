@@ -16,6 +16,7 @@ dependencies = [
  "rand",
  "regex",
  "rustc-hash",
+ "ryu-js",
  "serde",
  "serde_json",
 ]
@@ -805,6 +806,11 @@ name = "ryu"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
+
+[[package]]
+name = "ryu-js"
+version = "1.0.5"
+source = "git+https://github.com/Tropid/ryu-js#fe366fa397d04324fa693b5d85134851b09719b3"
 
 [[package]]
 name = "same-file"
