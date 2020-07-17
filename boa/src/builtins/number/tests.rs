@@ -380,6 +380,9 @@ fn value_of() {
     // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019
     // the parser does not understand scientific e.g., Xe+Y or -Xe-Y notation.
     let init = r#"
+        var default_val = Number().valueOf();
+        var int_val = Number("123").valueOf();
+        var float_val = Number(1.234).valueOf();
         var exp_val = Number("1.2e+4").valueOf()
         var neg_val = Number("-1.2e+4").valueOf()
         "#;
