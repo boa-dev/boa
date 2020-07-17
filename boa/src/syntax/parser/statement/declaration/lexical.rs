@@ -156,7 +156,7 @@ where
                             TokenKind::LineTerminator,
                         ],
                         cursor.next()?.ok_or(ParseError::AbruptEnd)?,
-                        "lexical declaration",
+                        "Binding list lexical declaration",
                     ))
                 }
             }

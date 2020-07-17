@@ -55,19 +55,58 @@ where
     }
 
     /// Moves the cursor to the next token and returns the token.
+    ///
+    /// Implicitly skips line terminators (note that if a line terminator is peeked previously it will still be returned here).
     #[inline]
     pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
 
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
-            Ok(self.lexer.next()?)
+            Ok(self.lexer.next(true)?)
         } else {
             let val = self.peeked[self.back_index].take();
             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
             Ok(val)
         }
     }
+
+    /// Moves the cursor to the next token and returns the token.
+    ///
+    /// Explicitly does not skip line terminators.
+    #[inline]
+    pub(super) fn next_explicit(&mut self) -> Result<Option<Token>, ParseError> {
+        let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
+
+        if self.front_index == self.back_index {
+            // No value has been peeked ahead already so need to go get the next value.
+            Ok(self.lexer.next(false)?)
+        } else {
+            let val = self.peeked[self.back_index].take();
+            self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+            Ok(val)
+        }
+    }
+
+    // if self.front_index == self.back_index {
+    //     // No value has been peeked ahead already so need to go get the next value.
+
+    //     let next = self.lexer.next()?;
+
+    //     if let Some(t) = next {
+    //         if *t.kind() == TokenKind::LineTerminator {
+    //             return self.peek();
+    //         } else {
+    //             self.peeked[self.front_index] = Some(t);
+    //             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+    //         }
+    //     }  else {
+    //         self.peeked[self.front_index] = None;
+    //         self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+    //     }
+    // }
+
+    // Ok(self.peeked[self.back_index].clone())
 
     /// Peeks the next token without moving the cursor.
     /// Note that this skips over line terminators.
@@ -76,24 +115,43 @@ where
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
-            let next = self.lexer.next()?;
+            let next = self.lexer.next(true)?;
             self.peeked[self.front_index] = next;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
         }
 
         let val = self.peeked[self.back_index].clone();
-        if let Some(t) = val {
-            if *t.kind() == TokenKind::LineTerminator {
-                // Consume the line terminator
-                self.peeked[self.back_index].take();
-                self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
-                self.peek()
-            } else{
-                Ok(Some(t))
-            }
-        } else {
-            Ok(None)
-        }
+        Ok(val)
+
+
+        // if let Some(t) = val {
+        //     if *t.kind() == TokenKind::LineTerminator {
+        //         // Consume the line terminator
+        //         self.peeked[self.back_index].take();
+        //         self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+        //         self.peek()
+        //     } else{
+        //         Ok(Some(t))
+        //     }
+        // } else {
+        //     Ok(None)
+        // }
+
+        // Ok(self.peeked[self.back_index].clone())
+
+        // let val = self.peeked[self.back_index].clone();
+        // if let Some(t) = val {
+        //     if *t.kind() == TokenKind::LineTerminator {
+        //         // Consume the line terminator
+        //         self.peeked[self.back_index].take();
+        //         self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+        //         self.peek()
+        //     } else{
+        //         Ok(Some(t))
+        //     }
+        // } else {
+        //     Ok(None)
+        // }
     }
 
     pub(super) fn peek_explicit(&mut self) -> Result<Option<Token>, ParseError> {
@@ -101,7 +159,7 @@ where
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
-            let next = self.lexer.next()?;
+            let next = self.lexer.next(false)?;
             self.peeked[self.front_index] = next;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
         }
@@ -111,17 +169,18 @@ where
 
     /// Peeks the token after the next token.
     /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
+    /// Implicitly skips line terminators.
     pub(super) fn peek_skip(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
-            self.peeked[self.front_index] = self.lexer.next()?;
+            self.peeked[self.front_index] = self.lexer.next(true)?;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
 
             let index = self.front_index;
 
-            self.peeked[self.front_index] = self.lexer.next()?;
+            self.peeked[self.front_index] = self.lexer.next(true)?;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
 
             Ok(self.peeked[index].clone())
@@ -129,7 +188,38 @@ where
             // Indicates only a single value has been peeked ahead already
             let index = self.front_index;
 
-            self.peeked[self.front_index] = self.lexer.next()?;
+            self.peeked[self.front_index] = self.lexer.next(true)?;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+            Ok(self.peeked[index].clone())
+        } else {
+            Ok(self.peeked[(self.back_index + 1) % PEEK_BUF_SIZE].clone())
+        }
+    }
+
+    /// Peeks the token after the next token.
+    /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
+    ///
+    /// Explicitly does not skip line terminators.
+    pub(super) fn peek_skip_explicit(&mut self) -> Result<Option<Token>, ParseError> {
+        let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
+        if self.front_index == self.back_index {
+            // No value has been peeked ahead already so need to go get the next value.
+
+            self.peeked[self.front_index] = self.lexer.next(false)?;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+            let index = self.front_index;
+
+            self.peeked[self.front_index] = self.lexer.next(false)?;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+            Ok(self.peeked[index].clone())
+        } else if ((self.back_index + 1) % PEEK_BUF_SIZE) == self.front_index {
+            // Indicates only a single value has been peeked ahead already
+            let index = self.front_index;
+
+            self.peeked[self.front_index] = self.lexer.next(false)?;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
 
             Ok(self.peeked[index].clone())
@@ -234,9 +324,9 @@ where
     /// If skip is true then the token after the peek() token is checked instead.
     pub(super) fn peek_expect_no_lineterminator(&mut self, skip: bool) -> Result<(), ParseError> {
         let token = if skip {
-            self.peek_skip()?
+            self.peek_skip_explicit()?
         } else {
-            self.peek()?
+            self.peek_explicit()?
         };
 
         if let Some(t) = token {
@@ -275,7 +365,7 @@ where
     /// Advance the cursor to skip 0, 1 or more line terminators.
     #[inline]
     pub(super) fn skip_line_terminators(&mut self) -> Result<(), ParseError> {
-        while self.next_if(TokenKind::LineTerminator)?.is_some() {}
+        // while self.next_if(TokenKind::LineTerminator)?.is_some() {}
         Ok(())
     }
 }

@@ -127,7 +127,7 @@ where
                             TokenKind::LineTerminator,
                         ],
                         cursor.next()?.ok_or(ParseError::AbruptEnd)?,
-                        "lexical declaration",
+                        "Variable Declaration List lexical declaration",
                     ))
                 }
             }
