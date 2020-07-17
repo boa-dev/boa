@@ -82,7 +82,7 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
         Ok(expr) => expr.run(engine),
         Err(e) => {
             eprintln!("{}", e);
-            std::process::exit(1);
+            Err(builtins::Value::String(e.into()))
         }
     };
 
