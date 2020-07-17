@@ -59,30 +59,30 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
 
-        cursor.expect(Punctuator::OpenParen, "arguments")?;
+        cursor.expect(Punctuator::OpenParen, "arguments", false)?;
         let mut args = Vec::new();
         loop {
-            let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
+            let next_token = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?;
 
             match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => {
-                    cursor.next()?.expect(") token vanished"); // Consume the token.
+                    cursor.next(false)?.expect(") token vanished"); // Consume the token.
                     break;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
-                    cursor.next()?.expect(", token vanished"); // Consume the token.
+                    cursor.next(false)?.expect(", token vanished"); // Consume the token.
 
                     if args.is_empty() {
                         return Err(ParseError::unexpected(next_token.clone(), None));
                     }
 
-                    if cursor.next_if(Punctuator::CloseParen)?.is_some() {
+                    if cursor.next_if(Punctuator::CloseParen, false)?.is_some() {
                         break;
                     }
                 }
                 _ => {
                     if !args.is_empty() {
-                        cursor.next()?.expect("Token vanished"); // Consume the token.
+                        cursor.next(false)?.expect("Token vanished"); // Consume the token.
                         return Err(ParseError::expected(
                             vec![
                                 TokenKind::Punctuator(Punctuator::Comma),
@@ -95,7 +95,7 @@ where
                 }
             }
 
-            if cursor.next_if(Punctuator::Spread)?.is_some() {
+            if cursor.next_if(Punctuator::Spread, false)?.is_some() {
                 args.push(
                     Spread::new(
                         AssignmentExpression::new(true, self.allow_yield, self.allow_await)

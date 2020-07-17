@@ -71,17 +71,17 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
 
-        let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?;
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
 
             // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed
 
-            cursor.expect(Punctuator::OpenParen, "arrow function")?;
+            cursor.expect(Punctuator::OpenParen, "arrow function", false)?;
 
             match FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor) {
                 Ok(params) => {
-                    cursor.expect(Punctuator::CloseParen, "arrow function")?;
+                    cursor.expect(Punctuator::CloseParen, "arrow function", false)?;
                     params
                 }
                 Err(e) => {
@@ -99,7 +99,7 @@ where
 
         cursor.peek_expect_no_lineterminator(false)?;
 
-        cursor.expect(Punctuator::Arrow, "arrow function")?;
+        cursor.expect(Punctuator::Arrow, "arrow function", false)?;
 
         let body = ConciseBody::new(self.allow_in).parse(cursor)?;
 
@@ -132,11 +132,11 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        match cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let _ = cursor.next();
+                let _ = cursor.next(false);
                 let body = FunctionBody::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseBlock, "arrow function")?;
+                cursor.expect(Punctuator::CloseBlock, "arrow function", false)?;
                 Ok(body)
             }
             _ => Ok(StatementList::from(vec![Return::new(

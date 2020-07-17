@@ -61,7 +61,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
     let expr = match parser_expr(src) {
         Ok(res) => res,
-        Err(e) => return e,
+        Err(e) => return panic!(e), // TEMPORARY - Used to stop execution immediately if there is a parse error.
     };
     expr.run(engine)
         .map_or_else(|e| format!("Error: {}", e), |v| v.to_string())

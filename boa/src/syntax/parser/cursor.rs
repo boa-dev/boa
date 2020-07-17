@@ -65,9 +65,23 @@ where
             // No value has been peeked ahead already so need to go get the next value.
             Ok(self.lexer.next(skip_line_terminators)?)
         } else {
+            println!("Next using cached value");
             let val = self.peeked[self.back_index].take();
             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
-            Ok(val)
+
+            if skip_line_terminators {
+                if let Some(t) = val {
+                    if *t.kind() == TokenKind::LineTerminator {
+                        self.next(skip_line_terminators)
+                    } else {
+                        Ok(Some(t))
+                    }
+                } else {
+                    Ok(None)
+                }
+            } else {
+                Ok(val)
+            }
         }
     }
 
@@ -258,7 +272,7 @@ where
     /// Advance the cursor to skip 0, 1 or more line terminators.
     #[inline]
     pub(super) fn skip_line_terminators(&mut self) -> Result<(), ParseError> {
-        // while self.next_if(TokenKind::LineTerminator)?.is_some() {}
+        while self.next_if(TokenKind::LineTerminator, false)?.is_some() {}
         Ok(())
     }
 }

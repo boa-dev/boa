@@ -70,7 +70,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
-        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next(true)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
@@ -82,7 +82,7 @@ where
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "primary expression")?;
+                cursor.expect(Punctuator::CloseParen, "primary expression - close paren", false)?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
@@ -114,9 +114,6 @@ where
                 ))))
             }
             TokenKind::Punctuator(Punctuator::Div) => {
-                // This is where the start of a regexp is accidentally treated as a div
-                // Try parsing as a regexp.
-
                 let tok = cursor.lex_regex(tok.span().start())?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = tok.kind() {
@@ -135,7 +132,7 @@ where
                     ))
                 }
             }
-            _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
+            _ => Err(ParseError::unexpected(tok.clone(), "_ primary expression")),
         }
     }
 }

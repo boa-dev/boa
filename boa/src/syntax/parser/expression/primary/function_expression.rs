@@ -43,16 +43,16 @@ where
 
         let name = BindingIdentifier::new(false, false).try_parse(cursor);
 
-        cursor.expect(Punctuator::OpenParen, "function expression")?;
+        cursor.expect(Punctuator::OpenParen, "function expression", false)?;
 
         let params = FormalParameters::new(false, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "function expression")?;
-        cursor.expect(Punctuator::OpenBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseParen, "function expression", false)?;
+        cursor.expect(Punctuator::OpenBlock, "function expression", false)?;
 
         let body = FunctionBody::new(false, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseBlock, "function expression", false)?;
 
         Ok(FunctionExpr::new(name, params, body))
     }

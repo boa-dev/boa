@@ -83,13 +83,13 @@ where
         cursor.set_goal(InputElement::Div);
 
         // Arrow function
-        match cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
                 if cursor.peek_expect_no_lineterminator(true).is_ok() {
-                    if let Some(tok) = cursor.peek_skip()? {
+                    if let Some(tok) = cursor.peek_skip(false)? {
                         if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                             return ArrowFunction::new(
                                 self.allow_in,
@@ -122,14 +122,14 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek()? {
+        if let Some(tok) = cursor.peek(false)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    cursor.next()?.expect("= token vanished"); // Consume the token.
+                    cursor.next(false)?.expect("= token vanished"); // Consume the token.
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() => {
-                    cursor.next()?.expect("Token vanished"); // Consume the token.
+                    cursor.next(false)?.expect("Token vanished"); // Consume the token.
 
                     let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");

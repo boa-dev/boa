@@ -69,13 +69,13 @@ where
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek()? {
+        if let Some(tok) = cursor.peek(false)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
-                cursor.next()?.expect("? character vanished"); // Consume the token.
+                cursor.next(false)?.expect("? character vanished"); // Consume the token.
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
-                cursor.expect(Punctuator::Colon, "conditional expression")?;
+                cursor.expect(Punctuator::Colon, "conditional expression", false)?;
 
                 let else_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)

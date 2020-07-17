@@ -61,7 +61,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Const) => {
@@ -136,7 +136,7 @@ where
                 } else {
                     return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
+                        cursor.next(false)?.ok_or(ParseError::AbruptEnd)?,
                         "const declaration",
                     ));
                 }
@@ -147,7 +147,7 @@ where
             match cursor.peek_semicolon()? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = cursor.next();
+                    let _ = cursor.next(false);
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -155,7 +155,7 @@ where
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
+                        cursor.next(false)?.ok_or(ParseError::AbruptEnd)?,
                         "Binding list lexical declaration",
                     ))
                 }

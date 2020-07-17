@@ -69,10 +69,10 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
             }
 
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
-            while let Some(tok) = cursor.peek()? {
+            while let Some(tok) = cursor.peek(false)? {
                 match *tok.kind() {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
-                        let _ = cursor.next().expect("token disappeared");
+                        let _ = cursor.next(false).expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
@@ -80,7 +80,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         ).into();
                     }
                     TokenKind::Keyword(op) if $( op == $op )||* => {
-                        let _ = cursor.next().expect("token disappeared");
+                        let _ = cursor.next(false).expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,

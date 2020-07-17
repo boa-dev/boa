@@ -61,16 +61,13 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
-        cursor.expect(Keyword::Switch, "switch statement")?;
-        cursor.skip_line_terminators()?;
-        cursor.expect(Punctuator::OpenParen, "switch statement")?;
+        cursor.expect(Keyword::Switch, "switch statement", false)?;
+        cursor.expect(Punctuator::OpenParen, "switch statement", true)?;
         cursor.skip_line_terminators()?;
 
         let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.skip_line_terminators()?;
-
-        cursor.expect(Punctuator::CloseParen, "switch statement")?;
+        cursor.expect(Punctuator::CloseParen, "switch statement", true)?;
 
         cursor.skip_line_terminators()?;
 
@@ -120,12 +117,10 @@ where
         let mut cases = Vec::<node::Case>::new();
         let mut default: Option<Node> = None;
 
-        cursor.skip_line_terminators()?;
-        cursor.expect(Punctuator::OpenBlock, "switch start case block")?;
+        cursor.expect(Punctuator::OpenBlock, "switch start case block", true)?;
 
         loop {
-            cursor.skip_line_terminators()?;
-            match cursor.expect(Keyword::Case, "switch case: block") {
+            match cursor.expect(Keyword::Case, "switch case: block", true) {
                 Ok(_) => {
                     cursor.skip_line_terminators()?;
 
@@ -133,9 +128,7 @@ where
                     let cond =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-                    cursor.skip_line_terminators()?;
-
-                    cursor.expect(Punctuator::Colon, "switch case block start")?;
+                    cursor.expect(Punctuator::Colon, "switch case block start", true)?;
 
                     cursor.skip_line_terminators()?;
 
@@ -160,7 +153,7 @@ where
                 }) => {
                     // Default statement.
                     // Consume the default token.
-                    cursor.next()?.expect("Default token vanished");
+                    cursor.next(false)?.expect("Default token vanished");
 
                     if default.is_some() {
                         // If default has already been defined then it cannot be defined again and to do so is an error.
@@ -170,7 +163,7 @@ where
                         ));
                     }
 
-                    cursor.expect(Punctuator::Colon, "switch default case block start")?;
+                    cursor.expect(Punctuator::Colon, "switch default case block start", false)?;
 
                     cursor.skip_line_terminators()?;
 
@@ -194,7 +187,7 @@ where
                     context: _,
                 }) => {
                     // End of switch block.
-                    cursor.next()?.expect("Switch close block symbol vanished"); // Consume the switch close block.
+                    cursor.next(false)?.expect("Switch close block symbol vanished"); // Consume the switch close block.
                     break;
                 }
                 Err(e) => {

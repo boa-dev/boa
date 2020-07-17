@@ -54,20 +54,16 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
-        cursor.expect(Keyword::While, "while statement")?;
+        cursor.expect(Keyword::While, "while statement", false)?;
 
         // Line terminators can exist between a While and the condition.
-        cursor.skip_line_terminators()?;
-
-        cursor.expect(Punctuator::OpenParen, "while statement")?;
+        cursor.expect(Punctuator::OpenParen, "while statement", true)?;
 
         cursor.skip_line_terminators()?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.skip_line_terminators()?;
-
-        cursor.expect(Punctuator::CloseParen, "while statement")?;
+        cursor.expect(Punctuator::CloseParen, "while statement", true)?;
 
         cursor.skip_line_terminators()?;
 

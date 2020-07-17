@@ -64,7 +64,7 @@ where
 
         let mut params = Vec::new();
 
-        if cursor.peek_explicit()?.ok_or(ParseError::AbruptEnd)?.kind()
+        if cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
@@ -73,14 +73,14 @@ where
         loop {
             let mut rest_param = false;
 
-            params.push(if cursor.next_if(Punctuator::Spread)?.is_some() {
+            params.push(if cursor.next_if(Punctuator::Spread, false)?.is_some() {
                 rest_param = true;
                 FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             } else {
                 FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             });
 
-            if cursor.peek_explicit()?.ok_or(ParseError::AbruptEnd)?.kind()
+            if cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
@@ -88,12 +88,12 @@ where
 
             if rest_param {
                 return Err(ParseError::unexpected(
-                    cursor.peek()?.expect("Peek token disappeared"),
+                    cursor.peek(false)?.expect("Peek token disappeared"),
                     "rest parameter must be the last formal parameter",
                 ));
             }
 
-            cursor.expect(Punctuator::Comma, "parameter list")?;
+            cursor.expect(Punctuator::Comma, "parameter list", false)?;
         }
 
         Ok(params.into_boxed_slice())
@@ -241,7 +241,7 @@ where
     type Output = node::StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if let Some(tk) = cursor.peek()? {
+        if let Some(tk) = cursor.peek(false)? {
             if tk.kind() == &Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }

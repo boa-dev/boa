@@ -63,7 +63,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
-        cursor.expect(Keyword::Do, "do while statement")?;
+        cursor.expect(Keyword::Do, "do while statement", false)?;
 
         // There can be space between the Do and the body.
         cursor.skip_line_terminators()?;
@@ -71,9 +71,7 @@ where
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        cursor.skip_line_terminators()?;
-
-        let next_token = cursor.peek()?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
@@ -83,21 +81,15 @@ where
             ));
         }
 
-        cursor.skip_line_terminators()?;
+        cursor.expect(Keyword::While, "do while statement", true)?;
 
-        cursor.expect(Keyword::While, "do while statement")?;
-
-        cursor.skip_line_terminators()?;
-
-        cursor.expect(Punctuator::OpenParen, "do while statement")?;
+        cursor.expect(Punctuator::OpenParen, "do while statement", true)?;
 
         cursor.skip_line_terminators()?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.skip_line_terminators()?;
-
-        cursor.expect(Punctuator::CloseParen, "do while statement")?;
+        cursor.expect(Punctuator::CloseParen, "do while statement", true)?;
 
         expect_semicolon_dowhile(cursor)?;
 
@@ -118,9 +110,9 @@ where
     // The previous token is already known to be a CloseParan as this is checked as part of the dowhile parsing.
     // This means that a semicolon is always automatically inserted if one isn't present.
 
-    if let Some(tk) = cursor.peek()? {
+    if let Some(tk) = cursor.peek(false)? {
         if tk.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-            cursor.next()?.expect("; token vanished"); // Consume semicolon.
+            cursor.next(false)?.expect("; token vanished"); // Consume semicolon.
         }
     }
 
