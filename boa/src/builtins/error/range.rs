@@ -78,6 +78,7 @@ impl RangeError {
             global,
             prototype,
             true,
+            true,
         );
 
         (Self::NAME, range_error_object)

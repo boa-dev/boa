@@ -16,6 +16,7 @@
 use crate::{
     builtins::{
         function::Function,
+        map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
         BigInt,
@@ -67,6 +68,7 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize, Clone)]
 pub enum ObjectData {
     Array,
+    Map(OrderedMap<Value, Value>),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -85,6 +87,7 @@ impl Display for ObjectData {
             match self {
                 Self::Function(_) => "Function",
                 Self::Array => "Array",
+                Self::Map(_) => "Map",
                 Self::String(_) => "String",
                 Self::Symbol(_) => "Symbol",
                 Self::Error => "Error",
@@ -247,6 +250,28 @@ impl Object {
     pub fn as_array(&self) -> Option<()> {
         match self.data {
             ObjectData::Array => Some(()),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is a `Map` object.pub
+    #[inline]
+    pub fn is_map(&self) -> bool {
+        matches!(self.data, ObjectData::Map(_))
+    }
+
+    #[inline]
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value, Value>> {
+        match self.data {
+            ObjectData::Map(ref map) => Some(map),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
+        match &mut self.data {
+            ObjectData::Map(map) => Some(map),
             _ => None,
         }
     }
@@ -548,7 +573,7 @@ pub fn init(global: &Value) -> (&str, Value) {
     );
     make_builtin_fn(to_string, "toString", &prototype, 0);
 
-    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
+    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true, true);
 
     // static methods of the builtin Object
     make_builtin_fn(create, "create", &object, 2);

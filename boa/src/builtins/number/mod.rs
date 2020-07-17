@@ -769,6 +769,7 @@ impl Number {
             global,
             prototype,
             true,
+            true,
         );
 
         make_builtin_fn(Self::number_is_finite, "isFinite", &number_object, 1);

@@ -1064,6 +1064,7 @@ impl Array {
             global,
             prototype,
             true,
+            true,
         );
 
         // Static Methods

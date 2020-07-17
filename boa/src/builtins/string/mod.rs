@@ -1042,6 +1042,7 @@ impl String {
             global,
             prototype,
             true,
+            true,
         );
 
         (Self::NAME, string_object)
