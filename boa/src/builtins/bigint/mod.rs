@@ -215,6 +215,7 @@ impl BigInt {
             global,
             prototype,
             false,
+            true,
         );
 
         make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2);

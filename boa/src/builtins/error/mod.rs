@@ -92,6 +92,7 @@ impl Error {
             global,
             prototype,
             true,
+            true,
         );
 
         (Self::NAME, error_object)

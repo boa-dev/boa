@@ -115,6 +115,7 @@ impl Symbol {
             global,
             prototype,
             false,
+            true,
         );
 
         (Self::NAME, symbol_object)

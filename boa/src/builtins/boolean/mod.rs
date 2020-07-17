@@ -115,6 +115,7 @@ impl Boolean {
             global,
             prototype,
             true,
+            true,
         );
 
         (Self::NAME, boolean_object)
