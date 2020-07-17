@@ -64,17 +64,40 @@ where
             Ok(self.lexer.next()?)
         } else {
             let val = self.peeked[self.back_index].take();
-            // let val = self.peeked[self.back_index];
             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
             Ok(val)
         }
     }
 
     /// Peeks the next token without moving the cursor.
-
+    /// Note that this skips over line terminators.
     pub(super) fn peek(&mut self) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
+        if self.front_index == self.back_index {
+            // No value has been peeked ahead already so need to go get the next value.
 
+            let next = self.lexer.next()?;
+            self.peeked[self.front_index] = next;
+            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+        }
+
+        let val = self.peeked[self.back_index].clone();
+        if let Some(t) = val {
+            if *t.kind() == TokenKind::LineTerminator {
+                // Consume the line terminator
+                self.peeked[self.back_index].take();
+                self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+                self.peek()
+            } else{
+                Ok(Some(t))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub(super) fn peek_explicit(&mut self) -> Result<Option<Token>, ParseError> {
+        let _timer = BoaProfiler::global().start_event("cursor::peek_explicit()", "Parsing");
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
@@ -165,7 +188,7 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
-        match self.peek()? {
+        match self.peek_explicit()? {
             Some(tk) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
                 TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
@@ -232,6 +255,8 @@ where
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
     ///
     /// No next token also returns None.
+    ///
+    /// This implicitly skips line terminators.
     pub(super) fn next_if<K>(&mut self, kind: K) -> Result<Option<Token>, ParseError>
     where
         K: Into<TokenKind>,
