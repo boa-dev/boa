@@ -391,9 +391,7 @@ impl Number {
         }
 
         // 5. If radixNumber = 10, return ! ToString(x).
-        // This part should use exponential notations for long integer numbers commented tests
         if radix == 10 {
-            // return Ok(to_value(format!("{}", Self::to_number(this).to_num())));
             return Ok(Value::from(Self::to_native_string(x)));
         }
 
