@@ -71,7 +71,7 @@ where
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let next_token = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
