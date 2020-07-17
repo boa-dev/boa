@@ -64,7 +64,7 @@ where
 
         let mut params = Vec::new();
 
-        if cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind()
+        if cursor.peek_explicit()?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
@@ -80,7 +80,7 @@ where
                 FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             });
 
-            if cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind()
+            if cursor.peek_explicit()?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
