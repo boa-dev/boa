@@ -64,7 +64,7 @@ where
         let mut lhs = if cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Keyword(Keyword::New)
         {
-            let _ = cursor.next(true).expect("new keyword disappeared");
+            let _ = cursor.next(false).expect("new keyword disappeared");
             let lhs = self.parse(cursor)?;
             let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
             let call_node = Call::new(lhs, args);
@@ -73,7 +73,7 @@ where
         } else {
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
-        while let Some(tok) = cursor.peek(true)? {
+        while let Some(tok) = cursor.peek(false)? {
             let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::Dot) => {
