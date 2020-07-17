@@ -189,6 +189,40 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -250,7 +284,7 @@
     };
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>, <span class="ident">print_children</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">x</span> {
         <span class="comment">// We don&#39;t want to print private (compiler) or prototype properties</span>
         <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -270,29 +304,63 @@
                             .<span class="ident">expect</span>(<span class="string">&quot;Could not borrow value&quot;</span>),
                     );
 
-                    <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;[]&quot;</span>);
+                    <span class="kw">if</span> <span class="ident">print_children</span> {
+                        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                            <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;[]&quot;</span>);
+                        }
+
+                        <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">len</span>)
+                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
+                                <span class="comment">// Introduce recursive call to stringify any objects</span>
+                                <span class="comment">// which are part of the Array</span>
+                                <span class="ident">log_string_from</span>(
+                                    <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">borrow</span>()
+                                        .<span class="ident">properties</span>()
+                                        .<span class="ident">get</span>(<span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>())
+                                        .<span class="ident">unwrap</span>()
+                                        .<span class="ident">value</span>
+                                        .<span class="ident">clone</span>()
+                                        .<span class="ident">expect</span>(<span class="string">&quot;Could not borrow value&quot;</span>),
+                                    <span class="ident">print_internals</span>,
+                                    <span class="bool-val">false</span>,
+                                )
+                            })
+                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+                            .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
+
+                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;[ {} ]&quot;</span>, <span class="ident">arr</span>)
+                    } <span class="kw">else</span> {
+                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Array({})&quot;</span>, <span class="ident">len</span>)
+                    }
+                }
+                <span class="ident">ObjectData</span>::<span class="ident">Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">borrow</span>()
+                            .<span class="ident">properties</span>()
+                            .<span class="ident">get</span>(<span class="string">&quot;size&quot;</span>)
+                            .<span class="ident">unwrap</span>()
+                            .<span class="ident">value</span>
+                            .<span class="ident">clone</span>()
+                            .<span class="ident">expect</span>(<span class="string">&quot;Could not borrow value&quot;</span>),
+                    );
+                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Map(0)&quot;</span>);
                     }
 
-                    <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">len</span>)
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
-                            <span class="comment">// Introduce recursive call to stringify any objects</span>
-                            <span class="comment">// which are part of the Array</span>
-                            <span class="ident">log_string_from</span>(
-                                <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">borrow</span>()
-                                    .<span class="ident">properties</span>()
-                                    .<span class="ident">get</span>(<span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>())
-                                    .<span class="ident">unwrap</span>()
-                                    .<span class="ident">value</span>
-                                    .<span class="ident">clone</span>()
-                                    .<span class="ident">expect</span>(<span class="string">&quot;Could not borrow value&quot;</span>),
-                                <span class="ident">print_internals</span>,
-                            )
-                        })
-                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                        .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
-
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;[ {} ]&quot;</span>, <span class="ident">arr</span>)
+                    <span class="kw">if</span> <span class="ident">print_children</span> {
+                        <span class="kw">let</span> <span class="ident">mappings</span> <span class="op">=</span> <span class="ident">map</span>
+                            .<span class="ident">iter</span>()
+                            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">value</span>)<span class="op">|</span> {
+                                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">key</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
+                                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
+                                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} → {}&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>)
+                            })
+                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+                            .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
+                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Map {{ {} }}&quot;</span>, <span class="ident">mappings</span>)
+                    } <span class="kw">else</span> {
+                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Map({})&quot;</span>, <span class="ident">size</span>)
+                    }
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_obj</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="ident">print_internals</span>),
             }
@@ -370,7 +438,7 @@
             },
             <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
             <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>, <span class="bool-val">true</span>)),
+            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)),
             <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
             <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
         }

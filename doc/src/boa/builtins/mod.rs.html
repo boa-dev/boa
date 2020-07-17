@@ -79,6 +79,9 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -91,6 +94,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">global_this</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">infinity</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">json</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">map</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">math</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nan</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">number</span>;
@@ -111,6 +115,7 @@
     <span class="ident">global_this</span>::<span class="ident">GlobalThis</span>,
     <span class="ident">infinity</span>::<span class="ident">Infinity</span>,
     <span class="ident">json</span>::<span class="ident">Json</span>,
+    <span class="ident">map</span>::<span class="ident">Map</span>,
     <span class="ident">math</span>::<span class="ident">Math</span>,
     <span class="ident">nan</span>::<span class="ident">NaN</span>,
     <span class="ident">number</span>::<span class="ident">Number</span>,
@@ -132,6 +137,7 @@
         <span class="ident">BigInt</span>::<span class="ident">init</span>,
         <span class="ident">Boolean</span>::<span class="ident">init</span>,
         <span class="ident">Json</span>::<span class="ident">init</span>,
+        <span class="ident">Map</span>::<span class="ident">init</span>,
         <span class="ident">Math</span>::<span class="ident">init</span>,
         <span class="ident">Number</span>::<span class="ident">init</span>,
         <span class="ident">RegExp</span>::<span class="ident">init</span>,
