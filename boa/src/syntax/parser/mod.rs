@@ -32,12 +32,12 @@ where
 
     /// Tries to parse the following tokens with this parser.
     fn try_parse(self, cursor: &mut Cursor<R>) -> Option<Self::Output> {
-        unimplemented!();
-        // if let Ok(node) = self.parse(cursor) {
-        //     Some(node)
-        // } else {
-        //     None
-        // }
+        // unimplemented!();
+        if let Ok(node) = self.parse(cursor) {
+            Some(node)
+        } else {
+            None
+        }
     }
 }
 

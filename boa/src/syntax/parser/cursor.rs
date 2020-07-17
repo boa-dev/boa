@@ -99,7 +99,22 @@ where
         }
 
         let val = self.peeked[self.back_index].clone();
-        Ok(val)
+
+        if skip_line_terminators {
+            if let Some(token) =  val {
+                if token.kind() == &TokenKind::LineTerminator {
+                    self.peeked[self.back_index].take();
+                    self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+                    self.peek(skip_line_terminators)
+                } else {
+                    Ok(Some(token))
+                }
+            } else {
+                Ok(None)
+            }
+        } else {
+            Ok(val)
+        }
     }
 
     /// Peeks the token after the next token.

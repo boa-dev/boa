@@ -61,7 +61,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
 
-        let mut lhs = if cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?.kind()
+        let mut lhs = if cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Keyword(Keyword::New)
         {
             let _ = cursor.next(true).expect("new keyword disappeared");

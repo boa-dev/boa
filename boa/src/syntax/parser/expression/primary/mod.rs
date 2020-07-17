@@ -70,7 +70,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
-        let tok = cursor.next(true)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
@@ -132,7 +132,7 @@ where
                     ))
                 }
             }
-            _ => Err(ParseError::unexpected(tok.clone(), "_ primary expression")),
+            _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
         }
     }
 }
