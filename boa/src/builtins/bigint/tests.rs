@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, Interpreter, Realm};
+use crate::{forward, Interpreter, Realm};
 
 #[test]
 fn equality() {
@@ -86,15 +86,16 @@ fn bigint_function_conversion_from_rational_with_fractional_part() {
     let mut engine = Interpreter::new(realm);
 
     let scenario = r#"
-        var x = false;
         try {
             BigInt(0.1);
         } catch (e) {
-            x = true;
+            e.toString();
         }
     "#;
-    forward_val(&mut engine, scenario).unwrap();
-    assert_eq!(forward(&mut engine, "x"), "true");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "TypeError: The number 0.1 cannot be converted to a BigInt because it is not an integer"
+    );
 }
 
 #[test]
@@ -103,15 +104,16 @@ fn bigint_function_conversion_from_null() {
     let mut engine = Interpreter::new(realm);
 
     let scenario = r#"
-        var x = false;
         try {
             BigInt(null);
         } catch (e) {
-            x = true;
+            e.toString();
         }
     "#;
-    forward_val(&mut engine, scenario).unwrap();
-    assert_eq!(forward(&mut engine, "x"), "true");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "TypeError: cannot convert null to a BigInt"
+    );
 }
 
 #[test]
@@ -120,15 +122,16 @@ fn bigint_function_conversion_from_undefined() {
     let mut engine = Interpreter::new(realm);
 
     let scenario = r#"
-        var x = false;
         try {
             BigInt(undefined);
         } catch (e) {
-            x = true;
+            e.toString();
         }
     "#;
-    forward_val(&mut engine, scenario).unwrap();
-    assert_eq!(forward(&mut engine, "x"), "true");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "TypeError: cannot convert undefined to a BigInt"
+    );
 }
 
 #[test]

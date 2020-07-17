@@ -174,7 +174,7 @@ impl Interpreter {
                 }
                 self.throw_type_error("not a function")
             }
-            _ => Err(Value::undefined()),
+            _ => self.throw_type_error("not a function"),
         }
     }
 
