@@ -134,7 +134,7 @@ where
             if self.back_index == 0 {
                 self.back_index = PEEK_BUF_SIZE - 1;
             } else {
-                self.back_index = self.back_index - 1;
+                self.back_index -= 1;
             }
 
             self.peeked[self.back_index] = Some(token);
