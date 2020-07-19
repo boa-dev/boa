@@ -67,6 +67,14 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
             match v.borrow().data {
                 ObjectData::String(ref string) => format!("String {{ \"{}\" }}", string),
                 ObjectData::Boolean(boolean) => format!("Boolean {{ {} }}", boolean),
+                ObjectData::Number(rational) => {
+                    if rational.is_sign_negative() && rational == 0.0 {
+                        "Number { -0 }".to_string()
+                    } else {
+                        let mut buffer = ryu_js::Buffer::new();
+                        format!("Number {{ {} }}", buffer.format(rational))
+                    }
+                }
                 ObjectData::Array => {
                     let len = i32::from(
                         &v.borrow()
@@ -219,7 +227,16 @@ impl Display for Value {
     }
 }
 
+/// This is different from the ECMAScript compliant number to string, in the printing of `-0`.
+///
+/// This function prints `-0` as `-0` instead of pasitive `0` as the specification says.
+/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,
+/// since the REPL is not bound to the ECMAScript specification we can do this.
 fn format_rational(v: f64, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let mut buffer = ryu_js::Buffer::new();
-    write!(f, "{}", buffer.format(v))
+    if v.is_sign_negative() && v == 0.0 {
+        f.write_str("-0")
+    } else {
+        let mut buffer = ryu_js::Buffer::new();
+        write!(f, "{}", buffer.format(v))
+    }
 }
