@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-backend-0.2.64/src/codegen.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>codegen.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen_backend/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-backend-0.2.65/src/codegen.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>codegen.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen_backend/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1297,6 +1297,45 @@
 <span id="1297">1297</span>
 <span id="1298">1298</span>
 <span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">encode</span>;
@@ -2271,22 +2310,54 @@
                 );
             }
             <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">abi_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
-                    <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>::<span class="ident">Abi</span>
-                };
-                <span class="ident">convert_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
-                    <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>
-                        ::<span class="ident">from_abi</span>(#<span class="ident">ret_ident</span>)
-                };
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">function</span>.<span class="ident">r#async</span> {
+                    <span class="ident">abi_ret</span> <span class="op">=</span>
+                        <span class="macro">quote</span><span class="macro">!</span> { <span class="op">&lt;</span><span class="ident">js_sys</span>::<span class="ident">Promise</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>::<span class="ident">Abi</span> };
+                    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
+                        <span class="ident">wasm_bindgen_futures</span>::<span class="ident">JsFuture</span>::<span class="ident">from</span>(
+                            <span class="op">&lt;</span><span class="ident">js_sys</span>::<span class="ident">Promise</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>
+                                ::<span class="ident">from_abi</span>(#<span class="ident">ret_ident</span>)
+                        ).<span class="kw">await</span>
+                    };
+                    <span class="ident">convert_ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">catch</span> {
+                        <span class="macro">quote</span><span class="macro">!</span> { <span class="prelude-val">Ok</span>(#<span class="ident">future</span><span class="question-mark">?</span>) }
+                    } <span class="kw">else</span> {
+                        <span class="macro">quote</span><span class="macro">!</span> { #<span class="ident">future</span>.<span class="ident">expect</span>(<span class="string">&quot;unexpected exception&quot;</span>) }
+                    };
+                } <span class="kw">else</span> {
+                    <span class="ident">abi_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
+                        <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>::<span class="ident">Abi</span>
+                    };
+                    <span class="ident">convert_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
+                        <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>
+                            ::<span class="ident">from_abi</span>(#<span class="ident">ret_ident</span>)
+                    };
+                }
             }
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">abi_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> { () };
-                <span class="ident">convert_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> { () };
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">function</span>.<span class="ident">r#async</span> {
+                    <span class="ident">abi_ret</span> <span class="op">=</span>
+                        <span class="macro">quote</span><span class="macro">!</span> { <span class="op">&lt;</span><span class="ident">js_sys</span>::<span class="ident">Promise</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>::<span class="ident">Abi</span> };
+                    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
+                        <span class="ident">wasm_bindgen_futures</span>::<span class="ident">JsFuture</span>::<span class="ident">from</span>(
+                            <span class="op">&lt;</span><span class="ident">js_sys</span>::<span class="ident">Promise</span> <span class="kw">as</span> <span class="ident">wasm_bindgen</span>::<span class="ident">convert</span>::<span class="ident">FromWasmAbi</span><span class="op">&gt;</span>
+                                ::<span class="ident">from_abi</span>(#<span class="ident">ret_ident</span>)
+                        ).<span class="kw">await</span>
+                    };
+                    <span class="ident">convert_ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">catch</span> {
+                        <span class="macro">quote</span><span class="macro">!</span> { #<span class="ident">future</span><span class="question-mark">?</span>; <span class="prelude-val">Ok</span>(()) }
+                    } <span class="kw">else</span> {
+                        <span class="macro">quote</span><span class="macro">!</span> { #<span class="ident">future</span>.<span class="ident">expect</span>(<span class="string">&quot;uncaught exception&quot;</span>); }
+                    };
+                } <span class="kw">else</span> {
+                    <span class="ident">abi_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> { () };
+                    <span class="ident">convert_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> { () };
+                }
             }
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exceptional_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span>();
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">catch</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">catch</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">function</span>.<span class="ident">r#async</span> {
             <span class="ident">convert_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> { <span class="prelude-val">Ok</span>(#<span class="ident">convert_ret</span>) };
             <span class="ident">exceptional_ret</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
                 <span class="ident">wasm_bindgen</span>::<span class="ident">__rt</span>::<span class="ident">take_last_exception</span>()<span class="question-mark">?</span>;
@@ -2345,12 +2416,17 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rust_name</span>,
         );
 
+        <span class="kw">let</span> <span class="ident">maybe_async</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">function</span>.<span class="ident">r#async</span> {
+            <span class="prelude-val">Some</span>(<span class="macro">quote</span><span class="macro">!</span> {<span class="kw">async</span>})
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        };
         <span class="kw">let</span> <span class="ident">invocation</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
             #(#<span class="ident">attrs</span>)<span class="op">*</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> #<span class="ident">doc_comment</span>]</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">all</span>)]</span>
-            #<span class="ident">vis</span> <span class="kw">fn</span> #<span class="ident">rust_name</span>(#<span class="ident">me</span> #(#<span class="ident">arguments</span>),<span class="kw-2">*</span>) #<span class="ident">ret</span> {
+            #<span class="ident">vis</span> #<span class="ident">maybe_async</span> <span class="kw">fn</span> #<span class="ident">rust_name</span>(#<span class="ident">me</span> #(#<span class="ident">arguments</span>),<span class="kw-2">*</span>) #<span class="ident">ret</span> {
                 #<span class="ident">extern_fn</span>
 
                 <span class="kw">unsafe</span> {
@@ -2396,6 +2472,8 @@
         <span class="kw">let</span> <span class="ident">nargs</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">function</span>.<span class="ident">arguments</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">let</span> <span class="ident">inform_ret</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">f</span>.<span class="ident">js_ret</span> {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote</span><span class="macro">!</span> { <span class="op">&lt;</span>#<span class="ident">t</span> <span class="kw">as</span> <span class="ident">WasmDescribe</span><span class="op">&gt;</span>::<span class="ident">describe</span>(); },
+            <span class="comment">// async functions always return a JsValue, even if they say to return ()</span>
+            <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">function</span>.<span class="ident">r#async</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote</span><span class="macro">!</span> { <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">WasmDescribe</span><span class="op">&gt;</span>::<span class="ident">describe</span>(); },
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote</span><span class="macro">!</span> { <span class="op">&lt;</span>() <span class="kw">as</span> <span class="ident">WasmDescribe</span><span class="op">&gt;</span>::<span class="ident">describe</span>(); },
         };
 

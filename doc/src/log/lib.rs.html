@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.4.8/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../log/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.4.11/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../log/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1666,6 +1666,17 @@
 <span id="1666">1666</span>
 <span id="1667">1667</span>
 <span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2015 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -1864,9 +1875,8 @@
 <span class="doccomment">//! # Compile time filters</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Log levels can be statically disabled at compile time via Cargo features. Log invocations at</span>
-<span class="doccomment">//! disabled levels will be skipped and will not even be present in the resulting binary unless the</span>
-<span class="doccomment">//! log level is specified dynamically. This level is configured separately for release and debug</span>
-<span class="doccomment">//! builds. The features are:</span>
+<span class="doccomment">//! disabled levels will be skipped and will not even be present in the resulting binary.</span>
+<span class="doccomment">//! This level is configured separately for release and debug builds. The features are:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * `max_level_off`</span>
 <span class="doccomment">//! * `max_level_error`</span>
@@ -1896,7 +1906,7 @@
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! # Crate Feature Flags</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The following crate feature flags are avaliable in addition to the filters. They are</span>
+<span class="doccomment">//! The following crate feature flags are available in addition to the filters. They are</span>
 <span class="doccomment">//! configured in your `Cargo.toml`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * `std` allows use of `std` crate instead of the default `core`. Enables using `std::error` and</span>
@@ -1936,7 +1946,7 @@
 <span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/favicon.ico&quot;</span>,
-    <span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/log/0.4.8&quot;</span>
+    <span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/log/0.4.11&quot;</span>
 )]</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_debug_implementations</span>)]</span>
@@ -1960,12 +1970,6 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
 
-<span class="comment">// FIXME: ATOMIC_USIZE_INIT was deprecated in rust 1.34. Silence the</span>
-<span class="comment">// deprecation warning until our MSRV &gt;= 1.24, where we can use the</span>
-<span class="comment">// replacement const fn `AtomicUsize::new`</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">ATOMIC_USIZE_INIT</span>;
-
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">macros</span>;
 <span class="kw">mod</span> <span class="ident">serde</span>;
@@ -1975,10 +1979,9 @@
 
 <span class="comment">// The LOGGER static holds a pointer to the global logger. It is protected by</span>
 <span class="comment">// the STATE static which determines whether LOGGER has been initialized yet.</span>
-<span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">LOGGER</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Log</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">NopLogger</span>;
+<span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">LOGGER</span>: <span class="kw-2">&amp;</span><span class="ident">dyn</span> <span class="ident">Log</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">NopLogger</span>;
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-<span class="kw">static</span> <span class="ident">STATE</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">ATOMIC_USIZE_INIT</span>;
+<span class="kw">static</span> <span class="ident">STATE</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>);
 
 <span class="comment">// There are three different states that we care about: the logger&#39;s</span>
 <span class="comment">// uninitialized, the logger&#39;s initializing (set_logger&#39;s been called but</span>
@@ -1987,14 +1990,13 @@
 <span class="kw">const</span> <span class="ident">INITIALIZING</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">const</span> <span class="ident">INITIALIZED</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-<span class="kw">static</span> <span class="ident">MAX_LOG_LEVEL_FILTER</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">ATOMIC_USIZE_INIT</span>;
+<span class="kw">static</span> <span class="ident">MAX_LOG_LEVEL_FILTER</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>);
 
-<span class="kw">static</span> <span class="ident">LOG_LEVEL_NAMES</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">6</span>] <span class="op">=</span> [<span class="string">&quot;OFF&quot;</span>, <span class="string">&quot;ERROR&quot;</span>, <span class="string">&quot;WARN&quot;</span>, <span class="string">&quot;INFO&quot;</span>, <span class="string">&quot;DEBUG&quot;</span>, <span class="string">&quot;TRACE&quot;</span>];
+<span class="kw">static</span> <span class="ident">LOG_LEVEL_NAMES</span>: [<span class="kw-2">&amp;</span><span class="ident">str</span>; <span class="number">6</span>] <span class="op">=</span> [<span class="string">&quot;OFF&quot;</span>, <span class="string">&quot;ERROR&quot;</span>, <span class="string">&quot;WARN&quot;</span>, <span class="string">&quot;INFO&quot;</span>, <span class="string">&quot;DEBUG&quot;</span>, <span class="string">&quot;TRACE&quot;</span>];
 
-<span class="kw">static</span> <span class="ident">SET_LOGGER_ERROR</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;attempted to set a logger after the logging system \
-                                         was already initialized&quot;</span>;
-<span class="kw">static</span> <span class="ident">LEVEL_PARSE_ERROR</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span>
+<span class="kw">static</span> <span class="ident">SET_LOGGER_ERROR</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;attempted to set a logger after the logging system \
+                                 was already initialized&quot;</span>;
+<span class="kw">static</span> <span class="ident">LEVEL_PARSE_ERROR</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span>
     <span class="string">&quot;attempted to convert a string that doesn&#39;t match an existing log level&quot;</span>;
 
 <span class="doccomment">/// An enum representing the available verbosity levels of the logger.</span>
@@ -2009,7 +2011,10 @@
     <span class="doccomment">/// The &quot;error&quot; level.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Designates very serious errors.</span>
-    <span class="ident">Error</span> <span class="op">=</span> <span class="number">1</span>, <span class="comment">// This way these line up with the discriminants for LevelFilter below</span>
+    <span class="comment">// This way these line up with the discriminants for LevelFilter below</span>
+    <span class="comment">// This works because Rust treats field-less enums the same way as C does:</span>
+    <span class="comment">// https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-field-less-enumerations</span>
+    <span class="ident">Error</span> <span class="op">=</span> <span class="number">1</span>,
     <span class="doccomment">/// The &quot;warn&quot; level.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Designates hazardous situations.</span>
@@ -2416,13 +2421,13 @@
 <span class="comment">// the underlying `Source`.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">KeyValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">kv</span>::<span class="ident">Source</span>);
+<span class="kw">struct</span> <span class="ident">KeyValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">dyn</span> <span class="ident">kv</span>::<span class="ident">Source</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">KeyValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_map</span>();
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">visit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">visitor</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">visit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">visitor</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">fmt</span>::<span class="ident">Error</span>)<span class="question-mark">?</span>;
         <span class="ident">visitor</span>.<span class="ident">finish</span>()
     }
 }
@@ -2497,11 +2502,11 @@
     <span class="doccomment">/// The structued key-value pairs associated with the message.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">kv</span>::<span class="ident">Source</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">dyn</span> <span class="ident">kv</span>::<span class="ident">Source</span> {
         <span class="self">self</span>.<span class="ident">key_values</span>.<span class="number">0</span>
     }
 
-    <span class="doccomment">/// Create a new [`Builder`](struct.Builder.html) based on this record.</span>
+    <span class="doccomment">/// Create a new [`RecordBuilder`](struct.RecordBuilder.html) based on this record.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_builder</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RecordBuilder</span> {
@@ -2516,7 +2521,7 @@
                 <span class="ident">file</span>: <span class="self">self</span>.<span class="ident">file</span>,
                 <span class="ident">line</span>: <span class="self">self</span>.<span class="ident">line</span>,
                 <span class="ident">key_values</span>: <span class="self">self</span>.<span class="ident">key_values</span>.<span class="ident">clone</span>(),
-            }
+            },
         }
     }
 }
@@ -2581,28 +2586,17 @@
     <span class="doccomment">/// [`Metadata::builder().build()`]: struct.MetadataBuilder.html#method.build</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RecordBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
-        <span class="kw">return</span> <span class="ident">RecordBuilder</span> {
+        <span class="ident">RecordBuilder</span> {
             <span class="ident">record</span>: <span class="ident">Record</span> {
                 <span class="ident">args</span>: <span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;&quot;</span>),
                 <span class="ident">metadata</span>: <span class="ident">Metadata</span>::<span class="ident">builder</span>().<span class="ident">build</span>(),
                 <span class="ident">module_path</span>: <span class="prelude-val">None</span>,
                 <span class="ident">file</span>: <span class="prelude-val">None</span>,
                 <span class="ident">line</span>: <span class="prelude-val">None</span>,
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
                 <span class="ident">key_values</span>: <span class="ident">KeyValues</span>(<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>::<span class="prelude-val">None</span>::<span class="op">&lt;</span>(<span class="ident">kv</span>::<span class="ident">Key</span>, <span class="ident">kv</span>::<span class="ident">Value</span>)<span class="op">&gt;</span>),
             },
-        };
-
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>))]</span>
-        <span class="kw">return</span> <span class="ident">RecordBuilder</span> {
-            <span class="ident">record</span>: <span class="ident">Record</span> {
-                <span class="ident">args</span>: <span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">metadata</span>: <span class="ident">Metadata</span>::<span class="ident">builder</span>().<span class="ident">build</span>(),
-                <span class="ident">module_path</span>: <span class="prelude-val">None</span>,
-                <span class="ident">file</span>: <span class="prelude-val">None</span>,
-                <span class="ident">line</span>: <span class="prelude-val">None</span>,
-            },
-        };
+        }
     }
 
     <span class="doccomment">/// Set [`args`](struct.Record.html#method.args).</span>
@@ -2671,7 +2665,7 @@
     <span class="doccomment">/// Set [`key_values`](struct.Record.html#method.key_values)</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_values</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kvs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">kv</span>::<span class="ident">Source</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RecordBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_values</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kvs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">dyn</span> <span class="ident">kv</span>::<span class="ident">Source</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RecordBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">record</span>.<span class="ident">key_values</span> <span class="op">=</span> <span class="ident">KeyValues</span>(<span class="ident">kvs</span>);
         <span class="self">self</span>
     }
@@ -2862,6 +2856,12 @@
 <span class="doccomment">/// [`set_max_level`]: fn.set_max_level.html</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_level</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LevelFilter</span> {
+    <span class="comment">// Since `LevelFilter` is `repr(usize)`,</span>
+    <span class="comment">// this transmute is sound if and only if `MAX_LOG_LEVEL_FILTER`</span>
+    <span class="comment">// is set to a usize that is a valid discriminant for `LevelFilter`.</span>
+    <span class="comment">// Since `MAX_LOG_LEVEL_FILTER` is private, the only time it&#39;s set</span>
+    <span class="comment">// is by `set_max_level` above, i.e. by casting a `LevelFilter` to `usize`.</span>
+    <span class="comment">// So any usize stored in `MAX_LOG_LEVEL_FILTER` is a valid discriminant.</span>
     <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">MAX_LOG_LEVEL_FILTER</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Relaxed</span>)) }
 }
 
@@ -2879,8 +2879,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`set_logger`]: fn.set_logger.html</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">atomic_cas</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_boxed_logger</span>(<span class="ident">logger</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Log</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
-    <span class="ident">set_logger_inner</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="ident">logger</span>) })
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_boxed_logger</span>(<span class="ident">logger</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Log</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
+    <span class="ident">set_logger_inner</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Box</span>::<span class="ident">leak</span>(<span class="ident">logger</span>))
 }
 
 <span class="doccomment">/// Sets the global logger to a `&amp;&#39;static Log`.</span>
@@ -2937,28 +2937,30 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`set_logger_racy`]: fn.set_logger_racy.html</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">atomic_cas</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_logger</span>(<span class="ident">logger</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Log</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_logger</span>(<span class="ident">logger</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">dyn</span> <span class="ident">Log</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
     <span class="ident">set_logger_inner</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">logger</span>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">atomic_cas</span>)]</span>
 <span class="kw">fn</span> <span class="ident">set_logger_inner</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">make_logger</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Log</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">dyn</span> <span class="ident">Log</span>,
 {
-    <span class="kw">unsafe</span> {
-        <span class="kw">match</span> <span class="ident">STATE</span>.<span class="ident">compare_and_swap</span>(<span class="ident">UNINITIALIZED</span>, <span class="ident">INITIALIZING</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) {
-            <span class="ident">UNINITIALIZED</span> <span class="op">=</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">STATE</span>.<span class="ident">compare_and_swap</span>(<span class="ident">UNINITIALIZED</span>, <span class="ident">INITIALIZING</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) {
+        <span class="ident">UNINITIALIZED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">unsafe</span> {
                 <span class="ident">LOGGER</span> <span class="op">=</span> <span class="ident">make_logger</span>();
-                <span class="ident">STATE</span>.<span class="ident">store</span>(<span class="ident">INITIALIZED</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
-                <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">INITIALIZING</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">while</span> <span class="ident">STATE</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">INITIALIZING</span> {}
-                <span class="prelude-val">Err</span>(<span class="ident">SetLoggerError</span>(()))
-            }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">SetLoggerError</span>(())),
+            <span class="ident">STATE</span>.<span class="ident">store</span>(<span class="ident">INITIALIZED</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
+            <span class="prelude-val">Ok</span>(())
         }
+        <span class="ident">INITIALIZING</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">while</span> <span class="ident">STATE</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">INITIALIZING</span> {
+                <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">spin_loop_hint</span>();
+            }
+            <span class="prelude-val">Err</span>(<span class="ident">SetLoggerError</span>(()))
+        }
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">SetLoggerError</span>(())),
     }
 }
 
@@ -2981,7 +2983,7 @@
 <span class="doccomment">/// (including all logging macros).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`set_logger`]: fn.set_logger.html</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_logger_racy</span>(<span class="ident">logger</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Log</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_logger_racy</span>(<span class="ident">logger</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">dyn</span> <span class="ident">Log</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">STATE</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) {
         <span class="ident">UNINITIALIZED</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">LOGGER</span> <span class="op">=</span> <span class="ident">logger</span>;
@@ -3011,11 +3013,7 @@
 
 <span class="comment">// The Error trait is not available in libcore</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">SetLoggerError</span> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="ident">SET_LOGGER_ERROR</span>
-    }
-}
+<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">SetLoggerError</span> {}
 
 <span class="doccomment">/// The type returned by [`from_str`] when the string doesn&#39;t match any of the log levels.</span>
 <span class="doccomment">///</span>
@@ -3032,23 +3030,17 @@
 
 <span class="comment">// The Error trait is not available in libcore</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">ParseLevelError</span> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="ident">LEVEL_PARSE_ERROR</span>
-    }
-}
+<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">ParseLevelError</span> {}
 
 <span class="doccomment">/// Returns a reference to the logger.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// If a logger has not been set, a no-op implementation is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">logger</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Log</span> {
-    <span class="kw">unsafe</span> {
-        <span class="kw">if</span> <span class="ident">STATE</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">INITIALIZED</span> {
-            <span class="kw">static</span> <span class="ident">NOP</span>: <span class="ident">NopLogger</span> <span class="op">=</span> <span class="ident">NopLogger</span>;
-            <span class="kw-2">&amp;</span><span class="ident">NOP</span>
-        } <span class="kw">else</span> {
-            <span class="ident">LOGGER</span>
-        }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">logger</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">dyn</span> <span class="ident">Log</span> {
+    <span class="kw">if</span> <span class="ident">STATE</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">INITIALIZED</span> {
+        <span class="kw">static</span> <span class="ident">NOP</span>: <span class="ident">NopLogger</span> <span class="op">=</span> <span class="ident">NopLogger</span>;
+        <span class="kw-2">&amp;</span><span class="ident">NOP</span>
+    } <span class="kw">else</span> {
+        <span class="kw">unsafe</span> { <span class="ident">LOGGER</span> }
     }
 }
 
@@ -3062,6 +3054,25 @@
     <span class="ident">logger</span>().<span class="ident">log</span>(
         <span class="kw-2">&amp;</span><span class="ident">Record</span>::<span class="ident">builder</span>()
             .<span class="ident">args</span>(<span class="ident">args</span>)
+            .<span class="ident">level</span>(<span class="ident">level</span>)
+            .<span class="ident">target</span>(<span class="ident">target</span>)
+            .<span class="ident">module_path_static</span>(<span class="prelude-val">Some</span>(<span class="ident">module_path</span>))
+            .<span class="ident">file_static</span>(<span class="prelude-val">Some</span>(<span class="ident">file</span>))
+            .<span class="ident">line</span>(<span class="prelude-val">Some</span>(<span class="ident">line</span>))
+            .<span class="ident">build</span>(),
+    );
+}
+
+<span class="comment">// WARNING: this is not part of the crate&#39;s public API and is subject to change at any time</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">__private_api_log_lit</span>(
+    <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">level</span>: <span class="ident">Level</span>,
+    <span class="kw-2">&amp;</span>(<span class="ident">target</span>, <span class="ident">module_path</span>, <span class="ident">file</span>, <span class="ident">line</span>): <span class="kw-2">&amp;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">u32</span>),
+) {
+    <span class="ident">logger</span>().<span class="ident">log</span>(
+        <span class="kw-2">&amp;</span><span class="ident">Record</span>::<span class="ident">builder</span>()
+            .<span class="ident">args</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">message</span>))
             .<span class="ident">level</span>(<span class="ident">level</span>)
             .<span class="ident">target</span>(<span class="ident">target</span>)
             .<span class="ident">module_path_static</span>(<span class="prelude-val">Some</span>(<span class="ident">module_path</span>))
@@ -3208,10 +3219,9 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_error_trait</span>() {
         <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">SetLoggerError</span>;
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">SetLoggerError</span>(());
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">e</span>.<span class="ident">description</span>(),
+            <span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;attempted to set a logger after the logging system \
              was already initialized&quot;</span>
         );
@@ -3311,28 +3321,40 @@
             <span class="kw">fn</span> <span class="ident">visit_pair</span>(
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                 <span class="kw">_</span>: <span class="ident">kv</span>::<span class="ident">Key</span><span class="op">&lt;</span><span class="lifetime">&#39;kvs</span><span class="op">&gt;</span>,
-                <span class="kw">_</span>: <span class="ident">kv</span>::<span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;kvs</span><span class="op">&gt;</span>
+                <span class="kw">_</span>: <span class="ident">kv</span>::<span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;kvs</span><span class="op">&gt;</span>,
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">kv</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">seen_pairs</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="prelude-val">Ok</span>(())
             }
         }
 
-        <span class="kw">let</span> <span class="ident">kvs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">i32</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
-            (<span class="string">&quot;a&quot;</span>, <span class="number">1</span>),
-            (<span class="string">&quot;b&quot;</span>, <span class="number">2</span>)
-        ];
-        <span class="kw">let</span> <span class="ident">record_test</span> <span class="op">=</span> <span class="ident">Record</span>::<span class="ident">builder</span>()
-            .<span class="ident">key_values</span>(<span class="kw-2">&amp;</span><span class="ident">kvs</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let</span> <span class="ident">kvs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">i32</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">2</span>)];
+        <span class="kw">let</span> <span class="ident">record_test</span> <span class="op">=</span> <span class="ident">Record</span>::<span class="ident">builder</span>().<span class="ident">key_values</span>(<span class="kw-2">&amp;</span><span class="ident">kvs</span>).<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">TestVisitor</span> {
-            <span class="ident">seen_pairs</span>: <span class="number">0</span>,
-        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">TestVisitor</span> { <span class="ident">seen_pairs</span>: <span class="number">0</span> };
 
         <span class="ident">record_test</span>.<span class="ident">key_values</span>().<span class="ident">visit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">visitor</span>).<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">2</span>, <span class="ident">visitor</span>.<span class="ident">seen_pairs</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;kv_unstable&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">test_record_key_values_get_coerce</span>() {
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Record</span>;
+
+        <span class="kw">let</span> <span class="ident">kvs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;1&quot;</span>), (<span class="string">&quot;b&quot;</span>, <span class="string">&quot;2&quot;</span>)];
+        <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">Record</span>::<span class="ident">builder</span>().<span class="ident">key_values</span>(<span class="kw-2">&amp;</span><span class="ident">kvs</span>).<span class="ident">build</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="string">&quot;2&quot;</span>,
+            <span class="ident">record</span>
+                .<span class="ident">key_values</span>()
+                .<span class="ident">get</span>(<span class="string">&quot;b&quot;</span>.<span class="ident">into</span>())
+                .<span class="ident">expect</span>(<span class="string">&quot;missing key&quot;</span>)
+                .<span class="ident">to_borrowed_str</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;invalid value&quot;</span>)
+        );
     }
 }
 </pre></div>
