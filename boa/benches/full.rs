@@ -366,7 +366,7 @@ static CLEAN_JS: &str = r#"
 fn clean_js(c: &mut Criterion) {
     c.bench_function("Clean js (Full)", move |b| {
         b.iter(|| exec(black_box(CLEAN_JS)))
-    })
+    });
 }
 
 static MINI_JS: &str = r#"
@@ -376,7 +376,7 @@ static MINI_JS: &str = r#"
 fn mini_js(c: &mut Criterion) {
     c.bench_function("Mini js (Full)", move |b| {
         b.iter(|| exec(black_box(MINI_JS)))
-    })
+    });
 }
 
 criterion_group!(
