@@ -11,10 +11,7 @@ pub use crate::builtins::value::val_type::Type;
 
 use crate::builtins::{
     function::Function,
-    object::{
-        GcObject, InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE,
-        PROTOTYPE,
-    },
+    object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
     property::Property,
     BigInt, Symbol,
 };
@@ -176,11 +173,7 @@ impl Value {
     pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
         object.data = data;
-
-        object
-            .internal_slots_mut()
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
-
+        object.set_prototype(proto);
         Self::object(object)
     }
 
@@ -493,10 +486,7 @@ impl Value {
                 let object = object.borrow();
                 match object.properties().get(field) {
                     Some(value) => Some(value.clone()),
-                    None => object
-                        .internal_slots()
-                        .get(INSTANCE_PROTOTYPE)
-                        .and_then(|value| value.get_property(field)),
+                    None => object.prototype().get_property(field),
                 }
             }
             _ => None,
@@ -723,7 +713,8 @@ impl Value {
         // Get Length
         let length = function.params.len();
         // Object with Kind set to function
-        let new_func = Object::function(function);
+        // TODO: FIXME: Add function prototype
+        let new_func = Object::function(function, Value::null());
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters

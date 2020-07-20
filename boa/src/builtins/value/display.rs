@@ -21,14 +21,24 @@ macro_rules! print_obj_value {
         }
     };
     (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
-        print_obj_value!(impl internal_slots, $obj, |(key, val)| {
-            format!(
-                "{:>width$}: {}",
-                key,
-                $display_fn(&val, $encounters, $indent.wrapping_add(4), true),
-                width = $indent,
-            )
-        })
+        {
+            let object = $obj.borrow();
+            if object.prototype().is_object() {
+                vec![format!(
+                    "{:>width$}: {}",
+                    "__proto__",
+                    $display_fn(object.prototype(), $encounters, $indent.wrapping_add(4), true),
+                    width = $indent,
+                )]
+            } else {
+                vec![format!(
+                    "{:>width$}: {}",
+                    "__proto__",
+                    object.prototype(),
+                    width = $indent,
+                )]
+            }
+        }
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
         print_obj_value!(impl properties, $obj, |(key, val)| {

@@ -15,7 +15,7 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectData, PROTOTYPE},
         property::Property,
         value::{same_value_zero, ResultValue, Value},
     },
@@ -48,8 +48,7 @@ impl Array {
                 .expect("Could not get global object"),
         ));
         array.set_data(ObjectData::Array);
-        array.borrow().set_internal_slot(
-            INSTANCE_PROTOTYPE,
+        array.as_object_mut().expect("array object").set_prototype(
             interpreter
                 .realm()
                 .environment
@@ -116,7 +115,9 @@ impl Array {
         // Set Prototype
         let prototype = ctx.realm.global_obj.get_field("Array").get_field(PROTOTYPE);
 
-        this.set_internal_slot(INSTANCE_PROTOTYPE, prototype);
+        this.as_object_mut()
+            .expect("this should be an array object")
+            .set_prototype(prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Array);
@@ -961,7 +962,7 @@ impl Array {
     ///
     /// The reduce method traverses left to right starting from the first defined value in the array,
     /// accumulating a value using a given callback function. It returns the accumulated value.
-    ///  
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]

@@ -6,7 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::builtins::{
-    object::{Object, INSTANCE_PROTOTYPE, PROTOTYPE},
+    object::{Object, PROTOTYPE},
     property::Property,
     value::{same_value, RcString, Value},
 };
@@ -363,7 +363,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     #[inline]
     pub fn get_prototype_of(&self) -> Value {
-        self.get_internal_slot(INSTANCE_PROTOTYPE)
+        self.prototype.clone()
     }
 
     /// Helper function to get an immutable internal slot or `Null`.

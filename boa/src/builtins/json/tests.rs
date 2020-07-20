@@ -1,8 +1,5 @@
 use crate::{
-    builtins::{
-        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
-        value::same_value,
-    },
+    builtins::{object::PROTOTYPE, value::same_value},
     exec::Interpreter,
     forward, forward_val,
     realm::Realm,
@@ -284,10 +281,16 @@ fn json_parse_sets_prototypes() {
     eprintln!("{}", forward(&mut engine, init));
     let object_prototype = forward_val(&mut engine, r#"jsonObj.ob"#)
         .unwrap()
-        .get_internal_slot(INSTANCE_PROTOTYPE);
+        .as_object()
+        .unwrap()
+        .prototype()
+        .clone();
     let array_prototype = forward_val(&mut engine, r#"jsonObj.arr"#)
         .unwrap()
-        .get_internal_slot(INSTANCE_PROTOTYPE);
+        .as_object()
+        .unwrap()
+        .prototype()
+        .clone();
     let global_object_prototype = engine
         .realm
         .global_obj

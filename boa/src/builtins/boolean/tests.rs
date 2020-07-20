@@ -1,7 +1,7 @@
 use crate::{builtins::value::same_value, exec::Interpreter, forward, forward_val, realm::Realm};
 
 /// Test the correct type is returned from call and construct
-#[allow(clippy::result_unwrap_used)]
+#[allow(clippy::unwrap_used)]
 #[test]
 fn construct_and_call() {
     let realm = Realm::create();
@@ -62,7 +62,7 @@ fn instances_have_correct_proto_set() {
     let bool_prototype = forward_val(&mut engine, "boolProto").expect("value expected");
 
     assert!(same_value(
-        &bool_instance.get_internal_slot("__proto__"),
+        &bool_instance.as_object().unwrap().prototype().clone(),
         &bool_prototype
     ));
 }
