@@ -345,6 +345,40 @@ fn arithmetic_operations(c: &mut Criterion) {
     });
 }
 
+static CLEAN_JS: &str = r#"
+!function () {
+	var M = new Array();
+	for (i = 0; i < 100; i++) {
+		M.push(Math.floor(Math.random() * 100));
+	}
+	var test = [];
+	for (i = 0; i < 100; i++) {
+		if (M[i] > 50) {
+			test.push(M[i]);
+		}
+	}
+	test.forEach(elem => {
+        0
+    });
+}();
+"#;
+
+fn clean_js(c: &mut Criterion) {
+    c.bench_function("Clean js (Full)", move |b| {
+        b.iter(|| exec(black_box(CLEAN_JS)))
+    })
+}
+
+static MINI_JS: &str = r#"
+!function(){var r=new Array();for(i=0;i<100;i++)r.push(Math.floor(100*Math.random()));var a=[];for(i=0;i<100;i++)r[i]>50&&a.push(r[i]);a.forEach(i=>{0})}();
+"#;
+
+fn mini_js(c: &mut Criterion) {
+    c.bench_function("Mini js (Full)", move |b| {
+        b.iter(|| exec(black_box(MINI_JS)))
+    })
+}
+
 criterion_group!(
     full,
     symbol_creation,
@@ -367,5 +401,7 @@ criterion_group!(
     boolean_object_access,
     string_object_access,
     arithmetic_operations,
+    clean_js,
+    mini_js,
 );
 criterion_main!(full);
