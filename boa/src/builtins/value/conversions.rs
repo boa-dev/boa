@@ -174,6 +174,13 @@ impl From<Object> for Value {
     }
 }
 
+impl From<GcObject> for Value {
+    fn from(object: GcObject) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<GcObject>", "value");
+        Value::Object(object)
+    }
+}
+
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct TryFromObjectError;
 

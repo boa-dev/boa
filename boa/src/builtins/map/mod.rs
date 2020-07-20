@@ -3,7 +3,7 @@
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectData, PROTOTYPE},
         property::Property,
         value::{ResultValue, Value},
     },
@@ -235,7 +235,9 @@ impl Map {
         // Set Prototype
         let prototype = ctx.realm.global_obj.get_field("Map").get_field(PROTOTYPE);
 
-        this.set_internal_slot(INSTANCE_PROTOTYPE, prototype);
+        this.as_object_mut()
+            .expect("this is array object")
+            .set_prototype(prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
 

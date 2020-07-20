@@ -14,7 +14,7 @@ use crate::syntax::{
 };
 
 /// Checks that the given JavaScript string gives the expected expression.
-#[allow(clippy::result_unwrap_used)]
+#[allow(clippy::unwrap_used)]
 // TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_parser<L>(js: &str, expr: L)
 where

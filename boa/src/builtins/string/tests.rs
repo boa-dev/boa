@@ -86,7 +86,7 @@ fn generic_concat() {
     assert_eq!(a, "100 - 50 = 50");
 }
 
-#[allow(clippy::result_unwrap_used)]
+#[allow(clippy::unwrap_used)]
 #[test]
 /// Test the correct type is returned from call and construct
 fn construct_and_call() {

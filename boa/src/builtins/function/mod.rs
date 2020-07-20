@@ -14,7 +14,7 @@
 use crate::{
     builtins::{
         array::Array,
-        object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{Object, ObjectData, PROTOTYPE},
         property::Property,
         value::{RcString, ResultValue, Value},
     },
@@ -464,14 +464,10 @@ pub fn make_constructor_fn(
     let mut function = Function::builtin(Vec::new(), body);
     function.flags = FunctionFlags::from_parameters(callable, constructable);
 
-    let mut constructor = Object::function(function);
-
     // Get reference to Function.prototype
     // Create the function object and point its instance prototype to Function.prototype
-    constructor.set_internal_slot(
-        INSTANCE_PROTOTYPE,
-        global.get_field("Function").get_field(PROTOTYPE),
-    );
+    let mut constructor =
+        Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
 
     let length = Property::new()
         .value(Value::from(length))
@@ -527,7 +523,8 @@ where
     let name = name.into();
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
-    let mut function = Object::function(Function::builtin(Vec::new(), function));
+    // FIXME: function needs the Function prototype set.
+    let mut function = Object::function(Function::builtin(Vec::new(), function), Value::null());
     function.insert_field("length", Value::from(length));
 
     parent
