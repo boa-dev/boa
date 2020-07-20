@@ -309,13 +309,15 @@
 <span id="309">309</span>
 <span id="310">310</span>
 <span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mutable_key_type</span>)]</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
@@ -547,7 +549,9 @@
         <span class="comment">// Set Prototype</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">realm</span>.<span class="ident">global_obj</span>.<span class="ident">get_field</span>(<span class="string">&quot;Map&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
-        <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">prototype</span>);
+        <span class="ident">this</span>.<span class="ident">as_object_mut</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;this is array object&quot;</span>)
+            .<span class="ident">set_prototype</span>(<span class="ident">prototype</span>);
         <span class="comment">// This value is used by console.log and other routines to match Object type</span>
         <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
 

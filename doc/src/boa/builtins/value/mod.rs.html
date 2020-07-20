@@ -728,15 +728,6 @@
 <span id="728">728</span>
 <span id="729">729</span>
 <span id="730">730</span>
-<span id="731">731</span>
-<span id="732">732</span>
-<span id="733">733</span>
-<span id="734">734</span>
-<span id="735">735</span>
-<span id="736">736</span>
-<span id="737">737</span>
-<span id="738">738</span>
-<span id="739">739</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -751,10 +742,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
     <span class="ident">function</span>::<span class="ident">Function</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">GcObject</span>, <span class="ident">InternalState</span>, <span class="ident">InternalStateCell</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">INSTANCE_PROTOTYPE</span>,
-        <span class="ident">PROTOTYPE</span>,
-    },
+    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">InternalState</span>, <span class="ident">InternalStateCell</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::<span class="ident">Property</span>,
     <span class="ident">BigInt</span>, <span class="ident">Symbol</span>,
 };
@@ -916,11 +904,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>: <span class="ident">Value</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
         <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
-
-        <span class="ident">object</span>
-            .<span class="ident">internal_slots_mut</span>()
-            .<span class="ident">insert</span>(<span class="ident">INSTANCE_PROTOTYPE</span>.<span class="ident">to_string</span>(), <span class="ident">proto</span>);
-
+        <span class="ident">object</span>.<span class="ident">set_prototype</span>(<span class="ident">proto</span>);
         <span class="self">Self</span>::<span class="ident">object</span>(<span class="ident">object</span>)
     }
 
@@ -1233,10 +1217,7 @@
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
                 <span class="kw">match</span> <span class="ident">object</span>.<span class="ident">properties</span>().<span class="ident">get</span>(<span class="ident">field</span>) {
                     <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">clone</span>()),
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>
-                        .<span class="ident">internal_slots</span>()
-                        .<span class="ident">get</span>(<span class="ident">INSTANCE_PROTOTYPE</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">get_property</span>(<span class="ident">field</span>)),
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">prototype</span>().<span class="ident">get_property</span>(<span class="ident">field</span>),
                 }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
@@ -1463,7 +1444,8 @@
         <span class="comment">// Get Length</span>
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">params</span>.<span class="ident">len</span>();
         <span class="comment">// Object with Kind set to function</span>
-        <span class="kw">let</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(<span class="ident">function</span>);
+        <span class="comment">// TODO: FIXME: Add function prototype</span>
+        <span class="kw">let</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(<span class="ident">function</span>, <span class="ident">Value</span>::<span class="ident">null</span>());
         <span class="comment">// Wrap Object in GC&#39;d Value</span>
         <span class="kw">let</span> <span class="ident">new_func_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
         <span class="comment">// Set length to parameters</span>

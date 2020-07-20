@@ -37,11 +37,13 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">New</span>,
@@ -63,7 +65,9 @@
         }
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
         <span class="comment">// Create a blank object, then set its __proto__ property to the [Constructor].prototype</span>
-        <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">func_object</span>.<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>));
+        <span class="ident">this</span>.<span class="ident">as_object_mut</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;this was not an object&quot;</span>)
+            .<span class="ident">set_prototype</span>(<span class="ident">func_object</span>.<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>));
 
         <span class="kw">match</span> <span class="ident">func_object</span> {
             <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {

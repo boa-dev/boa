@@ -1073,6 +1073,7 @@
 <span id="1073">1073</span>
 <span id="1074">1074</span>
 <span id="1075">1075</span>
+<span id="1076">1076</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1091,7 +1092,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>},
     },
@@ -1124,8 +1125,7 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not get global object&quot;</span>),
         ));
         <span class="ident">array</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Array</span>);
-        <span class="ident">array</span>.<span class="ident">borrow</span>().<span class="ident">set_internal_slot</span>(
-            <span class="ident">INSTANCE_PROTOTYPE</span>,
+        <span class="ident">array</span>.<span class="ident">as_object_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;array object&quot;</span>).<span class="ident">set_prototype</span>(
             <span class="ident">interpreter</span>
                 .<span class="ident">realm</span>()
                 .<span class="ident">environment</span>
@@ -1192,7 +1192,9 @@
         <span class="comment">// Set Prototype</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">realm</span>.<span class="ident">global_obj</span>.<span class="ident">get_field</span>(<span class="string">&quot;Array&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
-        <span class="ident">this</span>.<span class="ident">set_internal_slot</span>(<span class="ident">INSTANCE_PROTOTYPE</span>, <span class="ident">prototype</span>);
+        <span class="ident">this</span>.<span class="ident">as_object_mut</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;this should be an array object&quot;</span>)
+            .<span class="ident">set_prototype</span>(<span class="ident">prototype</span>);
         <span class="comment">// This value is used by console.log and other routines to match Object type</span>
         <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
         <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Array</span>);
@@ -2037,7 +2039,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The reduce method traverses left to right starting from the first defined value in the array,</span>
     <span class="doccomment">/// accumulating a value using a given callback function. It returns the accumulated value.</span>
-    <span class="doccomment">///  </span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///  - [MDN documentation][mdn]</span>
