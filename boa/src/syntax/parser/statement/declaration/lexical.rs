@@ -208,9 +208,17 @@ where
         let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
 
         let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        let initializer =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
 
-        Ok((ident, initializer))
+        let init = if let Some(t) = cursor.peek(false)? {
+            if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        Ok((ident, init))
     }
 }
