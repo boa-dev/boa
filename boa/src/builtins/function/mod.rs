@@ -13,10 +13,10 @@
 
 use crate::{
     builtins::{
-        array::Array,
         object::{Object, ObjectData, PROTOTYPE},
-        property::Property,
+        property::{Attribute, Property},
         value::{RcString, ResultValue, Value},
+        Array,
     },
     environment::function_environment_record::BindingStatus,
     environment::lexical_environment::{new_function_environment, Environment},
@@ -411,19 +411,19 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let mut obj = Object::default();
     obj.set_internal_slot("ParameterMap", Value::undefined());
     // Set length
-    let mut length = Property::default();
-    length = length.writable(true).value(Value::from(len));
+    let length = Property::data_descriptor(
+        len.into(),
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+    );
     // Define length as a property
     obj.define_own_property("length".to_string(), length);
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
-        let mut prop = Property::default();
-        prop = prop
-            .value(val.clone())
-            .enumerable(true)
-            .writable(true)
-            .configurable(true);
+        let prop = Property::data_descriptor(
+            val.clone(),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        );
 
         obj.properties_mut()
             .insert(RcString::from(index.to_string()), prop);
@@ -469,18 +469,16 @@ pub fn make_constructor_fn(
     let mut constructor =
         Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
 
-    let length = Property::new()
-        .value(Value::from(length))
-        .writable(false)
-        .configurable(false)
-        .enumerable(false);
+    let length = Property::data_descriptor(
+        length.into(),
+        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+    );
     constructor.insert_property("length", length);
 
-    let name = Property::new()
-        .value(Value::from(name))
-        .writable(false)
-        .configurable(false)
-        .enumerable(false);
+    let name = Property::data_descriptor(
+        name.into(),
+        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+    );
     constructor.insert_property("name", name);
 
     let constructor = Value::from(constructor);

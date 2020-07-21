@@ -16,7 +16,7 @@ use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{ObjectData, PROTOTYPE},
-        property::Property,
+        property::{Attribute, Property},
         value::{same_value_zero, ResultValue, Value},
     },
     exec::Interpreter,
@@ -75,12 +75,10 @@ impl Array {
         }
 
         // Create length
-        let length = Property::new()
-            .value(Value::from(array_contents.len() as i32))
-            .writable(true)
-            .configurable(false)
-            .enumerable(false);
-
+        let length = Property::data_descriptor(
+            array_contents.len().into(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
         array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
@@ -143,11 +141,10 @@ impl Array {
         }
 
         // finally create length property
-        let length = Property::new()
-            .value(Value::from(length))
-            .writable(true)
-            .configurable(false)
-            .enumerable(false);
+        let length = Property::data_descriptor(
+            length.into(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
 
         this.set_property("length".to_string(), length);
 

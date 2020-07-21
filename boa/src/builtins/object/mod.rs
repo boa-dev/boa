@@ -571,7 +571,7 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
     });
 
     Ok(own_property.map_or(Value::from(false), |own_prop| {
-        Value::from(own_prop.enumerable.unwrap_or(false))
+        Value::from(own_prop.enumerable_or(false))
     }))
 }
 
