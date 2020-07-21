@@ -1048,6 +1048,10 @@
 <span id="1048">1048</span>
 <span id="1049">1049</span>
 <span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1773,6 +1777,7 @@
     }
 
     <span class="doccomment">/// Helper function to check if a `char` is trimmable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">is_trimmable_whitespace</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does</span>
         <span class="comment">//</span>
@@ -1804,9 +1809,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">require_object_coercible</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
-            <span class="ident">this_str</span>.<span class="ident">trim_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
+            <span class="ident">string</span>.<span class="ident">trim_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
         ))
     }
 
@@ -1823,9 +1829,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">require_object_coercible</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
-            <span class="ident">this_str</span>.<span class="ident">trim_start_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
+            <span class="ident">string</span>.<span class="ident">trim_start_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
         ))
     }
 
@@ -1842,9 +1849,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">require_object_coercible</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
-            <span class="ident">this_str</span>.<span class="ident">trim_end_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
+            <span class="ident">string</span>.<span class="ident">trim_end_matches</span>(<span class="self">Self</span>::<span class="ident">is_trimmable_whitespace</span>),
         ))
     }
 
