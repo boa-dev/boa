@@ -722,6 +722,7 @@ impl String {
     }
 
     /// Helper function to check if a `char` is trimmable.
+    #[inline]
     fn is_trimmable_whitespace(c: char) -> bool {
         // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
         //
@@ -753,9 +754,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
     pub(crate) fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_matches(Self::is_trimmable_whitespace),
+            string.trim_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -772,9 +774,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
     pub(crate) fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_start_matches(Self::is_trimmable_whitespace),
+            string.trim_start_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -791,9 +794,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
     pub(crate) fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_end_matches(Self::is_trimmable_whitespace),
+            string.trim_end_matches(Self::is_trimmable_whitespace),
         ))
     }
 

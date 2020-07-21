@@ -304,3 +304,33 @@ fn test_match() {
     );
     assert_eq!(forward(&mut engine, "result4[0]"), "B");
 }
+
+#[test]
+fn trim() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trim()"), "Hello");
+    assert_eq!(forward(&mut engine, "' \nHello'.trim()"), "Hello");
+    assert_eq!(forward(&mut engine, "'Hello \n\r'.trim()"), "Hello");
+    assert_eq!(forward(&mut engine, "' Hello '.trim()"), "Hello");
+}
+
+#[test]
+fn trim_start() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trimStart()"), "Hello");
+    assert_eq!(forward(&mut engine, "' \nHello'.trimStart()"), "Hello");
+    assert_eq!(forward(&mut engine, "'Hello \n'.trimStart()"), "Hello \n");
+    assert_eq!(forward(&mut engine, "' Hello '.trimStart()"), "Hello ");
+}
+
+#[test]
+fn trim_end() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trimEnd()"), "Hello");
+    assert_eq!(forward(&mut engine, "' \nHello'.trimEnd()"), " \nHello");
+    assert_eq!(forward(&mut engine, "'Hello \n'.trimEnd()"), "Hello");
+    assert_eq!(forward(&mut engine, "' Hello '.trimEnd()"), " Hello");
+}
