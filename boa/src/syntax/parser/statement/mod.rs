@@ -238,7 +238,7 @@ impl StatementList {
         let mut items = Vec::new();
 
         loop {
-            if let Some(token) = cursor.peek(false)? {
+            if let Some(token) = cursor.peek(true)? {
                 if break_nodes.contains(token.kind()) {
                     break;
                 }

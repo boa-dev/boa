@@ -72,6 +72,7 @@ where
             if skip_line_terminators {
                 if let Some(t) = val {
                     if *t.kind() == TokenKind::LineTerminator {
+                        println!("Skipping line terminator at next()");
                         self.next(skip_line_terminators)
                     } else {
                         Ok(Some(t))
@@ -103,6 +104,7 @@ where
         if skip_line_terminators {
             if let Some(token) =  val {
                 if token.kind() == &TokenKind::LineTerminator {
+                    println!("Removing line terminator from peek");
                     self.peeked[self.back_index].take();
                     self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
                     self.peek(skip_line_terminators)
