@@ -177,9 +177,16 @@ where
 
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let ident =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
+        let init = if let Some(t) = cursor.peek(false)? {
+            if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
-        Ok(VarDecl::new(name, ident))
+        Ok(VarDecl::new(name, init))
     }
 }
