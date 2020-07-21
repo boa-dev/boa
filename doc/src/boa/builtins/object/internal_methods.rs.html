@@ -409,23 +409,6 @@
 <span id="409">409</span>
 <span id="410">410</span>
 <span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the object internal methods.</span>
 <span class="doccomment">//!</span>
@@ -436,7 +419,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
     <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>},
-    <span class="ident">property</span>::<span class="ident">Property</span>,
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
     <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">RcString</span>, <span class="ident">Value</span>},
 };
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">BoaProfiler</span>;
@@ -502,7 +485,7 @@
         {
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
-        <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">configurable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get value&quot;</span>) {
+        <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">configurable_or</span>(<span class="bool-val">false</span>) {
             <span class="self">self</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">prop_key</span>.<span class="ident">to_string</span>());
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
@@ -560,14 +543,14 @@
             <span class="kw">if</span> <span class="op">!</span><span class="ident">parent</span>.<span class="ident">is_null</span>() {
                 <span class="comment">// TODO: come back to this</span>
             }
-            <span class="ident">own_desc</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">new</span>()
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
+            <span class="ident">own_desc</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+                <span class="ident">Value</span>::<span class="ident">undefined</span>(),
+                <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+            );
         }
         <span class="comment">// [3]</span>
         <span class="kw">if</span> <span class="ident">own_desc</span>.<span class="ident">is_data_descriptor</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">own_desc</span>.<span class="ident">writable</span>.<span class="ident">unwrap</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">own_desc</span>.<span class="ident">writable</span>() {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
 
@@ -613,18 +596,12 @@
         }
 
         <span class="comment">// 4</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>) {
-            <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">configurable</span>.<span class="ident">is_some</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">desc</span>.<span class="ident">configurable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable_or</span>(<span class="bool-val">false</span>) {
+            <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">configurable_or</span>(<span class="bool-val">false</span>) {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
 
-            <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">enumerable</span>.<span class="ident">is_some</span>()
-                <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">desc</span>.<span class="ident">enumerable</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>)
-                    <span class="op">!</span><span class="op">=</span> <span class="ident">current</span>
-                        .<span class="ident">enumerable</span>
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>))
-            {
+            <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">enumerable_or</span>(<span class="bool-val">false</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">current</span>.<span class="ident">enumerable_or</span>(<span class="bool-val">false</span>) {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
         }
@@ -634,14 +611,14 @@
             <span class="comment">// 6</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">desc</span>.<span class="ident">is_data_descriptor</span>() {
             <span class="comment">// a</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>() {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
             <span class="comment">// b</span>
             <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() {
                 <span class="comment">// Convert to accessor</span>
                 <span class="ident">current</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="ident">current</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <span class="ident">current</span>.<span class="ident">attribute</span>.<span class="ident">remove</span>(<span class="ident">Attribute</span>::<span class="ident">WRITABLE</span>);
             } <span class="kw">else</span> {
                 <span class="comment">// c</span>
                 <span class="comment">// convert to data</span>
@@ -653,10 +630,8 @@
         <span class="comment">// 7</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_data_descriptor</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">desc</span>.<span class="ident">is_data_descriptor</span>() {
             <span class="comment">// a</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>)
-                <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">writable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>)
-            {
-                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">writable</span>.<span class="ident">is_some</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">desc</span>.<span class="ident">writable</span>.<span class="ident">expect</span>(<span class="string">&quot;unable to get prop desc&quot;</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">writable</span>() {
+                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">writable_or</span>(<span class="bool-val">false</span>) {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
 
@@ -673,7 +648,7 @@
             }
         <span class="comment">// 8</span>
         } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>.<span class="ident">unwrap</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">configurable</span>() {
                 <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">set</span>.<span class="ident">is_some</span>()
                     <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">same_value</span>(<span class="kw-2">&amp;</span><span class="ident">desc</span>.<span class="ident">set</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="ident">current</span>.<span class="ident">set</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>())
                 {
@@ -708,43 +683,35 @@
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">Property</span>::<span class="ident">is_property_key</span>(<span class="ident">prop</span>));
         <span class="comment">// Prop could either be a String or Symbol</span>
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">prop</span> {
-            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">st</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">properties</span>()
-                    .<span class="ident">get</span>(<span class="ident">st</span>)
-                    .<span class="ident">map_or_else</span>(<span class="ident">Property</span>::<span class="ident">default</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>();
-                        <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_data_descriptor</span>() {
-                            <span class="ident">d</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">value</span>.<span class="ident">clone</span>();
-                            <span class="ident">d</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">writable</span>;
-                        } <span class="kw">else</span> {
-                            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">is_accessor_descriptor</span>());
-                            <span class="ident">d</span>.<span class="ident">get</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get</span>.<span class="ident">clone</span>();
-                            <span class="ident">d</span>.<span class="ident">set</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">set</span>.<span class="ident">clone</span>();
-                        }
-                        <span class="ident">d</span>.<span class="ident">enumerable</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">enumerable</span>;
-                        <span class="ident">d</span>.<span class="ident">configurable</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">configurable</span>;
-                        <span class="ident">d</span>
-                    })
-            }
+            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">st</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">get</span>(<span class="ident">st</span>).<span class="ident">map_or_else</span>(<span class="ident">Property</span>::<span class="ident">empty</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">empty</span>();
+                <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_data_descriptor</span>() {
+                    <span class="ident">d</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">value</span>.<span class="ident">clone</span>();
+                } <span class="kw">else</span> {
+                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">is_accessor_descriptor</span>());
+                    <span class="ident">d</span>.<span class="ident">get</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get</span>.<span class="ident">clone</span>();
+                    <span class="ident">d</span>.<span class="ident">set</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">set</span>.<span class="ident">clone</span>();
+                }
+                <span class="ident">d</span>.<span class="ident">attribute</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">attribute</span>;
+                <span class="ident">d</span>
+            }),
             <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">symbol_properties</span>()
                     .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">symbol</span>.<span class="ident">hash</span>())
-                    .<span class="ident">map_or_else</span>(<span class="ident">Property</span>::<span class="ident">default</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>();
+                    .<span class="ident">map_or_else</span>(<span class="ident">Property</span>::<span class="ident">empty</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">empty</span>();
                         <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_data_descriptor</span>() {
                             <span class="ident">d</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">value</span>.<span class="ident">clone</span>();
-                            <span class="ident">d</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">writable</span>;
                         } <span class="kw">else</span> {
                             <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">is_accessor_descriptor</span>());
                             <span class="ident">d</span>.<span class="ident">get</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get</span>.<span class="ident">clone</span>();
                             <span class="ident">d</span>.<span class="ident">set</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">set</span>.<span class="ident">clone</span>();
                         }
-                        <span class="ident">d</span>.<span class="ident">enumerable</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">enumerable</span>;
-                        <span class="ident">d</span>.<span class="ident">configurable</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">configurable</span>;
+                        <span class="ident">d</span>.<span class="ident">attribute</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">attribute</span>;
                         <span class="ident">d</span>
                     })
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Property</span>::<span class="ident">default</span>(),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;the field can only be of type string or symbol&quot;</span>),
         }
     }
 
@@ -838,11 +805,10 @@
     {
         <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(
             <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">Property</span>::<span class="ident">default</span>()
-                .<span class="ident">value</span>(<span class="ident">value</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>),
+            <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+                <span class="ident">value</span>,
+                <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+            ),
         )
     }
 

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Property","This represents a Javascript Property AKA The Property Descriptor."]]});
+initSidebarItems({"mod":[["attribute","This module implements the `Attribute` struct which contains the attibutes for property descriptors."]],"struct":[["Property","This represents a Javascript Property AKA The Property Descriptor."]]});

@@ -542,8 +542,6 @@
 <span id="542">542</span>
 <span id="543">543</span>
 <span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -560,10 +558,10 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">array</span>::<span class="ident">Array</span>,
         <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-        <span class="ident">property</span>::<span class="ident">Property</span>,
+        <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
         <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>},
+        <span class="ident">Array</span>,
     },
     <span class="ident">environment</span>::<span class="ident">function_environment_record</span>::<span class="ident">BindingStatus</span>,
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">new_function_environment</span>, <span class="ident">Environment</span>},
@@ -958,19 +956,19 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
     <span class="ident">obj</span>.<span class="ident">set_internal_slot</span>(<span class="string">&quot;ParameterMap&quot;</span>, <span class="ident">Value</span>::<span class="ident">undefined</span>());
     <span class="comment">// Set length</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>();
-    <span class="ident">length</span> <span class="op">=</span> <span class="ident">length</span>.<span class="ident">writable</span>(<span class="bool-val">true</span>).<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">len</span>));
+    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+        <span class="ident">len</span>.<span class="ident">into</span>(),
+        <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>,
+    );
     <span class="comment">// Define length as a property</span>
     <span class="ident">obj</span>.<span class="ident">define_own_property</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">length</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">len</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">arguments_list</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prop</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>();
-        <span class="ident">prop</span> <span class="op">=</span> <span class="ident">prop</span>
-            .<span class="ident">value</span>(<span class="ident">val</span>.<span class="ident">clone</span>())
-            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-            .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
+        <span class="kw">let</span> <span class="ident">prop</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+            <span class="ident">val</span>.<span class="ident">clone</span>(),
+            <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+        );
 
         <span class="ident">obj</span>.<span class="ident">properties_mut</span>()
             .<span class="ident">insert</span>(<span class="ident">RcString</span>::<span class="ident">from</span>(<span class="ident">index</span>.<span class="ident">to_string</span>()), <span class="ident">prop</span>);
@@ -1016,18 +1014,16 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor</span> <span class="op">=</span>
         <span class="ident">Object</span>::<span class="ident">function</span>(<span class="ident">function</span>, <span class="ident">global</span>.<span class="ident">get_field</span>(<span class="string">&quot;Function&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>));
 
-    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">new</span>()
-        .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>))
-        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>);
+    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+        <span class="ident">length</span>.<span class="ident">into</span>(),
+        <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>,
+    );
     <span class="ident">constructor</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
 
-    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">new</span>()
-        .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">name</span>))
-        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
-        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>);
+    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+        <span class="ident">name</span>.<span class="ident">into</span>(),
+        <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>,
+    );
     <span class="ident">constructor</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>);
 
     <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">constructor</span>);

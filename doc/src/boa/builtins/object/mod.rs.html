@@ -1176,7 +1176,7 @@
     });
 
     <span class="prelude-val">Ok</span>(<span class="ident">own_property</span>.<span class="ident">map_or</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>), <span class="op">|</span><span class="ident">own_prop</span><span class="op">|</span> {
-        <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">own_prop</span>.<span class="ident">enumerable</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>))
+        <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">own_prop</span>.<span class="ident">enumerable_or</span>(<span class="bool-val">false</span>))
     }))
 }
 

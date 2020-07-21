@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.4.0/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.5.0/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1502,6 +1502,76 @@
 <span id="1502">1502</span>
 <span id="1503">1503</span>
 <span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A hash set implemented using `IndexMap`</span>
 
@@ -1568,28 +1638,45 @@
 <span class="doccomment">/// assert!(letters.contains(&amp;&#39;u&#39;));</span>
 <span class="doccomment">/// assert!(!letters.contains(&amp;&#39;y&#39;));</span>
 <span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span> <span class="op">=</span> <span class="ident">RandomState</span><span class="op">&gt;</span> {
     <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">T</span>, (), <span class="ident">S</span><span class="op">&gt;</span>,
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">has_std</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">T</span>, (), <span class="ident">S</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Clone</span>,
+    <span class="ident">S</span>: <span class="ident">Clone</span>,
+{
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">IndexSet</span> {
+            <span class="ident">map</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">clone</span>(),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">clone_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">clone_from</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">map</span>);
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Entries</span> <span class="kw">for</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Entry</span> <span class="op">=</span> <span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">into_entries</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Entry</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">into_entries</span>()
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">as_entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="self">Self</span>::<span class="ident">Entry</span>] {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">as_entries</span>()
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">as_entries_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>::<span class="ident">Entry</span>] {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">as_entries_mut</span>()
     }
@@ -1701,9 +1788,18 @@
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">clear</span>();
     }
 
-    <span class="doccomment">/// FIXME Not implemented fully yet</span>
+    <span class="doccomment">/// Reserve capacity for `additional` more values.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">additional</span>: <span class="ident">usize</span>) {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">reserve</span>(<span class="ident">additional</span>);
+    }
+
+    <span class="doccomment">/// Shrink the capacity of the set as much as possible.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n)** time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shrink_to_fit</span>();
     }
 
     <span class="doccomment">/// Insert the value into the set.</span>
@@ -1821,7 +1917,7 @@
     <span class="kw">where</span>
         <span class="ident">Q</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Equivalent</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">get_full</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">x</span>, <span class="kw-2">&amp;</span>())<span class="op">|</span> <span class="ident">x</span>)
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">get_key_value</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">x</span>, <span class="kw-2">&amp;</span>())<span class="op">|</span> <span class="ident">x</span>)
     }
 
     <span class="doccomment">/// Return item index and value</span>
@@ -1930,7 +2026,7 @@
     <span class="kw">where</span>
         <span class="ident">Q</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Equivalent</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">swap_remove_full</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">x</span>, ())<span class="op">|</span> <span class="ident">x</span>)
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">swap_remove_entry</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">x</span>, ())<span class="op">|</span> <span class="ident">x</span>)
     }
 
     <span class="doccomment">/// Removes and returns the value in the set, if any, that is equal to the</span>
@@ -1947,7 +2043,7 @@
     <span class="kw">where</span>
         <span class="ident">Q</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Equivalent</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
-        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shift_remove_full</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">x</span>, ())<span class="op">|</span> <span class="ident">x</span>)
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shift_remove_entry</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">x</span>, ())<span class="op">|</span> <span class="ident">x</span>)
     }
 
     <span class="doccomment">/// Remove the value from the set return it and the index it had.</span>
@@ -2030,6 +2126,13 @@
         <span class="ident">IntoIter</span> {
             <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sorted_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw-2">&amp;</span>(), <span class="ident">b</span>, <span class="kw-2">&amp;</span>()<span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>)).<span class="ident">iter</span>,
         }
+    }
+
+    <span class="doccomment">/// Reverses the order of the set’s values in place.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n)** time and **O(1)** space.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">reverse</span>()
     }
 
     <span class="doccomment">/// Clears the `IndexSet`, returning all values as a drain iterator.</span>
@@ -2789,6 +2892,43 @@
         <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">set</span>);
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">not_present</span> {
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">is_none</span>());
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">reserve</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="ident">set</span>.<span class="ident">reserve</span>(<span class="number">100</span>);
+        <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">capacity</span>();
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">capacity</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">100</span>);
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">capacity</span> {
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
+            <span class="ident">set</span>.<span class="ident">insert</span>(<span class="ident">i</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">capacity</span>(), <span class="ident">capacity</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>));
+        }
+        <span class="ident">set</span>.<span class="ident">insert</span>(<span class="ident">capacity</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">capacity</span> <span class="op">+</span> <span class="number">1</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">capacity</span>() <span class="op">&gt;</span> <span class="ident">capacity</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">capacity</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">capacity</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
+            <span class="ident">set</span>.<span class="ident">insert</span>(<span class="ident">i</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">capacity</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>));
+            <span class="ident">set</span>.<span class="ident">shrink_to_fit</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">capacity</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>));
         }
     }
 

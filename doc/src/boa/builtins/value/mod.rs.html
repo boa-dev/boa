@@ -717,17 +717,6 @@
 <span id="717">717</span>
 <span id="718">718</span>
 <span id="719">719</span>
-<span id="720">720</span>
-<span id="721">721</span>
-<span id="722">722</span>
-<span id="723">723</span>
-<span id="724">724</span>
-<span id="725">725</span>
-<span id="726">726</span>
-<span id="727">727</span>
-<span id="728">728</span>
-<span id="729">729</span>
-<span id="730">730</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -743,7 +732,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
     <span class="ident">function</span>::<span class="ident">Function</span>,
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">InternalState</span>, <span class="ident">InternalStateCell</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-    <span class="ident">property</span>::<span class="ident">Property</span>,
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
     <span class="ident">BigInt</span>, <span class="ident">Symbol</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exec</span>::<span class="ident">Interpreter</span>;
@@ -932,11 +921,10 @@
                 <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">json</span>) <span class="kw">in</span> <span class="ident">vs</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                     <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
                         <span class="ident">idx</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">Property</span>::<span class="ident">default</span>()
-                            .<span class="ident">value</span>(<span class="self">Self</span>::<span class="ident">from_json</span>(<span class="ident">json</span>, <span class="ident">interpreter</span>))
-                            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>),
+                        <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+                            <span class="self">Self</span>::<span class="ident">from_json</span>(<span class="ident">json</span>, <span class="ident">interpreter</span>),
+                            <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+                        ),
                     );
                 }
                 <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
@@ -951,11 +939,10 @@
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">from_json</span>(<span class="ident">json</span>, <span class="ident">interpreter</span>);
                     <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
                         <span class="ident">key</span>,
-                        <span class="ident">Property</span>::<span class="ident">default</span>()
-                            .<span class="ident">value</span>(<span class="ident">value</span>)
-                            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>),
+                        <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(
+                            <span class="ident">value</span>,
+                            <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+                        ),
                     );
                 }
                 <span class="ident">new_obj</span>
@@ -1226,24 +1213,15 @@
 
     <span class="doccomment">/// update_prop will overwrite individual [Property] fields, unlike</span>
     <span class="doccomment">/// Set_prop, which will overwrite prop with a new Property</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// Mostly used internally for now</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_property</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
-        <span class="ident">enumerable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-        <span class="ident">writable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-        <span class="ident">configurable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-    ) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">update_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">new_property</span>: <span class="ident">Property</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::update_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object_mut</span>() {
             <span class="comment">// Use value, or walk up the prototype chain</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">property</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">properties_mut</span>().<span class="ident">get_mut</span>(<span class="ident">field</span>) {
-                <span class="ident">property</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>;
-                <span class="ident">property</span>.<span class="ident">enumerable</span> <span class="op">=</span> <span class="ident">enumerable</span>;
-                <span class="ident">property</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="ident">writable</span>;
-                <span class="ident">property</span>.<span class="ident">configurable</span> <span class="op">=</span> <span class="ident">configurable</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">property</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">properties_mut</span>().<span class="ident">get_mut</span>(<span class="ident">field</span>) {
+                <span class="kw-2">*</span><span class="ident">property</span> <span class="op">=</span> <span class="ident">new_property</span>;
             }
         }
     }
