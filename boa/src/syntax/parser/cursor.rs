@@ -302,11 +302,4 @@ where
             None
         })
     }
-
-    /// Advance the cursor to skip 0, 1 or more line terminators.
-    #[inline]
-    pub(super) fn skip_line_terminators(&mut self) -> Result<(), ParseError> {
-        while self.next_if(TokenKind::LineTerminator, false)?.is_some() {}
-        Ok(())
-    }
 }

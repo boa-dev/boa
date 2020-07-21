@@ -59,13 +59,11 @@ where
         // Line terminators can exist between a While and the condition.
         cursor.expect(Punctuator::OpenParen, "while statement", true)?;
 
-        cursor.skip_line_terminators()?;
+        cursor.peek(true)?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "while statement", true)?;
-
-        cursor.skip_line_terminators()?;
 
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;

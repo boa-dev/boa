@@ -63,13 +63,10 @@ where
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement", false)?;
         cursor.expect(Punctuator::OpenParen, "switch statement", true)?;
-        cursor.skip_line_terminators()?;
 
         let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "switch statement", true)?;
-
-        cursor.skip_line_terminators()?;
 
         let (cases, default) =
             CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
@@ -122,15 +119,11 @@ where
         loop {
             match cursor.expect(Keyword::Case, "switch case: block", true) {
                 Ok(_) => {
-                    cursor.skip_line_terminators()?;
-
                     // Case statement.
                     let cond =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
                     cursor.expect(Punctuator::Colon, "switch case block start", true)?;
-
-                    cursor.skip_line_terminators()?;
 
                     let statement_list = StatementList::new(
                         self.allow_yield,
@@ -164,8 +157,6 @@ where
                     }
 
                     cursor.expect(Punctuator::Colon, "switch default case block start", false)?;
-
-                    cursor.skip_line_terminators()?;
 
                     let statement_list = StatementList::new(
                         self.allow_yield,
