@@ -55,7 +55,9 @@ where
         let tok = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?;
         match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
-                cursor.next(false)?.expect("Punctuator::Inc token disappeared");
+                cursor
+                    .next(false)?
+                    .expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
@@ -64,7 +66,9 @@ where
                 .into());
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
-                cursor.next(false)?.expect("Punctuator::Dec token disappeared");
+                cursor
+                    .next(false)?
+                    .expect("Punctuator::Dec token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
@@ -79,11 +83,15 @@ where
         if let Some(tok) = cursor.peek(false)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
-                    cursor.next(false)?.expect("Punctuator::Inc token disappeared");
+                    cursor
+                        .next(false)?
+                        .expect("Punctuator::Inc token disappeared");
                     return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
-                    cursor.next(false)?.expect("Punctuator::Dec token disappeared");
+                    cursor
+                        .next(false)?
+                        .expect("Punctuator::Dec token disappeared");
                     return Ok(node::UnaryOp::new(UnaryOp::DecrementPost, lhs).into());
                 }
                 _ => {}

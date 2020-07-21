@@ -102,7 +102,7 @@ where
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "for statement",
-                false
+                false,
             )?;
             Some(step)
         };

@@ -58,21 +58,22 @@ where
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
     #[inline]
-    pub(super) fn next(&mut self, skip_line_terminators: bool) -> Result<Option<Token>, ParseError> {
+    pub(super) fn next(
+        &mut self,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
 
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
             Ok(self.lexer.next(skip_line_terminators)?)
         } else {
-            println!("Next using cached value");
             let val = self.peeked[self.back_index].take();
             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
 
             if skip_line_terminators {
                 if let Some(t) = val {
                     if *t.kind() == TokenKind::LineTerminator {
-                        println!("Skipping line terminator at next()");
                         self.next(skip_line_terminators)
                     } else {
                         Ok(Some(t))
@@ -89,7 +90,10 @@ where
     /// Peeks the next token without moving the cursor.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    pub(super) fn peek(&mut self, skip_line_terminators: bool) -> Result<Option<Token>, ParseError> {
+    pub(super) fn peek(
+        &mut self,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
@@ -102,9 +106,8 @@ where
         let val = self.peeked[self.back_index].clone();
 
         if skip_line_terminators {
-            if let Some(token) =  val {
+            if let Some(token) = val {
                 if token.kind() == &TokenKind::LineTerminator {
-                    println!("Removing line terminator from peek");
                     self.peeked[self.back_index].take();
                     self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
                     self.peek(skip_line_terminators)
@@ -123,7 +126,10 @@ where
     /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    pub(super) fn peek_skip(&mut self, skip_line_terminators: bool) -> Result<Option<Token>, ParseError> {
+    pub(super) fn peek_skip(
+        &mut self,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
@@ -181,11 +187,18 @@ where
     /// Note: it will consume the next token only if the next token is the expected type.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    pub(super) fn expect<K>(&mut self, kind: K, context: &'static str, skip_line_terminators: bool) -> Result<Token, ParseError>
+    pub(super) fn expect<K>(
+        &mut self,
+        kind: K,
+        context: &'static str,
+        skip_line_terminators: bool,
+    ) -> Result<Token, ParseError>
     where
         K: Into<TokenKind>,
     {
-        let next_token = self.peek(skip_line_terminators)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = self
+            .peek(skip_line_terminators)?
+            .ok_or(ParseError::AbruptEnd)?;
         let kind = kind.into();
 
         if next_token.kind() == &kind {
@@ -271,7 +284,11 @@ where
     /// No next token also returns None.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    pub(super) fn next_if<K>(&mut self, kind: K, skip_line_terminators: bool) -> Result<Option<Token>, ParseError>
+    pub(super) fn next_if<K>(
+        &mut self,
+        kind: K,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError>
     where
         K: Into<TokenKind>,
     {

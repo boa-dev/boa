@@ -240,7 +240,6 @@ impl<R> Lexer<R> {
             // Skip comment
             self.next(skip_line_terminator)
         } else if skip_line_terminator && (token.kind() == &TokenKind::LineTerminator) {
-            println!("Lexer skipped line terminator");
             // Skip line terminator
             self.next(skip_line_terminator)
         } else {

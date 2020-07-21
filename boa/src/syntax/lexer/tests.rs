@@ -221,13 +221,22 @@ fn check_positions() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     // The first column is 1 (not zero indexed)
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 1), (1, 8)));
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 1), (1, 8))
+    );
 
     // Dot Token starts on column 8
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 8), (1, 9)));
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 8), (1, 9))
+    );
 
     // Log Token starts on column 9
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 9), (1, 12)));
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 9), (1, 12))
+    );
 
     // Open parenthesis token starts on column 12
     assert_eq!(
@@ -261,13 +270,22 @@ fn check_positions_codepoint() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     // The first column is 1 (not zero indexed)
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 1), (1, 8)));
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 1), (1, 8))
+    );
 
     // Dot Token starts on column 8
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 8), (1, 9)));
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 8), (1, 9))
+    );
 
     // Log Token starts on column 9
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 9), (1, 12)));
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 9), (1, 12))
+    );
 
     // Open parenthesis token starts on column 12
     assert_eq!(
@@ -300,10 +318,22 @@ fn check_line_numbers() {
 
     let mut lexer = Lexer::new(s.as_bytes());
 
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 1), (1, 2)));
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((1, 2), (2, 1)));
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((2, 1), (2, 2)));
-    assert_eq!(lexer.next(false).unwrap().unwrap().span(), span((2, 2), (3, 1)));
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 1), (1, 2))
+    );
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((1, 2), (2, 1))
+    );
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((2, 1), (2, 2))
+    );
+    assert_eq!(
+        lexer.next(false).unwrap().unwrap().span(),
+        span((2, 2), (3, 1))
+    );
 }
 
 // Increment/Decrement

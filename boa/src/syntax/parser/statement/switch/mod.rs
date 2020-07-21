@@ -187,7 +187,9 @@ where
                     context: _,
                 }) => {
                     // End of switch block.
-                    cursor.next(false)?.expect("Switch close block symbol vanished"); // Consume the switch close block.
+                    cursor
+                        .next(false)?
+                        .expect("Switch close block symbol vanished"); // Consume the switch close block.
                     break;
                 }
                 Err(e) => {

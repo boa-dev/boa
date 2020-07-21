@@ -144,7 +144,10 @@ where
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?.to_string();
+        let prop_name = cursor
+            .next(false)?
+            .ok_or(ParseError::AbruptEnd)?
+            .to_string();
         if cursor.next_if(Punctuator::Colon, false)?.is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
@@ -160,7 +163,11 @@ where
                 .parse(cursor);
         }
 
-        let pos = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.span().start();
+        let pos = cursor
+            .peek(false)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         Err(ParseError::general("expected property definition", pos))
     }
 }
@@ -205,11 +212,14 @@ where
 
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
             idn @ "get" | idn @ "set" => {
-                let prop_name = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?.to_string();
+                let prop_name = cursor
+                    .next(false)?
+                    .ok_or(ParseError::AbruptEnd)?
+                    .to_string();
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     "property method definition",
-                    false
+                    false,
                 )?;
                 let first_param = cursor.peek(false)?.expect("current token disappeared");
                 let params = FormalParameters::new(false, false).parse(cursor)?;
@@ -246,13 +256,13 @@ where
         cursor.expect(
             TokenKind::Punctuator(Punctuator::OpenBlock),
             "property method definition",
-            false
+            false,
         )?;
         let body = FunctionBody::new(false, false).parse(cursor)?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "property method definition",
-            false
+            false,
         )?;
 
         Ok(node::PropertyDefinition::method_definition(
@@ -305,7 +315,11 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("Initializer", "Parsing");
 
-        cursor.expect(TokenKind::Punctuator(Punctuator::Assign), "initializer", false)?;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::Assign),
+            "initializer",
+            false,
+        )?;
         AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(cursor)
     }
 }

@@ -291,8 +291,6 @@ where
                 _ => {}
             }
 
-            println!("Cursor Peek Statement List: {:?}", cursor.peek(true)?);
-
             let item =
                 StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
