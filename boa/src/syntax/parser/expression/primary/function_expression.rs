@@ -9,13 +9,13 @@
 
 use crate::{
     syntax::{
-        ast::{node::FunctionExpr, Punctuator, Keyword},
+        ast::{node::FunctionExpr, Keyword, Punctuator},
+        lexer::TokenKind,
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
             Cursor, ParseError, TokenParser,
         },
-        lexer::TokenKind,
     },
     BoaProfiler,
 };
@@ -44,13 +44,9 @@ where
 
         let name = if let Some(token) = cursor.peek(false)? {
             match token.kind() {
-                TokenKind::Identifier(ref s) => {
-                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
-                }
-                TokenKind::Keyword(k @ Keyword::Yield) => {
-                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
-                }
-                TokenKind::Keyword(k @ Keyword::Await) => {
+                TokenKind::Identifier(_)
+                | TokenKind::Keyword(Keyword::Yield)
+                | TokenKind::Keyword(Keyword::Await) => {
                     Some(BindingIdentifier::new(false, false).parse(cursor)?)
                 }
                 _ => None,

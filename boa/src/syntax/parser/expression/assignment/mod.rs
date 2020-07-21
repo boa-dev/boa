@@ -103,6 +103,17 @@ where
                 }
             }
 
+            // // (a,b)=>{}
+            // TokenKind::Punctuator(Punctuator::OpenParen) => {
+            //     if let Some(next_token) = cursor.peek_skip(false)? {
+            //         if *next_token.kind() == TokenKind::Punctuator(Punctuator::CloseParen) {
+            //             return ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
+            //             .parse(cursor)
+            //             .map(Node::ArrowFunctionDecl);
+            //         }
+            //     }
+            // }
+
             // (a,b)=>{}
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 if let Some(node) =

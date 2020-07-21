@@ -127,7 +127,7 @@ where
 
         loop {
             let (ident, init) =
-                LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
+                LexicalBinding::new(/*self.allow_in,*/ self.allow_yield, self.allow_await)
                     .parse(cursor)?;
 
             if self.is_const {
@@ -177,21 +177,21 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LexicalBinding
 struct LexicalBinding {
-    allow_in: AllowIn,
+    // allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl LexicalBinding {
     /// Creates a new `BindingList` parser.
-    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    fn new</*I, */ Y, A>(/*allow_in: I,*/ allow_yield: Y, allow_await: A) -> Self
     where
-        I: Into<AllowIn>,
+        // I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            allow_in: allow_in.into(),
+            // allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }

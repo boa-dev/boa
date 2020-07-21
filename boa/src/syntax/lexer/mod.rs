@@ -236,11 +236,10 @@ impl<R> Lexer<R> {
             }
         }?;
 
-        if token.kind() == &TokenKind::Comment {
+        if (token.kind() == &TokenKind::Comment)
+            | (skip_line_terminator && (token.kind() == &TokenKind::LineTerminator))
+        {
             // Skip comment
-            self.next(skip_line_terminator)
-        } else if skip_line_terminator && (token.kind() == &TokenKind::LineTerminator) {
-            // Skip line terminator
             self.next(skip_line_terminator)
         } else {
             Ok(Some(token))

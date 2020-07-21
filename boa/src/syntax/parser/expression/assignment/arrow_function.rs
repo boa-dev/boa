@@ -89,7 +89,6 @@ where
                     return Err(e);
                 }
             }
-        // let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
