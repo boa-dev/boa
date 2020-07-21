@@ -1052,6 +1052,24 @@
 <span id="1052">1052</span>
 <span id="1053">1053</span>
 <span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1095,6 +1113,13 @@
 
     <span class="doccomment">/// The amount of arguments this function object takes.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+
+    <span class="doccomment">///  JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.</span>
+    <span class="doccomment">/// The range of allowed values can be described like this: `[0, +∞)`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The resulting string can also not be larger than the maximum string size,</span>
+    <span class="doccomment">/// which can differ in JavaScript engines. In Boa it is `2^32 - 1`</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX_STRING_LENGTH</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">f64</span>;
 
     <span class="kw">fn</span> <span class="ident">this_string_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RcString</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">this</span> {
@@ -1261,16 +1286,27 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">repeat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">require_object_coercible</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">object</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">repeat_times</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from</span>(
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
-        );
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_integer</span>(<span class="ident">arg</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
+                <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;repeat count cannot be a negative number&quot;</span>);
+            }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive_val</span>.<span class="ident">repeat</span>(<span class="ident">repeat_times</span>)))
+            <span class="kw">if</span> <span class="ident">n</span>.<span class="ident">is_infinite</span>() {
+                <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;repeat count cannot be infinity&quot;</span>);
+            }
+
+            <span class="kw">if</span> <span class="ident">n</span> <span class="op">*</span> (<span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">MAX_STRING_LENGTH</span> {
+                <span class="kw">return</span> <span class="ident">ctx</span>
+                    .<span class="ident">throw_range_error</span>(<span class="string">&quot;repeat count must not overflow maximum string length&quot;</span>);
+            }
+            <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">repeat</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">into</span>())
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
+        }
     }
 
     <span class="doccomment">/// `String.prototype.slice( beginIndex [, endIndex] )`</span>
