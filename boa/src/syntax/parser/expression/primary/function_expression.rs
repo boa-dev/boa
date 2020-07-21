@@ -9,12 +9,13 @@
 
 use crate::{
     syntax::{
-        ast::{node::FunctionExpr, Punctuator},
+        ast::{node::FunctionExpr, Punctuator, Keyword},
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
             Cursor, ParseError, TokenParser,
         },
+        lexer::TokenKind,
     },
     BoaProfiler,
 };
@@ -41,7 +42,22 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
 
-        let name = BindingIdentifier::new(false, false).try_parse(cursor);
+        let name = if let Some(token) = cursor.peek(false)? {
+            match token.kind() {
+                TokenKind::Identifier(ref s) => {
+                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
+                }
+                TokenKind::Keyword(k @ Keyword::Yield) => {
+                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
+                }
+                TokenKind::Keyword(k @ Keyword::Await) => {
+                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
+                }
+                _ => None,
+            }
+        } else {
+            None
+        };
 
         cursor.expect(Punctuator::OpenParen, "function expression", false)?;
 
