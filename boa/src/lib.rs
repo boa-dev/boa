@@ -59,11 +59,11 @@ fn parser_expr(src: &str) -> Result<StatementList, String> {
 /// The str is consumed and the state of the Interpreter is changed
 pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
-    // TODO - Put this back to normal, panic on exception added temporarily.
-    let expr = parser_expr(src).unwrap();
-    //     Ok(res) => ,
-    //     Err(e) => panic!(e), // TEMPORARY - Used to stop execution immediately if there is a parse error.
-    // };
+    let expr = match parser_expr(src) {
+        Ok(res) => res,
+        Err(e) => return e,
+    };
+
     expr.run(engine)
         .map_or_else(|e| format!("Error: {}", e), |v| v.to_string())
 }
@@ -80,8 +80,7 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
         Ok(expr) => expr.run(engine),
         Err(e) => {
             eprintln!("{}", e);
-            panic!("Temporary - Stop execution");
-            // std::process::exit(1);
+            std::process::exit(1);
         }
     };
 
