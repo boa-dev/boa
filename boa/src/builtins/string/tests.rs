@@ -129,6 +129,81 @@ fn repeat() {
 }
 
 #[test]
+fn repeat_throws_when_count_is_negative() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(-1)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "RangeError: repeat count cannot be a negative number"
+    );
+}
+
+#[test]
+fn repeat_throws_when_count_is_infinity() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(Infinity)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "RangeError: repeat count cannot be infinity"
+    );
+}
+
+#[test]
+fn repeat_throws_when_count_overflows_max_length() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(2 ** 64)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "RangeError: repeat count must not overflow maximum string length"
+    );
+}
+
+#[test]
+fn repeat_generic() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = "Number.prototype.repeat = String.prototype.repeat;";
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "(0).repeat(0)"), "");
+    assert_eq!(forward(&mut engine, "(1).repeat(1)"), "1");
+
+    assert_eq!(forward(&mut engine, "(1).repeat(5)"), "11111");
+    assert_eq!(forward(&mut engine, "(12).repeat(3)"), "121212");
+}
+
+#[test]
 fn replace() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
