@@ -11,11 +11,8 @@ pub use crate::builtins::value::val_type::Type;
 
 use crate::builtins::{
     function::Function,
-    object::{
-        GcObject, InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE,
-        PROTOTYPE,
-    },
-    property::Property,
+    object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
+    property::{Attribute, Property},
     BigInt, Symbol,
 };
 use crate::exec::Interpreter;
@@ -176,11 +173,7 @@ impl Value {
     pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
         object.data = data;
-
-        object
-            .internal_slots_mut()
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
-
+        object.set_prototype(proto);
         Self::object(object)
     }
 
@@ -208,11 +201,10 @@ impl Value {
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
                         idx.to_string(),
-                        Property::default()
-                            .value(Self::from_json(json, interpreter))
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            Self::from_json(json, interpreter),
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj.set_property(
@@ -227,11 +219,10 @@ impl Value {
                     let value = Self::from_json(json, interpreter);
                     new_obj.set_property(
                         key,
-                        Property::default()
-                            .value(value)
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            value,
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj
@@ -493,10 +484,7 @@ impl Value {
                 let object = object.borrow();
                 match object.properties().get(field) {
                     Some(value) => Some(value.clone()),
-                    None => object
-                        .internal_slots()
-                        .get(INSTANCE_PROTOTYPE)
-                        .and_then(|value| value.get_property(field)),
+                    None => object.prototype().get_property(field),
                 }
             }
             _ => None,
@@ -505,24 +493,15 @@ impl Value {
 
     /// update_prop will overwrite individual [Property] fields, unlike
     /// Set_prop, which will overwrite prop with a new Property
+    ///
     /// Mostly used internally for now
-    pub fn update_property(
-        &self,
-        field: &str,
-        value: Option<Value>,
-        enumerable: Option<bool>,
-        writable: Option<bool>,
-        configurable: Option<bool>,
-    ) {
+    pub(crate) fn update_property(&self, field: &str, new_property: Property) {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
 
         if let Some(ref mut object) = self.as_object_mut() {
             // Use value, or walk up the prototype chain
-            if let Some(ref mut property) = object.properties_mut().get_mut(field) {
-                property.value = value;
-                property.enumerable = enumerable;
-                property.writable = writable;
-                property.configurable = configurable;
+            if let Some(property) = object.properties_mut().get_mut(field) {
+                *property = new_property;
             }
         }
     }
@@ -723,7 +702,8 @@ impl Value {
         // Get Length
         let length = function.params.len();
         // Object with Kind set to function
-        let new_func = Object::function(function);
+        // TODO: FIXME: Add function prototype
+        let new_func = Object::function(function, Value::null());
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters

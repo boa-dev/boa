@@ -328,49 +328,30 @@ fn to_string() {
 }
 
 #[test]
-#[ignore]
-// This tests fail for now since the Rust's default formatting for exponential format does not match the js spec.
-// https://github.com/jasonwilliams/boa/pull/381#discussion_r422458544
 fn num_to_string_exponential() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
+    assert_eq!("0", forward(&mut engine, "(0).toString()"));
+    assert_eq!("0", forward(&mut engine, "(-0).toString()"));
     assert_eq!(
-        String::from("111111111111111110000"),
-        forward(&mut engine, "Number(111111111111111111111).toString()")
+        "111111111111111110000",
+        forward(&mut engine, "(111111111111111111111).toString()")
     );
     assert_eq!(
-        String::from("1.1111111111111111e+21"),
-        forward(&mut engine, "Number(1111111111111111111111).toString()")
+        "1.1111111111111111e+21",
+        forward(&mut engine, "(1111111111111111111111).toString()")
     );
     assert_eq!(
-        String::from("1.1111111111111111e+22"),
-        forward(&mut engine, "Number(11111111111111111111111).toString()")
+        "1.1111111111111111e+22",
+        forward(&mut engine, "(11111111111111111111111).toString()")
     );
-    assert_eq!(
-        String::from("1e-7"),
-        forward(&mut engine, "Number(0.0000001).toString()")
-    );
-    assert_eq!(
-        String::from("1.2e-7"),
-        forward(&mut engine, "Number(0.00000012).toString()")
-    );
-    assert_eq!(
-        String::from("1.23e-7"),
-        forward(&mut engine, "Number(0.000000123).toString()")
-    );
-    assert_eq!(
-        String::from("1e-8"),
-        forward(&mut engine, "Number(0.00000001).toString()")
-    );
-    assert_eq!(
-        String::from("1.2e-8"),
-        forward(&mut engine, "Number(0.000000012).toString()")
-    );
-    assert_eq!(
-        String::from("1.23e-8"),
-        forward(&mut engine, "Number(0.0000000123).toString()")
-    );
+    assert_eq!("1e-7", forward(&mut engine, "(0.0000001).toString()"));
+    assert_eq!("1.2e-7", forward(&mut engine, "(0.00000012).toString()"));
+    assert_eq!("1.23e-7", forward(&mut engine, "(0.000000123).toString()"));
+    assert_eq!("1e-8", forward(&mut engine, "(0.00000001).toString()"));
+    assert_eq!("1.2e-8", forward(&mut engine, "(0.000000012).toString()"));
+    assert_eq!("1.23e-8", forward(&mut engine, "(0.0000000123).toString()"));
 }
 
 #[test]
@@ -676,4 +657,179 @@ fn parse_float_too_many_args() {
     let mut engine = Interpreter::new(realm);
 
     assert_eq!(&forward(&mut engine, "parseFloat(\"100.5\", 10)"), "100.5");
+}
+
+#[test]
+fn global_is_finite() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("false", &forward(&mut engine, "isFinite(Infinity)"));
+    assert_eq!("false", &forward(&mut engine, "isFinite(NaN)"));
+    assert_eq!("false", &forward(&mut engine, "isFinite(-Infinity)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(0)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(2e64)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(910)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(null)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite('0')"));
+    assert_eq!("false", &forward(&mut engine, "isFinite()"));
+}
+
+#[test]
+fn global_is_nan() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "isNaN(NaN)"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('NaN')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN(undefined)"));
+    assert_eq!("true", &forward(&mut engine, "isNaN({})"));
+    assert_eq!("false", &forward(&mut engine, "isNaN(true)"));
+    assert_eq!("false", &forward(&mut engine, "isNaN(null)"));
+    assert_eq!("false", &forward(&mut engine, "isNaN(37)"));
+    assert_eq!("false", &forward(&mut engine, "isNaN('37')"));
+    assert_eq!("false", &forward(&mut engine, "isNaN('37.37')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('37,5')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('123ABC')"));
+    // Incorrect due to ToNumber implementation inconsistencies.
+    //assert_eq!("false", &forward(&mut engine, "isNaN('')"));
+    //assert_eq!("false", &forward(&mut engine, "isNaN(' ')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('blabla')"));
+}
+
+#[test]
+fn number_is_finite() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(Infinity)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(NaN)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(-Infinity)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(0)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(2e64)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(910)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(null)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite('0')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite()"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite({})"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(Number(5))"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isFinite(new Number(5))")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isFinite(new Number(NaN))")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(BigInt(5))"));
+}
+
+#[test]
+fn number_is_integer() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(0)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(1)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(-100000)"));
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isInteger(99999999999999999999999)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(0.1)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(Math.PI)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(NaN)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(Infinity)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(-Infinity)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger('10')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(true)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(false)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger([1])"));
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(5.0)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(5.000000000000001)")
+    );
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isInteger(5.0000000000000001)")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(Number(5.000000000000001))")
+    );
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isInteger(Number(5.0000000000000001))")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger()"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(new Number(5))")
+    );
+}
+
+#[test]
+fn number_is_nan() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(NaN)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(Number.NaN)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(0 / 0)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(undefined)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN({})"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(true)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(null)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(37)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('37')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('37.37')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('37,5')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('123ABC')"));
+    // Incorrect due to ToNumber implementation inconsistencies.
+    //assert_eq!("false", &forward(&mut engine, "Number.isNaN('')"));
+    //assert_eq!("false", &forward(&mut engine, "Number.isNaN(' ')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('blabla')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(Number(5))"));
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(Number(NaN))"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(BigInt(5))"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isNaN(new Number(5))")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isNaN(new Number(NaN))")
+    );
+}
+
+#[test]
+fn number_is_safe_integer() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "Number.isSafeInteger(3)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isSafeInteger(Math.pow(2, 53))")
+    );
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isSafeInteger(Math.pow(2, 53) - 1)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger(NaN)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isSafeInteger(Infinity)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger('3')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger(3.1)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isSafeInteger(3.0)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isSafeInteger(new Number(5))")
+    );
 }

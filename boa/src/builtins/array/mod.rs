@@ -15,8 +15,8 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
-        property::Property,
+        object::{ObjectData, PROTOTYPE},
+        property::{Attribute, Property},
         value::{same_value_zero, ResultValue, Value},
     },
     exec::Interpreter,
@@ -48,8 +48,7 @@ impl Array {
                 .expect("Could not get global object"),
         ));
         array.set_data(ObjectData::Array);
-        array.borrow().set_internal_slot(
-            INSTANCE_PROTOTYPE,
+        array.as_object_mut().expect("array object").set_prototype(
             interpreter
                 .realm()
                 .environment
@@ -76,12 +75,10 @@ impl Array {
         }
 
         // Create length
-        let length = Property::new()
-            .value(Value::from(array_contents.len() as i32))
-            .writable(true)
-            .configurable(false)
-            .enumerable(false);
-
+        let length = Property::data_descriptor(
+            array_contents.len().into(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
         array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
@@ -116,7 +113,9 @@ impl Array {
         // Set Prototype
         let prototype = ctx.realm.global_obj.get_field("Array").get_field(PROTOTYPE);
 
-        this.set_internal_slot(INSTANCE_PROTOTYPE, prototype);
+        this.as_object_mut()
+            .expect("this should be an array object")
+            .set_prototype(prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Array);
@@ -142,11 +141,10 @@ impl Array {
         }
 
         // finally create length property
-        let length = Property::new()
-            .value(Value::from(length))
-            .writable(true)
-            .configurable(false)
-            .enumerable(false);
+        let length = Property::data_descriptor(
+            length.into(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
 
         this.set_property("length".to_string(), length);
 
@@ -957,6 +955,163 @@ impl Array {
         Ok(Value::from(false))
     }
 
+    /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
+    ///
+    /// The reduce method traverses left to right starting from the first defined value in the array,
+    /// accumulating a value using a given callback function. It returns the accumulated value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
+    pub(crate) fn reduce(
+        this: &Value,
+        args: &[Value],
+        interpreter: &mut Interpreter,
+    ) -> ResultValue {
+        let this = interpreter.to_object(this)?;
+        let callback = match args.get(0) {
+            Some(value) if value.is_function() => value,
+            _ => return interpreter.throw_type_error("Reduce was called without a callback"),
+        };
+        let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
+        let mut length = interpreter.to_length(&this.get_field("length"))?;
+        if length == 0 && initial_value.is_undefined() {
+            return interpreter
+                .throw_type_error("Reduce was called on an empty array and with no initial value");
+        }
+        let mut k = 0;
+        let mut accumulator = if initial_value.is_undefined() {
+            let mut k_present = false;
+            while k < length {
+                if this.has_field(&k.to_string()) {
+                    k_present = true;
+                    break;
+                }
+                k += 1;
+            }
+            if !k_present {
+                return interpreter.throw_type_error(
+                    "Reduce was called on an empty array and with no initial value",
+                );
+            }
+            let result = this.get_field(k.to_string());
+            k += 1;
+            result
+        } else {
+            initial_value
+        };
+        while k < length {
+            if this.has_field(&k.to_string()) {
+                let arguments = [
+                    accumulator,
+                    this.get_field(k.to_string()),
+                    Value::from(k),
+                    this.clone(),
+                ];
+                accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
+                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
+                It may also be necessary to do this since shortening the array length does not
+                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
+                length = min(length, interpreter.to_length(&this.get_field("length"))?);
+            }
+            k += 1;
+        }
+        Ok(accumulator)
+    }
+
+    /// `Array.prototype.reduceRight( callbackFn [ , initialValue ] )`
+    ///
+    /// The reduceRight method traverses right to left starting from the last defined value in the array,
+    /// accumulating a value using a given callback function. It returns the accumulated value.
+    ///  
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduceright
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduceRight
+    pub(crate) fn reduce_right(
+        this: &Value,
+        args: &[Value],
+        interpreter: &mut Interpreter,
+    ) -> ResultValue {
+        let this = interpreter.to_object(this)?;
+        let callback = match args.get(0) {
+            Some(value) if value.is_function() => value,
+            _ => return interpreter.throw_type_error("reduceRight was called without a callback"),
+        };
+        let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
+        let mut length = interpreter.to_length(&this.get_field("length"))?;
+        if length == 0 {
+            if initial_value.is_undefined() {
+                return interpreter.throw_type_error(
+                    "reduceRight was called on an empty array and with no initial value",
+                );
+            } else {
+                // early return to prevent usize subtraction errors
+                return Ok(initial_value);
+            }
+        }
+        let mut k = length - 1;
+        let mut accumulator = if initial_value.is_undefined() {
+            let mut k_present = false;
+            loop {
+                if this.has_field(&k.to_string()) {
+                    k_present = true;
+                    break;
+                }
+                // check must be done at the end to prevent usize subtraction error
+                if k == 0 {
+                    break;
+                }
+                k -= 1;
+            }
+            if !k_present {
+                return interpreter.throw_type_error(
+                    "reduceRight was called on an empty array and with no initial value",
+                );
+            }
+            let result = this.get_field(k.to_string());
+            k -= 1;
+            result
+        } else {
+            initial_value
+        };
+        loop {
+            if this.has_field(&k.to_string()) {
+                let arguments = [
+                    accumulator,
+                    this.get_field(k.to_string()),
+                    Value::from(k),
+                    this.clone(),
+                ];
+                accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
+                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
+                It may also be necessary to do this since shortening the array length does not
+                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
+                length = min(length, interpreter.to_length(&this.get_field("length"))?);
+
+                // move k to the last defined element if necessary or return if the length was set to 0
+                if k >= length {
+                    if length == 0 {
+                        return Ok(accumulator);
+                    } else {
+                        k = length - 1;
+                        continue;
+                    }
+                }
+            }
+            if k == 0 {
+                break;
+            }
+            k -= 1;
+        }
+        Ok(accumulator)
+    }
+
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(global: &Value) -> (&str, Value) {
@@ -988,6 +1143,8 @@ impl Array {
         make_builtin_fn(Self::find_index, "findIndex", &prototype, 1);
         make_builtin_fn(Self::slice, "slice", &prototype, 2);
         make_builtin_fn(Self::some, "some", &prototype, 2);
+        make_builtin_fn(Self::reduce, "reduce", &prototype, 2);
+        make_builtin_fn(Self::reduce_right, "reduceRight", &prototype, 2);
 
         let array = make_constructor_fn(
             Self::NAME,
@@ -995,6 +1152,7 @@ impl Array {
             Self::make_array,
             global,
             prototype,
+            true,
             true,
         );
 

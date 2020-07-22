@@ -660,7 +660,7 @@ fn unary_delete() {
 #[cfg(test)]
 mod in_operator {
     use super::*;
-    use crate::{builtins::object::INSTANCE_PROTOTYPE, forward_val};
+    use crate::forward_val;
     #[test]
     fn propery_in_object() {
         let p_in_o = r#"
@@ -765,7 +765,7 @@ mod in_operator {
         "#;
         forward(&mut engine, scenario);
         let a = forward_val(&mut engine, "bar").unwrap();
-        assert!(a.get_internal_slot(INSTANCE_PROTOTYPE).is_object(), true);
+        assert!(a.as_object().unwrap().prototype().is_object());
     }
 }
 
@@ -1125,7 +1125,7 @@ fn check_this_binding_in_object_literal() {
             a: 3,
             bar: function () { return this.a + 5 }
         };
-    
+
         foo.bar()
         "#;
 
@@ -1214,24 +1214,24 @@ fn not_a_function() {
         try {
             a();
         } catch(e) {
-            e.message
+            e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "not a function");
+    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
     let scenario = r#"
         try {
             a.a();
         } catch(e) {
-            e.message
+            e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "not a function");
+    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
     let scenario = r#"
         try {
             b();
         } catch(e) {
-            e.message
+            e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "not a function");
+    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
 }

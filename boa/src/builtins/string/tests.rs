@@ -86,7 +86,7 @@ fn generic_concat() {
     assert_eq!(a, "100 - 50 = 50");
 }
 
-#[allow(clippy::result_unwrap_used)]
+#[allow(clippy::unwrap_used)]
 #[test]
 /// Test the correct type is returned from call and construct
 fn construct_and_call() {
@@ -126,6 +126,81 @@ fn repeat() {
 
     assert_eq!(forward(&mut engine, "en.repeat(1)"), "english");
     assert_eq!(forward(&mut engine, "zh.repeat(2)"), "中文中文");
+}
+
+#[test]
+fn repeat_throws_when_count_is_negative() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(-1)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "RangeError: repeat count cannot be a negative number"
+    );
+}
+
+#[test]
+fn repeat_throws_when_count_is_infinity() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(Infinity)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "RangeError: repeat count cannot be infinity"
+    );
+}
+
+#[test]
+fn repeat_throws_when_count_overflows_max_length() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(2 ** 64)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "RangeError: repeat count must not overflow maximum string length"
+    );
+}
+
+#[test]
+fn repeat_generic() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = "Number.prototype.repeat = String.prototype.repeat;";
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "(0).repeat(0)"), "");
+    assert_eq!(forward(&mut engine, "(1).repeat(1)"), "1");
+
+    assert_eq!(forward(&mut engine, "(1).repeat(5)"), "11111");
+    assert_eq!(forward(&mut engine, "(12).repeat(3)"), "121212");
 }
 
 #[test]
@@ -303,4 +378,34 @@ fn test_match() {
         "The Quick Brown Fox Jumps Over The Lazy Dog"
     );
     assert_eq!(forward(&mut engine, "result4[0]"), "B");
+}
+
+#[test]
+fn trim() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trim()"), "Hello");
+    assert_eq!(forward(&mut engine, "' \nHello'.trim()"), "Hello");
+    assert_eq!(forward(&mut engine, "'Hello \n\r'.trim()"), "Hello");
+    assert_eq!(forward(&mut engine, "' Hello '.trim()"), "Hello");
+}
+
+#[test]
+fn trim_start() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trimStart()"), "Hello");
+    assert_eq!(forward(&mut engine, "' \nHello'.trimStart()"), "Hello");
+    assert_eq!(forward(&mut engine, "'Hello \n'.trimStart()"), "Hello \n");
+    assert_eq!(forward(&mut engine, "' Hello '.trimStart()"), "Hello ");
+}
+
+#[test]
+fn trim_end() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trimEnd()"), "Hello");
+    assert_eq!(forward(&mut engine, "' \nHello'.trimEnd()"), " \nHello");
+    assert_eq!(forward(&mut engine, "'Hello \n'.trimEnd()"), "Hello");
+    assert_eq!(forward(&mut engine, "' Hello '.trimEnd()"), " Hello");
 }

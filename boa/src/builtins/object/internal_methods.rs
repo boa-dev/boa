@@ -6,8 +6,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::builtins::{
-    object::{Object, INSTANCE_PROTOTYPE, PROTOTYPE},
-    property::Property,
+    object::{Object, PROTOTYPE},
+    property::{Attribute, Property},
     value::{same_value, RcString, Value},
 };
 use crate::BoaProfiler;
@@ -73,7 +73,7 @@ impl Object {
         {
             return true;
         }
-        if desc.configurable.expect("unable to get value") {
+        if desc.configurable_or(false) {
             self.remove_property(&prop_key.to_string());
             return true;
         }
@@ -131,14 +131,14 @@ impl Object {
             if !parent.is_null() {
                 // TODO: come back to this
             }
-            own_desc = Property::new()
-                .writable(true)
-                .enumerable(true)
-                .configurable(true);
+            own_desc = Property::data_descriptor(
+                Value::undefined(),
+                Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+            );
         }
         // [3]
         if own_desc.is_data_descriptor() {
-            if !own_desc.writable.unwrap() {
+            if !own_desc.writable() {
                 return false;
             }
 
@@ -184,18 +184,12 @@ impl Object {
         }
 
         // 4
-        if !current.configurable.unwrap_or(false) {
-            if desc.configurable.is_some() && desc.configurable.expect("unable to get prop desc") {
+        if !current.configurable_or(false) {
+            if desc.configurable_or(false) {
                 return false;
             }
 
-            if desc.enumerable.is_some()
-                && (desc.enumerable.as_ref().expect("unable to get prop desc")
-                    != current
-                        .enumerable
-                        .as_ref()
-                        .expect("unable to get prop desc"))
-            {
+            if desc.enumerable_or(false) != current.enumerable_or(false) {
                 return false;
             }
         }
@@ -205,14 +199,14 @@ impl Object {
             // 6
         } else if current.is_data_descriptor() != desc.is_data_descriptor() {
             // a
-            if !current.configurable.expect("unable to get prop desc") {
+            if !current.configurable() {
                 return false;
             }
             // b
             if current.is_data_descriptor() {
                 // Convert to accessor
                 current.value = None;
-                current.writable = None;
+                current.attribute.remove(Attribute::WRITABLE);
             } else {
                 // c
                 // convert to data
@@ -224,10 +218,8 @@ impl Object {
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
             // a
-            if !current.configurable.expect("unable to get prop desc")
-                && !current.writable.expect("unable to get prop desc")
-            {
-                if desc.writable.is_some() && desc.writable.expect("unable to get prop desc") {
+            if !current.configurable() && !current.writable() {
+                if desc.writable_or(false) {
                     return false;
                 }
 
@@ -244,7 +236,7 @@ impl Object {
             }
         // 8
         } else {
-            if !current.configurable.unwrap() {
+            if !current.configurable() {
                 if desc.set.is_some()
                     && !same_value(&desc.set.clone().unwrap(), &current.set.clone().unwrap())
                 {
@@ -279,43 +271,35 @@ impl Object {
         debug_assert!(Property::is_property_key(prop));
         // Prop could either be a String or Symbol
         match *prop {
-            Value::String(ref st) => {
-                self.properties()
-                    .get(st)
-                    .map_or_else(Property::default, |v| {
-                        let mut d = Property::default();
-                        if v.is_data_descriptor() {
-                            d.value = v.value.clone();
-                            d.writable = v.writable;
-                        } else {
-                            debug_assert!(v.is_accessor_descriptor());
-                            d.get = v.get.clone();
-                            d.set = v.set.clone();
-                        }
-                        d.enumerable = v.enumerable;
-                        d.configurable = v.configurable;
-                        d
-                    })
-            }
+            Value::String(ref st) => self.properties().get(st).map_or_else(Property::empty, |v| {
+                let mut d = Property::empty();
+                if v.is_data_descriptor() {
+                    d.value = v.value.clone();
+                } else {
+                    debug_assert!(v.is_accessor_descriptor());
+                    d.get = v.get.clone();
+                    d.set = v.set.clone();
+                }
+                d.attribute = v.attribute;
+                d
+            }),
             Value::Symbol(ref symbol) => {
                 self.symbol_properties()
                     .get(&symbol.hash())
-                    .map_or_else(Property::default, |v| {
-                        let mut d = Property::default();
+                    .map_or_else(Property::empty, |v| {
+                        let mut d = Property::empty();
                         if v.is_data_descriptor() {
                             d.value = v.value.clone();
-                            d.writable = v.writable;
                         } else {
                             debug_assert!(v.is_accessor_descriptor());
                             d.get = v.get.clone();
                             d.set = v.set.clone();
                         }
-                        d.enumerable = v.enumerable;
-                        d.configurable = v.configurable;
+                        d.attribute = v.attribute;
                         d
                     })
             }
-            _ => Property::default(),
+            _ => unreachable!("the field can only be of type string or symbol"),
         }
     }
 
@@ -363,7 +347,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     #[inline]
     pub fn get_prototype_of(&self) -> Value {
-        self.get_internal_slot(INSTANCE_PROTOTYPE)
+        self.prototype.clone()
     }
 
     /// Helper function to get an immutable internal slot or `Null`.
@@ -409,11 +393,10 @@ impl Object {
     {
         self.properties.insert(
             name.into(),
-            Property::default()
-                .value(value)
-                .writable(true)
-                .configurable(true)
-                .enumerable(true),
+            Property::data_descriptor(
+                value,
+                Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+            ),
         )
     }
 

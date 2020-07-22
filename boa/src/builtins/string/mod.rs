@@ -41,6 +41,13 @@ impl String {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
+    ///  JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
+    /// The range of allowed values can be described like this: `[0, +∞)`.
+    ///
+    /// The resulting string can also not be larger than the maximum string size,
+    /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
+    pub(crate) const MAX_STRING_LENGTH: f64 = u32::MAX as f64;
+
     fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<RcString, Value> {
         match this {
             Value::String(ref string) => return Ok(string.clone()),
@@ -206,16 +213,27 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
     pub(crate) fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let object = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(object)?;
 
-        let repeat_times = usize::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        if let Some(arg) = args.get(0) {
+            let n = ctx.to_integer(arg)?;
+            if n < 0.0 {
+                return ctx.throw_range_error("repeat count cannot be a negative number");
+            }
 
-        Ok(Value::from(primitive_val.repeat(repeat_times)))
+            if n.is_infinite() {
+                return ctx.throw_range_error("repeat count cannot be infinity");
+            }
+
+            if n * (string.len() as f64) > Self::MAX_STRING_LENGTH {
+                return ctx
+                    .throw_range_error("repeat count must not overflow maximum string length");
+            }
+            Ok(string.repeat(n as usize).into())
+        } else {
+            Ok("".into())
+        }
     }
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`
@@ -722,6 +740,7 @@ impl String {
     }
 
     /// Helper function to check if a `char` is trimmable.
+    #[inline]
     fn is_trimmable_whitespace(c: char) -> bool {
         // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
         //
@@ -753,9 +772,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
     pub(crate) fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_matches(Self::is_trimmable_whitespace),
+            string.trim_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -772,9 +792,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
     pub(crate) fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_start_matches(Self::is_trimmable_whitespace),
+            string.trim_start_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -791,9 +812,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
     pub(crate) fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_end_matches(Self::is_trimmable_whitespace),
+            string.trim_end_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -1041,6 +1063,7 @@ impl String {
             Self::make_string,
             global,
             prototype,
+            true,
             true,
         );
 
