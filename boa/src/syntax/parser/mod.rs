@@ -29,16 +29,6 @@ where
     ///
     /// This method needs to be provided by the implementor type.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
-
-    /// Tries to parse the following tokens with this parser.
-    fn try_parse(self, cursor: &mut Cursor<R>) -> Option<Self::Output> {
-        // unimplemented!();
-        if let Ok(node) = self.parse(cursor) {
-            Some(node)
-        } else {
-            None
-        }
-    }
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
