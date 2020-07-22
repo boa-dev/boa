@@ -705,6 +705,9 @@ pub enum BinOp {
     ///
     /// see: [`AssignOp`](enum.AssignOp.html).
     Assign(AssignOp),
+
+    /// Comma operation.
+    Comma,
 }
 
 impl From<NumOp> for BinOp {
@@ -748,6 +751,7 @@ impl Display for BinOp {
                 Self::Comp(ref op) => op.to_string(),
                 Self::Log(ref op) => op.to_string(),
                 Self::Assign(ref op) => op.to_string(),
+                Self::Comma => ",".to_string(),
             }
         )
     }
