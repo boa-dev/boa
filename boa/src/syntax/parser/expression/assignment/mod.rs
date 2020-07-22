@@ -105,31 +105,11 @@ where
 
             // (a,b)=>{}
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                println!("Arrow with args");
                 if let Some(next_token) = cursor.peek_skip(false)? {
                     match *next_token.kind() {
-                        TokenKind::Punctuator(Punctuator::CloseParen) => {
-                            println!("Parsing arrow function");
-                            return ArrowFunction::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor)
-                            .map(Node::ArrowFunctionDecl);
-                        }
-                        TokenKind::Punctuator(Punctuator::Spread) => {
-                            println!("Parsing arrow function");
-                            return ArrowFunction::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor)
-                            .map(Node::ArrowFunctionDecl);
-                        }
-                        TokenKind::Identifier(_) => {
-                            println!("Parsing arrow function");
+                        TokenKind::Punctuator(Punctuator::CloseParen)
+                        | TokenKind::Punctuator(Punctuator::Spread)
+                        | TokenKind::Identifier(_) => {
                             return ArrowFunction::new(
                                 self.allow_in,
                                 self.allow_yield,
