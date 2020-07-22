@@ -75,7 +75,7 @@ pub fn init(interpreter: &mut Interpreter) {
 
     for init in &globals {
         let (name, value) = init(interpreter);
-        let global = &interpreter.realm.global_obj;
+        let global = interpreter.global();
         match global {
             Value::Object(ref global_object) => {
                 global_object.borrow_mut().insert_field(name, value);

@@ -578,7 +578,7 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
 /// Initialise the `Object` object on the global object.
 #[inline]
 pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-    let global = &interpreter.realm.global_obj;
+    let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("object", "init");
 
     let prototype = Value::new_object(None);

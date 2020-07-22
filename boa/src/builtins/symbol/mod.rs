@@ -133,7 +133,7 @@ impl Symbol {
             interpreter.generate_hash(),
         );
 
-        let global = &interpreter.realm.global_obj;
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype object

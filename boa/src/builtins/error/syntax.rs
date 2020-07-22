@@ -65,7 +65,7 @@ impl SyntaxError {
     /// Initialise the global object with the `SyntaxError` object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = &interpreter.realm.global_obj;
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let prototype = Value::new_object(Some(global));

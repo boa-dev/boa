@@ -113,6 +113,11 @@ impl Interpreter {
         &mut self.realm
     }
 
+    #[inline]
+    pub(crate) fn global(&self) -> &Value {
+        &self.realm.global_obj
+    }
+
     /// Generates a new `Symbol` internal hash.
     ///
     /// This currently is an incremented value.

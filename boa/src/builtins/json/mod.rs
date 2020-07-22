@@ -173,7 +173,7 @@ impl Json {
     /// Initialise the `JSON` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = &interpreter.realm.global_obj;
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let json = Value::new_object(Some(global));
 
