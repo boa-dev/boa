@@ -25,6 +25,7 @@
     clippy::as_conversions
 )]
 
+use ansi_term::{Colour as Color, Style};
 use boa::{
     exec::Interpreter,
     forward_val,
@@ -208,8 +209,14 @@ pub fn main() -> Result<(), std::io::Error> {
         let mut editor = Editor::<()>::with_config(config);
         let _ = editor.load_history(CLI_HISTORY);
 
+        let readline = Style::default()
+            .bold()
+            .fg(Color::Cyan)
+            .paint("> ")
+            .to_string();
+
         loop {
-            match editor.readline("> ") {
+            match editor.readline(&readline) {
                 Ok(line) if line == ".exit" => break,
                 Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
 
@@ -223,7 +230,11 @@ pub fn main() -> Result<(), std::io::Error> {
                     } else {
                         match forward_val(&mut engine, line.trim_end()) {
                             Ok(v) => println!("{}", v),
-                            Err(v) => eprintln!("{}", v),
+                            Err(v) => eprintln!(
+                                "{}: {}",
+                                Color::Red.paint("Uncaught"),
+                                Color::Red.paint(&v.to_string())
+                            ),
                         }
                     }
                 }
