@@ -23,6 +23,7 @@ mod throw;
 mod try_node;
 
 use crate::{
+    builtins,
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
         number::{f64_to_int32, f64_to_uint32},
@@ -79,12 +80,25 @@ pub struct Interpreter {
 impl Interpreter {
     /// Creates a new interpreter.
     pub fn new(realm: Realm) -> Self {
-        Self {
+        let mut interpreter = Self {
             state: InterpreterState::Executing,
             realm,
             symbol_count: 0,
             console: Console::default(),
-        }
+        };
+
+        // Add new builtIns to Interpreter Realm
+        // At a later date this can be removed from here and called explicitly, but for now we almost always want these default builtins
+        interpreter.create_intrinsics();
+
+        interpreter
+    }
+
+    /// Sets up the default global objects within Global
+    fn create_intrinsics(&mut self) {
+        let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
+        // Create intrinsics, add global objects here
+        builtins::init(self);
     }
 
     /// Retrieves the `Realm` of this executor.
