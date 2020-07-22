@@ -103,25 +103,43 @@ where
                 }
             }
 
-            // // (a,b)=>{}
-            // TokenKind::Punctuator(Punctuator::OpenParen) => {
-            //     if let Some(next_token) = cursor.peek_skip(false)? {
-            //         if *next_token.kind() == TokenKind::Punctuator(Punctuator::CloseParen) {
-            //             return ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
-            //             .parse(cursor)
-            //             .map(Node::ArrowFunctionDecl);
-            //         }
-            //     }
-            // }
-
             // (a,b)=>{}
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if let Some(node) =
-                    ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .try_parse(cursor)
-                        .map(Node::ArrowFunctionDecl)
-                {
-                    return Ok(node);
+                println!("Arrow with args");
+                if let Some(next_token) = cursor.peek_skip(false)? {
+                    match *next_token.kind() {
+                        TokenKind::Punctuator(Punctuator::CloseParen) => {
+                            println!("Parsing arrow function");
+                            return ArrowFunction::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor)
+                            .map(Node::ArrowFunctionDecl);
+                        }
+                        TokenKind::Punctuator(Punctuator::Spread) => {
+                            println!("Parsing arrow function");
+                            return ArrowFunction::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor)
+                            .map(Node::ArrowFunctionDecl);
+                        }
+                        TokenKind::Identifier(_) => {
+                            println!("Parsing arrow function");
+                            return ArrowFunction::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor)
+                            .map(Node::ArrowFunctionDecl);
+                        }
+                        _ => {}
+                    }
                 }
             }
 
