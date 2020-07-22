@@ -59,7 +59,7 @@ fn is_unary_expression<R>(cursor: &mut Cursor<R>) -> Result<bool, ParseError>
 where
     R: Read,
 {
-    Ok(if let Some(tok) = cursor.peek()? {
+    Ok(if let Some(tok) = cursor.peek(false)? {
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete)
             | TokenKind::Keyword(Keyword::Void)
@@ -89,9 +89,9 @@ where
         }
 
         let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek()? {
+        if let Some(tok) = cursor.peek(false)? {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
-                cursor.next()?.expect("** token vanished"); // Consume the token.
+                cursor.next(false)?.expect("** token vanished"); // Consume the token.
                 return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?).into());
             }
         }

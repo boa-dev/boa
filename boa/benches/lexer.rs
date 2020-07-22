@@ -19,7 +19,7 @@ fn hello_world_lexer(c: &mut Criterion) {
             // return the value into the blackbox so its not optimized away
             // https://gist.github.com/jasonwilliams/5325da61a794d8211dcab846d466c4fd
             // Goes through and lexes entire given string.
-            while lexer.next().expect("Failed to lex").is_some() {}
+            while lexer.next(false).expect("Failed to lex").is_some() {}
         })
     });
 }
@@ -42,7 +42,7 @@ fn for_loop_lexer(c: &mut Criterion) {
             let mut lexer = Lexer::new(black_box(FOR_LOOP.as_bytes()));
 
             // Goes through and lexes entire given string.
-            while lexer.next().expect("Failed to lex").is_some() {}
+            while lexer.next(false).expect("Failed to lex").is_some() {}
         })
     });
 }

@@ -69,10 +69,10 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
-        cursor.expect(Keyword::For, "for statement")?;
-        cursor.expect(Punctuator::OpenParen, "for statement")?;
+        cursor.expect(Keyword::For, "for statement", false)?;
+        cursor.expect(Punctuator::OpenParen, "for statement", false)?;
 
-        let init = match cursor.peek()?.ok_or(ParseError::AbruptEnd)?.kind() {
+        let init = match cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Keyword(Keyword::Var) => Some(
                 VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
                     .parse(cursor)
@@ -85,23 +85,24 @@ where
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
         };
 
-        cursor.expect(Punctuator::Semicolon, "for statement")?;
+        cursor.expect(Punctuator::Semicolon, "for statement", false)?;
 
-        let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
+        let cond = if cursor.next_if(Punctuator::Semicolon, false)?.is_some() {
             Const::from(true).into()
         } else {
             let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::Semicolon, "for statement")?;
+            cursor.expect(Punctuator::Semicolon, "for statement", false)?;
             step
         };
 
-        let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
+        let step = if cursor.next_if(Punctuator::CloseParen, false)?.is_some() {
             None
         } else {
             let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "for statement",
+                false,
             )?;
             Some(step)
         };

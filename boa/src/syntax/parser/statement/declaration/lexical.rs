@@ -61,7 +61,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Const) => {
@@ -127,7 +127,7 @@ where
 
         loop {
             let (ident, init) =
-                LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
+                LexicalBinding::new(/*self.allow_in,*/ self.allow_yield, self.allow_await)
                     .parse(cursor)?;
 
             if self.is_const {
@@ -136,7 +136,7 @@ where
                 } else {
                     return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
+                        cursor.next(false)?.ok_or(ParseError::AbruptEnd)?,
                         "const declaration",
                     ));
                 }
@@ -147,7 +147,7 @@ where
             match cursor.peek_semicolon()? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = cursor.next();
+                    let _ = cursor.next(false);
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -155,8 +155,8 @@ where
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
-                        "lexical declaration",
+                        cursor.next(false)?.ok_or(ParseError::AbruptEnd)?,
+                        "Binding list lexical declaration",
                     ))
                 }
             }
@@ -177,21 +177,21 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LexicalBinding
 struct LexicalBinding {
-    allow_in: AllowIn,
+    // allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl LexicalBinding {
     /// Creates a new `BindingList` parser.
-    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    fn new</*I, */ Y, A>(/*allow_in: I,*/ allow_yield: Y, allow_await: A) -> Self
     where
-        I: Into<AllowIn>,
+        // I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            allow_in: allow_in.into(),
+            // allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -208,9 +208,17 @@ where
         let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
 
         let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        let initializer =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
 
-        Ok((ident, initializer))
+        let init = if let Some(t) = cursor.peek(false)? {
+            if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        Ok((ident, init))
     }
 }

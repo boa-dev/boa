@@ -497,7 +497,7 @@ impl String {
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
 
-                    let result = ctx.call(&replace_object, this, &results).unwrap();
+                    let result = ctx.call(&replace_object, this, &results)?;
 
                     ctx.to_string(&result)?.to_string()
                 }

@@ -63,6 +63,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
         Ok(res) => res,
         Err(e) => return e,
     };
+
     expr.run(engine)
         .map_or_else(|e| format!("Error: {}", e), |v| v.to_string())
 }
@@ -79,7 +80,8 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
         Ok(expr) => expr.run(engine),
         Err(e) => {
             eprintln!("{}", e);
-            std::process::exit(1);
+            panic!(); // Panic instead of exit means that tests will continue.
+                      // std::process::exit(1);
         }
     };
 

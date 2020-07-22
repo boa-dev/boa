@@ -55,50 +55,91 @@ where
     }
 
     /// Moves the cursor to the next token and returns the token.
+    ///
+    /// If skip_line_terminators is true then line terminators will be discarded.
     #[inline]
-    pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
+    pub(super) fn next(
+        &mut self,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
 
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
-            Ok(self.lexer.next()?)
+            Ok(self.lexer.next(skip_line_terminators)?)
         } else {
             let val = self.peeked[self.back_index].take();
-            // let val = self.peeked[self.back_index];
             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
-            Ok(val)
+
+            if skip_line_terminators {
+                if let Some(t) = val {
+                    if *t.kind() == TokenKind::LineTerminator {
+                        self.next(skip_line_terminators)
+                    } else {
+                        Ok(Some(t))
+                    }
+                } else {
+                    Ok(None)
+                }
+            } else {
+                Ok(val)
+            }
         }
     }
 
     /// Peeks the next token without moving the cursor.
-
-    pub(super) fn peek(&mut self) -> Result<Option<Token>, ParseError> {
+    ///
+    /// If skip_line_terminators is true then line terminators will be discarded.
+    pub(super) fn peek(
+        &mut self,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
-
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
-            let next = self.lexer.next()?;
+            let next = self.lexer.next(skip_line_terminators)?;
             self.peeked[self.front_index] = next;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
         }
 
-        Ok(self.peeked[self.back_index].clone())
+        let val = self.peeked[self.back_index].clone();
+
+        if skip_line_terminators {
+            if let Some(token) = val {
+                if token.kind() == &TokenKind::LineTerminator {
+                    self.peeked[self.back_index].take();
+                    self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+                    self.peek(skip_line_terminators)
+                } else {
+                    Ok(Some(token))
+                }
+            } else {
+                Ok(None)
+            }
+        } else {
+            Ok(val)
+        }
     }
 
     /// Peeks the token after the next token.
     /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
-    pub(super) fn peek_skip(&mut self) -> Result<Option<Token>, ParseError> {
+    ///
+    /// If skip_line_terminators is true then line terminators will be discarded.
+    pub(super) fn peek_skip(
+        &mut self,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
         if self.front_index == self.back_index {
             // No value has been peeked ahead already so need to go get the next value.
 
-            self.peeked[self.front_index] = self.lexer.next()?;
+            self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
 
             let index = self.front_index;
 
-            self.peeked[self.front_index] = self.lexer.next()?;
+            self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
 
             Ok(self.peeked[index].clone())
@@ -106,7 +147,7 @@ where
             // Indicates only a single value has been peeked ahead already
             let index = self.front_index;
 
-            self.peeked[self.front_index] = self.lexer.next()?;
+            self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
             self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
 
             Ok(self.peeked[index].clone())
@@ -144,15 +185,24 @@ where
     /// Returns an error if the next token is not of kind `kind`.
     ///
     /// Note: it will consume the next token only if the next token is the expected type.
-    pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>
+    ///
+    /// If skip_line_terminators is true then line terminators will be discarded.
+    pub(super) fn expect<K>(
+        &mut self,
+        kind: K,
+        context: &'static str,
+        skip_line_terminators: bool,
+    ) -> Result<Token, ParseError>
     where
         K: Into<TokenKind>,
     {
-        let next_token = self.peek()?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = self
+            .peek(skip_line_terminators)?
+            .ok_or(ParseError::AbruptEnd)?;
         let kind = kind.into();
 
         if next_token.kind() == &kind {
-            self.next()?.expect("Token vanished");
+            self.next(skip_line_terminators)?.expect("Token vanished");
             Ok(next_token)
         } else {
             Err(ParseError::expected(vec![kind], next_token, context))
@@ -165,7 +215,7 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
-        match self.peek()? {
+        match self.peek(false)? {
             Some(tk) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
                 TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
@@ -189,7 +239,7 @@ where
         match self.peek_semicolon()? {
             (true, Some(tk)) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
-                    self.next()?.expect("Token vanished"); // Consume the token.
+                    self.next(false)?.expect("Token vanished"); // Consume the token.
                     Ok(Some(tk))
                 }
                 _ => Ok(Some(tk)),
@@ -211,9 +261,9 @@ where
     /// If skip is true then the token after the peek() token is checked instead.
     pub(super) fn peek_expect_no_lineterminator(&mut self, skip: bool) -> Result<(), ParseError> {
         let token = if skip {
-            self.peek_skip()?
+            self.peek_skip(false)?
         } else {
-            self.peek()?
+            self.peek(false)?
         };
 
         if let Some(t) = token {
@@ -232,25 +282,24 @@ where
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
     ///
     /// No next token also returns None.
-    pub(super) fn next_if<K>(&mut self, kind: K) -> Result<Option<Token>, ParseError>
+    ///
+    /// If skip_line_terminators is true then line terminators will be discarded.
+    pub(super) fn next_if<K>(
+        &mut self,
+        kind: K,
+        skip_line_terminators: bool,
+    ) -> Result<Option<Token>, ParseError>
     where
         K: Into<TokenKind>,
     {
-        Ok(if let Some(token) = self.peek()? {
+        Ok(if let Some(token) = self.peek(skip_line_terminators)? {
             if token.kind() == &kind.into() {
-                self.next()?
+                self.next(skip_line_terminators)?
             } else {
                 None
             }
         } else {
             None
         })
-    }
-
-    /// Advance the cursor to skip 0, 1 or more line terminators.
-    #[inline]
-    pub(super) fn skip_line_terminators(&mut self) -> Result<(), ParseError> {
-        while self.next_if(TokenKind::LineTerminator)?.is_some() {}
-        Ok(())
     }
 }

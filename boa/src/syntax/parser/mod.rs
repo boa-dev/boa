@@ -29,15 +29,6 @@ where
     ///
     /// This method needs to be provided by the implementor type.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
-
-    /// Tries to parse the following tokens with this parser.
-    fn try_parse(self, cursor: &mut Cursor<R>) -> Option<Self::Output> {
-        if let Ok(node) = self.parse(cursor) {
-            Some(node)
-        } else {
-            None
-        }
-    }
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -130,7 +121,7 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if cursor.peek()?.is_some() {
+        if cursor.peek(false)?.is_some() {
             ScriptBody.parse(cursor)
         } else {
             Ok(StatementList::from(Vec::new()))

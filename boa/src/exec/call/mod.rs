@@ -11,10 +11,8 @@ impl Executable for Call {
         let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(interpreter)?;
-                if obj.get_type() != Type::Object || obj.get_type() != Type::Symbol {
-                    obj = interpreter
-                        .to_object(&obj)
-                        .expect("failed to convert to object");
+                if obj.get_type() != Type::Object {
+                    obj = interpreter.to_object(&obj)?;
                 }
                 (obj.clone(), obj.get_field(get_const_field.field()))
             }

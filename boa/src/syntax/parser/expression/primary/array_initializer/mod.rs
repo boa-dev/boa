@@ -65,19 +65,18 @@ where
         let mut elements = Vec::new();
 
         loop {
-            cursor.skip_line_terminators()?;
             // TODO: Support all features.
-            while cursor.next_if(Punctuator::Comma)?.is_some() {
+            while cursor.next_if(Punctuator::Comma, true)?.is_some() {
                 elements.push(Node::Const(Const::Undefined));
             }
 
-            if cursor.next_if(Punctuator::CloseBracket)?.is_some() {
+            if cursor.next_if(Punctuator::CloseBracket, false)?.is_some() {
                 break;
             }
 
-            let _ = cursor.peek()?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
+            let _ = cursor.peek(false)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
 
-            if cursor.next_if(Punctuator::Spread)?.is_some() {
+            if cursor.next_if(Punctuator::Spread, false)?.is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor)?;
                 elements.push(Spread::new(node).into());
@@ -87,8 +86,7 @@ where
                         .parse(cursor)?,
                 );
             }
-            cursor.skip_line_terminators()?;
-            cursor.next_if(Punctuator::Comma)?;
+            cursor.next_if(Punctuator::Comma, true)?;
         }
 
         Ok(elements.into())
