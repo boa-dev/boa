@@ -25,13 +25,13 @@
     clippy::as_conversions
 )]
 
-use ansi_term::{Colour as Color, Style};
 use boa::{
     exec::Interpreter,
     forward_val,
     realm::Realm,
     syntax::ast::{node::StatementList, token::Token},
 };
+use colored::*;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
@@ -209,11 +209,7 @@ pub fn main() -> Result<(), std::io::Error> {
         let mut editor = Editor::<()>::with_config(config);
         let _ = editor.load_history(CLI_HISTORY);
 
-        let readline = Style::default()
-            .bold()
-            .fg(Color::Cyan)
-            .paint("> ")
-            .to_string();
+        let readline = "> ".cyan().bold().to_string();
 
         loop {
             match editor.readline(&readline) {
@@ -230,11 +226,7 @@ pub fn main() -> Result<(), std::io::Error> {
                     } else {
                         match forward_val(&mut engine, line.trim_end()) {
                             Ok(v) => println!("{}", v),
-                            Err(v) => eprintln!(
-                                "{}: {}",
-                                Color::Red.paint("Uncaught"),
-                                Color::Red.paint(&v.to_string())
-                            ),
+                            Err(v) => eprintln!("{}: {}", "Uncaught".red(), v.to_string().red()),
                         }
                     }
                 }
