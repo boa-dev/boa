@@ -25,7 +25,7 @@ impl NaN {
 
     /// Initialize the `NaN` property on the global object.
     #[inline]
-    pub(crate) fn init(_interpreter: &mut Interpreter) -> (&str, Value) {
+    pub(crate) fn init(_interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         (Self::NAME, Value::from(f64::NAN))

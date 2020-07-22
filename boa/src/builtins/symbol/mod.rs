@@ -100,7 +100,7 @@ impl Symbol {
 
     /// Initialise the `Symbol` object on the global object.
     #[inline]
-    pub fn init(interpreter: &mut Interpreter) -> (&str, Value) {
+    pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let symbol_async_iterator = Symbol(
             Some("Symbol.asyncIterator".into()),
             interpreter.generate_hash(),

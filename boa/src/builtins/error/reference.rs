@@ -60,7 +60,7 @@ impl ReferenceError {
     }
 
     /// Initialise the global object with the `ReferenceError` object.
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let global = &interpreter.realm.global_obj;
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 

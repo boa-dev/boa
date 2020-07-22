@@ -75,7 +75,6 @@ pub fn init(interpreter: &mut Interpreter) {
 
     for init in &globals {
         let (name, value) = init(interpreter);
-        let name = name.to_string();
         let global = &interpreter.realm.global_obj;
         match global {
             Value::Object(ref global_object) => {

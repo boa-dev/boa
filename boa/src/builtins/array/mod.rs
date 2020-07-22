@@ -1114,7 +1114,7 @@ impl Array {
 
     /// Initialise the `Array` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let global = &interpreter.realm.global_obj;
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
