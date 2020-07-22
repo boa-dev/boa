@@ -1163,3 +1163,22 @@ fn not_a_function() {
     "#;
     assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
 }
+
+#[test]
+fn comma_operator() {
+    let scenario = r#"
+        var a, b;
+        b = 10;
+        a = (b++, b);
+        a
+    "#;
+    assert_eq!(&exec(scenario), "11");
+
+    let scenario = r#"
+        var a, b;
+        b = 10;
+        a = (b += 5, b /= 3, b - 3);
+        a
+    "#;
+    assert_eq!(&exec(scenario), "2");
+}
