@@ -175,6 +175,14 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     // in-memory address in this set
     let mut encounters = HashSet::new();
 
+    if let Value::Object(object) = v {
+        if object.borrow().is_error() {
+            let name = v.get_field("name");
+            let message = v.get_field("message");
+            return format!("{}: {}", name, message);
+        }
+    }
+
     fn display_obj_internal(
         data: &Value,
         encounters: &mut HashSet<usize>,

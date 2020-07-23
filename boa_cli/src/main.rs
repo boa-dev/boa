@@ -31,6 +31,7 @@ use boa::{
     realm::Realm,
     syntax::ast::{node::StatementList, token::Token},
 };
+use colored::*;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
@@ -208,8 +209,10 @@ pub fn main() -> Result<(), std::io::Error> {
         let mut editor = Editor::<()>::with_config(config);
         let _ = editor.load_history(CLI_HISTORY);
 
+        let readline = "> ".cyan().bold().to_string();
+
         loop {
-            match editor.readline("> ") {
+            match editor.readline(&readline) {
                 Ok(line) if line == ".exit" => break,
                 Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
 
@@ -223,7 +226,7 @@ pub fn main() -> Result<(), std::io::Error> {
                     } else {
                         match forward_val(&mut engine, line.trim_end()) {
                             Ok(v) => println!("{}", v),
-                            Err(v) => eprintln!("{}", v),
+                            Err(v) => eprintln!("{}: {}", "Uncaught".red(), v.to_string().red()),
                         }
                     }
                 }
