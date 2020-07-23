@@ -142,7 +142,7 @@ impl Executable for BinOp {
             op::BinOp::Comma => {
                 self.lhs().run(interpreter)?;
                 Ok(self.rhs().run(interpreter)?)
-            },
+            }
         }
     }
 }
