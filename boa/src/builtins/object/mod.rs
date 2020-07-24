@@ -476,7 +476,7 @@ pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> 
         .as_object()
         .as_deref()
         .expect("Cannot get THIS object")
-        .get_own_property(&Value::string(prop.expect("cannot get prop")));
+        .get_own_property(&prop.expect("cannot get prop").into());
     if own_property.is_none() {
         Ok(Value::from(false))
     } else {

@@ -1,12 +1,5 @@
 use super::*;
 
-impl<'value> Value {
-    /// Returns a REPL representation of the `Value`
-    pub fn display(&'value self) -> ValueDisplay<'value> {
-        ValueDisplay::new(self)
-    }
-}
-
 /// A helper macro for printing objects
 /// Can be used to print both properties and internal slots
 /// All of the overloads take:
@@ -79,7 +72,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
                         &v.borrow()
                             .properties()
                             .get("length")
-                            .unwrap()
+                            .expect("Could not get Array's length property")
                             .value
                             .clone()
                             .expect("Could not borrow value"),
@@ -113,7 +106,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
             }
         }
         Value::Symbol(ref symbol) => symbol.to_string(),
-        _ => format!("{}", x.display()),
+        _ => format!("{}", x),
     }
 }
 
@@ -166,7 +159,7 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
             // Every other type of data is printed with the display method
-            format!("{}", data.display())
+            format!("{}", data)
         }
     }
 
@@ -183,7 +176,7 @@ impl Display for Value {
                 Some(description) => write!(f, "Symbol({})", description),
                 None => write!(f, "Symbol()"),
             },
-            Self::String(ref v) => write!(f, "{}", v),
+            Self::String(ref v) => write!(f, "\"{}\"", v),
             Self::Rational(v) => write!(
                 f,
                 "{}",
@@ -197,24 +190,6 @@ impl Display for Value {
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
             Self::BigInt(ref num) => write!(f, "{}n", num),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ValueDisplay<'value>(&'value Value);
-
-impl<'value> ValueDisplay<'value> {
-    fn new(vd: &'value Value) -> Self {
-        ValueDisplay(vd)
-    }
-}
-
-impl<'value> Display for ValueDisplay<'value> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.0 {
-            Value::String(ref v) => write!(f, "\"{}\"", v),
-            _ => self.0.fmt(f),
         }
     }
 }

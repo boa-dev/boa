@@ -35,12 +35,12 @@ impl Executable for Assign {
             }
             Node::GetConstField(ref get_const_field) => {
                 let val_obj = get_const_field.obj().run(interpreter)?;
-                val_obj.set_field(get_const_field.field(), val.clone());
+                val_obj.set_str_field(get_const_field.field(), val.clone());
             }
             Node::GetField(ref get_field) => {
                 let val_obj = get_field.obj().run(interpreter)?;
                 let val_field = get_field.field().run(interpreter)?;
-                val_obj.set_field(val_field, val.clone());
+                val_obj.set_field(val_field, val.clone(), interpreter);
             }
             _ => (),
         }
@@ -134,7 +134,7 @@ impl Executable for BinOp {
                     let v_a = v_r_a.get_field(get_const_field.field());
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b, interpreter)?;
-                    v_r_a.set_field(get_const_field.field(), value.clone());
+                    v_r_a.set_str_field(get_const_field.field(), value.clone());
                     Ok(value)
                 }
                 _ => Ok(Value::undefined()),

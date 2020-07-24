@@ -1,5 +1,5 @@
 use super::*;
-use crate::{exec, forward, forward_val, Interpreter, Realm};
+use crate::{forward, forward_val, Interpreter, Realm};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -30,7 +30,7 @@ fn get_set_field() {
     let obj = Value::new_object(None);
     // Create string and convert it to a Value
     let s = Value::from("bar");
-    obj.set_field("foo", s);
+    obj.set_str_field("foo", s);
     assert_eq!(obj.get_field("foo").to_string(), "bar");
 }
 
@@ -328,27 +328,30 @@ fn bitand_rational_and_rational() {
 fn display_string() {
     let s = String::from("Hello");
     let v = Value::from(s);
-    assert_eq!(v.display().to_string(), "\"Hello\"");
+    assert_eq!(v.to_string(), "\"Hello\"");
 }
 
 #[test]
 fn display_array_string() {
-    let d_arr = r#"
-            let a = ["Hello"];
-            a
-        "#;
-    assert_eq!(&exec(d_arr), "[ \"Hello\" ]");
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "[\"Hello\"]").unwrap();
+    assert_eq!(value.to_string(), "[ \"Hello\" ]");
 }
 
 #[test]
 #[ignore] // TODO: Once #507 is fixed this test can be simplified and used
 fn display_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
     let d_obj = r#"
         let o = {a: 'a'};
         o
     "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
     assert_eq!(
-        &exec(d_obj),
+        value.to_string(),
         r#"{
    a: "a",
 __proto__: {

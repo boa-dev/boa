@@ -25,7 +25,7 @@ impl Executable for FunctionDecl {
         );
 
         // Set the name and assign it in the current environment
-        val.set_field("name", self.name());
+        val.set_str_field("name", self.name());
         interpreter.realm_mut().environment.create_mutable_binding(
             self.name().to_owned(),
             false,
@@ -52,7 +52,7 @@ impl Executable for FunctionExpr {
         );
 
         if let Some(name) = self.name() {
-            val.set_field("name", Value::from(name));
+            val.set_str_field("name", Value::from(name));
         }
 
         Ok(val)

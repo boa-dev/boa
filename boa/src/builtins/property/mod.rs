@@ -14,8 +14,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
+use crate::builtins::value::rcstring::RcString;
+use crate::builtins::value::rcsymbol::RcSymbol;
 use crate::builtins::value::Value;
 use gc::{Finalize, Trace};
+use std::fmt;
 
 /// This represents a Javascript Property AKA The Property Descriptor.
 ///
@@ -52,11 +55,6 @@ pub struct Property {
 }
 
 impl Property {
-    /// Checks if the provided Value can be used as a property key.
-    pub fn is_property_key(value: &Value) -> bool {
-        value.is_string() || value.is_symbol() // Uncomment this when we are handeling symbols.
-    }
-
     /// Make a new property with the given value
     /// The difference between New and Default:
     ///
@@ -173,12 +171,12 @@ impl Default for Property {
 impl From<&Property> for Value {
     fn from(value: &Property) -> Value {
         let property = Value::new_object(None);
-        property.set_field("configurable", Value::from(value.configurable));
-        property.set_field("enumerable", Value::from(value.enumerable));
-        property.set_field("writable", Value::from(value.writable));
-        property.set_field("value", value.value.clone().unwrap_or_else(Value::null));
-        property.set_field("get", value.get.clone().unwrap_or_else(Value::null));
-        property.set_field("set", value.set.clone().unwrap_or_else(Value::null));
+        property.set_str_field("configurable", Value::from(value.configurable));
+        property.set_str_field("enumerable", Value::from(value.enumerable));
+        property.set_str_field("writable", Value::from(value.writable));
+        property.set_str_field("value", value.value.clone().unwrap_or_else(Value::null));
+        property.set_str_field("get", value.get.clone().unwrap_or_else(Value::null));
+        property.set_str_field("set", value.set.clone().unwrap_or_else(Value::null));
         property
     }
 }
@@ -198,5 +196,44 @@ impl<'a> From<&'a Value> for Property {
     }
 }
 
-#[cfg(test)]
-mod tests;
+#[derive(Trace, Finalize, Debug, Clone)]
+pub enum PropertyKey {
+    String(RcString),
+    Symbol(RcSymbol),
+}
+
+impl From<RcString> for PropertyKey {
+    fn from(string: RcString) -> PropertyKey {
+        PropertyKey::String(string.clone())
+    }
+}
+
+impl From<&str> for PropertyKey {
+    fn from(string: &str) -> PropertyKey {
+        PropertyKey::String(string.into())
+    }
+}
+
+impl From<RcSymbol> for PropertyKey {
+    fn from(symbol: RcSymbol) -> PropertyKey {
+        PropertyKey::Symbol(symbol.clone())
+    }
+}
+
+impl fmt::Display for PropertyKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PropertyKey::String(ref string) => string.fmt(f),
+            PropertyKey::Symbol(ref symbol) => symbol.fmt(f),
+        }
+    }
+}
+
+impl From<&PropertyKey> for RcString {
+    fn from(property_key: &PropertyKey) -> RcString {
+        match property_key {
+            PropertyKey::String(ref string) => string.clone(),
+            PropertyKey::Symbol(ref symbol) => symbol.to_string().into(),
+        }
+    }
+}

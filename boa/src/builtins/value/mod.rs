@@ -15,7 +15,7 @@ use crate::builtins::{
         GcObject, InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE,
         PROTOTYPE,
     },
-    property::Property,
+    property::{Property, PropertyKey},
     BigInt, Symbol,
 };
 use crate::exec::Interpreter;
@@ -644,9 +644,36 @@ impl Value {
         self.get_property(field).is_some()
     }
 
+    /// Set the string field in the value
+    /// Alternative to set_field, strictly for &str fields
+    pub fn set_str_field<V>(&self, field: &str, val: V) -> Value
+    where
+        V: Into<Value>,
+    {
+        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
+        let val = val.into();
+
+        if let Self::Object(ref obj) = *self {
+            if obj.borrow().is_array() {
+                if let Ok(num) = field.parse::<usize>() {
+                    if num > 0 {
+                        let len = i32::from(&self.get_field("length"));
+                        if len < (num + 1) as i32 {
+                            self.set_str_field("length", Value::from(num + 1));
+                        }
+                    }
+                }
+            }
+
+            obj.borrow_mut().set(field.into(), val.clone());
+        }
+
+        val
+    }
+
     /// Set the field in the value
     /// Field could be a Symbol, so we need to accept a Value (not a string)
-    pub fn set_field<F, V>(&self, field: F, val: V) -> Value
+    pub fn set_field<F, V>(&self, field: F, val: V, interpreter: &mut Interpreter) -> Value
     where
         F: Into<Value>,
         V: Into<Value>,
@@ -661,19 +688,22 @@ impl Value {
                     if num > 0 {
                         let len = i32::from(&self.get_field("length"));
                         if len < (num + 1) as i32 {
-                            self.set_field("length", Value::from(num + 1));
+                            self.set_str_field("length", Value::from(num + 1));
                         }
                     }
                 }
             }
 
             // Symbols get saved into a different bucket to general properties
-            if field.is_symbol() {
-                obj.borrow_mut().set(field, val.clone());
-            } else {
-                obj.borrow_mut()
-                    .set(Value::from(field.to_string()), val.clone());
-            }
+            match field {
+                Value::Symbol(ref symbol) => obj
+                    .borrow_mut()
+                    .set(PropertyKey::from(symbol.clone()), val.clone()),
+                _ => obj.borrow_mut().set(
+                    PropertyKey::from(interpreter.to_string(&field).unwrap()),
+                    val.clone(),
+                ),
+            };
         }
 
         val
@@ -727,7 +757,7 @@ impl Value {
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters
-        new_func_val.set_field("length", Value::from(length));
+        new_func_val.set_str_field("length", Value::from(length));
         new_func_val
     }
 }

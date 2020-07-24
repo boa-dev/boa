@@ -15,7 +15,7 @@ use crate::{
     builtins::{
         array::Array,
         object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
-        property::Property,
+        property::{Property, PropertyKey},
         value::{RcString, ResultValue, Value},
     },
     environment::function_environment_record::BindingStatus,
@@ -379,7 +379,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let mut length = Property::default();
     length = length.writable(true).value(Value::from(len));
     // Define length as a property
-    obj.define_own_property("length".to_string(), length);
+    obj.define_own_property(&PropertyKey::from(RcString::from("length")), length);
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");

@@ -189,8 +189,8 @@ pub fn main() -> Result<(), std::io::Error> {
             }
         } else {
             match forward_val(&mut engine, &buffer) {
-                Ok(v) => print!("{}", v.display()),
-                Err(v) => eprint!("{}", v.display()),
+                Ok(v) => print!("{}", v),
+                Err(v) => eprint!("{}", v),
             }
         }
     }
@@ -208,8 +208,8 @@ pub fn main() -> Result<(), std::io::Error> {
                 }
             } else {
                 match forward_val(&mut engine, buffer.trim_end()) {
-                    Ok(v) => println!("{}", v.display()),
-                    Err(v) => eprintln!("{}", v.display()),
+                    Ok(v) => println!("{}", v),
+                    Err(v) => eprintln!("{}", v),
                 }
             }
 

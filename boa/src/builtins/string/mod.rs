@@ -70,7 +70,7 @@ impl String {
 
         let length = string.chars().count();
 
-        this.set_field("length", Value::from(length as i32));
+        this.set_str_field("length", Value::from(length as i32));
 
         this.set_data(ObjectData::String(string.clone()));
 

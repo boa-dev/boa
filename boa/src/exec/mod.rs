@@ -26,7 +26,7 @@ use crate::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
         number::{f64_to_int32, f64_to_uint32},
         object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
-        property::Property,
+        property::PropertyKey,
         value::{RcBigInt, RcString, ResultValue, Type, Value},
         BigInt, Number,
     },
@@ -147,8 +147,8 @@ impl Interpreter {
 
         let val = Value::from(new_func);
         val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
-        val.set_field(PROTOTYPE, proto);
-        val.set_field("length", Value::from(params_len));
+        val.set_str_field(PROTOTYPE, proto);
+        val.set_str_field("length", Value::from(params_len));
 
         val
     }
@@ -453,23 +453,21 @@ impl Interpreter {
     ///
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_property_key(&mut self, value: &Value) -> ResultValue {
+    pub(crate) fn to_property_key(&mut self, value: &Value) -> Result<PropertyKey, Value> {
         let key = self.to_primitive(value, PreferredType::String)?;
-        if key.is_symbol() {
-            Ok(key)
-        } else {
-            self.to_string(&key).map(Value::from)
+        match key {
+            Value::Symbol(ref symbol) => Ok(PropertyKey::from(symbol.clone())),
+            _ => {
+                let string = self.to_string(&key)?;
+                return Ok(PropertyKey::from(string));
+            }
         }
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty
-    pub(crate) fn has_property(&self, obj: &Value, key: &Value) -> bool {
+    pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
-            if !Property::is_property_key(key) {
-                false
-            } else {
-                obj.has_property(key)
-            }
+            obj.has_property(key)
         } else {
             false
         }
@@ -573,11 +571,13 @@ impl Interpreter {
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
                 .obj()
                 .run(self)?
-                .set_field(get_const_field_node.field(), value)),
-            Node::GetField(ref get_field) => Ok(get_field
-                .obj()
-                .run(self)?
-                .set_field(get_field.field().run(self)?, value)),
+                .set_str_field(get_const_field_node.field(), value)),
+            Node::GetField(ref get_field) => {
+                Ok(get_field
+                    .obj()
+                    .run(self)?
+                    .set_field(get_field.field().run(self)?, value, self))
+            }
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }

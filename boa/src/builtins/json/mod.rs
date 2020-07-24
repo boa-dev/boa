@@ -53,7 +53,7 @@ impl Json {
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::new_object(None);
-                        holder.set_field(Value::from(""), j);
+                        holder.set_str_field("", j);
                         Self::walk(reviver, ctx, &mut holder, Value::from(""))
                     }
                     _ => Ok(j),
@@ -78,7 +78,7 @@ impl Json {
                 let v = Self::walk(reviver, ctx, &mut value, Value::from(key.as_str()));
                 match v {
                     Ok(v) if !v.is_undefined() => {
-                        value.set_field(Value::from(key.as_str()), v);
+                        value.set_str_field(key.as_str(), v);
                     }
                     Ok(_) => {
                         value.remove_property(key.as_str());
