@@ -12,7 +12,7 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::{InputElement, TokenKind};
+use crate::syntax::lexer::{InputElement, TokenKind, Token};
 use crate::{
     syntax::{
         ast::{
@@ -83,7 +83,7 @@ where
         cursor.set_goal(InputElement::Div);
 
         // Arrow function
-        match cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
@@ -131,20 +131,41 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek(false)? {
-            match tok.kind() {
-                TokenKind::Punctuator(Punctuator::Assign) => {
-                    cursor.next(false)?.expect("= token vanished"); // Consume the token.
-                    lhs = Assign::new(lhs, self.parse(cursor)?).into();
-                }
-                TokenKind::Punctuator(p) if p.as_binop().is_some() => {
-                    cursor.next(false)?.expect("Token vanished"); // Consume the token.
+        println!("LHS: {:?}", lhs);
 
-                    let expr = self.parse(cursor)?;
-                    let binop = p.as_binop().expect("binop disappeared");
-                    lhs = BinOp::new(binop, lhs, expr).into();
+        let mut line_terminator: Option<Token> = None;
+
+        loop { // Loop to skip line terminators, cannot skip using cursor.peek() as this might remove a line terminator needed by a subsequent parse.
+            if let Some(tok) = cursor.peek(false)? { 
+                match tok.kind() {
+                    TokenKind::Punctuator(Punctuator::Assign) => {
+                        cursor.next(false)?.expect("= token vanished"); // Consume the token.
+                        lhs = Assign::new(lhs, self.parse(cursor)?).into();
+                        println!("Assign: {:?}", lhs);
+                        break;
+                    }
+                    TokenKind::Punctuator(p) if p.as_binop().is_some() => {
+                        cursor.next(false)?.expect("Token vanished"); // Consume the token.
+
+                        let expr = self.parse(cursor)?;
+                        let binop = p.as_binop().expect("binop disappeared");
+                        lhs = BinOp::new(binop, lhs, expr).into();
+                        println!("Binary Op: {:?}", lhs);
+                        break;
+                    }
+                    TokenKind::LineTerminator => {
+                        line_terminator = Some(tok);
+                        cursor.next(false)?.expect("Line terminator vanished");
+                    }
+                    _ => {
+                        if let Some(lt) = line_terminator {
+                            cursor.push_back(lt);
+                        }
+                        break;
+                    }
                 }
-                _ => {}
+            } else {
+                break;
             }
         }
 

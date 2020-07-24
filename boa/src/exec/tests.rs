@@ -1238,6 +1238,8 @@ fn not_a_function() {
 
 #[test]
 fn assignment_to_non_assignable() {
+    // Relates to the behaviour described at 
+    // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
@@ -1261,4 +1263,55 @@ fn assignment_to_non_assignable() {
     assert_eq!(forward(&mut engine, "3 &&= 5"), "SyntaxError");
     assert_eq!(forward(&mut engine, "3 ||= 5"), "SyntaxError");
     assert_eq!(forward(&mut engine, "3 ??= 5"), "SyntaxError");
+}
+
+#[test]
+fn assignment_line_terminator() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+    let a = 3;
+
+    a = 
+    5;
+
+    a
+    "#;
+
+    assert_eq!(forward(&mut engine, init), "5");
+}
+
+#[test]
+fn assignment_multiline_terminator() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+    let a = 3;
+
+
+
+
+
+    a = 
+
+
+
+
+
+
+
+    
+    5;
+
+
+
+
+
+
+    a
+    "#;
+
+    assert_eq!(forward(&mut engine, init), "5");
 }
