@@ -78,6 +78,7 @@ pub enum ObjectData {
     Symbol(RcSymbol),
     Error,
     Ordinary,
+    Global,
 }
 
 impl Display for ObjectData {
@@ -97,6 +98,7 @@ impl Display for ObjectData {
                 Self::Boolean(_) => "Boolean",
                 Self::Number(_) => "Number",
                 Self::BigInt(_) => "BigInt",
+                Self::Global => "Global",
             }
         )
     }

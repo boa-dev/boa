@@ -36,6 +36,10 @@ impl Realm {
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
         let global = Value::new_object(None);
+
+        // Allow identification of the global object easily
+        global.set_data(builtins::object::ObjectData::Global);
+
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = new_global_environment(global.clone(), global.clone());
 
