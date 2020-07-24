@@ -383,7 +383,7 @@ impl Object {
         }
     }
 
-    /// Checks if it a `BigInt` object.
+    /// Checks if it a `RegExp` object.
     #[inline]
     pub fn is_regexp(&self) -> bool {
         matches!(self.data, ObjectData::RegExp(_))
