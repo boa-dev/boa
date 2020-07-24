@@ -474,8 +474,11 @@ impl RegExp {
         Ok(result)
     }
 
-    /// Create a new `RegExp` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `RegExp` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         // Create prototype
         let prototype = Value::new_object(Some(global));
         prototype
@@ -497,7 +500,7 @@ impl RegExp {
         // make_builtin_fn(Self::get_sticky, "sticky", &prototype, 0);
         // make_builtin_fn(Self::get_unicode, "unicode", &prototype, 0);
 
-        make_constructor_fn(
+        let regexp = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_regexp,
@@ -505,14 +508,8 @@ impl RegExp {
             prototype,
             true,
             true,
-        )
-    }
+        );
 
-    /// Initialise the `RegExp` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, regexp)
     }
 }
