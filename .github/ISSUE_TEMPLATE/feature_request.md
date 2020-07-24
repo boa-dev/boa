@@ -1,6 +1,6 @@
 ---
 name: "\U0001F680 Feature request"
-about: Suggest an idea for this project
+about: Suggest a new ECMAScript feature to be implemented, or a new capability of the engine.
 title: ''
 labels: enhancement
 assignees: ''

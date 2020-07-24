@@ -999,9 +999,12 @@ impl String {
         RegExp::match_all(&re, ctx.to_string(this)?.to_string())
     }
 
-    /// Create a new `String` object.
-    pub(crate) fn create(global: &Value) -> Value {
-        // Create prototype
+    /// Initialise the `String` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        // Create `String` `prototype`
         let prototype = Value::new_object(Some(global));
         let length = Property::default().value(Value::from(0));
 
@@ -1032,21 +1035,15 @@ impl String {
         make_builtin_fn(Self::match_all, "matchAll", &prototype, 1);
         make_builtin_fn(Self::replace, "replace", &prototype, 2);
 
-        make_constructor_fn(
+        let string_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_string,
             global,
             prototype,
             true,
-        )
-    }
+        );
 
-    /// Initialise the `String` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, string_object)
     }
 }

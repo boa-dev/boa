@@ -74,28 +74,26 @@ impl Error {
         Ok(Value::from(format!("{}: {}", name, message)))
     }
 
-    /// Create a new `Error` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the global object with the `Error` object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         let prototype = Value::new_object(Some(global));
-        prototype.set_str_field("message", Value::from(""));
+        prototype.set_str_field("name", Self::NAME);
+        prototype.set_str_field("message", "");
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
-        make_constructor_fn(
+        let error_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_error,
             global,
             prototype,
             true,
-        )
-    }
+        );
 
-    /// Initialise the global object with the `Error` object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, error_object)
     }
 }

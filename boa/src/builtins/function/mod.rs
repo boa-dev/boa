@@ -409,12 +409,6 @@ pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultVa
     Ok(this.clone())
 }
 
-pub fn create(global: &Value) -> Value {
-    let prototype = Value::new_object(Some(global));
-
-    make_constructor_fn("Function", 1, make_function, global, prototype, true)
-}
-
 /// Creates a new constructor function
 ///
 /// This utility function handling linking the new Constructor to the prototype.
@@ -510,6 +504,10 @@ where
 #[inline]
 pub fn init(global: &Value) -> (&str, Value) {
     let _timer = BoaProfiler::global().start_event("function", "init");
+    let prototype = Value::new_object(Some(global));
 
-    ("Function", create(global))
+    let function_object =
+        make_constructor_fn("Function", 1, make_function, global, prototype, true);
+
+    ("Function", function_object)
 }

@@ -3,13 +3,14 @@
 mod array;
 mod block;
 mod break_node;
+mod call;
 mod conditional;
 mod declaration;
 mod exception;
-mod expression;
 mod field;
 mod identifier;
 mod iteration;
+mod new;
 mod object;
 mod operator;
 mod return_smt;
@@ -28,7 +29,7 @@ use crate::{
         object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
         property::PropertyKey,
         value::{RcBigInt, RcString, ResultValue, Type, Value},
-        BigInt, Number,
+        BigInt, Console, Number,
     },
     realm::Realm,
     syntax::ast::{
@@ -69,6 +70,9 @@ pub struct Interpreter {
 
     /// This is for generating an unique internal `Symbol` hash.
     symbol_count: u32,
+
+    /// console object state.
+    console: Console,
 }
 
 impl Interpreter {
@@ -78,6 +82,7 @@ impl Interpreter {
             state: InterpreterState::Executing,
             realm,
             symbol_count: 0,
+            console: Console::default(),
         }
     }
 
@@ -168,7 +173,7 @@ impl Interpreter {
                 }
                 self.throw_type_error("not a function")
             }
-            _ => Err(Value::undefined()),
+            _ => self.throw_type_error("not a function"),
         }
     }
 
@@ -611,6 +616,16 @@ impl Interpreter {
             Ok(value)
         }
     }
+
+    /// A helper function for getting a immutable reference to the `console` object.
+    pub(crate) fn console(&self) -> &Console {
+        &self.console
+    }
+
+    /// A helper function for getting a mutable reference to the `console` object.
+    pub(crate) fn console_mut(&mut self) -> &mut Console {
+        &mut self.console
+    }
 }
 
 impl Executable for Node {
@@ -630,7 +645,7 @@ impl Executable for Node {
             Node::Identifier(ref identifier) => identifier.run(interpreter),
             Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
             Node::GetField(ref get_field) => get_field.run(interpreter),
-            Node::Call(ref expr) => expr.run(interpreter),
+            Node::Call(ref call) => call.run(interpreter),
             Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
             Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
@@ -641,7 +656,7 @@ impl Executable for Node {
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref decl) => decl.run(interpreter),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionExpr(ref expr) => expr.run(interpreter),
+            Node::FunctionExpr(ref function_expr) => function_expr.run(interpreter),
             Node::ArrowFunctionDecl(ref decl) => decl.run(interpreter),
             Node::BinOp(ref op) => op.run(interpreter),
             Node::UnaryOp(ref op) => op.run(interpreter),

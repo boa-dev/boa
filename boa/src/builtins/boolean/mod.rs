@@ -96,8 +96,11 @@ impl Boolean {
         Ok(Value::from(Self::this_boolean_value(this, ctx)?))
     }
 
-    /// Create a new `Boolean` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `Boolean` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         // Create Prototype
         // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
         let prototype = Value::new_object(Some(global));
@@ -105,21 +108,15 @@ impl Boolean {
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
-        make_constructor_fn(
+        let boolean_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::construct_boolean,
             global,
             prototype,
             true,
-        )
-    }
+        );
 
-    /// Initialise the `Boolean` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, boolean_object)
     }
 }

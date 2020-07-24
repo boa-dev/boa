@@ -1,11 +1,6 @@
 #![allow(clippy::float_cmp)]
 
-use crate::{
-    builtins::{Number, Value},
-    exec::Interpreter,
-    forward, forward_val,
-    realm::Realm,
-};
+use crate::{builtins::Number, exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[test]
 fn integer_number_primitive_to_number_object() {
@@ -17,13 +12,6 @@ fn integer_number_primitive_to_number_object() {
     "#;
 
     assert_eq!(forward(&mut engine, scenario), "true");
-}
-
-#[test]
-fn check_number_constructor_is_function() {
-    let global = Value::new_object(None);
-    let number_constructor = Number::create(&global);
-    assert_eq!(number_constructor.is_function(), true);
 }
 
 #[test]
@@ -688,4 +676,179 @@ fn parse_float_too_many_args() {
     let mut engine = Interpreter::new(realm);
 
     assert_eq!(&forward(&mut engine, "parseFloat(\"100.5\", 10)"), "100.5");
+}
+
+#[test]
+fn global_is_finite() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("false", &forward(&mut engine, "isFinite(Infinity)"));
+    assert_eq!("false", &forward(&mut engine, "isFinite(NaN)"));
+    assert_eq!("false", &forward(&mut engine, "isFinite(-Infinity)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(0)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(2e64)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(910)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite(null)"));
+    assert_eq!("true", &forward(&mut engine, "isFinite('0')"));
+    assert_eq!("false", &forward(&mut engine, "isFinite()"));
+}
+
+#[test]
+fn global_is_nan() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "isNaN(NaN)"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('NaN')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN(undefined)"));
+    assert_eq!("true", &forward(&mut engine, "isNaN({})"));
+    assert_eq!("false", &forward(&mut engine, "isNaN(true)"));
+    assert_eq!("false", &forward(&mut engine, "isNaN(null)"));
+    assert_eq!("false", &forward(&mut engine, "isNaN(37)"));
+    assert_eq!("false", &forward(&mut engine, "isNaN('37')"));
+    assert_eq!("false", &forward(&mut engine, "isNaN('37.37')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('37,5')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('123ABC')"));
+    // Incorrect due to ToNumber implementation inconsistencies.
+    //assert_eq!("false", &forward(&mut engine, "isNaN('')"));
+    //assert_eq!("false", &forward(&mut engine, "isNaN(' ')"));
+    assert_eq!("true", &forward(&mut engine, "isNaN('blabla')"));
+}
+
+#[test]
+fn number_is_finite() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(Infinity)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(NaN)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(-Infinity)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(0)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(2e64)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(910)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(null)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite('0')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite()"));
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite({})"));
+    assert_eq!("true", &forward(&mut engine, "Number.isFinite(Number(5))"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isFinite(new Number(5))")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isFinite(new Number(NaN))")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isFinite(BigInt(5))"));
+}
+
+#[test]
+fn number_is_integer() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(0)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(1)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(-100000)"));
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isInteger(99999999999999999999999)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(0.1)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(Math.PI)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(NaN)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(Infinity)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(-Infinity)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger('10')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(true)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger(false)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger([1])"));
+    assert_eq!("true", &forward(&mut engine, "Number.isInteger(5.0)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(5.000000000000001)")
+    );
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isInteger(5.0000000000000001)")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(Number(5.000000000000001))")
+    );
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isInteger(Number(5.0000000000000001))")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isInteger()"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isInteger(new Number(5))")
+    );
+}
+
+#[test]
+fn number_is_nan() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(NaN)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(Number.NaN)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(0 / 0)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(undefined)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN({})"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(true)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(null)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(37)"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('37')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('37.37')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('37,5')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('123ABC')"));
+    // Incorrect due to ToNumber implementation inconsistencies.
+    //assert_eq!("false", &forward(&mut engine, "Number.isNaN('')"));
+    //assert_eq!("false", &forward(&mut engine, "Number.isNaN(' ')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN('blabla')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(Number(5))"));
+    assert_eq!("true", &forward(&mut engine, "Number.isNaN(Number(NaN))"));
+    assert_eq!("false", &forward(&mut engine, "Number.isNaN(BigInt(5))"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isNaN(new Number(5))")
+    );
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isNaN(new Number(NaN))")
+    );
+}
+
+#[test]
+fn number_is_safe_integer() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!("true", &forward(&mut engine, "Number.isSafeInteger(3)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isSafeInteger(Math.pow(2, 53))")
+    );
+    assert_eq!(
+        "true",
+        &forward(&mut engine, "Number.isSafeInteger(Math.pow(2, 53) - 1)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger(NaN)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isSafeInteger(Infinity)")
+    );
+    assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger('3')"));
+    assert_eq!("false", &forward(&mut engine, "Number.isSafeInteger(3.1)"));
+    assert_eq!("true", &forward(&mut engine, "Number.isSafeInteger(3.0)"));
+    assert_eq!(
+        "false",
+        &forward(&mut engine, "Number.isSafeInteger(new Number(5))")
+    );
 }

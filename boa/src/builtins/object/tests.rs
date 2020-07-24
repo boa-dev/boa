@@ -1,6 +1,79 @@
 use crate::{exec::Interpreter, forward, realm::Realm};
 
 #[test]
+fn object_create_with_regular_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+        const foo = { a: 5 };
+        const bar = Object.create(foo);
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "bar.a"), "5");
+    assert_eq!(forward(&mut engine, "Object.create.length"), "2");
+}
+
+#[test]
+fn object_create_with_undefined() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+        try {
+            const bar = Object.create();
+        } catch (err) {
+            err.toString()
+        }
+        "#;
+
+    let result = forward(&mut engine, init);
+    assert_eq!(
+        result,
+        "TypeError: Object prototype may only be an Object or null: undefined"
+    );
+}
+
+#[test]
+fn object_create_with_number() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+        try {
+            const bar = Object.create(5);
+        } catch (err) {
+            err.toString()
+        }
+        "#;
+
+    let result = forward(&mut engine, init);
+    assert_eq!(
+        result,
+        "TypeError: Object prototype may only be an Object or null: 5"
+    );
+}
+
+#[test]
+#[ignore]
+// to test on __proto__ somehow. __proto__ getter is not working as expected currently
+fn object_create_with_function() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+        const x = function (){};
+        const bar = Object.create(5);
+        bar.__proto__
+        "#;
+
+    let result = forward(&mut engine, init);
+    assert_eq!(result, "...something on __proto__...");
+}
+
+#[test]
 fn object_is() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

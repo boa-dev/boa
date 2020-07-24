@@ -215,6 +215,40 @@ fn get_types() {
 }
 
 #[test]
+fn to_string() {
+    let f64_to_str = |f| Value::Rational(f).to_string();
+
+    assert_eq!(f64_to_str(f64::NAN), "NaN");
+    assert_eq!(f64_to_str(0.0), "0");
+    assert_eq!(f64_to_str(f64::INFINITY), "Infinity");
+    assert_eq!(f64_to_str(f64::NEG_INFINITY), "-Infinity");
+    assert_eq!(f64_to_str(90.12), "90.12");
+    assert_eq!(f64_to_str(111111111111111111111.0), "111111111111111110000");
+    assert_eq!(
+        f64_to_str(1111111111111111111111.0),
+        "1.1111111111111111e+21"
+    );
+
+    assert_eq!(f64_to_str(-90.12), "-90.12");
+
+    assert_eq!(
+        f64_to_str(-111111111111111111111.0),
+        "-111111111111111110000"
+    );
+    assert_eq!(
+        f64_to_str(-1111111111111111111111.0),
+        "-1.1111111111111111e+21"
+    );
+
+    assert_eq!(f64_to_str(0.0000001), "1e-7");
+    assert_eq!(f64_to_str(0.000001), "0.000001");
+    assert_eq!(f64_to_str(0.0000002), "2e-7");
+    assert_eq!(f64_to_str(-0.0000001), "-1e-7");
+
+    assert_eq!(f64_to_str(3e50), "3e+50");
+}
+
+#[test]
 fn add_number_and_number() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

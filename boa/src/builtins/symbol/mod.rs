@@ -98,27 +98,25 @@ impl Symbol {
         Ok(Value::from(format!("Symbol({})", description)))
     }
 
-    /// Create a new `Symbol` object.
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `Symbol` object on the global object.
+    #[inline]
+    pub fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         // Create prototype object
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
-        make_constructor_fn(
+
+        let symbol_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::call,
             global,
             prototype,
             false,
-        )
-    }
+        );
 
-    /// Initialise the `Symbol` object on the global object.
-    #[inline]
-    pub fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, symbol_object)
     }
 }

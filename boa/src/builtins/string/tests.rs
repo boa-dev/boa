@@ -1,38 +1,32 @@
-use super::*;
 use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 
+///TODO: re-enable when getProperty() is finished;
 #[test]
-fn check_string_constructor_is_function() {
-    let global = Value::new_object(None);
-    let string_constructor = String::create(&global);
-    assert_eq!(string_constructor.is_function(), true);
+#[ignore]
+fn length() {
+    //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+    const a = new String(' ');
+    const b = new String('\ud834\udf06');
+    const c = new String(' \b ');
+    cosnt d = new String('中文长度')
+    "#;
+    eprintln!("{}", forward(&mut engine, init));
+    let a = forward(&mut engine, "a.length");
+    assert_eq!(a, "1");
+    let b = forward(&mut engine, "b.length");
+    // TODO: fix this
+    // unicode surrogate pair length should be 1
+    // utf16/usc2 length should be 2
+    // utf8 length should be 4
+    assert_eq!(b, "2");
+    let c = forward(&mut engine, "c.length");
+    assert_eq!(c, "3");
+    let d = forward(&mut engine, "d.length");
+    assert_eq!(d, "4");
 }
-
-// #[test]
-// TODO: re-enable when getProperty() is finished;
-// fn length() {
-//     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
-//     let mut engine = Interpreter::new();
-//     let init = r#"
-//     const a = new String(' ');
-//     const b = new String('\ud834\udf06');
-//     const c = new String(' \b ');
-//     cosnt d = new String('中文长度')
-//     "#;
-//     eprintln!("{}", forward(&mut engine, init));
-//     let a = forward(&mut engine, "a.length");
-//     assert_eq!(a, String::from("1"));
-//     let b = forward(&mut engine, "b.length");
-//     // TODO: fix this
-//     // unicode surrogate pair length should be 1
-//     // utf16/usc2 length should be 2
-//     // utf8 length should be 4
-//     //assert_eq!(b, String::from("2"));
-//     let c = forward(&mut engine, "c.length");
-//     assert_eq!(c, String::from("3"));
-//     let d = forward(&mut engine, "d.length");
-//     assert_eq!(d, String::from("4"));
-// }
 
 #[test]
 fn new_string_has_length() {

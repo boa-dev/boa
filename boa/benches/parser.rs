@@ -111,11 +111,35 @@ fn long_file_parser(c: &mut Criterion) {
     fs::remove_file(FILE_NAME).unwrap_or_else(|_| panic!("could not remove {}", FILE_NAME));
 }
 
+static GOAL_SYMBOL_SWITCH: &str = r#"
+function foo(regex, num) {}
+
+let i = 0;
+while (i < 1000000) {
+    foo(/ab+c/, 5.0/5);
+    i++;
+}
+"#;
+
+fn goal_symbol_switch(c: &mut Criterion) {
+    // We include the lexing in the benchmarks, since they will get together soon, anyways.
+
+    c.bench_function("Goal Symbols (Parser)", move |b| {
+        b.iter(|| {
+            let mut lexer = Lexer::new(black_box(GOAL_SYMBOL_SWITCH));
+            lexer.lex().expect("failed to lex");
+
+            Parser::new(&black_box(lexer.tokens)).parse_all()
+        })
+    });
+}
+
 criterion_group!(
     parser,
     expression_parser,
     hello_world_parser,
     for_loop_parser,
     long_file_parser,
+    goal_symbol_switch,
 );
 criterion_main!(parser);

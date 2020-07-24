@@ -177,19 +177,15 @@ impl Display for Value {
                 None => write!(f, "Symbol()"),
             },
             Self::String(ref v) => write!(f, "\"{}\"", v),
-            Self::Rational(v) => write!(
-                f,
-                "{}",
-                match v {
-                    _ if v.is_nan() => "NaN".to_string(),
-                    _ if v.is_infinite() && v.is_sign_negative() => "-Infinity".to_string(),
-                    _ if v.is_infinite() => "Infinity".to_string(),
-                    _ => v.to_string(),
-                }
-            ),
+            Self::Rational(v) => format_rational(*v, f),
             Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
             Self::Integer(v) => write!(f, "{}", v),
             Self::BigInt(ref num) => write!(f, "{}n", num),
         }
     }
+}
+
+fn format_rational(v: f64, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let mut buffer = ryu_js::Buffer::new();
+    write!(f, "{}", buffer.format(v))
 }

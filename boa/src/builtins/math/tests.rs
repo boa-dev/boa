@@ -184,6 +184,7 @@ fn ceil() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn clz32() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -280,6 +281,7 @@ fn exp() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn expm1() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -331,6 +333,7 @@ fn floor() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn fround() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -364,6 +367,7 @@ fn fround() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn hypot() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -383,20 +387,21 @@ fn hypot() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
     let d = forward_val(&mut engine, "d").unwrap();
-    let e = forward(&mut engine, "e");
-    let f = forward(&mut engine, "f");
+    let e = forward_val(&mut engine, "e").unwrap();
+    let f = forward_val(&mut engine, "f").unwrap();
     let g = forward_val(&mut engine, "g").unwrap();
 
     assert_eq!(a.to_number(), 0f64);
     assert_eq!(b.to_number(), 5f64);
     assert_eq!(c.to_number(), 13f64);
     assert_eq!(d.to_number(), 7.071_067_811_865_475_5);
-    assert_eq!(e, String::from("NaN"));
-    assert_eq!(f, String::from("Infinity"));
+    assert_eq!(e.to_number(), 8.774964387392123);
+    assert!(f.to_number().is_infinite());
     assert_eq!(g.to_number(), 12f64);
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn imul() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -448,6 +453,7 @@ fn log() {
 }
 
 #[test]
+#[allow(clippy::many_single_char_names)]
 fn log1p() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

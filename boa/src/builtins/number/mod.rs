@@ -555,8 +555,193 @@ impl Number {
         }
     }
 
-    /// Create a new `Number` object
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Builtin javascript 'isFinite(number)' function.
+    ///
+    /// Converts the argument to a number, throwing a type error if the conversion is invalid.
+    ///
+    /// If the number is NaN, +∞, or -∞ false is returned.
+    ///
+    /// Otherwise true is returned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
+    pub(crate) fn global_is_finite(
+        _this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> ResultValue {
+        if let Some(val) = args.get(0) {
+            let number = ctx.to_number(val)?;
+            Ok(number.is_finite().into())
+        } else {
+            Ok(false.into())
+        }
+    }
+
+    /// Builtin javascript 'isNaN(number)' function.
+    ///
+    /// Converts the argument to a number, throwing a type error if the conversion is invalid.
+    ///
+    /// If the number is NaN true is returned.
+    ///
+    /// Otherwise false is returned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
+    pub(crate) fn global_is_nan(
+        _this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> ResultValue {
+        if let Some(val) = args.get(0) {
+            let number = ctx.to_number(val)?;
+            Ok(number.is_nan().into())
+        } else {
+            Ok(true.into())
+        }
+    }
+
+    /// `Number.isFinite( number )`
+    ///
+    /// Checks if the argument is a number, returning false if it isn't.
+    ///
+    /// If the number is NaN, +∞, or -∞ false is returned.
+    ///
+    /// Otherwise true is returned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.isfinite
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
+    pub(crate) fn number_is_finite(
+        _this: &Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        Ok(Value::from(if let Some(val) = args.get(0) {
+            match val {
+                Value::Integer(_) => true,
+                Value::Rational(number) => number.is_finite(),
+                _ => false,
+            }
+        } else {
+            false
+        }))
+    }
+
+    /// `Number.isInteger( number )`
+    ///
+    /// Checks if the argument is an integer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.isinteger
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
+    pub(crate) fn number_is_integer(
+        _this: &Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        Ok(args.get(0).map_or(false, Self::is_integer).into())
+    }
+
+    /// `Number.isNaN( number )`
+    ///
+    /// Checks if the argument is a number, returning false if it isn't.
+    ///
+    /// If the number is NaN true is returned.
+    ///
+    /// Otherwise false is returned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+    pub(crate) fn number_is_nan(
+        _this: &Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        Ok(Value::from(if let Some(val) = args.get(0) {
+            match val {
+                Value::Integer(_) => false,
+                Value::Rational(number) => number.is_nan(),
+                _ => false,
+            }
+        } else {
+            false
+        }))
+    }
+
+    /// `Number.isSafeInteger( number )`
+    ///
+    /// Checks if the argument is an integer, returning false if it isn't.
+    ///
+    /// If abs(number) ≤ MAX_SAFE_INTEGER true is returned.
+    ///
+    /// Otherwise false is returned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+    pub(crate) fn is_safe_integer(
+        _this: &Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> ResultValue {
+        Ok(Value::from(match args.get(0) {
+            Some(Value::Integer(_)) => true,
+            Some(Value::Rational(number)) if Self::is_float_integer(*number) => {
+                number.abs() <= Number::MAX_SAFE_INTEGER
+            }
+            _ => false,
+        }))
+    }
+
+    /// Checks if the argument is a finite integer Number value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isinteger
+    #[inline]
+    pub(crate) fn is_integer(val: &Value) -> bool {
+        match val {
+            Value::Integer(_) => true,
+            Value::Rational(number) => Number::is_float_integer(*number),
+            _ => false,
+        }
+    }
+
+    /// Checks if the float argument is an integer.
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn is_float_integer(number: f64) -> bool {
+        number.is_finite() && number.abs().floor() == number.abs()
+    }
+
+    /// Initialise the `Number` object on the global object.
+    #[inline]
+    pub(crate) fn init(global: &Value) -> (&str, Value) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_exponential, "toExponential", &prototype, 1);
@@ -574,7 +759,10 @@ impl Number {
             PARSE_FLOAT_MAX_ARG_COUNT,
         );
 
-        let number = make_constructor_fn(
+        make_builtin_fn(Self::global_is_finite, "isFinite", global, 1);
+        make_builtin_fn(Self::global_is_nan, "isNaN", global, 1);
+
+        let number_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_number,
@@ -583,10 +771,15 @@ impl Number {
             true,
         );
 
+        make_builtin_fn(Self::number_is_finite, "isFinite", &number_object, 1);
+        make_builtin_fn(Self::number_is_nan, "isNaN", &number_object, 1);
+        make_builtin_fn(Self::is_safe_integer, "isSafeInteger", &number_object, 1);
+        make_builtin_fn(Self::number_is_integer, "isInteger", &number_object, 1);
+
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
         {
-            let mut properties = number.as_object_mut().expect("'Number' object");
+            let mut properties = number_object.as_object_mut().expect("'Number' object");
             properties.insert_field("EPSILON", Value::from(f64::EPSILON));
             properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
             properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
@@ -597,15 +790,7 @@ impl Number {
             properties.insert_field("NaN", Value::from(f64::NAN));
         }
 
-        number
-    }
-
-    /// Initialise the `Number` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        (Self::NAME, number_object)
     }
 
     /// The abstract operation Number::equal takes arguments
