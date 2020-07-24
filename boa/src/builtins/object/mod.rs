@@ -19,7 +19,7 @@ use crate::{
         map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
-        BigInt,
+        BigInt, RegExp,
     },
     exec::Interpreter,
     BoaProfiler,
@@ -71,6 +71,7 @@ pub struct Object {
 pub enum ObjectData {
     Array,
     Map(OrderedMap<Value, Value>),
+    RegExp(RegExp),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -87,8 +88,9 @@ impl Display for ObjectData {
             f,
             "{}",
             match self {
-                Self::Function(_) => "Function",
                 Self::Array => "Array",
+                Self::Function(_) => "Function",
+                Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
                 Self::String(_) => "String",
                 Self::Symbol(_) => "Symbol",
@@ -377,6 +379,20 @@ impl Object {
     pub fn as_bigint(&self) -> Option<&BigInt> {
         match self.data {
             ObjectData::BigInt(ref bigint) => Some(bigint),
+            _ => None,
+        }
+    }
+
+    /// Checks if it a `BigInt` object.
+    #[inline]
+    pub fn is_regexp(&self) -> bool {
+        matches!(self.data, ObjectData::RegExp(_))
+    }
+
+    #[inline]
+    pub fn as_regexp(&self) -> Option<&RegExp> {
+        match self.data {
+            ObjectData::RegExp(ref regexp) => Some(regexp),
             _ => None,
         }
     }
