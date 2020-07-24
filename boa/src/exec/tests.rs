@@ -1235,3 +1235,30 @@ fn not_a_function() {
     "#;
     assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
 }
+
+#[test]
+fn assignment_to_non_assignable() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    // Tests all assignment operators as per [spec] and [mdn]
+    //
+    // [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
+    // [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
+    assert_eq!(forward(&mut engine, "3 = 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 += 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 -= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 *= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 /= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 %= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 **= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 <<= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 >>= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 >>>= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 &= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 ^= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 |= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 &&= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 ||= 5"), "SyntaxError");
+    assert_eq!(forward(&mut engine, "3 ??= 5"), "SyntaxError");
+}
