@@ -1342,3 +1342,17 @@ fn assignment_multiline_terminator() {
 
     assert_eq!(forward(&mut engine, init), "5");
 }
+
+#[test]
+fn assign_to_array_decl() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    const ERR_MSG: &str =
+        "Parsing Error: Syntax Error: Syntax Error: Invalid left-hand side in assignment";
+
+    assert_eq!(forward(&mut engine, "[1] = [2]"), ERR_MSG);
+    assert_eq!(forward(&mut engine, "[3, 5] = [7, 8]"), ERR_MSG);
+    assert_eq!(forward(&mut engine, "[6, 8] = [2]"), ERR_MSG);
+    assert_eq!(forward(&mut engine, "[6] = [2, 9]"), ERR_MSG);
+}
