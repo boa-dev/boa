@@ -1356,3 +1356,14 @@ fn assign_to_array_decl() {
     assert_eq!(forward(&mut engine, "[6, 8] = [2]"), ERR_MSG);
     assert_eq!(forward(&mut engine, "[6] = [2, 9]"), ERR_MSG);
 }
+
+#[test]
+fn assign_to_object_decl() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    const ERR_MSG: &str =
+        "Parsing Error: expected token \';\', got \':\' in expression statement at line 1, col 3";
+
+    assert_eq!(forward(&mut engine, "{a: 3} = {a: 5};"), ERR_MSG);
+}
