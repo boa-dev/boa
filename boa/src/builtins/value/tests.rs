@@ -31,7 +31,7 @@ fn get_set_field() {
     // Create string and convert it to a Value
     let s = Value::from("bar");
     obj.set_str_field("foo", s);
-    assert_eq!(obj.get_field("foo").to_string(), "bar");
+    assert_eq!(obj.get_field("foo").to_string(), "\"bar\"");
 }
 
 #[test]

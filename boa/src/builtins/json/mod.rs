@@ -161,7 +161,7 @@ impl Json {
                     .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
                     .transpose()?
                 {
-                    obj_to_return.insert(field.to_string(), value);
+                    obj_to_return.insert(ctx.to_string(&field)?.to_string(), value);
                 }
             }
             Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))

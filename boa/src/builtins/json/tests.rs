@@ -34,7 +34,7 @@ fn json_stringify_remove_undefined_values_from_objects() {
         &mut engine,
         r#"JSON.stringify({ aaa: undefined, bbb: 'ccc' })"#,
     );
-    let expected = r#"{"bbb":"ccc"}"#;
+    let expected = r#""{"bbb":"ccc"}""#;
 
     assert_eq!(actual, expected);
 }
@@ -48,7 +48,7 @@ fn json_stringify_remove_function_values_from_objects() {
         &mut engine,
         r#"JSON.stringify({ aaa: () => {}, bbb: 'ccc' })"#,
     );
-    let expected = r#"{"bbb":"ccc"}"#;
+    let expected = r#""{"bbb":"ccc"}""#;
 
     assert_eq!(actual, expected);
 }
@@ -62,7 +62,7 @@ fn json_stringify_remove_symbols_from_objects() {
         &mut engine,
         r#"JSON.stringify({ aaa: Symbol(), bbb: 'ccc' })"#,
     );
-    let expected = r#"{"bbb":"ccc"}"#;
+    let expected = r#""{"bbb":"ccc"}""#;
 
     assert_eq!(actual, expected);
 }
@@ -267,7 +267,7 @@ fn json_parse_object_with_reviver() {
 
         JSON.stringify(jsonObj);"#,
     );
-    assert_eq!(result, r#"{"firstname":"boa","lastname":"interpreter"}"#);
+    assert_eq!(result, r#""{"firstname":"boa","lastname":"interpreter"}""#);
 }
 
 #[test]

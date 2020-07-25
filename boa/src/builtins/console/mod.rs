@@ -111,7 +111,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
 
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
-                formatted.push_str(&format!(" {}", rest))
+                formatted.push_str(&format!(" {}", ctx.to_string(rest)?))
             }
 
             Ok(formatted)

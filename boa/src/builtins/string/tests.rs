@@ -66,10 +66,10 @@ fn concat() {
     eprintln!("{}", forward(&mut engine, init));
 
     let a = forward(&mut engine, "hello.concat(world, nice)");
-    assert_eq!(a, "Hello, world! Have a nice day.");
+    assert_eq!(a, "\"Hello, world! Have a nice day.\"");
 
     let b = forward(&mut engine, "hello + world + nice");
-    assert_eq!(b, "Hello, world! Have a nice day.");
+    assert_eq!(b, "\"Hello, world! Have a nice day.\"");
 }
 
 #[test]
@@ -83,7 +83,7 @@ fn generic_concat() {
     eprintln!("{}", forward(&mut engine, init));
 
     let a = forward(&mut engine, "number.concat(' - 50', ' = 50')");
-    assert_eq!(a, "100 - 50 = 50");
+    assert_eq!(a, "\"100 - 50 = 50\"");
 }
 
 #[allow(clippy::result_unwrap_used)]
@@ -118,14 +118,14 @@ fn repeat() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "empty.repeat(0)"), "");
-    assert_eq!(forward(&mut engine, "empty.repeat(1)"), "");
+    assert_eq!(forward(&mut engine, "empty.repeat(0)"), "\"\"");
+    assert_eq!(forward(&mut engine, "empty.repeat(1)"), "\"\"");
 
-    assert_eq!(forward(&mut engine, "en.repeat(0)"), "");
-    assert_eq!(forward(&mut engine, "zh.repeat(0)"), "");
+    assert_eq!(forward(&mut engine, "en.repeat(0)"), "\"\"");
+    assert_eq!(forward(&mut engine, "zh.repeat(0)"), "\"\"");
 
-    assert_eq!(forward(&mut engine, "en.repeat(1)"), "english");
-    assert_eq!(forward(&mut engine, "zh.repeat(2)"), "中文中文");
+    assert_eq!(forward(&mut engine, "en.repeat(1)"), "\"english\"");
+    assert_eq!(forward(&mut engine, "zh.repeat(2)"), "\"中文中文\"");
 }
 
 #[test]
@@ -140,7 +140,7 @@ fn replace() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "a"), "2bc");
+    assert_eq!(forward(&mut engine, "a"), "\"2bc\"");
 }
 
 #[test]
@@ -163,11 +163,11 @@ fn replace_with_function() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "a"), "ecmascript is awesome!");
+    assert_eq!(forward(&mut engine, "a"), "\"ecmascript is awesome!\"");
 
-    assert_eq!(forward(&mut engine, "p1"), "o");
-    assert_eq!(forward(&mut engine, "p2"), "o");
-    assert_eq!(forward(&mut engine, "p3"), "l");
+    assert_eq!(forward(&mut engine, "p1"), "\"o\"");
+    assert_eq!(forward(&mut engine, "p2"), "\"o\"");
+    assert_eq!(forward(&mut engine, "p3"), "\"l\"");
 }
 
 #[test]
@@ -236,10 +236,10 @@ fn match_all() {
     );
 
     assert_eq!(forward(&mut engine, "groupMatches.length"), "2");
-    assert_eq!(forward(&mut engine, "groupMatches[0][1]"), "e");
-    assert_eq!(forward(&mut engine, "groupMatches[0][2]"), "st1");
-    assert_eq!(forward(&mut engine, "groupMatches[0][3]"), "1");
-    assert_eq!(forward(&mut engine, "groupMatches[1][3]"), "2");
+    assert_eq!(forward(&mut engine, "groupMatches[0][1]"), "\"e\"");
+    assert_eq!(forward(&mut engine, "groupMatches[0][2]"), "\"st1\"");
+    assert_eq!(forward(&mut engine, "groupMatches[0][3]"), "\"1\"");
+    assert_eq!(forward(&mut engine, "groupMatches[1][3]"), "\"2\"");
 
     assert_eq!(
         forward(
@@ -257,9 +257,9 @@ fn match_all() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "matches[0][0]"), "football");
+    assert_eq!(forward(&mut engine, "matches[0][0]"), "\"football\"");
     assert_eq!(forward(&mut engine, "matches[0].index"), "6");
-    assert_eq!(forward(&mut engine, "matches[1][0]"), "foosball");
+    assert_eq!(forward(&mut engine, "matches[1][0]"), "\"foosball\"");
     assert_eq!(forward(&mut engine, "matches[1].index"), "16");
 }
 
@@ -277,30 +277,33 @@ fn test_match() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "result1[0]"), "Quick Brown Fox Jumps");
-    assert_eq!(forward(&mut engine, "result1[1]"), "Brown");
-    assert_eq!(forward(&mut engine, "result1[2]"), "Jumps");
+    assert_eq!(
+        forward(&mut engine, "result1[0]"),
+        "\"Quick Brown Fox Jumps\""
+    );
+    assert_eq!(forward(&mut engine, "result1[1]"), "\"Brown\"");
+    assert_eq!(forward(&mut engine, "result1[2]"), "\"Jumps\"");
     assert_eq!(forward(&mut engine, "result1.index"), "4");
     assert_eq!(
         forward(&mut engine, "result1.input"),
-        "The Quick Brown Fox Jumps Over The Lazy Dog"
+        "\"The Quick Brown Fox Jumps Over The Lazy Dog\""
     );
 
-    assert_eq!(forward(&mut engine, "result2[0]"), "T");
-    assert_eq!(forward(&mut engine, "result2[1]"), "Q");
-    assert_eq!(forward(&mut engine, "result2[2]"), "B");
-    assert_eq!(forward(&mut engine, "result2[3]"), "F");
-    assert_eq!(forward(&mut engine, "result2[4]"), "J");
-    assert_eq!(forward(&mut engine, "result2[5]"), "O");
-    assert_eq!(forward(&mut engine, "result2[6]"), "T");
-    assert_eq!(forward(&mut engine, "result2[7]"), "L");
-    assert_eq!(forward(&mut engine, "result2[8]"), "D");
+    assert_eq!(forward(&mut engine, "result2[0]"), "\"T\"");
+    assert_eq!(forward(&mut engine, "result2[1]"), "\"Q\"");
+    assert_eq!(forward(&mut engine, "result2[2]"), "\"B\"");
+    assert_eq!(forward(&mut engine, "result2[3]"), "\"F\"");
+    assert_eq!(forward(&mut engine, "result2[4]"), "\"J\"");
+    assert_eq!(forward(&mut engine, "result2[5]"), "\"O\"");
+    assert_eq!(forward(&mut engine, "result2[6]"), "\"T\"");
+    assert_eq!(forward(&mut engine, "result2[7]"), "\"L\"");
+    assert_eq!(forward(&mut engine, "result2[8]"), "\"D\"");
 
-    assert_eq!(forward(&mut engine, "result3[0]"), "T");
+    assert_eq!(forward(&mut engine, "result3[0]"), "\"T\"");
     assert_eq!(forward(&mut engine, "result3.index"), "0");
     assert_eq!(
         forward(&mut engine, "result3.input"),
-        "The Quick Brown Fox Jumps Over The Lazy Dog"
+        "\"The Quick Brown Fox Jumps Over The Lazy Dog\""
     );
-    assert_eq!(forward(&mut engine, "result4[0]"), "B");
+    assert_eq!(forward(&mut engine, "result4[0]"), "\"B\"");
 }

@@ -6,5 +6,5 @@ fn global_this_exists_on_global_object_and_evaluates_to_an_object() {
         typeof globalThis;
         "#;
 
-    assert_eq!(&exec(scenario), "object");
+    assert_eq!(&exec(scenario), "\"object\"");
 }
