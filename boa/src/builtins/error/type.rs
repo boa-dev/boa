@@ -84,6 +84,7 @@ impl TypeError {
             global,
             prototype,
             true,
+            true,
         );
 
         (Self::NAME, type_error_object)

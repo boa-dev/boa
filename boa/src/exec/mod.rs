@@ -26,7 +26,7 @@ use crate::{
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
         number::{f64_to_int32, f64_to_uint32},
-        object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
         value::{RcBigInt, RcString, ResultValue, Type, Value},
         BigInt, Console, Number,
@@ -38,6 +38,7 @@ use crate::{
     },
     BoaProfiler,
 };
+use std::borrow::Borrow;
 use std::convert::TryFrom;
 use std::ops::Deref;
 
@@ -121,7 +122,7 @@ impl Interpreter {
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
-        let function_prototype = &self
+        let function_prototype = self
             .realm
             .environment
             .get_global_object()
@@ -148,10 +149,9 @@ impl Interpreter {
             callable,
         );
 
-        let new_func = Object::function(func);
+        let new_func = Object::function(func, function_prototype);
 
         let val = Value::from(new_func);
-        val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
         val.set_str_field(PROTOTYPE, proto);
         val.set_str_field("length", Value::from(params_len));
 
@@ -374,6 +374,37 @@ impl Interpreter {
                 let length = i32::from(&value.get_field("length"));
                 let values = (0..length)
                     .map(|idx| value.get_field(idx.to_string()))
+                    .collect();
+                return Ok(values);
+            }
+            // Check if object is a Map
+            else if let ObjectData::Map(ref map) = x.deref().borrow().data {
+                let values = map
+                    .borrow()
+                    .iter()
+                    .map(|(key, value)| {
+                        // Construct a new array containing the key-value pair
+                        let array = Value::new_object(Some(
+                            &self
+                                .realm()
+                                .environment
+                                .get_global_object()
+                                .expect("Could not get global object"),
+                        ));
+                        array.set_data(ObjectData::Array);
+                        array.as_object_mut().expect("object").set_prototype(
+                            self.realm()
+                                .environment
+                                .get_binding_value("Array")
+                                .expect("Array was not initialized")
+                                .borrow()
+                                .get_field(PROTOTYPE),
+                        );
+                        array.set_str_field("0", key);
+                        array.set_str_field("1", value);
+                        array.set_str_field("length", Value::from(2));
+                        array
+                    })
                     .collect();
                 return Ok(values);
             }

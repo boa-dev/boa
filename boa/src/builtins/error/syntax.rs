@@ -80,6 +80,7 @@ impl SyntaxError {
             global,
             prototype,
             true,
+            true,
         );
 
         (Self::NAME, syntax_error_object)

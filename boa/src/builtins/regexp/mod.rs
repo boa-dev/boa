@@ -486,6 +486,7 @@ impl RegExp {
             global,
             prototype,
             true,
+            true,
         )
     }
 

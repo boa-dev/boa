@@ -1,7 +1,7 @@
 use super::{Executable, Interpreter};
 use crate::{
     builtins::{
-        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
+        object::{ObjectData, PROTOTYPE},
         value::{ResultValue, Value},
     },
     syntax::ast::node::New,
@@ -23,7 +23,9 @@ impl Executable for New {
         }
         let this = Value::new_object(None);
         // Create a blank object, then set its __proto__ property to the [Constructor].prototype
-        this.set_internal_slot(INSTANCE_PROTOTYPE, func_object.get_field(PROTOTYPE));
+        this.as_object_mut()
+            .expect("this was not an object")
+            .set_prototype(func_object.get_field(PROTOTYPE));
 
         match func_object {
             Value::Object(ref obj) => {

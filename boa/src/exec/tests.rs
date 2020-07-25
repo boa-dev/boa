@@ -656,7 +656,7 @@ fn unary_delete() {
 #[cfg(test)]
 mod in_operator {
     use super::*;
-    use crate::{builtins::object::INSTANCE_PROTOTYPE, forward_val};
+    use crate::forward_val;
     #[test]
     fn propery_in_object() {
         let p_in_o = r#"
@@ -761,7 +761,7 @@ mod in_operator {
         "#;
         forward(&mut engine, scenario);
         let a = forward_val(&mut engine, "bar").unwrap();
-        assert!(a.get_internal_slot(INSTANCE_PROTOTYPE).is_object(), true);
+        assert!(a.as_object().unwrap().prototype().is_object());
     }
 }
 
@@ -1121,7 +1121,7 @@ fn check_this_binding_in_object_literal() {
             a: 3,
             bar: function () { return this.a + 5 }
         };
-    
+
         foo.bar()
         "#;
 

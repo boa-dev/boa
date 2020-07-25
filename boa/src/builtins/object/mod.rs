@@ -16,6 +16,7 @@
 use crate::{
     builtins::{
         function::Function,
+        map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
         BigInt,
@@ -43,8 +44,8 @@ mod tests;
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
-/// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.
-pub static INSTANCE_PROTOTYPE: &str = "__proto__";
+// /// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.
+// pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 
 /// The internal representation of an JavaScript object.
 #[derive(Debug, Trace, Finalize, Clone)]
@@ -57,6 +58,8 @@ pub struct Object {
     properties: FxHashMap<RcString, Property>,
     /// Symbol Properties
     symbol_properties: FxHashMap<u32, Property>,
+    /// Instance prototype `__proto__`.
+    prototype: Value,
     /// Some rust object that stores internal state
     state: Option<InternalStateCell>,
     /// Whether it can have new properties added to it.
@@ -67,6 +70,7 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize, Clone)]
 pub enum ObjectData {
     Array,
+    Map(OrderedMap<Value, Value>),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -85,6 +89,7 @@ impl Display for ObjectData {
             match self {
                 Self::Function(_) => "Function",
                 Self::Array => "Array",
+                Self::Map(_) => "Map",
                 Self::String(_) => "String",
                 Self::Symbol(_) => "Symbol",
                 Self::Error => "Error",
@@ -106,6 +111,7 @@ impl Default for Object {
             internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -119,7 +125,7 @@ impl Object {
     }
 
     /// Return a new ObjectData struct, with `kind` set to Ordinary
-    pub fn function(function: Function) -> Self {
+    pub fn function(function: Function, prototype: Value) -> Self {
         let _timer = BoaProfiler::global().start_event("Object::Function", "object");
 
         Self {
@@ -127,6 +133,7 @@ impl Object {
             internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype,
             state: None,
             extensible: true,
         }
@@ -141,8 +148,7 @@ impl Object {
     // TODO: proto should be a &Value here
     pub fn create(proto: Value) -> Self {
         let mut obj = Self::default();
-        obj.internal_slots
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
+        obj.prototype = proto;
         obj
     }
 
@@ -153,6 +159,7 @@ impl Object {
             internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -165,6 +172,7 @@ impl Object {
             internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -180,6 +188,7 @@ impl Object {
             internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -192,6 +201,7 @@ impl Object {
             internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -247,6 +257,28 @@ impl Object {
     pub fn as_array(&self) -> Option<()> {
         match self.data {
             ObjectData::Array => Some(()),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is a `Map` object.pub
+    #[inline]
+    pub fn is_map(&self) -> bool {
+        matches!(self.data, ObjectData::Map(_))
+    }
+
+    #[inline]
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value, Value>> {
+        match self.data {
+            ObjectData::Map(ref map) => Some(map),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
+        match &mut self.data {
+            ObjectData::Map(map) => Some(map),
             _ => None,
         }
     }
@@ -394,6 +426,15 @@ impl Object {
     pub fn state_mut(&mut self) -> &mut Option<InternalStateCell> {
         &mut self.state
     }
+
+    pub fn prototype(&self) -> &Value {
+        &self.prototype
+    }
+
+    pub fn set_prototype(&mut self, prototype: Value) {
+        assert!(prototype.is_null() || prototype.is_object());
+        self.prototype = prototype
+    }
 }
 
 /// Create a new object.
@@ -451,14 +492,16 @@ pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Get the `prototype` of an object.
 pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    Ok(obj.get_field(INSTANCE_PROTOTYPE))
+    Ok(obj
+        .as_object()
+        .map_or_else(Value::undefined, |object| object.prototype.clone()))
 }
 
 /// Set the `prototype` of an object.
 pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
-    obj.set_internal_slot(INSTANCE_PROTOTYPE, proto);
+    obj.as_object_mut().unwrap().prototype = proto;
     Ok(obj)
 }
 
@@ -528,7 +571,7 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
     });
 
     Ok(own_property.map_or(Value::from(false), |own_prop| {
-        Value::from(own_prop.enumerable.unwrap_or(false))
+        Value::from(own_prop.enumerable_or(false))
     }))
 }
 
@@ -548,7 +591,7 @@ pub fn init(global: &Value) -> (&str, Value) {
     );
     make_builtin_fn(to_string, "toString", &prototype, 0);
 
-    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
+    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true, true);
 
     // static methods of the builtin Object
     make_builtin_fn(create, "create", &object, 2);

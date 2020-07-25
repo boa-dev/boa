@@ -13,10 +13,10 @@
 
 use crate::{
     builtins::{
-        array::Array,
-        object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
-        property::{Property, PropertyKey},
+        object::{Object, ObjectData, PROTOTYPE},
+        property::{Attribute, Property, PropertyKey},
         value::{RcString, ResultValue, Value},
+        Array,
     },
     environment::function_environment_record::BindingStatus,
     environment::lexical_environment::{new_function_environment, Environment},
@@ -24,6 +24,7 @@ use crate::{
     syntax::ast::node::{FormalParameter, StatementList},
     BoaProfiler,
 };
+use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
@@ -90,6 +91,43 @@ unsafe impl Trace for FunctionBody {
     unsafe_empty_trace!();
 }
 
+bitflags! {
+    #[derive(Finalize, Default)]
+    struct FunctionFlags: u8 {
+        const CALLABLE = 0b0000_0001;
+        const CONSTRUCTABLE = 0b0000_0010;
+    }
+}
+
+impl FunctionFlags {
+    fn from_parameters(callable: bool, constructable: bool) -> Self {
+        let mut flags = Self::default();
+
+        if callable {
+            flags |= Self::CALLABLE;
+        }
+        if constructable {
+            flags |= Self::CONSTRUCTABLE;
+        }
+
+        flags
+    }
+
+    #[inline]
+    fn is_callable(&self) -> bool {
+        self.contains(Self::CALLABLE)
+    }
+
+    #[inline]
+    fn is_constructable(&self) -> bool {
+        self.contains(Self::CONSTRUCTABLE)
+    }
+}
+
+unsafe impl Trace for FunctionFlags {
+    unsafe_empty_trace!();
+}
+
 /// Boa representation of a Function Object.
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
@@ -103,10 +141,8 @@ pub struct Function {
     pub this_mode: ThisMode,
     // Environment, built-in functions don't need Environments
     pub environment: Option<Environment>,
-    /// Is it constructable
-    constructable: bool,
-    /// Is it callable.
-    callable: bool,
+    /// Is it constructable or
+    flags: FunctionFlags,
 }
 
 impl Function {
@@ -126,8 +162,7 @@ impl Function {
             environment: scope,
             params: parameter_list.into(),
             this_mode,
-            constructable,
-            callable,
+            flags: FunctionFlags::from_parameters(callable, constructable),
         }
     }
 
@@ -183,7 +218,7 @@ impl Function {
         interpreter: &mut Interpreter,
     ) -> ResultValue {
         let _timer = BoaProfiler::global().start_event("function::call", "function");
-        if self.callable {
+        if self.flags.is_callable() {
             match self.body {
                 FunctionBody::BuiltIn(func) => func(this, args_list, interpreter),
                 FunctionBody::Ordinary(ref body) => {
@@ -249,7 +284,7 @@ impl Function {
         args_list: &[Value],
         interpreter: &mut Interpreter,
     ) -> ResultValue {
-        if self.constructable {
+        if self.flags.is_constructable() {
             match self.body {
                 FunctionBody::BuiltIn(func) => {
                     func(this, args_list, interpreter)?;
@@ -351,12 +386,12 @@ impl Function {
 
     /// Returns true if the function object is callable.
     pub fn is_callable(&self) -> bool {
-        self.callable
+        self.flags.is_callable()
     }
 
     /// Returns true if the function object is constructable.
     pub fn is_constructable(&self) -> bool {
-        self.constructable
+        self.flags.is_constructable()
     }
 }
 
@@ -376,19 +411,19 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let mut obj = Object::default();
     obj.set_internal_slot("ParameterMap", Value::undefined());
     // Set length
-    let mut length = Property::default();
-    length = length.writable(true).value(Value::from(len));
+    let length = Property::data_descriptor(
+        len.into(),
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+    );
     // Define length as a property
     obj.define_own_property(&PropertyKey::from(RcString::from("length")), length);
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
-        let mut prop = Property::default();
-        prop = prop
-            .value(val.clone())
-            .enumerable(true)
-            .writable(true)
-            .configurable(true);
+        let prop = Property::data_descriptor(
+            val.clone(),
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+        );
 
         obj.properties_mut()
             .insert(RcString::from(index.to_string()), prop);
@@ -420,35 +455,30 @@ pub fn make_constructor_fn(
     global: &Value,
     prototype: Value,
     constructable: bool,
+    callable: bool,
 ) -> Value {
     let _timer =
         BoaProfiler::global().start_event(&format!("make_constructor_fn: {}", name), "init");
 
     // Create the native function
     let mut function = Function::builtin(Vec::new(), body);
-    function.constructable = constructable;
-
-    let mut constructor = Object::function(function);
+    function.flags = FunctionFlags::from_parameters(callable, constructable);
 
     // Get reference to Function.prototype
     // Create the function object and point its instance prototype to Function.prototype
-    constructor.set_internal_slot(
-        INSTANCE_PROTOTYPE,
-        global.get_field("Function").get_field(PROTOTYPE),
-    );
+    let mut constructor =
+        Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
 
-    let length = Property::new()
-        .value(Value::from(length))
-        .writable(false)
-        .configurable(false)
-        .enumerable(false);
+    let length = Property::data_descriptor(
+        length.into(),
+        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+    );
     constructor.insert_property("length", length);
 
-    let name = Property::new()
-        .value(Value::from(name))
-        .writable(false)
-        .configurable(false)
-        .enumerable(false);
+    let name = Property::data_descriptor(
+        name.into(),
+        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+    );
     constructor.insert_property("name", name);
 
     let constructor = Value::from(constructor);
@@ -491,7 +521,8 @@ where
     let name = name.into();
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
-    let mut function = Object::function(Function::builtin(Vec::new(), function));
+    // FIXME: function needs the Function prototype set.
+    let mut function = Object::function(Function::builtin(Vec::new(), function), Value::null());
     function.insert_field("length", Value::from(length));
 
     parent
@@ -507,7 +538,7 @@ pub fn init(global: &Value) -> (&str, Value) {
     let prototype = Value::new_object(Some(global));
 
     let function_object =
-        make_constructor_fn("Function", 1, make_function, global, prototype, true);
+        make_constructor_fn("Function", 1, make_function, global, prototype, true, true);
 
     ("Function", function_object)
 }

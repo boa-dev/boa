@@ -906,6 +906,129 @@ fn reduce() {
 }
 
 #[test]
+fn reduce_right() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let init = r#"
+        var arr = [1, 2, 3, 4];
+        function sub(acc, x) {
+            return acc - x;
+        }
+
+        function subIdx(acc, _, idx) {
+            return acc - idx;
+        }
+
+        function subLen(acc, _x, _idx, arr) {
+            return acc - arr.length;
+        }
+
+        function subResize(acc, x, idx, arr) {
+            if(idx == arr.length - 1) {
+                arr.length = 1;
+            }
+            return acc - x;
+        }
+        function subResize0(acc, x, idx, arr) {
+            if(idx == arr.length - 2) {
+                arr.length = 0;
+            }
+            return acc - x;
+        }
+        var delArray = [1, 2, 3, 4, 5];
+        delete delArray[0];
+        delete delArray[1];
+        delete delArray[3];
+
+    "#;
+    forward(&mut engine, init);
+
+    // empty array
+    let result = forward(&mut engine, "[].reduceRight(sub, 0)");
+    assert_eq!(result, "0");
+
+    // simple with initial value
+    let result = forward(&mut engine, "arr.reduceRight(sub, 0)");
+    assert_eq!(result, "-10");
+
+    // without initial value
+    let result = forward(&mut engine, "arr.reduceRight(sub)");
+    assert_eq!(result, "-2");
+
+    // with some items missing
+    let result = forward(&mut engine, "delArray.reduceRight(sub, 0)");
+    assert_eq!(result, "-8");
+
+    // with index
+    let result = forward(&mut engine, "arr.reduceRight(subIdx)");
+    assert_eq!(result, "1");
+
+    // with array
+    let result = forward(&mut engine, "arr.reduceRight(subLen)");
+    assert_eq!(result, "-8");
+
+    // resizing the array as reduce progresses
+    let result = forward(&mut engine, "arr.reduceRight(subResize, 0)");
+    assert_eq!(result, "-5");
+
+    // reset array
+    forward(&mut engine, "arr = [1, 2, 3, 4];");
+
+    // resizing the array to 0 as reduce progresses
+    let result = forward(&mut engine, "arr.reduceRight(subResize0, 0)");
+    assert_eq!(result, "-7");
+
+    // Empty array
+    let result = forward(
+        &mut engine,
+        r#"
+        try {
+            [].reduceRight((acc, x) => acc + x);
+        } catch(e) {
+            e.message
+        }
+    "#,
+    );
+    assert_eq!(
+        result,
+        "\"reduceRight was called on an empty array and with no initial value\""
+    );
+
+    // Array with no defined elements
+    let result = forward(
+        &mut engine,
+        r#"
+        try {
+            var arr = [0, 1];
+            delete arr[0];
+            delete arr[1];
+            arr.reduceRight((acc, x) => acc + x);
+        } catch(e) {
+            e.message
+        }
+    "#,
+    );
+    assert_eq!(
+        result,
+        "\"reduceRight was called on an empty array and with no initial value\""
+    );
+
+    // No callback
+    let result = forward(
+        &mut engine,
+        r#"
+        try {
+            arr.reduceRight("");
+        } catch(e) {
+            e.message
+        }
+    "#,
+    );
+    assert_eq!(result, "\"reduceRight was called without a callback\"");
+}
+
+#[test]
 fn call_array_constructor_with_one_argument() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

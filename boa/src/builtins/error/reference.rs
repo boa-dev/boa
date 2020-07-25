@@ -76,6 +76,7 @@ impl ReferenceError {
             global,
             prototype,
             true,
+            true,
         );
 
         (Self::NAME, reference_error_object)
