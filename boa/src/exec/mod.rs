@@ -491,12 +491,11 @@ impl Interpreter {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_property_key(&mut self, value: &Value) -> Result<PropertyKey, Value> {
         let key = self.to_primitive(value, PreferredType::String)?;
-        match key {
-            Value::Symbol(ref symbol) => Ok(PropertyKey::from(symbol.clone())),
-            _ => {
-                let string = self.to_string(&key)?;
-                return Ok(PropertyKey::from(string));
-            }
+        if let Value::Symbol(ref symbol) = key {
+            Ok(PropertyKey::from(symbol.clone()))
+        } else {
+            let string = self.to_string(&key)?;
+            Ok(PropertyKey::from(string))
         }
     }
 

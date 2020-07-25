@@ -287,7 +287,7 @@ pub enum PropertyKey {
 
 impl From<RcString> for PropertyKey {
     fn from(string: RcString) -> PropertyKey {
-        PropertyKey::String(string.clone())
+        PropertyKey::String(string)
     }
 }
 
@@ -299,7 +299,7 @@ impl From<&str> for PropertyKey {
 
 impl From<RcSymbol> for PropertyKey {
     fn from(symbol: RcSymbol) -> PropertyKey {
-        PropertyKey::Symbol(symbol.clone())
+        PropertyKey::Symbol(symbol)
     }
 }
 
