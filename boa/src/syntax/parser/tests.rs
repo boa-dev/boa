@@ -208,3 +208,61 @@ fn multiline_comment_no_lineterminator() {
         ],
     );
 }
+
+#[test]
+fn assignment_line_terminator() {
+    let s = r#"
+    let a = 3;
+
+    a = 
+    5;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(3).into()),
+            )
+            .into()])
+            .into(),
+            Assign::new(Identifier::from("a"), Const::from(5)).into(),
+        ],
+    );
+}
+
+#[test]
+fn assignment_multiline_terminator() {
+    let s = r#"
+    let a = 3;
+
+
+
+
+
+    a = 
+
+
+
+
+
+
+
+    
+    5;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(3).into()),
+            )
+            .into()])
+            .into(),
+            Assign::new(Identifier::from("a"), Const::from(5)).into(),
+        ],
+    );
+}

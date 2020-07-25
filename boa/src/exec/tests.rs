@@ -1293,57 +1293,6 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 }
 
 #[test]
-fn assignment_line_terminator() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
-
-    let init = r#"
-    let a = 3;
-
-    a = 
-    5;
-
-    a
-    "#;
-
-    assert_eq!(forward(&mut engine, init), "5");
-}
-
-#[test]
-fn assignment_multiline_terminator() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
-
-    let init = r#"
-    let a = 3;
-
-
-
-
-
-    a = 
-
-
-
-
-
-
-
-    
-    5;
-
-
-
-
-
-
-    a
-    "#;
-
-    assert_eq!(forward(&mut engine, init), "5");
-}
-
-#[test]
 fn assign_to_array_decl() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
