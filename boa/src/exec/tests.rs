@@ -1243,22 +1243,19 @@ fn assignment_to_non_assignable() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    const ERR_MSG: &str =
-        "Parsing Error: Syntax Error: Syntax Error: Invalid left-hand side in assignment";
-
     // Tests all assignment operators as per [spec] and [mdn]
     //
     // [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
     // [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
-    assert_eq!(forward(&mut engine, "3 = 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 += 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 -= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 *= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 /= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 %= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 &= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 ^= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 |= 5"), ERR_MSG);
+    assert!(forward(&mut engine, "3 = 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 += 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 -= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 *= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 /= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 %= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 &= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 ^= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 |= 5").contains("Syntax Error: "));
 }
 
 #[test]
@@ -1268,12 +1265,9 @@ fn multicharacter_assignment_to_non_assignable() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    const ERR_MSG: &str =
-        "Parsing Error: Syntax Error: Syntax Error: Invalid left-hand side in assignment";
-
-    assert_eq!(forward(&mut engine, "3 **= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 <<= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 >>= 5"), ERR_MSG);
+    assert!(forward(&mut engine, "3 **= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 <<= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 >>= 5").contains("Syntax Error: "));
 }
 
 #[test]
@@ -1282,14 +1276,11 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    const ERR_MSG: &str =
-        "Parsing Error: Syntax Error: Syntax Error: Invalid left-hand side in assignment";
-
     // Disabled - awaiting implementation.
-    assert_eq!(forward(&mut engine, "3 >>>= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 &&= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 ||= 5"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "3 ??= 5"), ERR_MSG);
+    assert!(forward(&mut engine, "3 >>>= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 &&= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 ||= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 ??= 5").contains("Syntax Error: "));
 }
 
 #[test]
@@ -1297,13 +1288,10 @@ fn assign_to_array_decl() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    const ERR_MSG: &str =
-        "Parsing Error: Syntax Error: Syntax Error: Invalid left-hand side in assignment";
-
-    assert_eq!(forward(&mut engine, "[1] = [2]"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "[3, 5] = [7, 8]"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "[6, 8] = [2]"), ERR_MSG);
-    assert_eq!(forward(&mut engine, "[6] = [2, 9]"), ERR_MSG);
+    assert!(forward(&mut engine, "[1] = [2]").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "[3, 5] = [7, 8]").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "[6, 8] = [2]").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "[6] = [2, 9]").contains("Syntax Error: "));
 }
 
 #[test]
