@@ -44,6 +44,12 @@ impl From<RcString> for Value {
     }
 }
 
+impl From<RcSymbol> for Value {
+    fn from(value: RcSymbol) -> Self {
+        Value::Symbol(value)
+    }
+}
+
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct TryFromCharError;
 

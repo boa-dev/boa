@@ -79,6 +79,13 @@ impl From<String> for RcString {
     }
 }
 
+impl From<Box<str>> for RcString {
+    #[inline]
+    fn from(string: Box<str>) -> Self {
+        Self(Rc::from(string))
+    }
+}
+
 impl From<&str> for RcString {
     #[inline]
     fn from(string: &str) -> Self {

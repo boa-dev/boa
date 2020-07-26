@@ -306,7 +306,7 @@ impl RegExp {
             };
             Ok(Value::boolean(result))
         });
-        this.set_str_field("lastIndex", Value::from(last_index));
+        this.set_field("lastIndex", Value::from(last_index));
         result
     }
 
@@ -358,7 +358,7 @@ impl RegExp {
             };
             Ok(result)
         });
-        this.set_str_field("lastIndex", Value::from(last_index));
+        this.set_field("lastIndex", Value::from(last_index));
         result
     }
 
@@ -452,7 +452,7 @@ impl RegExp {
 
         let length = matches.len();
         let result = Value::from(matches);
-        result.set_str_field("length", Value::from(length));
+        result.set_field("length", Value::from(length));
         result.set_data(ObjectData::Array);
 
         Ok(result)

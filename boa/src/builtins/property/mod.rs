@@ -231,20 +231,20 @@ impl From<&Property> for Value {
     fn from(value: &Property) -> Value {
         let property = Value::new_object(None);
         if value.attribute.has_writable() {
-            property.set_str_field("writable", value.attribute.writable());
+            property.set_field("writable", value.attribute.writable());
         }
 
         if value.attribute.has_enumerable() {
-            property.set_str_field("enumerable", value.attribute.enumerable());
+            property.set_field("enumerable", value.attribute.enumerable());
         }
 
         if value.attribute.has_configurable() {
-            property.set_str_field("configurable", value.attribute.configurable());
+            property.set_field("configurable", value.attribute.configurable());
         }
 
-        property.set_str_field("value", value.value.clone().unwrap_or_else(Value::null));
-        property.set_str_field("get", value.get.clone().unwrap_or_else(Value::null));
-        property.set_str_field("set", value.set.clone().unwrap_or_else(Value::null));
+        property.set_field("value", value.value.clone().unwrap_or_else(Value::null));
+        property.set_field("get", value.get.clone().unwrap_or_else(Value::null));
+        property.set_field("set", value.set.clone().unwrap_or_else(Value::null));
         property
     }
 }
@@ -297,6 +297,18 @@ impl From<&str> for PropertyKey {
     }
 }
 
+impl From<String> for PropertyKey {
+    fn from(string: String) -> PropertyKey {
+        PropertyKey::String(string.into())
+    }
+}
+
+impl From<Box<str>> for PropertyKey {
+    fn from(string: Box<str>) -> PropertyKey {
+        PropertyKey::String(string.into())
+    }
+}
+
 impl From<RcSymbol> for PropertyKey {
     fn from(symbol: RcSymbol) -> PropertyKey {
         PropertyKey::Symbol(symbol)
@@ -317,6 +329,24 @@ impl From<&PropertyKey> for RcString {
         match property_key {
             PropertyKey::String(ref string) => string.clone(),
             PropertyKey::Symbol(ref symbol) => symbol.to_string().into(),
+        }
+    }
+}
+
+impl From<&PropertyKey> for Value {
+    fn from(property_key: &PropertyKey) -> Value {
+        match property_key {
+            PropertyKey::String(ref string) => string.clone().into(),
+            PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
+        }
+    }
+}
+
+impl From<PropertyKey> for Value {
+    fn from(property_key: PropertyKey) -> Value {
+        match property_key {
+            PropertyKey::String(ref string) => string.clone().into(),
+            PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
         }
     }
 }

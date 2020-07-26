@@ -623,69 +623,34 @@ impl Value {
         self.get_property(field).is_some()
     }
 
-    /// Set the string field in the value
-    /// Alternative to set_field, strictly for &str fields
-    pub fn set_str_field<V>(&self, field: &str, val: V) -> Value
-    where
-        V: Into<Value>,
-    {
-        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
-        let val = val.into();
-
-        if let Self::Object(ref obj) = *self {
-            if obj.borrow().is_array() {
-                if let Ok(num) = field.parse::<usize>() {
-                    if num > 0 {
-                        let len = i32::from(&self.get_field("length"));
-                        if len < (num + 1) as i32 {
-                            self.set_str_field("length", Value::from(num + 1));
-                        }
-                    }
-                }
-            }
-
-            obj.borrow_mut().set(field.into(), val.clone());
-        }
-
-        val
-    }
-
     /// Set the field in the value
     /// Field could be a Symbol, so we need to accept a Value (not a string)
-    pub fn set_field<F, V>(&self, field: F, val: V, interpreter: &mut Interpreter) -> Value
+    #[inline]
+    pub fn set_field<F, V>(&self, field: F, value: V) -> Value
     where
-        F: Into<Value>,
+        F: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         let field = field.into();
-        let val = val.into();
-
+        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            if obj.borrow().is_array() {
-                if let Ok(num) = field.to_string().parse::<usize>() {
-                    if num > 0 {
-                        let len = i32::from(&self.get_field("length"));
-                        if len < (num + 1) as i32 {
-                            self.set_str_field("length", Value::from(num + 1));
+            if let PropertyKey::String(ref string) = field {
+                if obj.borrow().is_array() {
+                    if let Ok(num) = string.parse::<usize>() {
+                        if num > 0 {
+                            let len = i32::from(&self.get_field("length"));
+                            if len < (num + 1) as i32 {
+                                self.set_field("length", num + 1);
+                            }
                         }
                     }
                 }
             }
 
             // Symbols get saved into a different bucket to general properties
-            match field {
-                Value::Symbol(ref symbol) => obj
-                    .borrow_mut()
-                    .set(PropertyKey::from(symbol.clone()), val.clone()),
-                _ => obj.borrow_mut().set(
-                    PropertyKey::from(interpreter.to_string(&field).unwrap()),
-                    val.clone(),
-                ),
-            };
+            obj.borrow_mut().set(field.clone(), value.into());
         }
-
-        val
+        field.into()
     }
 
     /// Set the private field in the value
@@ -737,7 +702,7 @@ impl Value {
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters
-        new_func_val.set_str_field("length", Value::from(length));
+        new_func_val.set_field("length", Value::from(length));
         new_func_val
     }
 }
