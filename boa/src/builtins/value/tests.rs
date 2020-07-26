@@ -375,7 +375,43 @@ fn display_array_string() {
 }
 
 #[test]
-#[ignore] // TODO: Once #507 is fixed this test can be simplified and used
+fn display_boolean_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let bool = new Boolean(0);
+        bool
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.to_string(), "Boolean { false }")
+}
+
+#[test]
+fn display_number_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let num = new Number(3.14);
+        num
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.to_string(), "Number { 3.14 }")
+}
+
+#[test]
+fn display_negative_zero_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let num = new Number(-0);
+        num
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.to_string(), "Number { -0 }")
+}
+
+#[test]
+#[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified and used
 fn display_object() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

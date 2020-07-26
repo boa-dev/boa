@@ -633,7 +633,6 @@ impl Value {
     }
 
     /// Set the field in the value
-    /// Field could be a Symbol, so we need to accept a Value (not a string)
     #[inline]
     pub fn set_field<F, V>(&self, field: F, value: V) -> Value
     where
@@ -641,6 +640,7 @@ impl Value {
         V: Into<Value>,
     {
         let field = field.into();
+        let value = value.into();
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
             if let PropertyKey::String(ref string) = field {
@@ -655,11 +655,9 @@ impl Value {
                     }
                 }
             }
-
-            // Symbols get saved into a different bucket to general properties
-            obj.borrow_mut().set(field.clone(), value.into());
+            obj.borrow_mut().set(&field, value.clone());
         }
-        field.into()
+        value
     }
 
     /// Set the private field in the value

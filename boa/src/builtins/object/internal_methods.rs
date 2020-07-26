@@ -20,14 +20,14 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
     pub fn has_property(&self, property_key: &PropertyKey) -> bool {
-        let prop = self.get_own_property(&property_key);
+        let prop = self.get_own_property(property_key);
         if prop.value.is_none() {
             let parent: Value = self.get_prototype_of();
             if !parent.is_null() {
                 // the parent value variant should be an object
                 // In the unlikely event it isn't return false
                 return match parent {
-                    Value::Object(ref obj) => obj.borrow().has_property(&property_key),
+                    Value::Object(ref obj) => obj.borrow().has_property(property_key),
                     _ => false,
                 };
             }
@@ -62,7 +62,7 @@ impl Object {
 
     /// Delete property.
     pub fn delete(&mut self, property_key: &PropertyKey) -> bool {
-        let desc = self.get_own_property(&property_key);
+        let desc = self.get_own_property(property_key);
         if desc
             .value
             .clone()
@@ -116,11 +116,11 @@ impl Object {
 
     /// [[Set]]
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
-    pub fn set(&mut self, property_key: PropertyKey, val: Value) -> bool {
+    pub fn set(&mut self, property_key: &PropertyKey, val: Value) -> bool {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
 
         // Fetch property key
-        let mut own_desc = self.get_own_property(&property_key);
+        let mut own_desc = self.get_own_property(property_key);
         // [2]
         if own_desc.is_none() {
             let parent = self.get_prototype_of();
@@ -140,7 +140,7 @@ impl Object {
 
             // Change value on the current descriptor
             own_desc = own_desc.value(val);
-            return self.define_own_property(&property_key, own_desc);
+            return self.define_own_property(property_key, own_desc);
         }
         // [4]
         debug_assert!(own_desc.is_accessor_descriptor());
