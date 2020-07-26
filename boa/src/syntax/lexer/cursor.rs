@@ -125,6 +125,7 @@ where
     /// (or the next character is none).
     ///
     /// Note that all characters up until x are added to the buffer including the character right before.
+    #[inline(always)]
     pub(super) fn take_until_pred<F>(&mut self, buf: &mut String, pred: &F) -> io::Result<()>
     where
         F: Fn(char) -> bool,

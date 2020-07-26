@@ -7,8 +7,7 @@ use crate::{
         lexer::{token::Numeric, Token},
     },
 };
-use lexical;
-use std::io::Read;
+use std::{io::Read, str::FromStr};
 
 /// Number literal lexing.
 ///
@@ -131,20 +130,26 @@ impl<R> Tokenizer<R> for NumberLiteral {
     {
         let _timer = BoaProfiler::global().start_event("NumberLiteral", "Lexing");
 
-        let mut buf = self.init.to_string();
+        let mut buf: [char; 400] = ['0'; 400];
+        buf[0] = self.init;
+
+        let buf_len = 1;
+
+        // let mut buf = self.init.to_string();
 
         // Default assume the number is a base 10 integer.
         let mut kind = NumericKind::Integer(10);
 
         let c = cursor.peek();
 
-        if self.init == '0' {
+        if buf[0] == '0' {
             if let Some(ch) = c? {
                 match ch {
                     'x' | 'X' => {
                         // Remove the initial '0' from buffer.
                         cursor.next_char()?.expect("x or X character vanished");
-                        buf.pop();
+                        // buf.pop();
+                        buf_len -= 1;
 
                         // HexIntegerLiteral
                         kind = NumericKind::Integer(16);
@@ -152,7 +157,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     'o' | 'O' => {
                         // Remove the initial '0' from buffer.
                         cursor.next_char()?.expect("o or O character vanished");
-                        buf.pop();
+                        // buf.pop();
+                        buf_len -= 1;
 
                         // OctalIntegerLiteral
                         kind = NumericKind::Integer(8);
@@ -160,7 +166,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     'b' | 'B' => {
                         // Remove the initial '0' from buffer.
                         cursor.next_char()?.expect("b or B character vanished");
-                        buf.pop();
+                        // buf.pop();
+                        buf_len -= 1;
 
                         // BinaryIntegerLiteral
                         kind = NumericKind::Integer(2);
@@ -184,9 +191,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 ));
                             } else {
                                 // Remove the initial '0' from buffer.
-                                buf.pop();
+                                buf_len -= 1;
+                                // buf.pop();
 
-                                buf.push(cursor.next_char()?.expect("'0' character vanished"));
+                                buf[buf_len] = cursor.next_char()?.expect("'0' character vanished");
+
+                                buf_len += 1;
+
+                                // buf.push(cursor.next_char()?.expect("'0' character vanished"));
 
                                 kind = NumericKind::Integer(8);
                             }
@@ -199,7 +211,11 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                     "Leading 0's are not allowed in strict mode.",
                                 ));
                             } else {
-                                buf.push(cursor.next_char()?.expect("Number digit vanished"));
+                                // buf.push(cursor.next_char()?.expect("Number digit vanished"));
+
+                                buf[buf_len] = cursor.next_char()?.expect("Number digit vanished");
+
+                                buf_len += 1;
                             }
                         } // Else indicates that the symbol is a non-number.
                     }
@@ -215,7 +231,17 @@ impl<R> Tokenizer<R> for NumberLiteral {
         }
 
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
-        cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+        // cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+        loop {
+            if let Some(c) = cursor.peek()? {
+                if c.is_digit(kind.base()) {
+                    buf[buf_len] = cursor.next_char()?.expect("Character vanished");
+                    buf_len += 1;
+                    continue;
+                }
+            }
+            break;
+        }
 
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
@@ -237,11 +263,23 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     // Number literal lexing finished if a . is found for a number in a different base.
 
                     cursor.next_char()?.expect(". token vanished");
-                    buf.push('.'); // Consume the .
+                    // buf.push('.'); // Consume the .
+                    buf[buf_len] = '.';
+                    buf_len += 1;
                     kind = NumericKind::Rational;
 
                     // Consume digits until a non-digit character is encountered or all the characters are consumed.
-                    cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+                    // cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+                    loop {
+                        if let Some(c) = cursor.peek()? {
+                            if c.is_digit(kind.base()) {
+                                buf[buf_len] = cursor.next_char()?.expect("Character vanished");
+                                buf_len += 1;
+                                continue;
+                            }
+                        }
+                        break;
+                    }
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.
@@ -250,7 +288,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             // Consume the ExponentIndicator.
                             cursor.next_char()?.expect("e or E token vanished");
 
-                            buf.push('E');
+                            buf[buf_len] = 'E';
+                            buf_len += 1;
+
+                            // buf.push('E');
 
                             take_signed_integer(&mut buf, cursor, &kind)?;
                         }
@@ -280,9 +321,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     )
             }
             NumericKind::Rational /* base: 10 */ => {
-                let val: f64 = lexical::parse(&buf).expect("Failed to parse float after checks");
-
-                // let val = f64::from_str(&buf).expect("Failed to parse float after checks");
+                let val = f64::from_str_unchecked(&buf).expect("Failed to parse float after checks");
                 let int_val = val as i32;
 
                 // The truncated float should be identically to the non-truncated float for the conversion to be loss-less, 

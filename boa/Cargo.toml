@@ -25,6 +25,7 @@ num-integer = "0.1.43"
 bitflags = "1.2.1"
 indexmap = "1.4.0"
 ryu-js = "0.2.0"
+lexical = "5.2.0"
 
 # Optional Dependencies
 serde = { version = "1.0.114", features = ["derive"], optional = true }
