@@ -374,6 +374,15 @@ impl Value {
         matches!(self, Self::String(_))
     }
 
+    /// Returns the a string if the values is a string, otherwise `None`.
+    #[inline]
+    pub fn as_string(&self) -> Option<&RcString> {
+        match self {
+            Self::String(ref string) => Some(string),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is a boolean.
     #[inline]
     pub fn is_boolean(&self) -> bool {

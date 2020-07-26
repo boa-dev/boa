@@ -418,7 +418,10 @@ impl String {
                 if obj.internal_slots().get("RegExpMatcher").is_some() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
                     if let Some(body) = obj.internal_slots().get("OriginalSource") {
-                        return body.to_string();
+                        return body
+                            .as_string()
+                            .expect("OriginalSource should be a string")
+                            .into();
                     }
                 }
                 "undefined".to_string()
@@ -451,6 +454,8 @@ impl String {
 
         let regex_body = Self::get_regex_string(args.get(0).expect("Value needed"));
         let re = Regex::new(&regex_body).expect("unable to convert regex to regex object");
+        dbg!(&primitive_val);
+        dbg!(&regex_body);
         let mat = re.find(&primitive_val).expect("unable to find value");
         let caps = re
             .captures(&primitive_val)
