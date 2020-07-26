@@ -152,8 +152,8 @@ impl Interpreter {
         let new_func = Object::function(func, function_prototype);
 
         let val = Value::from(new_func);
-        val.set_str_field(PROTOTYPE, proto);
-        val.set_str_field("length", Value::from(params_len));
+        val.set_field(PROTOTYPE, proto);
+        val.set_field("length", Value::from(params_len));
 
         val
     }
@@ -400,9 +400,9 @@ impl Interpreter {
                                 .borrow()
                                 .get_field(PROTOTYPE),
                         );
-                        array.set_str_field("0", key);
-                        array.set_str_field("1", value);
-                        array.set_str_field("length", Value::from(2));
+                        array.set_field("0", key);
+                        array.set_field("1", value);
+                        array.set_field("length", Value::from(2));
                         array
                     })
                     .collect();
@@ -606,12 +606,11 @@ impl Interpreter {
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
                 .obj()
                 .run(self)?
-                .set_str_field(get_const_field_node.field(), value)),
+                .set_field(get_const_field_node.field(), value)),
             Node::GetField(ref get_field) => {
-                Ok(get_field
-                    .obj()
-                    .run(self)?
-                    .set_field(get_field.field().run(self)?, value, self))
+                let field = get_field.field().run(self)?;
+                let key = self.to_property_key(&field)?;
+                Ok(get_field.obj().run(self)?.set_field(key, value))
             }
             _ => panic!("TypeError: invalid assignment to {}", node),
         }

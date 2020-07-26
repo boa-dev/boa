@@ -77,7 +77,7 @@ impl String {
 
         let length = string.chars().count();
 
-        this.set_str_field("length", Value::from(length as i32));
+        this.set_field("length", Value::from(length as i32));
 
         this.set_data(ObjectData::String(string.clone()));
 
@@ -418,7 +418,10 @@ impl String {
                 if obj.internal_slots().get("RegExpMatcher").is_some() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
                     if let Some(body) = obj.internal_slots().get("OriginalSource") {
-                        return body.to_string();
+                        return body
+                            .as_string()
+                            .expect("OriginalSource should be a string")
+                            .into();
                     }
                 }
                 "undefined".to_string()

@@ -57,7 +57,7 @@ impl Array {
                 .borrow()
                 .get_field(PROTOTYPE),
         );
-        array.borrow().set_str_field("length", Value::from(0));
+        array.borrow().set_field("length", Value::from(0));
         Ok(array)
     }
 
@@ -82,7 +82,7 @@ impl Array {
         array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_str_field(&n.to_string(), value);
+            array_obj_ptr.set_field(n.to_string(), value);
         }
         Ok(array_obj_ptr)
     }
@@ -94,10 +94,10 @@ impl Array {
 
         for (n, value) in add_values.iter().enumerate() {
             let new_index = orig_length.wrapping_add(n as i32);
-            array_ptr.set_str_field(&new_index.to_string(), value);
+            array_ptr.set_field(new_index.to_string(), value);
         }
 
-        array_ptr.set_str_field(
+        array_ptr.set_field(
             "length",
             Value::from(orig_length.wrapping_add(add_values.len() as i32)),
         );
@@ -127,7 +127,7 @@ impl Array {
                 length = i32::from(&args[0]);
                 // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
                 for n in 0..length {
-                    this.set_str_field(&n.to_string(), Value::undefined());
+                    this.set_field(n.to_string(), Value::undefined());
                 }
             }
             1 if args[0].is_double() => {
@@ -135,7 +135,7 @@ impl Array {
             }
             _ => {
                 for (n, value) in args.iter().enumerate() {
-                    this.set_str_field(&n.to_string(), value.clone());
+                    this.set_field(n.to_string(), value.clone());
                 }
             }
         }
@@ -245,7 +245,7 @@ impl Array {
         let pop_index = curr_length.wrapping_sub(1);
         let pop_value: Value = this.get_field(pop_index.to_string());
         this.remove_property(&pop_index.to_string());
-        this.set_str_field("length", Value::from(pop_index));
+        this.set_field("length", Value::from(pop_index));
         Ok(pop_value)
     }
 
@@ -380,13 +380,13 @@ impl Array {
             let lower_value = this.get_field(lower.to_string());
 
             if upper_exists && lower_exists {
-                this.set_str_field(&upper.to_string(), lower_value);
-                this.set_str_field(&lower.to_string(), upper_value);
+                this.set_field(upper.to_string(), lower_value);
+                this.set_field(lower.to_string(), upper_value);
             } else if upper_exists {
-                this.set_str_field(&lower.to_string(), upper_value);
+                this.set_field(lower.to_string(), upper_value);
                 this.remove_property(&upper.to_string());
             } else if lower_exists {
-                this.set_str_field(&upper.to_string(), lower_value);
+                this.set_field(upper.to_string(), lower_value);
                 this.remove_property(&lower.to_string());
             }
         }
@@ -408,7 +408,7 @@ impl Array {
         let len = i32::from(&this.get_field("length"));
 
         if len == 0 {
-            this.set_str_field("length", 0);
+            this.set_field("length", 0);
             // Since length is 0, this will be an Undefined value
             return Ok(this.get_field(0.to_string()));
         }
@@ -423,13 +423,13 @@ impl Array {
             if from_value.is_undefined() {
                 this.remove_property(&to);
             } else {
-                this.set_str_field(&to, from_value);
+                this.set_field(to, from_value);
             }
         }
 
         let final_index = len.wrapping_sub(1);
         this.remove_property(&(final_index).to_string());
-        this.set_str_field("length", Value::from(final_index));
+        this.set_field("length", Value::from(final_index));
 
         Ok(first)
     }
@@ -459,12 +459,12 @@ impl Array {
                 if from_value.is_undefined() {
                     this.remove_property(&to);
                 } else {
-                    this.set_str_field(&to, from_value);
+                    this.set_field(to, from_value);
                 }
             }
             for j in 0..arg_c {
-                this.set_str_field(
-                    &j.to_string(),
+                this.set_field(
+                    j.to_string(),
                     args.get(j as usize)
                         .expect("Could not get argument")
                         .clone(),
@@ -473,7 +473,7 @@ impl Array {
         }
 
         let temp = len.wrapping_add(arg_c);
-        this.set_str_field("length", Value::from(temp));
+        this.set_field("length", Value::from(temp));
         Ok(Value::from(temp))
     }
 
@@ -777,7 +777,7 @@ impl Array {
         };
 
         for i in start..fin {
-            this.set_str_field(&i.to_string(), value.clone());
+            this.set_field(i.to_string(), value.clone());
         }
 
         Ok(this.clone())
@@ -854,10 +854,10 @@ impl Array {
         let span = max(to.wrapping_sub(from), 0);
         let mut new_array_len: i32 = 0;
         for i in from..from.wrapping_add(span) {
-            new_array.set_str_field(&new_array_len.to_string(), this.get_field(i.to_string()));
+            new_array.set_field(new_array_len.to_string(), this.get_field(i.to_string()));
             new_array_len = new_array_len.wrapping_add(1);
         }
-        new_array.set_str_field("length", Value::from(new_array_len));
+        new_array.set_field("length", Value::from(new_array_len));
         Ok(new_array)
     }
 
@@ -1026,7 +1026,7 @@ impl Array {
     ///
     /// The reduceRight method traverses right to left starting from the last defined value in the array,
     /// accumulating a value using a given callback function. It returns the accumulated value.
-    ///  
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
