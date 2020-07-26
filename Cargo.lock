@@ -99,7 +99,10 @@ dependencies = [
  "Boa",
  "colored",
  "jemallocator",
+ "lazy_static",
+ "regex",
  "rustyline",
+ "rustyline-derive",
  "serde_json",
  "structopt",
 ]
@@ -831,6 +834,16 @@ dependencies = [
  "unicode-width",
  "utf8parse",
  "winapi",
+]
+
+[[package]]
+name = "rustyline-derive"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54a50e29610a5be68d4a586a5cce3bfb572ed2c2a74227e4168444b7bf4e5235"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
