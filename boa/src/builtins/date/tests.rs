@@ -281,7 +281,11 @@ fn date_proto_get_time() -> Result<(), Box<dyn std::error::Error>> {
         "new Date(2020, 07, 08, 09, 16, 15, 779).getTime()",
     );
 
-    assert_eq!(Ok(Value::Rational(1594224975779f64)), actual);
+    let ts = Local
+        .ymd(2020, 07, 08)
+        .and_hms_milli(09, 16, 15, 779)
+        .timestamp_millis() as f64;
+    assert_eq!(Ok(Value::Rational(ts)), actual);
     Ok(())
 }
 

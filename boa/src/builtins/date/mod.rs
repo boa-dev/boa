@@ -127,7 +127,7 @@ impl Date {
     pub(crate) fn make_date(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         if this.is_global() {
             Self::make_date_string()
-        } else if args.len() == 0 {
+        } else if args.is_empty() {
             Self::make_date_now(this)
         } else if args.len() == 1 {
             Self::make_date_single(this, args, ctx)
@@ -283,7 +283,7 @@ impl Date {
         let dt_str = Self::this_time_value(this, ctx)?
             .to_local()
             .map(|f| f.to_rfc3339())
-            .unwrap_or("Invalid Date".to_string());
+            .unwrap_or_else(|| "Invalid Date".to_string());
         Ok(Value::from(dt_str))
     }
 
@@ -512,7 +512,7 @@ impl Date {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
-        if args.len() == 0 {
+        if args.is_empty() {
             return Ok(Value::number(f64::NAN));
         }
 
