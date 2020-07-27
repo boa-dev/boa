@@ -374,7 +374,7 @@ impl Value {
         matches!(self, Self::String(_))
     }
 
-    /// Returns the a string if the values is a string, otherwise `None`.
+    /// Returns the string if the values is a string, otherwise `None`.
     #[inline]
     pub fn as_string(&self) -> Option<&RcString> {
         match self {

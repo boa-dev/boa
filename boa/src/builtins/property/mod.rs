@@ -279,6 +279,13 @@ impl<'a> From<&'a Value> for Property {
     }
 }
 
+/// This abstracts away the need for IsPropertyKey by transforming the PropertyKey
+/// values into an enum with both valid types: String and Symbol
+///
+/// More information:
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum PropertyKey {
     String(RcString),
@@ -286,36 +293,42 @@ pub enum PropertyKey {
 }
 
 impl From<RcString> for PropertyKey {
+    #[inline]
     fn from(string: RcString) -> PropertyKey {
         PropertyKey::String(string)
     }
 }
 
 impl From<&str> for PropertyKey {
+    #[inline]
     fn from(string: &str) -> PropertyKey {
         PropertyKey::String(string.into())
     }
 }
 
 impl From<String> for PropertyKey {
+    #[inline]
     fn from(string: String) -> PropertyKey {
         PropertyKey::String(string.into())
     }
 }
 
 impl From<Box<str>> for PropertyKey {
+    #[inline]
     fn from(string: Box<str>) -> PropertyKey {
         PropertyKey::String(string.into())
     }
 }
 
 impl From<RcSymbol> for PropertyKey {
+    #[inline]
     fn from(symbol: RcSymbol) -> PropertyKey {
         PropertyKey::Symbol(symbol)
     }
 }
 
 impl fmt::Display for PropertyKey {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             PropertyKey::String(ref string) => string.fmt(f),
@@ -325,6 +338,7 @@ impl fmt::Display for PropertyKey {
 }
 
 impl From<&PropertyKey> for RcString {
+    #[inline]
     fn from(property_key: &PropertyKey) -> RcString {
         match property_key {
             PropertyKey::String(ref string) => string.clone(),
@@ -334,6 +348,7 @@ impl From<&PropertyKey> for RcString {
 }
 
 impl From<&PropertyKey> for Value {
+    #[inline]
     fn from(property_key: &PropertyKey) -> Value {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
@@ -343,6 +358,7 @@ impl From<&PropertyKey> for Value {
 }
 
 impl From<PropertyKey> for Value {
+    #[inline]
     fn from(property_key: PropertyKey) -> Value {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
