@@ -183,10 +183,7 @@ impl Date {
     ) -> ResultValue {
         let value = &args[0];
         let tv = match Self::this_time_value_opt(value, ctx) {
-            Some(dt) => {
-                println!("{:?}", dt);
-                dt.0
-            }
+            Some(dt) => dt.0,
             None => match &ctx.to_primitive(value, PreferredType::Default)? {
                 Value::String(str) => match chrono::DateTime::parse_from_rfc3339(&str) {
                     Ok(dt) => Some(dt.naive_utc()),
