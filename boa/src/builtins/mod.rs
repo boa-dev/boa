@@ -4,6 +4,7 @@ pub mod array;
 pub mod bigint;
 pub mod boolean;
 pub mod console;
+pub mod date;
 pub mod error;
 pub mod function;
 pub mod global_this;
@@ -26,6 +27,7 @@ pub(crate) use self::{
     bigint::BigInt,
     boolean::Boolean,
     console::Console,
+    date::Date,
     error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
     global_this::GlobalThis,
     infinity::Infinity,
@@ -52,6 +54,7 @@ pub fn init(interpreter: &mut Interpreter) {
         Array::init,
         BigInt::init,
         Boolean::init,
+        Date::init,
         Json::init,
         Map::init,
         Math::init,

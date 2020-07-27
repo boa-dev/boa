@@ -126,6 +126,18 @@ impl From<RcBigInt> for Value {
     }
 }
 
+impl From<Date> for Value {
+    fn from(value: Date) -> Self {
+        Value::date(value)
+    }
+}
+
+impl From<RcDate> for Value {
+    fn from(value: RcDate) -> Self {
+        Value::Date(value)
+    }
+}
+
 impl From<usize> for Value {
     fn from(value: usize) -> Value {
         Value::integer(value as i32)

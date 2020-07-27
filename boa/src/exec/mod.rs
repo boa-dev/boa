@@ -213,6 +213,7 @@ impl Interpreter {
                 let primitive = self.to_primitive(value, PreferredType::String)?;
                 self.to_string(&primitive)
             }
+            Value::Date(_) => todo!("Date"),
         }
     }
 
@@ -243,6 +244,7 @@ impl Interpreter {
                 self.to_bigint(&primitive)
             }
             Value::Symbol(_) => Err(self.construct_type_error("cannot convert Symbol to a BigInt")),
+            Value::Date(_) => todo!("Date"),
         }
     }
 
@@ -355,6 +357,7 @@ impl Interpreter {
                 let primitive = self.to_primitive(value, PreferredType::Number)?;
                 self.to_number(&primitive)
             }
+            Value::Date(_) => todo!("Date"),
         }
     }
 
@@ -612,6 +615,17 @@ impl Interpreter {
                 Ok(bigint_obj)
             }
             Value::Object(_) => Ok(value.clone()),
+            Value::Date(ref date) => {
+                let proto = self
+                    .realm
+                    .environment
+                    .get_binding_value(crate::builtins::date::Date::NAME)
+                    .expect("Date was not initialized")
+                    .get_field(PROTOTYPE);
+                let date_obj =
+                    Value::new_object_from_prototype(proto, ObjectData::Date(date.clone()));
+                Ok(date_obj)
+            }
         }
     }
 

@@ -394,6 +394,7 @@ impl Value {
             Self::Boolean(true) => Self::integer(1),
             Self::Boolean(false) | Self::Null => Self::integer(0),
             Self::BigInt(ref num) => Self::bigint(-num.as_inner().clone()),
+            Self::Date(_) => todo!("Date"),
         })
     }
 

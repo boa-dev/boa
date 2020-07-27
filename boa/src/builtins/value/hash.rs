@@ -48,6 +48,7 @@ impl Hash for Value {
             Self::Rational(rational) => RationalHashable(*rational).hash(state),
             Self::Symbol(ref symbol) => Hash::hash(symbol, state),
             Self::Object(ref object) => std::ptr::hash(object.as_ref(), state),
+            Self::Date(ref date) => Hash::hash(date, state),
         }
     }
 }

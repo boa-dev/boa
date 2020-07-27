@@ -13,7 +13,7 @@ use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
-    BigInt, Symbol,
+    BigInt, Date, Symbol,
 };
 use crate::exec::Interpreter;
 use crate::BoaProfiler;
@@ -34,6 +34,7 @@ pub mod equality;
 pub mod hash;
 pub mod operations;
 pub mod rcbigint;
+pub mod rcdate;
 pub mod rcstring;
 pub mod rcsymbol;
 
@@ -43,6 +44,7 @@ pub use equality::*;
 pub use hash::*;
 pub use operations::*;
 pub use rcbigint::RcBigInt;
+pub use rcdate::RcDate;
 pub use rcstring::RcString;
 pub use rcsymbol::RcSymbol;
 
@@ -71,6 +73,8 @@ pub enum Value {
     Object(GcObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(RcSymbol),
+    /// `Date` - A Date type.
+    Date(RcDate),
 }
 
 impl Value {
@@ -155,6 +159,20 @@ impl Value {
         Self::Symbol(RcSymbol::from(symbol))
     }
 
+    /// Creates a new date value.
+    #[inline]
+    pub(crate) fn date(date: Date) -> Self {
+        Self::Date(RcDate::from(date))
+    }
+
+    /// Helper function to convert the `Value` to a number and compute its power.
+    pub fn as_num_to_power(&self, other: Self) -> Self {
+        match (self, other) {
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(a.as_inner().clone().pow(b)),
+            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
+        }
+    }
+
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
         let _timer = BoaProfiler::global().start_event("new_object", "value");
@@ -231,7 +249,7 @@ impl Value {
         }
     }
 
-    /// Conversts the `Value` to `JSON`.
+    /// Converts the `Value` to `JSON`.
     pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue, Value> {
         match *self {
             Self::Null => Ok(JSONValue::Null),
@@ -273,6 +291,7 @@ impl Value {
             Self::Symbol(_) | Self::Undefined => {
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
+            Self::Date(ref dt) => Ok(JSONValue::String(dt.to_string())),
         }
     }
 
@@ -436,6 +455,9 @@ impl Value {
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
             }
+            Self::Date(_) => {
+                todo!("DateTime");
+            }
         }
     }
 
@@ -456,6 +478,9 @@ impl Value {
             Self::Integer(num) => num,
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
+            }
+            Self::Date(_) => {
+                todo!("DateTime");
             }
         }
     }
