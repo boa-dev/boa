@@ -345,9 +345,11 @@ impl Highlighter for LineHighlighter {
         let mut coloured = line.to_string();
 
         let reg = Regex::new(
-            r"(?x)
+            r#"(?x)
             (?P<identifier>[$A-z_]+[$A-z_0-9]*) |
-            (?P<op>[+\-/*%~^!&|=<>,.;:])",
+            (?P<string_double_quote>"([^"\\]|\\.)*") |
+            (?P<string_single_quote>'([^'\\]|\\.)*') |
+            (?P<op>[+\-/*%~^!&|=<>;:])"#,
         )
         .unwrap();
 
@@ -362,8 +364,12 @@ impl Highlighter for LineHighlighter {
                         }
                         _ => cap.as_str().to_string(),
                     }
-                } else if let Some(cap) = caps.name("op") {
+                } else if let Some(cap) = caps.name("string_double_quote") {
                     cap.as_str().green().to_string()
+                } else if let Some(cap) = caps.name("string_single_quote") {
+                    cap.as_str().green().to_string()
+                } else if let Some(cap) = caps.name("op") {
+                    cap.as_str().truecolor(214, 95, 26).to_string()
                 } else {
                     caps[0].to_string()
                 }
