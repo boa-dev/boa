@@ -27,7 +27,7 @@ use crate::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
         number::{f64_to_int32, f64_to_uint32},
         object::{Object, ObjectData, PROTOTYPE},
-        property::Property,
+        property::PropertyKey,
         value::{RcBigInt, RcString, ResultValue, Type, Value},
         BigInt, Console, Number,
     },
@@ -489,23 +489,20 @@ impl Interpreter {
     ///
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_property_key(&mut self, value: &Value) -> ResultValue {
+    pub(crate) fn to_property_key(&mut self, value: &Value) -> Result<PropertyKey, Value> {
         let key = self.to_primitive(value, PreferredType::String)?;
-        if key.is_symbol() {
-            Ok(key)
+        if let Value::Symbol(ref symbol) = key {
+            Ok(PropertyKey::from(symbol.clone()))
         } else {
-            self.to_string(&key).map(Value::from)
+            let string = self.to_string(&key)?;
+            Ok(PropertyKey::from(string))
         }
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty
-    pub(crate) fn has_property(&self, obj: &Value, key: &Value) -> bool {
+    pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
-            if !Property::is_property_key(key) {
-                false
-            } else {
-                obj.has_property(key)
-            }
+            obj.has_property(key)
         } else {
             false
         }
@@ -610,10 +607,11 @@ impl Interpreter {
                 .obj()
                 .run(self)?
                 .set_field(get_const_field_node.field(), value)),
-            Node::GetField(ref get_field) => Ok(get_field
-                .obj()
-                .run(self)?
-                .set_field(get_field.field().run(self)?, value)),
+            Node::GetField(ref get_field) => {
+                let field = get_field.field().run(self)?;
+                let key = self.to_property_key(&field)?;
+                Ok(get_field.obj().run(self)?.set_field(key, value))
+            }
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }

@@ -31,7 +31,7 @@ fn get_set_field() {
     // Create string and convert it to a Value
     let s = Value::from("bar");
     obj.set_field("foo", s);
-    assert_eq!(obj.get_field("foo").to_string(), "bar");
+    assert_eq!(obj.get_field("foo").to_string(), "\"bar\"");
 }
 
 #[test]
@@ -356,4 +356,111 @@ fn bitand_rational_and_rational() {
     let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
     let value = engine.to_int32(&value).unwrap();
     assert_eq!(value, 255);
+}
+
+#[test]
+fn display_string() {
+    let s = String::from("Hello");
+    let v = Value::from(s);
+    assert_eq!(v.to_string(), "\"Hello\"");
+}
+
+#[test]
+fn display_array_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "[\"Hello\"]").unwrap();
+    assert_eq!(value.to_string(), "[ \"Hello\" ]");
+}
+
+#[test]
+fn display_boolean_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let bool = new Boolean(0);
+        bool
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.to_string(), "Boolean { false }")
+}
+
+#[test]
+fn display_number_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let num = new Number(3.14);
+        num
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.to_string(), "Number { 3.14 }")
+}
+
+#[test]
+fn display_negative_zero_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let num = new Number(-0);
+        num
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.to_string(), "Number { -0 }")
+}
+
+#[test]
+#[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified and used
+fn display_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let o = {a: 'a'};
+        o
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(
+        value.to_string(),
+        r#"{
+   a: "a",
+__proto__: {
+constructor: {
+setPrototypeOf: {
+          length: 2
+            },
+   prototype: [Cycle],
+        name: "Object",
+      length: 1,
+defineProperty: {
+          length: 3
+            },
+getPrototypeOf: {
+          length: 1
+            },
+          is: {
+          length: 2
+            },
+   __proto__: {
+     constructor: {
+                name: "Function",
+           prototype: [Cycle],
+              length: 1,
+           __proto__: undefined
+                },
+       __proto__: undefined
+            }
+        },
+hasOwnProperty: {
+      length: 0
+        },
+propertyIsEnumerable: {
+      length: 0
+        },
+toString: {
+      length: 0
+        }
+    }
+}"#
+    );
 }

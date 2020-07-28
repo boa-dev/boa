@@ -76,13 +76,13 @@ fn join() {
     eprintln!("{}", forward(&mut engine, init));
     // Empty
     let empty = forward(&mut engine, "empty.join('.')");
-    assert_eq!(empty, String::from(""));
+    assert_eq!(empty, String::from("\"\""));
     // One
     let one = forward(&mut engine, "one.join('.')");
-    assert_eq!(one, String::from("a"));
+    assert_eq!(one, String::from("\"a\""));
     // Many
     let many = forward(&mut engine, "many.join('.')");
-    assert_eq!(many, String::from("a.b.c"));
+    assert_eq!(many, String::from("\"a.b.c\""));
 }
 
 #[test]
@@ -97,13 +97,13 @@ fn to_string() {
     eprintln!("{}", forward(&mut engine, init));
     // Empty
     let empty = forward(&mut engine, "empty.toString()");
-    assert_eq!(empty, String::from(""));
+    assert_eq!(empty, String::from("\"\""));
     // One
     let one = forward(&mut engine, "one.toString()");
-    assert_eq!(one, String::from("a"));
+    assert_eq!(one, String::from("\"a\""));
     // Many
     let many = forward(&mut engine, "many.toString()");
-    assert_eq!(many, String::from("a,b,c"));
+    assert_eq!(many, String::from("\"a,b,c\""));
 }
 
 #[test]
@@ -163,7 +163,7 @@ fn find() {
         "#;
     eprintln!("{}", forward(&mut engine, init));
     let found = forward(&mut engine, "many.find(comp)");
-    assert_eq!(found, String::from("a"));
+    assert_eq!(found, String::from("\"a\""));
 }
 
 #[test]
@@ -417,92 +417,92 @@ fn fill() {
     forward(&mut engine, "var a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4).join()"),
-        String::from("4,4,4")
+        String::from("\"4,4,4\"")
     );
     // make sure the array is modified
-    assert_eq!(forward(&mut engine, "a.join()"), String::from("4,4,4"));
+    assert_eq!(forward(&mut engine, "a.join()"), String::from("\"4,4,4\""));
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, '1').join()"),
-        String::from("1,4,4")
+        String::from("\"1,4,4\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, 1, 2).join()"),
-        String::from("1,4,3")
+        String::from("\"1,4,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, 1, 1).join()"),
-        String::from("1,2,3")
+        String::from("\"1,2,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, 3, 3).join()"),
-        String::from("1,2,3")
+        String::from("\"1,2,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, -3, -2).join()"),
-        String::from("4,2,3")
+        String::from("\"4,2,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, NaN, NaN).join()"),
-        String::from("1,2,3")
+        String::from("\"1,2,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, 3, 5).join()"),
-        String::from("1,2,3")
+        String::from("\"1,2,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, '1.2', '2.5').join()"),
-        String::from("1,4,3")
+        String::from("\"1,4,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, 'str').join()"),
-        String::from("4,4,4")
+        String::from("\"4,4,4\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, 'str', 'str').join()"),
-        String::from("1,2,3")
+        String::from("\"1,2,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, undefined, null).join()"),
-        String::from("1,2,3")
+        String::from("\"1,2,3\"")
     );
 
     forward(&mut engine, "a = [1, 2, 3];");
     assert_eq!(
         forward(&mut engine, "a.fill(4, undefined, undefined).join()"),
-        String::from("4,4,4")
+        String::from("\"4,4,4\"")
     );
 
     assert_eq!(
         forward(&mut engine, "a.fill().join()"),
-        String::from("undefined,undefined,undefined")
+        String::from("\"undefined,undefined,undefined\"")
     );
 
     // test object reference
     forward(&mut engine, "a = (new Array(3)).fill({});");
     forward(&mut engine, "a[0].hi = 'hi';");
-    assert_eq!(forward(&mut engine, "a[0].hi"), String::from("hi"));
+    assert_eq!(forward(&mut engine, "a[0].hi"), String::from("\"hi\""));
 }
 
 #[test]
@@ -569,10 +569,10 @@ fn map() {
     forward(&mut engine, js);
 
     // assert the old arrays have not been modified
-    assert_eq!(forward(&mut engine, "one[0]"), String::from("x"));
+    assert_eq!(forward(&mut engine, "one[0]"), String::from("\"x\""));
     assert_eq!(
         forward(&mut engine, "many[2] + many[1] + many[0]"),
-        String::from("zyx")
+        String::from("\"zyx\"")
     );
 
     // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
@@ -584,7 +584,10 @@ fn map() {
 
     // One
     assert_eq!(forward(&mut engine, "one_mapped.length"), String::from("1"));
-    assert_eq!(forward(&mut engine, "one_mapped[0]"), String::from("_x"));
+    assert_eq!(
+        forward(&mut engine, "one_mapped[0]"),
+        String::from("\"_x\"")
+    );
 
     // Many
     assert_eq!(
@@ -596,7 +599,7 @@ fn map() {
             &mut engine,
             "many_mapped[0] + many_mapped[1] + many_mapped[2]"
         ),
-        String::from("_x__y__z_")
+        String::from("\"_x__y__z_\"")
     );
 
     // TODO: uncomment when `this` has been implemented
@@ -619,12 +622,12 @@ fn slice() {
     eprintln!("{}", forward(&mut engine, init));
 
     assert_eq!(forward(&mut engine, "empty.length"), "0");
-    assert_eq!(forward(&mut engine, "one[0]"), "a");
-    assert_eq!(forward(&mut engine, "many1[0]"), "b");
-    assert_eq!(forward(&mut engine, "many1[1]"), "c");
-    assert_eq!(forward(&mut engine, "many1[2]"), "d");
+    assert_eq!(forward(&mut engine, "one[0]"), "\"a\"");
+    assert_eq!(forward(&mut engine, "many1[0]"), "\"b\"");
+    assert_eq!(forward(&mut engine, "many1[1]"), "\"c\"");
+    assert_eq!(forward(&mut engine, "many1[2]"), "\"d\"");
     assert_eq!(forward(&mut engine, "many1.length"), "3");
-    assert_eq!(forward(&mut engine, "many2[0]"), "c");
+    assert_eq!(forward(&mut engine, "many2[0]"), "\"c\"");
     assert_eq!(forward(&mut engine, "many2.length"), "1");
     assert_eq!(forward(&mut engine, "many3.length"), "0");
 }
@@ -693,10 +696,10 @@ fn filter() {
     forward(&mut engine, js);
 
     // assert the old arrays have not been modified
-    assert_eq!(forward(&mut engine, "one[0]"), String::from("1"));
+    assert_eq!(forward(&mut engine, "one[0]"), String::from("\"1\""));
     assert_eq!(
         forward(&mut engine, "many[2] + many[1] + many[0]"),
-        String::from("101")
+        String::from("\"101\"")
     );
 
     // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
@@ -711,7 +714,10 @@ fn filter() {
         forward(&mut engine, "one_filtered.length"),
         String::from("1")
     );
-    assert_eq!(forward(&mut engine, "one_filtered[0]"), String::from("1"));
+    assert_eq!(
+        forward(&mut engine, "one_filtered[0]"),
+        String::from("\"1\"")
+    );
 
     //  One filtered on "0"
     assert_eq!(
@@ -726,7 +732,7 @@ fn filter() {
     );
     assert_eq!(
         forward(&mut engine, "many_one_filtered[0] + many_one_filtered[1]"),
-        String::from("11")
+        String::from("\"11\"")
     );
 
     // Many filtered on "0"
@@ -736,7 +742,7 @@ fn filter() {
     );
     assert_eq!(
         forward(&mut engine, "many_zero_filtered[0]"),
-        String::from("0")
+        String::from("\"0\"")
     );
 }
 
@@ -863,7 +869,7 @@ fn reduce() {
     );
     assert_eq!(
         result,
-        "Reduce was called on an empty array and with no initial value"
+        "\"Reduce was called on an empty array and with no initial value\""
     );
 
     // Array with no defined elements
@@ -882,7 +888,7 @@ fn reduce() {
     );
     assert_eq!(
         result,
-        "Reduce was called on an empty array and with no initial value"
+        "\"Reduce was called on an empty array and with no initial value\""
     );
 
     // No callback
@@ -896,7 +902,7 @@ fn reduce() {
         }
     "#,
     );
-    assert_eq!(result, "Reduce was called without a callback");
+    assert_eq!(result, "\"Reduce was called without a callback\"");
 }
 
 #[test]
@@ -986,7 +992,7 @@ fn reduce_right() {
     );
     assert_eq!(
         result,
-        "reduceRight was called on an empty array and with no initial value"
+        "\"reduceRight was called on an empty array and with no initial value\""
     );
 
     // Array with no defined elements
@@ -1005,7 +1011,7 @@ fn reduce_right() {
     );
     assert_eq!(
         result,
-        "reduceRight was called on an empty array and with no initial value"
+        "\"reduceRight was called on an empty array and with no initial value\""
     );
 
     // No callback
@@ -1019,7 +1025,7 @@ fn reduce_right() {
         }
     "#,
     );
-    assert_eq!(result, "reduceRight was called without a callback");
+    assert_eq!(result, "\"reduceRight was called without a callback\"");
 }
 
 #[test]

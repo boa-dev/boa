@@ -201,8 +201,8 @@ pub fn main() -> Result<(), std::io::Error> {
             }
         } else {
             match forward_val(&mut engine, &buffer) {
-                Ok(v) => print!("{}", v.to_string()),
-                Err(v) => eprint!("{}", v.to_string()),
+                Ok(v) => print!("{}", v),
+                Err(v) => eprint!("{}", v),
             }
         }
     }

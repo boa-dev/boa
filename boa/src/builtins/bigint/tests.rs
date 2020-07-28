@@ -94,7 +94,7 @@ fn bigint_function_conversion_from_rational_with_fractional_part() {
     "#;
     assert_eq!(
         forward(&mut engine, scenario),
-        "TypeError: The number 0.1 cannot be converted to a BigInt because it is not an integer"
+        "\"TypeError: The number 0.1 cannot be converted to a BigInt because it is not an integer\""
     );
 }
 
@@ -112,7 +112,7 @@ fn bigint_function_conversion_from_null() {
     "#;
     assert_eq!(
         forward(&mut engine, scenario),
-        "TypeError: cannot convert null to a BigInt"
+        "\"TypeError: cannot convert null to a BigInt\""
     );
 }
 
@@ -130,7 +130,7 @@ fn bigint_function_conversion_from_undefined() {
     "#;
     assert_eq!(
         forward(&mut engine, scenario),
-        "TypeError: cannot convert undefined to a BigInt"
+        "\"TypeError: cannot convert undefined to a BigInt\""
     );
 }
 
@@ -217,10 +217,10 @@ fn to_string() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(forward(&mut engine, "1000n.toString()"), "1000");
-    assert_eq!(forward(&mut engine, "1000n.toString(2)"), "1111101000");
-    assert_eq!(forward(&mut engine, "255n.toString(16)"), "ff");
-    assert_eq!(forward(&mut engine, "1000n.toString(36)"), "rs");
+    assert_eq!(forward(&mut engine, "1000n.toString()"), "\"1000\"");
+    assert_eq!(forward(&mut engine, "1000n.toString(2)"), "\"1111101000\"");
+    assert_eq!(forward(&mut engine, "255n.toString(16)"), "\"ff\"");
+    assert_eq!(forward(&mut engine, "1000n.toString(36)"), "\"rs\"");
 }
 
 #[test]

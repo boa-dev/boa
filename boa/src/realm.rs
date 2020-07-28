@@ -64,8 +64,7 @@ impl Realm {
     /// Utility to add a function to the global object
     pub fn register_global_func(self, func_name: &str, func: NativeFunctionData) -> Self {
         let func = Function::builtin(Vec::new(), func);
-        self.global_obj
-            .set_field(Value::from(func_name), Value::from_func(func));
+        self.global_obj.set_field(func_name, Value::from_func(func));
 
         self
     }

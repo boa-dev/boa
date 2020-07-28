@@ -78,13 +78,16 @@ fn exec() {
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
-    assert_eq!(forward(&mut engine, "result[0]"), "Quick Brown Fox Jumps");
-    assert_eq!(forward(&mut engine, "result[1]"), "Brown");
-    assert_eq!(forward(&mut engine, "result[2]"), "Jumps");
+    assert_eq!(
+        forward(&mut engine, "result[0]"),
+        "\"Quick Brown Fox Jumps\""
+    );
+    assert_eq!(forward(&mut engine, "result[1]"), "\"Brown\"");
+    assert_eq!(forward(&mut engine, "result[2]"), "\"Jumps\"");
     assert_eq!(forward(&mut engine, "result.index"), "4");
     assert_eq!(
         forward(&mut engine, "result.input"),
-        "The Quick Brown Fox Jumps Over The Lazy Dog"
+        "\"The Quick Brown Fox Jumps Over The Lazy Dog\""
     );
 }
 
@@ -95,15 +98,15 @@ fn to_string() {
 
     assert_eq!(
         forward(&mut engine, "(new RegExp('a+b+c')).toString()"),
-        "/a+b+c/"
+        "\"/a+b+c/\""
     );
     assert_eq!(
         forward(&mut engine, "(new RegExp('bar', 'g')).toString()"),
-        "/bar/g"
+        "\"/bar/g\""
     );
     assert_eq!(
         forward(&mut engine, "(new RegExp('\\\\n', 'g')).toString()"),
-        "/\\n/g"
+        "\"/\\n/g\""
     );
-    assert_eq!(forward(&mut engine, "/\\n/g.toString()"), "/\\n/g");
+    assert_eq!(forward(&mut engine, "/\\n/g.toString()"), "\"/\\n/g\"");
 }

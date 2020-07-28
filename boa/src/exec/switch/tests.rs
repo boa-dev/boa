@@ -152,12 +152,20 @@ fn string_switch() {
         
         a;
     "#;
-    assert_eq!(&exec(scenario), "world");
+    assert_eq!(&exec(scenario), "\"world\"");
 }
 
 #[test]
 fn bigger_switch_example() {
-    let expected = ["Mon", "Tue", "Wed", "Thurs", "Fri", "Sat", "Sun"];
+    let expected = [
+        "\"Mon\"",
+        "\"Tue\"",
+        "\"Wed\"",
+        "\"Thurs\"",
+        "\"Fri\"",
+        "\"Sat\"",
+        "\"Sun\"",
+    ];
 
     for (i, val) in expected.iter().enumerate() {
         let scenario = format!(

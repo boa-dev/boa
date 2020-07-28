@@ -408,7 +408,7 @@ impl Array {
         let len = i32::from(&this.get_field("length"));
 
         if len == 0 {
-            this.set_field("length", Value::from(0));
+            this.set_field("length", 0);
             // Since length is 0, this will be an Undefined value
             return Ok(this.get_field(0.to_string()));
         }
@@ -1026,7 +1026,7 @@ impl Array {
     ///
     /// The reduceRight method traverses right to left starting from the last defined value in the array,
     /// accumulating a value using a given callback function. It returns the accumulated value.
-    ///  
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
