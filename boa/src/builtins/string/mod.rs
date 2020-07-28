@@ -548,39 +548,25 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf
     pub(crate) fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
 
-        // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = ctx.to_string(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        )?;
+        let search_string =
+            ctx.to_string(&args.get(0).cloned().unwrap_or_else(Value::undefined))?;
 
-        let length = primitive_val.chars().count() as i32;
+        let length = string.chars().count();
+        let start = args
+            .get(1)
+            .map(|position| ctx.to_integer(position))
+            .transpose()?
+            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
-        // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
-        } else {
-            i32::from(args.get(1).expect("Could not get argument"))
-        };
-
-        let start = min(max(position, 0), length);
-
-        // Here cannot use the &str method "find", because this returns the byte
-        // index: we need to return the char index in the JS String
-        // Instead, iterate over the part we're checking until the slice we're
-        // checking "starts with" the search string
-        for index in start..length {
-            let this_string: StdString = primitive_val.chars().skip(index as usize).collect();
-            if this_string.starts_with(search_string.as_str()) {
-                // Explicitly return early with the index value
-                return Ok(Value::from(index));
+        if start < length {
+            if let Some(position) = string.find(search_string.as_str()) {
+                return Ok(string[..position].chars().count().into());
             }
         }
-        // Didn't find a match, so return -1
+
         Ok(Value::from(-1))
     }
 
