@@ -631,7 +631,7 @@
 
             <span class="comment">/* unformatted data */</span>
             <span class="kw">for</span> <span class="ident">rest</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="ident">arg_index</span>) {
-                <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">rest</span>))
+                <span class="ident">formatted</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">rest</span>)<span class="question-mark">?</span>))
             }
 
             <span class="prelude-val">Ok</span>(<span class="ident">formatted</span>)
