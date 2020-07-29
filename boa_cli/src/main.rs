@@ -32,20 +32,11 @@ use boa::{
     syntax::ast::{node::StatementList, token::Token},
 };
 use colored::*;
-use lazy_static::lazy_static;
-use regex::{Captures, Regex};
-use rustyline::{
-    config::Config,
-    error::ReadlineError,
-    highlight::Highlighter,
-    validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
-    EditMode, Editor,
-};
-use rustyline_derive::{Completer, Helper, Hinter};
-use std::borrow::Cow;
-use std::collections::HashSet;
+use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
+
+mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
@@ -56,6 +47,8 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
 static CLI_HISTORY: &str = ".boa_history";
+
+const READLINE_COLOR: Color = Color::Cyan;
 
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
@@ -219,12 +212,9 @@ pub fn main() -> Result<(), std::io::Error> {
 
         let mut editor = Editor::with_config(config);
         let _ = editor.load_history(CLI_HISTORY);
-        editor.set_helper(Some(RLHelper {
-            highlighter: LineHighlighter,
-            validator: MatchingBracketValidator::new(),
-        }));
+        editor.set_helper(Some(helper::RLHelper::new()));
 
-        let readline = ">> ".cyan().bold().to_string();
+        let readline = ">> ".color(READLINE_COLOR).bold().to_string();
 
         loop {
             match editor.readline(&readline) {
@@ -257,119 +247,4 @@ pub fn main() -> Result<(), std::io::Error> {
     }
 
     Ok(())
-}
-
-#[derive(Completer, Helper, Hinter)]
-struct RLHelper {
-    highlighter: LineHighlighter,
-    validator: MatchingBracketValidator,
-}
-
-impl Validator for RLHelper {
-    fn validate(&self, ctx: &mut ValidationContext<'_>) -> Result<ValidationResult, ReadlineError> {
-        self.validator.validate(ctx)
-    }
-
-    fn validate_while_typing(&self) -> bool {
-        self.validator.validate_while_typing()
-    }
-}
-
-impl Highlighter for RLHelper {
-    fn highlight_hint<'h>(&self, hint: &'h str) -> Cow<'h, str> {
-        hint.into()
-    }
-
-    fn highlight<'l>(&self, line: &'l str, pos: usize) -> Cow<'l, str> {
-        self.highlighter.highlight(line, pos)
-    }
-
-    fn highlight_candidate<'c>(
-        &self,
-        candidate: &'c str,
-        _completion: rustyline::CompletionType,
-    ) -> Cow<'c, str> {
-        self.highlighter.highlight(candidate, 0)
-    }
-
-    fn highlight_char(&self, line: &str, _: usize) -> bool {
-        !line.is_empty()
-    }
-}
-
-lazy_static! {
-    static ref KEYWORDS: HashSet<&'static str> = {
-        let mut keywords = HashSet::new();
-        keywords.insert("break");
-        keywords.insert("case");
-        keywords.insert("catch");
-        keywords.insert("class");
-        keywords.insert("const");
-        keywords.insert("continue");
-        keywords.insert("default");
-        keywords.insert("delete");
-        keywords.insert("do");
-        keywords.insert("else");
-        keywords.insert("export");
-        keywords.insert("extends");
-        keywords.insert("finally");
-        keywords.insert("for");
-        keywords.insert("function");
-        keywords.insert("if");
-        keywords.insert("import");
-        keywords.insert("instanceof");
-        keywords.insert("new");
-        keywords.insert("return");
-        keywords.insert("super");
-        keywords.insert("switch");
-        keywords.insert("this");
-        keywords.insert("throw");
-        keywords.insert("try");
-        keywords.insert("typeof");
-        keywords.insert("var");
-        keywords.insert("void");
-        keywords.insert("while");
-        keywords.insert("with");
-        keywords.insert("yield");
-        keywords.insert("await");
-        keywords.insert("enum");
-        keywords.insert("let");
-        keywords
-    };
-}
-
-struct LineHighlighter;
-
-impl Highlighter for LineHighlighter {
-    fn highlight<'l>(&self, line: &'l str, _: usize) -> Cow<'l, str> {
-        let mut coloured = line.to_string();
-
-        let reg = Regex::new(
-            r"(?x)
-            (?P<identifier>[$A-z_]+[$A-z_0-9]*) |
-            (?P<op>[+\-/*%~^!&|=<>,.;:])",
-        )
-        .unwrap();
-
-        coloured = reg
-            .replace_all(&coloured, |caps: &Captures<'_>| {
-                if let Some(cap) = caps.name("identifier") {
-                    match cap.as_str() {
-                        "true" | "false" | "null" | "Infinity" => cap.as_str().purple().to_string(),
-                        "undefined" => cap.as_str().truecolor(100, 100, 100).to_string(),
-                        identifier if KEYWORDS.contains(identifier) => {
-                            cap.as_str().yellow().bold().to_string()
-                        }
-                        _ => cap.as_str().to_string(),
-                    }
-                } else if let Some(cap) = caps.name("op") {
-                    cap.as_str().green().to_string()
-                } else {
-                    caps[0].to_string()
-                }
-            })
-            .to_string();
-
-        coloured.into()
-    }
 }
