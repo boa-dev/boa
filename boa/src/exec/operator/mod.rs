@@ -140,6 +140,10 @@ impl Executable for BinOp {
                 }
                 _ => Ok(Value::undefined()),
             },
+            op::BinOp::Comma => {
+                self.lhs().run(interpreter)?;
+                Ok(self.rhs().run(interpreter)?)
+            }
         }
     }
 }

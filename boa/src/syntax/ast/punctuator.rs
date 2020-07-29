@@ -167,6 +167,7 @@ impl Punctuator {
             Self::LeftSh => Some(BinOp::Bit(BitOp::Shl)),
             Self::RightSh => Some(BinOp::Bit(BitOp::Shr)),
             Self::URightSh => Some(BinOp::Bit(BitOp::UShr)),
+            Self::Comma => Some(BinOp::Comma),
             _ => None,
         }
     }
