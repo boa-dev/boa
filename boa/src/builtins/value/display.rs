@@ -246,7 +246,7 @@ impl Display for Value {
                 "{}",
                 date.to_local()
                     .map(|f| f.to_rfc3339())
-                    .unwrap_or("Invalid Date".to_string())
+                    .unwrap_or_else(|| "Invalid Date".to_string())
             ),
         }
     }
