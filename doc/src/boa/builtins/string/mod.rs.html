@@ -1069,11 +1069,6 @@
 <span id="1069">1069</span>
 <span id="1070">1070</span>
 <span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1492,14 +1487,9 @@
             <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
 
-                <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">internal_slots</span>().<span class="ident">get</span>(<span class="string">&quot;RegExpMatcher&quot;</span>).<span class="ident">is_some</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_regexp</span>() {
                     <span class="comment">// first argument is another `RegExp` object, so copy its pattern and flags</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">internal_slots</span>().<span class="ident">get</span>(<span class="string">&quot;OriginalSource&quot;</span>) {
-                        <span class="kw">return</span> <span class="ident">body</span>
-                            .<span class="ident">as_string</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;OriginalSource should be a string&quot;</span>)
-                            .<span class="ident">into</span>();
-                    }
+                    <span class="kw">return</span> <span class="ident">regexp</span>.<span class="ident">original_source</span>.<span class="ident">clone</span>();
                 }
                 <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_string</span>()
             }
