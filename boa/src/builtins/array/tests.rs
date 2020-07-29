@@ -417,7 +417,7 @@ fn fill_obj_ref() {
     // test object reference
     forward(&mut engine, "a = (new Array(3)).fill({});");
     forward(&mut engine, "a[0].hi = 'hi';");
-    assert_eq!(forward(&mut engine, "a[0].hi"), "hi");
+    assert_eq!(forward(&mut engine, "a[0].hi"), "\"hi\"");
 }
 
 #[test]
