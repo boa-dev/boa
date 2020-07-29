@@ -701,7 +701,12 @@ impl Date {
             })
     }
 
-    pub(crate) fn create(global: &Value) -> Value {
+    /// Initialise the `Date` object on the global object.
+    #[inline]
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
@@ -736,7 +741,7 @@ impl Date {
         make_builtin_fn(Self::get_utc_seconds, "getUTCSeconds", &prototype, 0);
         make_builtin_fn(Self::set_date, "setDate", &prototype, 0);
 
-        let constructor = make_constructor_fn(
+        let date_time_object = make_constructor_fn(
             Self::NAME,
             Self::LENGTH,
             Self::make_date,
@@ -746,17 +751,9 @@ impl Date {
             true,
         );
 
-        make_builtin_fn(Self::now, "now", &constructor, 0);
-        make_builtin_fn(Self::parse, "parse", &constructor, 1);
-        make_builtin_fn(Self::utc, "UTC", &constructor, 7);
-        constructor
-    }
-
-    /// Initialise the `Date` object on the global object.
-    #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(global))
+        make_builtin_fn(Self::now, "now", &date_time_object, 0);
+        make_builtin_fn(Self::parse, "parse", &date_time_object, 1);
+        make_builtin_fn(Self::utc, "UTC", &date_time_object, 7);
+        (Self::NAME, date_time_object)
     }
 }
