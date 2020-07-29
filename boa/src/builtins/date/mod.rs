@@ -11,7 +11,7 @@ use crate::{
     exec::PreferredType,
     BoaProfiler, Interpreter,
 };
-use chrono::{prelude::*, LocalResult};
+use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
 
 #[inline]
@@ -20,6 +20,16 @@ fn is_zero_or_normal_opt(value: Option<f64>) -> bool {
         .map(|value| value == 0f64 || value.is_normal())
         .unwrap_or(true)
 }
+
+#[inline]
+fn to_opt(value: f64) -> Option<f64> {
+    if value == 0f64 || value.is_normal() {
+        Some(value)
+    } else {
+        None
+    }
+}
+
 macro_rules! check_normal_opt {
     ($($v:expr),+) => {
         $(is_zero_or_normal_opt($v.into()) &&)+ true
@@ -112,6 +122,34 @@ impl Date {
             Some(date) => Ok(Date(date.0)),
             _ => Err(ctx.construct_type_error("'this' is not a Date")),
         }
+    }
+
+    fn map_this_time_value(
+        value: &Value,
+        ctx: &mut Interpreter,
+        f: impl FnOnce(NaiveDateTime) -> Option<NaiveDateTime>,
+    ) -> Result<(), Value> {
+        let date = match value {
+            // 1. If Type(value) is Date, return value.
+            Value::Date(cell) => cell.0,
+
+            // 2. If Type(value) is Object and value has a [[DateData]] internal slot, then
+            //    a. Assert: Type(value.[[DateData]]) is Date.
+            //    b. Return value.[[DateData]].
+            Value::Object(object) => {
+                if let ObjectData::Date(cell) = &object.borrow().data {
+                    cell.0
+                } else {
+                    None
+                }
+            }
+            _ => return Err(ctx.construct_type_error("'this' is not a Date")),
+        };
+
+        let date = date.map(f).flatten();
+        value.set_data(ObjectData::Date(RcDate::from(Date(date))));
+
+        Ok(())
     }
 
     /// `Date()`
@@ -657,6 +695,34 @@ impl Date {
         ))
     }
 
+    /// `Date.prototype.getUTCSeconds()`
+    ///
+    /// The `getUTCSeconds()` method returns the seconds in the specified date according to universal time.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCSeconds
+    #[inline]
+    fn set_date(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let day = args
+            .get(0)
+            .map(|day| ctx.to_numeric_number(day).map_or_else(|_| None, to_opt))
+            .flatten();
+
+        Self::map_this_time_value(this, ctx, |date_time| {
+            day.map(|days| date_time.with_day(1).unwrap() + Duration::days(days as i64 - 1))
+        })?;
+
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |f| f.timestamp_millis() as f64),
+        ))
+    }
+
     /// `Date.now()`
     ///
     /// The static `Date.now()` method returns the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC.
@@ -777,6 +843,7 @@ impl Date {
         make_builtin_fn(Self::get_utc_minutes, "getUTCMinutes", &prototype, 0);
         make_builtin_fn(Self::get_utc_month, "getUTCMonth", &prototype, 0);
         make_builtin_fn(Self::get_utc_seconds, "getUTCSeconds", &prototype, 0);
+        make_builtin_fn(Self::set_date, "setDate", &prototype, 0);
 
         let constructor = make_constructor_fn(
             Self::NAME,

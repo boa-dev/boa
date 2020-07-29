@@ -593,3 +593,30 @@ fn date_proto_get_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
+
+#[test]
+fn date_proto_set_date() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "let dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setDate(21); dt.getDate()",
+    );
+    assert_eq!(Ok(Value::Rational(21f64)), actual);
+
+    // Date wraps to previous month for 0.
+    let actual = forward_val(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setDate(0); dt.getDate()",
+    );
+    assert_eq!(Ok(Value::Rational(30f64)), actual);
+
+    let actual = forward_val(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setDate(1/0); dt.getDate()",
+    );
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+
+    Ok(())
+}
