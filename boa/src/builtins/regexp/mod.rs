@@ -476,8 +476,9 @@ impl RegExp {
 
     /// Initialise the `RegExp` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+        let global = interpreter.global();
 
         // Create prototype
         let prototype = Value::new_object(Some(global));
