@@ -13,10 +13,10 @@ mod tests;
 use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::syntax::{
     ast::{
+        node::operator,
         node::{self},
-        Punctuator,
         op::UnaryOp,
-        node::operator
+        Punctuator,
     },
     parser::{
         expression::Initializer,
@@ -202,15 +202,15 @@ where
             } else {
                 None
             }
-            // match *t.kind() {
-            //     TokenKind::Punctuator(Punctuator::Assign) => {
-            //         Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
-            //     },
-            //     TokenKind::Punctuator(Punctuator::Inc) => {
-            //         Some(operator::UnaryOp::new(UnaryOp::IncrementPre, param))
-            //     }
-            //     _ => None
-            // }
+        // match *t.kind() {
+        //     TokenKind::Punctuator(Punctuator::Assign) => {
+        //         Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+        //     },
+        //     TokenKind::Punctuator(Punctuator::Inc) => {
+        //         Some(operator::UnaryOp::new(UnaryOp::IncrementPre, param))
+        //     }
+        //     _ => None
+        // }
         } else {
             None
         };

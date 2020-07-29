@@ -82,6 +82,9 @@ where
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
+        // Problem code: Currently an expression of the form (a, b) is treated as the start of (a, b) => {} but it might actually be
+        // part of a different structure e.g. let a = (b++, b)
+
         // Arrow function
         match cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
@@ -103,9 +106,11 @@ where
                 }
             }
 
-            // (a,b)=>{}
+            // (a,b)=>{} or (,)
             TokenKind::Punctuator(Punctuator::OpenParen) => {
+                println!("Arrow function params");
                 if let Some(next_token) = cursor.peek_skip(false)? {
+                    println!("Next token: {:?}", next_token);
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen)
                         | TokenKind::Punctuator(Punctuator::Spread)
