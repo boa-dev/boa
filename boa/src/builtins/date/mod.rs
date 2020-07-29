@@ -499,6 +499,164 @@ impl Date {
         Ok(Value::number(offset_minutes))
     }
 
+    /// `Date.prototype.getUTCDate()`
+    ///
+    /// The `getUTCDate()` method returns the day (date) of the month in the specified date according to universal time.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcdate
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDate
+    #[inline]
+    fn get_utc_date(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| dt.day() as f64),
+        ))
+    }
+
+    /// `Date.prototype.getUTCDay()`
+    ///
+    /// The `getUTCDay()` method returns the day of the week in the specified date according to universal time, where 0
+    /// represents Sunday.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcday
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDay
+    #[inline]
+    fn get_utc_day(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| {
+                    let weekday = dt.weekday() as u32;
+                    let weekday = (weekday + 1) % 7; // 0 represents Monday in Chrono
+                    weekday as f64
+                }),
+        ))
+    }
+
+    /// `Date.prototype.getUTCFullYear()`
+    ///
+    /// The `getUTCFullYear()` method returns the year in the specified date according to universal time.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcfullyear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCFullYear
+    #[inline]
+    fn get_utc_full_year(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| dt.year() as f64),
+        ))
+    }
+
+    /// `Date.prototype.getUTCHours()`
+    ///
+    /// The `getUTCHours()` method returns the hours in the specified date according to universal time.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutchours
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCHours
+    #[inline]
+    fn get_utc_hours(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| dt.hour() as f64),
+        ))
+    }
+
+    /// `Date.prototype.getUTCMilliseconds()`
+    ///
+    /// The `getUTCMilliseconds()` method returns the milliseconds portion of the time object's value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmilliseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMilliseconds
+    #[inline]
+    fn get_utc_milliseconds(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / 1_000_000f64),
+        ))
+    }
+
+    /// `Date.prototype.getUTCMinutes()`
+    ///
+    /// The `getUTCMinutes()` method returns the minutes in the specified date according to universal time.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcminutes
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMinutes
+    #[inline]
+    fn get_utc_minutes(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| dt.minute() as f64),
+        ))
+    }
+
+    /// `Date.prototype.getUTCMonth()`
+    ///
+    /// The `getUTCMonth()` returns the month of the specified date according to universal time, as a zero-based value
+    /// (where zero indicates the first month of the year).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmonth
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMonth
+    #[inline]
+    fn get_utc_month(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| dt.month() as f64),
+        ))
+    }
+
+    /// `Date.prototype.getUTCSeconds()`
+    ///
+    /// The `getUTCSeconds()` method returns the seconds in the specified date according to universal time.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCSeconds
+    #[inline]
+    fn get_utc_seconds(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_utc()
+                .map_or(f64::NAN, |dt| dt.second() as f64),
+        ))
+    }
+
     /// `Date.now()`
     ///
     /// The static `Date.now()` method returns the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC.
@@ -606,6 +764,19 @@ impl Date {
             &prototype,
             0,
         );
+        make_builtin_fn(Self::get_utc_date, "getUTCDate", &prototype, 0);
+        make_builtin_fn(Self::get_utc_day, "getUTCDay", &prototype, 0);
+        make_builtin_fn(Self::get_utc_full_year, "getUTCFullYear", &prototype, 0);
+        make_builtin_fn(Self::get_utc_hours, "getUTCHours", &prototype, 0);
+        make_builtin_fn(
+            Self::get_utc_milliseconds,
+            "getUTCMilliseconds",
+            &prototype,
+            0,
+        );
+        make_builtin_fn(Self::get_utc_minutes, "getUTCMinutes", &prototype, 0);
+        make_builtin_fn(Self::get_utc_month, "getUTCMonth", &prototype, 0);
+        make_builtin_fn(Self::get_utc_seconds, "getUTCSeconds", &prototype, 0);
 
         let constructor = make_constructor_fn(
             Self::NAME,

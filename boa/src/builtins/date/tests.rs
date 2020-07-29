@@ -342,10 +342,7 @@ fn date_proto_get_milliseconds_call() -> Result<(), Box<dyn std::error::Error>> 
     );
     assert_eq!(Ok(Value::Rational(779f64)), actual);
 
-    let actual = forward_val(
-        &mut engine,
-        "new Date(1/0, 07, 08, 09, 16, 15, 779).getMilliseconds()",
-    );
+    let actual = forward_val(&mut engine, "new Date(1/0).getMilliseconds()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
@@ -361,10 +358,7 @@ fn date_proto_get_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
     );
     assert_eq!(Ok(Value::Rational(16f64)), actual);
 
-    let actual = forward_val(
-        &mut engine,
-        "new Date(1/0, 07, 08, 09, 16, 15, 779).getMinutes()",
-    );
+    let actual = forward_val(&mut engine, "new Date(1/0).getMinutes()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
@@ -380,10 +374,7 @@ fn date_proto_get_month() -> Result<(), Box<dyn std::error::Error>> {
     );
     assert_eq!(Ok(Value::Rational(07f64)), actual);
 
-    let actual = forward_val(
-        &mut engine,
-        "new Date(1/0, 07, 08, 09, 16, 15, 779).getMonth()",
-    );
+    let actual = forward_val(&mut engine, "new Date(1/0).getMonth()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
 
     Ok(())
@@ -400,10 +391,7 @@ fn date_proto_get_seconds() -> Result<(), Box<dyn std::error::Error>> {
     );
     assert_eq!(Ok(Value::Rational(15f64)), actual);
 
-    let actual = forward_val(
-        &mut engine,
-        "new Date(1/0, 07, 08, 09, 16, 15, 779).getSeconds()",
-    );
+    let actual = forward_val(&mut engine, "new Date(1/0).getSeconds()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
@@ -424,10 +412,7 @@ fn date_proto_get_time() -> Result<(), Box<dyn std::error::Error>> {
         .timestamp_millis() as f64;
     assert_eq!(Ok(Value::Rational(ts)), actual);
 
-    let actual = forward_val(
-        &mut engine,
-        "new Date(1/0, 07, 08, 09, 16, 15, 779).getTime()",
-    );
+    let actual = forward_val(&mut engine, "new Date(1/0).getTime()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
@@ -443,10 +428,7 @@ fn date_proto_get_year() -> Result<(), Box<dyn std::error::Error>> {
     );
     assert_eq!(Ok(Value::Rational(120f64)), actual);
 
-    let actual = forward_val(
-        &mut engine,
-        "new Date(1/0, 07, 08, 09, 16, 15, 779).getYear()",
-    );
+    let actual = forward_val(&mut engine, "new Date(1/0).getYear()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
@@ -479,5 +461,135 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
         "new Date(1/0, 07, 08, 09, 16, 15, 779).getTimezoneOffset()",
     );
     assert_eq!(Ok(Value::Rational(offset_minutes)), actual);
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_date_call() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCDate()",
+    );
+    assert_eq!(Ok(Value::Rational(08f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCDate()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_day_call() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCDay()",
+    );
+    assert_eq!(Ok(Value::Rational(3f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCDay()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_full_year_call() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCFullYear()",
+    );
+    assert_eq!(Ok(Value::Rational(2020f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCFullYear()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_hours_call() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCHours()",
+    );
+    assert_eq!(Ok(Value::Rational(09f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCHours()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_milliseconds_call() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCMilliseconds()",
+    );
+    assert_eq!(Ok(Value::Rational(779f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCMilliseconds()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCMinutes()",
+    );
+    assert_eq!(Ok(Value::Rational(16f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCMinutes()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_month() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCMonth()",
+    );
+    assert_eq!(Ok(Value::Rational(07f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCMonth()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_get_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCSeconds()",
+    );
+    assert_eq!(Ok(Value::Rational(15f64)), actual);
+
+    let actual = forward_val(&mut engine, "new Date(1/0).getUTCSeconds()");
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
