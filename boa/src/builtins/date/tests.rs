@@ -421,6 +421,25 @@ fn date_proto_get_time() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+fn date_proto_get_year() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(2020, 07, 08, 09, 16, 15, 779).getYear()",
+    );
+    assert_eq!(Ok(Value::Rational(120f64)), actual);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(1/0, 07, 08, 09, 16, 15, 779).getYear()",
+    );
+    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    Ok(())
+}
+
+#[test]
 fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

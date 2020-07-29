@@ -461,6 +461,25 @@ impl Date {
         ))
     }
 
+    /// `Date.prototype.getTime()`
+    ///
+    /// The `getTime()` method returns the number of milliseconds since the Unix Epoch.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getyear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getYear
+    #[inline]
+    fn get_year(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Ok(Value::number(
+            Self::this_time_value(this, ctx)?
+                .to_local()
+                .map_or(f64::NAN, |dt| dt.year() as f64 - 1900f64),
+        ))
+    }
+
     /// `Date.prototype.getTimeZoneOffset()`
     ///
     /// The getTimezoneOffset() method returns the time zone difference, in minutes, from current locale (host system
@@ -579,6 +598,7 @@ impl Date {
         make_builtin_fn(Self::get_month, "getMonth", &prototype, 0);
         make_builtin_fn(Self::get_seconds, "getSeconds", &prototype, 0);
         make_builtin_fn(Self::get_time, "getTime", &prototype, 0);
+        make_builtin_fn(Self::get_year, "getYear", &prototype, 0);
         make_builtin_fn(
             Self::get_timezone_offset,
             "getTimezoneOffset",
