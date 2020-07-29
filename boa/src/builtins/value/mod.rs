@@ -214,7 +214,7 @@ impl Value {
                 new_obj
             }
             JSONValue::Object(obj) => {
-                let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
+                let new_obj = Value::new_object(Some(interpreter.global()));
                 for (key, json) in obj.into_iter() {
                     let value = Self::from_json(json, interpreter);
                     new_obj.set_property(

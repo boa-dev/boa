@@ -137,9 +137,8 @@ where
                     cursor.next(false)?.expect("= token vanished"); // Consume the token.
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
-                TokenKind::Punctuator(p) if p.as_binop().is_some() => {
+                TokenKind::Punctuator(p) if p.as_binop().is_some() && p != Punctuator::Comma => {
                     cursor.next(false)?.expect("Token vanished"); // Consume the token.
-
                     let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");
                     lhs = BinOp::new(binop, lhs, expr).into();

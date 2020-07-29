@@ -19,7 +19,7 @@ use crate::{
         map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
-        BigInt,
+        BigInt, RegExp,
     },
     exec::Interpreter,
     BoaProfiler,
@@ -71,6 +71,7 @@ pub struct Object {
 pub enum ObjectData {
     Array,
     Map(OrderedMap<Value, Value>),
+    RegExp(RegExp),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -87,8 +88,9 @@ impl Display for ObjectData {
             f,
             "{}",
             match self {
-                Self::Function(_) => "Function",
                 Self::Array => "Array",
+                Self::Function(_) => "Function",
+                Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
                 Self::String(_) => "String",
                 Self::Symbol(_) => "Symbol",
@@ -381,6 +383,20 @@ impl Object {
         }
     }
 
+    /// Checks if it a `RegExp` object.
+    #[inline]
+    pub fn is_regexp(&self) -> bool {
+        matches!(self.data, ObjectData::RegExp(_))
+    }
+
+    #[inline]
+    pub fn as_regexp(&self) -> Option<&RegExp> {
+        match self.data {
+            ObjectData::RegExp(ref regexp) => Some(regexp),
+            _ => None,
+        }
+    }
+
     /// Checks if it an ordinary object.
     #[inline]
     pub fn is_ordinary(&self) -> bool {
@@ -577,7 +593,8 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
 
 /// Initialise the `Object` object on the global object.
 #[inline]
-pub fn init(global: &Value) -> (&str, Value) {
+pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("object", "init");
 
     let prototype = Value::new_object(None);

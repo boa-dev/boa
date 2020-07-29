@@ -12,7 +12,7 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{builtins::value::Value, BoaProfiler};
+use crate::{builtins::value::Value, BoaProfiler, Interpreter};
 
 /// JavaScript global `undefined` property.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -24,7 +24,7 @@ impl Undefined {
 
     /// Initialize the `undefined` property on the global object.
     #[inline]
-    pub(crate) fn init(_: &Value) -> (&str, Value) {
+    pub(crate) fn init(_interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         (Self::NAME, Value::undefined())
