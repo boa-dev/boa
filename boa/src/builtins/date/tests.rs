@@ -70,18 +70,14 @@ fn date_this_time_value() {
 
 #[test]
 fn date_call() -> Result<(), Box<dyn std::error::Error>> {
-    use chrono::prelude::*;
-
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time = forward(&mut engine, "Date()");
-    let dt1 = DateTime::parse_from_rfc3339(&date_time)?;
+    let dt1 = forward(&mut engine, "Date()");
 
     std::thread::sleep(std::time::Duration::from_millis(1));
 
-    let date_time = forward(&mut engine, "Date()");
-    let dt2 = DateTime::parse_from_rfc3339(&date_time)?;
+    let dt2 = forward(&mut engine, "Date()");
 
     assert_ne!(dt1, dt2);
     Ok(())
@@ -89,18 +85,14 @@ fn date_call() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_call() -> Result<(), Box<dyn std::error::Error>> {
-    use chrono::prelude::*;
-
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time = forward(&mut engine, "new Date().toString()");
-    let dt1 = DateTime::parse_from_rfc3339(&date_time)?;
+    let dt1 = forward(&mut engine, "new Date().toString()");
 
     std::thread::sleep(std::time::Duration::from_millis(1));
 
-    let date_time = forward(&mut engine, "new Date().toString()");
-    let dt2 = DateTime::parse_from_rfc3339(&date_time)?;
+    let dt2 = forward(&mut engine, "new Date().toString()");
 
     assert_ne!(dt1, dt2);
     Ok(())
