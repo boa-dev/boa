@@ -101,6 +101,8 @@ impl Symbol {
     /// Initialise the `Symbol` object on the global object.
     #[inline]
     pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        // Define the Well-Known Symbols
+        // https://tc39.es/ecma262/#sec-well-known-symbols
         let symbol_async_iterator = Symbol(
             Some("Symbol.asyncIterator".into()),
             interpreter.generate_hash(),
