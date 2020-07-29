@@ -415,3 +415,85 @@ fn trim_end() {
     assert_eq!(forward(&mut engine, "'Hello \n'.trimEnd()"), "\"Hello\"");
     assert_eq!(forward(&mut engine, "' Hello '.trimEnd()"), "\" Hello\"");
 }
+
+#[test]
+fn index_of_with_no_arguments() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf()"), "-1");
+    assert_eq!(forward(&mut engine, "'undefined'.indexOf()"), "0");
+    assert_eq!(forward(&mut engine, "'a1undefined'.indexOf()"), "2");
+    assert_eq!(forward(&mut engine, "'a1undefined1a'.indexOf()"), "2");
+    assert_eq!(forward(&mut engine, "'µµµundefined'.indexOf()"), "3");
+    assert_eq!(forward(&mut engine, "'µµµundefinedµµµ'.indexOf()"), "3");
+}
+
+#[test]
+fn index_of_with_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf('hello')"), "-1");
+    assert_eq!(
+        forward(&mut engine, "'undefined'.indexOf('undefined')"),
+        "0"
+    );
+    assert_eq!(
+        forward(&mut engine, "'a1undefined'.indexOf('undefined')"),
+        "2"
+    );
+    assert_eq!(
+        forward(&mut engine, "'a1undefined1a'.indexOf('undefined')"),
+        "2"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefined'.indexOf('undefined')"),
+        "3"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefinedµµµ'.indexOf('undefined')"),
+        "3"
+    );
+}
+
+#[test]
+fn index_of_with_non_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf(1)"), "-1");
+    assert_eq!(forward(&mut engine, "'1'.indexOf(1)"), "0");
+    assert_eq!(forward(&mut engine, "'true'.indexOf(true)"), "0");
+    assert_eq!(forward(&mut engine, "'ab100ba'.indexOf(100)"), "2");
+    assert_eq!(forward(&mut engine, "'µµµfalse'.indexOf(true)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµ5µµµ'.indexOf(5)"), "3");
+}
+
+#[test]
+fn index_of_with_from_index_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'x'.indexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'abcx'.indexOf('x', 2)"), "3");
+    assert_eq!(forward(&mut engine, "'x'.indexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµxµµµ'.indexOf('x', 2)"), "3");
+
+    assert_eq!(
+        forward(&mut engine, "'µµµxµµµ'.indexOf('x', 10000000)"),
+        "-1"
+    );
+}
+
+#[test]
+fn generic_index_of() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    forward_val(
+        &mut engine,
+        "Number.prototype.indexOf = String.prototype.indexOf",
+    )
+    .unwrap();
+
+    assert_eq!(forward(&mut engine, "(10).indexOf(9)"), "-1");
+    assert_eq!(forward(&mut engine, "(10).indexOf(0)"), "1");
+    assert_eq!(forward(&mut engine, "(10).indexOf('0')"), "1");
+}
