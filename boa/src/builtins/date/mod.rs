@@ -461,9 +461,10 @@ impl Date {
         ))
     }
 
-    /// `Date.prototype.getTime()`
+    /// `Date.prototype.getYear()`
     ///
-    /// The `getTime()` method returns the number of milliseconds since the Unix Epoch.
+    /// The getYear() method returns the year in the specified date according to local time. Because getYear() does not
+    /// return full years ("year 2000 problem"), it is no longer used and has been replaced by the getFullYear() method.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

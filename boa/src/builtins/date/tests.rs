@@ -271,10 +271,13 @@ fn date_proto_get_date_call() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward_val(&mut engine, "new Date(2020, 07, 08, 09).getDate()");
+    let actual = forward_val(
+        &mut engine,
+        "new Date(2020, 07, 08, 09, 16, 15, 779).getDate()",
+    );
     assert_eq!(Ok(Value::Rational(08f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0, 07, 08, 09).getDate()");
+    let actual = forward_val(&mut engine, "new Date(1/0).getDate()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
 
     Ok(())
@@ -285,10 +288,13 @@ fn date_proto_get_day_call() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward_val(&mut engine, "new Date(2020, 07, 08, 09).getDay()");
+    let actual = forward_val(
+        &mut engine,
+        "new Date(2020, 07, 08, 09, 16, 15, 779).getDay()",
+    );
     assert_eq!(Ok(Value::Rational(3f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0, 07, 08, 09).getDay()");
+    let actual = forward_val(&mut engine, "new Date(1/0).getDay()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
@@ -298,10 +304,13 @@ fn date_proto_get_full_year_call() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward_val(&mut engine, "new Date(2020, 07).getFullYear()");
+    let actual = forward_val(
+        &mut engine,
+        "new Date(2020, 07, 08, 09, 16, 15, 779).getFullYear()",
+    );
     assert_eq!(Ok(Value::Rational(2020f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0, 07).getFullYear()");
+    let actual = forward_val(&mut engine, "new Date(1/0).getFullYear()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
@@ -311,10 +320,13 @@ fn date_proto_get_hours_call() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward_val(&mut engine, "new Date(2020, 07, 08, 09, 16).getHours()");
+    let actual = forward_val(
+        &mut engine,
+        "new Date(2020, 07, 08, 09, 16, 15, 779).getHours()",
+    );
     assert_eq!(Ok(Value::Rational(09f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0, 07, 08, 09, 16).getHours()");
+    let actual = forward_val(&mut engine, "new Date(1/0).getHours()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
