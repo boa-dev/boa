@@ -12,7 +12,7 @@ pub use crate::builtins::value::val_type::Type;
 use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
-    property::{Attribute, Property},
+    property::{Attribute, Property, PropertyKey},
     BigInt, Symbol,
 };
 use crate::exec::Interpreter;
@@ -374,6 +374,15 @@ impl Value {
         matches!(self, Self::String(_))
     }
 
+    /// Returns the string if the values is a string, otherwise `None`.
+    #[inline]
+    pub fn as_string(&self) -> Option<&RcString> {
+        match self {
+            Self::String(ref string) => Some(string),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is a boolean.
     #[inline]
     pub fn is_boolean(&self) -> bool {
@@ -624,38 +633,31 @@ impl Value {
     }
 
     /// Set the field in the value
-    /// Field could be a Symbol, so we need to accept a Value (not a string)
-    pub fn set_field<F, V>(&self, field: F, val: V) -> Value
+    #[inline]
+    pub fn set_field<F, V>(&self, field: F, value: V) -> Value
     where
-        F: Into<Value>,
+        F: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         let field = field.into();
-        let val = val.into();
-
+        let value = value.into();
+        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            if obj.borrow().is_array() {
-                if let Ok(num) = field.to_string().parse::<usize>() {
-                    if num > 0 {
-                        let len = i32::from(&self.get_field("length"));
-                        if len < (num + 1) as i32 {
-                            self.set_field("length", Value::from(num + 1));
+            if let PropertyKey::String(ref string) = field {
+                if obj.borrow().is_array() {
+                    if let Ok(num) = string.parse::<usize>() {
+                        if num > 0 {
+                            let len = i32::from(&self.get_field("length"));
+                            if len < (num + 1) as i32 {
+                                self.set_field("length", num + 1);
+                            }
                         }
                     }
                 }
             }
-
-            // Symbols get saved into a different bucket to general properties
-            if field.is_symbol() {
-                obj.borrow_mut().set(field, val.clone());
-            } else {
-                obj.borrow_mut()
-                    .set(Value::from(field.to_string()), val.clone());
-            }
+            obj.borrow_mut().set(&field, value.clone());
         }
-
-        val
+        value
     }
 
     /// Set the private field in the value

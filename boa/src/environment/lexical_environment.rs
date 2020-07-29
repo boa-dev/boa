@@ -307,7 +307,7 @@ mod tests {
           }
         "#;
 
-        assert_eq!(&exec(scenario), "bar is not defined");
+        assert_eq!(&exec(scenario), "\"bar is not defined\"");
     }
 
     #[test]
@@ -324,7 +324,7 @@ mod tests {
           }
         "#;
 
-        assert_eq!(&exec(scenario), "bar is not defined");
+        assert_eq!(&exec(scenario), "\"bar is not defined\"");
     }
 
     #[test]
