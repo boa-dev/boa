@@ -937,6 +937,10 @@
 <span id="937">937</span>
 <span id="938">938</span>
 <span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements various structure for logic handling.</span>
 
@@ -1645,6 +1649,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// see: [`AssignOp`](enum.AssignOp.html).</span>
     <span class="ident">Assign</span>(<span class="ident">AssignOp</span>),
+
+    <span class="doccomment">/// Comma operation.</span>
+    <span class="ident">Comma</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">NumOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
@@ -1688,6 +1695,7 @@
                 <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
                 <span class="self">Self</span>::<span class="ident">Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
                 <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="self">Self</span>::<span class="ident">Comma</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;,&quot;</span>.<span class="ident">to_string</span>(),
             }
         )
     }

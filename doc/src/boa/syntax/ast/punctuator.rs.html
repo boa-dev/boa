@@ -242,6 +242,7 @@
 <span id="242">242</span>
 <span id="243">243</span>
 <span id="244">244</span>
+<span id="245">245</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Punctuator`, which represents all punctuators used in JavaScript</span>
 <span class="doccomment">//!</span>
@@ -412,6 +413,7 @@
             <span class="self">Self</span>::<span class="ident">LeftSh</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">Shl</span>)),
             <span class="self">Self</span>::<span class="ident">RightSh</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">Shr</span>)),
             <span class="self">Self</span>::<span class="ident">URightSh</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="ident">BitOp</span>::<span class="ident">UShr</span>)),
+            <span class="self">Self</span>::<span class="ident">Comma</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Comma</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
