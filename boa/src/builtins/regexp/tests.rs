@@ -1,4 +1,3 @@
-use super::*;
 use crate::{exec::Interpreter, forward, realm::Realm};
 
 #[test]
@@ -15,13 +14,6 @@ fn constructors() {
     assert_eq!(forward(&mut engine, "constructed.test('1.0')"), "true");
     assert_eq!(forward(&mut engine, "literal.test('1.0')"), "true");
     assert_eq!(forward(&mut engine, "ctor_literal.test('1.0')"), "true");
-}
-
-#[test]
-fn check_regexp_constructor_is_function() {
-    let global = Value::new_object(None);
-    let regexp_constructor = RegExp::create(&global);
-    assert_eq!(regexp_constructor.is_function(), true);
 }
 
 // TODO: uncomment this test when property getters are supported
