@@ -14,6 +14,8 @@ use crate::{
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
 
+const NANOS_IN_MS: f64 = 1_000_000f64;
+
 #[inline]
 fn is_zero_or_normal_opt(value: Option<f64>) -> bool {
     value
@@ -377,6 +379,25 @@ impl Date {
         Ok(Value::from(dt_str))
     }
 
+    /// `Date.prototype.toUTCString()`
+    ///
+    /// The `toUTCString()` method returns a string representing the specified Date object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toutcstring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toUTCString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_utc_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let dt_str = Self::this_time_value(this, ctx)?
+            .to_utc()
+            .map(|date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string())
+            .unwrap_or_else(|| "Invalid Date".to_string());
+        Ok(Value::from(dt_str))
+    }
+
     getter_method! {
         /// `Date.prototype.getDate()`
         ///
@@ -449,7 +470,7 @@ impl Date {
         ///
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmilliseconds
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMilliseconds
-        fn get_milliseconds(to_local, dt) { dt.nanosecond() as f64 / 1_000_000f64 }
+        fn get_milliseconds(to_local, dt) { dt.nanosecond() as f64 / NANOS_IN_MS }
     }
 
     getter_method! {
@@ -614,7 +635,7 @@ impl Date {
         ///
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmilliseconds
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMilliseconds
-        fn get_utc_milliseconds(to_utc, dt) { dt.nanosecond() as f64 / 1_000_000f64 }
+        fn get_utc_milliseconds(to_utc, dt) { dt.nanosecond() as f64 / NANOS_IN_MS }
     }
 
     getter_method! {
@@ -705,6 +726,32 @@ impl Date {
         }
     }
 
+    setter_method! {
+        /// `Date.prototype.setHours()`
+        ///
+        /// The `setHours()` method sets the hours for a specified date according to local time, and returns the number
+        /// of milliseconds since January 1, 1970 00:00:00 UTC until the time represented by the updated `Date`
+        /// instance.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.sethours
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setHours
+        fn set_hours (to_local, date_time, args[4]) {
+            args[0].map_or(None, |hour| {
+                let hour = hour as i64;
+                let minute = args[1].map_or_else(|| date_time.minute() as i64, |minute| minute as i64);
+                let second = args[2].map_or_else(|| date_time.second() as i64, |second| second as i64);
+                let ms = args[3].map_or_else(|| (date_time.nanosecond() as f64 / NANOS_IN_MS) as i64, |second| second as i64);
+
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                date_time.date().and_hms(0, 0, 0).checked_add_signed(duration)
+            })
+        }
+    }
+
     /// `Date.now()`
     ///
     /// The static `Date.now()` method returns the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC.
@@ -784,7 +831,7 @@ impl Date {
             year
         };
 
-        NaiveDate::from_ymd_opt(year, month, day)
+        NaiveDate::from_ymd_opt(year, month + 1, day)
             .map(|f| f.and_hms_milli_opt(hour, min, sec, milli))
             .flatten()
             .map_or(Ok(Value::number(f64::NAN)), |f| {
@@ -832,6 +879,7 @@ impl Date {
         make_builtin_fn(Self::get_utc_seconds, "getUTCSeconds", &prototype, 0);
         make_builtin_fn(Self::set_date, "setDate", &prototype, 1);
         make_builtin_fn(Self::set_full_year, "setFullYear", &prototype, 1);
+        make_builtin_fn(Self::set_hours, "setHours", &prototype, 1);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,

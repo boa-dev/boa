@@ -4,6 +4,9 @@ use crate::{
 };
 use chrono::prelude::*;
 
+// NB: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
+// this.
+
 fn forward_dt_utc(engine: &mut Interpreter, src: &str) -> Option<NaiveDateTime> {
     let date_time = if let Ok(v) = forward_val(engine, src) {
         v
@@ -103,11 +106,11 @@ fn date_ctor_call_string() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time = forward_dt_utc(&mut engine, "new Date('2020-07-08T09:16:15.779-07:30')");
+    let date_time = forward_dt_utc(&mut engine, "new Date('2020-06-08T09:16:15.779-06:30')");
 
     // Internal date is expressed as UTC
     assert_eq!(
-        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(16, 46, 15, 779)),
+        Some(NaiveDate::from_ymd(2020, 06, 08).and_hms_milli(15, 46, 15, 779)),
         date_time
     );
     Ok(())
@@ -156,7 +159,7 @@ fn date_ctor_call_multiple() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time = forward_dt_local(&mut engine, "new Date(2020, 07, 08, 09, 16, 15, 779)");
+    let date_time = forward_dt_local(&mut engine, "new Date(2020, 06, 08, 09, 16, 15, 779)");
 
     assert_eq!(
         Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 15, 779)),
@@ -170,7 +173,7 @@ fn date_ctor_call_multiple_90s() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time = forward_dt_local(&mut engine, "new Date(99, 07, 08, 09, 16, 15, 779)");
+    let date_time = forward_dt_local(&mut engine, "new Date(99, 06, 08, 09, 16, 15, 779)");
 
     assert_eq!(
         Some(NaiveDate::from_ymd(1999, 07, 08).and_hms_milli(09, 16, 15, 779)),
@@ -188,13 +191,13 @@ fn date_ctor_call_multiple_nan() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(Value::string("Invalid Date"), date_time);
     }
 
-    check("new Date(1/0, 07, 08, 09, 16, 15, 779).toString()");
+    check("new Date(1/0, 06, 08, 09, 16, 15, 779).toString()");
     check("new Date(2020, 1/0, 08, 09, 16, 15, 779).toString()");
-    check("new Date(2020, 07, 1/0, 09, 16, 15, 779).toString()");
-    check("new Date(2020, 07, 08, 1/0, 16, 15, 779).toString()");
-    check("new Date(2020, 07, 08, 09, 1/0, 15, 779).toString()");
-    check("new Date(2020, 07, 08, 09, 16, 1/0, 779).toString()");
-    check("new Date(2020, 07, 08, 09, 16, 15, 1/0).toString()");
+    check("new Date(2020, 06, 1/0, 09, 16, 15, 779).toString()");
+    check("new Date(2020, 06, 08, 1/0, 16, 15, 779).toString()");
+    check("new Date(2020, 06, 08, 09, 1/0, 15, 779).toString()");
+    check("new Date(2020, 06, 08, 09, 16, 1/0, 779).toString()");
+    check("new Date(2020, 06, 08, 09, 16, 15, 1/0).toString()");
 
     Ok(())
 }
@@ -221,9 +224,9 @@ fn date_ctor_parse_call() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time = forward_val(&mut engine, "Date.parse('2020-07-08T09:16:15.779-07:30')");
+    let date_time = forward_val(&mut engine, "Date.parse('2020-06-08T09:16:15.779-07:30')");
 
-    assert_eq!(Ok(Value::Rational(1594226775779f64)), date_time);
+    assert_eq!(Ok(Value::Rational(1591634775779f64)), date_time);
     Ok(())
 }
 
@@ -232,7 +235,7 @@ fn date_ctor_utc_call() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time = forward_val(&mut engine, "Date.UTC(2020, 07, 08, 09, 16, 15, 779)");
+    let date_time = forward_val(&mut engine, "Date.UTC(2020, 06, 08, 09, 16, 15, 779)");
 
     assert_eq!(Ok(Value::Rational(1594199775779f64)), date_time);
     Ok(())
@@ -247,13 +250,13 @@ fn date_ctor_utc_call_nan() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(Value::string("NaN"), date_time);
     }
 
-    check("Date.UTC(1/0, 07, 08, 09, 16, 15, 779).toString()");
+    check("Date.UTC(1/0, 06, 08, 09, 16, 15, 779).toString()");
     check("Date.UTC(2020, 1/0, 08, 09, 16, 15, 779).toString()");
-    check("Date.UTC(2020, 07, 1/0, 09, 16, 15, 779).toString()");
-    check("Date.UTC(2020, 07, 08, 1/0, 16, 15, 779).toString()");
-    check("Date.UTC(2020, 07, 08, 09, 1/0, 15, 779).toString()");
-    check("Date.UTC(2020, 07, 08, 09, 16, 1/0, 779).toString()");
-    check("Date.UTC(2020, 07, 08, 09, 16, 15, 1/0).toString()");
+    check("Date.UTC(2020, 06, 1/0, 09, 16, 15, 779).toString()");
+    check("Date.UTC(2020, 06, 08, 1/0, 16, 15, 779).toString()");
+    check("Date.UTC(2020, 06, 08, 09, 1/0, 15, 779).toString()");
+    check("Date.UTC(2020, 06, 08, 09, 16, 1/0, 779).toString()");
+    check("Date.UTC(2020, 06, 08, 09, 16, 15, 1/0).toString()");
 
     Ok(())
 }
@@ -265,7 +268,7 @@ fn date_proto_get_date_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getDate()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getDate()",
     );
     assert_eq!(Ok(Value::Rational(08f64)), actual);
 
@@ -282,7 +285,7 @@ fn date_proto_get_day_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getDay()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getDay()",
     );
     assert_eq!(Ok(Value::Rational(3f64)), actual);
 
@@ -298,7 +301,7 @@ fn date_proto_get_full_year_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getFullYear()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getFullYear()",
     );
     assert_eq!(Ok(Value::Rational(2020f64)), actual);
 
@@ -314,7 +317,7 @@ fn date_proto_get_hours_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getHours()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getHours()",
     );
     assert_eq!(Ok(Value::Rational(09f64)), actual);
 
@@ -330,7 +333,7 @@ fn date_proto_get_milliseconds_call() -> Result<(), Box<dyn std::error::Error>> 
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getMilliseconds()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getMilliseconds()",
     );
     assert_eq!(Ok(Value::Rational(779f64)), actual);
 
@@ -346,7 +349,7 @@ fn date_proto_get_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getMinutes()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getMinutes()",
     );
     assert_eq!(Ok(Value::Rational(16f64)), actual);
 
@@ -362,9 +365,9 @@ fn date_proto_get_month() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getMonth()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getMonth()",
     );
-    assert_eq!(Ok(Value::Rational(07f64)), actual);
+    assert_eq!(Ok(Value::Rational(06f64)), actual);
 
     let actual = forward_val(&mut engine, "new Date(1/0).getMonth()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
@@ -379,7 +382,7 @@ fn date_proto_get_seconds() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getSeconds()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getSeconds()",
     );
     assert_eq!(Ok(Value::Rational(15f64)), actual);
 
@@ -395,7 +398,7 @@ fn date_proto_get_time() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getTime()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getTime()",
     );
 
     let ts = Local
@@ -416,7 +419,7 @@ fn date_proto_get_year() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(2020, 07, 08, 09, 16, 15, 779).getYear()",
+        "new Date(2020, 06, 08, 09, 16, 15, 779).getYear()",
     );
     assert_eq!(Ok(Value::Rational(120f64)), actual);
 
@@ -450,7 +453,7 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(1/0, 07, 08, 09, 16, 15, 779).getTimezoneOffset()",
+        "new Date(1/0, 06, 08, 09, 16, 15, 779).getTimezoneOffset()",
     );
     assert_eq!(Ok(Value::Rational(offset_minutes)), actual);
     Ok(())
@@ -463,7 +466,7 @@ fn date_proto_get_utc_date_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCDate()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDate()",
     );
     assert_eq!(Ok(Value::Rational(08f64)), actual);
 
@@ -480,7 +483,7 @@ fn date_proto_get_utc_day_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCDay()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDay()",
     );
     assert_eq!(Ok(Value::Rational(3f64)), actual);
 
@@ -496,7 +499,7 @@ fn date_proto_get_utc_full_year_call() -> Result<(), Box<dyn std::error::Error>>
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCFullYear()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCFullYear()",
     );
     assert_eq!(Ok(Value::Rational(2020f64)), actual);
 
@@ -512,7 +515,7 @@ fn date_proto_get_utc_hours_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCHours()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCHours()",
     );
     assert_eq!(Ok(Value::Rational(09f64)), actual);
 
@@ -528,7 +531,7 @@ fn date_proto_get_utc_milliseconds_call() -> Result<(), Box<dyn std::error::Erro
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCMilliseconds()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMilliseconds()",
     );
     assert_eq!(Ok(Value::Rational(779f64)), actual);
 
@@ -544,7 +547,7 @@ fn date_proto_get_utc_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCMinutes()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMinutes()",
     );
     assert_eq!(Ok(Value::Rational(16f64)), actual);
 
@@ -560,9 +563,9 @@ fn date_proto_get_utc_month() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCMonth()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMonth()",
     );
-    assert_eq!(Ok(Value::Rational(07f64)), actual);
+    assert_eq!(Ok(Value::Rational(06f64)), actual);
 
     let actual = forward_val(&mut engine, "new Date(1/0).getUTCMonth()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
@@ -577,7 +580,7 @@ fn date_proto_get_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)).getUTCSeconds()",
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCSeconds()",
     );
     assert_eq!(Ok(Value::Rational(15f64)), actual);
 
@@ -591,94 +594,158 @@ fn date_proto_set_date() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let actual = forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "let dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setDate(21); dt.getDate()",
+        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(21); dt",
     );
-    assert_eq!(Ok(Value::Rational(21f64)), actual);
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 21).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
 
     // Date wraps to previous month for 0.
-    let actual = forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setDate(0); dt.getDate()",
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(0); dt",
     );
-    assert_eq!(Ok(Value::Rational(30f64)), actual);
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 06, 30).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
 
-    let actual = forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setDate(1/0); dt.getDate()",
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(1/0); dt",
     );
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(None, actual);
 
     Ok(())
 }
 
 #[test]
-fn date_proto_set_full_year_in_bounds() -> Result<(), Box<dyn std::error::Error>> {
+fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "function fmt(dt) { return dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate(); }",
-    )
-    .expect("Helper function installed");
-
-    let actual = forward_val(
-        &mut engine,
-        "let dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012); fmt(dt)",
+        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012); dt",
     );
-    assert_eq!(Ok(Value::string("2012-7-8")), actual);
-
-    let actual = forward_val(
-        &mut engine,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8); fmt(dt)",
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2012, 07, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
     );
-    assert_eq!(Ok(Value::string("2012-8-8")), actual);
 
-    let actual = forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8, 9); fmt(dt)",
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8); dt",
     );
-    assert_eq!(Ok(Value::string("2012-8-9")), actual);
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2012, 09, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8, 10); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2012, 09, 10).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    // Out-of-bounds
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 35); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2014, 12, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, -35); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2009, 02, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, 950); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2015, 05, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, -950); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2010, 02, 23).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
 
     Ok(())
 }
 
 #[test]
-fn date_proto_set_full_year_out_of_bounds() -> Result<(), Box<dyn std::error::Error>> {
+fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "function fmt(dt) { return dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate(); }",
-    )
-    .expect("Helper function installed");
-
-    let actual = forward_val(
-        &mut engine,
-        "let dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 33); fmt(dt)",
+        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11); dt",
     );
-    assert_eq!(Ok(Value::string("2014-9-8")), actual);
-
-    let actual = forward_val(
-        &mut engine,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, -33); fmt(dt)",
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 16, 15, 779)),
+        actual
     );
-    assert_eq!(Ok(Value::string("2009-3-8")), actual);
 
-    let actual = forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, 950); fmt(dt)",
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35); dt",
     );
-    assert_eq!(Ok(Value::string("2015-4-8")), actual);
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 35, 15, 779)),
+        actual
+    );
 
-    let actual = forward_val(
+    let actual = forward_dt_local(
         &mut engine,
-        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, -950); fmt(dt)",
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35, 23); dt",
     );
-    assert_eq!(Ok(Value::string("2010-1-23")), actual);
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 35, 23, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35, 23, 537); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 35, 23, 537)),
+        actual
+    );
+
+    // Out-of-bounds
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(10000, 20000, 30000, 40123); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2021, 09, 11).and_hms_milli(21, 40, 40, 123)),
+        actual
+    );
 
     Ok(())
 }
