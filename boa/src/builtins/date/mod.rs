@@ -21,6 +21,62 @@ fn is_zero_or_normal_opt(value: Option<f64>) -> bool {
         .unwrap_or(true)
 }
 
+/// Some JS functions allow completely invalid dates, and the runtime is expected to make sense of this. This function
+/// constrains a date to correct values.
+fn fix_date(year: &mut i32, month: &mut i32, day: &mut i32) {
+    #[inline]
+    fn num_days_in(year: i32, month: u32) -> i32 {
+        let month = month + 1; // zero-based for calculations
+        NaiveDate::from_ymd(
+            match month {
+                12 => year + 1,
+                _ => year,
+            },
+            match month {
+                12 => 1,
+                _ => month + 1,
+            },
+            1,
+        )
+        .signed_duration_since(NaiveDate::from_ymd(year, month, 1))
+        .num_days() as i32
+    }
+
+    #[inline]
+    fn fix_month(year: &mut i32, month: &mut i32) {
+        *year += *month / 12;
+        *month = if *month < 0 {
+            *year -= 1;
+            11 + (*month + 1) % 12
+        } else {
+            *month % 12
+        }
+    }
+
+    #[inline]
+    fn fix_day(year: &mut i32, month: &mut i32, day: &mut i32) {
+        fix_month(year, month);
+        loop {
+            if *day < 0 {
+                *month -= 1;
+                fix_month(year, month);
+                *day = num_days_in(*year, *month as u32) + *day;
+            } else {
+                let num_days = num_days_in(*year, *month as u32);
+                if *day >= num_days {
+                    *day -= num_days_in(*year, *month as u32);
+                    *month += 1;
+                    fix_month(year, month);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    fix_day(year, month, day);
+}
+
 macro_rules! check_normal_opt {
     ($($v:expr),+) => {
         $(is_zero_or_normal_opt($v.into()) &&)+ true
@@ -41,12 +97,13 @@ macro_rules! getter_method {
 }
 
 macro_rules! setter_method {
-    ($(#[$outer:meta])* fn $name:ident ($tz:ident, $date_time:ident, $var:ident) $mutate:expr) => {
+    ($(#[$outer:meta])* fn $name:ident ($tz:ident, $date_time:ident, $var:ident[$count:literal]) $mutate:expr) => {
         $(#[$outer])*
         fn $name(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
             // If the first arg is not present or NaN, the Date becomes NaN itself.
-            let arg = args
-                .get(0)
+            fn get_arg(i: usize, args: &[Value], ctx: &mut Interpreter) -> Option<f64> {
+                args
+                .get(i)
                 .map(|value| {
                     ctx.to_numeric_number(value).map_or_else(
                         |_| None,
@@ -59,10 +116,16 @@ macro_rules! setter_method {
                         },
                     )
                 })
-                .flatten();
+                .flatten()
+            }
+
+            let mut $var = [None; $count];
+            for i in 0..$count {
+                $var[i] = get_arg(i, args, ctx);
+            }
 
             let inner = Date::this_time_value(this, ctx)?.$tz();
-            let new_value = inner.map(|$date_time| arg.map(|$var| $mutate)).flatten();
+            let new_value = inner.map(|$date_time| $mutate).flatten();
             let new_value = new_value.map(|date_time| date_time.naive_utc());
             this.set_data(ObjectData::Date(RcDate::from(Date(new_value))));
 
@@ -277,7 +340,7 @@ impl Date {
             year
         };
 
-        let final_date = NaiveDate::from_ymd_opt(year, month, day)
+        let final_date = NaiveDate::from_ymd_opt(year, month + 1, day)
             .map(|naive_date| naive_date.and_hms_milli_opt(hour, min, sec, milli))
             .flatten()
             .map(
@@ -415,7 +478,7 @@ impl Date {
         ///
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmonth
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMonth
-        fn get_month(to_local, dt) { dt.month() as f64 }
+        fn get_month(to_local, dt) { dt.month0() as f64 }
     }
 
     getter_method! {
@@ -580,7 +643,7 @@ impl Date {
         ///
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmonth
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMonth
-        fn get_utc_month(to_utc, dt) { dt.month() as f64 }
+        fn get_utc_month(to_utc, dt) { dt.month0() as f64 }
     }
 
     getter_method! {
@@ -609,8 +672,36 @@ impl Date {
         ///
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setdate
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
-        fn set_date (to_local, date_time, day) {
-            date_time.with_day(1).unwrap() + Duration::days(day as i64 - 1)
+        fn set_date (to_local, date_time, args[1]) {
+            args[0].map_or(None, |day| Some(date_time.with_day(1).unwrap() + Duration::days(day as i64 - 1)))
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setFullYear()`
+        ///
+        /// The setFullYear() method sets the full year for a specified date according to local time. Returns new
+        /// timestamp.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setfullyear
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setFullYear
+        fn set_full_year (to_local, date_time, args[3]) {
+            args[0].map_or(None, |year| {
+                let mut year = year as i32;
+                let mut month = args[1].unwrap_or_else(|| date_time.month0() as f64) as i32;
+                let mut day = args[2].unwrap_or_else(|| date_time.day() as f64) as i32 - 1;
+
+                fix_date(&mut year, &mut month, &mut day);
+
+                date_time
+                    .with_year(year)
+                    .map_or(None, |date_time| date_time.with_month0(month as u32))
+                    .map_or(None, |date_time| date_time.with_day(day as u32 + 1))
+            })
         }
     }
 
@@ -739,7 +830,8 @@ impl Date {
         make_builtin_fn(Self::get_utc_minutes, "getUTCMinutes", &prototype, 0);
         make_builtin_fn(Self::get_utc_month, "getUTCMonth", &prototype, 0);
         make_builtin_fn(Self::get_utc_seconds, "getUTCSeconds", &prototype, 0);
-        make_builtin_fn(Self::set_date, "setDate", &prototype, 0);
+        make_builtin_fn(Self::set_date, "setDate", &prototype, 1);
+        make_builtin_fn(Self::set_full_year, "setFullYear", &prototype, 1);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,

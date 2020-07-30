@@ -612,3 +612,73 @@ fn date_proto_set_date() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn date_proto_set_full_year_in_bounds() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    forward_val(
+        &mut engine,
+        "function fmt(dt) { return dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate(); }",
+    )
+    .expect("Helper function installed");
+
+    let actual = forward_val(
+        &mut engine,
+        "let dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012); fmt(dt)",
+    );
+    assert_eq!(Ok(Value::string("2012-7-8")), actual);
+
+    let actual = forward_val(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8); fmt(dt)",
+    );
+    assert_eq!(Ok(Value::string("2012-8-8")), actual);
+
+    let actual = forward_val(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8, 9); fmt(dt)",
+    );
+    assert_eq!(Ok(Value::string("2012-8-9")), actual);
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_full_year_out_of_bounds() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    forward_val(
+        &mut engine,
+        "function fmt(dt) { return dt.getFullYear() + '-' + dt.getMonth() + '-' + dt.getDate(); }",
+    )
+    .expect("Helper function installed");
+
+    let actual = forward_val(
+        &mut engine,
+        "let dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 33); fmt(dt)",
+    );
+    assert_eq!(Ok(Value::string("2014-9-8")), actual);
+
+    let actual = forward_val(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, -33); fmt(dt)",
+    );
+    assert_eq!(Ok(Value::string("2009-3-8")), actual);
+
+    let actual = forward_val(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, 950); fmt(dt)",
+    );
+    assert_eq!(Ok(Value::string("2015-4-8")), actual);
+
+    let actual = forward_val(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, -950); fmt(dt)",
+    );
+    assert_eq!(Ok(Value::string("2010-1-23")), actual);
+
+    Ok(())
+}
