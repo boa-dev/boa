@@ -556,6 +556,10 @@ impl String {
             .transpose()?
             .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
+        if search_string.is_empty() {
+            return Ok(start.min(length).into());
+        }
+
         if start < length {
             if let Some(position) = string.find(search_string.as_str()) {
                 return Ok(string[..position].chars().count().into());
