@@ -694,7 +694,19 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setdate
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
         fn set_date (to_local, date_time, args[1]) {
-            args[0].map_or(None, |day| date_time.with_day(1).unwrap().checked_add_signed(Duration::days(day as i64 - 1)))
+            args[0].map_or(None, |day| {
+                let mut year = date_time.year();
+                let mut month = date_time.month0() as i32;
+                let mut day = day as i32 - 1;
+
+                fix_date(&mut year, &mut month, &mut day);
+
+                match Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(date_time.time()) {
+                    LocalResult::Ambiguous(v, _) => Some(v),
+                    LocalResult::Single(v) => Some(v),
+                    LocalResult::None => None
+                }
+            })
         }
     }
 
@@ -718,10 +730,11 @@ impl Date {
 
                 fix_date(&mut year, &mut month, &mut day);
 
-                date_time
-                    .with_year(year)
-                    .map_or(None, |date_time| date_time.with_month0(month as u32))
-                    .map_or(None, |date_time| date_time.with_day(day as u32 + 1))
+                match Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(date_time.time()) {
+                    LocalResult::Ambiguous(v, _) => Some(v),
+                    LocalResult::Single(v) => Some(v),
+                    LocalResult::None => None
+                }
             })
         }
     }
@@ -790,6 +803,34 @@ impl Date {
 
                 let duration = Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
                 date_time.date().and_hms(date_time.hour(), 0, 0).checked_add_signed(duration)
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setMonth()`
+        ///
+        /// The `setMonth()` method sets the month for a specified date according to the currently set year.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmonth
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMonth
+        fn set_month (to_local, date_time, args[2]) {
+            args[0].map_or(None, |month| {
+                let mut year = date_time.year();
+                let mut month = month as i32;
+                let mut day = args[1].unwrap_or_else(|| date_time.day() as f64) as i32 - 1;
+
+                fix_date(&mut year, &mut month, &mut day);
+
+                match Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(date_time.time()) {
+                    LocalResult::Ambiguous(v, _) => Some(v),
+                    LocalResult::Single(v) => Some(v),
+                    LocalResult::None => None
+                }
             })
         }
     }
@@ -924,6 +965,7 @@ impl Date {
         make_builtin_fn(Self::set_hours, "setHours", &prototype, 1);
         make_builtin_fn(Self::set_milliseconds, "setMilliseconds", &prototype, 1);
         make_builtin_fn(Self::set_minutes, "setMinutes", &prototype, 1);
+        make_builtin_fn(Self::set_month, "setMonth", &prototype, 1);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,

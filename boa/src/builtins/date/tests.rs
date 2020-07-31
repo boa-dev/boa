@@ -765,6 +765,7 @@ fn date_proto_set_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Out-of-bounds
+    // Thorough tests are done by setHours
 
     let actual = forward_dt_local(
         &mut engine,
@@ -811,6 +812,7 @@ fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Out-of-bounds
+    // Thorough tests are done by setHours
 
     let actual = forward_dt_local(
         &mut engine,
@@ -818,6 +820,44 @@ fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2021, 08, 29).and_hms_milli(09, 20, 40, 123)),
+        actual
+    );
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_month() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMonth(11); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 12, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMonth(11, 16); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 12, 16).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    // Out-of-bounds
+    // Thorough tests are done by setFullYear
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setMonth(40, 83); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2023, 07, 22).and_hms_milli(09, 16, 15, 779)),
         actual
     );
 
