@@ -777,3 +777,49 @@ fn date_proto_set_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 11, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11, 35); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 11, 35, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11, 35, 537); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 11, 35, 537)),
+        actual
+    );
+
+    // Out-of-bounds
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(600000, 30000, 40123); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2021, 08, 29).and_hms_milli(09, 20, 40, 123)),
+        actual
+    );
+
+    Ok(())
+}

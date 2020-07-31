@@ -763,10 +763,33 @@ impl Date {
         ///
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmilliseconds
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMilliseconds
-        fn set_milliseconds (to_local, date_time, args[4]) {
+        fn set_milliseconds (to_local, date_time, args[1]) {
             args[0].map_or(None, |ms| {
                 let ms = ms as i64;
                 date_time.with_nanosecond(0).unwrap().checked_add_signed(Duration::milliseconds(ms))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setMinutes()`
+        ///
+        /// The `setMinutes()` method sets the minutes for a specified date according to local time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setminutes
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMinutes
+        fn set_minutes (to_local, date_time, args[3]) {
+            args[0].map_or(None, |minute| {
+                let minute = minute as i64;
+                let second = args[1].map_or_else(|| date_time.second() as i64, |second| second as i64);
+                let ms = args[2].map_or_else(|| (date_time.nanosecond() as f64 / NANOS_IN_MS) as i64, |second| second as i64);
+
+                let duration = Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                date_time.date().and_hms(date_time.hour(), 0, 0).checked_add_signed(duration)
             })
         }
     }
@@ -900,6 +923,7 @@ impl Date {
         make_builtin_fn(Self::set_full_year, "setFullYear", &prototype, 1);
         make_builtin_fn(Self::set_hours, "setHours", &prototype, 1);
         make_builtin_fn(Self::set_milliseconds, "setMilliseconds", &prototype, 1);
+        make_builtin_fn(Self::set_minutes, "setMinutes", &prototype, 1);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,
