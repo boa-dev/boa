@@ -42,7 +42,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
     #[inline]
-    fn ordinary_prevent_extensions(&self) -> bool {
+    fn ordinary_prevent_extensions(&mut self) -> bool {
         self.extensible = false;
         true
     }
@@ -56,8 +56,8 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-5
     #[inline]
-    pub fn prevent_extensions(&self) -> bool {
-        self.ordinary_is_extensible()
+    pub fn prevent_extensions(&mut self) -> bool {
+        self.ordinary_prevent_extensions()
     }
 
     /// Check if object has property.
@@ -81,18 +81,6 @@ impl Object {
             return false;
         }
 
-        true
-    }
-
-    /// Disable extensibility.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    #[inline]
-    pub fn prevent_extensions(&mut self) -> bool {
-        self.extensible = false;
         true
     }
 
