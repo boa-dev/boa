@@ -23,6 +23,15 @@ fn is_zero_or_normal_opt(value: Option<f64>) -> bool {
         .unwrap_or(true)
 }
 
+#[inline]
+fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
+    match result {
+        LocalResult::Ambiguous(v, _) => Some(v),
+        LocalResult::Single(v) => Some(v),
+        LocalResult::None => None,
+    }
+}
+
 /// Some JS functions allow completely invalid dates, and the runtime is expected to make sense of this. This function
 /// constrains a date to correct values.
 fn fix_date(year: &mut i32, month: &mut i32, day: &mut i32) {
@@ -99,7 +108,7 @@ macro_rules! getter_method {
 }
 
 macro_rules! setter_method {
-    ($(#[$outer:meta])* fn $name:ident ($tz:ident, $date_time:ident, $var:ident[$count:literal]) $mutate:expr) => {
+    ($(#[$outer:meta])* fn $name:ident ($tz: ident, $date_time:ident, $var:ident[$count:literal]) $mutate:expr) => {
         $(#[$outer])*
         fn $name(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
             // If the first arg is not present or NaN, the Date becomes NaN itself.
@@ -345,15 +354,9 @@ impl Date {
         let final_date = NaiveDate::from_ymd_opt(year, month + 1, day)
             .map(|naive_date| naive_date.and_hms_milli_opt(hour, min, sec, milli))
             .flatten()
-            .map(
-                |local| match Local::now().timezone().from_local_datetime(&local) {
-                    LocalResult::Single(v) => Some(v.naive_utc()),
-                    // JS simply hopes for the best
-                    LocalResult::Ambiguous(v, _) => Some(v.naive_utc()),
-                    _ => None,
-                },
-            )
-            .flatten();
+            .map(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
+            .flatten()
+            .map(|local| local.naive_utc());
 
         let date = Date(final_date);
         this.set_data(ObjectData::Date(RcDate::from(date)));
@@ -657,17 +660,14 @@ impl Date {
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
         fn set_date (to_local, date_time, args[1]) {
             args[0].map_or(None, |day| {
-                let mut year = date_time.year();
-                let mut month = date_time.month0() as i32;
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
+                let mut year = local.year();
+                let mut month = local.month0() as i32;
                 let mut day = day as i32 - 1;
 
                 fix_date(&mut year, &mut month, &mut day);
-
-                match Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(date_time.time()) {
-                    LocalResult::Ambiguous(v, _) => Some(v),
-                    LocalResult::Single(v) => Some(v),
-                    LocalResult::None => None
-                }
+                ignore_ambiguity(Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(local.time()))
             })
         }
     }
@@ -686,17 +686,14 @@ impl Date {
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setFullYear
         fn set_full_year (to_local, date_time, args[3]) {
             args[0].map_or(None, |year| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
                 let mut year = year as i32;
-                let mut month = args[1].unwrap_or_else(|| date_time.month0() as f64) as i32;
-                let mut day = args[2].unwrap_or_else(|| date_time.day() as f64) as i32 - 1;
+                let mut month = args[1].unwrap_or_else(|| local.month0() as f64) as i32;
+                let mut day = args[2].unwrap_or_else(|| local.day() as f64) as i32 - 1;
 
                 fix_date(&mut year, &mut month, &mut day);
-
-                match Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(date_time.time()) {
-                    LocalResult::Ambiguous(v, _) => Some(v),
-                    LocalResult::Single(v) => Some(v),
-                    LocalResult::None => None
-                }
+                ignore_ambiguity(Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(local.time()))
             })
         }
     }
@@ -716,13 +713,16 @@ impl Date {
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setHours
         fn set_hours (to_local, date_time, args[4]) {
             args[0].map_or(None, |hour| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
                 let hour = hour as i64;
-                let minute = args[1].map_or_else(|| date_time.minute() as i64, |minute| minute as i64);
-                let second = args[2].map_or_else(|| date_time.second() as i64, |second| second as i64);
-                let ms = args[3].map_or_else(|| (date_time.nanosecond() as f64 / NANOS_IN_MS) as i64, |second| second as i64);
+                let minute = args[1].map_or_else(|| local.minute() as i64, |minute| minute as i64);
+                let second = args[2].map_or_else(|| local.second() as i64, |second| second as i64);
+                let ms = args[3].map_or_else(|| (local.nanosecond() as f64 / NANOS_IN_MS) as i64, |ms| ms as i64);
 
                 let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
-                date_time.date().and_hms(0, 0, 0).checked_add_signed(duration)
+                let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -740,8 +740,16 @@ impl Date {
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMilliseconds
         fn set_milliseconds (to_local, date_time, args[1]) {
             args[0].map_or(None, |ms| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
+                let hour = local.hour() as i64;
+                let minute = local.minute() as i64;
+                let second = local.second() as i64;
                 let ms = ms as i64;
-                date_time.with_nanosecond(0).unwrap().checked_add_signed(Duration::milliseconds(ms))
+
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -759,12 +767,16 @@ impl Date {
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMinutes
         fn set_minutes (to_local, date_time, args[3]) {
             args[0].map_or(None, |minute| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
+                let hour = local.hour() as i64;
                 let minute = minute as i64;
-                let second = args[1].map_or_else(|| date_time.second() as i64, |second| second as i64);
-                let ms = args[2].map_or_else(|| (date_time.nanosecond() as f64 / NANOS_IN_MS) as i64, |second| second as i64);
+                let second = args[1].map_or_else(|| local.second() as i64, |second| second as i64);
+                let ms = args[2].map_or_else(|| (local.nanosecond() as f64 / NANOS_IN_MS) as i64, |ms| ms as i64);
 
-                let duration = Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
-                date_time.date().and_hms(date_time.hour(), 0, 0).checked_add_signed(duration)
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -782,17 +794,41 @@ impl Date {
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMonth
         fn set_month (to_local, date_time, args[2]) {
             args[0].map_or(None, |month| {
-                let mut year = date_time.year();
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
+                let mut year = local.year();
                 let mut month = month as i32;
-                let mut day = args[1].unwrap_or_else(|| date_time.day() as f64) as i32 - 1;
+                let mut day = args[1].unwrap_or_else(|| local.day() as f64) as i32 - 1;
 
                 fix_date(&mut year, &mut month, &mut day);
+                ignore_ambiguity(Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(local.time()))
+            })
+        }
+    }
 
-                match Local.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(date_time.time()) {
-                    LocalResult::Ambiguous(v, _) => Some(v),
-                    LocalResult::Single(v) => Some(v),
-                    LocalResult::None => None
-                }
+    setter_method! {
+        /// `Date.prototype.setSeconds()`
+        ///
+        /// The `setSeconds()` method sets the seconds for a specified date according to local time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setseconds
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setSeconds
+        fn set_seconds (to_local, date_time, args[2]) {
+            args[0].map_or(None, |second| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
+                let hour = local.hour() as i64;
+                let minute = local.minute() as i64;
+                let second = second as i64;
+                let ms = args[1].map_or_else(|| (local.nanosecond() as f64 / NANOS_IN_MS) as i64, |ms| ms as i64);
+
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -965,6 +1001,7 @@ impl Date {
         make_builtin_fn(Self::set_milliseconds, "setMilliseconds", &prototype, 1);
         make_builtin_fn(Self::set_minutes, "setMinutes", &prototype, 1);
         make_builtin_fn(Self::set_month, "setMonth", &prototype, 1);
+        make_builtin_fn(Self::set_seconds, "setSeconds", &prototype, 1);
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
