@@ -147,6 +147,44 @@ macro_rules! setter_method {
             ))
         }
     };
+    ($(#[$outer:meta])* fn $name:ident ($var:ident[$count:literal]) $mutate:expr) => {
+        $(#[$outer])*
+        fn $name(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+            // If the first arg is not present or NaN, the Date becomes NaN itself.
+            fn get_arg(i: usize, args: &[Value], ctx: &mut Interpreter) -> Option<f64> {
+                args
+                .get(i)
+                .map(|value| {
+                    ctx.to_numeric_number(value).map_or_else(
+                        |_| None,
+                        |value| {
+                            if value == 0f64 || value.is_normal() {
+                                Some(value)
+                            } else {
+                                None
+                            }
+                        },
+                    )
+                })
+                .flatten()
+            }
+
+            let mut $var = [None; $count];
+            for i in 0..$count {
+                $var[i] = get_arg(i, args, ctx);
+            }
+
+            let new_value = $mutate;
+            let new_value = new_value.map(|date_time| date_time.naive_utc());
+            this.set_data(ObjectData::Date(RcDate::from(Date(new_value))));
+
+            Ok(Value::number(
+                Self::this_time_value(this, ctx)?
+                    .to_utc()
+                    .map_or(f64::NAN, |f| f.timestamp_millis() as f64),
+            ))
+        }
+    };
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -833,6 +871,27 @@ impl Date {
         }
     }
 
+    setter_method! {
+        /// `Date.prototype.setTime()`
+        ///
+        /// The `setTime()` method sets the Date object to the time represented by a number of milliseconds since
+        /// January 1, 1970, 00:00:00 UTC.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.settime
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setTime
+        fn set_time (args[1]) {
+            args[0].map_or(None, |tv| {
+                let secs = (tv / 1_000f64) as i64;
+                let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
+                ignore_ambiguity(Local.timestamp_opt(secs, nsecs))
+            })
+        }
+    }
+
     /// `Date.prototype.toString()`
     ///
     /// The `toString()` method returns a string representing the specified Date object.
@@ -1002,6 +1061,7 @@ impl Date {
         make_builtin_fn(Self::set_minutes, "setMinutes", &prototype, 1);
         make_builtin_fn(Self::set_month, "setMonth", &prototype, 1);
         make_builtin_fn(Self::set_seconds, "setSeconds", &prototype, 1);
+        make_builtin_fn(Self::set_time, "setTime", &prototype, 1);
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
