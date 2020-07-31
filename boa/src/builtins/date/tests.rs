@@ -902,6 +902,32 @@ fn date_proto_set_seconds() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+fn set_year() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setYear(98); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(1998, 07, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setYear(2001); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2001, 07, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    Ok(())
+}
+
+#[test]
 fn date_proto_set_time() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

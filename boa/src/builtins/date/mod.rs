@@ -713,7 +713,7 @@ impl Date {
     setter_method! {
         /// `Date.prototype.setFullYear()`
         ///
-        /// The setFullYear() method sets the full year for a specified date according to local time. Returns new
+        /// The `setFullYear()` method sets the full year for a specified date according to local time. Returns new
         /// timestamp.
         ///
         /// More information:
@@ -867,6 +867,33 @@ impl Date {
                 let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
                 let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
                 local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setYear()`
+        ///
+        /// The `setYear()` method sets the year for a specified date according to local time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setyear
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear
+        fn set_year (to_local, date_time, args[3]) {
+            args[0].map_or(None, |year| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let local = date_time.naive_local();
+                let mut year = year as i32;
+                year += if 0 <= year && year <= 99 {
+                    1900
+                } else {
+                    0
+                };
+
+                local.with_year(year).map(|local| ignore_ambiguity(Local.from_local_datetime(&local))).flatten()
             })
         }
     }
@@ -1061,6 +1088,7 @@ impl Date {
         make_builtin_fn(Self::set_minutes, "setMinutes", &prototype, 1);
         make_builtin_fn(Self::set_month, "setMonth", &prototype, 1);
         make_builtin_fn(Self::set_seconds, "setSeconds", &prototype, 1);
+        make_builtin_fn(Self::set_year, "setYear", &prototype, 1);
         make_builtin_fn(Self::set_time, "setTime", &prototype, 1);
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
