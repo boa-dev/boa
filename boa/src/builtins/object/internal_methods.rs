@@ -35,6 +35,29 @@ impl Object {
         self.ordinary_is_extensible()
     }
 
+    /// Prevent further extensions to ordinary object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
+    #[inline]
+    fn ordinary_prevent_extensions(&self) -> bool {
+        self.extensible = false;
+        true
+    }
+
+    /// Prevent further extensions to object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-5
+    #[inline]
+    pub fn prevent_extensions(&self) -> bool {
+        self.ordinary_is_extensible()
+    }
+
     /// Check if object has property.
     ///
     /// More information:
