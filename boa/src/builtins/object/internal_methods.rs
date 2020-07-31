@@ -6,7 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::builtins::{
-    object::{Object, PROTOTYPE},
+    object::Object,
     property::{Attribute, Property, PropertyKey},
     value::{same_value, RcString, Value},
 };
@@ -311,7 +311,7 @@ impl Object {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
     pub fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
-        let current = self.get_internal_slot(PROTOTYPE);
+        let current = self.prototype.clone();
         if same_value(&current, &val) {
             return true;
         }
@@ -326,10 +326,15 @@ impl Object {
             } else if same_value(&Value::from(self.clone()), &p) {
                 return false;
             } else {
-                p = p.get_internal_slot(PROTOTYPE);
+                let prototype = p
+                    .as_object()
+                    .expect("prototype should be null or object")
+                    .prototype
+                    .clone();
+                p = prototype;
             }
         }
-        self.set_internal_slot(PROTOTYPE, val);
+        self.prototype = val;
         true
     }
 
@@ -343,23 +348,6 @@ impl Object {
     #[inline]
     pub fn get_prototype_of(&self) -> Value {
         self.prototype.clone()
-    }
-
-    /// Helper function to get an immutable internal slot or `Null`.
-    #[inline]
-    pub fn get_internal_slot(&self, name: &str) -> Value {
-        let _timer = BoaProfiler::global().start_event("Object::get_internal_slot", "object");
-
-        self.internal_slots()
-            .get(name)
-            .cloned()
-            .unwrap_or_else(Value::null)
-    }
-
-    /// Helper function to set an internal slot.
-    #[inline]
-    pub fn set_internal_slot(&mut self, name: &str, val: Value) {
-        self.internal_slots.insert(name.to_string(), val);
     }
 
     /// Helper function for property insertion.

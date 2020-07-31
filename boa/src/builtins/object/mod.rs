@@ -52,8 +52,6 @@ pub static PROTOTYPE: &str = "prototype";
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
-    /// Internal Slots
-    internal_slots: FxHashMap<String, Value>,
     /// Properties
     properties: FxHashMap<RcString, Property>,
     /// Symbol Properties
@@ -110,7 +108,6 @@ impl Default for Object {
     fn default() -> Self {
         Self {
             data: ObjectData::Ordinary,
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -132,7 +129,6 @@ impl Object {
 
         Self {
             data: ObjectData::Function(function),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype,
@@ -158,7 +154,6 @@ impl Object {
     pub fn boolean(value: bool) -> Self {
         Self {
             data: ObjectData::Boolean(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -171,7 +166,6 @@ impl Object {
     pub fn number(value: f64) -> Self {
         Self {
             data: ObjectData::Number(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -187,7 +181,6 @@ impl Object {
     {
         Self {
             data: ObjectData::String(value.into()),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -200,7 +193,6 @@ impl Object {
     pub fn bigint(value: RcBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -401,16 +393,6 @@ impl Object {
     #[inline]
     pub fn is_ordinary(&self) -> bool {
         matches!(self.data, ObjectData::Ordinary)
-    }
-
-    #[inline]
-    pub fn internal_slots(&self) -> &FxHashMap<String, Value> {
-        &self.internal_slots
-    }
-
-    #[inline]
-    pub fn internal_slots_mut(&mut self) -> &mut FxHashMap<String, Value> {
-        &mut self.internal_slots
     }
 
     #[inline]
