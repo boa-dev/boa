@@ -749,3 +749,31 @@ fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn date_proto_set_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMilliseconds(597); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 15, 597)),
+        actual
+    );
+
+    // Out-of-bounds
+
+    let actual = forward_dt_local(
+        &mut engine,
+        "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMilliseconds(40123); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 55, 123)),
+        actual
+    );
+
+    Ok(())
+}

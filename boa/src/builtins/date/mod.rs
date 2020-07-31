@@ -694,7 +694,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setdate
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
         fn set_date (to_local, date_time, args[1]) {
-            args[0].map_or(None, |day| Some(date_time.with_day(1).unwrap() + Duration::days(day as i64 - 1)))
+            args[0].map_or(None, |day| date_time.with_day(1).unwrap().checked_add_signed(Duration::days(day as i64 - 1)))
         }
     }
 
@@ -748,6 +748,25 @@ impl Date {
 
                 let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
                 date_time.date().and_hms(0, 0, 0).checked_add_signed(duration)
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setMilliseconds()`
+        ///
+        /// The `setMilliseconds()` method sets the milliseconds for a specified date according to local time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmilliseconds
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMilliseconds
+        fn set_milliseconds (to_local, date_time, args[4]) {
+            args[0].map_or(None, |ms| {
+                let ms = ms as i64;
+                date_time.with_nanosecond(0).unwrap().checked_add_signed(Duration::milliseconds(ms))
             })
         }
     }
@@ -880,6 +899,7 @@ impl Date {
         make_builtin_fn(Self::set_date, "setDate", &prototype, 1);
         make_builtin_fn(Self::set_full_year, "setFullYear", &prototype, 1);
         make_builtin_fn(Self::set_hours, "setHours", &prototype, 1);
+        make_builtin_fn(Self::set_milliseconds, "setMilliseconds", &prototype, 1);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,
