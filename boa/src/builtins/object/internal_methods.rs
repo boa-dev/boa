@@ -24,7 +24,7 @@ impl Object {
         self.extensible
     }
 
-    /// Check if the object is extensible.
+    /// Determine whether it is permitted to add additional properties to this object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -47,7 +47,9 @@ impl Object {
         true
     }
 
-    /// Prevent further extensions to object.
+    /// Control whether new properties may be added to this object.
+    /// Returns `true` if the operation was successful or `false`
+    /// if the operation was unsuccessful.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
