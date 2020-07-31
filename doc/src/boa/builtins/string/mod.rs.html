@@ -1055,6 +1055,10 @@
 <span id="1055">1055</span>
 <span id="1056">1056</span>
 <span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1613,6 +1617,10 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">to_integer</span>(<span class="ident">position</span>))
             .<span class="ident">transpose</span>()<span class="question-mark">?</span>
             .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">position</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">usize</span>);
+
+        <span class="kw">if</span> <span class="ident">search_string</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">length</span>).<span class="ident">into</span>());
+        }
 
         <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">length</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">find</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>()) {
