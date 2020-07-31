@@ -497,3 +497,15 @@ fn generic_index_of() {
     assert_eq!(forward(&mut engine, "(10).indexOf(0)"), "1");
     assert_eq!(forward(&mut engine, "(10).indexOf('0')"), "1");
 }
+
+#[test]
+fn index_of_empty_search_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(forward(&mut engine, "''.indexOf('')"), "0");
+    assert_eq!(forward(&mut engine, "''.indexOf('', 10)"), "0");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 1)"), "1");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 2)"), "2");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 10)"), "3");
+}
