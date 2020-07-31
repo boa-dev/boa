@@ -91,11 +91,11 @@ fn date_ctor_call() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let dt1 = forward(&mut engine, "new Date().toString()");
+    let dt1 = forward_dt_local(&mut engine, "new Date()");
 
     std::thread::sleep(std::time::Duration::from_millis(1));
 
-    let dt2 = forward(&mut engine, "new Date().toString()");
+    let dt2 = forward_dt_local(&mut engine, "new Date()");
 
     assert_ne!(dt1, dt2);
     Ok(())
@@ -121,9 +121,8 @@ fn date_ctor_call_string_invalid() -> Result<(), Box<dyn std::error::Error>> {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let date_time =
-        forward_val(&mut engine, "new Date('nope').toString()").expect("Expected Success");
-    assert_eq!(Value::string("Invalid Date"), date_time);
+    let date_time = forward_dt_local(&mut engine, "new Date('nope')");
+    assert_eq!(None, date_time);
     Ok(())
 }
 
@@ -187,17 +186,17 @@ fn date_ctor_call_multiple_nan() -> Result<(), Box<dyn std::error::Error>> {
     fn check(src: &str) {
         let realm = Realm::create();
         let mut engine = Interpreter::new(realm);
-        let date_time = forward_val(&mut engine, src).expect("Expected Success");
-        assert_eq!(Value::string("Invalid Date"), date_time);
+        let date_time = forward_dt_local(&mut engine, src);
+        assert_eq!(None, date_time);
     }
 
-    check("new Date(1/0, 06, 08, 09, 16, 15, 779).toString()");
-    check("new Date(2020, 1/0, 08, 09, 16, 15, 779).toString()");
-    check("new Date(2020, 06, 1/0, 09, 16, 15, 779).toString()");
-    check("new Date(2020, 06, 08, 1/0, 16, 15, 779).toString()");
-    check("new Date(2020, 06, 08, 09, 1/0, 15, 779).toString()");
-    check("new Date(2020, 06, 08, 09, 16, 1/0, 779).toString()");
-    check("new Date(2020, 06, 08, 09, 16, 15, 1/0).toString()");
+    check("new Date(1/0, 06, 08, 09, 16, 15, 779)");
+    check("new Date(2020, 1/0, 08, 09, 16, 15, 779)");
+    check("new Date(2020, 06, 1/0, 09, 16, 15, 779)");
+    check("new Date(2020, 06, 08, 1/0, 16, 15, 779)");
+    check("new Date(2020, 06, 08, 09, 1/0, 15, 779)");
+    check("new Date(2020, 06, 08, 09, 16, 1/0, 779)");
+    check("new Date(2020, 06, 08, 09, 16, 15, 1/0)");
 
     Ok(())
 }
@@ -247,16 +246,16 @@ fn date_ctor_utc_call_nan() -> Result<(), Box<dyn std::error::Error>> {
         let realm = Realm::create();
         let mut engine = Interpreter::new(realm);
         let date_time = forward_val(&mut engine, src).expect("Expected Success");
-        assert_eq!(Value::string("NaN"), date_time);
+        assert_eq!(Value::Rational(f64::NAN), date_time);
     }
 
-    check("Date.UTC(1/0, 06, 08, 09, 16, 15, 779).toString()");
-    check("Date.UTC(2020, 1/0, 08, 09, 16, 15, 779).toString()");
-    check("Date.UTC(2020, 06, 1/0, 09, 16, 15, 779).toString()");
-    check("Date.UTC(2020, 06, 08, 1/0, 16, 15, 779).toString()");
-    check("Date.UTC(2020, 06, 08, 09, 1/0, 15, 779).toString()");
-    check("Date.UTC(2020, 06, 08, 09, 16, 1/0, 779).toString()");
-    check("Date.UTC(2020, 06, 08, 09, 16, 15, 1/0).toString()");
+    check("Date.UTC(1/0, 06, 08, 09, 16, 15, 779)");
+    check("Date.UTC(2020, 1/0, 08, 09, 16, 15, 779)");
+    check("Date.UTC(2020, 06, 1/0, 09, 16, 15, 779)");
+    check("Date.UTC(2020, 06, 08, 1/0, 16, 15, 779)");
+    check("Date.UTC(2020, 06, 08, 09, 1/0, 15, 779)");
+    check("Date.UTC(2020, 06, 08, 09, 16, 1/0, 779)");
+    check("Date.UTC(2020, 06, 08, 09, 16, 15, 1/0)");
 
     Ok(())
 }

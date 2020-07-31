@@ -360,44 +360,6 @@ impl Date {
         Ok(this.clone())
     }
 
-    /// `Date.prototype.toString()`
-    ///
-    /// The `toString()` method returns a string representing the specified Date object.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let dt_str = Self::this_time_value(this, ctx)?
-            .to_local()
-            .map(|f| f.to_rfc3339())
-            .unwrap_or_else(|| "Invalid Date".to_string());
-        Ok(Value::from(dt_str))
-    }
-
-    /// `Date.prototype.toUTCString()`
-    ///
-    /// The `toUTCString()` method returns a string representing the specified Date object.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toutcstring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toUTCString
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_utc_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let dt_str = Self::this_time_value(this, ctx)?
-            .to_utc()
-            .map(|date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string());
-        Ok(Value::from(dt_str))
-    }
-
     getter_method! {
         /// `Date.prototype.getDate()`
         ///
@@ -835,6 +797,44 @@ impl Date {
         }
     }
 
+    /// `Date.prototype.toString()`
+    ///
+    /// The `toString()` method returns a string representing the specified Date object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let dt_str = Self::this_time_value(this, ctx)?
+            .to_local()
+            .map(|f| f.to_rfc3339())
+            .unwrap_or_else(|| "Invalid Date".to_string());
+        Ok(Value::from(dt_str))
+    }
+
+    /// `Date.prototype.toUTCString()`
+    ///
+    /// The `toUTCString()` method returns a string representing the specified Date object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toutcstring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toUTCString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_utc_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let dt_str = Self::this_time_value(this, ctx)?
+            .to_utc()
+            .map(|date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string())
+            .unwrap_or_else(|| "Invalid Date".to_string());
+        Ok(Value::from(dt_str))
+    }
+
     /// `Date.now()`
     ///
     /// The static `Date.now()` method returns the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC.
@@ -930,7 +930,6 @@ impl Date {
 
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
         make_builtin_fn(Self::get_date, "getDate", &prototype, 0);
         make_builtin_fn(Self::get_day, "getDay", &prototype, 0);
         make_builtin_fn(Self::get_full_year, "getFullYear", &prototype, 0);
@@ -966,6 +965,8 @@ impl Date {
         make_builtin_fn(Self::set_milliseconds, "setMilliseconds", &prototype, 1);
         make_builtin_fn(Self::set_minutes, "setMinutes", &prototype, 1);
         make_builtin_fn(Self::set_month, "setMonth", &prototype, 1);
+
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,
