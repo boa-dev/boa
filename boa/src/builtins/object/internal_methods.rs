@@ -13,6 +13,28 @@ use crate::builtins::{
 use crate::BoaProfiler;
 
 impl Object {
+    /// Check if the ordinary object is extensible.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
+    #[inline]
+    fn ordinary_is_extensible(&self) -> bool {
+        self.extensible
+    }
+
+    /// Check if the object is extensible.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-5
+    #[inline]
+    pub fn is_extensible(&self) -> bool {
+        self.ordinary_is_extensible()
+    }
+
     /// Check if object has property.
     ///
     /// More information:
@@ -35,17 +57,6 @@ impl Object {
         }
 
         true
-    }
-
-    /// Check if it is extensible.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    #[inline]
-    pub fn is_extensible(&self) -> bool {
-        self.extensible
     }
 
     /// Disable extensibility.
