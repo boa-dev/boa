@@ -409,7 +409,6 @@ impl Debug for Function {
 pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
     let mut obj = Object::default();
-    obj.set_internal_slot("ParameterMap", Value::undefined());
     // Set length
     let length = Property::data_descriptor(
         len.into(),

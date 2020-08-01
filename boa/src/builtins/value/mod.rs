@@ -515,18 +515,6 @@ impl Value {
         }
     }
 
-    /// Resolve the property in the object.
-    ///
-    /// Returns a copy of the Property.
-    #[inline]
-    pub fn get_internal_slot(&self, field: &str) -> Value {
-        let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
-
-        self.as_object()
-            .and_then(|x| x.internal_slots().get(field).cloned())
-            .unwrap_or_else(Value::undefined)
-    }
-
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
@@ -656,17 +644,6 @@ impl Value {
                 }
             }
             obj.borrow_mut().set(&field, value.clone());
-        }
-        value
-    }
-
-    /// Set the private field in the value
-    pub fn set_internal_slot(&self, field: &str, value: Value) -> Value {
-        let _timer = BoaProfiler::global().start_event("Value::set_internal_slot", "exec");
-        if let Some(mut object) = self.as_object_mut() {
-            object
-                .internal_slots_mut()
-                .insert(field.to_string(), value.clone());
         }
         value
     }
