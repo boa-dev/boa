@@ -13,9 +13,7 @@ mod tests;
 use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::syntax::{
     ast::{
-        node::operator,
         node::{self},
-        op::UnaryOp,
         Punctuator,
     },
     parser::{
