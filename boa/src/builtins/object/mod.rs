@@ -561,16 +561,16 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
         Some(key) => key,
     };
 
-    let property_key = ctx.to_property_key(key)?;
-    let own_property = ctx.to_object(this).map(|obj| {
-        obj.as_object()
-            .expect("Unable to deref object")
-            .get_own_property(&property_key)
-    });
+    let key = ctx.to_property_key(key)?;
+    let property = ctx
+        .to_object(this)?
+        .as_object()
+        .expect("Unable to deref object")
+        .get_own_property(&key);
 
-    Ok(own_property.map_or(Value::from(false), |own_prop| {
-        Value::from(own_prop.enumerable_or(false))
-    }))
+    Ok(property
+        .map_or(false, |own_prop| own_prop.enumerable_or(false))
+        .into())
 }
 
 /// Initialise the `Object` object on the global object.

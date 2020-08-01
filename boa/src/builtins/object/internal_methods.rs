@@ -66,37 +66,29 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    pub fn has_property(&self, property_key: &PropertyKey) -> bool {
-        let prop = self.get_own_property(property_key);
-        if prop.value.is_none() {
-            let parent: Value = self.get_prototype_of();
-            if !parent.is_null() {
-                // the parent value variant should be an object
-                // In the unlikely event it isn't return false
-                return match parent {
-                    Value::Object(ref obj) => obj.borrow().has_property(property_key),
-                    _ => false,
-                };
-            }
-            return false;
+    pub fn has_property(&self, key: &PropertyKey) -> bool {
+        if self.get_own_property(key).is_some() {
+            return true;
         }
 
-        true
+        if let Value::Object(ref object) = self.get_prototype_of() {
+            let object = object.borrow();
+            object.has_property(key)
+        } else {
+            false
+        }
     }
 
     /// Delete property.
-    pub fn delete(&mut self, property_key: &PropertyKey) -> bool {
-        let desc = self.get_own_property(property_key);
-        if desc
-            .value
-            .clone()
-            .expect("unable to get value")
-            .is_undefined()
-        {
+    pub fn delete(&mut self, key: &PropertyKey) -> bool {
+        let desc = if let Some(desc) = self.get_own_property(key) {
+            desc
+        } else {
             return true;
-        }
+        };
+
         if desc.configurable_or(false) {
-            self.remove_property(&property_key.to_string());
+            self.remove_property(&key.to_string());
             return true;
         }
 
@@ -105,26 +97,17 @@ impl Object {
 
     /// [[Get]]
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
-    pub fn get(&self, property_key: &PropertyKey) -> Value {
-        let desc = self.get_own_property(property_key);
-        if desc.value.clone().is_none()
-            || desc
-                .value
-                .clone()
-                .expect("Failed to get object")
-                .is_undefined()
-        {
-            // parent will either be null or an Object
-            let parent = self.get_prototype_of();
-            if parent.is_null() {
-                return Value::undefined();
-            }
-
-            let parent_obj = Object::from(&parent).expect("Failed to get object");
-
-            return parent_obj.get(property_key);
+    pub fn get(&self, key: &PropertyKey) -> Value {
+        let desc = self.get_own_property(key);
+        if desc.is_none() {
+            return if let Some(object) = self.get_prototype_of().as_object() {
+                object.get(key)
+            } else {
+                Value::undefined()
+            };
         }
 
+        let desc = desc.unwrap();
         if desc.is_data_descriptor() {
             return desc.value.clone().expect("failed to extract value");
         }
@@ -140,22 +123,22 @@ impl Object {
 
     /// [[Set]]
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
-    pub fn set(&mut self, property_key: &PropertyKey, val: Value) -> bool {
+    pub fn set(&mut self, key: &PropertyKey, val: Value) -> bool {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
 
         // Fetch property key
-        let mut own_desc = self.get_own_property(property_key);
-        // [2]
-        if own_desc.is_none() {
+        let mut own_desc = if let Some(desc) = self.get_own_property(key) {
+            desc
+        } else {
             let parent = self.get_prototype_of();
             if !parent.is_null() {
                 // TODO: come back to this
             }
-            own_desc = Property::data_descriptor(
+            Property::data_descriptor(
                 Value::undefined(),
                 Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-            );
-        }
+            )
+        };
         // [3]
         if own_desc.is_data_descriptor() {
             if !own_desc.writable() {
@@ -164,7 +147,7 @@ impl Object {
 
             // Change value on the current descriptor
             own_desc = own_desc.value(val);
-            return self.define_own_property(property_key, own_desc);
+            return self.define_own_property(key, own_desc);
         }
         // [4]
         debug_assert!(own_desc.is_accessor_descriptor());
@@ -185,7 +168,9 @@ impl Object {
     pub fn define_own_property(&mut self, property_key: &PropertyKey, desc: Property) -> bool {
         let _timer = BoaProfiler::global().start_event("Object::define_own_property", "object");
 
-        let mut current = self.get_own_property(property_key);
+        let mut current = self
+            .get_own_property(property_key)
+            .unwrap_or_else(Property::empty);
         let extensible = self.is_extensible();
 
         // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
@@ -285,13 +270,25 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
-    pub fn get_own_property(&self, property_key: &PropertyKey) -> Property {
+    pub fn get_own_property(&self, property_key: &PropertyKey) -> Option<Property> {
         let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
 
         // Prop could either be a String or Symbol
         match property_key {
-            PropertyKey::String(ref st) => {
-                self.properties().get(st).map_or_else(Property::empty, |v| {
+            PropertyKey::String(ref st) => self.properties().get(st).map(|v| {
+                let mut d = Property::empty();
+                if v.is_data_descriptor() {
+                    d.value = v.value.clone();
+                } else {
+                    debug_assert!(v.is_accessor_descriptor());
+                    d.get = v.get.clone();
+                    d.set = v.set.clone();
+                }
+                d.attribute = v.attribute;
+                d
+            }),
+            PropertyKey::Symbol(ref symbol) => {
+                self.symbol_properties().get(&symbol.hash()).map(|v| {
                     let mut d = Property::empty();
                     if v.is_data_descriptor() {
                         d.value = v.value.clone();
@@ -304,21 +301,6 @@ impl Object {
                     d
                 })
             }
-            PropertyKey::Symbol(ref symbol) => self
-                .symbol_properties()
-                .get(&symbol.hash())
-                .map_or_else(Property::empty, |v| {
-                    let mut d = Property::empty();
-                    if v.is_data_descriptor() {
-                        d.value = v.value.clone();
-                    } else {
-                        debug_assert!(v.is_accessor_descriptor());
-                        d.get = v.get.clone();
-                        d.set = v.set.clone();
-                    }
-                    d.attribute = v.attribute;
-                    d
-                }),
         }
     }
 
