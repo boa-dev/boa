@@ -1050,15 +1050,6 @@
 <span id="1050">1050</span>
 <span id="1051">1051</span>
 <span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
-<span id="1055">1055</span>
-<span id="1056">1056</span>
-<span id="1057">1057</span>
-<span id="1058">1058</span>
-<span id="1059">1059</span>
-<span id="1060">1060</span>
-<span id="1061">1061</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1594,9 +1585,10 @@
 
     <span class="doccomment">/// `String.prototype.indexOf( searchValue[, fromIndex] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The `indexOf()` method returns the index within the calling `String` object of the first occurrence of the specified value, starting the search at `fromIndex`.</span>
+    <span class="doccomment">/// The `indexOf()` method returns the index within the calling `String` object of the first occurrence</span>
+    <span class="doccomment">/// of the specified value, starting the search at `fromIndex`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns -1 if the value is not found.</span>
+    <span class="doccomment">/// Returns `-1` if the value is not found.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1633,9 +1625,10 @@
 
     <span class="doccomment">/// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence of the specified value, searching backwards from `fromIndex`.</span>
+    <span class="doccomment">/// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence</span>
+    <span class="doccomment">/// of the specified value, searching backwards from `fromIndex`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns -1 if the value is not found.</span>
+    <span class="doccomment">/// Returns `-1` if the value is not found.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1648,41 +1641,30 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the engine has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">require_object_coercible</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_string</span>(
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>),
-        )<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span>
+            <span class="ident">ctx</span>.<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">1</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">to_integer</span>(<span class="ident">position</span>))
+            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">position</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">usize</span>);
 
-        <span class="comment">// If less than 2 args specified, position is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>))
-        };
+        <span class="kw">if</span> <span class="ident">search_string</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">length</span>).<span class="ident">into</span>());
+        }
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
-
-        <span class="comment">// Here cannot use the &amp;str method &quot;rfind&quot;, because this returns the last</span>
-        <span class="comment">// byte index: we need to return the last char index in the JS String</span>
-        <span class="comment">// Instead, iterate over the part we&#39;re checking keeping track of the higher</span>
-        <span class="comment">// index we found that &quot;starts with&quot; the search string</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">highest_index</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
-        <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="ident">start</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-            <span class="kw">if</span> <span class="ident">this_string</span>.<span class="ident">starts_with</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>()) {
-                <span class="ident">highest_index</span> <span class="op">=</span> <span class="ident">index</span>;
+        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">length</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">rfind</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>()) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>[..<span class="ident">position</span>].<span class="ident">chars</span>().<span class="ident">count</span>().<span class="ident">into</span>());
             }
         }
 
-        <span class="comment">// This will still be -1 if no matches were found, else with be &gt;= 0</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">highest_index</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
     <span class="doccomment">/// `String.prototype.match( regexp )`</span>
