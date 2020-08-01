@@ -103,7 +103,7 @@ where
             let body = ConciseBody::new(self.allow_in).parse(cursor)?;
             Ok(ArrowFunctionDecl::new(params, body))
         } else {
-            // This might actually be an expresison. 
+            // This might actually be an expresison.
             unimplemented!("Todo handle this might be an expression");
         }
     }
