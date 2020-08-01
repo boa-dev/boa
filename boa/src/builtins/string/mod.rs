@@ -532,9 +532,10 @@ impl String {
 
     /// `String.prototype.indexOf( searchValue[, fromIndex] )`
     ///
-    /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence of the specified value, starting the search at `fromIndex`.
+    /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence
+    /// of the specified value, starting the search at `fromIndex`.
     ///
-    /// Returns -1 if the value is not found.
+    /// Returns `-1` if the value is not found.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -571,9 +572,10 @@ impl String {
 
     /// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
     ///
-    /// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence of the specified value, searching backwards from `fromIndex`.
+    /// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence
+    /// of the specified value, searching backwards from `fromIndex`.
     ///
-    /// Returns -1 if the value is not found.
+    /// Returns `-1` if the value is not found.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -586,41 +588,30 @@ impl String {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
 
-        // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = ctx.to_string(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        )?;
+        let search_string =
+            ctx.to_string(&args.get(0).cloned().unwrap_or_else(Value::undefined))?;
 
-        let length = primitive_val.chars().count() as i32;
+        let length = string.chars().count();
+        let start = args
+            .get(1)
+            .map(|position| ctx.to_integer(position))
+            .transpose()?
+            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
-        // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
-        } else {
-            i32::from(args.get(1).expect("Could not get argument"))
-        };
+        if search_string.is_empty() {
+            return Ok(start.min(length).into());
+        }
 
-        let start = min(max(position, 0), length);
-
-        // Here cannot use the &str method "rfind", because this returns the last
-        // byte index: we need to return the last char index in the JS String
-        // Instead, iterate over the part we're checking keeping track of the higher
-        // index we found that "starts with" the search string
-        let mut highest_index = -1;
-        for index in start..length {
-            let this_string: StdString = primitive_val.chars().skip(index as usize).collect();
-            if this_string.starts_with(search_string.as_str()) {
-                highest_index = index;
+        if start < length {
+            if let Some(position) = string.rfind(search_string.as_str()) {
+                return Ok(string[..position].chars().count().into());
             }
         }
 
-        // This will still be -1 if no matches were found, else with be >= 0
-        Ok(Value::from(highest_index))
+        Ok(Value::from(-1))
     }
 
     /// `String.prototype.match( regexp )`
