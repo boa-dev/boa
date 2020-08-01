@@ -106,26 +106,34 @@ where
                 }
             }
 
-            // (a,b)=>{} or (,)
+            // (a,b)=>{} or (a,b) or (Expression) 
             TokenKind::Punctuator(Punctuator::OpenParen) => {
+                let temp = cursor.next(false)?.expect("'(' symbol vanished");
                 println!("Arrow function params");
-                if let Some(next_token) = cursor.peek_skip(false)? {
+                if let Some(next_token) = cursor.peek(false)? {
                     println!("Next token: {:?}", next_token);
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen)
                         | TokenKind::Punctuator(Punctuator::Spread)
                         | TokenKind::Identifier(_) => {
-                            return ArrowFunction::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor)
-                            .map(Node::ArrowFunctionDecl);
+                            if let Some(t) = cursor.peek_skip(false)? {
+                                if t.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
+                                    // This must be an argument list and therefore (a, b) => {}
+                                    cursor.push_back(temp);
+                                    return ArrowFunction::new(
+                                        self.allow_in,
+                                        self.allow_yield,
+                                        self.allow_await,
+                                    )
+                                    .parse(cursor)
+                                    .map(Node::ArrowFunctionDecl);
+                                }
+                            }
                         }
                         _ => {}
                     }
                 }
+                cursor.push_back(temp);
             }
 
             _ => {}

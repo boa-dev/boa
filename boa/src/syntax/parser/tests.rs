@@ -218,18 +218,7 @@ fn bracketed_expr() {
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "a",
-                Some(Const::Int(10).into()),
-            )
-            .into()])
-            .into(),
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "b",
-                Some(Const::Int(20).into()),
-            )
-            .into()])
-            .into(),
+            Identifier::from("b").into()
         ],
     );
 }
@@ -243,18 +232,14 @@ fn increment_in_comma_op() {
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "a",
-                Some(Const::Int(10).into()),
-            )
-            .into()])
-            .into(),
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "b",
-                Some(Const::Int(20).into()),
-            )
-            .into()])
-            .into(),
+            BinOp::new::<_, Node, Node>(
+                op::BinOp::Comma,
+                UnaryOp::new::<Node>(
+                    op::UnaryOp::IncrementPost,
+                    Identifier::from("b").into()
+                ).into(),
+                Identifier::from("b").into()
+            ).into()
         ],
     );
 }
