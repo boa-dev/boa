@@ -113,8 +113,12 @@ where
                 if let Some(next_token) = cursor.peek(false)? {
                     println!("Next token: {:?}", next_token);
                     match *next_token.kind() {
-                        TokenKind::Punctuator(Punctuator::CloseParen)
-                        | TokenKind::Punctuator(Punctuator::Spread) => {
+                        TokenKind::Punctuator(Punctuator::CloseParen) => {
+                            // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
+                            // otherwise it is an expression of the form (b).
+                            unimplemented!("Peek_skip_2");
+                        }
+                        TokenKind::Punctuator(Punctuator::Spread) => {
                             cursor.push_back(temp);
                             return ArrowFunction::new(
                                 self.allow_in,
@@ -139,14 +143,18 @@ where
                                         .map(Node::ArrowFunctionDecl);
                                     }
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
-                                        cursor.push_back(temp);
-                                        return ArrowFunction::new(
-                                            self.allow_in,
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor)
-                                        .map(Node::ArrowFunctionDecl);
+                                        // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
+                                        // otherwise it is an expression of the form (b).
+                                        unimplemented!("Peek_skip_2");
+
+                                        // cursor.push_back(temp);
+                                        // return ArrowFunction::new(
+                                        //     self.allow_in,
+                                        //     self.allow_yield,
+                                        //     self.allow_await,
+                                        // )
+                                        // .parse(cursor)
+                                        // .map(Node::ArrowFunctionDecl);
                                     }
                                     _ => {}
                                 }
