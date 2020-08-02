@@ -185,6 +185,8 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     pub fn get_own_property(&self, key: &PropertyKey) -> Option<Property> {
         match self.data {
+            // String exotic objects
+            // See: https://tc39.es/ecma262/#sec-string-exotic-objects-getownproperty-p
             ObjectData::String(ref string) => {
                 let descriptor = self.ordinary_get_own_property(key);
                 if descriptor.is_some() {
@@ -194,6 +196,32 @@ impl Object {
             }
             _ => self.ordinary_get_own_property(key),
         }
+    }
+
+    /// Determine the object that provides inherited properties for this ordinary object.
+    /// A `null` value indicates that there are no inherited properties.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof
+    #[inline]
+    pub fn ordinary_get_prototype_of(&self) -> Value {
+        self.prototype.clone()
+    }
+
+    /// Determine the object that provides inherited properties for this object.
+    /// A `null` value indicates that there are no inherited properties.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-5
+    #[inline]
+    pub fn get_prototype_of(&self) -> Value {
+        self.ordinary_get_prototype_of()
     }
 
     /// [[Get]]
@@ -401,18 +429,6 @@ impl Object {
         }
         self.prototype = val;
         true
-    }
-
-    /// Returns either the prototype or null
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
-    #[inline]
-    pub fn get_prototype_of(&self) -> Value {
-        self.prototype.clone()
     }
 
     /// Helper function for property insertion.
