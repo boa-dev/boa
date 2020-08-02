@@ -177,27 +177,6 @@ where
         Ok(self.peeked[(self.back_index + skip_n) % PEEK_BUF_SIZE].clone())
     }
 
-    /// Takes the given token and pushes it back onto the parser token queue.
-    ///
-    /// Note: it pushes it at the the front so the token will be returned on next .peek().
-    ///
-    /// A push_back call must never (directly or indirectly) follow another push_back call without a next between them.
-    #[inline]
-    pub(super) fn push_back(&mut self, token: Token) {
-        if self.buf_size >= (PEEK_BUF_SIZE - 1) {
-            unimplemented!("Push back more than once");
-        }
-
-        if self.back_index == 0 {
-            self.back_index = PEEK_BUF_SIZE - 1;
-        } else {
-            self.back_index -= 1;
-        };
-
-        self.buf_size += 1;
-        self.peeked[self.back_index] = Some(token);
-    }
-
     /// Returns an error if the next token is not of kind `kind`.
     ///
     /// Note: it will consume the next token only if the next token is the expected type.

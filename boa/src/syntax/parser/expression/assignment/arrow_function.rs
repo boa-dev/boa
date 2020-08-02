@@ -80,16 +80,9 @@ where
 
             cursor.expect(Punctuator::OpenParen, "arrow function", false)?;
 
-            match FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor) {
-                Ok(params) => {
-                    cursor.expect(Punctuator::CloseParen, "arrow function", false)?;
-                    params
-                }
-                Err(e) => {
-                    cursor.push_back(next_token);
-                    return Err(e);
-                }
-            }
+            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            cursor.expect(Punctuator::CloseParen, "arrow function", false)?;
+            params
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
