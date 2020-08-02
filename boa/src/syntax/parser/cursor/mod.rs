@@ -182,7 +182,7 @@ where
             // This only needs to be done upto the point at which we are peeking - it is
             // important that we don't go further than this as we would risk removing line terminators
             // which are later needed.
-            for i in 0..=min(skip_n, self.buf_size - 1) {
+            for i in 0..min(skip_n + 1, self.buf_size) {
                 let index = (self.back_index + i) % PEEK_BUF_SIZE;
                 if let Some(t) = self.peeked[index].clone() {
                     if t.kind() == &TokenKind::LineTerminator {
@@ -213,7 +213,7 @@ where
 
         // Have now peeked ahead the right number of spaces so can fetch the value directly.
         let val = self.peeked[(self.back_index + skip_n) % PEEK_BUF_SIZE].clone();
-        println!("peek_skip val: {:?}", val);
+        // println!("peek_skip val: {:?}", val);
         Ok(val)
 
         // if skip_line_terminators {
