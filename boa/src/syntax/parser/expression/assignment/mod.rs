@@ -118,14 +118,13 @@ where
                             if let Some(t) = cursor.peek(2, false)? {
                                 println!("Peek(2) token: {:?}", t);
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                                    unimplemented!("arrow function from )");
-                                    // return ArrowFunction::new(
-                                    //     self.allow_in,
-                                    //     self.allow_yield,
-                                    //     self.allow_await,
-                                    // )
-                                    // .parse(cursor)
-                                    // .map(Node::ArrowFunctionDecl);
+                                    return ArrowFunction::new(
+                                        self.allow_in,
+                                        self.allow_yield,
+                                        self.allow_await,
+                                    )
+                                    .parse(cursor)
+                                    .map(Node::ArrowFunctionDecl);
                                 }
                             }
                         }
