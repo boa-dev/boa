@@ -1,11 +1,11 @@
-use super::Cursor;
+use super::BufferedLexer;
 use crate::syntax::lexer::{Token, TokenKind};
 
 #[test]
 fn peek_skip_accending() {
     let buf: &[u8] = "a b c d e f g h i".as_bytes();
 
-    let mut cur = Cursor::new(buf);
+    let mut cur = BufferedLexer::from(buf);
 
     assert_eq!(
         *cur.peek(0, false)
@@ -62,7 +62,7 @@ fn peek_skip_accending() {
 fn peek_skip_next() {
     let buf: &[u8] = "a b c d e f g h i".as_bytes();
 
-    let mut cur = Cursor::new(buf);
+    let mut cur = BufferedLexer::from(buf);
 
     assert_eq!(
         *cur.peek(0, false)
@@ -161,7 +161,7 @@ fn peek_skip_next() {
 fn peek_skip_next_alternating() {
     let buf: &[u8] = "a b c d e f g h i".as_bytes();
 
-    let mut cur = Cursor::new(buf);
+    let mut cur = BufferedLexer::from(buf);
 
     assert_eq!(
         *cur.peek(0, false)
@@ -232,7 +232,7 @@ fn peek_skip_next_alternating() {
 fn peek_next_till_end() {
     let buf: &[u8] = "a b c d e f g h i".as_bytes();
 
-    let mut cur = Cursor::new(buf);
+    let mut cur = BufferedLexer::from(buf);
 
     loop {
         let peek = cur.peek(0, false).unwrap();
@@ -248,7 +248,7 @@ fn peek_next_till_end() {
 
 #[test]
 fn peek_skip_next_till_end() {
-    let mut cur = Cursor::new("a b c d e f g h i".as_bytes());
+    let mut cur = BufferedLexer::from("a b c d e f g h i".as_bytes());
 
     let mut peeked: [Option<Token>; super::MAX_PEEK_SKIP + 1] =
         [None::<Token>, None::<Token>, None::<Token>, None::<Token>];
@@ -270,7 +270,7 @@ fn peek_skip_next_till_end() {
 
 #[test]
 fn skip_peeked_terminators() {
-    let mut cur = Cursor::new("A B \n C".as_bytes());
+    let mut cur = BufferedLexer::from("A B \n C".as_bytes());
     assert_eq!(
         *cur.peek(0, false)
             .unwrap()
@@ -328,4 +328,33 @@ fn skip_peeked_terminators() {
 
     assert!(cur.peek(3, false).unwrap().is_none());
     assert!(cur.peek(3, true).unwrap().is_none());
+}
+
+#[test]
+fn push_back_peek() {
+    let mut cur = BufferedLexer::from("a b c d e f g h i".as_bytes());
+
+    let next = cur.next(false).unwrap().expect("Expected some");
+    assert_eq!(
+        *cur.peek(0, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("b")
+    );
+    cur.push_back(next);
+    assert_eq!(
+        *cur.peek(0, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("a")
+    );
+    assert_eq!(
+        *cur.peek(3, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("d")
+    );
 }
