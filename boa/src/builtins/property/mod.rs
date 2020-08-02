@@ -292,6 +292,23 @@ pub enum PropertyKey {
     Symbol(RcSymbol),
 }
 
+impl PropertyKey {
+    pub fn is_string(&self) -> bool {
+        matches!(self, Self::String(_))
+    }
+
+    pub fn is_symbol(&self) -> bool {
+        matches!(self, Self::Symbol(_))
+    }
+
+    pub fn to_index(&self) -> Option<usize> {
+        match self {
+            Self::String(ref string) => string.parse().ok(),
+            Self::Symbol(_) => None,
+        }
+    }
+}
+
 impl From<RcString> for PropertyKey {
     #[inline]
     fn from(string: RcString) -> PropertyKey {

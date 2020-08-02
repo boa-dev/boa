@@ -15,7 +15,7 @@
 
 use crate::builtins::{
     function::make_builtin_fn,
-    property::Property,
+    property::{Property, PropertyKey},
     value::{ResultValue, Value},
 };
 use crate::{exec::Interpreter, BoaProfiler};
@@ -54,7 +54,7 @@ impl Json {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::new_object(None);
                         holder.set_field("", j);
-                        Self::walk(reviver, ctx, &mut holder, Value::from(""))
+                        Self::walk(reviver, ctx, &mut holder, &"".into())
                     }
                     _ => Ok(j),
                 }
@@ -69,13 +69,18 @@ impl Json {
     /// for possible transformation.
     ///
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    fn walk(reviver: &Value, ctx: &mut Interpreter, holder: &mut Value, key: Value) -> ResultValue {
+    fn walk(
+        reviver: &Value,
+        ctx: &mut Interpreter,
+        holder: &mut Value,
+        key: &PropertyKey,
+    ) -> ResultValue {
         let mut value = holder.get_field(key.clone());
 
         let obj = value.as_object().as_deref().cloned();
         if let Some(obj) = obj {
             for key in obj.properties().keys() {
-                let v = Self::walk(reviver, ctx, &mut value, Value::from(key.as_str()));
+                let v = Self::walk(reviver, ctx, &mut value, &key.as_str().into());
                 match v {
                     Ok(v) if !v.is_undefined() => {
                         value.set_field(key.as_str(), v);
@@ -87,7 +92,7 @@ impl Json {
                 }
             }
         }
-        ctx.call(reviver, holder, &[key, value])
+        ctx.call(reviver, holder, &[key.into(), value])
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`

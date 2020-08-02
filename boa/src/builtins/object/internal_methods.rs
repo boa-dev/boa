@@ -6,7 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::builtins::{
-    object::Object,
+    object::{Object, ObjectData},
     property::{Attribute, Property, PropertyKey},
     value::{same_value, RcString, Value},
 };
@@ -163,6 +163,18 @@ impl Object {
         }
     }
 
+    fn string_get_owm_property(string: &str, key: &PropertyKey) -> Option<Property> {
+        if key.is_symbol() {
+            return None;
+        }
+        let index = key.to_index()?;
+        let c = string.chars().nth(index)?;
+        Some(Property::data_descriptor(
+            c.into(),
+            Attribute::READONLY | Attribute::ENUMERABLE | Attribute::PERMANENT,
+        ))
+    }
+
     /// The specification returns a Property Descriptor or Undefined.
     ///
     /// These are 2 separate types and we can't do that here.
@@ -172,7 +184,16 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     pub fn get_own_property(&self, key: &PropertyKey) -> Option<Property> {
-        self.ordinary_get_own_property(key)
+        match self.data {
+            ObjectData::String(ref string) => {
+                let descriptor = self.ordinary_get_own_property(key);
+                if descriptor.is_some() {
+                    return descriptor;
+                }
+                Self::string_get_owm_property(&string, key)
+            }
+            _ => self.ordinary_get_own_property(key),
+        }
     }
 
     /// [[Get]]
@@ -340,48 +361,6 @@ impl Object {
         // 9
         self.insert_property(property_key, desc);
         true
-    }
-
-    /// The specification returns a Property Descriptor or Undefined.
-    ///
-    /// These are 2 separate types and we can't do that here.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
-    pub fn get_own_property(&self, property_key: &PropertyKey) -> Option<Property> {
-        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
-
-        // Prop could either be a String or Symbol
-        match property_key {
-            PropertyKey::String(ref st) => self.properties().get(st).map(|v| {
-                let mut d = Property::empty();
-                if v.is_data_descriptor() {
-                    d.value = v.value.clone();
-                } else {
-                    debug_assert!(v.is_accessor_descriptor());
-                    d.get = v.get.clone();
-                    d.set = v.set.clone();
-                }
-                d.attribute = v.attribute;
-                d
-            }),
-            PropertyKey::Symbol(ref symbol) => {
-                self.symbol_properties().get(&symbol.hash()).map(|v| {
-                    let mut d = Property::empty();
-                    if v.is_data_descriptor() {
-                        d.value = v.value.clone();
-                    } else {
-                        debug_assert!(v.is_accessor_descriptor());
-                        d.get = v.get.clone();
-                        d.set = v.set.clone();
-                    }
-                    d.attribute = v.attribute;
-                    d
-                })
-            }
-        }
     }
 
     /// `Object.setPropertyOf(obj, prototype)`
