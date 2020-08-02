@@ -11,7 +11,9 @@ use crate::{
 use std::io::Read;
 
 /// The fixed size of the buffer used for storing values that are peeked ahead.
-const PEEK_BUF_SIZE: usize = 4;
+/// Sized 6 to allow for peeking ahead upto 4 values and pushing back a single value
+/// aswell as one space to allow marking the point at which the data wraps.
+const PEEK_BUF_SIZE: usize = 6;
 
 /// Token cursor.
 ///
@@ -20,7 +22,7 @@ const PEEK_BUF_SIZE: usize = 4;
 pub(super) struct Cursor<R> {
     lexer: Lexer<R>,
     peeked: [Option<Token>; PEEK_BUF_SIZE],
-    front_index: usize,
+    buf_size: usize,
     back_index: usize,
 }
 
@@ -33,8 +35,15 @@ where
     pub(super) fn new(reader: R) -> Self {
         Self {
             lexer: Lexer::new(reader),
-            peeked: [None::<Token>, None::<Token>, None::<Token>, None::<Token>],
-            front_index: 0,
+            peeked: [
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+            ],
+            buf_size: 0,
             back_index: 0,
         }
     }
@@ -64,12 +73,14 @@ where
     ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
 
-        if self.front_index == self.back_index {
+        if self.buf_size == 0 {
             // No value has been peeked ahead already so need to go get the next value.
             Ok(self.lexer.next(skip_line_terminators)?)
         } else {
+            // A value has already been peeked ahead so use that.
             let val = self.peeked[self.back_index].take();
             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+            self.buf_size -= 1;
 
             if skip_line_terminators {
                 if let Some(t) = val {
@@ -89,71 +100,93 @@ where
 
     /// Peeks the next token without moving the cursor.
     ///
+    /// This has the same semantics / behaviour as peek_skip(0).
+    ///
     /// If skip_line_terminators is true then line terminators will be discarded.
     pub(super) fn peek(
         &mut self,
         skip_line_terminators: bool,
     ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
-        if self.front_index == self.back_index {
-            // No value has been peeked ahead already so need to go get the next value.
+        self.peek_skip(0, skip_line_terminators)
+        // if self.buf_size == 0 {
+        //     // No value has been peeked ahead already so need to go get the next value.
 
-            let next = self.lexer.next(skip_line_terminators)?;
-            self.peeked[self.front_index] = next;
-            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
-        }
+        //     let next = self.lexer.next(skip_line_terminators)?;
+        //     self.peeked[self.back_index] = next;
+        //     self.buf_size += 1;
+        // }
 
-        let val = self.peeked[self.back_index].clone();
+        // let val = self.peeked[self.back_index].clone();
 
-        if skip_line_terminators {
-            if let Some(token) = val {
-                if token.kind() == &TokenKind::LineTerminator {
-                    self.peeked[self.back_index].take();
-                    self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
-                    self.peek(skip_line_terminators)
-                } else {
-                    Ok(Some(token))
-                }
-            } else {
-                Ok(None)
-            }
-        } else {
-            Ok(val)
-        }
+        // if skip_line_terminators {
+        //     if let Some(token) = val {
+        //         if token.kind() == &TokenKind::LineTerminator {
+        //             self.peeked[self.back_index].take();
+        //             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+        //             self.peek(skip_line_terminators)
+        //         } else {
+        //             Ok(Some(token))
+        //         }
+        //     } else {
+        //         Ok(None)
+        //     }
+        // } else {
+        //     Ok(val)
+        // }
     }
 
-    /// Peeks the token after the next token.
-    /// i.e. if there are tokens A, B, C and peek() returns A then peek_skip() will return B.
+    /// Peeks the nth token after the next token.
+    /// i.e. if there are tokens A, B, C, D, E and peek() returns A then peek_skip(1) will return B.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
     pub(super) fn peek_skip(
         &mut self,
+        skip_n: usize,
         skip_line_terminators: bool,
     ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
-        if self.front_index == self.back_index {
-            // No value has been peeked ahead already so need to go get the next value.
-
-            self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
-            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
-
-            let index = self.front_index;
-
-            self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
-            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
-
-            Ok(self.peeked[index].clone())
-        } else if ((self.back_index + 1) % PEEK_BUF_SIZE) == self.front_index {
-            // Indicates only a single value has been peeked ahead already
-            let index = self.front_index;
-
-            self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
-            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
-
-            Ok(self.peeked[index].clone())
-        } else {
-            Ok(self.peeked[(self.back_index + 1) % PEEK_BUF_SIZE].clone())
+        if skip_n > 3 {
+            unimplemented!("peek_skip(n) where n > 3");
         }
+
+        while self.buf_size <= skip_n {
+            // Need to keep peeking more values.
+            let index = (self.back_index + self.buf_size) % PEEK_BUF_SIZE;
+
+            println!("Index: {}", index);
+
+            self.peeked[index] = self.lexer.next(skip_line_terminators)?;
+
+            self.buf_size += 1;
+        }
+
+        // Have now peeked ahead the right number of spaces so can fetch the value directly.
+        Ok(self.peeked[(self.back_index + skip_n) % PEEK_BUF_SIZE].clone())
+
+        // if self.buf_size == 0 {
+        //     // No value has been peeked ahead already so need to go get the next value.
+
+        //     self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
+        //     self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+        //     let index = self.front_index;
+
+        //     self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
+        //     self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+        //     Ok(self.peeked[index].clone())
+        // } else if ((self.back_index + 1) % PEEK_BUF_SIZE) == self.front_index {
+        //     // Indicates only a single value has been peeked ahead already
+        //     let index = self.front_index;
+
+        //     self.peeked[self.front_index] = self.lexer.next(skip_line_terminators)?;
+        //     self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+
+        //     Ok(self.peeked[index].clone())
+        // } else {
+        //     Ok(self.peeked[(self.back_index + 1) % PEEK_BUF_SIZE].clone())
+        // }
     }
 
     /// Takes the given token and pushes it back onto the parser token queue.
@@ -161,25 +194,38 @@ where
     /// Note: it pushes it at the the front so the token will be returned on next .peek().
     #[inline]
     pub(super) fn push_back(&mut self, token: Token) {
-        if ((self.front_index + 1) % PEEK_BUF_SIZE) == self.back_index {
-            // Indicates that the buffer already contains a pushed back value and there is therefore
-            // no space for another.
+        // if ((self.front_index + 1) % PEEK_BUF_SIZE) == self.back_index {
+        //     // Indicates that the buffer already contains a pushed back value and there is therefore
+        //     // no space for another.
+        //     unimplemented!("Push back more than once");
+        // }
+
+        if self.buf_size >= (PEEK_BUF_SIZE - 1) {
             unimplemented!("Push back more than once");
         }
 
-        if self.front_index == self.back_index {
-            // No value peeked already.
-            self.peeked[self.front_index] = Some(token);
-            self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+        if self.back_index == 0 {
+            self.back_index = PEEK_BUF_SIZE - 1;
         } else {
-            if self.back_index == 0 {
-                self.back_index = PEEK_BUF_SIZE - 1;
-            } else {
-                self.back_index -= 1;
-            }
+            self.back_index -= 1;
+        };
 
-            self.peeked[self.back_index] = Some(token);
-        }
+        self.buf_size += 1;
+        self.peeked[self.back_index] = Some(token);
+
+        // if self.front_index == self.back_index {
+        //     // No value peeked already.
+        //     self.peeked[self.front_index] = Some(token);
+        //     self.front_index = (self.front_index + 1) % PEEK_BUF_SIZE;
+        // } else {
+        //     if self.back_index == 0 {
+        //         self.back_index = PEEK_BUF_SIZE - 1;
+        //     } else {
+        //         self.back_index -= 1;
+        //     }
+
+        //     self.peeked[self.back_index] = Some(token);
+        // }
     }
 
     /// Returns an error if the next token is not of kind `kind`.
@@ -261,7 +307,7 @@ where
     /// If skip is true then the token after the peek() token is checked instead.
     pub(super) fn peek_expect_no_lineterminator(&mut self, skip: bool) -> Result<(), ParseError> {
         let token = if skip {
-            self.peek_skip(false)?
+            self.peek_skip(1, false)?
         } else {
             self.peek(false)?
         };

@@ -92,7 +92,7 @@ where
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
                 if cursor.peek_expect_no_lineterminator(true).is_ok() {
-                    if let Some(tok) = cursor.peek_skip(false)? {
+                    if let Some(tok) = cursor.peek_skip(1, false)? {
                         if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                             return ArrowFunction::new(
                                 self.allow_in,
@@ -129,7 +129,7 @@ where
                             .map(Node::ArrowFunctionDecl);
                         }
                         TokenKind::Identifier(_) => {
-                            if let Some(t) = cursor.peek_skip(false)? {
+                            if let Some(t) = cursor.peek_skip(1, false)? {
                                 match *t.kind() {
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
