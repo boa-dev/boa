@@ -107,6 +107,7 @@ where
     /// This has the same semantics / behaviour as peek_skip(0).
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
+    // #[deprecated = "Replaced with peek_skip(0)"]
     pub(super) fn peek(
         &mut self,
         skip_line_terminators: bool,
@@ -181,7 +182,7 @@ where
             // This only needs to be done upto the point at which we are peeking - it is
             // important that we don't go further than this as we would risk removing line terminators
             // which are later needed.
-            for i in 0..min(skip_n, self.buf_size) {
+            for i in 0..=min(skip_n, self.buf_size - 1) {
                 let index = (self.back_index + i) % PEEK_BUF_SIZE;
                 if let Some(t) = self.peeked[index].clone() {
                     if t.kind() == &TokenKind::LineTerminator {

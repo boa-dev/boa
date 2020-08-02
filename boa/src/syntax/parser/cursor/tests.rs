@@ -359,6 +359,7 @@ fn skip_peeked_terminators() {
             .kind(),
         TokenKind::identifier("C")
     );
+    println!("mark");
     assert_eq!(
         *cur.peek_skip(2, true)
             .unwrap()
