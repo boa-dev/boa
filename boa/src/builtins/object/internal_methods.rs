@@ -91,20 +91,35 @@ impl Object {
         self.ordinary_has_property(key)
     }
 
-    /// Delete property.
-    pub fn delete(&mut self, key: &PropertyKey) -> bool {
-        let desc = if let Some(desc) = self.get_own_property(key) {
-            desc
-        } else {
-            return true;
-        };
-
-        if desc.configurable_or(false) {
-            self.remove_property(&key.to_string());
-            return true;
+    /// Remove the own property from this ordinary object.
+    /// Return `false` if the property was not deleted and is still present.
+    /// Return `true` if the property was deleted or is not present.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
+    fn ordinary_delete(&mut self, key: &PropertyKey) -> bool {
+        if let Some(descriptor) = self.get_own_property(key) {
+            if descriptor.configurable_or(false) {
+                self.remove_property(&key.to_string());
+                return true;
+            }
         }
 
         false
+    }
+
+    /// Remove the own property from this object.
+    /// Return `false` if the property was not deleted and is still present.
+    /// Return `true` if the property was deleted or is not present.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-5
+    pub fn delete(&mut self, key: &PropertyKey) -> bool {
+        self.ordinary_delete(key)
     }
 
     /// [[Get]]
