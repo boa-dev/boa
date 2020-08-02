@@ -213,7 +213,7 @@ impl Interpreter {
                 let primitive = self.to_primitive(value, PreferredType::String)?;
                 self.to_string(&primitive)
             }
-            Value::Date(_) => todo!("Date"),
+            Value::Date(ref dt) => Ok(RcString::from(dt.to_string())),
         }
     }
 

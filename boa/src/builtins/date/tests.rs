@@ -47,7 +47,13 @@ fn date_display() {
     assert_eq!("[Invalid Date]", format!("[{}]", dt));
 
     let cd = super::Date::default();
-    assert_eq!(format!("[{}]", cd.to_local().unwrap()), format!("[{}]", cd));
+    assert_eq!(
+        format!(
+            "[{}]",
+            cd.to_local().unwrap().format("%a %b %d %Y %H:%M:%S GMT%:z")
+        ),
+        format!("[{}]", cd)
+    );
 }
 
 #[test]
