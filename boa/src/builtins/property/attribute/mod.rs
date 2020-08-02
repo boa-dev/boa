@@ -82,9 +82,10 @@ impl Attribute {
     }
 
     /// Gets the `writable` flag.
+    ///
+    /// If `writable` is not present, `false` is returned.
     #[inline]
     pub fn writable(self) -> bool {
-        debug_assert!(self.has_writable());
         self.contains(Self::WRITABLE)
     }
 
@@ -105,9 +106,10 @@ impl Attribute {
     }
 
     /// Gets the `enumerable` flag.
+    ///
+    /// If `enumerable` is not present, `false` is returned.
     #[inline]
     pub fn enumerable(self) -> bool {
-        debug_assert!(self.has_enumerable());
         self.contains(Self::ENUMERABLE)
     }
 
@@ -128,9 +130,10 @@ impl Attribute {
     }
 
     /// Gets the `configurable` flag.
+    ///
+    /// If `configurable` is not present, `false` is returned.
     #[inline]
     pub fn configurable(self) -> bool {
-        debug_assert!(self.has_configurable());
         self.contains(Self::CONFIGURABLE)
     }
 }

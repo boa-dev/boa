@@ -41,6 +41,7 @@ fn enumerable_configurable() {
     let attribute = Attribute::ENUMERABLE | Attribute::CONFIGURABLE;
 
     assert!(!attribute.has_writable());
+    assert!(!attribute.writable());
 
     assert!(attribute.has_enumerable());
     assert!(attribute.enumerable());
@@ -65,8 +66,11 @@ fn default() {
     let attribute = Attribute::default();
 
     assert!(attribute.has_writable());
+    assert!(!attribute.writable());
     assert!(attribute.has_enumerable());
+    assert!(!attribute.enumerable());
     assert!(attribute.has_configurable());
+    assert!(!attribute.enumerable());
 }
 
 #[test]
@@ -76,8 +80,11 @@ fn clear() {
     attribute.clear();
 
     assert!(!attribute.has_writable());
+    assert!(!attribute.writable());
     assert!(!attribute.has_enumerable());
+    assert!(!attribute.enumerable());
     assert!(!attribute.has_configurable());
+    assert!(!attribute.enumerable());
 
     assert!(attribute.is_empty());
 }
