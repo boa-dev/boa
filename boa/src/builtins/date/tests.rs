@@ -943,3 +943,316 @@ fn date_proto_set_time() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn date_proto_set_utc_date() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(21); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 21).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    // Date wraps to previous month for 0.
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(0); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 06, 30).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(1/0); dt",
+    );
+    assert_eq!(None, actual);
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2012, 07, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 8); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2012, 09, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 8, 10); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2012, 09, 10).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    // Out-of-bounds
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 35); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2014, 12, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, -35); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2009, 02, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, 950); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2015, 05, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, -950); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2010, 02, 23).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 35, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35, 23); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 35, 23, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35, 23, 537); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 35, 23, 537)),
+        actual
+    );
+
+    // Out-of-bounds
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(10000, 20000, 30000, 40123); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2021, 09, 11).and_hms_milli(21, 40, 40, 123)),
+        actual
+    );
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_utc_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMilliseconds(597); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 15, 597)),
+        actual
+    );
+
+    // Out-of-bounds
+    // Thorough tests are done by setHours
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMilliseconds(40123); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 55, 123)),
+        actual
+    );
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_utc_minutes() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 11, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11, 35); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 11, 35, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11, 35, 537); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 11, 35, 537)),
+        actual
+    );
+
+    // Out-of-bounds
+    // Thorough tests are done by setHours
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(600000, 30000, 40123); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2021, 08, 29).and_hms_milli(09, 20, 40, 123)),
+        actual
+    );
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_utc_month() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMonth(11); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 12, 08).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMonth(11, 16); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 12, 16).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    // Out-of-bounds
+    // Thorough tests are done by setFullYear
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCMonth(40, 83); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2023, 07, 22).and_hms_milli(09, 16, 15, 779)),
+        actual
+    );
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_set_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCSeconds(11); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 11, 779)),
+        actual
+    );
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCSeconds(11, 487); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 11, 487)),
+        actual
+    );
+
+    // Out-of-bounds
+    // Thorough tests are done by setHour
+
+    let actual = forward_dt_utc(
+        &mut engine,
+        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCSeconds(40000000, 40123); dt",
+    );
+    assert_eq!(
+        Some(NaiveDate::from_ymd(2021, 11, 14).and_hms_milli(08, 23, 20, 123)),
+        actual
+    );
+
+    Ok(())
+}

@@ -919,6 +919,192 @@ impl Date {
         }
     }
 
+    setter_method! {
+        /// `Date.prototype.setUTCDate()`
+        ///
+        /// The `setUTCDate()` method sets the day of the month for a specified date according to universal time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcdate
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCDate
+        fn set_utc_date (to_utc, date_time, args[1]) {
+            args[0].map_or(None, |day| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let utc = date_time.naive_utc();
+                let mut year = utc.year();
+                let mut month = utc.month0() as i32;
+                let mut day = day as i32 - 1;
+
+                fix_date(&mut year, &mut month, &mut day);
+                ignore_ambiguity(Utc.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(utc.time()))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setFullYear()`
+        ///
+        /// The `setFullYear()` method sets the full year for a specified date according to local time. Returns new
+        /// timestamp.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcfullyear
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCFullYear
+        fn set_utc_full_year (to_utc, date_time, args[3]) {
+            args[0].map_or(None, |year| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let utc = date_time.naive_utc();
+                let mut year = year as i32;
+                let mut month = args[1].unwrap_or_else(|| utc.month0() as f64) as i32;
+                let mut day = args[2].unwrap_or_else(|| utc.day() as f64) as i32 - 1;
+
+                fix_date(&mut year, &mut month, &mut day);
+                ignore_ambiguity(Utc.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(utc.time()))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setUTCHours()`
+        ///
+        /// The `setUTCHours()` method sets the hour for a specified date according to universal time, and returns the
+        /// number of milliseconds since  January 1, 1970 00:00:00 UTC until the time represented by the updated `Date`
+        /// instance.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutchours
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCHours
+        fn set_utc_hours (to_utc, date_time, args[4]) {
+            args[0].map_or(None, |hour| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let utc = date_time.naive_utc();
+                let hour = hour as i64;
+                let minute = args[1].map_or_else(|| utc.minute() as i64, |minute| minute as i64);
+                let second = args[2].map_or_else(|| utc.second() as i64, |second| second as i64);
+                let ms = args[3].map_or_else(|| (utc.nanosecond() as f64 / NANOS_IN_MS) as i64, |ms| ms as i64);
+
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                let utc = utc.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                utc.map(|utc| Utc.from_utc_datetime(&utc))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setUTCMilliseconds()`
+        ///
+        /// The `setUTCMilliseconds()` method sets the milliseconds for a specified date according to universal time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcmilliseconds
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMilliseconds
+        fn set_utc_milliseconds (to_utc, date_time, args[1]) {
+            args[0].map_or(None, |ms| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let utc = date_time.naive_utc();
+                let hour = utc.hour() as i64;
+                let minute = utc.minute() as i64;
+                let second = utc.second() as i64;
+                let ms = ms as i64;
+
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                let utc = utc.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                utc.map(|utc| Utc.from_utc_datetime(&utc))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setUTCMinutes()`
+        ///
+        /// The `setUTCMinutes()` method sets the minutes for a specified date according to universal time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcminutes
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMinutes
+        fn set_utc_minutes (to_utc, date_time, args[3]) {
+            args[0].map_or(None, |minute| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let utc = date_time.naive_utc();
+                let hour = utc.hour() as i64;
+                let minute = minute as i64;
+                let second = args[1].map_or_else(|| utc.second() as i64, |second| second as i64);
+                let ms = args[2].map_or_else(|| (utc.nanosecond() as f64 / NANOS_IN_MS) as i64, |ms| ms as i64);
+
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                let utc = utc.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                utc.map(|utc| Utc.from_utc_datetime(&utc))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setUTCMonth()`
+        ///
+        /// The `setUTCMonth()` method sets the month for a specified date according to universal time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcmonth
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMonth
+        fn set_utc_month (to_utc, date_time, args[2]) {
+            args[0].map_or(None, |month| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let utc = date_time.naive_utc();
+                let mut year = utc.year();
+                let mut month = month as i32;
+                let mut day = args[1].unwrap_or_else(|| utc.day() as f64) as i32 - 1;
+
+                fix_date(&mut year, &mut month, &mut day);
+                ignore_ambiguity(Utc.ymd_opt(year, month as u32 + 1, day as u32 + 1).and_time(utc.time()))
+            })
+        }
+    }
+
+    setter_method! {
+        /// `Date.prototype.setUTCSeconds()`
+        ///
+        /// The `setUTCSeconds()` method sets the seconds for a specified date according to universal time.
+        ///
+        /// More information:
+        ///  - [ECMAScript reference][spec]
+        ///  - [MDN documentation][mdn]
+        ///
+        /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcseconds
+        /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCSeconds
+        fn set_utc_seconds (to_utc, date_time, args[2]) {
+            args[0].map_or(None, |second| {
+                // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
+                let utc = date_time.naive_utc();
+                let hour = utc.hour() as i64;
+                let minute = utc.minute() as i64;
+                let second = second as i64;
+                let ms = args[1].map_or_else(|| (utc.nanosecond() as f64 / NANOS_IN_MS) as i64, |ms| ms as i64);
+
+                let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
+                let utc = utc.date().and_hms(0, 0, 0).checked_add_signed(duration);
+                utc.map(|utc| Utc.from_utc_datetime(&utc))
+            })
+        }
+    }
+
     /// `Date.prototype.toString()`
     ///
     /// The `toString()` method returns a string representing the specified Date object.
@@ -1090,6 +1276,18 @@ impl Date {
         make_builtin_fn(Self::set_seconds, "setSeconds", &prototype, 1);
         make_builtin_fn(Self::set_year, "setYear", &prototype, 1);
         make_builtin_fn(Self::set_time, "setTime", &prototype, 1);
+        make_builtin_fn(Self::set_utc_date, "setUTCDate", &prototype, 1);
+        make_builtin_fn(Self::set_utc_full_year, "setUTCFullYear", &prototype, 1);
+        make_builtin_fn(Self::set_utc_hours, "setUTCHours", &prototype, 1);
+        make_builtin_fn(
+            Self::set_utc_milliseconds,
+            "setUTCMilliseconds",
+            &prototype,
+            1,
+        );
+        make_builtin_fn(Self::set_utc_minutes, "setUTCMinutes", &prototype, 1);
+        make_builtin_fn(Self::set_utc_month, "setUTCMonth", &prototype, 1);
+        make_builtin_fn(Self::set_utc_seconds, "setUTCSeconds", &prototype, 1);
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
 
