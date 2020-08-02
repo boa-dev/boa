@@ -60,13 +60,14 @@ impl Object {
         self.ordinary_prevent_extensions()
     }
 
-    /// Check if object has property.
+    /// Return a bool value indicating whether this ordinay object already has either an own
+    /// or inherited property with the specified key.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-    pub fn has_property(&self, key: &PropertyKey) -> bool {
+    /// [spec]: https://tc39.es/ecma262/#table-5
+    fn ordinary_has_property(&self, key: &PropertyKey) -> bool {
         if self.get_own_property(key).is_some() {
             return true;
         }
@@ -77,6 +78,17 @@ impl Object {
         } else {
             false
         }
+    }
+
+    /// Return a bool value indicating whether this ordinay object already has either an own
+    /// or inherited property with the specified key.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+    pub fn has_property(&self, key: &PropertyKey) -> bool {
+        self.ordinary_has_property(key)
     }
 
     /// Delete property.
