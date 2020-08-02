@@ -1105,6 +1105,81 @@ impl Date {
         }
     }
 
+    /// `Date.prototype.toDateString()`
+    ///
+    /// The `toDateString()` method returns the date portion of a Date object in English.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_date_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let dt_str = Self::this_time_value(this, ctx)?
+            .to_local()
+            .map(|date_time| date_time.format("%a %b %d %Y").to_string())
+            .unwrap_or_else(|| "Invalid Date".to_string());
+        Ok(Value::from(dt_str))
+    }
+
+    /// `Date.prototype.toGMTString()`
+    ///
+    /// The `toGMTString()` method converts a date to a string, using Internet Greenwich Mean Time (GMT) conventions.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.togmtstring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toGMTString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_gmt_string(
+        this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> ResultValue {
+        Self::to_utc_string(this, args, ctx)
+    }
+
+    /// `Date.prototype.toISOString()`
+    ///
+    /// The `toISOString()` method returns a string in simplified extended ISO format (ISO 8601).
+    ///
+    /// More information:
+    ///  - [ISO 8601][iso8601]
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [iso8601]: http://en.wikipedia.org/wiki/ISO_8601
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_iso_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let dt_str = Self::this_time_value(this, ctx)?
+            .to_utc()
+            // RFC 3389 uses +0.00 for UTC, where JS expects Z, so we can't use the built-in chrono function.
+            .map(|f| f.format("%Y-%m-%dT%H:%M:%S.%3fZ").to_string())
+            .unwrap_or_else(|| "Invalid Date".to_string());
+        Ok(Value::from(dt_str))
+    }
+
+    /// `Date.prototype.toJSON()`
+    ///
+    /// The `toJSON()` method returns a string representation of the `Date` object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tojson
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_json(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        Self::to_iso_string(this, args, ctx)
+    }
+
     /// `Date.prototype.toString()`
     ///
     /// The `toString()` method returns a string representing the specified Date object.
@@ -1119,7 +1194,27 @@ impl Date {
     pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let dt_str = Self::this_time_value(this, ctx)?
             .to_local()
-            .map(|f| f.to_rfc3339())
+            .map(|date_time| date_time.format("%a %b %d %Y %H:%M:%S GMT%:z").to_string())
+            .unwrap_or_else(|| "Invalid Date".to_string());
+        Ok(Value::from(dt_str))
+    }
+
+    /// `Date.prototype.toTimeString()`
+    ///
+    /// The `toTimeString()` method returns the time portion of a Date object in human readable form in American
+    /// English.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_time_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let dt_str = Self::this_time_value(this, ctx)?
+            .to_local()
+            .map(|date_time| date_time.format("%H:%M:%S GMT%:z").to_string())
             .unwrap_or_else(|| "Invalid Date".to_string());
         Ok(Value::from(dt_str))
     }
@@ -1288,8 +1383,14 @@ impl Date {
         make_builtin_fn(Self::set_utc_minutes, "setUTCMinutes", &prototype, 1);
         make_builtin_fn(Self::set_utc_month, "setUTCMonth", &prototype, 1);
         make_builtin_fn(Self::set_utc_seconds, "setUTCSeconds", &prototype, 1);
-
+        make_builtin_fn(Self::to_date_string, "toDateString", &prototype, 0);
+        make_builtin_fn(Self::to_gmt_string, "toGMTString", &prototype, 0);
+        make_builtin_fn(Self::to_iso_string, "toISOString", &prototype, 0);
+        make_builtin_fn(Self::to_json, "toJSON", &prototype, 0);
+        // Locale strings
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::to_time_string, "toTimeString", &prototype, 0);
+        make_builtin_fn(Self::to_utc_string, "toUTCString", &prototype, 0);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,
