@@ -71,7 +71,7 @@ fn fix_date(year: &mut i32, month: &mut i32, day: &mut i32) {
             if *day < 0 {
                 *month -= 1;
                 fix_month(year, month);
-                *day = num_days_in(*year, *month as u32) + *day;
+                *day += num_days_in(*year, *month as u32);
             } else {
                 let num_days = num_days_in(*year, *month as u32);
                 if *day >= num_days {
@@ -697,7 +697,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setdate
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
         fn set_date (to_local, date_time, args[1]) {
-            args[0].map_or(None, |day| {
+            args[0].and_then(|day| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let mut year = local.year();
@@ -723,7 +723,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setfullyear
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setFullYear
         fn set_full_year (to_local, date_time, args[3]) {
-            args[0].map_or(None, |year| {
+            args[0].and_then(|year| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let mut year = year as i32;
@@ -750,7 +750,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.sethours
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setHours
         fn set_hours (to_local, date_time, args[4]) {
-            args[0].map_or(None, |hour| {
+            args[0].and_then(|hour| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let hour = hour as i64;
@@ -760,7 +760,7 @@ impl Date {
 
                 let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
                 let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
-                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                local.and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -777,7 +777,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmilliseconds
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMilliseconds
         fn set_milliseconds (to_local, date_time, args[1]) {
-            args[0].map_or(None, |ms| {
+            args[0].and_then(|ms| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let hour = local.hour() as i64;
@@ -787,7 +787,7 @@ impl Date {
 
                 let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
                 let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
-                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                local.and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -804,7 +804,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setminutes
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMinutes
         fn set_minutes (to_local, date_time, args[3]) {
-            args[0].map_or(None, |minute| {
+            args[0].and_then(|minute| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let hour = local.hour() as i64;
@@ -814,7 +814,7 @@ impl Date {
 
                 let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
                 let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
-                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                local.and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -831,7 +831,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmonth
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMonth
         fn set_month (to_local, date_time, args[2]) {
-            args[0].map_or(None, |month| {
+            args[0].and_then(|month| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let mut year = local.year();
@@ -856,7 +856,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setseconds
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setSeconds
         fn set_seconds (to_local, date_time, args[2]) {
-            args[0].map_or(None, |second| {
+            args[0].and_then(|second| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let hour = local.hour() as i64;
@@ -866,7 +866,7 @@ impl Date {
 
                 let duration = Duration::hours(hour) + Duration::minutes(minute) + Duration::seconds(second) + Duration::milliseconds(ms);
                 let local = local.date().and_hms(0, 0, 0).checked_add_signed(duration);
-                local.map_or(None, |local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                local.and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -883,7 +883,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setyear
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear
         fn set_year (to_local, date_time, args[3]) {
-            args[0].map_or(None, |year| {
+            args[0].and_then(|year| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let local = date_time.naive_local();
                 let mut year = year as i32;
@@ -911,7 +911,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.settime
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setTime
         fn set_time (args[1]) {
-            args[0].map_or(None, |tv| {
+            args[0].and_then(|tv| {
                 let secs = (tv / 1_000f64) as i64;
                 let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
                 ignore_ambiguity(Local.timestamp_opt(secs, nsecs))
@@ -931,7 +931,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcdate
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCDate
         fn set_utc_date (to_utc, date_time, args[1]) {
-            args[0].map_or(None, |day| {
+            args[0].and_then(|day| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let utc = date_time.naive_utc();
                 let mut year = utc.year();
@@ -957,7 +957,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcfullyear
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCFullYear
         fn set_utc_full_year (to_utc, date_time, args[3]) {
-            args[0].map_or(None, |year| {
+            args[0].and_then(|year| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let utc = date_time.naive_utc();
                 let mut year = year as i32;
@@ -984,7 +984,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutchours
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCHours
         fn set_utc_hours (to_utc, date_time, args[4]) {
-            args[0].map_or(None, |hour| {
+            args[0].and_then(|hour| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let utc = date_time.naive_utc();
                 let hour = hour as i64;
@@ -1011,7 +1011,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcmilliseconds
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMilliseconds
         fn set_utc_milliseconds (to_utc, date_time, args[1]) {
-            args[0].map_or(None, |ms| {
+            args[0].and_then(|ms| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let utc = date_time.naive_utc();
                 let hour = utc.hour() as i64;
@@ -1038,7 +1038,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcminutes
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMinutes
         fn set_utc_minutes (to_utc, date_time, args[3]) {
-            args[0].map_or(None, |minute| {
+            args[0].and_then(|minute| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let utc = date_time.naive_utc();
                 let hour = utc.hour() as i64;
@@ -1065,7 +1065,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcmonth
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMonth
         fn set_utc_month (to_utc, date_time, args[2]) {
-            args[0].map_or(None, |month| {
+            args[0].and_then(|month| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let utc = date_time.naive_utc();
                 let mut year = utc.year();
@@ -1090,7 +1090,7 @@ impl Date {
         /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcseconds
         /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCSeconds
         fn set_utc_seconds (to_utc, date_time, args[2]) {
-            args[0].map_or(None, |second| {
+            args[0].and_then(|second| {
                 // Setters have to work in naive time because chrono [correctly] deals with DST, where JS does not.
                 let utc = date_time.naive_utc();
                 let hour = utc.hour() as i64;
