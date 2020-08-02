@@ -267,3 +267,32 @@ fn peek_skip_next_till_end() {
         }
     }
 }
+
+#[test]
+fn push_back_peek() {
+    let mut cur = Cursor::new("a b c d e f g h i".as_bytes());
+
+    let next = cur.next(false).unwrap().expect("Expected some");
+    assert_eq!(
+        *cur.peek_skip(0, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("b")
+    );
+    cur.push_back(next);
+    assert_eq!(
+        *cur.peek_skip(0, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("a")
+    );
+    assert_eq!(
+        *cur.peek_skip(3, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("d")
+    );
+}

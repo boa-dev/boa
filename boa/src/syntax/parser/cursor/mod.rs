@@ -8,7 +8,7 @@ use crate::{
         lexer::{InputElement, Lexer, Position, Token, TokenKind},
     },
 };
-use std::io::Read;
+use std::{cmp::min, io::Read};
 
 #[cfg(test)]
 mod tests;
@@ -141,9 +141,25 @@ where
     }
 
     /// Peeks the nth token after the next token.
-    /// i.e. if there are tokens A, B, C, D, E and peek() returns A then peek_skip(1) will return B.
+    /// i.e. if there are tokens A, B, C, D, E and peek_skip(0) returns A then peek_skip(1) will return B.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
+    /// i.e. If there are tokens A, B, \n, C and peek_skip(0, false) is 'A' then the following will hold: 
+    ///         peek_skip(0, true) == 'A'
+    ///         peek_skip(1, true) == 'B'
+    ///         peek_skip(1, false) == 'B'
+    ///         peek_skip(2, false) == \n
+    ///         peek_skip(2, true) == 'C'
+    ///         peek_skip(3, true) == None (End of stream)
+    ///  Note:
+    ///     peek_skip(3, false) == 'C' iff peek_skip(3, true) hasn't been called previously, this is because
+    ///     with skip_line_terminators == true the '\n' would be discarded. This leads to the following statements
+    ///     evaluating to true (in isolation from each other or any other previous cursor calls):
+    ///         peek_skip(3, false) == peek_skip(3, false) == '\n'
+    ///         peek_skip(3, true) == peek_skip(3, true) == None
+    ///         peek_skip(3, true) == peek_skip(3, false) == None
+    ///         (peek_skip(3, false) == 'C') != (peek_skip(3, true) == None)
+    ///
     pub(super) fn peek_skip(
         &mut self,
         skip_n: usize,
@@ -154,13 +170,37 @@ where
             unimplemented!("peek_skip(n) where n > 3");
         }
 
+        if skip_line_terminators {
+            // We must go through the peeked buffer to remove any line terminators.
+            // This only needs to be done upto the point at which we are peeking - it is
+            // important that we don't go further than this as we would risk removing line terminators
+            // which are later needed.
+            for i in 0 .. min(skip_n, self.buf_size) {
+                let index = (self.back_index + i) % PEEK_BUF_SIZE;
+                if let Some(t) = self.peeked[index].clone() {
+                    if t.kind() == &TokenKind::LineTerminator {
+                        self.peeked[index].take(); // Remove the line terminator
+
+                        let mut dst_index = index; // Dst index for the swap.
+
+                        // Move all subsequent values up (asif the line terminator never existed).
+                        for j in (i + 1) .. self.buf_size {
+                            let src_index = (self.back_index + j) % PEEK_BUF_SIZE; // Src index for the swap.
+                            self.peeked[dst_index] = self.peeked[src_index].take();
+                            dst_index = src_index;
+                            // self.peeked[index] 
+                            // unimplemented!();
+                        }
+
+                        self.buf_size -= 1;
+                    }
+                }
+            }
+        }
+
         while self.buf_size <= skip_n {
             // Need to keep peeking more values.
-            let index = (self.back_index + self.buf_size) % PEEK_BUF_SIZE;
-
-            println!("Index: {}", index);
-
-            self.peeked[index] = self.lexer.next(skip_line_terminators)?;
+            self.peeked[(self.back_index + self.buf_size) % PEEK_BUF_SIZE] = self.lexer.next(skip_line_terminators)?;
 
             self.buf_size += 1;
         }
@@ -169,6 +209,25 @@ where
         let val = self.peeked[(self.back_index + skip_n) % PEEK_BUF_SIZE].clone();
         println!("peek_skip val: {:?}", val);
         Ok(val)
+
+        // if skip_line_terminators {
+        //     if let Some(token) = val {
+        //         if token.kind() == &TokenKind::LineTerminator {
+        //             // unimplemented!("Skip line terminators");
+        //             self.peeked[self.back_index].take();
+        //             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+        //             self.peek(skip_line_terminators)
+        //         } else {
+        //             Ok(Some(token))
+        //         }
+        //     } else {
+        //         Ok(None)
+        //     }
+        // } else {
+        // }
+
+        // println!("peek_skip val: {:?}", val);
+        // Ok(val)
 
         // if self.buf_size == 0 {
         //     // No value has been peeked ahead already so need to go get the next value.
