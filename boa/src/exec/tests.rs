@@ -21,7 +21,7 @@ fn property_accessor_member_expression_dot_notation_on_string_literal() {
         typeof 'asd'.matchAll;
         "#;
 
-    assert_eq!(&exec(scenario), "function");
+    assert_eq!(&exec(scenario), "\"function\"");
 }
 
 #[test]
@@ -30,7 +30,7 @@ fn property_accessor_member_expression_bracket_notation_on_string_literal() {
         typeof 'asd'['matchAll'];
         "#;
 
-    assert_eq!(&exec(scenario), "function");
+    assert_eq!(&exec(scenario), "\"function\"");
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn property_accessor_member_expression_dot_notation_on_function() {
         asd.name;
         "#;
 
-    assert_eq!(&exec(scenario), "asd");
+    assert_eq!(&exec(scenario), "\"asd\"");
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn property_accessor_member_expression_bracket_notation_on_function() {
         asd['name'];
         "#;
 
-    assert_eq!(&exec(scenario), "asd");
+    assert_eq!(&exec(scenario), "\"asd\"");
 }
 
 #[test]
@@ -94,7 +94,7 @@ fn identifier_on_global_object_undefined() {
         }
         "#;
 
-    assert_eq!(&exec(scenario), "bar is not defined");
+    assert_eq!(&exec(scenario), "\"bar is not defined\"");
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn spread_with_arguments() {
     assert_eq!(one, String::from("1"));
 
     let two = forward(&mut engine, "result[1]");
-    assert_eq!(two, String::from("test"));
+    assert_eq!(two, String::from("\"test\""));
 
     let three = forward(&mut engine, "result[2]");
     assert_eq!(three, String::from("3"));
@@ -140,9 +140,9 @@ fn array_rest_with_arguments() {
     let mut engine = Interpreter::new(realm);
 
     let scenario = r#"
-            var b = [4, 5, 6]
-            var a = [1, 2, 3, ...b];
-        "#;
+                var b = [4, 5, 6]
+                var a = [1, 2, 3, ...b];
+            "#;
     forward(&mut engine, scenario);
     let one = forward(&mut engine, "a");
     assert_eq!(one, String::from("[ 1, 2, 3, 4, 5, 6 ]"));
@@ -151,54 +151,53 @@ fn array_rest_with_arguments() {
 #[test]
 fn array_field_set() {
     let element_changes = r#"
-        let m = [1, 2, 3];
-        m[1] = 5;
-        m[1]
-        "#;
+            let m = [1, 2, 3];
+            m[1] = 5;
+            m[1]
+            "#;
     assert_eq!(&exec(element_changes), "5");
 
     let length_changes = r#"
-        let m = [1, 2, 3];
-        m[10] = 52;
-        m.length
-        "#;
+            let m = [1, 2, 3];
+            m[10] = 52;
+            m.length
+            "#;
     assert_eq!(&exec(length_changes), "11");
 
     let negative_index_wont_affect_length = r#"
-        let m = [1, 2, 3];
-        m[-11] = 5;
-        m.length
-        "#;
+            let m = [1, 2, 3];
+            m[-11] = 5;
+            m.length
+            "#;
     assert_eq!(&exec(negative_index_wont_affect_length), "3");
 
     let non_num_key_wont_affect_length = r#"
-        let m = [1, 2, 3];
-        m["magic"] = 5;
-        m.length
-        "#;
+            let m = [1, 2, 3];
+            m["magic"] = 5;
+            m.length
+            "#;
     assert_eq!(&exec(non_num_key_wont_affect_length), "3");
 }
 
 #[test]
 fn tilde_operator() {
     let float = r#"
-        let f = -1.2;
-        ~f
-        "#;
+            let f = -1.2;
+            ~f
+            "#;
     assert_eq!(&exec(float), "0");
 
     let numeric = r#"
-        let f = 1789;
-        ~f
-        "#;
+            let f = 1789;
+            ~f
+            "#;
     assert_eq!(&exec(numeric), "-1790");
 
-    // TODO: enable test after we have NaN
-    // let nan = r#"
-    // var m = NaN;
-    // ~m
-    // "#;
-    // assert_eq!(&exec(nan), "-1");
+    let nan = r#"
+    var m = NaN;
+    ~m
+    "#;
+    assert_eq!(&exec(nan), "-1");
 
     let object = r#"
         let m = {};
@@ -240,7 +239,7 @@ fn early_return() {
         }
         outer_fnct()
         "#;
-    assert_eq!(&exec(early_return), "outer");
+    assert_eq!(&exec(early_return), "\"outer\"");
 }
 
 #[test]
@@ -373,7 +372,7 @@ fn for_loop() {
         }
         b
         "#;
-    assert_eq!(&exec(simple), "hello");
+    assert_eq!(&exec(simple), "\"hello\"");
 
     let without_init_and_inc_step = r#"
         let a = 0;
@@ -410,7 +409,7 @@ fn for_loop_iteration_variable_does_not_leak() {
         }
         "#;
 
-    assert_eq!(&exec(inner_scope), "i is not defined");
+    assert_eq!(&exec(inner_scope), "\"i is not defined\"");
 }
 
 #[test]
@@ -462,7 +461,7 @@ fn typeof_string() {
         const a = String();
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_string), "string");
+    assert_eq!(&exec(typeof_string), "\"string\"");
 }
 
 #[test]
@@ -471,7 +470,7 @@ fn typeof_int() {
         let a = 5;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_int), "number");
+    assert_eq!(&exec(typeof_int), "\"number\"");
 }
 
 #[test]
@@ -480,7 +479,7 @@ fn typeof_rational() {
         let a = 0.5;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_rational), "number");
+    assert_eq!(&exec(typeof_rational), "\"number\"");
 }
 
 #[test]
@@ -489,7 +488,7 @@ fn typeof_undefined() {
         let a = undefined;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_undefined), "undefined");
+    assert_eq!(&exec(typeof_undefined), "\"undefined\"");
 }
 
 #[test]
@@ -497,7 +496,7 @@ fn typeof_undefined_directly() {
     let typeof_undefined = r#"
         typeof undefined;
     "#;
-    assert_eq!(&exec(typeof_undefined), "undefined");
+    assert_eq!(&exec(typeof_undefined), "\"undefined\"");
 }
 
 #[test]
@@ -506,7 +505,7 @@ fn typeof_boolean() {
         let a = true;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_boolean), "boolean");
+    assert_eq!(&exec(typeof_boolean), "\"boolean\"");
 }
 
 #[test]
@@ -515,7 +514,7 @@ fn typeof_null() {
         let a = null;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_null), "object");
+    assert_eq!(&exec(typeof_null), "\"object\"");
 }
 
 #[test]
@@ -524,7 +523,7 @@ fn typeof_object() {
         let a = {};
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_object), "object");
+    assert_eq!(&exec(typeof_object), "\"object\"");
 }
 
 #[test]
@@ -533,7 +532,7 @@ fn typeof_symbol() {
         let a = Symbol();
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_symbol), "symbol");
+    assert_eq!(&exec(typeof_symbol), "\"symbol\"");
 }
 
 #[test]
@@ -542,7 +541,7 @@ fn typeof_function() {
         let a = function(){};
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_function), "function");
+    assert_eq!(&exec(typeof_function), "\"function\"");
 }
 
 #[test]
@@ -602,7 +601,7 @@ fn unary_void() {
         const b = void test() + '';
         a + b
     "#;
-    assert_eq!(&exec(void_invocation), "42undefined");
+    assert_eq!(&exec(void_invocation), "\"42undefined\"");
 }
 
 #[test]
@@ -612,28 +611,28 @@ fn unary_delete() {
         const b = delete a + '';
         a + b
     "#;
-    assert_eq!(&exec(delete_var), "5false");
+    assert_eq!(&exec(delete_var), "\"5false\"");
 
     let delete_prop = r#"
         const a = { b: 5 };
         const c = delete a.b + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_prop), "undefinedtrue");
+    assert_eq!(&exec(delete_prop), "\"undefinedtrue\"");
 
     let delete_not_existing_prop = r#"
         const a = { b: 5 };
         const c = delete a.c + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_not_existing_prop), "5false");
+    assert_eq!(&exec(delete_not_existing_prop), "\"5false\"");
 
     let delete_field = r#"
         const a = { b: 5 };
         const c = delete a['b'] + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_field), "undefinedtrue");
+    assert_eq!(&exec(delete_field), "\"undefinedtrue\"");
 
     let delete_object = r#"
         const a = { b: 5 };
@@ -749,8 +748,8 @@ mod in_operator {
           var bar = new Foo();
         "#;
         forward(&mut engine, scenario);
-        assert_eq!(forward(&mut engine, "bar.a"), "a");
-        assert_eq!(forward(&mut engine, "bar.b"), "b");
+        assert_eq!(forward(&mut engine, "bar.a"), "\"a\"");
+        assert_eq!(forward(&mut engine, "bar.b"), "\"b\"");
     }
 
     #[test]
@@ -1147,7 +1146,7 @@ fn array_creation_benchmark() {
         })();
         "#;
 
-    assert_eq!(forward(&mut engine, init), "[ p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37, p38, p39, p40, p41, p42, p43, p44, p45, p46, p47, p48, p49, p50, p51, p52, p53, p54, p55, p56, p57, p58, p59, p60, p61, p62, p63, p64, p65, p66, p67, p68, p69, p70, p71, p72, p73, p74, p75, p76, p77, p78, p79, p80, p81, p82, p83, p84, p85, p86, p87, p88, p89, p90, p91, p92, p93, p94, p95, p96, p97, p98, p99, p100, p101, p102, p103, p104, p105, p106, p107, p108, p109, p110, p111, p112, p113, p114, p115, p116, p117, p118, p119, p120, p121, p122, p123, p124, p125, p126, p127, p128, p129, p130, p131, p132, p133, p134, p135, p136, p137, p138, p139, p140, p141, p142, p143, p144, p145, p146, p147, p148, p149, p150, p151, p152, p153, p154, p155, p156, p157, p158, p159, p160, p161, p162, p163, p164, p165, p166, p167, p168, p169, p170, p171, p172, p173, p174, p175, p176, p177, p178, p179, p180, p181, p182, p183, p184, p185, p186, p187, p188, p189, p190, p191, p192, p193, p194, p195, p196, p197, p198, p199, p200, p201, p202, p203, p204, p205, p206, p207, p208, p209, p210, p211, p212, p213, p214, p215, p216, p217, p218, p219, p220, p221, p222, p223, p224, p225, p226, p227, p228, p229, p230, p231, p232, p233, p234, p235, p236, p237, p238, p239, p240, p241, p242, p243, p244, p245, p246, p247, p248, p249, p250, p251, p252, p253, p254, p255, p256, p257, p258, p259, p260, p261, p262, p263, p264, p265, p266, p267, p268, p269, p270, p271, p272, p273, p274, p275, p276, p277, p278, p279, p280, p281, p282, p283, p284, p285, p286, p287, p288, p289, p290, p291, p292, p293, p294, p295, p296, p297, p298, p299, p300, p301, p302, p303, p304, p305, p306, p307, p308, p309, p310, p311, p312, p313, p314, p315, p316, p317, p318, p319, p320, p321, p322, p323, p324, p325, p326, p327, p328, p329, p330, p331, p332, p333, p334, p335, p336, p337, p338, p339, p340, p341, p342, p343, p344, p345, p346, p347, p348, p349, p350, p351, p352, p353, p354, p355, p356, p357, p358, p359, p360, p361, p362, p363, p364, p365, p366, p367, p368, p369, p370, p371, p372, p373, p374, p375, p376, p377, p378, p379, p380, p381, p382, p383, p384, p385, p386, p387, p388, p389, p390, p391, p392, p393, p394, p395, p396, p397, p398, p399, p400, p401, p402, p403, p404, p405, p406, p407, p408, p409, p410, p411, p412, p413, p414, p415, p416, p417, p418, p419, p420, p421, p422, p423, p424, p425, p426, p427, p428, p429, p430, p431, p432, p433, p434, p435, p436, p437, p438, p439, p440, p441, p442, p443, p444, p445, p446, p447, p448, p449, p450, p451, p452, p453, p454, p455, p456, p457, p458, p459, p460, p461, p462, p463, p464, p465, p466, p467, p468, p469, p470, p471, p472, p473, p474, p475, p476, p477, p478, p479, p480, p481, p482, p483, p484, p485, p486, p487, p488, p489, p490, p491, p492, p493, p494, p495, p496, p497, p498, p499, p500 ]");
+    assert_eq!(forward(&mut engine, init), "[ \"p0\", \"p1\", \"p2\", \"p3\", \"p4\", \"p5\", \"p6\", \"p7\", \"p8\", \"p9\", \"p10\", \"p11\", \"p12\", \"p13\", \"p14\", \"p15\", \"p16\", \"p17\", \"p18\", \"p19\", \"p20\", \"p21\", \"p22\", \"p23\", \"p24\", \"p25\", \"p26\", \"p27\", \"p28\", \"p29\", \"p30\", \"p31\", \"p32\", \"p33\", \"p34\", \"p35\", \"p36\", \"p37\", \"p38\", \"p39\", \"p40\", \"p41\", \"p42\", \"p43\", \"p44\", \"p45\", \"p46\", \"p47\", \"p48\", \"p49\", \"p50\", \"p51\", \"p52\", \"p53\", \"p54\", \"p55\", \"p56\", \"p57\", \"p58\", \"p59\", \"p60\", \"p61\", \"p62\", \"p63\", \"p64\", \"p65\", \"p66\", \"p67\", \"p68\", \"p69\", \"p70\", \"p71\", \"p72\", \"p73\", \"p74\", \"p75\", \"p76\", \"p77\", \"p78\", \"p79\", \"p80\", \"p81\", \"p82\", \"p83\", \"p84\", \"p85\", \"p86\", \"p87\", \"p88\", \"p89\", \"p90\", \"p91\", \"p92\", \"p93\", \"p94\", \"p95\", \"p96\", \"p97\", \"p98\", \"p99\", \"p100\", \"p101\", \"p102\", \"p103\", \"p104\", \"p105\", \"p106\", \"p107\", \"p108\", \"p109\", \"p110\", \"p111\", \"p112\", \"p113\", \"p114\", \"p115\", \"p116\", \"p117\", \"p118\", \"p119\", \"p120\", \"p121\", \"p122\", \"p123\", \"p124\", \"p125\", \"p126\", \"p127\", \"p128\", \"p129\", \"p130\", \"p131\", \"p132\", \"p133\", \"p134\", \"p135\", \"p136\", \"p137\", \"p138\", \"p139\", \"p140\", \"p141\", \"p142\", \"p143\", \"p144\", \"p145\", \"p146\", \"p147\", \"p148\", \"p149\", \"p150\", \"p151\", \"p152\", \"p153\", \"p154\", \"p155\", \"p156\", \"p157\", \"p158\", \"p159\", \"p160\", \"p161\", \"p162\", \"p163\", \"p164\", \"p165\", \"p166\", \"p167\", \"p168\", \"p169\", \"p170\", \"p171\", \"p172\", \"p173\", \"p174\", \"p175\", \"p176\", \"p177\", \"p178\", \"p179\", \"p180\", \"p181\", \"p182\", \"p183\", \"p184\", \"p185\", \"p186\", \"p187\", \"p188\", \"p189\", \"p190\", \"p191\", \"p192\", \"p193\", \"p194\", \"p195\", \"p196\", \"p197\", \"p198\", \"p199\", \"p200\", \"p201\", \"p202\", \"p203\", \"p204\", \"p205\", \"p206\", \"p207\", \"p208\", \"p209\", \"p210\", \"p211\", \"p212\", \"p213\", \"p214\", \"p215\", \"p216\", \"p217\", \"p218\", \"p219\", \"p220\", \"p221\", \"p222\", \"p223\", \"p224\", \"p225\", \"p226\", \"p227\", \"p228\", \"p229\", \"p230\", \"p231\", \"p232\", \"p233\", \"p234\", \"p235\", \"p236\", \"p237\", \"p238\", \"p239\", \"p240\", \"p241\", \"p242\", \"p243\", \"p244\", \"p245\", \"p246\", \"p247\", \"p248\", \"p249\", \"p250\", \"p251\", \"p252\", \"p253\", \"p254\", \"p255\", \"p256\", \"p257\", \"p258\", \"p259\", \"p260\", \"p261\", \"p262\", \"p263\", \"p264\", \"p265\", \"p266\", \"p267\", \"p268\", \"p269\", \"p270\", \"p271\", \"p272\", \"p273\", \"p274\", \"p275\", \"p276\", \"p277\", \"p278\", \"p279\", \"p280\", \"p281\", \"p282\", \"p283\", \"p284\", \"p285\", \"p286\", \"p287\", \"p288\", \"p289\", \"p290\", \"p291\", \"p292\", \"p293\", \"p294\", \"p295\", \"p296\", \"p297\", \"p298\", \"p299\", \"p300\", \"p301\", \"p302\", \"p303\", \"p304\", \"p305\", \"p306\", \"p307\", \"p308\", \"p309\", \"p310\", \"p311\", \"p312\", \"p313\", \"p314\", \"p315\", \"p316\", \"p317\", \"p318\", \"p319\", \"p320\", \"p321\", \"p322\", \"p323\", \"p324\", \"p325\", \"p326\", \"p327\", \"p328\", \"p329\", \"p330\", \"p331\", \"p332\", \"p333\", \"p334\", \"p335\", \"p336\", \"p337\", \"p338\", \"p339\", \"p340\", \"p341\", \"p342\", \"p343\", \"p344\", \"p345\", \"p346\", \"p347\", \"p348\", \"p349\", \"p350\", \"p351\", \"p352\", \"p353\", \"p354\", \"p355\", \"p356\", \"p357\", \"p358\", \"p359\", \"p360\", \"p361\", \"p362\", \"p363\", \"p364\", \"p365\", \"p366\", \"p367\", \"p368\", \"p369\", \"p370\", \"p371\", \"p372\", \"p373\", \"p374\", \"p375\", \"p376\", \"p377\", \"p378\", \"p379\", \"p380\", \"p381\", \"p382\", \"p383\", \"p384\", \"p385\", \"p386\", \"p387\", \"p388\", \"p389\", \"p390\", \"p391\", \"p392\", \"p393\", \"p394\", \"p395\", \"p396\", \"p397\", \"p398\", \"p399\", \"p400\", \"p401\", \"p402\", \"p403\", \"p404\", \"p405\", \"p406\", \"p407\", \"p408\", \"p409\", \"p410\", \"p411\", \"p412\", \"p413\", \"p414\", \"p415\", \"p416\", \"p417\", \"p418\", \"p419\", \"p420\", \"p421\", \"p422\", \"p423\", \"p424\", \"p425\", \"p426\", \"p427\", \"p428\", \"p429\", \"p430\", \"p431\", \"p432\", \"p433\", \"p434\", \"p435\", \"p436\", \"p437\", \"p438\", \"p439\", \"p440\", \"p441\", \"p442\", \"p443\", \"p444\", \"p445\", \"p446\", \"p447\", \"p448\", \"p449\", \"p450\", \"p451\", \"p452\", \"p453\", \"p454\", \"p455\", \"p456\", \"p457\", \"p458\", \"p459\", \"p460\", \"p461\", \"p462\", \"p463\", \"p464\", \"p465\", \"p466\", \"p467\", \"p468\", \"p469\", \"p470\", \"p471\", \"p472\", \"p473\", \"p474\", \"p475\", \"p476\", \"p477\", \"p478\", \"p479\", \"p480\", \"p481\", \"p482\", \"p483\", \"p484\", \"p485\", \"p486\", \"p487\", \"p488\", \"p489\", \"p490\", \"p491\", \"p492\", \"p493\", \"p494\", \"p495\", \"p496\", \"p497\", \"p498\", \"p499\", \"p500\" ]");
 }
 
 #[test]
@@ -1217,7 +1216,10 @@ fn not_a_function() {
             e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "\"TypeError: not a function\""
+    );
     let scenario = r#"
         try {
             a.a();
@@ -1225,7 +1227,10 @@ fn not_a_function() {
             e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "\"TypeError: not a function\""
+    );
     let scenario = r#"
         try {
             b();
@@ -1233,7 +1238,29 @@ fn not_a_function() {
             e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "\"TypeError: not a function\""
+    );
+}
+
+#[test]
+fn comma_operator() {
+    let scenario = r#"
+        var a, b;
+        b = 10;
+        a = (b++, b);
+        a
+    "#;
+    assert_eq!(&exec(scenario), "11");
+
+    let scenario = r#"
+        var a, b;
+        b = 10;
+        a = (b += 5, b /= 3, b - 3);
+        a
+    "#;
+    assert_eq!(&exec(scenario), "2");
 }
 
 #[test]

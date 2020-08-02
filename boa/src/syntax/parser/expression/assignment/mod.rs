@@ -82,14 +82,17 @@ where
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
+        // Problem code: Currently an expression of the form (a, b) is treated as the start of (a, b) => {} but it might actually be
+        // part of a different structure e.g. let a = (b++, b)
+
         // Arrow function
-        match cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(0, true)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
-                if cursor.peek_expect_no_lineterminator(true).is_ok() {
-                    if let Some(tok) = cursor.peek_skip(false)? {
+                if cursor.peek_expect_no_lineterminator(1).is_ok() {
+                    if let Some(tok) = cursor.peek(1, false)? {
                         if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                             return ArrowFunction::new(
                                 self.allow_in,
@@ -103,13 +106,26 @@ where
                 }
             }
 
-            // (a,b)=>{}
+            // (a,b)=>{} or (a,b) or (Expression)
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if let Some(next_token) = cursor.peek_skip(false)? {
+                if let Some(next_token) = cursor.peek(1, false)? {
                     match *next_token.kind() {
-                        TokenKind::Punctuator(Punctuator::CloseParen)
-                        | TokenKind::Punctuator(Punctuator::Spread)
-                        | TokenKind::Identifier(_) => {
+                        TokenKind::Punctuator(Punctuator::CloseParen) => {
+                            // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
+                            // otherwise it is an expression of the form (b).
+                            if let Some(t) = cursor.peek(2, false)? {
+                                if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
+                                    return ArrowFunction::new(
+                                        self.allow_in,
+                                        self.allow_yield,
+                                        self.allow_await,
+                                    )
+                                    .parse(cursor)
+                                    .map(Node::ArrowFunctionDecl);
+                                }
+                            }
+                        }
+                        TokenKind::Punctuator(Punctuator::Spread) => {
                             return ArrowFunction::new(
                                 self.allow_in,
                                 self.allow_yield,
@@ -117,6 +133,39 @@ where
                             )
                             .parse(cursor)
                             .map(Node::ArrowFunctionDecl);
+                        }
+                        TokenKind::Identifier(_) => {
+                            if let Some(t) = cursor.peek(2, false)? {
+                                match *t.kind() {
+                                    TokenKind::Punctuator(Punctuator::Comma) => {
+                                        // This must be an argument list and therefore (a, b) => {}
+                                        return ArrowFunction::new(
+                                            self.allow_in,
+                                            self.allow_yield,
+                                            self.allow_await,
+                                        )
+                                        .parse(cursor)
+                                        .map(Node::ArrowFunctionDecl);
+                                    }
+                                    TokenKind::Punctuator(Punctuator::CloseParen) => {
+                                        // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
+                                        // otherwise it is an expression of the form (b).
+                                        if let Some(t) = cursor.peek(2, false)? {
+                                            if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
+                                            {
+                                                return ArrowFunction::new(
+                                                    self.allow_in,
+                                                    self.allow_yield,
+                                                    self.allow_await,
+                                                )
+                                                .parse(cursor)
+                                                .map(Node::ArrowFunctionDecl);
+                                            }
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
                         }
                         _ => {}
                     }
@@ -134,7 +183,7 @@ where
         let mut line_terminator: Option<Token> = None;
 
         // Loop to skip line terminators, cannot skip using cursor.peek() as this might remove a line terminator needed by a subsequent parse.
-        while let Some(tok) = cursor.peek(false)? {
+        while let Some(tok) = cursor.peek(0, false)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next(false)?.expect("= token vanished"); // Consume the token.
@@ -147,7 +196,7 @@ where
                         )));
                     }
                 }
-                TokenKind::Punctuator(p) if p.as_binop().is_some() => {
+                TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
                     cursor.next(false)?.expect("Token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
                         let expr = self.parse(cursor)?;

@@ -72,7 +72,7 @@ where
         cursor.expect(Keyword::For, "for statement", false)?;
         cursor.expect(Punctuator::OpenParen, "for statement", false)?;
 
-        let init = match cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        let init = match cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Keyword(Keyword::Var) => Some(
                 VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
                     .parse(cursor)

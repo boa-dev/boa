@@ -6,7 +6,6 @@
 
 use crate::{
     builtins::{
-        self,
         function::{Function, NativeFunctionData},
         value::Value,
     },
@@ -40,32 +39,17 @@ impl Realm {
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = new_global_environment(global.clone(), global.clone());
 
-        let new_realm = Self {
+        Self {
             global_obj: global.clone(),
             global_env,
             environment: LexicalEnvironment::new(global),
-        };
-
-        // Add new builtIns to Realm
-        // At a later date this can be removed from here and called explicity, but for now we almost always want these default builtins
-        new_realm.create_instrinsics();
-
-        new_realm
-    }
-
-    // Sets up the default global objects within Global
-    fn create_instrinsics(&self) {
-        let _timer = BoaProfiler::global().start_event("create_instrinsics", "realm");
-        let global = &self.global_obj;
-        // Create intrinsics, add global objects here
-        builtins::init(global);
+        }
     }
 
     /// Utility to add a function to the global object
     pub fn register_global_func(self, func_name: &str, func: NativeFunctionData) -> Self {
         let func = Function::builtin(Vec::new(), func);
-        self.global_obj
-            .set_field(Value::from(func_name), Value::from_func(func));
+        self.global_obj.set_field(func_name, Value::from_func(func));
 
         self
     }

@@ -90,7 +90,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         &v.borrow()
                             .properties()
                             .get("length")
-                            .unwrap()
+                            .expect("Could not get Array's length property")
                             .value
                             .clone()
                             .expect("Could not borrow value"),
@@ -175,6 +175,14 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     // in-memory address in this set
     let mut encounters = HashSet::new();
 
+    if let Value::Object(object) = v {
+        if object.borrow().is_error() {
+            let name = v.get_field("name");
+            let message = v.get_field("message");
+            return format!("{}: {}", name, message);
+        }
+    }
+
     fn display_obj_internal(
         data: &Value,
         encounters: &mut HashSet<usize>,
@@ -210,7 +218,7 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
 
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
-            // Every other type of data is printed as is
+            // Every other type of data is printed with the display method
             format!("{}", data)
         }
     }
@@ -228,7 +236,7 @@ impl Display for Value {
                 Some(description) => write!(f, "Symbol({})", description),
                 None => write!(f, "Symbol()"),
             },
-            Self::String(ref v) => write!(f, "{}", v),
+            Self::String(ref v) => write!(f, "\"{}\"", v),
             Self::Rational(v) => format_rational(*v, f),
             Self::Object(_) => write!(f, "{}", log_string_from(self, true, true)),
             Self::Integer(v) => write!(f, "{}", v),

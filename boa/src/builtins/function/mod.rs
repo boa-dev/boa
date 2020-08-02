@@ -14,7 +14,7 @@
 use crate::{
     builtins::{
         object::{Object, ObjectData, PROTOTYPE},
-        property::{Attribute, Property},
+        property::{Attribute, Property, PropertyKey},
         value::{RcString, ResultValue, Value},
         Array,
     },
@@ -416,7 +416,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     // Define length as a property
-    obj.define_own_property("length".to_string(), length);
+    obj.define_own_property(&PropertyKey::from(RcString::from("length")), length);
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
@@ -533,7 +533,8 @@ where
 
 /// Initialise the `Function` object on the global object.
 #[inline]
-pub fn init(global: &Value) -> (&str, Value) {
+pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("function", "init");
     let prototype = Value::new_object(Some(global));
 

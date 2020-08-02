@@ -64,7 +64,7 @@ where
 
         let mut params = Vec::new();
 
-        if cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind()
+        if cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
@@ -80,7 +80,7 @@ where
                 FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
             });
 
-            if cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind()
+            if cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
@@ -88,7 +88,7 @@ where
 
             if rest_param {
                 return Err(ParseError::unexpected(
-                    cursor.peek(false)?.expect("Peek token disappeared"),
+                    cursor.peek(0, false)?.expect("Peek token disappeared"),
                     "rest parameter must be the last formal parameter",
                 ));
             }
@@ -194,12 +194,21 @@ where
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let init = if let Some(t) = cursor.peek(false)? {
+        let init = if let Some(t) = cursor.peek(0, false)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                 Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
             } else {
                 None
             }
+        // match *t.kind() {
+        //     TokenKind::Punctuator(Punctuator::Assign) => {
+        //         Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+        //     },
+        //     TokenKind::Punctuator(Punctuator::Inc) => {
+        //         Some(operator::UnaryOp::new(UnaryOp::IncrementPre, param))
+        //     }
+        //     _ => None
+        // }
         } else {
             None
         };
@@ -249,7 +258,7 @@ where
     type Output = node::StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if let Some(tk) = cursor.peek(false)? {
+        if let Some(tk) = cursor.peek(0, false)? {
             if tk.kind() == &Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }

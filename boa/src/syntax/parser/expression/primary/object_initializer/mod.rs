@@ -164,7 +164,7 @@ where
         }
 
         let pos = cursor
-            .peek(false)?
+            .peek(0, false)?
             .ok_or(ParseError::AbruptEnd)?
             .span()
             .start();
@@ -221,7 +221,7 @@ where
                     "property method definition",
                     false,
                 )?;
-                let first_param = cursor.peek(false)?.expect("current token disappeared");
+                let first_param = cursor.peek(0, false)?.expect("current token disappeared");
                 let params = FormalParameters::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition", false)?;
                 if idn == "get" {

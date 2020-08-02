@@ -10,7 +10,7 @@ fn assignmentoperator_lhs_not_defined() {
         }
         "#;
 
-    assert_eq!(&exec(scenario), "ReferenceError: a is not defined");
+    assert_eq!(&exec(scenario), "\"ReferenceError: a is not defined\"");
 }
 
 #[test]
@@ -24,5 +24,5 @@ fn assignmentoperator_rhs_throws_error() {
         }
         "#;
 
-    assert_eq!(&exec(scenario), "ReferenceError: b is not defined");
+    assert_eq!(&exec(scenario), "\"ReferenceError: b is not defined\"");
 }

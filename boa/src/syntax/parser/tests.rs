@@ -266,3 +266,29 @@ fn assignment_multiline_terminator() {
         ],
     );
 }
+
+#[test]
+fn bracketed_expr() {
+    let s = r#"(b)"#;
+
+    // Note that currently the expected expression isn't set correctly yet.
+    // First just to get to the point where the parser can handle the expression.
+    check_parser(s, vec![Identifier::from("b").into()]);
+}
+
+#[test]
+fn increment_in_comma_op() {
+    let s = r#"(b++, b)"#;
+
+    // Note that currently the expected expression isn't set correctly yet.
+    // First just to get to the point where the parser can handle the expression.
+    check_parser(
+        s,
+        vec![BinOp::new::<_, Node, Node>(
+            op::BinOp::Comma,
+            UnaryOp::new::<Node>(op::UnaryOp::IncrementPost, Identifier::from("b").into()).into(),
+            Identifier::from("b").into(),
+        )
+        .into()],
+    );
+}

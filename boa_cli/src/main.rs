@@ -29,9 +29,12 @@ use boa::{
     exec::Interpreter, forward_val, realm::Realm, syntax::ast::node::StatementList,
     syntax::lexer::Token, Lexer,
 };
+use colored::*;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read_to_string, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
+
+mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
@@ -42,6 +45,8 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// CLI configuration for Boa.
 static CLI_HISTORY: &str = ".boa_history";
+
+const READLINE_COLOR: Color = Color::Cyan;
 
 // Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
 // is an optional argument that optionally takes a value ([--opt=[val]]).
@@ -192,8 +197,8 @@ pub fn main() -> Result<(), std::io::Error> {
             }
         } else {
             match forward_val(&mut engine, &buffer) {
-                Ok(v) => print!("{}", v.to_string()),
-                Err(v) => eprint!("{}", v.to_string()),
+                Ok(v) => print!("{}", v),
+                Err(v) => eprint!("{}", v),
             }
         }
     }
@@ -208,11 +213,14 @@ pub fn main() -> Result<(), std::io::Error> {
             })
             .build();
 
-        let mut editor = Editor::<()>::with_config(config);
+        let mut editor = Editor::with_config(config);
         let _ = editor.load_history(CLI_HISTORY);
+        editor.set_helper(Some(helper::RLHelper::new()));
+
+        let readline = ">> ".color(READLINE_COLOR).bold().to_string();
 
         loop {
-            match editor.readline("> ") {
+            match editor.readline(&readline) {
                 Ok(line) if line == ".exit" => break,
                 Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
 
@@ -226,7 +234,7 @@ pub fn main() -> Result<(), std::io::Error> {
                     } else {
                         match forward_val(&mut engine, line.trim_end()) {
                             Ok(v) => println!("{}", v),
-                            Err(v) => eprintln!("{}", v),
+                            Err(v) => eprintln!("{}: {}", "Uncaught".red(), v.to_string().red()),
                         }
                     }
                 }

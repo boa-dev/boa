@@ -50,10 +50,10 @@ where
         let _timer = BoaProfiler::global().start_event("ThrowStatement", "Parsing");
         cursor.expect(Keyword::Throw, "throw statement", false)?;
 
-        cursor.peek_expect_no_lineterminator(false)?;
+        cursor.peek_expect_no_lineterminator(0)?;
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(false)? {
+        if let Some(tok) = cursor.peek(0, false)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
                 let _ = cursor.next(false);
             }

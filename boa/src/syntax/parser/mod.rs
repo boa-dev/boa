@@ -121,7 +121,7 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if cursor.peek(false)?.is_some() {
+        if cursor.peek(0, false)?.is_some() {
             ScriptBody.parse(cursor)
         } else {
             Ok(StatementList::from(Vec::new()))
