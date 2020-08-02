@@ -108,18 +108,28 @@ where
 
             // (a,b)=>{} or (a,b) or (Expression)
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                let temp = cursor.next(false)?.expect("'(' symbol vanished");
                 println!("Arrow function params");
-                if let Some(next_token) = cursor.peek(0, false)? {
+                if let Some(next_token) = cursor.peek(1, false)? {
                     println!("Next token: {:?}", next_token);
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen) => {
                             // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                             // otherwise it is an expression of the form (b).
-                            unimplemented!("Peek_skip_2");
+                            if let Some(t) = cursor.peek(2, false)? {
+                                println!("Peek(2) token: {:?}", t);
+                                if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
+                                    unimplemented!("arrow function from )");
+                                    // return ArrowFunction::new(
+                                    //     self.allow_in,
+                                    //     self.allow_yield,
+                                    //     self.allow_await,
+                                    // )
+                                    // .parse(cursor)
+                                    // .map(Node::ArrowFunctionDecl);
+                                }
+                            }
                         }
                         TokenKind::Punctuator(Punctuator::Spread) => {
-                            cursor.push_back(temp);
                             return ArrowFunction::new(
                                 self.allow_in,
                                 self.allow_yield,
@@ -129,11 +139,10 @@ where
                             .map(Node::ArrowFunctionDecl);
                         }
                         TokenKind::Identifier(_) => {
-                            if let Some(t) = cursor.peek(1, false)? {
+                            if let Some(t) = cursor.peek(2, false)? {
                                 match *t.kind() {
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
-                                        cursor.push_back(temp);
                                         return ArrowFunction::new(
                                             self.allow_in,
                                             self.allow_yield,
@@ -163,7 +172,6 @@ where
                         _ => {}
                     }
                 }
-                cursor.push_back(temp);
             }
 
             _ => {}
