@@ -296,3 +296,81 @@ fn push_back_peek() {
         TokenKind::identifier("d")
     );
 }
+
+#[test]
+fn skip_peeked_terminators() {
+    // If skip_line_terminators is true then line terminators will be discarded.
+    // / i.e. If there are tokens A, B, \n, C and peek_skip(0, false) is 'A' then the following will hold:
+    // /         peek_skip(0, true) == 'A'
+    // /         peek_skip(1, false) == 'B'
+    // /         peek_skip(1, true) == 'B'
+    // /         peek_skip(2, false) == \n
+    // /         peek_skip(2, true) == 'C'
+    // /         peek_skip(3, true) == None (End of stream)
+    // /  Note:
+    // /     peek_skip(3, false) == 'C' iff peek_skip(3, true) hasn't been called previously, this is because
+    // /     with skip_line_terminators == true the '\n' would be discarded. This leads to the following statements
+    // /     evaluating to true (in isolation from each other or any other previous cursor calls):
+    // /         peek_skip(3, false) == peek_skip(3, false) == '\n'
+    // /         peek_skip(3, true) == peek_skip(3, true) == None
+    // /         peek_skip(3, true) == peek_skip(3, false) == None
+    // /         (peek_skip(3, false) == 'C') != (peek_skip(3, true) == None)
+
+    let mut cur = Cursor::new("A B \n C".as_bytes());
+    assert_eq!(
+        *cur.peek_skip(0, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("A")
+    );
+    assert_eq!(
+        *cur.peek_skip(0, true)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("A")
+    );
+    assert_eq!(
+        *cur.peek_skip(1, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("B")
+    );
+    assert_eq!(
+        *cur.peek_skip(1, true)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("B")
+    );
+    assert_eq!(
+        *cur.peek_skip(2, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::LineTerminator
+    );
+    assert_eq!(
+        *cur.peek_skip(3, false)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("C")
+    );
+    assert_eq!(
+        *cur.peek_skip(2, true)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::identifier("C") // This value is after the line terminator.
+    );
+
+    // Note that now the line terminator is gone and any subsequent call will not return it.
+    // This is because the previous peek_skip(2, true) call skipped (and therefore destroyed) it
+    // because the returned value ("C") is after the line terminator.
+
+    assert!(cur.peek_skip(3, false).unwrap().is_none());
+    assert!(cur.peek_skip(3, true).unwrap().is_none());
+}

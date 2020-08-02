@@ -144,7 +144,7 @@ where
     /// i.e. if there are tokens A, B, C, D, E and peek_skip(0) returns A then peek_skip(1) will return B.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    /// i.e. If there are tokens A, B, \n, C and peek_skip(0, false) is 'A' then the following will hold: 
+    /// i.e. If there are tokens A, B, \n, C and peek_skip(0, false) is 'A' then the following will hold:
     ///         peek_skip(0, true) == 'A'
     ///         peek_skip(1, true) == 'B'
     ///         peek_skip(1, false) == 'B'
@@ -159,6 +159,12 @@ where
     ///         peek_skip(3, true) == peek_skip(3, true) == None
     ///         peek_skip(3, true) == peek_skip(3, false) == None
     ///         (peek_skip(3, false) == 'C') != (peek_skip(3, true) == None)
+    ///
+    /// Demonstration:
+    ///
+    /// ```rust
+    ///
+    /// ```
     ///
     pub(super) fn peek_skip(
         &mut self,
@@ -175,7 +181,7 @@ where
             // This only needs to be done upto the point at which we are peeking - it is
             // important that we don't go further than this as we would risk removing line terminators
             // which are later needed.
-            for i in 0 .. min(skip_n, self.buf_size) {
+            for i in 0..min(skip_n, self.buf_size) {
                 let index = (self.back_index + i) % PEEK_BUF_SIZE;
                 if let Some(t) = self.peeked[index].clone() {
                     if t.kind() == &TokenKind::LineTerminator {
@@ -184,12 +190,10 @@ where
                         let mut dst_index = index; // Dst index for the swap.
 
                         // Move all subsequent values up (asif the line terminator never existed).
-                        for j in (i + 1) .. self.buf_size {
+                        for j in (i + 1)..self.buf_size {
                             let src_index = (self.back_index + j) % PEEK_BUF_SIZE; // Src index for the swap.
                             self.peeked[dst_index] = self.peeked[src_index].take();
                             dst_index = src_index;
-                            // self.peeked[index] 
-                            // unimplemented!();
                         }
 
                         self.buf_size -= 1;
@@ -200,7 +204,8 @@ where
 
         while self.buf_size <= skip_n {
             // Need to keep peeking more values.
-            self.peeked[(self.back_index + self.buf_size) % PEEK_BUF_SIZE] = self.lexer.next(skip_line_terminators)?;
+            self.peeked[(self.back_index + self.buf_size) % PEEK_BUF_SIZE] =
+                self.lexer.next(skip_line_terminators)?;
 
             self.buf_size += 1;
         }
