@@ -70,6 +70,9 @@ where
     /// Moves the cursor to the next token and returns the token.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
+    ///
+    /// This follows iterator semantics in that a peek(0, false) followed by a next(false) will return the same value.
+    /// Note that because a peek(n, false) may return a line terminator a subsequent next(true) may not return the same value.
     #[inline]
     pub(super) fn next(
         &mut self,
@@ -222,7 +225,7 @@ where
         }
     }
 
-    /// It will check if the next token is a semicolon.
+    /// Consumes the next token iff it is a semicolon otherwise returns an expected ParseError.
     ///
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
