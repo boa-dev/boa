@@ -68,7 +68,7 @@ where
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let next_token = cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, true)?.ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
             return Err(ParseError::expected(
@@ -105,7 +105,7 @@ where
     // The previous token is already known to be a CloseParan as this is checked as part of the dowhile parsing.
     // This means that a semicolon is always automatically inserted if one isn't present.
 
-    if let Some(tk) = cursor.peek(false)? {
+    if let Some(tk) = cursor.peek(0, false)? {
         if tk.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
             cursor.next(false)?.expect("; token vanished"); // Consume semicolon.
         }

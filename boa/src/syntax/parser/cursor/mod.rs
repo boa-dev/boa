@@ -108,41 +108,46 @@ where
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
     // #[deprecated = "Replaced with peek_skip(0)"]
-    pub(super) fn peek(
-        &mut self,
-        skip_line_terminators: bool,
-    ) -> Result<Option<Token>, ParseError> {
-        let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
-        self.peek_skip(0, skip_line_terminators)
-        // if self.buf_size == 0 {
-        //     // No value has been peeked ahead already so need to go get the next value.
+    // pub(super) fn peek(
+    //     &mut self,
+    //     skip_line_terminators: bool,
+    // ) -> Result<Option<Token>, ParseError> {
+    //     let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
+    //     self.peek(0, skip_line_terminators)
+    //     // if self.buf_size == 0 {
+    //     //     // No value has been peeked ahead already so need to go get the next value.
 
-        //     let next = self.lexer.next(skip_line_terminators)?;
-        //     self.peeked[self.back_index] = next;
-        //     self.buf_size += 1;
-        // }
+    //     //     let next = self.lexer.next(skip_line_terminators)?;
+    //     //     self.peeked[self.back_index] = next;
+    //     //     self.buf_size += 1;
+    //     // }
 
-        // let val = self.peeked[self.back_index].clone();
+    //     // let val = self.peeked[self.back_index].clone();
 
-        // if skip_line_terminators {
-        //     if let Some(token) = val {
-        //         if token.kind() == &TokenKind::LineTerminator {
-        //             self.peeked[self.back_index].take();
-        //             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
-        //             self.peek(skip_line_terminators)
-        //         } else {
-        //             Ok(Some(token))
-        //         }
-        //     } else {
-        //         Ok(None)
-        //     }
-        // } else {
-        //     Ok(val)
-        // }
-    }
+    //     // if skip_line_terminators {
+    //     //     if let Some(token) = val {
+    //     //         if token.kind() == &TokenKind::LineTerminator {
+    //     //             self.peeked[self.back_index].take();
+    //     //             self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
+    //     //             self.peek(skip_line_terminators)
+    //     //         } else {
+    //     //             Ok(Some(token))
+    //     //         }
+    //     //     } else {
+    //     //         Ok(None)
+    //     //     }
+    //     // } else {
+    //     //     Ok(val)
+    //     // }
+    // }
 
     /// Peeks the nth token after the next token.
-    /// i.e. if there are tokens A, B, C, D, E and peek_skip(0) returns A then peek_skip(1) will return B.
+    /// n must be in the range [0, 3]
+    /// i.e. if there are tokens A, B, C, D, E and peek_skip(0, false) returns A then:
+    ///     peek_skip(1, false) == peek_skip(1, true) == B.
+    ///     peek_skip(2, false) will return C.
+    ///     peek_skip(3, false) will return D.
+    /// where A, B, C, D, E are tokens but not line terminators.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
     /// i.e. If there are tokens A, B, \n, C and peek_skip(0, false) is 'A' then the following will hold:
@@ -167,14 +172,14 @@ where
     ///
     /// ```
     ///
-    pub(super) fn peek_skip(
+    pub(super) fn peek(
         &mut self,
         skip_n: usize,
         skip_line_terminators: bool,
     ) -> Result<Option<Token>, ParseError> {
-        let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
+        let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
         if skip_n > MAX_PEEK_SKIP {
-            unimplemented!("peek_skip(n) where n > 3");
+            unimplemented!("peek(n) where n > 3");
         }
 
         if skip_line_terminators {
@@ -263,6 +268,8 @@ where
     /// Takes the given token and pushes it back onto the parser token queue.
     ///
     /// Note: it pushes it at the the front so the token will be returned on next .peek().
+    ///
+    /// A push_back call must never (directly or indirectly) follow another push_back call without a next between them.
     #[inline]
     pub(super) fn push_back(&mut self, token: Token) {
         // if ((self.front_index + 1) % PEEK_BUF_SIZE) == self.back_index {
@@ -314,7 +321,7 @@ where
         K: Into<TokenKind>,
     {
         let next_token = self
-            .peek(skip_line_terminators)?
+            .peek(0, skip_line_terminators)?
             .ok_or(ParseError::AbruptEnd)?;
         let kind = kind.into();
 
@@ -332,7 +339,7 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
-        match self.peek(false)? {
+        match self.peek(0, false)? {
             Some(tk) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
                 TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
@@ -371,19 +378,16 @@ where
         }
     }
 
-    /// It will make sure that the next token is not a line terminator.
+    /// It will make sure that the peeked token (skipping n tokens) is not a line terminator.
     ///
     /// It expects that the token stream does not end here.
     ///
-    /// If skip is true then the token after the peek() token is checked instead.
-    pub(super) fn peek_expect_no_lineterminator(&mut self, skip: bool) -> Result<(), ParseError> {
-        let token = if skip {
-            self.peek_skip(1, false)?
-        } else {
-            self.peek(false)?
-        };
-
-        if let Some(t) = token {
+    /// This is just syntatic sugar for a .peek(skip_n, false) call followed by a check that the result is not a line terminator or None.
+    pub(super) fn peek_expect_no_lineterminator(
+        &mut self,
+        skip_n: usize,
+    ) -> Result<(), ParseError> {
+        if let Some(t) = self.peek(skip_n, false)? {
             if t.kind() == &TokenKind::LineTerminator {
                 Err(ParseError::unexpected(t, None))
             } else {
@@ -409,7 +413,7 @@ where
     where
         K: Into<TokenKind>,
     {
-        Ok(if let Some(token) = self.peek(skip_line_terminators)? {
+        Ok(if let Some(token) = self.peek(0, skip_line_terminators)? {
             if token.kind() == &kind.into() {
                 self.next(skip_line_terminators)?
             } else {

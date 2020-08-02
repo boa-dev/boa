@@ -103,7 +103,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, true)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
@@ -238,7 +238,7 @@ impl StatementList {
         let mut items = Vec::new();
 
         loop {
-            if let Some(token) = cursor.peek(true)? {
+            if let Some(token) = cursor.peek(0, true)? {
                 if break_nodes.contains(token.kind()) {
                     break;
                 }
@@ -273,7 +273,7 @@ where
         let mut items = Vec::new();
 
         loop {
-            match cursor.peek(true)? {
+            match cursor.peek(0, true)? {
                 Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     if self.break_when_closingbraces {
                         break;
@@ -347,7 +347,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
-        let tok = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind {
             TokenKind::Keyword(Keyword::Function)
@@ -408,7 +408,7 @@ where
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
         // TODO: strict mode.
 
-        let next_token = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?;
 
         match next_token.kind() {
             TokenKind::Identifier(ref s) => {

@@ -62,7 +62,7 @@ where
         cursor.expect(Punctuator::OpenParen, "arguments", false)?;
         let mut args = Vec::new();
         loop {
-            let next_token = cursor.peek(true)?.ok_or(ParseError::AbruptEnd)?;
+            let next_token = cursor.peek(0, true)?.ok_or(ParseError::AbruptEnd)?;
 
             match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => {

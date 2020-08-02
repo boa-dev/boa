@@ -65,7 +65,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
 
-        let tk = cursor.peek(false)?;
+        let tk = cursor.peek(0, false)?;
 
         let mut lhs = match tk {
             Some(_) if tk.unwrap().kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -83,7 +83,7 @@ where
             }
         };
 
-        while let Some(tok) = cursor.peek(false)? {
+        while let Some(tok) = cursor.peek(0, false)? {
             let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {

@@ -42,7 +42,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
 
-        let name = if let Some(token) = cursor.peek(false)? {
+        let name = if let Some(token) = cursor.peek(0, false)? {
             match token.kind() {
                 TokenKind::Identifier(_)
                 | TokenKind::Keyword(Keyword::Yield)

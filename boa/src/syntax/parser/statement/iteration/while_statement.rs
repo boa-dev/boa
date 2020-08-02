@@ -60,7 +60,7 @@ where
         cursor.expect(Punctuator::OpenParen, "while statement", true)?;
 
         // This handles the case of a line terminator between the open paren and the expression.
-        cursor.peek(true)?;
+        cursor.peek(0, true)?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 

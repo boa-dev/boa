@@ -86,13 +86,13 @@ where
         // part of a different structure e.g. let a = (b++, b)
 
         // Arrow function
-        match cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
-                if cursor.peek_expect_no_lineterminator(true).is_ok() {
-                    if let Some(tok) = cursor.peek_skip(1, false)? {
+                if cursor.peek_expect_no_lineterminator(1).is_ok() {
+                    if let Some(tok) = cursor.peek(1, false)? {
                         if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                             return ArrowFunction::new(
                                 self.allow_in,
@@ -110,7 +110,7 @@ where
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let temp = cursor.next(false)?.expect("'(' symbol vanished");
                 println!("Arrow function params");
-                if let Some(next_token) = cursor.peek(false)? {
+                if let Some(next_token) = cursor.peek(0, false)? {
                     println!("Next token: {:?}", next_token);
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen) => {
@@ -129,7 +129,7 @@ where
                             .map(Node::ArrowFunctionDecl);
                         }
                         TokenKind::Identifier(_) => {
-                            if let Some(t) = cursor.peek_skip(1, false)? {
+                            if let Some(t) = cursor.peek(1, false)? {
                                 match *t.kind() {
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
@@ -174,7 +174,7 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek(false)? {
+        if let Some(tok) = cursor.peek(0, false)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next(false)?.expect("= token vanished"); // Consume the token.

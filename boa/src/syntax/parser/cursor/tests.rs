@@ -8,49 +8,49 @@ fn peek_skip_accending() {
     let mut cur = Cursor::new(buf);
 
     assert_eq!(
-        *cur.peek(false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("a")
     );
     assert_eq!(
-        *cur.peek_skip(1, false)
+        *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("b")
     );
     assert_eq!(
-        *cur.peek_skip(2, false)
+        *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("c")
     );
     assert_eq!(
-        *cur.peek_skip(3, false)
+        *cur.peek(3, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("d")
     );
     assert_eq!(
-        *cur.peek_skip(2, false)
+        *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("c")
     );
     assert_eq!(
-        *cur.peek_skip(1, false)
+        *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("b")
     );
     assert_eq!(
-        *cur.peek(false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -65,28 +65,28 @@ fn peek_skip_next() {
     let mut cur = Cursor::new(buf);
 
     assert_eq!(
-        *cur.peek(false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("a")
     );
     assert_eq!(
-        *cur.peek_skip(1, false)
+        *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("b")
     );
     assert_eq!(
-        *cur.peek_skip(2, false)
+        *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("c")
     );
     assert_eq!(
-        *cur.peek_skip(3, false)
+        *cur.peek(3, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -128,28 +128,28 @@ fn peek_skip_next() {
         TokenKind::identifier("e")
     );
     assert_eq!(
-        *cur.peek(false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("f")
     );
     assert_eq!(
-        *cur.peek_skip(1, false)
+        *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("g")
     );
     assert_eq!(
-        *cur.peek_skip(2, false)
+        *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("h")
     );
     assert_eq!(
-        *cur.peek_skip(3, false)
+        *cur.peek(3, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -164,7 +164,7 @@ fn peek_skip_next_alternating() {
     let mut cur = Cursor::new(buf);
 
     assert_eq!(
-        *cur.peek(false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -178,7 +178,7 @@ fn peek_skip_next_alternating() {
         TokenKind::identifier("a")
     );
     assert_eq!(
-        *cur.peek_skip(1, false)
+        *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -192,14 +192,14 @@ fn peek_skip_next_alternating() {
         TokenKind::identifier("b")
     );
     assert_eq!(
-        *cur.peek_skip(1, false)
+        *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("d")
     );
     assert_eq!(
-        *cur.peek_skip(3, false)
+        *cur.peek(3, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -213,14 +213,14 @@ fn peek_skip_next_alternating() {
         TokenKind::identifier("c")
     );
     assert_eq!(
-        *cur.peek_skip(2, false)
+        *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("f")
     );
     assert_eq!(
-        *cur.peek_skip(3, false)
+        *cur.peek(3, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -235,7 +235,7 @@ fn peek_next_till_end() {
     let mut cur = Cursor::new(buf);
 
     loop {
-        let peek = cur.peek(false).unwrap();
+        let peek = cur.peek(0, false).unwrap();
         let next = cur.next(false).unwrap();
 
         assert_eq!(peek, next);
@@ -255,7 +255,7 @@ fn peek_skip_next_till_end() {
 
     loop {
         for i in 0..super::MAX_PEEK_SKIP {
-            peeked[i] = cur.peek_skip(i, false).unwrap();
+            peeked[i] = cur.peek(i, false).unwrap();
         }
 
         for i in 0..super::MAX_PEEK_SKIP {
@@ -274,7 +274,7 @@ fn push_back_peek() {
 
     let next = cur.next(false).unwrap().expect("Expected some");
     assert_eq!(
-        *cur.peek_skip(0, false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -282,14 +282,14 @@ fn push_back_peek() {
     );
     cur.push_back(next);
     assert_eq!(
-        *cur.peek_skip(0, false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("a")
     );
     assert_eq!(
-        *cur.peek_skip(3, false)
+        *cur.peek(3, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -318,42 +318,42 @@ fn skip_peeked_terminators() {
 
     let mut cur = Cursor::new("A B \n C".as_bytes());
     assert_eq!(
-        *cur.peek_skip(0, false)
+        *cur.peek(0, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("A")
     );
     assert_eq!(
-        *cur.peek_skip(0, true)
+        *cur.peek(0, true)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("A")
     );
     assert_eq!(
-        *cur.peek_skip(1, false)
+        *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("B")
     );
     assert_eq!(
-        *cur.peek_skip(1, true)
+        *cur.peek(1, true)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("B")
     );
     assert_eq!(
-        *cur.peek_skip(2, false)
+        *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
         TokenKind::LineTerminator
     );
     assert_eq!(
-        *cur.peek_skip(3, false)
+        *cur.peek(3, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -361,7 +361,7 @@ fn skip_peeked_terminators() {
     );
     println!("mark");
     assert_eq!(
-        *cur.peek_skip(2, true)
+        *cur.peek(2, true)
             .unwrap()
             .expect("Some value expected")
             .kind(),
@@ -372,6 +372,6 @@ fn skip_peeked_terminators() {
     // This is because the previous peek_skip(2, true) call skipped (and therefore destroyed) it
     // because the returned value ("C") is after the line terminator.
 
-    assert!(cur.peek_skip(3, false).unwrap().is_none());
-    assert!(cur.peek_skip(3, true).unwrap().is_none());
+    assert!(cur.peek(3, false).unwrap().is_none());
+    assert!(cur.peek(3, true).unwrap().is_none());
 }

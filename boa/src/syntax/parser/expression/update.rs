@@ -52,7 +52,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UpdateExpression", "Parsing");
 
-        let tok = cursor.peek(false)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?;
         match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
                 cursor
@@ -80,7 +80,7 @@ where
         }
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(false)? {
+        if let Some(tok) = cursor.peek(0, false)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
                     cursor

@@ -69,7 +69,7 @@ where
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek(false)? {
+        if let Some(tok) = cursor.peek(0, false)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
                 cursor.next(false)?.expect("? character vanished"); // Consume the token.
                 let then_clause =
