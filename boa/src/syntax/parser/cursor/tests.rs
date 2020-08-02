@@ -1,5 +1,5 @@
 use super::Cursor;
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{Token, TokenKind};
 
 #[test]
 fn peek_skip_accending() {
@@ -226,4 +226,44 @@ fn peek_skip_next_alternating() {
             .kind(),
         TokenKind::identifier("g")
     );
+}
+
+#[test]
+fn peek_next_till_end() {
+    let buf: &[u8] = "a b c d e f g h i".as_bytes();
+
+    let mut cur = Cursor::new(buf);
+
+    loop {
+        let peek = cur.peek(false).unwrap();
+        let next = cur.next(false).unwrap();
+
+        assert_eq!(peek, next);
+
+        if peek.is_none() {
+            break;
+        }
+    }
+}
+
+#[test]
+fn peek_skip_next_till_end() {
+    let mut cur = Cursor::new("a b c d e f g h i".as_bytes());
+
+    let mut peeked: [Option<Token>; super::MAX_PEEK_SKIP + 1] =
+        [None::<Token>, None::<Token>, None::<Token>, None::<Token>];
+
+    loop {
+        for i in 0..super::MAX_PEEK_SKIP {
+            peeked[i] = cur.peek_skip(i, false).unwrap();
+        }
+
+        for i in 0..super::MAX_PEEK_SKIP {
+            assert_eq!(cur.next(false).unwrap(), peeked[i]);
+        }
+
+        if peeked[super::MAX_PEEK_SKIP - 1].is_none() {
+            break;
+        }
+    }
 }
