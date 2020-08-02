@@ -12,7 +12,7 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::{InputElement, TokenKind};
+use crate::syntax::lexer::{Error as LexError, InputElement, Token, TokenKind};
 use crate::{
     syntax::{
         ast::{
@@ -86,7 +86,7 @@ where
         // part of a different structure e.g. let a = (b++, b)
 
         // Arrow function
-        match cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(0, true)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
@@ -180,22 +180,59 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        if let Some(tok) = cursor.peek(0, false)? {
+        let mut line_terminator: Option<Token> = None;
+
+        // Loop to skip line terminators, cannot skip using cursor.peek() as this might remove a line terminator needed by a subsequent parse.
+        while let Some(tok) = cursor.peek(0, false)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next(false)?.expect("= token vanished"); // Consume the token.
-                    lhs = Assign::new(lhs, self.parse(cursor)?).into();
+                    if is_assignable(&lhs) {
+                        lhs = Assign::new(lhs, self.parse(cursor)?).into();
+                        break;
+                    } else {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "Invalid left-hand side in assignment".into(),
+                        )));
+                    }
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
                     cursor.next(false)?.expect("Token vanished"); // Consume the token.
-                    let expr = self.parse(cursor)?;
-                    let binop = p.as_binop().expect("binop disappeared");
-                    lhs = BinOp::new(binop, lhs, expr).into();
+                    if is_assignable(&lhs) {
+                        let expr = self.parse(cursor)?;
+                        let binop = p.as_binop().expect("binop disappeared");
+                        lhs = BinOp::new(binop, lhs, expr).into();
+                        break;
+                    } else {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "Invalid left-hand side in assignment".into(),
+                        )));
+                    }
                 }
-                _ => {}
+                TokenKind::LineTerminator => {
+                    line_terminator = Some(tok);
+                    cursor.next(false)?.expect("Line terminator vanished");
+                }
+                _ => break,
             }
         }
 
+        if let Some(lt) = line_terminator {
+            cursor.push_back(lt);
+        }
+
         Ok(lhs)
+    }
+}
+
+/// Returns true if as per spec[spec] the node can be assigned a value.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
+#[inline]
+pub(crate) fn is_assignable(node: &Node) -> bool {
+    if let Node::Const(_) | Node::ArrayDecl(_) = node {
+        false
+    } else {
+        true
     }
 }
