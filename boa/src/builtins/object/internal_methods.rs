@@ -122,6 +122,59 @@ impl Object {
         self.ordinary_delete(key)
     }
 
+    /// The specification returns a Property Descriptor or `None`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinarygetownproperty
+    fn ordinary_get_own_property(&self, key: &PropertyKey) -> Option<Property> {
+        let _timer =
+            BoaProfiler::global().start_event("Object::ordinary_get_own_property", "object");
+
+        // Prop could either be a String or Symbol
+        match key {
+            PropertyKey::String(ref st) => self.properties().get(st).map(|v| {
+                let mut d = Property::empty();
+                if v.is_data_descriptor() {
+                    d.value = v.value.clone();
+                } else {
+                    debug_assert!(v.is_accessor_descriptor());
+                    d.get = v.get.clone();
+                    d.set = v.set.clone();
+                }
+                d.attribute = v.attribute;
+                d
+            }),
+            PropertyKey::Symbol(ref symbol) => {
+                self.symbol_properties().get(&symbol.hash()).map(|v| {
+                    let mut d = Property::empty();
+                    if v.is_data_descriptor() {
+                        d.value = v.value.clone();
+                    } else {
+                        debug_assert!(v.is_accessor_descriptor());
+                        d.get = v.get.clone();
+                        d.set = v.set.clone();
+                    }
+                    d.attribute = v.attribute;
+                    d
+                })
+            }
+        }
+    }
+
+    /// The specification returns a Property Descriptor or Undefined.
+    ///
+    /// These are 2 separate types and we can't do that here.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
+    pub fn get_own_property(&self, key: &PropertyKey) -> Option<Property> {
+        self.ordinary_get_own_property(key)
+    }
+
     /// [[Get]]
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
     pub fn get(&self, key: &PropertyKey) -> Value {
