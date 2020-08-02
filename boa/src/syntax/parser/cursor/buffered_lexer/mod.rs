@@ -32,7 +32,7 @@ where
     #[inline(always)]
     fn from(lexer: Lexer<R>) -> Self {
         Self {
-            lexer: lexer,
+            lexer,
             peeked: [
                 None::<Token>,
                 None::<Token>,
