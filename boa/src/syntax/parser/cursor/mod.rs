@@ -10,10 +10,15 @@ use crate::{
 };
 use std::io::Read;
 
+#[cfg(test)]
+mod tests;
+
 /// The fixed size of the buffer used for storing values that are peeked ahead.
-/// Sized 6 to allow for peeking ahead upto 4 values and pushing back a single value
-/// aswell as one space to allow marking the point at which the data wraps.
-const PEEK_BUF_SIZE: usize = 6;
+/// Sized 5 to allow for peeking ahead upto 4 values and pushing back a single value.
+const PEEK_BUF_SIZE: usize = 5;
+
+/// The maximum number of tokens which can be peeked ahead.
+const MAX_PEEK_SKIP: usize = 3;
 
 /// Token cursor.
 ///
@@ -36,7 +41,6 @@ where
         Self {
             lexer: Lexer::new(reader),
             peeked: [
-                None::<Token>,
                 None::<Token>,
                 None::<Token>,
                 None::<Token>,
@@ -146,7 +150,7 @@ where
         skip_line_terminators: bool,
     ) -> Result<Option<Token>, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_skip()", "Parsing");
-        if skip_n > 3 {
+        if skip_n > MAX_PEEK_SKIP {
             unimplemented!("peek_skip(n) where n > 3");
         }
 
@@ -162,7 +166,9 @@ where
         }
 
         // Have now peeked ahead the right number of spaces so can fetch the value directly.
-        Ok(self.peeked[(self.back_index + skip_n) % PEEK_BUF_SIZE].clone())
+        let val = self.peeked[(self.back_index + skip_n) % PEEK_BUF_SIZE].clone();
+        println!("peek_skip val: {:?}", val);
+        Ok(val)
 
         // if self.buf_size == 0 {
         //     // No value has been peeked ahead already so need to go get the next value.

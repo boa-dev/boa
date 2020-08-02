@@ -99,7 +99,10 @@ where
 
         cursor.peek_expect_no_lineterminator(false)?;
 
-        if let Some(_) = cursor.next_if(TokenKind::Punctuator(Punctuator::Arrow), false)? {
+        if cursor
+            .next_if(TokenKind::Punctuator(Punctuator::Arrow), false)?
+            .is_some()
+        {
             let body = ConciseBody::new(self.allow_in).parse(cursor)?;
             Ok(ArrowFunctionDecl::new(params, body))
         } else {
