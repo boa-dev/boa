@@ -101,7 +101,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
     fn ordinary_delete(&mut self, key: &PropertyKey) -> bool {
         if let Some(descriptor) = self.get_own_property(key) {
-            if descriptor.configurable_or(false) {
+            if descriptor.configurable() {
                 self.remove_property(&key.to_string());
                 return true;
             }
@@ -276,6 +276,114 @@ impl Object {
         self.ordinary_set_prototype_of(value)
     }
 
+    /// Define an own property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
+    fn ordinary_define_own_property(&mut self, property_key: &PropertyKey, desc: Property) -> bool {
+        let _timer =
+            BoaProfiler::global().start_event("Object::ordinary_define_own_property", "object");
+
+        let mut current = self
+            .get_own_property(property_key)
+            .unwrap_or_else(Property::empty);
+        let extensible = self.is_extensible();
+
+        // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
+        // There currently isn't a property, lets create a new one
+        if current.value.is_none() || current.value.as_ref().expect("failed").is_undefined() {
+            if !extensible {
+                return false;
+            }
+
+            self.insert_property(property_key, desc);
+            return true;
+        }
+        // If every field is absent we don't need to set anything
+        if desc.is_none() {
+            return true;
+        }
+
+        // 4
+        if !current.configurable() {
+            if desc.configurable() {
+                return false;
+            }
+
+            if desc.enumerable() != current.enumerable() {
+                return false;
+            }
+        }
+
+        // 5
+        if desc.is_generic_descriptor() {
+            // 6
+        } else if current.is_data_descriptor() != desc.is_data_descriptor() {
+            // a
+            if !current.configurable() {
+                return false;
+            }
+            // b
+            if current.is_data_descriptor() {
+                // Convert to accessor
+                current.value = None;
+                current.attribute.remove(Attribute::WRITABLE);
+            } else {
+                // c
+                // convert to data
+                current.get = None;
+                current.set = None;
+            }
+
+            self.insert_property(property_key, current);
+        // 7
+        } else if current.is_data_descriptor() && desc.is_data_descriptor() {
+            // a
+            if !current.configurable() && !current.writable() {
+                if desc.writable() {
+                    return false;
+                }
+
+                if desc.value.is_some()
+                    && !same_value(
+                        &desc.value.clone().unwrap(),
+                        &current.value.clone().unwrap(),
+                    )
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        // 8
+        } else {
+            if !current.configurable() {
+                if desc.set.is_some()
+                    && !same_value(&desc.set.clone().unwrap(), &current.set.clone().unwrap())
+                {
+                    return false;
+                }
+
+                if desc.get.is_some()
+                    && !same_value(&desc.get.clone().unwrap(), &current.get.clone().unwrap())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        // 9
+        self.insert_property(property_key, desc);
+        true
+    }
+
+    pub fn define_own_property(&mut self, key: &PropertyKey, desc: Property) -> bool {
+        self.ordinary_define_own_property(key, desc)
+    }
+
     /// [[Get]]
     /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
     pub fn get(&self, key: &PropertyKey) -> Value {
@@ -338,109 +446,6 @@ impl Object {
                 unimplemented!();
             }
         }
-    }
-
-    /// Define an own property.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-    pub fn define_own_property(&mut self, property_key: &PropertyKey, desc: Property) -> bool {
-        let _timer = BoaProfiler::global().start_event("Object::define_own_property", "object");
-
-        let mut current = self
-            .get_own_property(property_key)
-            .unwrap_or_else(Property::empty);
-        let extensible = self.is_extensible();
-
-        // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
-        // There currently isn't a property, lets create a new one
-        if current.value.is_none() || current.value.as_ref().expect("failed").is_undefined() {
-            if !extensible {
-                return false;
-            }
-
-            self.insert_property(property_key, desc);
-            return true;
-        }
-        // If every field is absent we don't need to set anything
-        if desc.is_none() {
-            return true;
-        }
-
-        // 4
-        if !current.configurable_or(false) {
-            if desc.configurable_or(false) {
-                return false;
-            }
-
-            if desc.enumerable_or(false) != current.enumerable_or(false) {
-                return false;
-            }
-        }
-
-        // 5
-        if desc.is_generic_descriptor() {
-            // 6
-        } else if current.is_data_descriptor() != desc.is_data_descriptor() {
-            // a
-            if !current.configurable() {
-                return false;
-            }
-            // b
-            if current.is_data_descriptor() {
-                // Convert to accessor
-                current.value = None;
-                current.attribute.remove(Attribute::WRITABLE);
-            } else {
-                // c
-                // convert to data
-                current.get = None;
-                current.set = None;
-            }
-
-            self.insert_property(property_key, current);
-        // 7
-        } else if current.is_data_descriptor() && desc.is_data_descriptor() {
-            // a
-            if !current.configurable() && !current.writable() {
-                if desc.writable_or(false) {
-                    return false;
-                }
-
-                if desc.value.is_some()
-                    && !same_value(
-                        &desc.value.clone().unwrap(),
-                        &current.value.clone().unwrap(),
-                    )
-                {
-                    return false;
-                }
-
-                return true;
-            }
-        // 8
-        } else {
-            if !current.configurable() {
-                if desc.set.is_some()
-                    && !same_value(&desc.set.clone().unwrap(), &current.set.clone().unwrap())
-                {
-                    return false;
-                }
-
-                if desc.get.is_some()
-                    && !same_value(&desc.get.clone().unwrap(), &current.get.clone().unwrap())
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-        // 9
-        self.insert_property(property_key, desc);
-        true
     }
 
     /// Helper function for property insertion.

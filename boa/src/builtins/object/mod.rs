@@ -569,7 +569,7 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
         .get_own_property(&key);
 
     Ok(property
-        .map_or(false, |own_prop| own_prop.enumerable_or(false))
+        .map_or(false, |own_prop| own_prop.enumerable())
         .into())
 }
 

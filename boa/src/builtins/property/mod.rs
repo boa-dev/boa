@@ -88,7 +88,9 @@ impl Property {
         }
     }
 
-    /// Get the
+    /// Gets the `enumerable` flag.
+    ///
+    /// If `configurable` is not present, `false` is returned.
     #[inline]
     pub fn configurable(&self) -> bool {
         self.attribute.configurable()
@@ -99,43 +101,30 @@ impl Property {
         self.attribute.set_configurable(configurable)
     }
 
-    #[inline]
-    pub fn configurable_or(&self, value: bool) -> bool {
-        if self.attribute.has_configurable() {
-            self.attribute.configurable()
-        } else {
-            value
-        }
-    }
-
-    /// Set enumerable
+    /// Gets the `enumerable` flag.
+    ///
+    /// If `enumerable` is not present, `false` is returned.
     #[inline]
     pub fn enumerable(&self) -> bool {
         self.attribute.enumerable()
     }
 
     #[inline]
-    pub fn enumerable_or(&self, value: bool) -> bool {
-        if self.attribute.has_enumerable() {
-            self.attribute.enumerable()
-        } else {
-            value
-        }
+    pub fn set_enumerable(&mut self, enumerable: bool) {
+        self.attribute.set_enumerable(enumerable)
     }
 
-    /// Set writable
+    /// Gets the `writable` flag.
+    ///
+    /// If `writable` is not present, `false` is returned.
     #[inline]
     pub fn writable(&self) -> bool {
         self.attribute.writable()
     }
 
     #[inline]
-    pub fn writable_or(&self, value: bool) -> bool {
-        if self.attribute.has_writable() {
-            self.attribute.writable()
-        } else {
-            value
-        }
+    pub fn set_writable(&mut self, writable: bool) {
+        self.attribute.set_writable(writable)
     }
 
     /// Set value
