@@ -108,15 +108,12 @@ where
 
             // (a,b)=>{} or (a,b) or (Expression)
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                println!("Arrow function params");
                 if let Some(next_token) = cursor.peek(1, false)? {
-                    println!("Next token: {:?}", next_token);
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen) => {
                             // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                             // otherwise it is an expression of the form (b).
                             if let Some(t) = cursor.peek(2, false)? {
-                                println!("Peek(2) token: {:?}", t);
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                                     return ArrowFunction::new(
                                         self.allow_in,
@@ -154,7 +151,6 @@ where
                                         // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                                         // otherwise it is an expression of the form (b).
                                         if let Some(t) = cursor.peek(2, false)? {
-                                            println!("Peek(2) token: {:?}", t);
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
                                                 return ArrowFunction::new(
