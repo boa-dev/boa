@@ -104,28 +104,28 @@ where
 
     /// Peeks the nth token after the next token.
     /// n must be in the range [0, 3]
-    /// i.e. if there are tokens A, B, C, D, E and peek_skip(0, false) returns A then:
-    ///     peek_skip(1, false) == peek_skip(1, true) == B.
-    ///     peek_skip(2, false) will return C.
-    ///     peek_skip(3, false) will return D.
+    /// i.e. if there are tokens A, B, C, D, E and peek(0, false) returns A then:
+    ///     peek(1, false) == peek(1, true) == B.
+    ///     peek(2, false) will return C.
+    ///     peek(3, false) will return D.
     /// where A, B, C, D, E are tokens but not line terminators.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    /// i.e. If there are tokens A, B, \n, C and peek_skip(0, false) is 'A' then the following will hold:
-    ///         peek_skip(0, true) == 'A'
-    ///         peek_skip(1, true) == 'B'
-    ///         peek_skip(1, false) == 'B'
-    ///         peek_skip(2, false) == \n
-    ///         peek_skip(2, true) == 'C'
-    ///         peek_skip(3, true) == None (End of stream)
+    /// i.e. If there are tokens A, B, \n, C and peek(0, false) is 'A' then the following will hold:
+    ///         peek(0, true) == 'A'
+    ///         peek(1, true) == 'B'
+    ///         peek(1, false) == 'B'
+    ///         peek(2, false) == \n
+    ///         peek(2, true) == 'C'
+    ///         peek(3, true) == None (End of stream)
     ///  Note:
-    ///     peek_skip(3, false) == 'C' iff peek_skip(3, true) hasn't been called previously, this is because
+    ///     peek(3, false) == 'C' iff peek(3, true) hasn't been called previously, this is because
     ///     with skip_line_terminators == true the '\n' would be discarded. This leads to the following statements
     ///     evaluating to true (in isolation from each other or any other previous cursor calls):
-    ///         peek_skip(3, false) == peek_skip(3, false) == '\n'
-    ///         peek_skip(3, true) == peek_skip(3, true) == None
-    ///         peek_skip(3, true) == peek_skip(3, false) == None
-    ///         (peek_skip(3, false) == 'C') != (peek_skip(3, true) == None)
+    ///         peek(3, false) == peek(3, false) == '\n'
+    ///         peek(3, true) == peek(3, true) == None
+    ///         peek(3, true) == peek(3, false) == None
+    ///         (peek(3, false) == 'C') != (peek(3, true) == None)
     ///
     /// This behaviour is demonstrated directly in the cursor::tests::skip_peeked_terminators test.
     ///

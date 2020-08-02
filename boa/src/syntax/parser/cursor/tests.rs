@@ -352,7 +352,7 @@ fn skip_peeked_terminators() {
     );
 
     // Note that now the line terminator is gone and any subsequent call will not return it.
-    // This is because the previous peek_skip(2, true) call skipped (and therefore destroyed) it
+    // This is because the previous peek(2, true) call skipped (and therefore destroyed) it
     // because the returned value ("C") is after the line terminator.
 
     assert!(cur.peek(3, false).unwrap().is_none());
