@@ -134,6 +134,7 @@ impl Date {
     ///
     /// Each component does not have to be within the range of valid values. For example, if `month` is too large
     /// then `year` will be incremented by the required amount.
+    #[allow(clippy::too_many_arguments)]
     pub fn set_components(
         &mut self,
         utc: bool,
@@ -1104,22 +1105,6 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON
     pub fn to_json(&self) -> String {
         self.to_iso_string()
-    }
-
-    /// `Date.prototype.toString()`
-    ///
-    /// The `toString()` method returns a string representing the specified Date object.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
-    pub fn to_string(&self) -> String {
-        self.to_local()
-            .map(|date_time| date_time.format("%a %b %d %Y %H:%M:%S GMT%:z").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
     }
 
     /// `Date.prototype.toTimeString()`
